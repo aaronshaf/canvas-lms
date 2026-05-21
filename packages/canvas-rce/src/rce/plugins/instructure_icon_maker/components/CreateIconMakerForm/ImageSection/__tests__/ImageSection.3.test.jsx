@@ -24,10 +24,10 @@ import FakeEditor from '../../../../../../__tests__/FakeEditor'
 import {Size} from '../../../../svg/constants'
 import {convertFileToBase64} from '../../../../../shared/fileUtils'
 
-jest.useFakeTimers()
-jest.mock('../../../../../shared/StoreContext', () => {
+vi.useFakeTimers()
+vi.mock('../../../../../shared/StoreContext', async () => {
   return {
-    ...jest.requireActual('../../../../../shared/StoreContext'),
+    ...(await vi.importActual('../../../../../shared/StoreContext')),
     useStoreProps: () => ({
       images: {
         Course: {
@@ -90,21 +90,21 @@ jest.mock('../../../../../shared/StoreContext', () => {
         },
       },
       contextType: 'Course',
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
     }),
   }
 })
 
-jest.mock('../../../../../../../bridge', () => {
-  return {
+vi.mock('../../../../../../../bridge', () => ({
+  default: {
     trayProps: {
       get: () => ({foo: 'bar'}),
     },
-  }
-})
+  },
+}))
 
-jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
+vi.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   return {
     createCroppedImageSvg: () =>
       Promise.resolve({
@@ -113,7 +113,7 @@ jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   }
 })
 
-jest.mock('../../../../../shared/fileUtils')
+vi.mock('../../../../../shared/fileUtils')
 
 describe('ImageSection', () => {
   let scrollIntoView
@@ -124,23 +124,23 @@ describe('ImageSection', () => {
     },
     editing: false,
     editor: {},
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     canvasOrigin: 'https://canvas.instructor.com',
   }
 
   const subject = overrides => render(<ImageSection {...{...defaultProps, ...overrides}} />)
 
   beforeEach(() => {
-    scrollIntoView = jest.fn()
+    scrollIntoView = vi.fn()
     window.HTMLElement.prototype.scrollIntoView = scrollIntoView
     convertFileToBase64.mockImplementation(() => Promise.resolve('data:image/png;base64,CROPPED'))
   })
 
   afterEach(async () => {
     await act(async () => {
-      jest.runOnlyPendingTimers()
+      vi.runOnlyPendingTimers()
     })
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('calls onChange passing metadata when state prop changes', () => {
@@ -168,7 +168,7 @@ describe('ImageSection', () => {
         originalFileReader = FileReader
         Object.defineProperty(global, 'FileReader', {
           writable: true,
-          value: jest.fn().mockImplementation(() => ({
+          value: vi.fn().mockImplementation(() => ({
             set onload(value) {
               // Used when FileReader for converting to Blob
               value()
@@ -194,7 +194,7 @@ describe('ImageSection', () => {
         fireEvent.click(getByText('Add Image'))
         fireEvent.click(getByText('Course Images'))
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         const payload = lastPayloadOfActionType(defaultProps.onChange, 'SetImageSettings')
         expect(payload.mode).toEqual('Course')
@@ -204,11 +204,11 @@ describe('ImageSection', () => {
         fireEvent.click(getByText('Add Image'))
         fireEvent.click(getByText('Course Images'))
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         fireEvent.click(getByTitle('Click to embed image_one.png'))
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         const payload = lastPayloadOfActionType(defaultProps.onChange, 'SetImageSettings')
         expect(payload.image).toEqual('data:image/png;base64,asdfasdfjksdf==')
@@ -220,7 +220,7 @@ describe('ImageSection', () => {
         fireEvent.click(getByText('Course Images'))
         fireEvent.click(getByTitle('Click to embed image_one.png'))
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         // Zooms in just to change cropper settings
         fireEvent.click(getByTestId('zoom-in-button'))
@@ -229,7 +229,7 @@ describe('ImageSection', () => {
         )
         fireEvent.click(document.querySelector('[data-cid="Modal"] [type="submit"]'))
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         const payload = lastPayloadOfActionType(defaultProps.onChange, 'SetImageSettings')
         expect(payload.cropperSettings).toEqual({
@@ -248,7 +248,7 @@ describe('ImageSection', () => {
       await waitFor(() => expect(getByTestId('multicolor-svg-list')).toBeInTheDocument())
       fireEvent.click(getByTestId('icon-maker-art'))
       await act(async () => {
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
       })
       const payload = lastPayloadOfActionType(defaultProps.onChange, 'SetImageSettings')
       expect(payload.imageName).toEqual('Art Icon')
@@ -260,7 +260,7 @@ describe('ImageSection', () => {
       await waitFor(() => expect(getByTestId('singlecolor-svg-list')).toBeInTheDocument())
       fireEvent.click(getByTestId('icon-maker-art'))
       await act(async () => {
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
       })
       await waitFor(() => {
         expect(container.querySelector('[name="single-color-image-fill"]')).toBeInTheDocument()
@@ -269,7 +269,7 @@ describe('ImageSection', () => {
         target: {value: '#00FF00'},
       })
       await act(async () => {
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
       })
       const payload = lastPayloadOfActionType(defaultProps.onChange, 'SetImageSettings')
       expect(payload.iconFillColor).toEqual('#00FF00')
@@ -280,6 +280,9 @@ describe('ImageSection', () => {
     let rendered
 
     beforeEach(async () => {
+      // Upload is a React.lazy component; real timers required so Vite's async
+      // module runner can resolve the import() Promise
+      vi.useRealTimers()
       fetchMock.mock('/api/session', '{}')
 
       await act(async () => {
@@ -294,6 +297,7 @@ describe('ImageSection', () => {
 
     afterEach(() => {
       fetchMock.restore()
+      vi.useFakeTimers()
     })
 
     it('renders the image upload modal', async () => {

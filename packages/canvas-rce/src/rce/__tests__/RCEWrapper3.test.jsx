@@ -34,7 +34,7 @@ let fakeTinyMCE, editorCommandSpy, editor, rce
 function createBasicElement(opts) {
   editor = new FakeEditor({id: textareaId})
   fakeTinyMCE.get = () => editor
-  editorCommandSpy = jest.spyOn(editor, 'execCommand')
+  editorCommandSpy = vi.spyOn(editor, 'execCommand')
 
   const props = {textareaId, tinymce: fakeTinyMCE, ...trayProps(), ...defaultProps(), ...opts}
   rce = new RCEWrapper(props)
@@ -62,8 +62,8 @@ function createMountedElement(additionalProps = {}) {
   )
   rce = rceRef.current
   editor = rce.mceInstance()
-  jest.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
-  editorCommandSpy = jest.spyOn(rce.mceInstance(), 'execCommand')
+  vi.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
+  editorCommandSpy = vi.spyOn(rce.mceInstance(), 'execCommand')
   return retval
 }
 
@@ -132,7 +132,7 @@ describe('RCEWrapper', () => {
 
   afterEach(function () {
     document.body.innerHTML = ''
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('setup option', () => {
@@ -140,7 +140,7 @@ describe('RCEWrapper', () => {
 
     beforeEach(() => {
       editorOptions = {
-        setup: jest.fn(),
+        setup: vi.fn(),
         other: {},
       }
     })
@@ -175,16 +175,16 @@ describe('RCEWrapper', () => {
     let instance, elem
 
     function stubEventListeners(elm) {
-      jest.spyOn(elm, 'addEventListener').mockImplementation(() => {})
-      jest.spyOn(elm, 'removeEventListener').mockImplementation(() => {})
+      vi.spyOn(elm, 'addEventListener').mockImplementation(() => {})
+      vi.spyOn(elm, 'removeEventListener').mockImplementation(() => {})
     }
 
     beforeEach(() => {
       instance = createBasicElement()
       elem = document.getElementById(textareaId)
       stubEventListeners(elem)
-      jest.spyOn(instance, 'doAutoSave').mockImplementation(() => {})
-      jest.spyOn(editor, 'setContent')
+      vi.spyOn(instance, 'doAutoSave').mockImplementation(() => {})
+      vi.spyOn(editor, 'setContent')
     })
 
     describe('handleTextareaChange', () => {

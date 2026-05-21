@@ -20,11 +20,11 @@ import * as actions from '../../actions/files'
 import folders from '../folders'
 import folder from '../folder'
 
-jest.mock('../folder')
+vi.mock('../folder')
 
 describe('Folders reducer', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   function proxiesActionToId(type) {

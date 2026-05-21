@@ -20,9 +20,9 @@ import {screen, waitFor, fireEvent} from '@testing-library/dom'
 import TrayController from '../TrayController'
 import FakeEditor from '../../../../__tests__/FakeEditor'
 
-jest.mock('../../../shared/DimensionsInput', () => ({
-  useDimensionsState: () => ({ isValid: true }),
-}));
+vi.mock('../../../shared/DimensionsInput', () => ({
+  useDimensionsState: () => ({isValid: true}),
+}))
 
 describe('RCE "Images" Plugin > ImageOptionsTray > TrayController for Icon Maker Icons', () => {
   const isIconMaker = true
@@ -130,7 +130,7 @@ describe('RCE "Images" Plugin > ImageOptionsTray > TrayController for Icon Maker
 
   describe('#_applyIconAltTextChanges', () => {
     it('uses the icon maker "apply" function', () => {
-      const applyIconOptionsSpy = jest.spyOn(iconTrayController, '_applyIconAltTextChanges')
+      const applyIconOptionsSpy = vi.spyOn(iconTrayController, '_applyIconAltTextChanges')
       iconTrayController.showTrayForEditor(editorForIcon, isIconMaker)
       setAltTextInTray('and thats the fact jack')
       clickDoneButton()

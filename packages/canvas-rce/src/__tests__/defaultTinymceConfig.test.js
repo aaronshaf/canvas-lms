@@ -105,7 +105,7 @@ describe('defaultTinymceConfig', () => {
       const allAllowedElements = [valid_elements, extended_valid_elements].join(',')
 
       elementDenylist.forEach(element => {
-        const regex = new RegExp(`[^a-z\|\-]${element}[^a-z\|\-]`)
+        const regex = new RegExp(`[^a-z|-]${element}[^a-z|-]`)
         expect(allAllowedElements).not.toMatch(regex)
       })
     })
@@ -117,6 +117,16 @@ describe('defaultTinymceConfig', () => {
       elementDenylist.forEach(element => {
         expect(deniedByConfig).toContain(element)
       })
+    })
+  })
+
+  describe('content_style (regression: 97749a03717)', () => {
+    it('defaults to empty string so custom styles can be appended without NaN', () => {
+      // Before fix: content_style was undefined, causing string concat to fail
+      // RCEWrapper does: contentCSS + (options.content_style || '')
+      // which requires defaultTinymceConfig.content_style to be ''
+      const {content_style} = defaultTinymceConfig
+      expect(content_style).toBe('')
     })
   })
 
@@ -178,5 +188,11 @@ describe('defaultTinymceConfig', () => {
       expect(color_map).toContain('Dark Gray')
       expect(color_map).toContain('Black')
     })
+  })
+
+  it('does not contain misspelled toolbar_ticky property (regression: da227a0bf643)', () => {
+    // toolbar_ticky was a typo for toolbar_sticky; it was removed entirely.
+    // Ensure it never comes back.
+    expect(defaultTinymceConfig).not.toHaveProperty('toolbar_ticky')
   })
 })

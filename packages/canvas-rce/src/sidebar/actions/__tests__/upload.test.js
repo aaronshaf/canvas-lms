@@ -25,6 +25,7 @@ import {buildSvg} from '../../../rce/plugins/instructure_icon_maker/svg'
 import {spiedStore} from './utils'
 import Bridge from '../../../bridge'
 import {K5Uploader} from '@instructure/k5uploader'
+import {saveMediaRecording as mockSaveMediaRecording} from '@instructure/canvas-media'
 import {
   DEFAULT_SETTINGS,
   SVG_TYPE,
@@ -33,8 +34,8 @@ import {
 } from '../../../rce/plugins/instructure_icon_maker/svg/constants'
 
 // Mock saveMediaRecording
-jest.mock('@instructure/canvas-media', () => ({
-  saveMediaRecording: jest.fn((file, opts, callback) => {
+vi.mock('@instructure/canvas-media', () => ({
+  saveMediaRecording: vi.fn((file, opts, callback) => {
     // Call the callback to simulate completion
     callback(null, {
       mediaObject: {
@@ -93,11 +94,11 @@ describe('Upload data actions', () => {
       return Promise.resolve({media_object: {media_id: 2}})
     },
 
-    preflightUpload: jest.fn().mockResolvedValue(results),
-    uploadFRD: jest.fn().mockResolvedValue(results),
-    setUsageRights: jest.fn(),
-    getFile: jest.fn().mockResolvedValue(file),
-    fetchMediaFolder: jest.fn().mockResolvedValue({folders: [{id: 24}]}),
+    preflightUpload: vi.fn().mockResolvedValue(results),
+    uploadFRD: vi.fn().mockResolvedValue(results),
+    setUsageRights: vi.fn(),
+    getFile: vi.fn().mockResolvedValue(file),
+    fetchMediaFolder: vi.fn().mockResolvedValue({folders: [{id: 24}]}),
   }
 
   beforeAll(() => server.listen())
@@ -360,20 +361,19 @@ describe('Upload data actions', () => {
     })
     afterEach(() => {
       k5uploaderstub.mockRestore()
-      jest.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     it('uploads directly to notorious/kaltura', () => {
       const baseState = setupState()
       const store = spiedStore(baseState)
-      const {saveMediaRecording} = require('@instructure/canvas-media')
 
       // This test uses mocked source methods rather than HTTP mocks
       // Note: uploadToMediaFolder doesn't return a promise when using saveMediaRecording
       store.dispatch(actions.uploadToMediaFolder(fakeFileMetaData))
 
-      expect(saveMediaRecording).toHaveBeenCalledTimes(1)
-      expect(saveMediaRecording).toHaveBeenCalledWith(
+      expect(mockSaveMediaRecording).toHaveBeenCalledTimes(1)
+      expect(mockSaveMediaRecording).toHaveBeenCalledWith(
         fakeFileMetaData.domObject,
         expect.objectContaining({
           contextId: baseState.contextId,
@@ -381,6 +381,51 @@ describe('Upload data actions', () => {
         }),
         expect.any(Function),
       )
+    })
+  })
+
+  describe('uploadToMediaFolderWithoutEditor', () => {
+    const fakeFileMeta = {
+      name: 'image.png',
+      size: 5000,
+      contentType: 'image/png',
+      domObject: {
+        name: 'image.png',
+        size: 5000,
+        type: 'image/png',
+      },
+    }
+
+    beforeEach(() => {
+      successSource.fetchMediaFolder.mockClear()
+      successSource.preflightUpload.mockClear()
+      successSource.uploadFRD.mockClear()
+    })
+
+    it('fetches media folder and sets parentFolderId before preflightUpload (regression: 65336c99209)', () => {
+      const baseState = setupState()
+      const store = spiedStore(baseState)
+      const meta = {...fakeFileMeta, domObject: {...fakeFileMeta.domObject}}
+      return store.dispatch(actions.uploadToMediaFolderWithoutEditor(meta)).then(() => {
+        expect(successSource.fetchMediaFolder).toHaveBeenCalled()
+        expect(successSource.preflightUpload).toHaveBeenCalledWith(
+          expect.objectContaining({parentFolderId: 24}),
+          expect.any(Object),
+        )
+        expect(successSource.uploadFRD).toHaveBeenCalled()
+      })
+    })
+
+    it('strips domObject.preview before uploading', () => {
+      const baseState = setupState()
+      const store = spiedStore(baseState)
+      const meta = {
+        ...fakeFileMeta,
+        domObject: {...fakeFileMeta.domObject, preview: 'data:image/png;base64,abc'},
+      }
+      return store.dispatch(actions.uploadToMediaFolderWithoutEditor(meta)).then(() => {
+        expect(meta.domObject.preview).toBeUndefined()
+      })
     })
   })
 
@@ -602,7 +647,7 @@ describe('Upload data actions', () => {
 
     it('inserts the image content through the bridge', () => {
       props.fileReader = fakeFileReader
-      const bridgeSpy = jest.spyOn(Bridge, 'insertImage')
+      const bridgeSpy = vi.spyOn(Bridge, 'insertImage')
       successSource.uploadFRD.mockResolvedValueOnce({
         'content-type': 'image/jpeg',
         thumbnail_url: 'thumbnailurl',
@@ -614,7 +659,7 @@ describe('Upload data actions', () => {
 
     it('inserts the file content through the bridge', () => {
       props.fileReader = fakeFileReader
-      const bridgeSpy = jest.spyOn(Bridge, 'insertLink')
+      const bridgeSpy = vi.spyOn(Bridge, 'insertLink')
       const state = getBaseState()
       state.ui.selectedTabIndex = 1
       store = spiedStore(state)
@@ -641,8 +686,8 @@ describe('Upload data actions', () => {
 
   describe('embedUploadResult', () => {
     beforeEach(() => {
-      jest.spyOn(Bridge, 'insertLink')
-      jest.spyOn(Bridge, 'insertImage')
+      vi.spyOn(Bridge, 'insertLink')
+      vi.spyOn(Bridge, 'insertImage')
     })
 
     afterEach(() => {
@@ -728,8 +773,8 @@ describe('Upload data actions', () => {
       })
 
       it('link image on image type and text selected', () => {
-        jest.spyOn(Bridge, 'existingContentToLink').mockImplementation(() => true)
-        jest.spyOn(Bridge, 'existingContentToLinkIsImg').mockImplementation(() => false)
+        vi.spyOn(Bridge, 'existingContentToLink').mockImplementation(() => true)
+        vi.spyOn(Bridge, 'existingContentToLinkIsImg').mockImplementation(() => false)
         actions.embedUploadResult({'content-type': 'image/png', displayAs: 'link'})
         expect(Bridge.insertLink).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -762,7 +807,7 @@ describe('Upload data actions', () => {
     })
 
     it('calls quota exceeded when the file size exceeds the quota', () => {
-      const fakeDispatch = jest.fn()
+      const fakeDispatch = vi.fn()
       const error = {
         response: new Response('{ "message": "file size exceeds quota" }', {status: 400}),
       }
@@ -776,7 +821,7 @@ describe('Upload data actions', () => {
       })
     })
     it('calls failUpload for other errors', () => {
-      const fakeDispatch = jest.fn()
+      const fakeDispatch = vi.fn()
       const error = {
         response: new Response('{ "message": "we don\'t like you " }', {status: 400}),
       }
@@ -791,7 +836,7 @@ describe('Upload data actions', () => {
     })
 
     it('calls failUpload if there is no response property on the error', () => {
-      const fakeDispatch = jest.fn()
+      const fakeDispatch = vi.fn()
       const error = new Error('Fake Client Side Error')
       return actions.handleFailures(error, fakeDispatch).then(() => {
         expect(fakeDispatch).toHaveBeenCalledWith(
@@ -806,7 +851,7 @@ describe('Upload data actions', () => {
 
   describe('activateMediaUpload', () => {
     it('inserts the placeholder through the bridge', () => {
-      const bridgeSpy = jest.spyOn(Bridge, 'insertImagePlaceholder')
+      const bridgeSpy = vi.spyOn(Bridge, 'insertImagePlaceholder')
       const store = spiedStore({})
       store.dispatch(actions.activateMediaUpload({}))
       expect(bridgeSpy).toHaveBeenCalledTimes(1)
@@ -828,7 +873,7 @@ describe('Upload data actions', () => {
       bridgeSpy && bridgeSpy.mockRestore()
     })
     it('removes the placeholder through the bridge', () => {
-      bridgeSpy = jest.spyOn(Bridge, 'removePlaceholders')
+      bridgeSpy = vi.spyOn(Bridge, 'removePlaceholders')
       const store = spiedStore({})
       store.dispatch(actions.removePlaceholdersFor('image1'))
       expect(bridgeSpy).toHaveBeenCalledWith('image1')
@@ -848,8 +893,8 @@ describe('Upload data actions', () => {
     let removePlaceholdersSpy
 
     beforeEach(() => {
-      showErrorSpy = jest.spyOn(Bridge, 'showError')
-      removePlaceholdersSpy = jest.spyOn(Bridge, 'removePlaceholders')
+      showErrorSpy = vi.spyOn(Bridge, 'showError')
+      removePlaceholdersSpy = vi.spyOn(Bridge, 'removePlaceholders')
     })
 
     afterEach(() => {

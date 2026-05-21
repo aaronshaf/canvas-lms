@@ -23,12 +23,12 @@ import {ColorInput} from '../ColorInput'
 describe('<ColorInput />', () => {
   const defaults = {
     color: '#212121',
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     label: 'Some color input',
     name: 'some-color',
   }
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => vi.clearAllMocks())
 
   it('renders the selected color preview', () => {
     render(<ColorInput {...defaults} />)

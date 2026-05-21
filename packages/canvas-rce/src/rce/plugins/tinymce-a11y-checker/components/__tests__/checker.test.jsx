@@ -19,11 +19,46 @@
 import React from 'react'
 import {render, waitFor, act} from '@testing-library/react'
 import Checker from '../checker'
-import util from 'util'
 
-const promisify = util.promisify
+// Start check and wait for it to finish (handles React 18 async setState + setTimeout in dom.walk)
+const doCheck = async inst => {
+  act(() => inst.check())
+  await waitFor(() => expect(inst.state.checking).toBe(false), {timeout: 10000})
+}
 
-jest.mock('../../rules/index')
+vi.mock('../../rules/index', () => ({
+  default: [
+    {
+      test: vi.fn().mockReturnValue(false),
+      data: vi.fn().mockReturnValue({
+        select: 'a',
+        checkbox: true,
+        color: 'rgba(40, 100, 200, 0.6)',
+        text: 'Text',
+      }),
+      form: vi.fn().mockReturnValue([
+        {
+          label: 'Select Field',
+          dataKey: 'select',
+          options: [
+            ['a', 'A'],
+            ['b', 'B'],
+          ],
+        },
+        {label: 'Select Field', dataKey: 'checkbox', checkbox: true},
+        {label: 'Select Field', dataKey: 'color', color: true},
+        {label: 'Text Field', dataKey: 'text', disabledIf: () => true},
+        {label: 'Text Area', dataKey: 'textarea', textarea: true},
+      ]),
+      rootNode: vi.fn(),
+      update: vi.fn(),
+      message: vi.fn().mockReturnValue('Error Message'),
+      why: vi.fn().mockReturnValue('Why Text'),
+      link: 'http://some-url',
+      linkText: vi.fn().mockReturnValue('Link for learning more'),
+    },
+  ],
+}))
 
 let instance, node, child, child2, body, fakeEditor, fakeIframe
 let renderResult
@@ -32,16 +67,16 @@ describe('checker', () => {
   beforeAll(() => {
     // jsdom doesn't support selection apis
     const mockSelection = {
-      removeAllRanges: jest.fn(),
-      addRange: jest.fn(),
+      removeAllRanges: vi.fn(),
+      addRange: vi.fn(),
     }
-    document.getSelection = jest.fn().mockReturnValue(mockSelection)
+    document.getSelection = vi.fn().mockReturnValue(mockSelection)
     const mockRange = {
-      selectNodeContents: jest.fn(),
-      selectNode: jest.fn(),
+      selectNodeContents: vi.fn(),
+      selectNode: vi.fn(),
     }
-    document.createRange = jest.fn().mockReturnValue(mockRange)
-    Element.prototype.scrollIntoView = jest.fn()
+    document.createRange = vi.fn().mockReturnValue(mockRange)
+    Element.prototype.scrollIntoView = vi.fn()
   })
 
   beforeEach(() => {
@@ -56,14 +91,14 @@ describe('checker', () => {
       dom: {
         doc: document,
       },
-      on: jest.fn(),
-      focus: jest.fn(),
+      on: vi.fn(),
+      focus: vi.fn(),
     }
     child = node.appendChild(document.createElement('div'))
     child2 = node.appendChild(document.createElement('div'))
     const instanceRef = React.createRef()
     renderResult = render(
-      <Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} onFixError={jest.fn()} />,
+      <Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} onFixError={vi.fn()} />,
     )
     instance = instanceRef.current
   })
@@ -82,19 +117,19 @@ describe('checker', () => {
     test("doesn't check nodes with data-ignore-a11y-check", async () => {
       child.setAttribute('data-ignore-a11y-check', '')
       node.removeChild(child2)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       expect(instance.state.errors).toHaveLength(0)
     })
 
     test('checks nodes without data-ignore-a11y-check', async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       expect(instance.state.errors).toHaveLength(2)
     })
 
     test('passes config to rule test functions', async () => {
       const conf = {disableContrastCheck: true}
       instance.setConfig(conf)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       const error = instance.state.errors[0]
       expect(error.rule.test).toHaveBeenCalledWith(error.node, conf)
     })
@@ -122,37 +157,38 @@ describe('checker', () => {
         />,
       )
       instance = instanceRef.current
-      await promisify(instanceRef.current.check.bind(instance))()
+      act(() => instance.check())
+      await waitFor(() => expect(instance.state.checking).toBe(false), {timeout: 10000})
       expect(instance.state.errors).toHaveLength(4)
     })
 
     test('calls beforeCheck when provided it as a config option', async () => {
-      const testCallback = jest.fn()
+      const testCallback = vi.fn()
       const beforeCheck = (ed, done) => {
         testCallback()
         done()
       }
       const conf = {beforeCheck}
       instance.setConfig(conf)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       expect(testCallback).toHaveBeenCalled()
     })
 
     test('calls afterCheck when provided it as a config option', async () => {
-      const testCallback = jest.fn()
+      const testCallback = vi.fn()
       const afterCheck = (ed, done) => {
         testCallback()
         done()
       }
       const conf = {afterCheck}
       instance.setConfig(conf)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       expect(testCallback).toHaveBeenCalled()
     })
 
     test('calls both beforeCheck and afterCheck when both are provided', async () => {
-      const beforeCallback = jest.fn()
-      const afterCallback = jest.fn()
+      const beforeCallback = vi.fn()
+      const afterCallback = vi.fn()
 
       const beforeCheck = (ed, done) => {
         beforeCallback()
@@ -165,7 +201,7 @@ describe('checker', () => {
 
       const conf = {afterCheck, beforeCheck}
       instance.setConfig(conf)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       expect(beforeCallback).toHaveBeenCalled()
       expect(afterCallback).toHaveBeenCalled()
     })
@@ -180,8 +216,8 @@ describe('checker', () => {
         />,
       )
       instance = instanceRef.current
-      const beforeCallback = jest.fn()
-      const afterCallback = jest.fn()
+      const beforeCallback = vi.fn()
+      const afterCallback = vi.fn()
 
       const beforeCheck = (ed, done) => {
         expect(ed).toEqual(expect.objectContaining({someObject: true}))
@@ -196,33 +232,33 @@ describe('checker', () => {
 
       const conf = {afterCheck, beforeCheck}
       instance.setConfig(conf)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
     })
 
     test('does nothing if props.getBody() returns falsy', () => {
       const instanceRef = React.createRef()
       render(<Checker ref={instanceRef} getBody={() => false} editor={fakeEditor} />)
       instance = instanceRef.current
-      const spy = jest.fn()
+      const spy = vi.fn()
       instance.check(spy)
       expect(spy).not.toHaveBeenCalled()
     })
 
     describe('done', () => {
-      beforeEach(() => jest.useFakeTimers())
-      afterEach(() => jest.useRealTimers())
+      beforeEach(() => vi.useFakeTimers())
+      afterEach(() => vi.useRealTimers())
 
       test('does not try to call done if it is not a function', async () => {
         instance.check('123')
-        await act(async () => jest.runAllTimers())
+        await act(async () => vi.runAllTimers())
       })
     })
 
     describe('close', () => {
-      beforeEach(() => jest.useFakeTimers())
+      beforeEach(() => vi.useFakeTimers())
       afterEach(() => {
-        jest.useRealTimers()
-        jest.restoreAllMocks()
+        vi.useRealTimers()
+        vi.clearAllMocks()
       })
 
       it("calls editor.on('Remove') when mounted", async () => {
@@ -230,7 +266,7 @@ describe('checker', () => {
         render(<Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} />)
         instance = instanceRef.current
         instance.check() // open it
-        await act(async () => jest.runAllTimers())
+        await act(async () => vi.runAllTimers())
         expect(fakeEditor.on).toHaveBeenCalled()
         expect(fakeEditor.on.mock.calls[0][0]).toEqual('Remove')
       })
@@ -239,11 +275,11 @@ describe('checker', () => {
 
   describe('setErrorIndex', () => {
     beforeEach(async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
     })
 
     test('runs clean up', () => {
-      jest.spyOn(instance, 'onLeaveError')
+      vi.spyOn(instance, 'onLeaveError')
       instance.setErrorIndex(0)
       expect(instance.onLeaveError).toHaveBeenCalled()
     })
@@ -265,7 +301,7 @@ describe('checker', () => {
 
   describe('errorRootNode', () => {
     beforeEach(async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
     })
 
     test('returns error node if rule rootNode returns null', () => {
@@ -325,9 +361,9 @@ describe('checker', () => {
       updatedNode = document.createElement('p')
       updatedNode.appendChild(document.createTextNode('updated node'))
       body.appendChild(updatedNode)
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       rule = instance.state.errors[0].rule
-      jest.spyOn(rule, 'update').mockImplementation(() => updatedNode)
+      vi.spyOn(rule, 'update').mockImplementation(() => updatedNode)
     })
 
     test('returns rule test of updated node', () => {
@@ -363,14 +399,14 @@ describe('checker', () => {
     let ev, error
 
     beforeEach(async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       error = instance.state.errors[0]
-      ev = {preventDefault: jest.fn()}
-      jest.spyOn(instance, 'check')
+      ev = {preventDefault: vi.fn()}
+      vi.spyOn(instance, 'check')
     })
 
     test('updates the real node', () => {
-      const updateSpy = jest.spyOn(error.rule, 'update')
+      const updateSpy = vi.spyOn(error.rule, 'update')
       instance.fixIssue(ev)
       const formState = instance.state.formState
       expect(updateSpy).toHaveBeenCalledWith(error.node, formState)
@@ -388,7 +424,7 @@ describe('checker', () => {
     })
 
     test('focuses the close button', () => {
-      instance._closeButtonRef = {focus: jest.fn()}
+      instance._closeButtonRef = {focus: vi.fn()}
       instance.fixIssue(ev)
       expect(instance._closeButtonRef.focus).toHaveBeenCalled()
     })
@@ -410,7 +446,7 @@ describe('checker', () => {
     })
 
     test('shows error info', async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       const why = renderResult.getByText('Why')
       expect(why).toBeInTheDocument()
       why.closest('button').click()
@@ -419,7 +455,7 @@ describe('checker', () => {
     })
 
     test('does not render a Learn more link if the rule has an empty link', async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       const newErrors = instance.state.errors.slice()
       newErrors.forEach(err => (err.rule.link = ''))
       instance.setState({errors: newErrors})
@@ -430,7 +466,7 @@ describe('checker', () => {
     })
 
     test('does not render a Learn more link if the rule has no link property', async () => {
-      await promisify(instance.check.bind(instance))()
+      await doCheck(instance)
       const newErrors = instance.state.errors.slice()
       newErrors.forEach(err => delete err.rule.link)
       instance.setState({errors: newErrors})
@@ -446,7 +482,7 @@ describe('checker', () => {
       global.window.webkit = {
         messageHandlers: {
           modalPresentation: {
-            postMessage: jest.fn(),
+            postMessage: vi.fn(),
           },
         },
       }
@@ -457,7 +493,7 @@ describe('checker', () => {
     })
 
     test('should send a message when the tray is closed', () => {
-      const onClose = jest.fn()
+      const onClose = vi.fn()
       const instanceRef = React.createRef()
       render(
         <Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} onClose={onClose} />,

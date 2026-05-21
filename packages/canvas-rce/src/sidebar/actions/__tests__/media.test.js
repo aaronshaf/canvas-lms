@@ -43,23 +43,23 @@ function getInitialState() {
 
 describe('Media actions', () => {
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
   describe('fetchMedia', () => {
     it('fetches initial page', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = getInitialState
       actions.fetchInitialMedia(sortBy, searchString)(dispatchSpy, getState)
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('fetches next page if necessary', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = getInitialState
       actions.fetchNextMedia(sortBy, searchString)(dispatchSpy, getState)
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('always fetches initial fetch page', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         const state = getInitialState()
         state.media.course.hasMore = false
@@ -71,7 +71,7 @@ describe('Media actions', () => {
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('fetches if there is more to load', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         const state = getInitialState()
         state.media.course.files = [{one: '1'}, {two: '2'}, {three: '3'}]
@@ -82,7 +82,7 @@ describe('Media actions', () => {
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('does not fetch if requested but no more to load', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         const state = getInitialState()
         state.media.course.files = [{one: '1'}, {two: '2'}, {three: '3'}]
@@ -93,8 +93,8 @@ describe('Media actions', () => {
       expect(dispatchSpy).not.toHaveBeenCalled()
     })
     it('fetches media', async () => {
-      const fetchMediaSpy = jest.fn(fetchMedia)
-      const dispatchSpy = jest.fn()
+      const fetchMediaSpy = vi.fn(fetchMedia)
+      const dispatchSpy = vi.fn()
       const getState = () => {
         const state = getInitialState()
         state.source = {
@@ -156,15 +156,15 @@ describe('Media actions', () => {
   describe('updateMediaObject', () => {
     const origAlertFunc = alertHandler.alertFunc
     beforeAll(() => {
-      alertHandler.alertFunc = jest.fn()
+      alertHandler.alertFunc = vi.fn()
     })
     afterAll(() => {
       alertHandler.alertFunc = origAlertFunc
     })
 
     it('calls the api', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn()
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn()
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -190,8 +190,8 @@ describe('Media actions', () => {
     })
 
     it('calls the api with attachment_id', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn()
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn()
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -236,8 +236,8 @@ describe('Media actions', () => {
     })
 
     it('skips updateClosedCaptions when skipCaptionUpdate is true', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn(updateClosedCaptions)
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn(updateClosedCaptions)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -255,8 +255,8 @@ describe('Media actions', () => {
     })
 
     it('calls updateClosedCaptions when skipCaptionUpdate is false', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn(updateClosedCaptions)
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn(updateClosedCaptions)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -274,8 +274,8 @@ describe('Media actions', () => {
     })
 
     it('calls updateClosedCaptions by default when skipCaptionUpdate is omitted', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn(updateClosedCaptions)
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn(updateClosedCaptions)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -296,8 +296,8 @@ describe('Media actions', () => {
     })
 
     it('calls updateClosedCaptions when subtitles is an empty array', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn(updateClosedCaptions)
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn(updateClosedCaptions)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -318,8 +318,8 @@ describe('Media actions', () => {
     })
 
     it('calls updateClosedCaptions with empty array and attachment_id', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
-      const updateCCSpy = jest.fn(updateClosedCaptions)
+      const updateSpy = vi.fn(updateMediaObject)
+      const updateCCSpy = vi.fn(updateClosedCaptions)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
@@ -342,11 +342,11 @@ describe('Media actions', () => {
     })
 
     it('passes viewerRestrictions to the api', async () => {
-      const updateSpy = jest.fn(updateMediaObject)
+      const updateSpy = vi.fn(updateMediaObject)
       const dispatch = () => {}
       const getState = () => {
         const state = getInitialState()
-        state.source = {updateMediaObject: updateSpy, updateClosedCaptions: jest.fn()}
+        state.source = {updateMediaObject: updateSpy, updateClosedCaptions: vi.fn()}
         return state
       }
       await actions.updateMediaObject({

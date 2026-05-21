@@ -45,7 +45,7 @@ const baseTabs = {
 const cloneBaseTabs = () => JSON.parse(JSON.stringify(baseTabs))
 
 const renderComponent = (props = {}) => {
-  return render(<ColorPicker tabs={baseTabs} onCancel={jest.fn()} onSave={jest.fn()} {...props} />)
+  return render(<ColorPicker tabs={baseTabs} onCancel={vi.fn()} onSave={vi.fn()} {...props} />)
 }
 
 describe('ColorPicker', () => {
@@ -137,7 +137,7 @@ describe('ColorPicker', () => {
   })
 
   it('calls onCancel when the cancel button is clicked', () => {
-    const onCancel = jest.fn()
+    const onCancel = vi.fn()
     const {getByText} = renderComponent({onCancel})
 
     fireEvent.click(getByText('Cancel'))
@@ -149,7 +149,7 @@ describe('ColorPicker', () => {
     delete tabs.border
     tabs.foreground.color = '#111111'
     tabs.background.color = '#ff0000'
-    const onSave = jest.fn()
+    const onSave = vi.fn()
     const {getByText, getByTestId} = renderComponent({tabs, onSave})
 
     const mixer = getByTestId('color-mixer')

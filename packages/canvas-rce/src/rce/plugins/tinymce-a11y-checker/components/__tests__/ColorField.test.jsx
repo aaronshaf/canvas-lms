@@ -26,7 +26,7 @@ test('it renders', () => {
       label="change my color"
       value="rgba(100,100,100,0.7)"
       name="color"
-      onChange={jest.fn}
+      onChange={vi.fn}
     />,
   )
   expect(getByText('change my color')).toBeInTheDocument()
@@ -41,7 +41,7 @@ test('it calls onChange prop with proper values when the picker changes', () => 
 })
 
 test('it calls onChange prop with the value when the text input blurs', () => {
-  const changeSpy = jest.fn()
+  const changeSpy = vi.fn()
   const {getByTestId} = render(
     <ColorField label="color" value="rgba(100,100,100,0.7)" onChange={changeSpy} name="testing" />,
   )

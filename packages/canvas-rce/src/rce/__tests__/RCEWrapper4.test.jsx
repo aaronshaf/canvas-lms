@@ -105,7 +105,7 @@ describe('RCEWrapper', () => {
 
   afterEach(function () {
     document.body.innerHTML = ''
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('Extending the toolbar and menus', () => {

@@ -46,7 +46,7 @@ function createMountedElement(additionalProps = {}) {
   )
   rce = rceRef.current
   editor = rce.mceInstance()
-  jest.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
+  vi.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
   return retval
 }
 
@@ -96,7 +96,7 @@ describe('RCEWrapper', () => {
 
   afterEach(function () {
     document.body.innerHTML = ''
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('limit the number or RCEs fully rendered on page load', () => {

@@ -20,13 +20,13 @@ import * as contentRendering from '../contentRendering'
 import {audioFromTray, audioFromUpload, videoFromTray, videoFromUpload} from './contentHelpers'
 import {videoDefaultSize} from '../plugins/instructure_record/VideoOptionsTray/TrayController'
 
-jest.mock('../plugins/instructure_record/VideoOptionsTray/TrayController', () => {
-  const originalModule = jest.requireActual(
+vi.mock('../plugins/instructure_record/VideoOptionsTray/TrayController', async () => {
+  const originalModule = await vi.importActual(
     '../plugins/instructure_record/VideoOptionsTray/TrayController',
   )
   return {
     ...originalModule,
-    videoDefaultSize: jest.fn(),
+    videoDefaultSize: vi.fn(),
   }
 })
 

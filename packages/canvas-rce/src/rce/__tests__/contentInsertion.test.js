@@ -105,8 +105,9 @@ describe('contentInsertion', () => {
         getBoundingClientRect: () => {
           return {left: 0, top: 0, bottom: 0, right: 0}
         },
+        scrollIntoView: vi.fn(),
       },
-      execCommand: jest.fn((cmd, ui, value, _args) => {
+      execCommand: vi.fn((cmd, ui, value, _args) => {
         if (cmd === 'mceInsertLink') {
           editor.content = editor.dom.createHTML('a', value, editor.selectionContent)
         } else if (cmd === 'mceInsertContent') {
@@ -117,7 +118,7 @@ describe('contentInsertion', () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('insertLink', () => {
@@ -507,7 +508,7 @@ describe('contentInsertion', () => {
     })
 
     it('inserts video from the course content tray with attachmentId', () => {
-      jest.spyOn(editor, 'insertContent')
+      vi.spyOn(editor, 'insertContent')
       const video = videoFromTray()
       const result = contentInsertion.insertVideo(editor, video, canvasOrigin)
       expect(editor.execCommand).toHaveBeenCalledWith(
@@ -520,7 +521,7 @@ describe('contentInsertion', () => {
     })
 
     it('inserts video from upload into iframe with attachmentId', () => {
-      jest.spyOn(editor, 'insertContent')
+      vi.spyOn(editor, 'insertContent')
       const video = videoFromUpload()
       const result = contentInsertion.insertVideo(editor, video, canvasOrigin)
       expect(editor.execCommand).toHaveBeenCalledWith(

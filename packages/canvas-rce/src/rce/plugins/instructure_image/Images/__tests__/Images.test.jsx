@@ -30,8 +30,8 @@ describe('RCE "Images" Plugin > Images', () => {
     component = null
 
     props = {
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
       images: {
         course: {
           hasMore: false,

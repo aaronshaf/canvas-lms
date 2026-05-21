@@ -23,7 +23,7 @@ import {Header} from '../Header'
 
 describe('<Header />', () => {
   it('changes the icon name', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<Header settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = document.querySelector('#icon-name')
     fireEvent.change(input, {target: {value: 'An IM name'}})
@@ -32,7 +32,7 @@ describe('<Header />', () => {
   })
 
   it('changes the icon alt text', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<Header settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = document.querySelector('#icon-alt-text')
     fireEvent.change(input, {target: {value: 'A descriptive text'}})
@@ -42,7 +42,7 @@ describe('<Header />', () => {
 
   describe('when the decorative icon box is checked', () => {
     it('changes the icon isDecorative field', async () => {
-      const onChange = jest.fn()
+      const onChange = vi.fn()
       const {getByRole} = render(<Header settings={DEFAULT_SETTINGS} onChange={onChange} />)
       const checkBox = getByRole('checkbox', {name: /Decorative Icon/})
       fireEvent.click(checkBox)
@@ -56,7 +56,7 @@ describe('<Header />', () => {
     beforeAll(() => (settings = {...DEFAULT_SETTINGS, isDecorative: true}))
 
     it('disables the alt text input', () => {
-      const header = <Header settings={settings} onChange={jest.fn()} />
+      const header = <Header settings={settings} onChange={vi.fn()} />
       const {container} = render(header)
       const textArea = container.querySelector('#icon-alt-text')
       expect(textArea).toBeDisabled()

@@ -168,8 +168,8 @@ describe('Sidebar files actions', () => {
 
     beforeEach(() => {
       source = {
-        fetchPage: jest.fn().mockReturnValue(noopPromise),
-        fetchFiles: jest.fn().mockReturnValue(noopPromise),
+        fetchPage: vi.fn().mockReturnValue(noopPromise),
+        fetchFiles: vi.fn().mockReturnValue(noopPromise),
       }
       folders = {
         [id]: {
@@ -340,7 +340,7 @@ describe('Sidebar files actions', () => {
 
     describe('init()', () => {
       beforeEach(() => {
-        source.fetchRootFolder = jest.fn().mockReturnValue(noopPromise)
+        source.fetchRootFolder = vi.fn().mockReturnValue(noopPromise)
       })
 
       it('calls fetchRootFolder for source with state', () => {

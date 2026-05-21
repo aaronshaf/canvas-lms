@@ -18,7 +18,7 @@
 
 import {makeAllExternalLinksExternalLinks} from '../external_links'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const setup = html => {
   document.body.innerHTML = `<div id="content">${html}</div>`
@@ -26,7 +26,7 @@ const setup = html => {
 
 const run = () => {
   makeAllExternalLinksExternalLinks()
-  jest.runAllTimers()
+  vi.runAllTimers()
 }
 
 beforeEach(() => {

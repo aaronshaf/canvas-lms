@@ -26,7 +26,7 @@ export function setFromTinymce(tinymce) {
 }
 
 export function reset() {
-  set({ie: false, edge: false})
+  set({browser: {isIE: () => false, isEdge: () => false}})
 }
 
 export function set(env) {

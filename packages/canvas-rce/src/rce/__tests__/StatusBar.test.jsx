@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import '@testing-library/jest-dom/extend-expect'
+import '@testing-library/jest-dom'
 import {render, fireEvent, waitFor, act} from '@testing-library/react'
 import {queryHelpers} from '@testing-library/dom'
 import keycode from 'keycode'
@@ -60,8 +60,14 @@ describe('RCE StatusBar', () => {
     document[FS_ENABLED] = true
   })
 
+  it('toolbar title is "Editor Status Bar" with correct spacing (regression: 0c5361e5b64)', () => {
+    const {container} = renderStatusBar()
+    const toolbar = container.querySelector('[role="toolbar"]')
+    expect(toolbar).toHaveAttribute('title', 'Editor Status Bar')
+  })
+
   it('calls callback when clicking kb shortcut button', () => {
-    const onkbcallback = jest.fn()
+    const onkbcallback = vi.fn()
     const {getByText} = renderStatusBar({onKBShortcutModalOpen: onkbcallback})
     const kbBtn = getByText('View keyboard shortcuts')
     fireEvent.click(kbBtn)
@@ -69,7 +75,7 @@ describe('RCE StatusBar', () => {
   })
 
   it('calls callback when clicking wordcount button', () => {
-    const onWordcountCallback = jest.fn()
+    const onWordcountCallback = vi.fn()
     const {getByTestId} = renderStatusBar({onWordcountModalOpen: onWordcountCallback})
     const wordCountButton = getByTestId('status-bar-word-count').firstChild
     fireEvent.click(wordCountButton)
@@ -146,7 +152,7 @@ describe('RCE StatusBar', () => {
     })
 
     it('defaults to pretty html editor', async () => {
-      const onChangeView = jest.fn()
+      const onChangeView = vi.fn()
       const {container, getByText} = renderStatusBar({
         onChangeView,
       })
@@ -162,7 +168,7 @@ describe('RCE StatusBar', () => {
     })
 
     it('prefers raw html editor if specified', async () => {
-      const onChangeView = jest.fn()
+      const onChangeView = vi.fn()
       const {container, getByText} = renderStatusBar({
         preferredHtmlEditor: RAW_HTML_EDITOR_VIEW,
         onChangeView,
@@ -355,11 +361,18 @@ describe('RCE StatusBar', () => {
   })
 
   it('calls the callback when clicking the a11y checker button', () => {
-    const onA11yCallback = jest.fn()
+    const onA11yCallback = vi.fn()
     const {getByText} = renderStatusBar({onA11yChecker: onA11yCallback})
     const a11yButton = getByText('Accessibility Checker')
     fireEvent.click(a11yButton)
     expect(onA11yCallback).toHaveBeenCalled()
+  })
+
+  it('passes the button id to onA11yChecker for focus restore (regression: cc74d5fb915)', () => {
+    const onA11yCallback = vi.fn()
+    const {getByText} = renderStatusBar({onA11yChecker: onA11yCallback})
+    fireEvent.click(getByText('Accessibility Checker'))
+    expect(onA11yCallback).toHaveBeenCalledWith('rce-a11y-btn')
   })
 
   describe('disabledPlugins', () => {
@@ -440,7 +453,7 @@ describe('RCE StatusBar', () => {
       })
 
       it('calls the onResize callback when clicking + button', () => {
-        const onResize = jest.fn()
+        const onResize = vi.fn()
         const {getByTestId} = renderStatusBar({
           rceIsFullscreen: false,
           features: getStatusBarFeaturesForVariant('full', {a11yResizers: true}),
@@ -453,7 +466,7 @@ describe('RCE StatusBar', () => {
       })
 
       it('calls the onResize callback when clicking - button', () => {
-        const onResize = jest.fn()
+        const onResize = vi.fn()
         const {getByTestId} = renderStatusBar({
           rceIsFullscreen: false,
           features: getStatusBarFeaturesForVariant('full', {a11yResizers: true}),

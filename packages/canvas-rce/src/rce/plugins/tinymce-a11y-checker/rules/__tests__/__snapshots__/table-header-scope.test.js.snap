@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`form returns the proper object 1`] = `
+exports[`form > returns the proper object 1`] = `
 [
   {
     "dataKey": "scope",
@@ -31,8 +31,8 @@ exports[`form returns the proper object 1`] = `
 ]
 `;
 
-exports[`linkText returns the proper linkText message 1`] = `"Learn more about using scope attributes with tables"`;
+exports[`linkText > returns the proper linkText message 1`] = `"Learn more about using scope attributes with tables"`;
 
-exports[`message returns the proper message 1`] = `"Tables headers should specify scope."`;
+exports[`message > returns the proper message 1`] = `"Tables headers should specify scope."`;
 
-exports[`why returns the proper message 1`] = `"Screen readers cannot interpret tables without the proper structure. Table headers provide direction and content scope."`;
+exports[`why > returns the proper message 1`] = `"Screen readers cannot interpret tables without the proper structure. Table headers provide direction and content scope."`;

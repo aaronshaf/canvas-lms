@@ -41,7 +41,7 @@ describe('UploadFile', () => {
     fakeEditor = null
   })
   it('calls onDismiss prop when closing', () => {
-    const handleDismiss = jest.fn()
+    const handleDismiss = vi.fn()
     const {getAllByText} = render(
       <UploadFile
         label="Test"
@@ -57,10 +57,10 @@ describe('UploadFile', () => {
     expect(handleDismiss).toHaveBeenCalled()
   })
 
-  it('calls handleSubmit on submit', () => {
-    const handleSubmit = jest.fn()
+  it('calls handleSubmit on submit', async () => {
+    const handleSubmit = vi.fn()
     const handleDismiss = () => {}
-    const {getByText, getByLabelText} = render(
+    const {getByText, findByLabelText} = render(
       <UploadFile
         label="Test"
         editor={fakeEditor}
@@ -74,7 +74,8 @@ describe('UploadFile', () => {
     const fakeFile = new File(['(⌐□_□)'], 'somename.png', {
       type: 'image/png',
     })
-    const fileInput = getByLabelText(/click to browse your computer/, {selector: 'input'})
+    // ComputerPanel is lazy-loaded; wait for it to appear
+    const fileInput = await findByLabelText(/click to browse your computer/, {selector: 'input'})
     Object.defineProperty(fileInput, 'files', {
       value: [fakeFile],
     })
@@ -184,7 +185,7 @@ describe('UploadFile', () => {
 
   describe('handleSubmit', () => {
     const fakeNode = {
-      addEventListener: jest.fn(),
+      addEventListener: vi.fn(),
     }
     const fakeEditor = {
       content: '',
@@ -224,7 +225,7 @@ describe('UploadFile', () => {
 
     describe('contentProps.startMediaUpload', () => {
       it('called for images when Computer panel is selected', () => {
-        const fakeMediaUpload = jest.fn()
+        const fakeMediaUpload = vi.fn()
         const fakeFile = {
           name: 'foo.png',
           size: 3000,
@@ -247,7 +248,7 @@ describe('UploadFile', () => {
       })
 
       it('called for video media when Computer panel is selected', () => {
-        const fakeMediaUpload = jest.fn()
+        const fakeMediaUpload = vi.fn()
         const fakeFile = {
           name: 'foo.mov',
           size: 3000,
@@ -269,7 +270,7 @@ describe('UploadFile', () => {
         })
       })
       it('called for images when Computer panel is selected and includes image options', () => {
-        const fakeMediaUpload = jest.fn()
+        const fakeMediaUpload = vi.fn()
         const fakeFile = {
           name: 'foo.png',
           size: 3000,
@@ -299,7 +300,7 @@ describe('UploadFile', () => {
       })
 
       it('called for audio media when Computer panel is selected', () => {
-        const fakeMediaUpload = jest.fn()
+        const fakeMediaUpload = vi.fn()
         const fakeFile = {
           name: 'foo.mp3',
           size: 3000,
@@ -322,7 +323,7 @@ describe('UploadFile', () => {
       })
 
       it('called for documents when Computer panel is selected', () => {
-        const fakeMediaUpload = jest.fn()
+        const fakeMediaUpload = vi.fn()
         const fakeFile = {
           name: 'foo.txt',
           size: 3000,
@@ -350,7 +351,7 @@ describe('UploadFile', () => {
     let renderReturnOptions
     let fakeOnSubmit
     beforeEach(() => {
-      fakeOnSubmit = jest.fn()
+      fakeOnSubmit = vi.fn()
       renderReturnOptions = render(
         <UploadFile
           label="Test"

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`form returns the proper object 1`] = `
+exports[`form > returns the proper object 1`] = `
 [
   {
     "dataKey": "action",
@@ -30,10 +30,10 @@ exports[`form returns the proper object 1`] = `
 ]
 `;
 
-exports[`link returns the proper link 1`] = `"https://www.w3.org/TR/WCAG20-TECHS/H42.html"`;
+exports[`link > returns the proper link 1`] = `"https://www.w3.org/TR/WCAG20-TECHS/H42.html"`;
 
-exports[`linkText returns the proper link text 1`] = `"Learn more about proper page heading structure"`;
+exports[`linkText > returns the proper link text 1`] = `"Learn more about proper page heading structure"`;
 
-exports[`message returns the proper message 1`] = `"The first heading on a page should be an H2."`;
+exports[`message > returns the proper message 1`] = `"The first heading on a page should be an H2."`;
 
-exports[`why returns the proper why text 1`] = `"Webpages should only have a single H1, which is automatically used by the page's Title. The first heading in your content should be an H2."`;
+exports[`why > returns the proper why text 1`] = `"Webpages should only have a single H1, which is automatically used by the page's Title. The first heading in your content should be an H2."`;

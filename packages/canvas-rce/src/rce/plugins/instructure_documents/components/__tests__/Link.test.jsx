@@ -48,11 +48,11 @@ function queryIconByName(elem, name) {
 describe('RCE "Documents" Plugin > Document', () => {
   beforeAll(() => {
     // UTC/GMT -7 hours
-    RCEGlobals.getConfig = jest.fn().mockReturnValue({timezone: 'America/Denver'})
+    RCEGlobals.getConfig = vi.fn().mockReturnValue({timezone: 'America/Denver'})
   })
 
   afterAll(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   describe('renders', () => {
@@ -79,7 +79,7 @@ describe('RCE "Documents" Plugin > Document', () => {
       })
 
       it('does not add callbacks', () => {
-        const onClick = jest.fn()
+        const onClick = vi.fn()
         const {getByText} = renderComponent({display_name: 'click me', onClick, ...props})
 
         const btn = getByText('click me')
@@ -164,7 +164,7 @@ describe('RCE "Documents" Plugin > Document', () => {
 
   describe('handles input', () => {
     it('calls onClick when clicked', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const {getByText} = renderComponent({display_name: 'click me', onClick})
 
       const btn = getByText('click me')
@@ -173,7 +173,7 @@ describe('RCE "Documents" Plugin > Document', () => {
     })
 
     it('passes all attributes to the click handler', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const {getByText} = renderComponent({
         display_name: 'click me',
         onClick,
@@ -200,7 +200,7 @@ describe('RCE "Documents" Plugin > Document', () => {
     })
 
     it('calls onClick on <Enter>', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const {getByText} = renderComponent({display_name: 'click me', onClick})
 
       const btn = getByText('click me')
@@ -209,7 +209,7 @@ describe('RCE "Documents" Plugin > Document', () => {
     })
 
     it('calls onClick on <Space>', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const {getByText} = renderComponent({display_name: 'click me', onClick})
 
       const btn = getByText('click me')

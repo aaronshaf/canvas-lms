@@ -22,15 +22,15 @@ import FakeEditor from '../../../__tests__/FakeEditor'
 import {waitFor} from '@testing-library/dom'
 import {act} from '@testing-library/react'
 
-jest.mock('../components/IconMakerTray', () => ({
+vi.mock('../components/IconMakerTray', () => ({
   IconMakerTray: () => <div data-testid="icon-name" />,
 }))
 
-jest.mock('../../shared/StoreContext', () => ({
+vi.mock('../../shared/StoreContext', () => ({
   StoreProvider: ({children}) => children({}),
 }))
 
-jest.mock('../../../../bridge', () => ({
+vi.mock('../../../../bridge', () => ({
   __esModule: true,
   default: {
     trayProps: {get: () => ({})},

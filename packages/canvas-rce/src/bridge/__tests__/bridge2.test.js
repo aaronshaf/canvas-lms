@@ -27,17 +27,17 @@ describe('Bridge additional functionality', () => {
     bridge = new Bridge()
     mockEditor = {
       id: 'editor1',
-      mceInstance: jest.fn(),
+      mceInstance: vi.fn(),
       props: {
         textareaId: 'textarea1',
         tinymce: {
-          get: jest.fn(),
+          get: vi.fn(),
         },
       },
     }
     mockController = {
-      showTrayForPlugin: jest.fn(),
-      hideTray: jest.fn(),
+      showTrayForPlugin: vi.fn(),
+      hideTray: vi.fn(),
     }
   })
 
@@ -85,7 +85,7 @@ describe('Bridge additional functionality', () => {
     })
 
     it('hides all trays', () => {
-      const mockController2 = {hideTray: jest.fn()}
+      const mockController2 = {hideTray: vi.fn()}
       bridge.attachController(mockController2, 'editor2')
 
       bridge.hideTrays()

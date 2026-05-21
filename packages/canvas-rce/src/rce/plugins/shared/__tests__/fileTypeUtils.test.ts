@@ -215,6 +215,17 @@ describe('fileTypeUtils', () => {
       expect(url).toBe('/media_objects_iframe/m-media_id?type=audio')
     })
 
+    it("falls back to file's camelCase mediaEntryId when media_entry_id and embed.id are absent (regression: 0d5b8d07a83)", () => {
+      // Bug: All Files returned media with mediaEntryId (camelCase) instead of media_entry_id,
+      // causing the embed to fail. Fix: added || file.mediaEntryId fallback.
+      const file = {
+        mediaEntryId: 'm-camel-id',
+        content_type: 'video/mp4',
+      }
+      const url = mediaPlayerURLFromFile(file)
+      expect(url).toBe('/media_objects_iframe/m-camel-id?type=video')
+    })
+
     it("creates url from file's url", () => {
       const file = {
         'content-type': 'video/mov',
@@ -307,7 +318,7 @@ describe('fileTypeUtils', () => {
     })
 
     it("adds the uuid if the window location doesn't match the RCE location origin and the feature flag is on", () => {
-      RCEGlobals.getFeatures = jest.fn().mockReturnValue({
+      RCEGlobals.getFeatures = vi.fn().mockReturnValue({
         file_verifiers_for_quiz_links: true,
       })
       const file = {
@@ -321,7 +332,7 @@ describe('fileTypeUtils', () => {
     })
 
     it("doesn't add the uuid if the window location doesn't match the RCE location origin and the feature flag is off", () => {
-      RCEGlobals.getFeatures = jest.fn().mockReturnValue({
+      RCEGlobals.getFeatures = vi.fn().mockReturnValue({
         file_verifiers_for_quiz_links: false,
       })
       const file = {
@@ -341,13 +352,11 @@ describe('fileTypeUtils', () => {
         url: 'host?verifier=something',
       }
       const url = mediaPlayerURLFromFile(file)
-      expect(url).toBe(
-        '/media_attachments_iframe/123?type=video&embedded=true&verifier=something',
-      )
+      expect(url).toBe('/media_attachments_iframe/123?type=video&embedded=true&verifier=something')
     })
 
     it("includes the file verifier if it's part of the file's url", () => {
-      RCEGlobals.getFeatures = jest.fn().mockReturnValue({
+      RCEGlobals.getFeatures = vi.fn().mockReturnValue({
         file_verifiers_for_quiz_links: true,
       })
       const file = {

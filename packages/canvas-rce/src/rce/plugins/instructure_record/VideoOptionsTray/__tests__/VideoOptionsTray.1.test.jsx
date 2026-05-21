@@ -23,7 +23,7 @@ import VideoOptionsTray from '..'
 import VideoOptionsTrayDriver from './VideoOptionsTrayDriver'
 import {createLiveRegion, removeLiveRegion} from '../../../../__tests__/liveRegionHelper'
 import RCEGlobals from '../../../../../rce/RCEGlobals'
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
   let props
@@ -33,10 +33,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
     createLiveRegion()
 
     props = {
-      onRequestClose: jest.fn(),
-      onSave: jest.fn(),
+      onRequestClose: vi.fn(),
+      onSave: vi.fn(),
       open: true,
-      requestSubtitlesFromIframe: jest.fn(),
+      requestSubtitlesFromIframe: vi.fn(),
       videoOptions: {
         $element: null,
         appliedHeight: 180,
@@ -60,7 +60,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   afterEach(() => {
     removeLiveRegion()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   function renderComponent() {
@@ -219,7 +219,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   describe('when rce_studio_embed_improvements feature flag is enabled', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_studio_embed_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_studio_embed_improvements: true})
     })
 
     describe('Studio Viewer Restrictions', () => {

@@ -45,7 +45,7 @@ const content_items = [
 ]
 
 let container: HTMLDivElement | null = null
-let submit: jest.Mock
+let submit: vi.Mock
 let originalSubmit: () => void
 let originalScroll: typeof window.scroll
 
@@ -152,7 +152,7 @@ describe('getFilterResults', () => {
 
 describe('ExternalToolDialog', () => {
   beforeAll(() => {
-    jest.spyOn(RCEWrapper, 'getByEditor').mockImplementation(e => {
+    vi.spyOn(RCEWrapper, 'getByEditor').mockImplementation(e => {
       if (e === (editorMock as any)) return rceMock
       else {
         throw new Error('Wrong editor requested')
@@ -164,7 +164,7 @@ describe('ExternalToolDialog', () => {
     editorMock.mockClear()
     rceMock.mockClear()
     originalSubmit = HTMLFormElement.prototype.submit
-    submit = jest.fn()
+    submit = vi.fn()
     HTMLFormElement.prototype.submit = submit
     originalScroll = window.scroll
     window.scroll = nop
@@ -246,7 +246,7 @@ describe('ExternalToolDialog', () => {
     })
 
     it('sets up beforeunload handler', async () => {
-      jest.spyOn(window, 'addEventListener')
+      vi.spyOn(window, 'addEventListener')
       const instance = await getInstance(container)
       instance.open(toolHelper(2))
       expect(window.addEventListener).toHaveBeenCalledWith(
@@ -256,7 +256,7 @@ describe('ExternalToolDialog', () => {
     })
 
     it('sets up postMessage handler', async () => {
-      jest.spyOn(window, 'addEventListener')
+      vi.spyOn(window, 'addEventListener')
       const instance = await getInstance(container)
       instance.open(toolHelper(2))
       expect(window.addEventListener).toHaveBeenCalledWith('message', instance.handlePostedMessage)
@@ -306,7 +306,7 @@ describe('ExternalToolDialog', () => {
     })
 
     it('removes event handlers', async () => {
-      jest.spyOn(window, 'removeEventListener')
+      vi.spyOn(window, 'removeEventListener')
       const instance = await getInstance(container)
       instance.open(toolHelper(2))
       instance.close()
@@ -324,10 +324,10 @@ describe('ExternalToolDialog', () => {
   })
 
   describe('handleClose', () => {
-    let confirmSpy: jest.SpyInstance<boolean, [string?]>
+    let confirmSpy: vi.SpyInstance<boolean, [string?]>
 
     beforeEach(() => {
-      confirmSpy = jest.spyOn(window, 'confirm')
+      confirmSpy = vi.spyOn(window, 'confirm')
     })
 
     afterEach(() => {
@@ -336,7 +336,7 @@ describe('ExternalToolDialog', () => {
 
     it('does not close if not confirmed', async () => {
       const instance = await getInstance(container)
-      const closeSpy = jest.spyOn(instance, 'close')
+      const closeSpy = vi.spyOn(instance, 'close')
 
       instance.open(toolHelper(1))
 
@@ -348,7 +348,7 @@ describe('ExternalToolDialog', () => {
 
     it('closes if confirmed', async () => {
       const instance = await getInstance(container)
-      const closeSpy = jest.spyOn(instance, 'close')
+      const closeSpy = vi.spyOn(instance, 'close')
 
       instance.open(toolHelper(1))
 
@@ -370,7 +370,7 @@ describe('ExternalToolDialog', () => {
 
   describe('handleRemove', () => {
     it('dispatches a resize event', async () => {
-      jest.spyOn(window, 'dispatchEvent')
+      vi.spyOn(window, 'dispatchEvent')
       const instance = await getInstance(container)
       instance.open(toolHelper(2))
       instance.handleClose()
@@ -412,7 +412,7 @@ describe('ExternalToolDialog', () => {
 
     it('closes the dialog', async () => {
       const instance = await getInstance(container)
-      const closeSpy = jest.spyOn(instance, 'close')
+      const closeSpy = vi.spyOn(instance, 'close')
 
       instance.open(toolHelper(1))
       instance.handlePostedMessage({
@@ -435,7 +435,7 @@ describe('ExternalToolDialog', () => {
 
       it('does not insert content items into the editor', async () => {
         const instance = await getInstance(container)
-        const closeSpy = jest.spyOn(instance, 'close')
+        const closeSpy = vi.spyOn(instance, 'close')
 
         instance.handlePostedMessage({
           origin: instance.resourceSelectionOrigin,
@@ -452,7 +452,7 @@ describe('ExternalToolDialog', () => {
 
       it('does not replace content items in the editor', async () => {
         const instance = await getInstance(container)
-        const closeSpy = jest.spyOn(instance, 'close')
+        const closeSpy = vi.spyOn(instance, 'close')
 
         instance.handlePostedMessage({
           origin: instance.resourceSelectionOrigin,
@@ -524,7 +524,7 @@ describe('ExternalToolDialog', () => {
 
     it('closes the modal when tool sends lti.close message', async () => {
       const instance = await getInstance(container)
-      const closeSpy = jest.spyOn(instance, 'handleClose')
+      const closeSpy = vi.spyOn(instance, 'handleClose')
 
       instance.open(toolHelper(1))
       instance.handlePostedMessage({

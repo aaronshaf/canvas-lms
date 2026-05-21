@@ -28,6 +28,7 @@ import bridge from '../../../../../bridge'
 import RCEGlobals from '../../../../RCEGlobals'
 
 import {findMediaPlayerIframe} from '../../../shared/iframeUtils'
+import * as FlashAlert from '../../../../../common/FlashAlert'
 
 const MOCK_AUDIO_PLAYERS = [
   {
@@ -38,14 +39,14 @@ const MOCK_AUDIO_PLAYERS = [
 ]
 
 beforeAll(() => {
-  contentSelection.asAudioElement = jest.fn(elem => {
+  vi.spyOn(contentSelection, 'asAudioElement').mockImplementation(elem => {
     const id = elem.parentElement.getAttribute('id')
     return MOCK_AUDIO_PLAYERS.find(ap => ap.id === id)
   })
 })
 
 afterAll(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
@@ -136,15 +137,8 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
   })
 
   describe('#_applyAudioOptions', () => {
-    beforeEach(() => {
-      // container?.contentWindow.location.reload() is not defined in jsdom
-      const iframe = findMediaPlayerIframe(editors[0].selection.getNode())
-      delete iframe.contentWindow.location
-      iframe.contentWindow.location = {reload: jest.fn()}
-    })
-
     it('updates the audio', () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: 'audio_id',
@@ -154,7 +148,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('does not update the audio w/o a media_object_id', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: undefined,
@@ -164,7 +158,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('does update audio w/o media_object_id if attachment_id present', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: undefined,
@@ -180,7 +174,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('updates audio element sizing in RCE', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: 'audio_id',
@@ -215,7 +209,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('posts message to iframe onload', () => {
-      const postMessageMock = jest.fn()
+      const postMessageMock = vi.fn()
       const iframe = findMediaPlayerIframe(editors[0].selection.getNode())
       iframe.contentWindow.postMessage = postMessageMock
       trayController.showTrayForEditor(editors[0])
@@ -223,7 +217,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('cleans up event listener on tray close', () => {
-      const postMessageMock = jest.fn()
+      const postMessageMock = vi.fn()
       const iframe = findMediaPlayerIframe(editors[0].selection.getNode())
       iframe.contentWindow.postMessage = postMessageMock
       trayController.showTrayForEditor(editors[0])
@@ -233,7 +227,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('adds an event listener with a callback', () => {
-      const eventMock = jest.fn()
+      const eventMock = vi.fn()
       trayController.requestSubtitlesFromIframe(eventMock)
       const msgEvent = new Event('message')
       msgEvent.data = {subject: 'media_tracks_response', payload: [{locale: 'en'}]}
@@ -243,7 +237,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
     })
 
     it('event listener ignores events with wrong subject', () => {
-      const eventMock = jest.fn()
+      const eventMock = vi.fn()
       trayController.requestSubtitlesFromIframe(eventMock)
       const msgEvent = new Event('message')
       msgEvent.data = {subject: 'wrong_response', payload: [{locale: 'en'}]}
@@ -255,11 +249,11 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
   describe('caption update behavior with feature flag', () => {
     it('calls updateMediaObject with skipCaptionUpdate=false when feature flag is OFF', () => {
       // Mock feature flag OFF (old flow)
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: false,
       })
 
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: 'audio_id',
@@ -281,11 +275,11 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
     it('calls updateMediaObject with skipCaptionUpdate=true when feature flag is ON', () => {
       // Mock feature flag ON (new flow)
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: 'audio_id',
@@ -307,9 +301,9 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
     it('defaults to skipCaptionUpdate=false when feature flag is not defined', () => {
       // Mock feature flag undefined
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue(undefined)
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue(undefined)
 
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyAudioOptions({
         media_object_id: 'audio_id',
@@ -333,7 +327,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
   describe('caption reload on tray dismiss', () => {
     it('does NOT reload iframe on dismiss when feature flag is OFF', async () => {
       // Mock feature flag OFF
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: false,
       })
 
@@ -341,7 +335,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadAudioPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadAudioPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadAudioPlayer')
 
       // Simulate caption modification
       trayController._captionsModified = true
@@ -360,7 +354,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
     it('reloads iframe on dismiss when feature flag is ON and captions were modified', async () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -368,7 +362,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadAudioPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadAudioPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadAudioPlayer')
 
       // Simulate caption modification
       trayController._captionsModified = true
@@ -387,7 +381,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
     it('does NOT reload iframe on dismiss when feature flag is ON but captions were NOT modified', async () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -395,7 +389,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadAudioPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadAudioPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadAudioPlayer')
 
       // Do NOT modify captions (trayController._captionsModified stays false)
 
@@ -413,7 +407,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
     it('resets caption modified flag when opening tray again', () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -433,6 +427,37 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
       // Cleanup
       getFeaturesSpy.mockRestore()
+    })
+  })
+
+  describe('onSave flash alert announcement (regression: 8fef53a4739)', () => {
+    it('calls showFlashAlert with success type after audio options are saved', () => {
+      vi.useFakeTimers()
+      const showFlashAlertSpy = vi.spyOn(FlashAlert, 'showFlashAlert').mockImplementation(() => {})
+      vi.spyOn(trayController, '_applyAudioOptions').mockImplementation(() => {})
+      vi.spyOn(trayController, '_dismissTray').mockImplementation(() => {})
+
+      let capturedOnSave
+      const origRender = ReactDOM.render.bind(ReactDOM)
+      const renderSpy = vi.spyOn(ReactDOM, 'render').mockImplementation((element, container) => {
+        if (element?.props?.onSave) capturedOnSave = element.props.onSave
+        return origRender(element, container)
+      })
+
+      trayController.showTrayForEditor(editors[0])
+
+      expect(typeof capturedOnSave).toBe('function')
+      capturedOnSave({})
+      vi.runAllTimers()
+
+      expect(showFlashAlertSpy).toHaveBeenCalledWith({
+        message: expect.stringContaining('saved'),
+        type: 'success',
+      })
+
+      renderSpy.mockRestore()
+      showFlashAlertSpy.mockRestore()
+      vi.useRealTimers()
     })
   })
 })

@@ -32,8 +32,8 @@ describe('RCE "Links" Plugin > LinkOptionsTray', () => {
         isPreviewable: true,
         onlyTextSelected: true,
       },
-      onRequestClose: jest.fn(),
-      onSave: jest.fn(),
+      onRequestClose: vi.fn(),
+      onSave: vi.fn(),
       open: true,
     }
   })
@@ -167,7 +167,7 @@ describe('RCE "Links" Plugin > LinkOptionsTray', () => {
     describe('when clicked', () => {
       it('prevents the default click handler', () => {
         renderComponent()
-        const preventDefault = jest.fn()
+        const preventDefault = vi.fn()
         tray.$doneButton.addEventListener(
           'click',
           event => {

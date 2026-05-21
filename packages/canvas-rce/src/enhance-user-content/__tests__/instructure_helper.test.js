@@ -26,10 +26,19 @@ import {
   showFilePreviewInline,
 } from '../instructure_helper'
 
+vi.mock('../doc_previews', () => ({
+  isPreviewable: vi.fn().mockReturnValue(false),
+  loadDocPreview: vi.fn(),
+  removeLoadingImage: vi.fn(),
+  showLoadingImage: vi.fn(),
+}))
+
+import {loadDocPreview} from '../doc_previews'
+
 function makeEvent(opts) {
   return {
-    preventDefault: jest.fn(),
-    stopPropagation: jest.fn(),
+    preventDefault: vi.fn(),
+    stopPropagation: vi.fn(),
     ...opts,
   }
 }
@@ -190,7 +199,7 @@ describe('enhanced_user_content/instructure_helpers', () => {
 
   describe('showFilePreviewInOverlay', () => {
     beforeEach(() => {
-      jest.spyOn(window, 'postMessage')
+      vi.spyOn(window, 'postMessage')
     })
     afterEach(() => {
       window.postMessage.mockRestore()
@@ -311,12 +320,42 @@ describe('enhanced_user_content/instructure_helpers', () => {
       showFilePreviewInline(event)
       expect(event.preventDefault).not.toHaveBeenCalled()
     })
+
+    it('prepends canvasOrigin to canvadoc_session_url (regression: 488496ca469)', async () => {
+      const previewDivId = 'file-preview-div'
+      const link = document.createElement('a')
+      link.href = 'http://localhost/courses/1/files/2'
+      link.setAttribute('aria-controls', previewDivId)
+      const previewDiv = document.createElement('div')
+      previewDiv.setAttribute('id', previewDivId)
+      document.body.appendChild(previewDiv)
+
+      fetchMock.get(link.href, {
+        attachment: {
+          canvadoc_session_url: '/sessions/abc?token=1',
+          content_type: 'application/pdf',
+        },
+      })
+      const event = makeEvent({currentTarget: link})
+      showFilePreviewInline(event, 'http://canvas.example.com', false)
+      await fetchMock.flush(true)
+      // flush additional microtask ticks for the .then() chain
+      await Promise.resolve()
+      await Promise.resolve()
+      expect(loadDocPreview).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          canvadoc_session_url: 'http://canvas.example.com/sessions/abc?token=1',
+        }),
+      )
+      document.body.removeChild(previewDiv)
+    })
   })
 
   describe('showFilePreview', () => {
     const opts = {canvasOrigin, disableGooglePreviews: false}
     beforeEach(() => {
-      jest.spyOn(window, 'postMessage')
+      vi.spyOn(window, 'postMessage')
     })
     afterEach(() => {
       window.postMessage.mockRestore()

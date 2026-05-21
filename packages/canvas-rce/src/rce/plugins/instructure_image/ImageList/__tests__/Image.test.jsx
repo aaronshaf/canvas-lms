@@ -36,7 +36,7 @@ describe('RCE "Images" Plugin > Image', () => {
         preview_url: 'http://canvas.rce/images/preview/example.png',
         thumbnail_url: 'http://canvas.rce/images/thumbnail/example.png',
       },
-      onClick: jest.fn(),
+      onClick: vi.fn(),
       canvasOrigin: 'https://canvas.instructor.com',
     }
   })
@@ -99,7 +99,7 @@ describe('RCE "Images" Plugin > Image', () => {
     })
 
     it('prevents the default click handler', () => {
-      const preventDefault = jest.fn()
+      const preventDefault = vi.fn()
       renderComponent()
       // Override preventDefault before event reaches image
       getFocusable().addEventListener(

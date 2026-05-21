@@ -21,12 +21,12 @@ import {render} from '@testing-library/react'
 import RceFileBrowser from '../RceFileBrowser'
 import FileBrowser from '../../../../canvasFileBrowser/FileBrowser'
 
-jest.mock('../../../../canvasFileBrowser/FileBrowser', () => {
-  return jest.fn(() => 'Files Browser')
-})
-jest.mock('../../../../bridge')
+vi.mock('../../../../canvasFileBrowser/FileBrowser', () => ({
+  default: vi.fn(() => 'Files Browser'),
+}))
+vi.mock('../../../../bridge')
 
-const onAllFilesLoading = jest.fn()
+const onAllFilesLoading = vi.fn()
 const props = {
   searchString: '',
   onAllFilesLoading,
@@ -39,7 +39,7 @@ describe('RceFileBrowser', () => {
   afterEach(() => FileBrowser.mockClear())
 
   it('invokes onFileSelect callback with appropriate data when a file is selected', () => {
-    const onFileSelect = jest.fn()
+    const onFileSelect = vi.fn()
     render(<RceFileBrowser onFileSelect={onFileSelect} {...props} />)
     // This is the selectFile prop passed to the Canvas FileBrowser that we mocked above
     const selectFile = FileBrowser.mock.calls[0][0].selectFile
@@ -60,7 +60,7 @@ describe('RceFileBrowser', () => {
   })
 
   it('plumbs the media_id when a video file is selected', () => {
-    const onFileSelect = jest.fn()
+    const onFileSelect = vi.fn()
     render(<RceFileBrowser onFileSelect={onFileSelect} {...props} />)
     // This is the selectFile prop passed to the Canvas FileBrowser that we mocked above
     const selectFile = FileBrowser.mock.calls[0][0].selectFile
@@ -87,7 +87,7 @@ describe('RceFileBrowser', () => {
 
   describe('when the selected file has category=icon_maker_icon', () => {
     it('adds icon maker icon attributes to onFileSelect object param', () => {
-      const onFileSelect = jest.fn()
+      const onFileSelect = vi.fn()
       render(<RceFileBrowser onFileSelect={onFileSelect} {...props} />)
       // This is the selectFile prop passed to the Canvas FileBrowser that we mocked above
       const selectFile = FileBrowser.mock.calls[0][0].selectFile

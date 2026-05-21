@@ -54,7 +54,7 @@ describe('RceModule', () => {
   })
 
   it('handleUnmount unmounts root component', done => {
-    const unmountSpy = jest.spyOn(ReactDOM, 'unmountComponentAtNode')
+    const unmountSpy = vi.spyOn(ReactDOM, 'unmountComponentAtNode')
 
     renderIntoDiv(target, props, wrapper => {
       wrapper.props.handleUnmount()

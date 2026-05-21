@@ -26,9 +26,9 @@ describe('<Footer />', () => {
 
   beforeEach(() => {
     defaults = {
-      onCancel: jest.fn(),
-      onSubmit: jest.fn(),
-      onReplace: jest.fn(),
+      onCancel: vi.fn(),
+      onSubmit: vi.fn(),
+      onReplace: vi.fn(),
       editing: false,
       isModified: false,
       replaceAll: false,
@@ -38,7 +38,7 @@ describe('<Footer />', () => {
 
   const subject = (overrides = {}) => render(<Footer {...defaults} {...overrides} />)
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   it('calls "onSubmit" when pressing create button', async () => {
     const {getByTestId} = subject()

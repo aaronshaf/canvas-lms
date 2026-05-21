@@ -1,12 +1,12 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`data returns the proper object 1`] = `
+exports[`data > returns the proper object 1`] = `
 {
   "combine": false,
 }
 `;
 
-exports[`form returns the proper object 1`] = `
+exports[`form > returns the proper object 1`] = `
 [
   {
     "checkbox": true,
@@ -16,8 +16,8 @@ exports[`form returns the proper object 1`] = `
 ]
 `;
 
-exports[`linkText returns the proper linkText message 1`] = `"Learn more about adjacent links"`;
+exports[`linkText > returns the proper linkText message 1`] = `"Learn more about adjacent links"`;
 
-exports[`message returns the proper message 1`] = `"Adjacent links with the same URL should be a single link."`;
+exports[`message > returns the proper message 1`] = `"Adjacent links with the same URL should be a single link."`;
 
-exports[`why returns the proper why message 1`] = `"Keyboards navigate to links using the Tab key. Two adjacent links that direct to the same destination can be confusing to keyboard users."`;
+exports[`why > returns the proper why message 1`] = `"Keyboards navigate to links using the Tab key. Two adjacent links that direct to the same destination can be confusing to keyboard users."`;

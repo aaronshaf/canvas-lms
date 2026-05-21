@@ -21,7 +21,7 @@ import {enhanceUserContent} from '../enhance_user_content'
 import {Mathml} from '../mathml'
 import * as instructureHelper from '../instructure_helper'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const subject = bodyHTML => {
   document.body.querySelector('.user_content').innerHTML = `${bodyHTML}`
@@ -145,7 +145,7 @@ describe('enhanceUserContent()', () => {
 
   describe('file path matching', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     describe('does enhance', () => {
@@ -197,6 +197,20 @@ describe('enhanceUserContent()', () => {
           fireEvent.click(document.querySelector('.instructure_file_holder > a'))
           expect(showFilePreviewSpy).toHaveBeenCalled()
         })
+
+        it('under assessment_questions context (regression: 48729005e26)', () => {
+          // Before fix: /assessment_questions/N/files/M paths were not recognized
+          // as Canvas file links because the regex only matched courses/groups/users.
+          const showFilePreviewSpy = jest
+            .spyOn(instructureHelper, 'showFilePreview')
+            .mockImplementation(() => {})
+          const url = '/assessment_questions/42/files/99?download_frd=1'
+          subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
+          enhanceUserContent()
+          expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
+          fireEvent.click(document.querySelector('.instructure_file_holder > a'))
+          expect(showFilePreviewSpy).toHaveBeenCalled()
+        })
       })
     })
 
@@ -217,7 +231,7 @@ describe('enhanceUserContent()', () => {
 
   describe('when a link has an href that matches a canvas file path', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     it('makes relative links absolute', () => {
@@ -253,6 +267,16 @@ describe('enhanceUserContent()', () => {
       subject('<a class="instructure_file_link" href="/courses/1/files/27">file</a>')
       enhanceUserContent()
       expect(document.querySelector('a.file_download_btn')).toBeInTheDocument()
+    })
+
+    it('renders download icon as SVG via DOMParser (regression: 654e41b0293)', () => {
+      // Before fix: IconDownloadSVG was injected via innerHTML, which fails under
+      // Trusted Types Phase 2 enforcement. After fix: DOMParser + importNode is used.
+      subject('<a class="instructure_file_link" href="/courses/1/files/27">file</a>')
+      enhanceUserContent()
+      const icon = document.querySelector('a.file_download_btn span[role="presentation"] svg')
+      expect(icon).toBeInTheDocument()
+      expect(icon.tagName.toLowerCase()).toBe('svg')
     })
 
     describe('when the link has no href attribute', () => {
@@ -399,6 +423,26 @@ describe('enhanceUserContent()', () => {
       expect(document.querySelector('span.external_link_icon svg')).toBeInTheDocument()
     })
 
+    it('renders with display:inline-block so it does not wrap on its own line (regression: fc91f3fdc47)', () => {
+      // Bug: icon had no display setting so it could cause an underline on the
+      // trailing space when parent <a> was inline.
+      // Fix: added display: inline-block.
+      subject('<a href="https://instructure.com/">external link</a>')
+      enhanceUserContent()
+      const icon = document.querySelector('span.external_link_icon')
+      expect(icon.getAttribute('style')).toMatch(/display:\s*inline-block/)
+    })
+
+    it('sets text-indent: initial on the external link icon (regression: f68f00338d7)', () => {
+      // Bug: external link icon inherited text-indent from its parent <p>, causing
+      // it to be mis-aligned when the paragraph had text-indent set.
+      // Fix: added text-indent: initial to the icon's inline style.
+      subject('<a href="https://instructure.com/">external link</a>')
+      enhanceUserContent()
+      const icon = document.querySelector('span.external_link_icon')
+      expect(icon.getAttribute('style')).toMatch(/text-indent:\s*initial/)
+    })
+
     it('adds target=_blank', () => {
       subject('<a href="https://instructure.com/">external link</a>')
       enhanceUserContent()
@@ -477,7 +521,7 @@ describe('enhanceUserContent()', () => {
             link
           </a> `)
         enhanceUserContent()
-        jest.runAllTimers()
+        vi.runAllTimers()
         expect(document.querySelector('.instructure_inline_media_comment')).toBeInTheDocument()
         expect(document.querySelector('.instructure_video_link')).toBeInTheDocument()
       })
@@ -487,7 +531,7 @@ describe('enhanceUserContent()', () => {
   describe('customEnhance function', () => {
     it('is called if provided', () => {
       subject('<p>fhello world</p>')
-      const customEnhance = jest.fn()
+      const customEnhance = vi.fn()
       enhanceUserContent(document, {customEnhance})
       expect(customEnhance).toHaveBeenCalledTimes(1)
     })
@@ -495,18 +539,18 @@ describe('enhanceUserContent()', () => {
 
   describe('math rendering', () => {
     beforeEach(() => {
-      jest.resetAllMocks()
+      vi.resetAllMocks()
     })
 
     it('processes math inside content when ELT is on', () => {
-      const processSpy = jest.spyOn(Mathml.prototype, 'processNewMathInElem')
+      const processSpy = vi.spyOn(Mathml.prototype, 'processNewMathInElem')
       subject('<p>anything</p>')
       enhanceUserContent(document, {explicit_latex_typesetting: true})
       expect(processSpy).toHaveBeenCalledWith(elem)
     })
 
     it('does not process math inside content when ELT is off', () => {
-      const processSpy = jest.spyOn(Mathml.prototype, 'processNewMathInElem')
+      const processSpy = vi.spyOn(Mathml.prototype, 'processNewMathInElem')
       subject('<p>anything</p>')
       enhanceUserContent(document, {explicit_latex_typesetting: false})
       expect(processSpy).not.toHaveBeenCalled()

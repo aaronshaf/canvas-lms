@@ -25,22 +25,22 @@ import FakeEditor from '../../../../../../__tests__/FakeEditor'
 import fetchMock from 'fetch-mock'
 import {isAnUnsupportedGifPngImage} from '../utils'
 
-jest.mock('../../../../../../../bridge', () => {
-  return {
+vi.mock('../../../../../../../bridge', () => ({
+  default: {
     trayProps: {
       get: () => ({foo: 'bar'}),
     },
-  }
-})
-
-jest.mock('../../../../../shared/compressionUtils', () => ({
-  ...jest.requireActual('../../../../../shared/compressionUtils'),
-  compressImage: jest.fn().mockReturnValue(Promise.resolve('data:image/jpeg;base64,abcdefghijk==')),
+  },
 }))
 
-jest.mock('../utils', () => ({
-  ...jest.requireActual('../utils'),
-  isAnUnsupportedGifPngImage: jest.fn().mockReturnValue(false),
+vi.mock('../../../../../shared/compressionUtils', async () => ({
+  ...(await vi.importActual('../../../../../shared/compressionUtils')),
+  compressImage: vi.fn().mockReturnValue(Promise.resolve('data:image/jpeg;base64,abcdefghijk==')),
+}))
+
+vi.mock('../utils', async () => ({
+  ...(await vi.importActual('../utils')),
+  isAnUnsupportedGifPngImage: vi.fn().mockReturnValue(false),
 }))
 
 let props
@@ -48,13 +48,13 @@ const subject = () => render(<Upload {...props} />)
 
 describe('Upload()', () => {
   beforeEach(() => {
-    props = {editor: new FakeEditor(), dispatch: jest.fn(), canvasOrigin: 'http://canvas.docker'}
+    props = {editor: new FakeEditor(), dispatch: vi.fn(), canvasOrigin: 'http://canvas.docker'}
     fetchMock.mock('/api/session', '{}')
   })
 
   afterEach(() => {
     fetchMock.restore()
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('renders an upload modal', async () => {
@@ -77,8 +77,8 @@ describe('Upload()', () => {
   })
 
   describe('onSubmit()', () => {
-    const dispatch = jest.fn()
-    const onChange = jest.fn()
+    const dispatch = vi.fn()
+    const onChange = vi.fn()
     const theFile = {
       preview:
         'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEBCAMAAAD1kWivAAADAFBMVEWysrL5nCYYGBj7/+rceo3w1tD+yAfwFTPrIj36',
@@ -97,7 +97,7 @@ describe('Upload()', () => {
         },
       )
 
-    afterEach(() => jest.clearAllMocks())
+    afterEach(() => vi.clearAllMocks())
 
     it('sets the selected image to preview', () => {
       onSubmitCall()
@@ -155,8 +155,8 @@ describe('Upload()', () => {
   })
 
   describe('onSubmit() with an image to be compressed', () => {
-    const dispatch = jest.fn()
-    const onChange = jest.fn()
+    const dispatch = vi.fn()
+    const onChange = vi.fn()
     const theFile = {
       preview:
         'data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEBCAMAAAD1kWivAAADAFBMVEWysrL5nCYYGBj7/+rceo3w1tD+yAfwFTPrIj36',
@@ -177,7 +177,7 @@ describe('Upload()', () => {
 
     const flushPromises = () => new Promise(setTimeout)
 
-    afterEach(() => jest.clearAllMocks())
+    afterEach(() => vi.clearAllMocks())
 
     it('sets the compression status', async () => {
       onSubmitCall()

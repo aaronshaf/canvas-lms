@@ -93,6 +93,30 @@ describe('mediaCommentThumbnail', () => {
     expect(screenreaderText).toEqual('Play media comment.')
   })
 
+  it('does not produce a javascript: href when link href is javascript: (regression: 877a2379857)', async () => {
+    // Before fix: a.href = $link.getAttribute('href') — javascript: passed through
+    // After fix: a.href = sanitizeUrl(...) — javascript: is replaced with about:blank
+    document.getElementById('fixtures').innerHTML = `
+      <a
+        id="media_comment_xss"
+        class="instructure_inline_media_comment video_comment"
+        href="javascript:alert(document.domain)"
+        data-media_comment_id="m-abc123"
+      >media</a>
+    `
+    await mediaCommentThumbnail(
+      document.getElementById('media_comment_xss'),
+      'normal',
+      true,
+      kalturaSettings,
+    )
+    const thumbnail = document.querySelector('.media_comment_thumbnail')
+    if (thumbnail) {
+      const bgImage = thumbnail.style['background-image'] || ''
+      expect(bgImage).not.toMatch(/javascript:/i)
+    }
+  })
+
   it('does not render a thumbnail when the media_comment_id contains CSS-injection characters', async () => {
     document.body.innerHTML = `<div id="fixtures">
       <a

@@ -52,7 +52,7 @@ describe('RCE "Links" Plugin > AccordionSection', () => {
   })
 
   it('calls onToggle when toggling', () => {
-    const onToggle = jest.fn()
+    const onToggle = vi.fn()
     const {getByText} = renderComponent({onToggle})
 
     const expandBtn = getByText('Expand to see Assignments')

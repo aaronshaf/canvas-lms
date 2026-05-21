@@ -23,8 +23,8 @@ import {BUTTON_SCALE_STEP} from '../../constants'
 import round from '../../../round'
 import {showFlashAlert} from '../../../../../../common/FlashAlert'
 
-jest.mock('../../../../../../common/FlashAlert')
-jest.mock('@instructure/debounce', () => ({
+vi.mock('../../../../../../common/FlashAlert')
+vi.mock('@instructure/debounce', () => ({
   debounce: fn => {
     return fn
   },
@@ -57,7 +57,7 @@ describe('ZoomControls', () => {
   })
 
   it('calls function when zoom out is clicked', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
     const zoomOutButton = container.querySelectorAll('button')[0]
     fireEvent.click(zoomOutButton)
@@ -65,7 +65,7 @@ describe('ZoomControls', () => {
   })
 
   it('calls function when zoom in is clicked', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
     const zoomInButton = container.querySelectorAll('button')[1]
     fireEvent.click(zoomInButton)
@@ -76,7 +76,7 @@ describe('ZoomControls', () => {
     const timeout = 2000
 
     it('increment using up arrow', () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
       const input = container.querySelector('label input[type="text"]')
       fireEvent.keyDown(input, {keyCode: 38})
@@ -84,7 +84,7 @@ describe('ZoomControls', () => {
     })
 
     it('increment using down arrow', () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
       const input = container.querySelector('label input[type="text"]')
       fireEvent.keyDown(input, {keyCode: 40})
@@ -93,7 +93,7 @@ describe('ZoomControls', () => {
 
     describe('on blur input', () => {
       it('with custom valid positive percentage', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150%'}})
@@ -102,7 +102,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive value that is lower than 100', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '90%'}})
@@ -111,7 +111,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive value that is greater than 200', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '300%'}})
@@ -120,7 +120,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage with decimals', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150.100%'}})
@@ -129,7 +129,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage without % symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150'}})
@@ -138,7 +138,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage with decimals and without % symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150.201'}})
@@ -147,7 +147,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-100%'}})
@@ -156,7 +156,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage with decimals', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-100.100%'}})
@@ -165,7 +165,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage without % symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-100'}})
@@ -174,7 +174,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage with decimals and without % symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-150.201'}})
@@ -183,7 +183,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom invalid percentage', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: 'banana'}})
@@ -192,7 +192,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom empty percentage', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -201,7 +201,7 @@ describe('ZoomControls', () => {
       })
 
       it('with shows error message', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -213,7 +213,7 @@ describe('ZoomControls', () => {
 
     describe('on change and debounce input', () => {
       it('with custom valid positive percentage', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150%'}})
@@ -226,7 +226,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive value that exceeds 200', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '300'}})
@@ -239,7 +239,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage with decimals', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150.100%'}})
@@ -252,7 +252,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage without % symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150'}})
@@ -265,7 +265,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid positive percentage with decimals and without % symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '150.201'}})
@@ -278,7 +278,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-150%'}})
@@ -291,7 +291,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage with decimals', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-150.100%'}})
@@ -304,7 +304,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage without % symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-150'}})
@@ -317,7 +317,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom valid negative percentage with decimals and without % symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls scaleRatio={1.5} onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-150.201'}})
@@ -330,7 +330,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom invalid percentage', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: 'banana'}})
@@ -343,7 +343,7 @@ describe('ZoomControls', () => {
       })
 
       it('with custom empty percentage', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -356,7 +356,7 @@ describe('ZoomControls', () => {
       })
 
       it('with shows error message', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<ZoomControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})

@@ -23,10 +23,10 @@ import {apiSource} from './filesHelpers'
 
 const defaultProps = overrides => ({
   allowedUpload: true,
-  selectFile: jest.fn(),
+  selectFile: vi.fn(),
   useContextAssets: false,
   searchString: '',
-  onLoading: jest.fn(),
+  onLoading: vi.fn(),
   context: {
     type: 'course',
     id: '1',
@@ -40,7 +40,7 @@ const subject = props => render(<FileBrowser {...props} />)
 
 describe('FileBrowser', () => {
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('componentDidMount()', () => {

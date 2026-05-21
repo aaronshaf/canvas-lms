@@ -138,7 +138,7 @@ describe('Image actions', () => {
 
   describe('fetchImages', () => {
     it('fetches initial page if necessary, part 1', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => ({
         images: {
           user: {
@@ -155,7 +155,7 @@ describe('Image actions', () => {
     })
 
     it('sends specified options', () => {
-      const fetchImageStub = jest.fn().mockResolvedValue({})
+      const fetchImageStub = vi.fn().mockResolvedValue({})
 
       const dispatch = fn => {
         if (typeof fn === 'function') {
@@ -182,7 +182,7 @@ describe('Image actions', () => {
     })
 
     it('fetches initial page if necessary, part 2', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => ({
         images: {
           user: {
@@ -199,7 +199,7 @@ describe('Image actions', () => {
     })
 
     it('sends specified options for next images', () => {
-      const fetchImageStub = jest.fn().mockResolvedValue({})
+      const fetchImageStub = vi.fn().mockResolvedValue({})
 
       const dispatch = fn => {
         if (typeof fn === 'function') {
@@ -226,7 +226,7 @@ describe('Image actions', () => {
     })
 
     it('skips the fetch if currently loading', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => ({
         images: {
           user: {
@@ -243,7 +243,7 @@ describe('Image actions', () => {
     })
 
     it('fetches if requested and there are more to load', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => ({
         images: {
           user: {
@@ -260,7 +260,7 @@ describe('Image actions', () => {
     })
 
     it('does not fetch if requested but no more to load', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => ({
         images: {
           user: {

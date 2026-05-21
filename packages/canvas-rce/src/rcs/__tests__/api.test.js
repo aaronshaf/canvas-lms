@@ -20,7 +20,7 @@ import fetchMock from 'fetch-mock'
 import RceApiSource from '../api'
 import {saveClosedCaptions, saveClosedCaptionsForAttachment} from '@instructure/canvas-media'
 
-jest.mock('@instructure/canvas-media')
+vi.mock('@instructure/canvas-media')
 
 let apiSource
 
@@ -30,10 +30,10 @@ beforeEach(() => {
     refreshToken: callback => {
       callback('freshJWT')
     },
-    alertFunc: jest.fn(),
+    alertFunc: vi.fn(),
   })
 
-  apiSource.fetchPage = jest.fn()
+  apiSource.fetchPage = vi.fn()
 
   fetchMock.mock('/api/session', '{}')
 })
@@ -60,19 +60,21 @@ describe('fetchImages()', () => {
   })
 
   describe('with "category" set', () => {
-    props = {
-      category: 'uncategorized',
-      ...standardProps,
-    }
-  })
+    beforeEach(() => {
+      props = {
+        category: 'uncategorized',
+        ...standardProps,
+      }
+    })
 
-  it('sends the category', async () => {
-    await subject()
-    expect(
-      fetchMock.called(
-        '/api/documents?contextType=course&contextId=undefined&content_types=image&sort=undefined&order=undefined&category=uncategorized',
-      ),
-    ).toEqual(true)
+    it('sends the category', async () => {
+      await subject()
+      expect(
+        fetchMock.called(
+          '/api/documents?contextType=course&contextId=undefined&content_types=image&sort=undefined&order=undefined&category=uncategorized',
+        ),
+      ).toEqual(true)
+    })
   })
 })
 
@@ -127,7 +129,7 @@ describe('fetchMedia', () => {
       contextId: 1,
     }
 
-    apiSource.apiFetch = jest.fn().mockResolvedValue({files: []})
+    apiSource.apiFetch = vi.fn().mockResolvedValue({files: []})
   })
 
   it('fetches media documents', async () => {
@@ -159,7 +161,7 @@ describe('saveClosedCaptions()', () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('using media objects url', async () => {
@@ -212,10 +214,11 @@ describe('saveClosedCaptions()', () => {
   })
 
   describe('with a captions file that is too large', () => {
-    beforeEach(() => {
-      saveClosedCaptions.mockImplementation(
-        jest.requireActual('@instructure/canvas-media').saveClosedCaptions,
+    beforeEach(async () => {
+      const {saveClosedCaptions: realSaveClosedCaptions} = await vi.importActual(
+        '@instructure/canvas-media',
       )
+      saveClosedCaptions.mockImplementation(realSaveClosedCaptions)
       maxBytes = 5
     })
 
@@ -229,13 +232,105 @@ describe('saveClosedCaptions()', () => {
   })
 })
 
+describe('uploadFRD() S3 XML response (regression: 0c58dcd0fc6)', () => {
+  const preflightProps = {
+    upload_url: 'https://s3.example.com/upload',
+    upload_params: {'x-amz-signature': 'abc123'},
+  }
+
+  it('parses XML Location from S3 201 response', async () => {
+    const xmlBody =
+      '<?xml version="1.0"?><PostResponse><Location>https://s3.example.com/files/test.pdf</Location></PostResponse>'
+    fetchMock.post('https://s3.example.com/upload', {
+      status: 201,
+      headers: {'content-type': 'application/xml; charset=UTF-8'},
+      body: xmlBody,
+    })
+    apiSource.finalizeUpload = vi.fn().mockResolvedValue({})
+    await apiSource.uploadFRD(new window.File(['data'], 'test.pdf'), preflightProps)
+    expect(apiSource.finalizeUpload).toHaveBeenCalledWith(
+      preflightProps,
+      expect.objectContaining({Location: 'https://s3.example.com/files/test.pdf'}),
+    )
+    fetchMock.restore()
+  })
+
+  it('falls back to res.json() for non-XML responses', async () => {
+    fetchMock.post('https://s3.example.com/upload', {
+      status: 200,
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({id: 42}),
+    })
+    apiSource.finalizeUpload = vi.fn().mockResolvedValue({})
+    await apiSource.uploadFRD(new window.File(['data'], 'test.pdf'), preflightProps)
+    expect(apiSource.finalizeUpload).toHaveBeenCalledWith(
+      preflightProps,
+      expect.objectContaining({id: 42}),
+    )
+    fetchMock.restore()
+  })
+})
+
+describe('uploadFRD() null content-type guard (regression: 3e97eebab5a)', () => {
+  const preflightProps = {
+    upload_url: 'https://s3.example.com/upload',
+    upload_params: {'x-amz-signature': 'abc123'},
+  }
+
+  it('does not crash when S3 response has no content-type header', async () => {
+    // Before fix: res.headers.get('content-type').includes(...) threw TypeError
+    // when content-type was absent (null). After fix: ?. makes it return undefined
+    // (falsy) and fall through to res.json().
+    fetchMock.post('https://s3.example.com/upload', {
+      status: 200,
+      headers: {},
+      body: JSON.stringify({id: 99}),
+    })
+    apiSource.finalizeUpload = vi.fn().mockResolvedValue({})
+    await apiSource.uploadFRD(new window.File(['data'], 'test.pdf'), preflightProps)
+    expect(apiSource.finalizeUpload).toHaveBeenCalledWith(
+      preflightProps,
+      expect.objectContaining({id: 99}),
+    )
+    fetchMock.restore()
+  })
+})
+
+describe('apiPost() network error propagation (regression: 3e97eebab5a)', () => {
+  let originalFetch
+
+  beforeEach(() => {
+    originalFetch = global.fetch
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+  })
+
+  it('re-throws the original network error without crashing on e.response.json()', async () => {
+    // Before fix: apiPost's catch tried e.response.json() when e.response was undefined,
+    // replacing the original TypeError with "Cannot read properties of undefined (reading 'json')".
+    // After fix: if (!e.response) throw e — network errors pass through unchanged.
+    const networkError = new TypeError('network failure')
+    global.fetch = vi.fn().mockRejectedValue(networkError)
+    // throwConnectionError logs the TypeError to console.error — suppress it
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    await expect(
+      apiSource.updateMediaObject(
+        {host: 'test.com', jwt: 'asd.asdf.asdf'},
+        {media_object_id: 'm-id', title: '', attachment_id: null},
+      ),
+    ).rejects.toThrow('network failure')
+  })
+})
+
 describe('updateMediaData()', () => {
   const apiProps = {host: 'test.com', jwt: 'asd.asdf.asdf'}
   const media_object_id = 'm-id',
     attachment_id = '123'
 
   it('Uses the media object route with no attachment_id', async () => {
-    apiSource.apiPost = jest.fn()
+    apiSource.apiPost = vi.fn()
     await apiSource.updateMediaObject(apiProps, {media_object_id, title: '', attachment_id: null})
     expect(apiSource.apiPost).toHaveBeenCalledWith(
       'http://test.com/api/media_objects/m-id?user_entered_title=',
@@ -246,7 +341,7 @@ describe('updateMediaData()', () => {
   })
 
   it('Uses the media attachment route with the attachment_id', async () => {
-    apiSource.apiPost = jest.fn()
+    apiSource.apiPost = vi.fn()
     await apiSource.updateMediaObject(apiProps, {media_object_id, title: '', attachment_id})
     expect(apiSource.apiPost).toHaveBeenCalledWith(
       'http://test.com/api/media_attachments/123?user_entered_title=',
@@ -257,7 +352,7 @@ describe('updateMediaData()', () => {
   })
 
   it('sends provided viewerRestrictions in the body', async () => {
-    apiSource.apiPost = jest.fn()
+    apiSource.apiPost = vi.fn()
     await apiSource.updateMediaObject(apiProps, {
       media_object_id,
       title: '',

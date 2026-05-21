@@ -81,7 +81,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
   })
 
   it('fetches initial data when mounted', () => {
-    const fetchInitialPage = jest.fn()
+    const fetchInitialPage = vi.fn()
     renderComponent({
       collection: {
         hasMore: true,
@@ -95,7 +95,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
   })
 
   it('fetches more when the load more button is clicked', () => {
-    const fetchNextPage = jest.fn()
+    const fetchNextPage = vi.fn()
     const {getByText} = renderComponent({
       collection: {
         hasMore: true,
@@ -114,7 +114,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
   })
 
   it('shows an error message if the fetch failed', () => {
-    const fetchNextPage = jest.fn()
+    const fetchNextPage = vi.fn()
     const {getByText} = renderComponent({
       collection: {
         hasMore: true,
@@ -132,7 +132,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
   })
 
   it('shows spinner during initial load', () => {
-    const fetchInitialPage = jest.fn()
+    const fetchInitialPage = vi.fn()
     const {getByText} = renderComponent({
       collection: {
         hasMore: true,
@@ -147,7 +147,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
   })
 
   it('shows spinner while loading more', () => {
-    const fetchNextPage = jest.fn()
+    const fetchNextPage = vi.fn()
     const {getByText} = renderComponent({
       collection: {
         hasMore: true,

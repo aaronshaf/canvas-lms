@@ -84,9 +84,9 @@ describe('findLatex', () => {
 describe('parseLatex', () => {
   const editor: any = {
     selection: {
-      getContent: jest.fn(),
-      getNode: jest.fn(),
-      getRng: jest.fn(() => ({
+      getContent: vi.fn(),
+      getNode: vi.fn(),
+      getRng: vi.fn(() => ({
         startContainer: {
           wholeText: '',
         },

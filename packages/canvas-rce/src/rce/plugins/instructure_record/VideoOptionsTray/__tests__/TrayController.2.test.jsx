@@ -28,6 +28,7 @@ import bridge from '../../../../../bridge'
 import RCEGlobals from '../../../../RCEGlobals'
 
 import {findMediaPlayerIframe} from '../../../shared/iframeUtils'
+import * as FlashAlert from '../../../../../common/FlashAlert'
 
 const mockVideoPlayers = [
   {
@@ -65,7 +66,7 @@ const mockVideoPlayers = [
 let previousOrigin = ''
 
 beforeAll(() => {
-  jest.spyOn(contentSelection, 'asVideoElement').mockImplementation(elem => {
+  vi.spyOn(contentSelection, 'asVideoElement').mockImplementation(elem => {
     const vid = elem?.parentElement?.getAttribute('id')
     return vid ? mockVideoPlayers.find(vp => vp.id === vid) : {}
   })
@@ -75,7 +76,7 @@ beforeAll(() => {
 
 afterAll(() => {
   bridge.canvasOrigin = previousOrigin
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
@@ -95,7 +96,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       editor.appendElement($video)
       editor.setSelectedNode($video)
       const iframe = findMediaPlayerIframe($video)
-      iframe.contentWindow.postMessage = jest.fn()
+      iframe.contentWindow.postMessage = vi.fn()
     })
 
     trayController = new TrayController()
@@ -127,7 +128,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
   describe('#_applyVideoOptions', () => {
     it('updates the video', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -148,7 +149,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('calls updateMediaObject with correct params', () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -169,10 +170,9 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('sets skipCaptionUpdate to true when rce_asr_captioning_improvements flag is ON', () => {
-      const RCEGlobals = require('../../../../RCEGlobals').default
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
 
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -196,12 +196,9 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('sets skipCaptionUpdate to false when rce_asr_captioning_improvements flag is OFF', () => {
-      const RCEGlobals = require('../../../../RCEGlobals').default
-      jest
-        .spyOn(RCEGlobals, 'getFeatures')
-        .mockReturnValue({rce_asr_captioning_improvements: false})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: false})
 
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -225,7 +222,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('does not update the video w/o a media_object_id', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -246,7 +243,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('does update video w/o media_object_id if attachment_id present', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -267,7 +264,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('passes viewerRestrictions to updateMediaObject', () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         displayAs: 'embed',
@@ -287,7 +284,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('does not try to save data to the db on a locked media attachment', () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       trayController.showTrayForEditor(editors[0])
       trayController._applyVideoOptions({
         editLocked: true,
@@ -298,7 +295,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('replaces the video with a link', async () => {
-      const updateMediaObject = jest.fn().mockResolvedValue()
+      const updateMediaObject = vi.fn().mockResolvedValue()
       const ed = editors[0]
       trayController.showTrayForEditor(ed)
       trayController._applyVideoOptions({
@@ -316,11 +313,35 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       expect(sel.innerHTML).toBe('new &lt;em&gt;fancy&lt;/em&gt; title') // see, html is not evaluated
       expect(updateMediaObject).toHaveBeenCalled()
     })
+
+    it('calls showFlashAlert with success after saving (regression: 8fef53a4739)', () => {
+      vi.useFakeTimers()
+      const showFlashAlertSpy = vi.spyOn(FlashAlert, 'showFlashAlert').mockImplementation(() => {})
+      vi.spyOn(trayController, '_dismissTray').mockImplementation(() => {})
+
+      trayController.showTrayForEditor(editors[0])
+      trayController._applyVideoOptions({
+        displayAs: 'embed',
+        appliedHeight: 300,
+        appliedWidth: 400,
+        media_object_id: undefined,
+      })
+
+      vi.runAllTimers()
+
+      expect(showFlashAlertSpy).toHaveBeenCalledWith({
+        message: expect.stringContaining('saved'),
+        type: 'success',
+      })
+
+      showFlashAlertSpy.mockRestore()
+      vi.useRealTimers()
+    })
   })
 
   describe('#requestSubtitlesFromIframe', () => {
     it('posts message to iframe onload', () => {
-      const postMessageMock = jest.fn()
+      const postMessageMock = vi.fn()
       const iframe = findMediaPlayerIframe(editors[0].selection.getNode())
       iframe.contentWindow.postMessage = postMessageMock
       trayController.showTrayForEditor(editors[0])
@@ -328,7 +349,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('cleans up event listener on tray close', () => {
-      const postMessageMock = jest.fn()
+      const postMessageMock = vi.fn()
       const iframe = findMediaPlayerIframe(editors[0].selection.getNode())
       iframe.contentWindow.postMessage = postMessageMock
       trayController.showTrayForEditor(editors[0])
@@ -338,7 +359,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('adds an event listener with a callback', () => {
-      const eventMock = jest.fn()
+      const eventMock = vi.fn()
       trayController.requestSubtitlesFromIframe(eventMock)
       const msgEvent = new Event('message')
       msgEvent.data = {subject: 'media_tracks_response', payload: [{locale: 'en'}]}
@@ -348,7 +369,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     })
 
     it('event listener ignores events with wrong subject', () => {
-      const eventMock = jest.fn()
+      const eventMock = vi.fn()
       trayController.requestSubtitlesFromIframe(eventMock)
       const msgEvent = new Event('message')
       msgEvent.data = {subject: 'wrong_response', payload: [{locale: 'en'}]}
@@ -359,7 +380,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
   describe('focus behavior on tray close', () => {
     beforeEach(() => {
-      jest.spyOn(bridge, 'focusActiveEditor')
+      vi.spyOn(bridge, 'focusActiveEditor')
     })
 
     afterEach(() => {
@@ -398,7 +419,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
   describe('caption reload on tray dismiss', () => {
     it('does NOT reload iframe on dismiss when feature flag is OFF', async () => {
       // Mock feature flag OFF
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: false,
       })
 
@@ -406,7 +427,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadVideoPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadVideoPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadVideoPlayer')
 
       // Simulate caption modification
       trayController._captionsModified = true
@@ -425,7 +446,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
     it('reloads iframe on dismiss when feature flag is ON and captions were modified', async () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -433,7 +454,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadVideoPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadVideoPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadVideoPlayer')
 
       // Simulate caption modification
       trayController._captionsModified = true
@@ -452,7 +473,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
     it('does NOT reload iframe on dismiss when feature flag is ON but captions were NOT modified', async () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -460,7 +481,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       trayController.showTrayForEditor(editors[0])
 
       // Spy on the _reloadVideoPlayer method
-      const reloadSpy = jest.spyOn(trayController, '_reloadVideoPlayer')
+      const reloadSpy = vi.spyOn(trayController, '_reloadVideoPlayer')
 
       // Do NOT modify captions (trayController._captionsModified stays false)
 
@@ -478,7 +499,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
     it('resets caption modified flag when opening tray again', () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 
@@ -502,7 +523,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
     it('does not crash when video container is null on dismiss', async () => {
       // Mock feature flag ON
-      const getFeaturesSpy = jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      const getFeaturesSpy = vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
 

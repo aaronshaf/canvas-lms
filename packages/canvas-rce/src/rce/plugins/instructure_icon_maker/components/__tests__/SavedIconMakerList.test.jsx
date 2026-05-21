@@ -84,10 +84,10 @@ let mockContent = {
     },
   },
   contextType: 'Course',
-  fetchInitialImages: jest.fn(),
-  fetchNextImages: jest.fn(),
+  fetchInitialImages: vi.fn(),
+  fetchNextImages: vi.fn(),
 }
-jest.mock('../../../shared/StoreContext', () => {
+vi.mock('../../../shared/StoreContext', () => {
   return {
     useStoreProps: () => mockContent,
   }
@@ -98,7 +98,7 @@ describe('SavedIconMakerList()', () => {
 
   beforeEach(() => {
     props = {
-      onImageEmbed: jest.fn(),
+      onImageEmbed: vi.fn(),
       sortBy: {sort: 'alphabetical', order: 'asc'},
       searchString: '',
       canvasOrigin: 'https://canvas.instructor.com',
@@ -106,7 +106,7 @@ describe('SavedIconMakerList()', () => {
     }
   })
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   it('renders the image list', () => {
     const {getByTitle} = subject()
@@ -183,8 +183,8 @@ describe('SavedIconMakerList()', () => {
           },
         },
         contextType: 'Course',
-        fetchInitialImages: jest.fn(),
-        fetchNextImages: jest.fn(),
+        fetchInitialImages: vi.fn(),
+        fetchNextImages: vi.fn(),
       }
     })
     it('displays No results message', () => {

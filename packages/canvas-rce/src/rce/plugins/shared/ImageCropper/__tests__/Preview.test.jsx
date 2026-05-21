@@ -32,7 +32,7 @@ describe('Preview', () => {
       translateX: 0,
       translateY: 0,
     }
-    dispatch = jest.fn()
+    dispatch = vi.fn()
     image = 'https://www.fillmurray.com/640/480'
   })
 
@@ -145,7 +145,7 @@ describe('Preview', () => {
       const component = subject()
       document.querySelector('#cropper-preview').focus()
       container = component.container
-      event = {preventDefault: jest.fn()}
+      event = {preventDefault: vi.fn()}
     })
 
     describe('calls dispatch', () => {

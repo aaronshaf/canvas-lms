@@ -31,7 +31,7 @@ function selectSortBy(sortByLabel: string) {
 }
 
 describe('PanelFilter', () => {
-  const mockOnChange = jest.fn()
+  const mockOnChange = vi.fn()
 
   const renderComponent = (props = {}) => {
     return render(
@@ -46,12 +46,12 @@ describe('PanelFilter', () => {
   }
 
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     mockOnChange.mockClear()
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   it('renders correctly', () => {
@@ -80,7 +80,7 @@ describe('PanelFilter', () => {
     fireEvent.change(searchInput, {target: {value: 'test'}})
     expect(searchInput).toHaveValue('test')
 
-    jest.advanceTimersByTime(250)
+    vi.advanceTimersByTime(250)
     await waitFor(() => {
       expect(mockOnChange).toHaveBeenCalledWith({searchString: 'test'})
     })
@@ -91,7 +91,7 @@ describe('PanelFilter', () => {
     const clearButton = screen.getByRole('button', {name: 'Clear'})
     fireEvent.click(clearButton)
 
-    jest.advanceTimersByTime(250)
+    vi.advanceTimersByTime(250)
     await waitFor(() => {
       expect(mockOnChange).toHaveBeenCalledWith({searchString: ''})
     })

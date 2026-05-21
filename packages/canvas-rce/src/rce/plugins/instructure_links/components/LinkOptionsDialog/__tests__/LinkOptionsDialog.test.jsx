@@ -31,8 +31,8 @@ describe('RCE "Links" Plugin > LinkOptionsDialog', () => {
       text: 'Syllabus.doc',
       url: 'http://example.instructure.com/files/3201/download',
       operation: 'create',
-      onRequestClose: jest.fn(),
-      onSave: jest.fn(),
+      onRequestClose: vi.fn(),
+      onSave: vi.fn(),
       open: true,
     }
   })
@@ -116,7 +116,7 @@ describe('RCE "Links" Plugin > LinkOptionsDialog', () => {
       })
 
       it('prevents the default click handler', () => {
-        const preventDefault = jest.fn()
+        const preventDefault = vi.fn()
         dialog.$doneButton.addEventListener(
           'click',
           event => {

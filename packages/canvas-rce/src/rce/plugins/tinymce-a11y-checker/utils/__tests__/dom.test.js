@@ -36,11 +36,11 @@ describe('select', () => {
   let node, doc, range, sel, indicateFn
 
   beforeEach(() => {
-    range = {selectNode: jest.fn()}
-    sel = {addRange: jest.fn(), removeAllRanges: jest.fn()}
+    range = {selectNode: vi.fn()}
+    sel = {addRange: vi.fn(), removeAllRanges: vi.fn()}
     doc = {createRange: () => range, getSelection: () => sel}
-    node = {scrollIntoView: jest.fn(), ownerDocument: doc, childNodes: []}
-    indicateFn = jest.fn()
+    node = {scrollIntoView: vi.fn(), ownerDocument: doc, childNodes: []}
+    indicateFn = vi.fn()
   })
 
   test('scrolls the node into view', () => {
@@ -184,5 +184,32 @@ describe('hasTextNode', () => {
     elem.appendChild(document.createElement('span'))
     elem.appendChild(document.createElement('span'))
     expect(dom.hasTextNode(elem)).toBe(false)
+  })
+})
+
+describe('notifyTinyMCE', () => {
+  afterEach(() => {
+    delete window.tinymce
+  })
+
+  test('does nothing when window.tinymce is undefined', () => {
+    delete window.tinymce
+    expect(() => dom.notifyTinyMCE()).not.toThrow()
+  })
+
+  test('does nothing when tinymce.activeEditor is null', () => {
+    window.tinymce = {activeEditor: null}
+    expect(() => dom.notifyTinyMCE()).not.toThrow()
+  })
+
+  test('calls undoManager.add() and fire("Change") when editor is present', () => {
+    const mockEditor = {
+      undoManager: {add: vi.fn()},
+      fire: vi.fn(),
+    }
+    window.tinymce = {activeEditor: mockEditor}
+    dom.notifyTinyMCE()
+    expect(mockEditor.undoManager.add).toHaveBeenCalledTimes(1)
+    expect(mockEditor.fire).toHaveBeenCalledWith('Change')
   })
 })

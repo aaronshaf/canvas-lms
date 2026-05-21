@@ -1,12 +1,12 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`data returns the proper object 1`] = `
+exports[`data > returns the proper object 1`] = `
 {
   "header": "none",
 }
 `;
 
-exports[`form returns the proper object 1`] = `
+exports[`form > returns the proper object 1`] = `
 [
   {
     "dataKey": "header",
@@ -33,11 +33,11 @@ exports[`form returns the proper object 1`] = `
 ]
 `;
 
-exports[`linkText returns the proper linkText message 1`] = `"Learn more about table headers"`;
+exports[`linkText > returns the proper linkText message 1`] = `"Learn more about table headers"`;
 
-exports[`message returns the proper message 1`] = `"Tables should include at least one header."`;
+exports[`message > returns the proper message 1`] = `"Tables should include at least one header."`;
 
-exports[`update header option === both adds a header row and a header column 1`] = `
+exports[`update > header option === both > adds a header row and a header column 1`] = `
 <table>
   <tr>
     <th
@@ -60,7 +60,7 @@ exports[`update header option === both adds a header row and a header column 1`]
 </table>
 `;
 
-exports[`update header option === col changes first column to headers with row scope 1`] = `
+exports[`update > header option === col > changes first column to headers with row scope 1`] = `
 <table>
   <tr>
     <th
@@ -79,7 +79,7 @@ exports[`update header option === col changes first column to headers with row s
 </table>
 `;
 
-exports[`update header option === row changes top row to headers with column scope 1`] = `
+exports[`update > header option === row > changes top row to headers with column scope 1`] = `
 <table>
   <tr>
     <th
@@ -100,4 +100,4 @@ exports[`update header option === row changes top row to headers with column sco
 </table>
 `;
 
-exports[`why returns the proper message 1`] = `"Screen readers cannot interpret tables without the proper structure. Table headers provide direction and overview of the content."`;
+exports[`why > returns the proper message 1`] = `"Screen readers cannot interpret tables without the proper structure. Table headers provide direction and overview of the content."`;

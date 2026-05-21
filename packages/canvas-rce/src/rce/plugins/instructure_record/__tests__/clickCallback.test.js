@@ -20,6 +20,17 @@ import clickCallback, {handleUpload} from '../clickCallback'
 import {getAllByLabelText} from '@testing-library/react'
 import FileSizeError from '@instructure/canvas-media/src/shared/FileSizeError'
 
+vi.mock('@instructure/canvas-media', async () => {
+  const {createElement} = await import('react')
+  return {
+    default: ({open}) =>
+      open
+        ? createElement('div', {role: 'dialog', 'aria-label': 'Upload Media'}, 'Upload Media')
+        : null,
+    trackPendoEvent: vi.fn(),
+  }
+})
+
 const fauxEditor = {
   settings: {
     canvas_rce_user_context: {
@@ -35,7 +46,7 @@ describe('handleUpload()', () => {
   const subject = () => handleUpload(error, uploadData, onUploadComplete, uploadBookmark)
 
   beforeEach(() => {
-    onUploadComplete = jest.fn()
+    onUploadComplete = vi.fn()
   })
 
   describe('with a file size error', () => {

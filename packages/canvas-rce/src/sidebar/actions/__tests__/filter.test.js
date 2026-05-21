@@ -33,7 +33,7 @@ describe('Filter actions', () => {
   })
 
   it('change context dispatches change type', () => {
-    const dispatchSpy = jest.fn()
+    const dispatchSpy = vi.fn()
     const getState = () => ({
       contextType: 'user',
       contextId: '17',
@@ -46,7 +46,7 @@ describe('Filter actions', () => {
   })
 
   it('change context dispatches change id', () => {
-    const dispatchSpy = jest.fn()
+    const dispatchSpy = vi.fn()
     const getState = () => ({
       contextType: 'user',
       contextId: '17',
@@ -59,7 +59,7 @@ describe('Filter actions', () => {
   })
 
   it('change context dispatches change context', () => {
-    const dispatchSpy = jest.fn()
+    const dispatchSpy = vi.fn()
     const getState = () => ({
       contextType: 'user',
       contextId: '17',

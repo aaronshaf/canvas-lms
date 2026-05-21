@@ -19,7 +19,7 @@
 import dragHtml from '../dragHtml'
 import * as browser from '../../common/browser'
 
-jest.mock('../../common/browser')
+vi.mock('../../common/browser')
 
 describe('dragHtml', () => {
   let ev
@@ -31,16 +31,16 @@ describe('dragHtml', () => {
 
     ev = {
       dataTransfer: {
-        setData: jest.fn(),
+        setData: vi.fn(),
         items: {
-          clear: jest.fn(),
+          clear: vi.fn(),
         },
       },
     }
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('in standard browsers', () => {

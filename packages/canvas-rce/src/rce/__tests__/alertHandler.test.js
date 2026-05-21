@@ -31,7 +31,7 @@ describe('AlertHandler', () => {
     })
     it('calls alertFunc when it has been set', () => {
       const alerter = new AlertHandler()
-      alerter.alertFunc = jest.fn()
+      alerter.alertFunc = vi.fn()
       alerter.handleAlert({
         text: 'Something went wrong uploading, check your connection and try again.',
         variant: 'error',

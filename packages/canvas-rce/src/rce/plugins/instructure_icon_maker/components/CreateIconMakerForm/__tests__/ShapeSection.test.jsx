@@ -22,7 +22,7 @@ import userEvent from '@testing-library/user-event'
 import {DEFAULT_SETTINGS} from '../../../svg/constants'
 import {ShapeSection} from '../ShapeSection'
 
-jest.mock('../../../../shared/ImageCropper/imageCropUtils', () => {
+vi.mock('../../../../shared/ImageCropper/imageCropUtils', () => {
   return {
     createCroppedImageSvg: jest
       .fn()
@@ -30,7 +30,7 @@ jest.mock('../../../../shared/ImageCropper/imageCropUtils', () => {
   }
 })
 
-jest.mock('../../../../shared/fileUtils', () => {
+vi.mock('../../../../shared/fileUtils', () => {
   return {
     convertFileToBase64: jest
       .fn()
@@ -53,14 +53,14 @@ const selectOption = async (button, option) => {
 
 describe('<ShapeSection />', () => {
   it('changes the icon shape', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<ShapeSection settings={{...DEFAULT_SETTINGS, shape: 'circle'}} onChange={onChange} />)
     await selectOption(/icon shape/i, /triangle/i)
     expect(onChange).toHaveBeenCalledWith({shape: 'triangle'})
   })
 
   it('changes the icon size', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<ShapeSection settings={{...DEFAULT_SETTINGS, size: 'small'}} onChange={onChange} />)
     await selectOption(/icon size/i, /extra small/i)
     expect(onChange).toHaveBeenCalledWith({size: 'x-small'})

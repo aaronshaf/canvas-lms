@@ -18,14 +18,51 @@
 
 import {type SerializedNode} from '@craftjs/core'
 import tinycolor from 'tinycolor2'
-import {contrast} from '@instructure/ui-color-utils'
+import conversions, {contrast} from '@instructure/ui-color-utils'
 import {white, black} from './constants'
-import {
-  getContrastStatus,
-  isTransparent,
-  getDefaultColors,
-  type ColorsInUse,
-} from '@instructure/canvas-rce'
+
+type ColorsInUse = {
+  foreground: string[]
+  background: string[]
+  border: string[]
+}
+
+const isTransparent = (color?: string): boolean => {
+  if (!color) return true
+  const c = tinycolor(color)
+  return c.isValid() && c.getAlpha() === 0
+}
+
+const INSTUIcalcBlendedColor = (
+  c1: {r: number; g: number; b: number; a: number},
+  c2: {r: number; g: number; b: number; a: number},
+) => {
+  const alpha = 1 - (1 - c1.a) * (1 - c2.a)
+  return {
+    r: (c2.r * c2.a) / alpha + (c1.r * c1.a * (1 - c2.a)) / alpha,
+    g: (c2.g * c2.a) / alpha + (c1.g * c1.a * (1 - c2.a)) / alpha,
+    b: (c2.b * c2.a) / alpha + (c1.b * c1.a * (1 - c2.a)) / alpha,
+    a: 1,
+  }
+}
+
+const getContrastStatus = (color1: string, color2: string): boolean => {
+  const c1RGBA = conversions.colorToRGB(color1)
+  const c2RGBA = conversions.colorToRGB(color2)
+  const c1OnWhite = INSTUIcalcBlendedColor({r: 255, g: 255, b: 255, a: 1}, c1RGBA)
+  const c2OnC1OnWhite = INSTUIcalcBlendedColor(c1OnWhite, c2RGBA)
+  return (
+    contrast(conversions.colorToHex8(c1OnWhite), conversions.colorToHex8(c2OnC1OnWhite), 2) >= 4.5
+  )
+}
+
+const getDefaultColors = (): string[] => {
+  const fontcolor =
+    window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue('--ic-brand-font-color-dark') || '#000000'
+  return [fontcolor.toLowerCase(), '#ffffff']
+}
 
 const getContrastingColor = (color1: string) => {
   const color2 = contrast(color1, white) > contrast(color1, black) ? white : black

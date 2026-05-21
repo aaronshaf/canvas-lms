@@ -22,7 +22,7 @@ import CanvasContentPanel from '../CanvasContentPanel'
 
 let files: any[]
 let mockContent: any
-jest.mock('../../StoreContext', () => {
+vi.mock('../../StoreContext', () => {
   return {
     useStoreProps: () => mockContent,
   }
@@ -41,18 +41,18 @@ describe('CanvasContentPanel', () => {
     filesTabDisabled: false,
     host: 'host',
     jwt: 'jwt',
-    refreshToken: jest.fn(),
+    refreshToken: vi.fn(),
     source: {
-      fetchImages: jest.fn(),
+      fetchImages: vi.fn(),
     },
     themeUrl: 'themeUrl',
   }
 
-  const mockSetFileUrl = jest.fn()
+  const mockSetFileUrl = vi.fn()
   const defaultPlugin = 'user_documents'
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     files = [
       {
         id: 722,
@@ -117,11 +117,11 @@ describe('CanvasContentPanel', () => {
         },
       },
       contextType: 'Course',
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
-      onChangeContext: jest.fn(),
-      onChangeSearchString: jest.fn(),
-      onChangeSortBy: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
+      onChangeContext: vi.fn(),
+      onChangeSearchString: vi.fn(),
+      onChangeSortBy: vi.fn(),
     }
   })
 

@@ -22,15 +22,15 @@ import {ImageOptions} from '../ImageOptions'
 import {actions} from '../../../../reducers/imageSection'
 import {actions as trayActions} from '../../../../reducers/svgSettings'
 
-jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => ({
-  createCroppedImageSvg: jest.fn(() =>
+vi.mock('../../../../../shared/ImageCropper/imageCropUtils', () => ({
+  createCroppedImageSvg: vi.fn(() =>
     Promise.resolve({
       outerHTML: '<svg />',
     }),
   ),
 }))
 
-jest.mock('../../../../../shared/fileUtils', () => {
+vi.mock('../../../../../shared/fileUtils', () => {
   return {
     convertFileToBase64: jest
       .fn()
@@ -39,8 +39,8 @@ jest.mock('../../../../../shared/fileUtils', () => {
 })
 
 describe('ImageOptions', () => {
-  const dispatchFn = jest.fn()
-  const trayDispatchFn = jest.fn()
+  const dispatchFn = vi.fn()
+  const trayDispatchFn = vi.fn()
   const defaultProps = {
     state: {
       image: null,
@@ -61,14 +61,14 @@ describe('ImageOptions', () => {
   }
 
   beforeAll(() => {
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       blob: () => Promise.resolve(new Blob(['somedata'], {type: 'image/svg+xml'})),
     })
   })
 
   const subject = overrides => render(<ImageOptions {...{...defaultProps, ...overrides}} />)
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   it('renders the image mode selector', () => {
     const {getByText} = subject()

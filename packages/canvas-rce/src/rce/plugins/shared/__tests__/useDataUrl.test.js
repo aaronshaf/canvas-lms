@@ -26,7 +26,7 @@ describe('useDataUrl()', () => {
   beforeEach(() => {
     Object.defineProperty(global, 'FileReader', {
       writable: true,
-      value: jest.fn().mockImplementation(() => ({
+      value: vi.fn().mockImplementation(() => ({
         readAsDataURL() {
           this.onloadend()
         },
@@ -42,7 +42,7 @@ describe('useDataUrl()', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     fetchMock.restore('/foo/bar.png')
   })
 
@@ -86,7 +86,7 @@ describe('useDataUrl()', () => {
     beforeEach(async () => {
       Object.defineProperty(global, 'FileReader', {
         writable: true,
-        value: jest.fn().mockImplementation(() => ({
+        value: vi.fn().mockImplementation(() => ({
           readAsDataURL() {
             // eslint-disable-next-line no-throw-literal
             throw 'an error occured!'

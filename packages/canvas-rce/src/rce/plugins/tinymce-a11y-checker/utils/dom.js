@@ -41,7 +41,7 @@ export function walk(node, fn, done) {
         stack.pop()
       }
     }
-    setTimeout(stack.length > 0 ? processBatch : done, 0)
+    setTimeout(stack.length > 0 ? processBatch : done || (() => {}), 0)
   }
   processBatch()
 }

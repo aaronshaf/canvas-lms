@@ -33,13 +33,13 @@ import {jsdomInnerText} from './jsdomInnerText'
 // =====================================================================================================================
 // placeholderInfoFor
 
-jest.mock('../../rce/plugins/instructure_record/VideoOptionsTray/TrayController', () => {
-  const originalModule = jest.requireActual(
-    '../../rce/plugins/instructure_record/VideoOptionsTray/TrayController'
+vi.mock('../../rce/plugins/instructure_record/VideoOptionsTray/TrayController', async () => {
+  const originalModule = await vi.importActual(
+    '../../rce/plugins/instructure_record/VideoOptionsTray/TrayController',
   )
   return {
     ...originalModule,
-    videoDefaultSize: jest.fn(),
+    videoDefaultSize: vi.fn(),
   }
 })
 
@@ -137,8 +137,8 @@ describe('placeholderInfoFor', () => {
   // -------------------------------------------------------------------------------------------------------------------
 
   it('should handle video files with "contentType"', async () => {
-    const expectedVideoSize = { width: '200px', height: '100px' }
-    const mockVideoDefaultSize = videoDefaultSize as jest.Mock
+    const expectedVideoSize = {width: '200px', height: '100px'}
+    const mockVideoDefaultSize = videoDefaultSize as vi.Mock
     mockVideoDefaultSize.mockReturnValue(expectedVideoSize)
 
     expect(
@@ -158,8 +158,8 @@ describe('placeholderInfoFor', () => {
   })
 
   it('should handle video files with "type"', async () => {
-    const expectedVideoSize = { width: '200px', height: '100px' }
-    const mockVideoDefaultSize = videoDefaultSize as jest.Mock
+    const expectedVideoSize = {width: '200px', height: '100px'}
+    const mockVideoDefaultSize = videoDefaultSize as vi.Mock
     mockVideoDefaultSize.mockReturnValue(expectedVideoSize)
 
     expect(
@@ -333,7 +333,7 @@ describe('removePlaceholder', () => {
 // Setup
 
 let editor: Editor
-let revokeObjectURLMock: ReturnType<typeof jest.fn>
+let revokeObjectURLMock: ReturnType<typeof vi.fn>
 
 function mockImage(success: boolean, props: Partial<typeof global.Image> = {}) {
   // mock enough for RCEWrapper.insertPlaceholder
@@ -362,7 +362,7 @@ function mockImage(success: boolean, props: Partial<typeof global.Image> = {}) {
 beforeEach(() => {
   editor = new FakeEditor() as unknown as Editor
 
-  revokeObjectURLMock = URL.revokeObjectURL = jest.fn()
+  revokeObjectURLMock = URL.revokeObjectURL = vi.fn()
 })
 
 // ---------------------------------------------------------------------------------------------------------------------

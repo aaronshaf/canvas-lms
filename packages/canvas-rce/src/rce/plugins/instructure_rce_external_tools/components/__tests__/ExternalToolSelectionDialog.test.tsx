@@ -112,7 +112,7 @@ describe('ExternalToolSelectionDialog', () => {
   })
 
   it('calls onDismiss when clicking Done', () => {
-    const handleDismiss = jest.fn()
+    const handleDismiss = vi.fn()
     const {getByText} = renderComponent({onDismiss: handleDismiss})
     const cancelButton = getByText('Done')
     fireEvent.click(cancelButton)
@@ -120,7 +120,7 @@ describe('ExternalToolSelectionDialog', () => {
   })
 
   it('calls onDismiss when clicking the close button', () => {
-    const handleDismiss = jest.fn()
+    const handleDismiss = vi.fn()
     const {getByText} = renderComponent({onDismiss: handleDismiss})
     const closeButton = getByText('Close')
     fireEvent.click(closeButton)
@@ -150,8 +150,8 @@ describe('ExternalToolSelectionDialog', () => {
       [],
     )
 
-    const doAction = jest.spyOn(helpers[0], 'openDialog')
-    const onDismiss = jest.fn()
+    const doAction = vi.spyOn(helpers[0], 'openDialog')
+    const onDismiss = vi.fn()
 
     const {getByText} = renderComponent({
       onDismiss,

@@ -26,12 +26,12 @@ import {createLiveRegion, removeLiveRegion} from '../../../../__tests__/liveRegi
 import VideoOptionsTray from '..'
 import VideoOptionsTrayDriver from './VideoOptionsTrayDriver'
 
-jest.mock('@instructure/canvas-media', () => ({
-  ...jest.requireActual('@instructure/canvas-media'),
-  trackPendoEvent: jest.fn(),
+vi.mock('@instructure/canvas-media', async () => ({
+  ...(await vi.importActual('@instructure/canvas-media')),
+  trackPendoEvent: vi.fn(),
 }))
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
   let props
@@ -41,10 +41,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
     createLiveRegion()
 
     props = {
-      onRequestClose: jest.fn(),
-      onSave: jest.fn(),
+      onRequestClose: vi.fn(),
+      onSave: vi.fn(),
       open: true,
-      requestSubtitlesFromIframe: jest.fn(),
+      requestSubtitlesFromIframe: vi.fn(),
       videoOptions: {
         $element: null,
         appliedHeight: 180,
@@ -68,7 +68,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   afterEach(() => {
     removeLiveRegion()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   function renderComponent() {
@@ -96,7 +96,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
     })
 
     it('prevents the default click handler', () => {
-      const preventDefault = jest.fn()
+      const preventDefault = vi.fn()
       // Override preventDefault before event reaches image
       tray.$doneButton.addEventListener(
         'click',
@@ -186,7 +186,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   describe('Attachment Media Options Tray', () => {
     it('does not have closed caption controls or title input for locked attachments', async () => {
-      const getFileMock = jest.spyOn(RceApiSource.prototype, 'getFile').mockImplementation(() => {
+      const getFileMock = vi.spyOn(RceApiSource.prototype, 'getFile').mockImplementation(() => {
         return Promise.resolve({
           id: '10',
           is_master_course_child_content: true,
@@ -203,7 +203,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
     })
 
     it('shows closed caption controls and title input for unlocked attachments', async () => {
-      const getFileMock = jest.spyOn(RceApiSource.prototype, 'getFile').mockImplementation(() => {
+      const getFileMock = vi.spyOn(RceApiSource.prototype, 'getFile').mockImplementation(() => {
         return Promise.resolve({
           id: '10',
           is_master_course_master_content: true,
@@ -224,7 +224,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   describe('when rce_asr_captioning_improvements is enabled', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
     })
@@ -395,7 +395,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
 
   describe('when rce_asr_captioning_improvements is disabled', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: false,
       })
     })
@@ -434,7 +434,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
     }
 
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
     })
 
     describe("doesn't show tooltip", () => {

@@ -19,8 +19,8 @@
 import {enhanceRule, enhanceRules} from '../rule-enhancer'
 import {notifyTinyMCE} from '../dom'
 
-jest.mock('../dom', () => ({
-  notifyTinyMCE: jest.fn(),
+vi.mock('../dom', () => ({
+  notifyTinyMCE: vi.fn(),
 }))
 
 describe('enhanceRule', () => {
@@ -32,7 +32,7 @@ describe('enhanceRule', () => {
     notifyTinyMCE.mockClear()
     mockRule = {
       id: 'test-rule',
-      update: jest.fn().mockReturnValue(true),
+      update: vi.fn().mockReturnValue(true),
     }
     mockElement = document.createElement('div')
     mockData = {value: 'test-data'}
@@ -75,7 +75,7 @@ describe('enhanceRule', () => {
 
   test('enhanced update method preserves the execution order: original update then notify', () => {
     const callOrder = []
-    mockRule.update = jest.fn(() => {
+    mockRule.update = vi.fn(() => {
       callOrder.push('original update')
       return true
     })
@@ -88,7 +88,7 @@ describe('enhanceRule', () => {
   })
 
   test('accepts a custom enhancement method instead of notifyTinyMCE', () => {
-    const customEnhance = jest.fn()
+    const customEnhance = vi.fn()
     const enhanced = enhanceRule(mockRule, customEnhance)
 
     enhanced.update(mockElement, mockData)
@@ -98,7 +98,7 @@ describe('enhanceRule', () => {
   })
 
   test('uses the provided custom enhancement method when updating', () => {
-    const customEnhance = jest.fn()
+    const customEnhance = vi.fn()
     const enhanced = enhanceRule(mockRule, customEnhance)
 
     enhanced.update(mockElement, mockData)
@@ -111,8 +111,8 @@ describe('enhanceRule', () => {
 describe('enhanceRules', () => {
   test('returns an array of the same length as the input', () => {
     const rules = [
-      {id: 'rule1', update: jest.fn()},
-      {id: 'rule2', update: jest.fn()},
+      {id: 'rule1', update: vi.fn()},
+      {id: 'rule2', update: vi.fn()},
       {id: 'rule3'}, // No update method
     ]
     const enhanced = enhanceRules(rules)
@@ -122,8 +122,8 @@ describe('enhanceRules', () => {
 
   test('enhances each rule that has an update method', () => {
     const rules = [
-      {id: 'rule1', update: jest.fn()},
-      {id: 'rule2', update: jest.fn()},
+      {id: 'rule1', update: vi.fn()},
+      {id: 'rule2', update: vi.fn()},
       {id: 'rule3'}, // No update method
     ]
     const enhanced = enhanceRules(rules)
@@ -135,8 +135,8 @@ describe('enhanceRules', () => {
 
   test('calls notifyTinyMCE when any enhanced rule is updated', () => {
     const rules = [
-      {id: 'rule1', update: jest.fn()},
-      {id: 'rule2', update: jest.fn()},
+      {id: 'rule1', update: vi.fn()},
+      {id: 'rule2', update: vi.fn()},
     ]
     const enhanced = enhanceRules(rules)
     const mockElement = document.createElement('div')
@@ -155,11 +155,11 @@ describe('enhanceRules', () => {
 
   test('accepts a custom enhancement method and passes it to each rule', () => {
     const rules = [
-      {id: 'rule1', update: jest.fn()},
-      {id: 'rule2', update: jest.fn()},
+      {id: 'rule1', update: vi.fn()},
+      {id: 'rule2', update: vi.fn()},
     ]
 
-    const customEnhance = jest.fn()
+    const customEnhance = vi.fn()
     const enhanced = enhanceRules(rules, customEnhance)
 
     notifyTinyMCE.mockClear()
@@ -177,8 +177,8 @@ describe('enhanceRules', () => {
 
   test('uses the default notifyTinyMCE when no custom method is provided', () => {
     const rules = [
-      {id: 'rule1', update: jest.fn()},
-      {id: 'rule2', update: jest.fn()},
+      {id: 'rule1', update: vi.fn()},
+      {id: 'rule2', update: vi.fn()},
     ]
 
     const enhanced = enhanceRules(rules)

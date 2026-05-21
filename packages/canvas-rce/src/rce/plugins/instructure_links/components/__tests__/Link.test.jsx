@@ -40,11 +40,11 @@ function queryIconByName(elem, name) {
 describe('RCE "Links" Plugin > Link', () => {
   beforeAll(() => {
     // UTC/GMT -7 hours
-    RCEGlobals.getConfig = jest.fn().mockReturnValue({timezone: 'America/Denver'})
+    RCEGlobals.getConfig = vi.fn().mockReturnValue({timezone: 'America/Denver'})
   })
 
   afterAll(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   describe('object type variant', () => {
@@ -262,7 +262,7 @@ describe('RCE "Links" Plugin > Link', () => {
 
   describe('handles input', () => {
     it('calls onClick when clicked', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const link = {
         href: 'the_url',
         title: 'object title',
@@ -276,7 +276,7 @@ describe('RCE "Links" Plugin > Link', () => {
     })
 
     it('calls onClick on <Enter>', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const link = {
         href: 'the_url',
         title: 'object title',
@@ -290,7 +290,7 @@ describe('RCE "Links" Plugin > Link', () => {
     })
 
     it('calls onClick on <Space>', () => {
-      const onClick = jest.fn()
+      const onClick = vi.fn()
       const link = {
         href: 'the_url',
         title: 'object title',
@@ -314,7 +314,7 @@ describe('RCE "Links" Plugin > Link', () => {
 
   describe('When in edit link tray', () => {
     const props = {
-      onEditClick: jest.fn(),
+      onEditClick: vi.fn(),
       editing: true,
       link: {
         href: 'the_url',
@@ -324,7 +324,7 @@ describe('RCE "Links" Plugin > Link', () => {
     }
 
     afterAll(() => {
-      jest.resetAllMocks()
+      vi.resetAllMocks()
     })
 
     it('calls onEditClick when clicked', () => {

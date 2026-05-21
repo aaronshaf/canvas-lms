@@ -18,7 +18,7 @@
 
 import {generateRows} from '../tableContent'
 
-jest.mock('../countContent', () => {
+vi.mock('../countContent', () => {
   return {
     countContent: () => 0,
   }

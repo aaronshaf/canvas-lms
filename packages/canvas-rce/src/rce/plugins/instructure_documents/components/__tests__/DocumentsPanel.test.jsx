@@ -97,7 +97,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
   })
 
   it('fetches initial data when mounted', () => {
-    const fetchInitialDocs = jest.fn()
+    const fetchInitialDocs = vi.fn()
     renderComponent({
       fetchInitialDocs,
     })
@@ -107,7 +107,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
   })
 
   it('fetches more when the load more button is clicked', () => {
-    const fetchNextDocs = jest.fn()
+    const fetchNextDocs = vi.fn()
     const {getByText} = renderComponent({
       ...getDocumentProps('course', makeDocuments({hasMore: true, bookmark: 'more.docs'})),
       fetchNextDocs,
@@ -119,7 +119,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
   })
 
   it('shows an error message if the fetch failed', () => {
-    const fetchNextDocs = jest.fn()
+    const fetchNextDocs = vi.fn()
     const {getByText} = renderComponent({
       ...getDocumentProps('course', makeDocuments({error: 'whoops'})),
       fetchNextDocs,
@@ -129,7 +129,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
   })
 
   it('shows spinner during initial load', () => {
-    const fetchInitialDocs = jest.fn()
+    const fetchInitialDocs = vi.fn()
     const {getByText} = renderComponent({
       ...getDocumentProps('course', makeDocuments({files: [], isLoading: true})),
       fetchInitialDocs,
@@ -147,7 +147,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
   })
 
   it('refetches initial docs when sorting changes', () => {
-    const fetchInitialDocs = jest.fn()
+    const fetchInitialDocs = vi.fn()
     const {rerender} = renderComponent({
       fetchInitialDocs,
     })

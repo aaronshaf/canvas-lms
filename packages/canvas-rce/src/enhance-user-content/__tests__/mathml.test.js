@@ -27,7 +27,7 @@ describe('MathML and MathJax it', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     stub = null
     delete window.MathJax
     delete window.MathJaxIsLoading
@@ -77,7 +77,7 @@ describe('MathML and MathJax it', () => {
   it('reloadElement reloads the element', () => {
     window.MathJax = {
       Hub: {
-        Queue: jest.fn(),
+        Queue: vi.fn(),
       },
     }
     mathml.reloadElement('content')
@@ -169,7 +169,7 @@ describe('isMathInElement, with new_math_equation_handling on', () => {
   })
 
   it('handles "process-new-math" event', () => {
-    stub = jest.spyOn(Mathml.prototype, 'processNewMathInElem')
+    stub = vi.spyOn(Mathml.prototype, 'processNewMathInElem')
     const elem = document.createElement('span')
     window.dispatchEvent(
       new CustomEvent(Mathml.processNewMathEventName, {

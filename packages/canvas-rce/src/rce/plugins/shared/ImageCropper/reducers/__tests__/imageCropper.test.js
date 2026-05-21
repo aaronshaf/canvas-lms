@@ -103,12 +103,14 @@ describe('cropperSettingsReducer()', () => {
   })
 
   describe('with an unrecognized action', () => {
-    initialState = {image: 'some encoded image'}
-    const nextState = () =>
-      subject({
-        type: 'FooBar',
-        payload: 'banana',
-      })
-    expect(nextState).toThrow(Error)
+    it('throws an error', () => {
+      initialState = {image: 'some encoded image'}
+      const nextState = () =>
+        subject({
+          type: 'FooBar',
+          payload: 'banana',
+        })
+      expect(nextState).toThrow(Error)
+    })
   })
 })

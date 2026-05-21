@@ -158,7 +158,7 @@ describe('UploadFile: ComputerPanel', () => {
       const aFile = new File(['foo'], 'foo.txt', {
         type: 'text/plain',
       })
-      const handleSetFile = jest.fn()
+      const handleSetFile = vi.fn()
       const {getByText} = render(
         <ComputerPanel
           theFile={aFile}

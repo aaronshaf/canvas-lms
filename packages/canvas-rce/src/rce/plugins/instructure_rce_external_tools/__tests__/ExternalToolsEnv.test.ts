@@ -30,18 +30,18 @@ describe('ExternalToolsEnv', () => {
   const editor = {
     id: 'editor1',
     selection: {
-      getContent: jest.fn(),
+      getContent: vi.fn(),
     },
     editorContainer: document.createElement('div'),
-    $: jest.fn(),
+    $: vi.fn(),
     ui: {
       registry: {
-        getAll: jest.fn(),
+        getAll: vi.fn(),
       },
     },
-    getContent: jest.fn(),
-    focus: jest.fn(),
-  } as unknown as jest.Mocked<ExternalToolsEditor>
+    getContent: vi.fn(),
+    focus: vi.fn(),
+  } as unknown as vi.Mocked<ExternalToolsEditor>
 
   const mockRceWrapper = {
     id: 'rce1',
@@ -57,8 +57,8 @@ describe('ExternalToolsEnv', () => {
         ltiIframeAllowances: null as string[] | null,
       },
     },
-    insertCode: jest.fn(),
-    replaceCode: jest.fn(),
+    insertCode: vi.fn(),
+    replaceCode: vi.fn(),
   }
 
   const nullEnv = () => externalToolsEnvFor(null)
@@ -72,7 +72,7 @@ describe('ExternalToolsEnv', () => {
   })
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   test('availableRceLtiTools', () => {

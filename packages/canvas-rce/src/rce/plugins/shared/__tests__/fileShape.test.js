@@ -111,7 +111,7 @@ describe('fileShape', () => {
   })
 
   it('rejects invalid files', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     contentTrayDocumentShape(
       {
         documents: {

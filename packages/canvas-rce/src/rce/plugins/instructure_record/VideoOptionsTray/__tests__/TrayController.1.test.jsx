@@ -68,7 +68,7 @@ const mockVideoPlayers = [
 let previousOrigin = ''
 
 beforeAll(() => {
-  jest.spyOn(contentSelection, 'asVideoElement').mockImplementation(elem => {
+  vi.spyOn(contentSelection, 'asVideoElement').mockImplementation(elem => {
     const vid = elem.parentElement.getAttribute('id')
     return mockVideoPlayers.find(vp => vp.id === vid)
   })
@@ -79,7 +79,7 @@ beforeAll(() => {
 
 afterAll(() => {
   bridge.canvasOrigin = previousOrigin
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
@@ -98,7 +98,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       $videos.push($video)
       editor.appendElement($video)
       editor.setSelectedNode($video)
-      findMediaPlayerIframe($video).contentWindow.postMessage = jest.fn()
+      findMediaPlayerIframe($video).contentWindow.postMessage = vi.fn()
     })
 
     trayController = new TrayController()
@@ -119,6 +119,17 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     velem.setAttribute('id', mockVideoPlayers[i].id)
     velem.setAttribute('title', mockVideoPlayers[i].titleText)
     velem.setAttribute('data-mce-p-src', 'http://video.is.here/')
+    const ifr = document.createElement('iframe')
+    velem.appendChild(ifr)
+    return velem
+  }
+
+  function createStudioVideo() {
+    const velem = document.createElement('div')
+    velem.setAttribute('id', 'studio-embed-id')
+    velem.setAttribute('title', 'Studio Video')
+    velem.setAttribute('data-mce-p-src', 'http://studio.video.here/')
+    velem.setAttribute('data-mce-p-data-studio-tray-enabled', 'true')
     const ifr = document.createElement('iframe')
     velem.appendChild(ifr)
     return velem
@@ -151,6 +162,26 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
           expect(getVideoOptionsFromTray().titleText).toEqual($videos[0].getAttribute('title'))
         })
       })
+    })
+
+    it('does not send get_ready_state to iframe for studio embeds (regression: 580dd748566)', () => {
+      const studioVideo = createStudioVideo()
+      const studioEditor = new FakeEditor()
+      studioEditor.initialize()
+      studioEditor.appendElement(studioVideo)
+      studioEditor.setSelectedNode(studioVideo)
+
+      const postMessageMock = vi.fn()
+      findMediaPlayerIframe(studioVideo).contentWindow.postMessage = postMessageMock
+
+      trayController.showTrayForEditor(studioEditor)
+
+      // For Studio embeds, _listenForPlayerIframeToLoad is skipped, so the
+      // media_player.get_ready_state polling message is never sent.
+      const subjects = postMessageMock.mock.calls.map(call => call[0]?.subject)
+      expect(subjects).not.toContain('media_player.get_ready_state')
+
+      studioEditor.uninitialize()
     })
 
     describe('when the tray is open for a different editor', () => {
@@ -212,7 +243,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
     describe('with skipFocusOnExit parameter', () => {
       it('does not select video container when skipFocusOnExit is true', async () => {
-        const selectSpy = jest.spyOn(editors[0].selection, 'select')
+        const selectSpy = vi.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0], true)
         await waitFor(() => expect(getTray()).toBeNull())
@@ -220,7 +251,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       })
 
       it('selects video container when skipFocusOnExit is false', async () => {
-        const selectSpy = jest.spyOn(editors[0].selection, 'select')
+        const selectSpy = vi.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0], false)
         await waitFor(() => expect(getTray()).toBeNull())
@@ -228,7 +259,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
       })
 
       it('selects video container when skipFocusOnExit is not provided', async () => {
-        const selectSpy = jest.spyOn(editors[0].selection, 'select')
+        const selectSpy = vi.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0])
         await waitFor(() => expect(getTray()).toBeNull())

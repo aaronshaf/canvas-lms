@@ -311,7 +311,7 @@ describe('RceExternalToolHelper', () => {
     it('copes with localStorage failure updating mru list', () => {
       // Note the mocking of Storage.prototype instead of localStorage. This works around a jsdom issue.
       // See: https://stackoverflow.com/a/54157998/966104
-      const setItemMock = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      const setItemMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         throw new Error('something bad')
       })
 

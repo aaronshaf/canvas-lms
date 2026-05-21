@@ -30,11 +30,11 @@ describe('userOS', () => {
   let userAgentSpy
 
   beforeAll(() => {
-    userAgentSpy = jest.spyOn(window.navigator, 'userAgent', 'get')
+    userAgentSpy = vi.spyOn(window.navigator, 'userAgent', 'get')
   })
 
   afterAll(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('when the user is running a Mac OS', () => {

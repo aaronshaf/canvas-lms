@@ -61,7 +61,7 @@ function createMountedElement(additionalProps = {}) {
   )
   rce = rceRef.current
   editor = rce.mceInstance()
-  jest.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
+  vi.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
   return retval
 }
 
@@ -130,7 +130,7 @@ describe('RCEWrapper', () => {
 
   afterEach(function () {
     document.body.innerHTML = ''
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('getting and setting content', () => {
@@ -140,7 +140,7 @@ describe('RCEWrapper', () => {
 
     it('sets code properly', () => {
       const expected = 'new content'
-      jest.spyOn(rce.mceInstance(), 'setContent')
+      vi.spyOn(rce.mceInstance(), 'setContent')
       rce.setCode(expected)
       expect(rce.mceInstance().setContent).toHaveBeenCalledWith(expected)
     })
@@ -152,14 +152,14 @@ describe('RCEWrapper', () => {
 
     it('inserts code properly with embedded content title', () => {
       const code = '<div title="embedded content">i am new content</div>'
-      jest.spyOn(contentInsertion, 'insertContent').mockImplementation(() => {})
+      vi.spyOn(contentInsertion, 'insertContent').mockImplementation(() => {})
       rce.insertCode(code)
       expect(contentInsertion.insertContent).toHaveBeenCalledWith(rce.mceInstance(), code)
     })
 
     it('inserts links', () => {
       const link = {}
-      jest.spyOn(contentInsertion, 'insertLink').mockImplementation(() => {})
+      vi.spyOn(contentInsertion, 'insertLink').mockImplementation(() => {})
       rce.insertLink(link)
       expect(contentInsertion.insertLink).toHaveBeenCalledWith(
         rce.mceInstance(),
@@ -170,7 +170,7 @@ describe('RCEWrapper', () => {
 
     it('inserts math equations', async () => {
       const tex = 'y = x^2'
-      jest.spyOn(contentInsertion, 'insertEquation').mockImplementation(() => {})
+      vi.spyOn(contentInsertion, 'insertEquation').mockImplementation(() => {})
       await rce.insertMathEquation(tex)
       expect(contentInsertion.insertEquation).toHaveBeenCalledWith(rce.mceInstance(), tex)
     })
@@ -184,7 +184,7 @@ describe('RCEWrapper', () => {
         const placeholder = document.createElement('img')
         placeholder.setAttribute('data-placeholder-for', 'image1')
         editor.dom.doc.body.appendChild(placeholder)
-        const spy = jest.fn()
+        const spy = vi.fn()
         rce.checkReadyToGetCode(spy)
         expect(spy).toHaveBeenCalledWith(
           'Content is still being uploaded, if you continue it will not be embedded properly.',
@@ -195,7 +195,7 @@ describe('RCEWrapper', () => {
         const placeholder = document.createElement('img')
         placeholder.setAttribute('data-placeholder-for', 'image1')
         editor.dom.doc.body.appendChild(placeholder)
-        const stub = jest.fn().mockReturnValue(true)
+        const stub = vi.fn().mockReturnValue(true)
         expect(rce.checkReadyToGetCode(stub)).toEqual(true)
       })
 
@@ -203,7 +203,7 @@ describe('RCEWrapper', () => {
         const placeholder = document.createElement('img')
         placeholder.setAttribute('data-placeholder-for', 'image1')
         editor.dom.doc.body.appendChild(placeholder)
-        const stub = jest.fn().mockReturnValue(false)
+        const stub = vi.fn().mockReturnValue(false)
         expect(rce.checkReadyToGetCode(stub)).toEqual(false)
       })
     })
@@ -256,7 +256,7 @@ describe('RCEWrapper', () => {
 
     describe('insert image', () => {
       it('works when no element is returned from content insertion', () => {
-        jest.spyOn(contentInsertion, 'insertImage').mockImplementation(() => null)
+        vi.spyOn(contentInsertion, 'insertImage').mockImplementation(() => null)
         expect(() => rce.insertImage({})).not.toThrow()
       })
 
@@ -264,8 +264,8 @@ describe('RCEWrapper', () => {
         const container = document.createElement('div')
         container.innerHTML = '<div><img src="image.jpg" alt="test" />&nbsp;</div>'
         const element = container.querySelector('img')
-        const removeSpy = jest.spyOn(element.nextSibling, 'remove')
-        jest.spyOn(contentInsertion, 'insertImage').mockImplementation(() => element)
+        const removeSpy = vi.spyOn(element.nextSibling, 'remove')
+        vi.spyOn(contentInsertion, 'insertImage').mockImplementation(() => element)
         rce.insertImage({})
         expect(removeSpy).toHaveBeenCalled()
       })
@@ -275,17 +275,17 @@ describe('RCEWrapper', () => {
       let insertedSpy
 
       beforeEach(() => {
-        insertedSpy = jest.spyOn(rce, 'contentInserted')
+        insertedSpy = vi.spyOn(rce, 'contentInserted')
       })
 
       it('inserts video', () => {
-        jest.spyOn(contentInsertion, 'insertVideo').mockReturnValue('<iframe/>')
+        vi.spyOn(contentInsertion, 'insertVideo').mockReturnValue('<iframe/>')
         rce.insertVideo({})
         expect(insertedSpy).toHaveBeenCalledWith('<iframe/>')
       })
 
       it('inserts audio', () => {
-        jest.spyOn(contentInsertion, 'insertAudio').mockReturnValue('<iframe/>')
+        vi.spyOn(contentInsertion, 'insertAudio').mockReturnValue('<iframe/>')
         rce.insertAudio({})
         expect(insertedSpy).toHaveBeenCalledWith('<iframe/>')
       })
@@ -298,7 +298,7 @@ describe('RCEWrapper', () => {
 
     describe('indicator', () => {
       it('does not indicate() if editor is hidden', () => {
-        const indicateDefaultStub = jest.spyOn(indicateModule, 'default')
+        const indicateDefaultStub = vi.spyOn(indicateModule, 'default')
         rce.mceInstance().hide()
         rce.indicateEditor(null)
         expect(indicateDefaultStub).not.toHaveBeenCalled()
@@ -306,8 +306,8 @@ describe('RCEWrapper', () => {
 
       it('waits until images are loaded to indicate', () => {
         const image = {complete: false}
-        jest.spyOn(rce, 'indicateEditor')
-        jest.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
+        vi.spyOn(rce, 'indicateEditor')
+        vi.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
         rce.insertImage(image)
         expect(rce.indicateEditor).not.toHaveBeenCalled()
         image.onload()
@@ -318,8 +318,8 @@ describe('RCEWrapper', () => {
     describe('broken images', () => {
       it('calls checkImageLoadError when complete', async () => {
         const image = {complete: true}
-        jest.spyOn(rce, 'checkImageLoadError')
-        jest.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
+        vi.spyOn(rce, 'checkImageLoadError')
+        vi.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
         const result = rce.insertImage(image)
         expect(rce.checkImageLoadError).toHaveBeenCalled()
 
@@ -328,8 +328,8 @@ describe('RCEWrapper', () => {
 
       it('sets an onerror handler when not complete', async () => {
         const image = {complete: false}
-        jest.spyOn(rce, 'checkImageLoadError')
-        jest.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
+        vi.spyOn(rce, 'checkImageLoadError')
+        vi.spyOn(contentInsertion, 'insertImage').mockReturnValue(image)
         const result = rce.insertImage(image)
         expect(typeof image.onerror).toEqual('function')
         image.onerror()
@@ -439,7 +439,7 @@ describe('RCEWrapper', () => {
 
   describe('onFocus', () => {
     beforeEach(() => {
-      jest.spyOn(Bridge, 'focusEditor')
+      vi.spyOn(Bridge, 'focusEditor')
     })
 
     it('calls Bridge.focusEditor with editor', () => {
@@ -449,7 +449,7 @@ describe('RCEWrapper', () => {
     })
 
     it('calls props.onFocus with editor if exists', () => {
-      const editor_ = createBasicElement({onFocus: jest.fn()})
+      const editor_ = createBasicElement({onFocus: vi.fn()})
       editor_.handleFocus()
       expect(editor_.props.onFocus).toHaveBeenCalledWith(editor_)
     })
@@ -465,7 +465,7 @@ describe('RCEWrapper', () => {
 
   describe('onRemove', () => {
     beforeEach(() => {
-      jest.spyOn(Bridge, 'detachEditor')
+      vi.spyOn(Bridge, 'detachEditor')
     })
 
     it('calls Bridge.detachEditor with editor', () => {
@@ -475,7 +475,7 @@ describe('RCEWrapper', () => {
     })
 
     it('calls props.onRemove with editor_ if exists', () => {
-      const editor_ = createBasicElement({onRemove: jest.fn()})
+      const editor_ = createBasicElement({onRemove: vi.fn()})
       editor_.onRemove()
       expect(editor_.props.onRemove).toHaveBeenCalledWith(editor_)
     })

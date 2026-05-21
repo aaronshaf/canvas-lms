@@ -21,15 +21,15 @@ import {renderHook, act, waitFor} from '@testing-library/react'
 import {useSvgSettings, statuses} from '../settings'
 import Editor from '../../../../__tests__/FakeEditor'
 
-jest.mock('../../../shared/ImageCropper/imageCropUtils', () => ({
-  createCroppedImageSvg: jest.fn().mockReturnValue(
+vi.mock('../../../shared/ImageCropper/imageCropUtils', () => ({
+  createCroppedImageSvg: vi.fn().mockReturnValue(
     Promise.resolve({
       outerHTML: null,
     }),
   ),
 }))
 
-jest.mock('../../../shared/fileUtils', () => {
+vi.mock('../../../shared/fileUtils', () => {
   return {
     convertFileToBase64: jest
       .fn()
@@ -50,7 +50,7 @@ describe('useSvgSettings()', () => {
   describe('when a new icon is being created (not editing)', () => {
     beforeEach(() => {
       editing = false
-      jest.spyOn(global, 'fetch').mockImplementation(jest.fn())
+      vi.spyOn(global, 'fetch').mockImplementation(vi.fn())
     })
 
     it('initializes settings to the default', () => {

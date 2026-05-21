@@ -22,9 +22,9 @@ import React from 'react'
 import RCEGlobals from '../../../../../rce/RCEGlobals'
 import MediaPanel from '../index'
 
-jest.mock('@instructure/canvas-media', () => ({
-  ...jest.requireActual('@instructure/canvas-media'),
-  trackPendoEvent: jest.fn(),
+vi.mock('@instructure/canvas-media', async () => ({
+  ...(await vi.importActual('@instructure/canvas-media')),
+  trackPendoEvent: vi.fn(),
 }))
 
 function getPanelProps(contextType, mediaprops) {
@@ -132,7 +132,7 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
   })
 
   it('fetches initial data when mounted', () => {
-    const fetchInitialMedia = jest.fn()
+    const fetchInitialMedia = vi.fn()
     renderComponent({
       fetchInitialMedia,
     })
@@ -141,7 +141,7 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
   })
 
   it('fetches more when the load more button is clicked', () => {
-    const fetchNextMedia = jest.fn()
+    const fetchNextMedia = vi.fn()
     const {getByText} = renderComponent({
       ...getPanelProps('course', makeFiles({hasMore: true, bookmark: 'more.docs'})),
       fetchNextMedia,
@@ -153,7 +153,7 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
   })
 
   it('shows an error message if the fetch failed', () => {
-    const fetchNextMedia = jest.fn()
+    const fetchNextMedia = vi.fn()
     const {getByText} = renderComponent({
       ...getPanelProps('course', makeFiles({error: 'whoops'})),
       fetchNextMedia,
@@ -163,7 +163,7 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
   })
 
   it('shows spinner during initial load', () => {
-    const fetchInitialMedia = jest.fn()
+    const fetchInitialMedia = vi.fn()
     const {getByText} = renderComponent({
       ...getPanelProps('course', makeFiles({files: [], isLoading: true})),
       fetchInitialMedia,
@@ -182,16 +182,16 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
 
   describe('Pendo analytics', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
       trackPendoEvent.mockClear()
     })
 
     afterEach(() => {
-      jest.restoreAllMocks()
+      vi.restoreAllMocks()
     })
 
     it('tracks canvas_native_media_embedded when a file is clicked', () => {
-      const onMediaEmbed = jest.fn()
+      const onMediaEmbed = vi.fn()
       const {getByText} = renderComponent({
         ...getPanelProps('course', makeFiles()),
         onMediaEmbed,

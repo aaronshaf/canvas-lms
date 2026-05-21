@@ -46,7 +46,9 @@ describe('colorUtils', () => {
   })
 
   describe('getDefaultColors', () => {
-    expect(getDefaultColors().length).toBe(2)
-    expect(getDefaultColors()[1]).toEqual('#ffffff')
+    it('returns expected defaults', () => {
+      expect(getDefaultColors().length).toBe(2)
+      expect(getDefaultColors()[1]).toEqual('#ffffff')
+    })
   })
 })

@@ -34,7 +34,7 @@ let fakeTinyMCE, editorCommandSpy, editor, rce
 function createBasicElement(opts) {
   editor = new FakeEditor({id: textareaId})
   fakeTinyMCE.get = () => editor
-  editorCommandSpy = jest.spyOn(editor, 'execCommand')
+  editorCommandSpy = vi.spyOn(editor, 'execCommand')
 
   const props = {textareaId, tinymce: fakeTinyMCE, ...trayProps(), ...defaultProps(), ...opts}
   rce = new RCEWrapper(props)
@@ -62,8 +62,8 @@ function createMountedElement(additionalProps = {}) {
   )
   rce = rceRef.current
   editor = rce.mceInstance()
-  jest.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
-  editorCommandSpy = jest.spyOn(rce.mceInstance(), 'execCommand')
+  vi.spyOn(rce, 'indicateEditor').mockReturnValue(undefined)
+  editorCommandSpy = vi.spyOn(rce.mceInstance(), 'execCommand')
   return retval
 }
 
@@ -131,7 +131,7 @@ describe('RCEWrapper', () => {
 
   afterEach(function () {
     document.body.innerHTML = ''
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   // ====================
@@ -166,7 +166,7 @@ describe('RCEWrapper', () => {
     })
 
     it('emits "ViewChange" on view changes', () => {
-      const fireSpy = jest.fn()
+      const fireSpy = vi.fn()
 
       element.mceInstance().fire = fireSpy
       element.toggleView()
@@ -181,7 +181,7 @@ describe('RCEWrapper', () => {
     })
 
     it('calls handleUnmount when destroyed', () => {
-      const handleUnmount = jest.fn()
+      const handleUnmount = vi.fn()
       element = createBasicElement({handleUnmount})
       element.destroy()
       expect(handleUnmount).toHaveBeenCalled()
@@ -200,14 +200,14 @@ describe('RCEWrapper', () => {
   describe('calling methods dynamically', () => {
     it('pipes arguments to specified method', () => {
       const element = createBasicElement()
-      jest.spyOn(element, 'set_code')
+      vi.spyOn(element, 'set_code')
       element.call('set_code', 'new content')
       expect(element.set_code).toHaveBeenCalledWith('new content')
     })
 
     it("handles 'exists?'", () => {
       const element = createBasicElement()
-      jest.spyOn(element, 'set_code')
+      vi.spyOn(element, 'set_code')
       expect(element.call('exists?')).toBeTruthy()
     })
   })

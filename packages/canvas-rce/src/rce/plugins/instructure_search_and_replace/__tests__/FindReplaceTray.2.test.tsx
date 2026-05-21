@@ -29,17 +29,17 @@ describe('FindReplaceTray', () => {
 
   beforeEach(() => {
     fakePlugin = {
-      done: jest.fn(),
-      find: jest.fn(() => 3),
-      next: jest.fn(),
-      prev: jest.fn(),
-      replace: jest.fn(),
+      done: vi.fn(),
+      find: vi.fn(() => 3),
+      next: vi.fn(),
+      prev: vi.fn(),
+      replace: vi.fn(),
     }
 
     props = {
-      onDismiss: jest.fn(),
+      onDismiss: vi.fn(),
       plugin: fakePlugin,
-      getSelectionContext: jest.fn(() => ['text before ', ' text after']),
+      getSelectionContext: vi.fn(() => ['text before ', ' text after']),
     }
   })
 
@@ -168,7 +168,7 @@ describe('FindReplaceTray', () => {
     })
 
     it('rolls over when replacing backwards', async () => {
-      fakePlugin.find = jest.fn(() => 4)
+      fakePlugin.find = vi.fn(() => 4)
       const {user} = renderComponent()
 
       const findInput = screen.getByTestId('find-text-input')

@@ -25,9 +25,9 @@ describe('CustomNumberInput', () => {
   const timeout = 2000
   let onChangeFn
 
-  beforeEach(() => (onChangeFn = jest.fn()))
+  beforeEach(() => (onChangeFn = vi.fn()))
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
   const subject = (otherSettings = {}) =>
     render(
       <CustomNumberInput
@@ -56,7 +56,7 @@ describe('CustomNumberInput', () => {
 
   describe('on blur', () => {
     it('calls parseValueCallback with correct value', () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = subject({parseValueCallback: callback})
       const input = container.querySelector('label input[type="text"]')
       fireEvent.change(input, {target: {value: '10'}})
@@ -101,7 +101,7 @@ describe('CustomNumberInput', () => {
 
   describe('on debounce', () => {
     it('calls parseValueCallback with correct value', async () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = subject({parseValueCallback: callback})
       const input = container.querySelector('label input[type="text"]')
       fireEvent.change(input, {target: {value: '10'}})

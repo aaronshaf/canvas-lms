@@ -27,12 +27,12 @@ describe('SingleColor', () => {
   let dispatch, data, onLoaded
 
   beforeEach(() => {
-    dispatch = jest.fn()
+    dispatch = vi.fn()
     data = {iconColor: '#FF00FF'}
-    onLoaded = jest.fn()
+    onLoaded = vi.fn()
   })
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   const subject = () => render(<SingleColor dispatch={dispatch} data={data} onLoaded={onLoaded} />)
 

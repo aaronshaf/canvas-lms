@@ -22,7 +22,7 @@ import UrlPanel from '../UrlPanel'
 
 describe('UploadFile: UrlPanel', () => {
   it('calls setFileUrl when the file url input changes', () => {
-    const fakeSetFileUrl = jest.fn()
+    const fakeSetFileUrl = vi.fn()
     const {getByLabelText} = render(<UrlPanel fileUrl="" setFileUrl={fakeSetFileUrl} />)
     fireEvent.change(getByLabelText('File URL'), {target: {value: 'instructure.com'}})
     expect(fakeSetFileUrl).toHaveBeenCalledWith('instructure.com')

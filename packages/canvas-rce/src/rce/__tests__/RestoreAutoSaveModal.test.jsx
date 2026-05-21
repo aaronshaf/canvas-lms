@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent, render} from '@testing-library/react'
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
 import RestoreAutoSaveModal from '../RestoreAutoSaveModal'
 
 describe('RestoreAutoSaveModal', () => {
   it('renders all its content', () => {
-    const onNo = jest.fn()
+    const onNo = vi.fn()
     const {getByText} = render(
       <RestoreAutoSaveModal savedContent="<p>hello world</p>" open onNo={onNo} onYes={() => {}} />,
     )
@@ -44,8 +44,8 @@ describe('RestoreAutoSaveModal', () => {
   })
 
   it('responds to clicking "yes"', () => {
-    const onNo = jest.fn()
-    const onYes = jest.fn()
+    const onNo = vi.fn()
+    const onYes = vi.fn()
     const {getByText} = render(
       <RestoreAutoSaveModal savedContent="<p>hello world</p>" open onNo={onNo} onYes={onYes} />,
     )
@@ -57,8 +57,8 @@ describe('RestoreAutoSaveModal', () => {
   })
 
   it('responds to clicking "no"', () => {
-    const onNo = jest.fn()
-    const onYes = jest.fn()
+    const onNo = vi.fn()
+    const onYes = vi.fn()
     const {getByText} = render(
       <RestoreAutoSaveModal savedContent="<p>hello world</p>" open onNo={onNo} onYes={onYes} />,
     )
@@ -84,5 +84,25 @@ describe('RestoreAutoSaveModal', () => {
     fireEvent.click(previewButton.closest('button'))
     expect(getByText('hello world')).toBeInTheDocument()
     expect(getByText('Click to hide preview')).toBeInTheDocument()
+  })
+
+  it('sanitizes autosaved content before rendering preview (regression: a7ac409a29a)', () => {
+    // Before fix: savedContent was passed directly to dangerouslySetInnerHTML,
+    // allowing XSS if an attacker could corrupt the autosave localStorage entry.
+    // After fix: sanitizeHtml (DOMPurify) strips script tags and event handlers.
+    const {getByText, container} = render(
+      <RestoreAutoSaveModal
+        savedContent='<p>safe</p><script>window.__xss=1</script><img src="x" onerror="window.__xss=2">'
+        open
+        onNo={() => {}}
+        onYes={() => {}}
+      />,
+    )
+
+    fireEvent.click(getByText('Click to show preview').closest('button'))
+
+    expect(container.querySelector('script')).toBeNull()
+    expect(container.querySelector('img[onerror]')).toBeNull()
+    expect(getByText('safe')).toBeInTheDocument()
   })
 })

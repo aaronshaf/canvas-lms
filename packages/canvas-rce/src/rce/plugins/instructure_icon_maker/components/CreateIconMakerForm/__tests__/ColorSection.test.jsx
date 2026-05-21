@@ -37,7 +37,7 @@ const selectOption = async (button, option) => {
 
 describe('<ColorSection />', () => {
   it('changes the icon color', () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<ColorSection settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = screen.getByRole('textbox', {name: /icon color/i})
     fireEvent.change(input, {target: {value: '#fff'}})
@@ -45,7 +45,7 @@ describe('<ColorSection />', () => {
   })
 
   it('changes the outline color', () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<ColorSection settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = screen.getByRole('textbox', {name: /outline color/i})
     fireEvent.change(input, {target: {value: '#000'}})
@@ -53,7 +53,7 @@ describe('<ColorSection />', () => {
   })
 
   it('changes the icon outline size', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(
       <ColorSection settings={{...DEFAULT_SETTINGS, outlineSize: 'medium'}} onChange={onChange} />,
     )

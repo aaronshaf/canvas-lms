@@ -17,9 +17,8 @@
  */
 
 import React from 'react'
-import fetchMock from 'fetch-mock'
 
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {act, render, fireEvent, waitFor} from '@testing-library/react'
 import Course from '../Course'
 import {actions} from '../../../../reducers/imageSection'
 import {useStoreProps} from '../../../../../shared/StoreContext'
@@ -88,25 +87,42 @@ const storeProps = {
     },
   },
   contextType: 'Course',
-  fetchInitialImages: jest.fn(),
-  fetchNextImages: jest.fn(),
+  fetchInitialImages: vi.fn(),
+  fetchNextImages: vi.fn(),
 }
 
-jest.mock('../../../../../shared/StoreContext', () => {
+// Controllable mock for useDataUrl hook - avoids needing fetch-mock/FileReader in tests
+let setDataUrlCallback = null
+vi.mock('../../../../../shared/useDataUrl', () => ({
+  default: vi.fn(() => {
+    const [state, setState] = React.useState({dataUrl: '', dataBlob: null, dataLoading: false})
+    const setUrl = React.useCallback(url => {
+      if (url) {
+        setState(s => ({...s, dataLoading: true}))
+        setDataUrlCallback = (dataUrl, dataBlob) => {
+          act(() => setState({dataUrl, dataBlob, dataLoading: false}))
+        }
+      }
+    }, [])
+    return {setUrl, ...state, dataError: null}
+  }),
+}))
+
+vi.mock('../../../../../shared/StoreContext', () => {
   return {
-    useStoreProps: jest.fn(),
+    useStoreProps: vi.fn(),
   }
 })
 
-jest.mock('../../../../../shared/compressionUtils', () => ({
-  shouldCompressImage: jest.fn().mockReturnValue(false),
-  compressImage: jest.fn().mockReturnValue(Promise.resolve('data:image/jpeg;base64,abcdefghijk==')),
-  canCompressImage: jest.fn().mockReturnValue(true),
+vi.mock('../../../../../shared/compressionUtils', () => ({
+  shouldCompressImage: vi.fn().mockReturnValue(false),
+  compressImage: vi.fn().mockReturnValue(Promise.resolve('data:image/jpeg;base64,abcdefghijk==')),
+  canCompressImage: vi.fn().mockReturnValue(true),
 }))
 
-jest.mock('../utils', () => ({
-  ...jest.requireActual('../utils'),
-  isAnUnsupportedGifPngImage: jest.fn().mockReturnValue(false),
+vi.mock('../utils', async () => ({
+  ...(await vi.importActual('../utils')),
+  isAnUnsupportedGifPngImage: vi.fn().mockReturnValue(false),
 }))
 
 describe('Course()', () => {
@@ -116,13 +132,13 @@ describe('Course()', () => {
   beforeEach(() => {
     useStoreProps.mockReturnValue(storeProps)
     props = {
-      dispatch: jest.fn(),
-      onChange: jest.fn(),
+      dispatch: vi.fn(),
+      onChange: vi.fn(),
       canvasOrigin: 'https://canvas.instructor.com',
     }
   })
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   it('renders the image list', () => {
     const {getByTitle} = subject()
@@ -134,27 +150,14 @@ describe('Course()', () => {
 
   describe('when an image is clicked', () => {
     beforeEach(() => {
-      const image = new Blob(['somedata'], {type: 'image/png'})
-      fetchMock.mock('http://canvas.docker/files/722/download?download_frd=1', {
-        body: image,
-        sendAsJson: false,
-      })
-
-      jest.spyOn(global, 'FileReader').mockImplementation(function () {
-        this.readAsDataURL = () => {
-          this.result = 'data:text/png;base64,SGVsbG8sIFdvcmxkIQ=='
-          this.onloadend()
-        }
-      })
-
       const {getByTitle} = subject()
-
-      // Click the first image
       fireEvent.click(getByTitle('Click to embed image_one.png'))
-    })
-
-    afterEach(() => {
-      fetchMock.restore()
+      act(() =>
+        setDataUrlCallback(
+          'data:text/png;base64,SGVsbG8sIFdvcmxkIQ==',
+          new Blob(['somedata'], {type: 'image/png'}),
+        ),
+      )
     })
 
     it('dispatches a "stop loading" action', () => {
@@ -241,41 +244,23 @@ describe('Course()', () => {
   })
 
   describe('when a image to be compressed is clicked', () => {
-    let originalResponse
-
     beforeAll(() => {
-      const image = new Blob(['somedata'], {type: 'image/jpeg', size: 600000})
-      fetchMock.mock('http://canvas.docker/files/722/download?download_frd=1', {
-        body: image,
-        sendAsJson: false,
-      })
-
-      jest.spyOn(global, 'FileReader').mockImplementation(function () {
-        this.readAsDataURL = () => {
-          this.result = 'data:image/jpeg;base64,SGVsbG8sIFdvcmxkIQ=='
-          this.onloadend()
-        }
-      })
-
-      originalResponse = window.Response
-      window.Response = function () {
-        this.blob = () => {
-          return Promise.resolve('XXXXXXXX')
-        }
-      }
       shouldCompressImage.mockReturnValue(true)
     })
 
     beforeEach(() => {
       const {getByTitle} = subject()
-
-      // Click the first image
       fireEvent.click(getByTitle('Click to embed image_one.png'))
+      act(() =>
+        setDataUrlCallback(
+          'data:image/jpeg;base64,SGVsbG8sIFdvcmxkIQ==',
+          new Blob(['somedata'], {type: 'image/jpeg'}),
+        ),
+      )
     })
 
     afterAll(() => {
-      fetchMock.restore()
-      window.Response = originalResponse
+      shouldCompressImage.mockReturnValue(false)
     })
 
     it('dispatches a "stop loading" action', () => {
@@ -355,7 +340,7 @@ describe('Course()', () => {
 
   describe('when loading state changes', () => {
     it('calls "onLoading"', () => {
-      const onLoading = jest.fn()
+      const onLoading = vi.fn()
       const loadingStoreProps = {
         ...storeProps,
         images: JSON.parse(JSON.stringify(storeProps.images)),
@@ -367,7 +352,7 @@ describe('Course()', () => {
     })
 
     it('calls "onLoaded"', () => {
-      const onLoaded = jest.fn()
+      const onLoaded = vi.fn()
       subject({onLoaded})
       expect(onLoaded).toHaveBeenCalled()
     })

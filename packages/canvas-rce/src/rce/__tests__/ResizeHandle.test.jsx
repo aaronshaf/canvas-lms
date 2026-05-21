@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import '@testing-library/jest-dom/extend-expect'
+import '@testing-library/jest-dom'
 import {render, cleanup, fireEvent} from '@testing-library/react'
 import keycode from 'keycode'
 import ResizeHandle from '../ResizeHandle'
@@ -26,7 +26,7 @@ afterEach(cleanup)
 
 describe('RCE StatusBar', () => {
   it('simulates drag using the keyboard', () => {
-    const onDrag = jest.fn()
+    const onDrag = vi.fn()
     const {container} = render(<ResizeHandle onDrag={onDrag} />)
     const theHandle = container.firstElementChild
     theHandle.focus()

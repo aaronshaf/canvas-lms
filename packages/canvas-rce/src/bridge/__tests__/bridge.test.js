@@ -21,7 +21,7 @@ import Bridge from '..'
 describe('Editor/Sidebar bridge', () => {
   afterEach(() => {
     Bridge.focusEditor(null)
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('focusEditor', () => {
@@ -32,7 +32,7 @@ describe('Editor/Sidebar bridge', () => {
     })
 
     it('calls hideTrays if focus is changing', () => {
-      jest.spyOn(Bridge, 'hideTrays')
+      vi.spyOn(Bridge, 'hideTrays')
       Bridge.focusEditor({id: 'editor_id'})
       expect(Bridge.hideTrays).toHaveBeenCalledTimes(1)
       Bridge.focusEditor({id: 'another_editor'})
@@ -41,7 +41,7 @@ describe('Editor/Sidebar bridge', () => {
 
     it('does not call hideTrays if focus is not changing', () => {
       const editor = {id: 'editor_id'}
-      jest.spyOn(Bridge, 'hideTrays')
+      vi.spyOn(Bridge, 'hideTrays')
       Bridge.focusEditor(editor)
       Bridge.focusEditor(editor)
       expect(Bridge.hideTrays).toHaveBeenCalledTimes(1)
@@ -64,7 +64,7 @@ describe('Editor/Sidebar bridge', () => {
     })
 
     it('calls hideTrays if bluring the active editor', () => {
-      jest.spyOn(Bridge, 'hideTrays')
+      vi.spyOn(Bridge, 'hideTrays')
       const editor = {id: 'editor_id'}
       Bridge.focusedEditor = editor
       Bridge.blurEditor(editor)
@@ -72,7 +72,7 @@ describe('Editor/Sidebar bridge', () => {
     })
 
     it('does not set call hideTrays if not bluring the active editor', () => {
-      jest.spyOn(Bridge, 'hideTrays')
+      vi.spyOn(Bridge, 'hideTrays')
       const editor = {id: 'editor_id'}
       Bridge.focusedEditor = editor
       Bridge.blurEditor({id: 'another_editor'})
@@ -82,8 +82,8 @@ describe('Editor/Sidebar bridge', () => {
 
   describe('hideTrays', () => {
     it('calls hideTray on each of the registered controllers', () => {
-      const controller1 = {hideTray: jest.fn()}
-      const controller2 = {hideTray: jest.fn()}
+      const controller1 = {hideTray: vi.fn()}
+      const controller2 = {hideTray: vi.fn()}
       Bridge.attachController(controller1, 'an_editor')
       Bridge.attachController(controller2, 'another_editor')
       Bridge.hideTrays()
@@ -134,16 +134,16 @@ describe('Editor/Sidebar bridge', () => {
     let editor = {}
 
     beforeEach(() => {
-      jest.spyOn(console, 'warn')
+      vi.spyOn(console, 'warn')
       editor = {
         id: 'editor_id',
-        addAlert: jest.fn(),
-        insertLink: jest.fn(),
-        insertVideo: jest.fn(),
-        insertAudio: jest.fn(),
-        insertEmbedCode: jest.fn(),
-        removePlaceholders: jest.fn(),
-        insertImagePlaceholder: jest.fn(),
+        addAlert: vi.fn(),
+        insertLink: vi.fn(),
+        insertVideo: vi.fn(),
+        insertAudio: vi.fn(),
+        insertEmbedCode: vi.fn(),
+        removePlaceholders: vi.fn(),
+        insertImagePlaceholder: vi.fn(),
         existingContentToLink: () => false,
         props: {
           textareaId: 'fake_editor',
@@ -151,8 +151,8 @@ describe('Editor/Sidebar bridge', () => {
             get(_id) {
               return {
                 selection: {
-                  getRng: jest.fn(() => 'some-range'),
-                  getNode: jest.fn(() => 'some-node'),
+                  getRng: vi.fn(() => 'some-range'),
+                  getNode: vi.fn(() => 'some-node'),
                 },
               }
             },
@@ -171,7 +171,7 @@ describe('Editor/Sidebar bridge', () => {
       it('insertLink with no active editor is a no-op, but warns', () => {
         Bridge.focusEditor(undefined)
         Bridge.insertLink(link)
-        expect(console.warn).toHaveBeenCalled()  
+        expect(console.warn).toHaveBeenCalled()
       })
 
       it('adds selectionDetails to links', () => {
@@ -186,7 +186,7 @@ describe('Editor/Sidebar bridge', () => {
       })
 
       it('calls hideTray after inserting a link', () => {
-        const hideTray = jest.fn()
+        const hideTray = vi.fn()
         Bridge.focusEditor(editor)
         Bridge.attachController({hideTray}, 'editor_id')
         Bridge.insertLink({})
@@ -241,30 +241,30 @@ describe('Editor/Sidebar bridge', () => {
 
     describe('insertFileLink', () => {
       it('inserts a link', () => {
-        const insertLinkSpy = jest.spyOn(Bridge, 'insertLink')
+        const insertLinkSpy = vi.spyOn(Bridge, 'insertLink')
         Bridge.insertFileLink({content_type: 'plain/text'})
         expect(insertLinkSpy).toHaveBeenCalled()
       })
 
       it('embeds an image if it is browser supported', () => {
-        const insertLinkSpy = jest.spyOn(Bridge, 'insertLink')
-        const insertImageSpy = jest.spyOn(Bridge, 'insertImage')
+        const insertLinkSpy = vi.spyOn(Bridge, 'insertLink')
+        const insertImageSpy = vi.spyOn(Bridge, 'insertImage')
         Bridge.insertFileLink({content_type: 'image/png'})
         expect(insertLinkSpy).not.toHaveBeenCalled()
         expect(insertImageSpy).toHaveBeenCalled()
       })
 
       it('inserts link if the file is not browser supported', () => {
-        const insertLinkSpy = jest.spyOn(Bridge, 'insertLink')
-        const insertImageSpy = jest.spyOn(Bridge, 'insertImage')
+        const insertLinkSpy = vi.spyOn(Bridge, 'insertLink')
+        const insertImageSpy = vi.spyOn(Bridge, 'insertImage')
         Bridge.insertFileLink({content_type: 'image/vnd.dxf'})
         expect(insertLinkSpy).toHaveBeenCalled()
         expect(insertImageSpy).not.toHaveBeenCalled()
       })
 
       it('embeds media', () => {
-        const insertLinkSpy = jest.spyOn(Bridge, 'insertLink')
-        const embedMediaSpy = jest.spyOn(Bridge, 'embedMedia')
+        const insertLinkSpy = vi.spyOn(Bridge, 'insertLink')
+        const embedMediaSpy = vi.spyOn(Bridge, 'embedMedia')
         Bridge.insertFileLink({content_type: 'video/mp4', href: 'here/i/am'})
         expect(insertLinkSpy).not.toHaveBeenCalled()
         expect(embedMediaSpy).toHaveBeenCalledWith({
@@ -278,13 +278,13 @@ describe('Editor/Sidebar bridge', () => {
     describe('embedMedia', () => {
       let hideTray
       beforeEach(() => {
-        hideTray = jest.fn()
+        hideTray = vi.fn()
         Bridge.attachController({hideTray}, 'editor_id')
         Bridge.focusEditor(editor)
       })
 
       it('inserts video when media is video', () => {
-        jest.spyOn(Bridge, 'insertVideo')
+        vi.spyOn(Bridge, 'insertVideo')
         const theMedia = {type: 'video', content_type: 'video/mp4'}
         Bridge.embedMedia(theMedia)
         expect(Bridge.insertVideo).toHaveBeenCalledWith(theMedia)
@@ -293,7 +293,7 @@ describe('Editor/Sidebar bridge', () => {
       })
 
       it('inserts audio when media is audio', () => {
-        jest.spyOn(Bridge, 'insertAudio')
+        vi.spyOn(Bridge, 'insertAudio')
         const theMedia = {type: 'audio', content_type: 'audio/mpeg'}
         Bridge.embedMedia(theMedia)
         expect(Bridge.insertAudio).toHaveBeenCalledWith(theMedia)
@@ -349,12 +349,12 @@ describe('Bridge actions, embed image', () => {
 
   beforeEach(() => {
     mockEditor = {
-      existingContentToLink: jest.fn(),
-      existingContentToLinkIsImg: jest.fn(),
-      insertImage: jest.fn(),
-      insertLink: jest.fn(),
-      insertImagePlaceholder: jest.fn(),
-      removePlaceholders: jest.fn(),
+      existingContentToLink: vi.fn(),
+      existingContentToLinkIsImg: vi.fn(),
+      insertImage: vi.fn(),
+      insertLink: vi.fn(),
+      insertImagePlaceholder: vi.fn(),
+      removePlaceholders: vi.fn(),
     }
     origEditor = Bridge.getEditor()
     Bridge.focusEditor(mockEditor)
@@ -381,10 +381,10 @@ describe('Bridge actions, embed image', () => {
     mockEditor.props = {
       textareaId: 'fake_editor',
       tinymce: {
-        get: jest.fn().mockReturnValue({
+        get: vi.fn().mockReturnValue({
           selection: {
-            getRng: jest.fn().mockReturnValue('some-range'),
-            getNode: jest.fn().mockReturnValue('some-node'),
+            getRng: vi.fn().mockReturnValue('some-range'),
+            getNode: vi.fn().mockReturnValue('some-node'),
           },
         }),
       },

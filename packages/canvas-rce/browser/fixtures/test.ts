@@ -6,6 +6,7 @@ type Fixtures = {
 }
 
 export const test = base.extend<Fixtures>({
+  // oxlint-disable-next-line react/rules-of-hooks -- Playwright's `use` fixture is not a React Hook
   rcePage: async ({page}, use) => {
     await use(new RcePage(page))
   },

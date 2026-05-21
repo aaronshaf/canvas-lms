@@ -21,7 +21,7 @@ import {LinkDisplay} from '../LinkDisplay'
 import {render, fireEvent} from '@testing-library/react'
 import {showFlashAlert} from '../../../../common/FlashAlert'
 
-jest.mock('../../../../common/FlashAlert')
+vi.mock('../../../../common/FlashAlert')
 
 describe('LinkDisplay', () => {
   let props
@@ -32,17 +32,17 @@ describe('LinkDisplay', () => {
       linkFileName: 'default link filename',
       placeholderText: 'default placeholder',
       published: true,
-      handleTextChange: jest.fn(),
+      handleTextChange: vi.fn(),
       linkType: 'wikiPages',
     }
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterAll(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   const renderComponent = overrideProps => {
@@ -80,7 +80,7 @@ describe('LinkDisplay', () => {
   })
 
   it('handletextchange prop is called when user types in textinput', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {getByLabelText} = renderComponent({handleTextChange: callback})
     const textInput = getByLabelText(/text \(optional\)/i)
     fireEvent.input(textInput, {target: {value: 'something'}})

@@ -69,6 +69,21 @@ describe('Sidebar initialState', () => {
     expect(state.collections).toEqual(collections)
   })
 
+  it('falls back to canvasUrl when canvasOrigin is not provided (regression: 87811f76b9c)', () => {
+    const state = initialState({canvasUrl: 'http://canvas.example.com', jwt: 'tok'})
+    // canvasUrl is used as canvasOrigin when building RceApiSource
+    expect(state.source.canvasOrigin).toEqual('http://canvas.example.com')
+  })
+
+  it('prefers canvasOrigin over canvasUrl when both provided', () => {
+    const state = initialState({
+      canvasOrigin: 'http://canvas.example.com',
+      canvasUrl: 'http://other.example.com',
+      jwt: 'tok',
+    })
+    expect(state.source.canvasOrigin).toEqual('http://canvas.example.com')
+  })
+
   describe('defaults', () => {
     it('contextType to undefined', () => {
       expect(initialState().contextType).toBeUndefined()

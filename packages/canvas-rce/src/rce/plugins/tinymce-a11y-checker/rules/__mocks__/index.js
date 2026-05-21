@@ -18,14 +18,14 @@
 
 export default [
   {
-    test: jest.fn().mockReturnValue(false),
-    data: jest.fn().mockReturnValue({
+    test: vi.fn().mockReturnValue(false),
+    data: vi.fn().mockReturnValue({
       select: 'a',
       checkbox: true,
       color: 'rgba(40, 100, 200, 0.6)',
       text: 'Text',
     }),
-    form: jest.fn().mockReturnValue([
+    form: vi.fn().mockReturnValue([
       {
         label: 'Select Field',
         dataKey: 'select',
@@ -55,11 +55,11 @@ export default [
         textarea: true,
       },
     ]),
-    rootNode: jest.fn(),
-    update: jest.fn(),
-    message: jest.fn().mockReturnValue('Error Message'),
-    why: jest.fn().mockReturnValue('Why Text'),
+    rootNode: vi.fn(),
+    update: vi.fn(),
+    message: vi.fn().mockReturnValue('Error Message'),
+    why: vi.fn().mockReturnValue('Why Text'),
     link: 'http://some-url',
-    linkText: jest.fn().mockReturnValue('Link for learning more'),
+    linkText: vi.fn().mockReturnValue('Link for learning more'),
   },
 ]

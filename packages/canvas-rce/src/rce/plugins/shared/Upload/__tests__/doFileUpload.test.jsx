@@ -21,10 +21,13 @@ import bridge from '../../../../../bridge'
 import doFileUpload from '../doFileUpload'
 import {act, getAllByLabelText, getAllByText, getByText, waitFor} from '@testing-library/react'
 
-jest.mock('react-dom', () => ({
-  ...jest.requireActual('react-dom'),
-  unmountComponentAtNode: jest.fn(),
-}))
+let unmountSpy
+beforeEach(() => {
+  unmountSpy = vi.spyOn(ReactDOM, 'unmountComponentAtNode').mockReturnValue(true)
+})
+afterEach(() => {
+  unmountSpy.mockRestore()
+})
 
 const fauxEditor = {
   focus: () => {},
@@ -117,7 +120,7 @@ describe('doFileUpload()', () => {
     act(() => {
       closeBtn.click()
     })
-    expect(ReactDOM.unmountComponentAtNode).toHaveBeenCalled()
+    expect(unmountSpy).toHaveBeenCalled()
   })
 
   describe('opens the Upload modal with the requested tabs', () => {

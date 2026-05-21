@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {act, fireEvent, render} from '@testing-library/react'
 
 import {WordCountModal, WordCountModalProps} from '../WordCountModal'
 import {HEADERS} from '../../utils/tableContent'
@@ -29,7 +29,7 @@ const defaultProps: WordCountModalProps = {
     {label: 'Characters (no spaces)', documentCount: 2, selectionCount: 3},
     {label: 'Characters', documentCount: 4, selectionCount: 5},
   ],
-  onDismiss: jest.fn(),
+  onDismiss: vi.fn(),
 }
 
 const renderModal = (overrideProps = {}) => {
@@ -48,6 +48,29 @@ describe('WordCountModal', () => {
       const {getByTestId} = renderModal()
       fireEvent.click(getByTestId('footer-close-button'))
       expect(defaultProps.onDismiss).toHaveBeenCalled()
+    })
+
+    it('is called when Escape key is pressed (regression: e6aff4f100d)', async () => {
+      // Before fix: onDismiss was not passed to InstructureUI Modal, so Escape
+      // key had no effect — Modal's FocusRegion never received the dismiss callback.
+      // InstructureUI Dialog activates FocusRegion inside requestAnimationFrame.
+      // jsdom's native RAF is async; mock it synchronously so the listener is
+      // set up before we fire the keyUp event.
+      const originalRAF = window.requestAnimationFrame
+      window.requestAnimationFrame = (fn: FrameRequestCallback) => {
+        fn(0)
+        return 0
+      }
+      try {
+        const onDismiss = vi.fn()
+        await act(async () => {
+          renderModal({onDismiss})
+        })
+        fireEvent.keyUp(document, {key: 'Escape', keyCode: 27})
+        expect(onDismiss).toHaveBeenCalled()
+      } finally {
+        window.requestAnimationFrame = originalRAF
+      }
     })
   })
 

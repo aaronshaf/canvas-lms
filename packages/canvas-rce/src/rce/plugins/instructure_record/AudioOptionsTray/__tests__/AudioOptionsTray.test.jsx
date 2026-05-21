@@ -24,17 +24,17 @@ import {createLiveRegion, removeLiveRegion} from '../../../../__tests__/liveRegi
 import AudioOptionsTray from '..'
 import AudioOptionsTrayDriver from './AudioOptionsTrayDriver'
 
-jest.mock('@instructure/canvas-media', () => ({
-  ...jest.requireActual('@instructure/canvas-media'),
-  trackPendoEvent: jest.fn(),
+vi.mock('@instructure/canvas-media', async () => ({
+  ...(await vi.importActual('@instructure/canvas-media')),
+  trackPendoEvent: vi.fn(),
 }))
 
 function getProps({audioOptions: audioOverrides, ...overrides} = {}) {
   return {
-    onRequestClose: jest.fn(),
-    onSave: jest.fn(),
+    onRequestClose: vi.fn(),
+    onSave: vi.fn(),
     open: true,
-    requestSubtitlesFromIframe: jest.fn(),
+    requestSubtitlesFromIframe: vi.fn(),
     audioOptions: {
       id: 'm-audio-id',
       titleText: 'Audio player',
@@ -115,7 +115,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray', () => {
     }
 
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
     })
 
     describe("doesn't show tooltip", () => {
@@ -198,7 +198,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray', () => {
 
   describe('when rce_asr_captioning_improvements is enabled', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: true,
       })
     })
@@ -299,7 +299,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray', () => {
 
   describe('when rce_asr_captioning_improvements is disabled', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({
         rce_asr_captioning_improvements: false,
       })
     })
@@ -312,7 +312,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray', () => {
 
   describe('Pendo analytics', () => {
     beforeEach(() => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({rce_asr_captioning_improvements: true})
       trackPendoEvent.mockClear()
     })
 

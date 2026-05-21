@@ -44,7 +44,7 @@ describe('MemoizedEquationEditorToolbar', () => {
   })
 
   it('calls executeCommand on button click', () => {
-    const mockFn = jest.fn()
+    const mockFn = vi.fn()
     const {container, getByText} = renderToolbar({executeCommand: mockFn})
     const tabPanel = getByText('Basic')
     fireEvent.click(tabPanel)

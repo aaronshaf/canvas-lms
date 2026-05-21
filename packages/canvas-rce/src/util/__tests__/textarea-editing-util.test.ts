@@ -23,7 +23,7 @@ import {
 
 import * as textFieldEdit from 'text-field-edit'
 
-jest.mock('text-field-edit')
+vi.mock('text-field-edit')
 
 describe('performTextEditActionsOnString', () => {
   it('should insert into an empty string', () => {
@@ -96,7 +96,7 @@ describe('performTextEditActionOnTextarea', () => {
       text: 'test',
     })
 
-    expect(textFieldEdit.insert as jest.Mock).toHaveBeenCalledWith(textarea, 'test')
+    expect(textFieldEdit.insert as vi.Mock).toHaveBeenCalledWith(textarea, 'test')
   })
 
   it('should handle wrapSelection', () => {
@@ -108,11 +108,7 @@ describe('performTextEditActionOnTextarea', () => {
       after: 'after',
     })
 
-    expect(textFieldEdit.wrapSelection as jest.Mock).toHaveBeenCalledWith(
-      textarea,
-      'before',
-      'after',
-    )
+    expect(textFieldEdit.wrapSelection as vi.Mock).toHaveBeenCalledWith(textarea, 'before', 'after')
 
     performTextEditActionOnTextarea(textarea, {
       action: 'wrapSelection',
@@ -120,7 +116,7 @@ describe('performTextEditActionOnTextarea', () => {
       after: 'after',
     })
 
-    expect(textFieldEdit.wrapSelection as jest.Mock).toHaveBeenCalledWith(textarea, '', 'after')
+    expect(textFieldEdit.wrapSelection as vi.Mock).toHaveBeenCalledWith(textarea, '', 'after')
 
     performTextEditActionOnTextarea(textarea, {
       action: 'wrapSelection',
@@ -128,6 +124,6 @@ describe('performTextEditActionOnTextarea', () => {
       after: null,
     })
 
-    expect(textFieldEdit.wrapSelection as jest.Mock).toHaveBeenCalledWith(textarea, '', 'after')
+    expect(textFieldEdit.wrapSelection as vi.Mock).toHaveBeenCalledWith(textarea, '', 'after')
   })
 })

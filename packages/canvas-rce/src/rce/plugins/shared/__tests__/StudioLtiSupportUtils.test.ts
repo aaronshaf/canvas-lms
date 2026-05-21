@@ -208,8 +208,7 @@ describe('parseStudioOptions', () => {
 
   it('parses showRollingTranscript as true from URL params', () => {
     const element = document.createElement('span')
-    const studioUrl =
-      'https://studio.example.com/embed?custom_arc_show_rolling_transcript=true'
+    const studioUrl = 'https://studio.example.com/embed?custom_arc_show_rolling_transcript=true'
     element.setAttribute(
       'data-mce-p-src',
       `https://canvas.example.com/external_tools/retrieve?url=${encodeURIComponent(studioUrl)}`,
@@ -220,8 +219,7 @@ describe('parseStudioOptions', () => {
 
   it('parses showRollingTranscript as false from URL params', () => {
     const element = document.createElement('span')
-    const studioUrl =
-      'https://studio.example.com/embed?custom_arc_show_rolling_transcript=false'
+    const studioUrl = 'https://studio.example.com/embed?custom_arc_show_rolling_transcript=false'
     element.setAttribute(
       'data-mce-p-src',
       `https://canvas.example.com/external_tools/retrieve?url=${encodeURIComponent(studioUrl)}`,
@@ -273,7 +271,7 @@ describe('findStudioLtiIframeFromSelection', () => {
     // Reset DOM before each test
     document.body.innerHTML = ''
     // Clear any existing console spies
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -304,7 +302,7 @@ describe('findStudioLtiIframeFromSelection', () => {
   })
 
   it('should return null when no iframe is found', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
 
     const div = document.createElement('div')
     div.textContent = 'No iframe here'
@@ -319,7 +317,7 @@ describe('findStudioLtiIframeFromSelection', () => {
   })
 
   it('should handle text nodes', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
 
     const textNode = document.createTextNode('Just text')
 
@@ -397,7 +395,7 @@ describe('findStudioLtiIframeFromSelection', () => {
       configurable: true,
     })
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
 
     const result = findStudioLtiIframeFromSelection(outerIframe)
 
@@ -415,7 +413,7 @@ describe('findStudioLtiIframeFromSelection', () => {
     document.body.appendChild(outerIframe)
 
     const mockContentDoc = {
-      querySelector: jest.fn().mockReturnValue(null),
+      querySelector: vi.fn().mockReturnValue(null),
     }
 
     Object.defineProperty(outerIframe, 'contentDocument', {
@@ -478,7 +476,7 @@ describe('findStudioLtiIframeFromSelection', () => {
     document.body.appendChild(outerIframe)
 
     const mockContentDoc = {
-      querySelector: jest.fn().mockReturnValue(null),
+      querySelector: vi.fn().mockReturnValue(null),
     }
 
     Object.defineProperty(outerIframe, 'contentDocument', {
@@ -517,11 +515,11 @@ describe('findStudioLtiIframeFromSelection', () => {
 })
 
 // Remove the old mock for ContentSelection and replace with iframeUtils mock
-jest.mock('../iframeUtils', () => ({
-  findMediaPlayerIframe: jest.fn(),
+vi.mock('../iframeUtils', () => ({
+  findMediaPlayerIframe: vi.fn(),
 }))
 
-const mockFindMediaPlayerIframe = iframeUtils.findMediaPlayerIframe as jest.MockedFunction<
+const mockFindMediaPlayerIframe = iframeUtils.findMediaPlayerIframe as vi.MockedFunction<
   typeof iframeUtils.findMediaPlayerIframe
 >
 
@@ -532,20 +530,20 @@ describe('updateStudioIframeDimensions', () => {
 
   beforeEach(() => {
     // Reset mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     // Create mock editor
     mockEditor = createDeepMockProxy({
-      fire: jest.fn(),
+      fire: vi.fn(),
       selection: {
-        getNode: jest.fn(),
+        getNode: vi.fn(),
       },
       dom: {
-        setStyles: jest.fn(),
-        getAttrib: jest.fn(),
-        setAttrib: jest.fn(),
+        setStyles: vi.fn(),
+        getAttrib: vi.fn(),
+        setAttrib: vi.fn(),
       },
-      nodeChanged: jest.fn(),
+      nodeChanged: vi.fn(),
     })
 
     // Create mock iframe with parent element (TinyMCE shim)
@@ -700,7 +698,7 @@ describe('updateStudioIframeDimensions', () => {
 
   describe('resizable attribute updates', () => {
     it('should set resizable to true and remove data-mce-resize', () => {
-      const removeAttributeSpy = jest.spyOn(mockParentElement, 'removeAttribute')
+      const removeAttributeSpy = vi.spyOn(mockParentElement, 'removeAttribute')
 
       updateStudioIframeDimensions(mockEditor, {
         subject: 'studio.embedTypeChanged.response',
@@ -727,7 +725,7 @@ describe('updateStudioIframeDimensions', () => {
     })
 
     it('should set resizable to false and add data-mce-resize="false"', () => {
-      const setAttributeSpy = jest.spyOn(mockParentElement, 'setAttribute')
+      const setAttributeSpy = vi.spyOn(mockParentElement, 'setAttribute')
 
       updateStudioIframeDimensions(mockEditor, {
         subject: 'studio.embedTypeChanged.response',
@@ -754,7 +752,7 @@ describe('updateStudioIframeDimensions', () => {
     })
 
     it('should handle switching from resizable to non-resizable', () => {
-      const setAttributeSpy = jest.spyOn(mockParentElement, 'setAttribute')
+      const setAttributeSpy = vi.spyOn(mockParentElement, 'setAttribute')
       mockParentElement.setAttribute('data-studio-resizable', 'true')
 
       updateStudioIframeDimensions(mockEditor, {
@@ -776,7 +774,7 @@ describe('updateStudioIframeDimensions', () => {
     })
 
     it('should handle switching from non-resizable to resizable', () => {
-      const removeAttributeSpy = jest.spyOn(mockParentElement, 'removeAttribute')
+      const removeAttributeSpy = vi.spyOn(mockParentElement, 'removeAttribute')
       mockParentElement.setAttribute('data-studio-resizable', 'false')
       mockParentElement.setAttribute('data-mce-resize', 'false')
 
@@ -898,12 +896,12 @@ describe('updateStudioEmbedOptions', () => {
     `https://canvas.example.com/external_tools/retrieve?url=${encodeURIComponent(innerUrl)}`
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     mockEditor = createDeepMockProxy({
       dom: {
-        getAttrib: jest.fn(),
-        setAttrib: jest.fn(),
+        getAttrib: vi.fn(),
+        setAttrib: vi.fn(),
       },
     })
 
@@ -995,5 +993,20 @@ describe('updateStudioEmbedOptions', () => {
       'data-mce-p-src',
       makeHref('https://studio.example.com/embed?custom_arc_display_download=true'),
     )
+  })
+
+  it('returns early without throwing when videoContainer is not an iframe (regression: 76167a07fe6)', () => {
+    // Before fix: updateStudioEmbedOptions used editor.getContainer() to find
+    // the iframe, which caused incorrect behavior with multiple embeds on page
+    // (wrong iframe modified). After fix: takes videoContainer param directly
+    // and returns early if it is not an IFRAME element.
+    const div = document.createElement('div')
+    expect(() => updateStudioEmbedOptions(mockEditor, {} as StudioEmbedOptions, div)).not.toThrow()
+    expect(mockEditor.dom.setAttrib).not.toHaveBeenCalled()
+  })
+
+  it('returns early without throwing when videoContainer is null (regression: 76167a07fe6)', () => {
+    expect(() => updateStudioEmbedOptions(mockEditor, {} as StudioEmbedOptions, null)).not.toThrow()
+    expect(mockEditor.dom.setAttrib).not.toHaveBeenCalled()
   })
 })

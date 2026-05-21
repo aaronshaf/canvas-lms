@@ -31,21 +31,21 @@ describe('ImageCropperModal', () => {
   beforeEach(() => {
     props = {
       open: true,
-      onSubmit: jest.fn(),
-      onClose: jest.fn(),
+      onSubmit: vi.fn(),
+      onClose: vi.fn(),
       image: 'data:image/png;base64,asdfasdfjksdf==',
-      trayDispatch: jest.fn(),
+      trayDispatch: vi.fn(),
     }
   })
 
   beforeAll(() => {
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       blob: () => Promise.resolve(new Blob(['somedata'], {type: 'image/svg+xml'})),
     })
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('renders the message', () => {

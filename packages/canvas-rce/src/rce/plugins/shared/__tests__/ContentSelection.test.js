@@ -433,10 +433,10 @@ describe('RCE > Plugins > Shared > Content Selection', () => {
           ['env'.toUpperCase()]: {
             media_object: {
               viewer_restrictions: {
-                show_rolling_transcript: true
-              }
-            }
-          }
+                show_rolling_transcript: true,
+              },
+            },
+          },
         },
         writable: true,
       })
@@ -453,6 +453,25 @@ describe('RCE > Plugins > Shared > Content Selection', () => {
       const result = asVideoElement($span)
       expect(result.viewerRestrictions).toEqual({})
     })
+
+    it('returns empty viewerRestrictions for studio videos regardless of contentWindow (regression: 7c80a0e39ad)', () => {
+      // Before fix: asVideoElement didn't accept isStudioVideo; studio embeds
+      // tried to read viewer_restrictions from contentWindow and got wrong values.
+      // After fix: isStudioVideo=true short-circuits to {} for viewer restrictions.
+      const $span = document.createElement('span')
+      $span.setAttribute('data-mce-p-data-media-id', 'm-id')
+      $span.setAttribute('data-mce-p-data-media-type', 'video')
+      const $iframe = document.createElement('iframe')
+      $span.appendChild($iframe)
+      Object.defineProperty($iframe, 'contentWindow', {
+        value: {
+          ENV: {media_object: {viewer_restrictions: {show_rolling_transcript: true}}},
+        },
+        writable: true,
+      })
+      const result = asVideoElement($span, true)
+      expect(result.viewerRestrictions).toEqual({})
+    })
   })
 
   describe('asAudioElement', () => {
@@ -467,10 +486,10 @@ describe('RCE > Plugins > Shared > Content Selection', () => {
           ['env'.toUpperCase()]: {
             media_object: {
               viewer_restrictions: {
-                show_rolling_transcript: true
-              }
-            }
-          }
+                show_rolling_transcript: true,
+              },
+            },
+          },
         },
         writable: true,
       })

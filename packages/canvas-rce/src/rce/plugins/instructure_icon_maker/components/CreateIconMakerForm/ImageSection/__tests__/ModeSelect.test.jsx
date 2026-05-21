@@ -23,10 +23,10 @@ import ModeSelect from '../ModeSelect'
 import {actions} from '../../../../reducers/imageSection'
 
 describe('ModeSelect', () => {
-  const defaultProps = {dispatch: jest.fn()}
+  const defaultProps = {dispatch: vi.fn()}
   const subject = overrides => render(<ModeSelect {...{...defaultProps, ...overrides}} />)
 
-  afterEach(() => jest.resetAllMocks())
+  afterEach(() => vi.resetAllMocks())
 
   it('renders the "Add Image" button', () => {
     const {getByText} = subject()

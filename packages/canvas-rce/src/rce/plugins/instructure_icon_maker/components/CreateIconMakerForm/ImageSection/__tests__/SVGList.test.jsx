@@ -49,10 +49,10 @@ describe('SVGList', () => {
   describe('when an entry is clicked', () => {
     beforeEach(() => {
       type = TYPE.Multicolor
-      onSelect = jest.fn()
+      onSelect = vi.fn()
     })
 
-    afterEach(() => jest.clearAllMocks())
+    afterEach(() => vi.clearAllMocks())
 
     it('calls the "onSelect" handler with the selected icon', () => {
       const {getByTestId} = subject()
@@ -67,7 +67,7 @@ describe('SVGList', () => {
   })
 
   describe('when an "onMount" function is given', () => {
-    beforeEach(() => (onMount = jest.fn()))
+    beforeEach(() => (onMount = vi.fn()))
 
     it('calls "onMount"', () => {
       subject()

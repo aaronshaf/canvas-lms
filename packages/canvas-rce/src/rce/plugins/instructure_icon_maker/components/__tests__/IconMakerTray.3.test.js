@@ -27,15 +27,16 @@ import bridge from '../../../../../bridge'
 import base64EncodedFont from '../../svg/font'
 import * as shouldIgnoreCloseRef from '../../utils/IconMakerClose'
 
-jest.useFakeTimers()
-jest.mock('../../../../../bridge')
-jest.mock('../../svg/font')
-jest.mock('../../../../../rcs/api')
-jest.mock('../../../shared/StoreContext')
-jest.mock('../../utils/useDebouncedValue', () =>
-  jest.requireActual('../../utils/__tests__/useMockedDebouncedValue'),
+vi.useFakeTimers()
+vi.mock('../../../../../bridge')
+vi.mock('../../svg/font')
+vi.mock('../../../../../rcs/api')
+vi.mock('../../../shared/StoreContext')
+vi.mock(
+  '../../utils/useDebouncedValue',
+  async () => await vi.importActual('../../utils/__tests__/useMockedDebouncedValue'),
 )
-const startIconMakerUpload = jest.fn().mockResolvedValue({
+const startIconMakerUpload = vi.fn().mockResolvedValue({
   url: 'https://uploaded.url',
   display_name: 'untitled.svg',
 })
@@ -52,7 +53,7 @@ const setIconColor = hex => {
 
 describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
   const defaults = {
-    onUnmount: jest.fn(),
+    onUnmount: vi.fn(),
     editing: false,
     canvasOrigin: 'http://canvas.instructor.com',
     editor: new FakeEditor(),
@@ -67,13 +68,13 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
 
   beforeAll(() => {
     rcs = {
-      getFile: jest.fn(() => Promise.resolve({name: 'Test Icon.svg'})),
+      getFile: vi.fn(() => Promise.resolve({name: 'Test Icon.svg'})),
     }
 
     RceApiSource.mockImplementation(() => rcs)
 
     delete window.confirm
-    window.confirm = jest.fn(() => true)
+    window.confirm = vi.fn(() => true)
   })
 
   afterAll(() => {
@@ -81,12 +82,19 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
   })
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+    // vi.clearAllMocks() clears mockReturnValue/mockResolvedValue — re-apply all
+    startIconMakerUpload.mockResolvedValue({
+      url: 'https://uploaded.url',
+      display_name: 'untitled.svg',
+    })
+    useStoreProps.mockReturnValue({startIconMakerUpload})
+    base64EncodedFont.mockReturnValue('data:;base64,')
   })
 
   afterEach(async () => {
     await act(async () => {
-      jest.runOnlyPendingTimers()
+      vi.runOnlyPendingTimers()
     })
   })
 
@@ -105,7 +113,7 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
     const subject = () =>
       render(
         <IconMakerTray
-          onClose={jest.fn()}
+          onClose={vi.fn()}
           editing={true}
           editor={ed}
           canvasOrigin="https://canvas.instructure.com"
@@ -133,7 +141,7 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
     })
 
     afterEach(() => {
-      jest.restoreAllMocks()
+      vi.restoreAllMocks()
       fetchMock.restore()
     })
 
@@ -220,7 +228,7 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
 
       beforeAll(() => {
         isLoading = IconMakerTray.isLoading
-        IconMakerTray.isLoading = jest.fn()
+        IconMakerTray.isLoading = vi.fn()
       })
 
       afterAll(() => {

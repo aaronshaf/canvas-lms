@@ -87,7 +87,7 @@ describe('test', () => {
 
 describe('data', () => {
   test('returns the color matching the elements existing color', () => {
-    uid.default = jest.fn(() => '123')
+    vi.spyOn(uid, 'default').mockReturnValue('123')
     el.style.color = '#fff'
     expect(rule.data(el)).toEqual({
       color: 'rgba(255, 255, 255, 1)',

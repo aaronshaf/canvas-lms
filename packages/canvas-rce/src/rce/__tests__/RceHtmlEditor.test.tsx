@@ -42,7 +42,7 @@ document.createRange = () => {
 }
 
 describe('RceHtmlEditor', () => {
-  beforeEach(() => jest.useFakeTimers())
+  beforeEach(() => vi.useFakeTimers())
 
   it('renders', () => {
     const editorRef = {current: null}
@@ -53,12 +53,12 @@ describe('RceHtmlEditor', () => {
 
   it('beautifies the passed-in code', async () => {
     const editorRef = {current: null}
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     const {container} = render(
       // @ts-expect-error
       <RceHtmlEditor ref={editorRef} code="<div><div>Text</div></div>" onChange={onChange} />,
     )
-    jest.advanceTimersByTime(1000)
+    vi.advanceTimersByTime(1000)
 
     // is 1 without beautify.html(), 3 with
     expect(container.querySelectorAll('.cm-line')).toHaveLength(3)
@@ -70,7 +70,7 @@ describe('RceHtmlEditor', () => {
       // @ts-expect-error
       <RceHtmlEditor ref={editorRef} code="<a><span>Links</span> are great</a>" />,
     )
-    jest.advanceTimersByTime(1000)
+    vi.advanceTimersByTime(1000)
 
     expect(container.querySelectorAll('.cm-line')).toHaveLength(1)
   })

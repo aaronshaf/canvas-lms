@@ -23,7 +23,7 @@ import ImageOptionsTray from '..'
 import ImageOptionsTrayDriver from './ImageOptionsTrayDriver'
 import {CUSTOM} from '../../ImageEmbedOptions'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe('RCE "Images" Plugin > ImageOptionsTray', () => {
   let props
@@ -44,8 +44,8 @@ describe('RCE "Images" Plugin > ImageOptionsTray', () => {
         usePercentageUnits: false,
         url: 'https://www.fillmurray.com/200/100',
       },
-      onRequestClose: jest.fn(),
-      onSave: jest.fn(),
+      onRequestClose: vi.fn(),
+      onSave: vi.fn(),
       open: true,
       isIconMaker: false,
     }
@@ -277,7 +277,7 @@ describe('RCE "Images" Plugin > ImageOptionsTray', () => {
       })
 
       it('prevents the default click handler', () => {
-        const preventDefault = jest.fn()
+        const preventDefault = vi.fn()
         // Override preventDefault before event reaches image
         tray.$doneButton.addEventListener(
           'click',

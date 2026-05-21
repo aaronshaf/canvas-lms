@@ -29,17 +29,17 @@ describe('FindReplaceTray', () => {
 
   beforeEach(() => {
     fakePlugin = {
-      done: jest.fn(),
-      find: jest.fn(() => 3),
-      next: jest.fn(),
-      prev: jest.fn(),
-      replace: jest.fn(),
+      done: vi.fn(),
+      find: vi.fn(() => 3),
+      next: vi.fn(),
+      prev: vi.fn(),
+      replace: vi.fn(),
     }
 
     props = {
-      onDismiss: jest.fn(),
+      onDismiss: vi.fn(),
       plugin: fakePlugin,
-      getSelectionContext: jest.fn(() => ['text before ', ' text after']),
+      getSelectionContext: vi.fn(() => ['text before ', ' text after']),
     }
   })
 
@@ -64,7 +64,7 @@ describe('FindReplaceTray', () => {
   }
 
   it('displays error with no find results', async () => {
-    fakePlugin.find = jest.fn(() => 0)
+    fakePlugin.find = vi.fn(() => 0)
     const {user} = renderComponent()
     const findInput = screen.getByTestId('find-text-input')
     await type(user, findInput, 'a')
@@ -235,7 +235,7 @@ describe('FindReplaceTray', () => {
 
   describe('button validation', () => {
     it('find and previous buttons are disabled with only one search result', async () => {
-      fakePlugin.find = jest.fn(() => 1)
+      fakePlugin.find = vi.fn(() => 1)
       const {user} = renderComponent()
       const nextButton = screen.getByTestId('next-button')
       const prevButton = screen.getByTestId('previous-button')

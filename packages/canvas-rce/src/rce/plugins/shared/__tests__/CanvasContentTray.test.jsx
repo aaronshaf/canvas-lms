@@ -27,12 +27,12 @@ import CanvasContentTray from '../CanvasContentTray'
 import {LinkDisplay} from '../LinkDisplay'
 import {destroyContainer} from '../../../../common/FlashAlert'
 
-jest.useFakeTimers()
-jest.mock('../../../../canvasFileBrowser/FileBrowser', () => {
-  return jest.fn(() => 'Files Browser')
-})
-jest.mock('../ContentSelection', () => ({
-  getLinkContentFromEditor: jest.fn().mockReturnValue({
+vi.useFakeTimers()
+vi.mock('../../../../canvasFileBrowser/FileBrowser', () => ({
+  default: vi.fn(() => 'Files Browser'),
+}))
+vi.mock('../ContentSelection', () => ({
+  getLinkContentFromEditor: vi.fn().mockReturnValue({
     fileName: 'some filename',
     contentType: 'wikiPages',
     url: '/pages',
@@ -40,13 +40,13 @@ jest.mock('../ContentSelection', () => ({
     text: 'some text',
   }),
 }))
-jest.mock('../../../../bridge', () => {
-  const original = jest.requireActual('../../../../bridge')
-  original.default.insertLink = jest.fn()
+vi.mock('../../../../bridge', async () => {
+  const original = await vi.importActual('../../../../bridge')
+  original.default.insertLink = vi.fn()
   return original
 })
-jest.mock('../LinkDisplay', () => ({
-  LinkDisplay: jest.fn(() => <div data-testid="LinkDisplay" />),
+vi.mock('../LinkDisplay', () => ({
+  LinkDisplay: vi.fn(() => <div data-testid="LinkDisplay" />),
 }))
 
 const storeInitialState = {
@@ -123,7 +123,7 @@ describe('RCE Plugins > CanvasContentTray', () => {
   }
 
   it('clears search string on tray close', async () => {
-    const mockOnChangeSearchString = jest.fn()
+    const mockOnChangeSearchString = vi.fn()
     renderComponent(
       getProps({
         storeProps: {...storeInitialState, onChangeSearchString: mockOnChangeSearchString},
@@ -268,46 +268,44 @@ describe('RCE Plugins > CanvasContentTray', () => {
   })
 
   describe('content panel', () => {
+    // React.lazy uses Vite's async module runner (IPC-based) which cannot be
+    // advanced by fake timers. Use real timers so import() Promises resolve
+    // naturally and waitFor can retry until panels appear.
     beforeEach(() => {
+      vi.useRealTimers()
       renderComponent()
     })
 
-    const advanceTimersAndPrintTime = async () => {
-      await jest.advanceTimersByTime(1000)
-      printCurrentTime()
-    }
+    afterEach(() => {
+      vi.useFakeTimers()
+    })
 
     it('is the links panel for links content types', async () => {
       await showTrayForPlugin('links')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-LinksPanel')).toBeInTheDocument(),
       )
     })
     it('is the documents panel for document content types', async () => {
       await showTrayForPlugin('course_documents')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-DocumentsPanel')).toBeInTheDocument(),
       )
     })
     it('is the images panel for image content types', async () => {
       await showTrayForPlugin('course_images')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-ImagesPanel')).toBeInTheDocument(),
       )
     })
     it('is the images panel for icon maker content types', async () => {
       await showTrayForPlugin('list_icon_maker_icons')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-ImagesPanel')).toBeInTheDocument(),
       )
     })
     it('is the media panel for media content types', async () => {
       await showTrayForPlugin('course_media')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-MediaPanel')).toBeInTheDocument(),
       )
@@ -315,7 +313,6 @@ describe('RCE Plugins > CanvasContentTray', () => {
 
     it('is the file browser for the all content type', async () => {
       await showTrayForPlugin('all')
-      await advanceTimersAndPrintTime()
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-FilesPanel')).toBeInTheDocument(),
       )
@@ -335,13 +332,15 @@ describe('RCE Plugins > CanvasContentTray', () => {
     })
 
     it('is set on tinymce after tray closes if focus was on the tray', async () => {
-      const mockFocus = jest.fn()
+      const mockFocus = vi.fn()
       props.bridge.focusActiveEditor = mockFocus
 
+      vi.useRealTimers()
       await showTrayForPlugin('links')
       await waitFor(() =>
         expect(component.getByTestId('instructure_links-LinksPanel')).toBeInTheDocument(),
       )
+      vi.useFakeTimers()
 
       const closeBtn = component.getByTestId('CloseButton_ContentTray').querySelector('button')
       closeBtn.focus()
@@ -356,7 +355,7 @@ describe('RCE Plugins > CanvasContentTray', () => {
     it('is not set on tinymce after tray closes if focus was elsewhere', async () => {
       const btn = document.createElement('button')
       document.body.appendChild(btn)
-      const mockFocus = jest.fn()
+      const mockFocus = vi.fn()
       props.bridge.focusActiveEditor = mockFocus
 
       await showTrayForPlugin('links')

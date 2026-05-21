@@ -37,7 +37,7 @@ const selectOption = async (button, option) => {
 
 describe('<TextSection />', () => {
   it('changes the icon text', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     const {container} = render(<TextSection settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = container.querySelector('#icon-text')
     fireEvent.change(input, {target: {value: 'Hello World!'}})
@@ -46,7 +46,7 @@ describe('<TextSection />', () => {
   })
 
   it("doesn't change the icon text when reaches the limit when typing", async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     const {container} = render(
       <TextSection
         settings={{...DEFAULT_SETTINGS, text: 'Hello World!Hello World!Hello!12'}}
@@ -60,7 +60,7 @@ describe('<TextSection />', () => {
   })
 
   it("doesn't change the icon text when reaches the limit when pasting", async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     const {container} = render(
       <TextSection settings={{...DEFAULT_SETTINGS, text: 'Hello World!'}} onChange={onChange} />,
     )
@@ -75,14 +75,14 @@ describe('<TextSection />', () => {
   })
 
   it('changes the icon text size', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<TextSection settings={{...DEFAULT_SETTINGS}} onChange={onChange} />)
     await selectOption(/text size/i, /medium/i)
     expect(onChange).toHaveBeenCalledWith({textSize: 'medium'})
   })
 
   it('changes the icon text color', () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<TextSection settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = screen.getByRole('textbox', {name: /text color/i})
     fireEvent.change(input, {target: {value: '#f00'}})
@@ -90,7 +90,7 @@ describe('<TextSection />', () => {
   })
 
   it('changes the icon text background color', () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<TextSection settings={DEFAULT_SETTINGS} onChange={onChange} />)
     const input = screen.getByRole('textbox', {name: /text background color/i})
     fireEvent.change(input, {target: {value: '#0f0'}})
@@ -98,7 +98,7 @@ describe('<TextSection />', () => {
   })
 
   it('changes the icon text position', async () => {
-    const onChange = jest.fn()
+    const onChange = vi.fn()
     render(<TextSection settings={{...DEFAULT_SETTINGS}} onChange={onChange} />)
     await selectOption(/text position/i, /bottom third/i)
     expect(onChange).toHaveBeenCalledWith({textPosition: 'bottom-third'})

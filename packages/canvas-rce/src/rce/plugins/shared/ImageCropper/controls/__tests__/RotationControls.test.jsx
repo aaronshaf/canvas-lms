@@ -21,7 +21,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react'
 
 import {RotationControls} from '../RotationControls'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 describe('RotationControls', () => {
   it('renders buttons', () => {
@@ -33,7 +33,7 @@ describe('RotationControls', () => {
   })
 
   it('calls function when rotate left is clicked', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<RotationControls onChange={callback} />)
     const rotateLeftButton = container.querySelectorAll('button')[0]
     fireEvent.click(rotateLeftButton)
@@ -41,7 +41,7 @@ describe('RotationControls', () => {
   })
 
   it('calls function rotate right in is clicked', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<RotationControls onChange={callback} />)
     const rotateRightButton = container.querySelectorAll('button')[1]
     fireEvent.click(rotateRightButton)
@@ -52,7 +52,7 @@ describe('RotationControls', () => {
     const timeout = 2000
 
     it('increment using up arrow', () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = render(<RotationControls onChange={callback} />)
       const input = container.querySelector('label input[type="text"]')
       fireEvent.keyDown(input, {keyCode: 38})
@@ -60,7 +60,7 @@ describe('RotationControls', () => {
     })
 
     it('increment using down arrow', () => {
-      const callback = jest.fn()
+      const callback = vi.fn()
       const {container} = render(<RotationControls onChange={callback} />)
       const input = container.querySelector('label input[type="text"]')
       fireEvent.keyDown(input, {keyCode: 40})
@@ -69,7 +69,7 @@ describe('RotationControls', () => {
 
     describe('on blur input', () => {
       it('with custom valid positive angle', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '10º'}})
@@ -78,7 +78,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive value that exceeds 360', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '370'}})
@@ -87,7 +87,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle with decimals', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '10.100º'}})
@@ -96,7 +96,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle without º symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '15'}})
@@ -105,7 +105,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle with decimals and without º symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '15.201'}})
@@ -114,7 +114,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-10º'}})
@@ -123,7 +123,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative value that is lower than -360', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-370'}})
@@ -132,7 +132,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle with decimals', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-10.100º'}})
@@ -141,7 +141,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle without º symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-15'}})
@@ -150,7 +150,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle with decimals and without º symbol', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-15.201'}})
@@ -159,7 +159,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom invalid angle', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: 'banana'}})
@@ -168,7 +168,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom empty angle', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -177,7 +177,7 @@ describe('RotationControls', () => {
       })
 
       it('with shows error message', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -189,7 +189,7 @@ describe('RotationControls', () => {
 
     describe('on change and debounce input', () => {
       it('with custom valid positive angle', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '10º'}})
@@ -202,7 +202,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive value that exceeds 360', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '370'}})
@@ -215,7 +215,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle with decimals', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '10.100º'}})
@@ -228,7 +228,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle without º symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '15'}})
@@ -241,7 +241,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid positive angle with decimals and without º symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '15.201'}})
@@ -254,7 +254,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-10º'}})
@@ -267,7 +267,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative value that is lower than -360', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-370'}})
@@ -280,7 +280,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle with decimals', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-10.100º'}})
@@ -293,7 +293,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle without º symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-15'}})
@@ -306,7 +306,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom valid negative angle with decimals and without º symbol', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: '-15.201'}})
@@ -319,7 +319,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom invalid angle', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: 'banana'}})
@@ -332,7 +332,7 @@ describe('RotationControls', () => {
       })
 
       it('with custom empty angle', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})
@@ -345,7 +345,7 @@ describe('RotationControls', () => {
       })
 
       it('with shows error message', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const {container} = render(<RotationControls onChange={callback} />)
         const input = container.querySelector('label input[type="text"]')
         fireEvent.change(input, {target: {value: ''}})

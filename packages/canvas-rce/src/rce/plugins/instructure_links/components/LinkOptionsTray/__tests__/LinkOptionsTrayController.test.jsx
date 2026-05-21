@@ -27,7 +27,7 @@ describe('RCE "Links" Plugin > LinkOptionsTray > LinkOptionsTrayController', () 
   let trayController
 
   beforeEach(() => {
-    contentSelection.getLinkContentFromEditor = jest.fn(_editor => ({}))
+    vi.spyOn(contentSelection, 'getLinkContentFromEditor').mockImplementation(_editor => ({}))
     editors = [new FakeEditor(), new FakeEditor()]
     editors.forEach(editor => {
       editor.initialize()
@@ -36,7 +36,7 @@ describe('RCE "Links" Plugin > LinkOptionsTray > LinkOptionsTrayController', () 
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
     editors.forEach(editor => editor.uninitialize())
     const $container = document.getElementById(CONTAINER_ID)
     if ($container != null) {

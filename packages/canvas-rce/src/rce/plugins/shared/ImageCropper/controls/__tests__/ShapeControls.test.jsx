@@ -29,7 +29,7 @@ describe('ShapeControls', () => {
   })
 
   it('calls function when shape changes', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<ShapeControls shape="square" onChange={callback} />)
     const dropdown = container.querySelector('input[title="Square"]')
     fireEvent.click(dropdown)

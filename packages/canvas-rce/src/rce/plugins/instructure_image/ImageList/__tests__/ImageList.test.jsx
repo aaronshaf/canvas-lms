@@ -33,7 +33,7 @@ describe('RCE "Images" Plugin > ImageList', () => {
         buildImage(1, 'example_2.png', 101, 201),
         buildImage(2, 'example_3.png', 102, 202),
       ],
-      onImageClick: jest.fn(),
+      onImageClick: vi.fn(),
       canvasOrigin: 'https://canvas.instructor.com',
     }
   })

@@ -22,10 +22,10 @@ import {ImageSection} from '../ImageSection'
 import {Size} from '../../../../svg/constants'
 import {convertFileToBase64} from '../../../../../shared/fileUtils'
 
-jest.useFakeTimers()
-jest.mock('../../../../../shared/StoreContext', () => {
+vi.useFakeTimers()
+vi.mock('../../../../../shared/StoreContext', async () => {
   return {
-    ...jest.requireActual('../../../../../shared/StoreContext'),
+    ...(await vi.importActual('../../../../../shared/StoreContext')),
     useStoreProps: () => ({
       images: {
         Course: {
@@ -88,21 +88,21 @@ jest.mock('../../../../../shared/StoreContext', () => {
         },
       },
       contextType: 'Course',
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
     }),
   }
 })
 
-jest.mock('../../../../../../../bridge', () => {
-  return {
+vi.mock('../../../../../../../bridge', () => ({
+  default: {
     trayProps: {
       get: () => ({foo: 'bar'}),
     },
-  }
-})
+  },
+}))
 
-jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
+vi.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   return {
     createCroppedImageSvg: () =>
       Promise.resolve({
@@ -111,7 +111,7 @@ jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   }
 })
 
-jest.mock('../../../../../shared/fileUtils')
+vi.mock('../../../../../shared/fileUtils')
 
 describe('ImageSection', () => {
   let scrollIntoView
@@ -122,23 +122,23 @@ describe('ImageSection', () => {
     },
     editing: false,
     editor: {},
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     canvasOrigin: 'https://canvas.instructor.com',
   }
 
   const subject = overrides => render(<ImageSection {...{...defaultProps, ...overrides}} />)
 
   beforeEach(() => {
-    scrollIntoView = jest.fn()
+    scrollIntoView = vi.fn()
     window.HTMLElement.prototype.scrollIntoView = scrollIntoView
     convertFileToBase64.mockImplementation(() => Promise.resolve('data:image/png;base64,CROPPED'))
   })
 
   afterEach(async () => {
     await act(async () => {
-      jest.runOnlyPendingTimers()
+      vi.runOnlyPendingTimers()
     })
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('when changing shape', () => {
@@ -166,7 +166,7 @@ describe('ImageSection', () => {
         },
         editing: false,
         editor: {},
-        onChange: jest.fn(),
+        onChange: vi.fn(),
       }
     })
 
@@ -227,7 +227,7 @@ describe('ImageSection', () => {
           },
           editing: false,
           editor: {},
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         }
         const {rerender} = subject(overrides)
 

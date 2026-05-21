@@ -23,10 +23,10 @@ import svg from '../SingleColor/svg'
 import {Size} from '../../../../svg/constants'
 import {convertFileToBase64} from '../../../../../shared/fileUtils'
 
-jest.useFakeTimers()
-jest.mock('../../../../../shared/StoreContext', () => {
+vi.useFakeTimers()
+vi.mock('../../../../../shared/StoreContext', async () => {
   return {
-    ...jest.requireActual('../../../../../shared/StoreContext'),
+    ...(await vi.importActual('../../../../../shared/StoreContext')),
     useStoreProps: () => ({
       images: {
         Course: {
@@ -89,21 +89,21 @@ jest.mock('../../../../../shared/StoreContext', () => {
         },
       },
       contextType: 'Course',
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
     }),
   }
 })
 
-jest.mock('../../../../../../../bridge', () => {
-  return {
+vi.mock('../../../../../../../bridge', () => ({
+  default: {
     trayProps: {
       get: () => ({foo: 'bar'}),
     },
-  }
-})
+  },
+}))
 
-jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
+vi.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   return {
     createCroppedImageSvg: () =>
       Promise.resolve({
@@ -112,7 +112,7 @@ jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   }
 })
 
-jest.mock('../../../../../shared/fileUtils')
+vi.mock('../../../../../shared/fileUtils')
 
 describe('ImageSection', () => {
   let scrollIntoView
@@ -123,34 +123,36 @@ describe('ImageSection', () => {
     },
     editing: false,
     editor: {},
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     canvasOrigin: 'https://canvas.instructor.com',
   }
 
   const subject = overrides => render(<ImageSection {...{...defaultProps, ...overrides}} />)
 
   beforeEach(() => {
-    scrollIntoView = jest.fn()
+    scrollIntoView = vi.fn()
     window.HTMLElement.prototype.scrollIntoView = scrollIntoView
     convertFileToBase64.mockImplementation(() => Promise.resolve('data:image/png;base64,CROPPED'))
   })
 
   afterEach(async () => {
     await act(async () => {
-      jest.runOnlyPendingTimers()
+      vi.runOnlyPendingTimers()
     })
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('when the "Single Color Image" mode is selected', () => {
     let spyFn, getByTestId, findByTestId, getByText, container, rerender
 
     beforeAll(() => {
-      spyFn = jest.spyOn(svg.art, 'source')
-      scrollIntoView = jest.fn()
+      spyFn = vi.spyOn(svg.art, 'source')
+      scrollIntoView = vi.fn()
     })
 
     beforeEach(() => {
+      // SingleColor is a React.lazy component; real timers required
+      vi.useRealTimers()
       const rendered = subject()
 
       getByTestId = rendered.getByTestId
@@ -163,7 +165,10 @@ describe('ImageSection', () => {
       fireEvent.click(getByText('Single Color Image'))
     })
 
-    afterEach(() => jest.clearAllMocks())
+    afterEach(() => {
+      vi.clearAllMocks()
+      vi.useFakeTimers()
+    })
 
     it('renders the single color images component', async () => {
       await waitFor(() => expect(getByTestId('singlecolor-svg-list')).toBeInTheDocument())
@@ -179,9 +184,12 @@ describe('ImageSection', () => {
           expect(getByTestId('selected-image-preview')).toBeInTheDocument()
         })
         fireEvent.click(await findByTestId('icon-maker-art'))
-        convertFileToBase64.mockImplementation(
-          jest.requireActual('../../../../../shared/fileUtils').convertFileToBase64,
+        const {convertFileToBase64: realConvertFileToBase64} = await vi.importActual(
+          '../../../../../shared/fileUtils',
         )
+        convertFileToBase64.mockImplementation(realConvertFileToBase64)
+        // Lazy component loaded; switch back to fake timers so runOnlyPendingTimers works
+        vi.useFakeTimers()
       })
 
       it('sets default icon color', async () => {
@@ -199,7 +207,7 @@ describe('ImageSection', () => {
           })
         })
         await act(async () => {
-          jest.runOnlyPendingTimers()
+          vi.runOnlyPendingTimers()
         })
         await waitFor(() => {
           expect(spyFn).toHaveBeenCalledWith('#00FF00')
@@ -316,7 +324,7 @@ describe('ImageSection', () => {
         />,
       )
       await act(async () => {
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
       })
       expect(rendered.container.querySelector('[name="single-color-image-fill"]')).toHaveValue(
         '#00FF00',

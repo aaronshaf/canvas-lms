@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`form returns the proper object 1`] = `
+exports[`form > returns the proper object 1`] = `
 [
   {
     "dataKey": "alt",
@@ -10,6 +10,6 @@ exports[`form returns the proper object 1`] = `
 ]
 `;
 
-exports[`message returns the proper message 1`] = `"Alt attribute text should not contain more than 120 characters."`;
+exports[`message > returns the proper message 1`] = `"Alt attribute text should not contain more than 120 characters."`;
 
-exports[`why returns the proper why message 1`] = `"Screen readers cannot determine what is displayed in an image without alternative text, which describes the content and meaning of the image. Alternative text should be simple and concise."`;
+exports[`why > returns the proper why message 1`] = `"Screen readers cannot determine what is displayed in an image without alternative text, which describes the content and meaning of the image. Alternative text should be simple and concise."`;

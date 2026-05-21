@@ -29,29 +29,29 @@ import * as filterActions from '../../actions/filter'
 import * as allFilesActions from '../../actions/all_files'
 import * as sessionActions from '../../actions/session'
 
-jest.mock('../../actions/ui')
-jest.mock('../../actions/data')
-jest.mock('../../actions/images')
-jest.mock('../../actions/upload')
-jest.mock('../../actions/files')
-jest.mock('../../actions/links')
-jest.mock('../../actions/documents')
-jest.mock('../../actions/media')
-jest.mock('../../actions/filter')
-jest.mock('../../actions/all_files')
-jest.mock('../../actions/session')
+vi.mock('../../actions/ui')
+vi.mock('../../actions/data')
+vi.mock('../../actions/images')
+vi.mock('../../actions/upload')
+vi.mock('../../actions/files')
+vi.mock('../../actions/links')
+vi.mock('../../actions/documents')
+vi.mock('../../actions/media')
+vi.mock('../../actions/filter')
+vi.mock('../../actions/all_files')
+vi.mock('../../actions/session')
 
 describe('Sidebar handlers', () => {
   let dispatch
   let props
 
   beforeEach(() => {
-    dispatch = jest.fn()
+    dispatch = vi.fn()
     props = propsFromDispatch(dispatch)
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('loadSession', () => {

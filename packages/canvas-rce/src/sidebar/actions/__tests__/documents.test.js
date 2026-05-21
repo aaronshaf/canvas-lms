@@ -23,7 +23,7 @@ const searchString = 'hello'
 describe('Documents actions', () => {
   describe('fetchDocuments', () => {
     it('fetches initial page', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         return {
           documents: {
@@ -41,7 +41,7 @@ describe('Documents actions', () => {
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('fetches subsequent page if necessary', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         return {
           documents: {
@@ -59,7 +59,7 @@ describe('Documents actions', () => {
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('skips the fetch if currently loading', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         return {
           documents: {
@@ -77,7 +77,7 @@ describe('Documents actions', () => {
       expect(dispatchSpy).not.toHaveBeenCalled()
     })
     it('always fetches initial page', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         return {
           documents: {
@@ -95,7 +95,7 @@ describe('Documents actions', () => {
       expect(dispatchSpy).toHaveBeenCalled()
     })
     it('does not fetch if requested but no more to load', () => {
-      const dispatchSpy = jest.fn()
+      const dispatchSpy = vi.fn()
       const getState = () => {
         return {
           documents: {

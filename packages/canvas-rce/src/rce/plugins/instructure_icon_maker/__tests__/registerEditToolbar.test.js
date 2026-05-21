@@ -28,16 +28,16 @@ beforeEach(() => {
   editor = {
     ui: {
       registry: {
-        addButton: jest.fn(),
-        addAltTextButton: jest.fn(),
-        addContextToolbar: jest.fn(),
+        addButton: vi.fn(),
+        addAltTextButton: vi.fn(),
+        addContextToolbar: vi.fn(),
       },
     },
   }
-  onAction = jest.fn()
+  onAction = vi.fn()
 })
 
-afterEach(() => jest.restoreAllMocks())
+afterEach(() => vi.restoreAllMocks())
 
 describe('registerEditToolbar()', () => {
   const subject = () => registerEditToolbar(editor, onAction)

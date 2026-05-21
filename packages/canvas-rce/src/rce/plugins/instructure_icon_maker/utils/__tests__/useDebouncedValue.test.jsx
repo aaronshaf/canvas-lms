@@ -21,7 +21,7 @@ import {renderHook, act} from '@testing-library/react'
 
 import useDebouncedValue from '../useDebouncedValue'
 
-jest.mock('@instructure/debounce', () => ({
+vi.mock('@instructure/debounce', () => ({
   debounce: callback => {
     return () => {
       callback()
@@ -42,7 +42,7 @@ describe('useDebouncedValue()', () => {
 
   beforeEach(() => {
     currentValue = 'test'
-    onChange = jest.fn()
+    onChange = vi.fn()
   })
 
   it('sets the immediate value to the current value on first render', () => {

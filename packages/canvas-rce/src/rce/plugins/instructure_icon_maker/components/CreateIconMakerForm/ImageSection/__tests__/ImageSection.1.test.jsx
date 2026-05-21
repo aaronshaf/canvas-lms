@@ -22,10 +22,10 @@ import {ImageSection} from '../ImageSection'
 import {Size} from '../../../../svg/constants'
 import {convertFileToBase64} from '../../../../../shared/fileUtils'
 
-jest.useFakeTimers()
-jest.mock('../../../../../shared/StoreContext', () => {
+vi.useFakeTimers()
+vi.mock('../../../../../shared/StoreContext', async () => {
   return {
-    ...jest.requireActual('../../../../../shared/StoreContext'),
+    ...(await vi.importActual('../../../../../shared/StoreContext')),
     useStoreProps: () => ({
       images: {
         Course: {
@@ -88,25 +88,25 @@ jest.mock('../../../../../shared/StoreContext', () => {
         },
       },
       contextType: 'Course',
-      fetchInitialImages: jest.fn(),
-      fetchNextImages: jest.fn(),
+      fetchInitialImages: vi.fn(),
+      fetchNextImages: vi.fn(),
     }),
   }
 })
 
-jest.mock('../../../../../shared/fileUtils', () => ({
-  convertFileToBase64: jest.fn(() => Promise.resolve('data:image/png;base64,CROPPED'))
+vi.mock('../../../../../shared/fileUtils', () => ({
+  convertFileToBase64: vi.fn(() => Promise.resolve('data:image/png;base64,CROPPED')),
 }))
 
-jest.mock('../../../../../../../bridge', () => {
-  return {
+vi.mock('../../../../../../../bridge', () => ({
+  default: {
     trayProps: {
       get: () => ({foo: 'bar'}),
     },
-  }
-})
+  },
+}))
 
-jest.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
+vi.mock('../../../../../shared/ImageCropper/imageCropUtils', () => {
   return {
     createCroppedImageSvg: () =>
       Promise.resolve({
@@ -124,22 +124,22 @@ describe('ImageSection', () => {
     },
     editing: false,
     editor: {},
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     canvasOrigin: 'https://canvas.instructor.com',
   }
 
   const subject = overrides => render(<ImageSection {...{...defaultProps, ...overrides}} />)
 
   beforeEach(() => {
-    scrollIntoView = jest.fn()
+    scrollIntoView = vi.fn()
     window.HTMLElement.prototype.scrollIntoView = scrollIntoView
   })
 
   afterEach(async () => {
     await act(async () => {
-      jest.runOnlyPendingTimers()
+      vi.runOnlyPendingTimers()
     })
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('renders the image mode selector', () => {

@@ -23,7 +23,7 @@ import FakeEditor from '../../../../../__tests__/FakeEditor'
 import bridge from '../../../../../../bridge'
 import LinkOptionsDialogDriver from './LinkOptionsDialogDriver'
 
-jest.mock('../../../../../../bridge')
+vi.mock('../../../../../../bridge')
 
 describe('RCE "Links" Plugin > LinkOptionsDialog > LinkOptionsDialogController', () => {
   let dialogController

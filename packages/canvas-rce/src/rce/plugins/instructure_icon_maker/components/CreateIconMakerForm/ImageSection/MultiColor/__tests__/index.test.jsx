@@ -26,12 +26,12 @@ describe('MultiColor', () => {
   let dispatch, onChange, onLoaded
 
   beforeEach(() => {
-    dispatch = jest.fn()
-    onChange = jest.fn()
-    onLoaded = jest.fn()
+    dispatch = vi.fn()
+    onChange = vi.fn()
+    onLoaded = vi.fn()
   })
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => vi.clearAllMocks())
 
   const subject = () =>
     render(<MultiColor dispatch={dispatch} onChange={onChange} onLoaded={onLoaded} />)

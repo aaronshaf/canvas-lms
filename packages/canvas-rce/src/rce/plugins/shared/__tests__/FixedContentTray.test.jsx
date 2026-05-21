@@ -22,13 +22,13 @@ import {FixedContentTray} from '../FixedContentTray'
 
 describe('RCE Plugins > FixedContentTray', () => {
   const defaults = {
-    renderHeader: jest.fn(),
-    renderBody: jest.fn(),
-    renderFooter: jest.fn(),
+    renderHeader: vi.fn(),
+    renderBody: vi.fn(),
+    renderFooter: vi.fn(),
     title: 'Banana',
     isOpen: true,
-    onDismiss: jest.fn(),
-    onUnmount: jest.fn(),
+    onDismiss: vi.fn(),
+    onUnmount: vi.fn(),
     bodyAs: 'form',
     shouldJoinBodyAndFooter: false,
   }

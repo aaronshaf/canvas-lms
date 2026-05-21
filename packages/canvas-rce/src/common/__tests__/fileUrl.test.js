@@ -152,7 +152,7 @@ describe('Common file url utils', () => {
           href: '/files/17/download?download_frd=1&verifier=u17',
           uuid: 'xyzzy',
         }
-        RCEGlobals.getFeatures = jest.fn().mockReturnValue({file_verifiers_for_quiz_links: true})
+        RCEGlobals.getFeatures = vi.fn().mockReturnValue({file_verifiers_for_quiz_links: true})
       })
 
       afterEach(() => {
@@ -166,7 +166,7 @@ describe('Common file url utils', () => {
       })
 
       it('does not add file verifiers to Canvas file URLs if the origin is not Canvas and the feature flag is off', () => {
-        RCEGlobals.getFeatures = jest.fn().mockReturnValue({file_verifiers_for_quiz_links: false})
+        RCEGlobals.getFeatures = vi.fn().mockReturnValue({file_verifiers_for_quiz_links: false})
         fileInfo.href = 'http://instructure.com/files/17/download?download_frd=1'
         const result = fixupFileUrl('course', 2, fileInfo, 'http://instructure.com')
         expect(result.href).toEqual('http://instructure.com/courses/2/files/17?wrap=1')

@@ -23,7 +23,7 @@ import advancedPreference from '../advancedPreference'
 import {MathfieldElement} from 'mathlive'
 import RCEGlobals from '../../../../RCEGlobals'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const r = String.raw
 
@@ -48,16 +48,16 @@ const renderModal = (overrideProps = {}) => {
 }
 
 let basicEditor = () => document.body.querySelector('math-field')
-basicEditor = jest.fn((value = '') => {
+basicEditor = vi.fn((value = '') => {
   return {
     setValue: newValue => {
       value = newValue
       jest
         .spyOn(EquationEditorModal.prototype, 'getMathFiled')
-        .mockImplementation(jest.fn().mockReturnValue(value))
+        .mockImplementation(vi.fn().mockReturnValue(value))
     },
     getValue: () => value,
-    dispatchEvent: jest.fn(event => {
+    dispatchEvent: vi.fn(event => {
       if (event.type === 'input') {
         const toggle = screen.getByTestId('advanced-toggle')
         fireEvent.click(toggle)
@@ -80,18 +80,22 @@ const editInAdvancedMode = text => {
   return basicEditor(text)
 }
 
-jest.mock('../advancedPreference', () => {
+vi.mock('../advancedPreference', () => {
+  const isSet = vi.fn()
+  const set = vi.fn()
+  const remove = vi.fn()
   return {
-    isSet: jest.fn(),
-    set: jest.fn(),
-    remove: jest.fn(),
+    default: {isSet, set, remove},
+    isSet,
+    set,
+    remove,
   }
 })
-jest.mock('mathlive', () => ({
-  MathfieldElement: jest.fn().mockImplementation(() => {
+vi.mock('mathlive', () => ({
+  MathfieldElement: vi.fn().mockImplementation(() => {
     return {
-      mathfield: jest.fn(),
-      setOptions: jest.fn(),
+      mathfield: vi.fn(),
+      setOptions: vi.fn(),
     }
   }),
 }))
@@ -100,18 +104,18 @@ describe('EquationEditorModal', () => {
   let mockFn, mathml
 
   afterAll(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   beforeEach(() => {
-    mockFn = jest.fn()
+    mockFn = vi.fn()
     mathml = new Mathml()
-    EquationEditorModal.prototype.stubMacros = jest.fn()
-    EquationEditorModal.prototype.setMathField = jest.fn()
+    EquationEditorModal.prototype.stubMacros = vi.fn()
+    EquationEditorModal.prototype.setMathField = vi.fn()
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     delete MathfieldElement.prototype.setOptions
   })
 
@@ -211,13 +215,13 @@ describe('EquationEditorModal', () => {
     })
 
     it('does not have process directive if explicit_latex_typsetting is off', () => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
       renderModal({openAdvanced: true})
       expect(advancedPreview()).not.toHaveClass(MathJaxDirective.Process)
     })
 
     it('contains the process directive if explicit_latex_typesetting is on', () => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: true})
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: true})
       renderModal({openAdvanced: true})
       expect(advancedPreview()).toHaveClass(MathJaxDirective.Process)
     })
@@ -227,8 +231,8 @@ describe('EquationEditorModal', () => {
       const testDebounceRate = 100
 
       beforeAll(() => {
-        jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
-        jest.spyOn(Mathml.prototype, 'processNewMathInElem')
+        vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
+        vi.spyOn(Mathml.prototype, 'processNewMathInElem')
         actualDebounceRate = EquationEditorModal.debounceRate
         EquationEditorModal.debounceRate = testDebounceRate
       })
@@ -254,7 +258,7 @@ describe('EquationEditorModal', () => {
       it('updating formula in advanced mode', async () => {
         renderModal({openAdvanced: true})
         editInAdvancedMode('hello')
-        await act(async () => jest.runAllTimers())
+        await act(async () => vi.runAllTimers())
         await waitFor(() => {
           expect(mathml.processNewMathInElem.mock.calls[0][0]).toMatchInlineSnapshot(`
             <span
@@ -365,14 +369,14 @@ describe('EquationEditorModal', () => {
 
   describe('XSS prevention', () => {
     it('does not parse HTML in formula when rendering advanced preview', async () => {
-      jest.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
-      jest.spyOn(Mathml.prototype, 'processNewMathInElem')
+      vi.spyOn(RCEGlobals, 'getFeatures').mockReturnValue({explicit_latex_typesetting: false})
+      vi.spyOn(Mathml.prototype, 'processNewMathInElem')
       const actualDebounceRate = EquationEditorModal.debounceRate
       EquationEditorModal.debounceRate = 100
 
       renderModal({openAdvanced: true})
       editInAdvancedMode('"><img src=x onerror=alert(origin)>')
-      await act(async () => jest.runAllTimers())
+      await act(async () => vi.runAllTimers())
       await waitFor(() => {
         expect(advancedPreview().querySelector('img')).toBeNull()
       })
@@ -381,7 +385,7 @@ describe('EquationEditorModal', () => {
     })
 
     it('clears math-field value before dismiss on Done', () => {
-      renderModal({onModalDismiss: mockFn, onEquationSubmit: jest.fn()})
+      renderModal({onModalDismiss: mockFn, onEquationSubmit: vi.fn()})
       fireEvent.click(screen.getByText('Done'))
       expect(EquationEditorModal.prototype.setMathField).toHaveBeenCalledWith('')
       expect(mockFn).toHaveBeenCalled()

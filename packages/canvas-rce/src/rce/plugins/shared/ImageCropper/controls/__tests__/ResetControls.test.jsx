@@ -28,7 +28,7 @@ describe('ResetControls', () => {
   })
 
   it('calls function when button is clicked', () => {
-    const callback = jest.fn()
+    const callback = vi.fn()
     const {container} = render(<ResetControls onReset={callback} />)
     const resetButton = container.querySelector('button')
     fireEvent.click(resetButton)

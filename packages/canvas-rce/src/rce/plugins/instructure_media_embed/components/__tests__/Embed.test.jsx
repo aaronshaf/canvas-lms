@@ -22,16 +22,16 @@ import {Embed} from '../Embed'
 
 describe('Embed', () => {
   it('renders with label', () => {
-    const handleEmbedCode = jest.fn()
-    const onDismiss = jest.fn()
+    const handleEmbedCode = vi.fn()
+    const onDismiss = vi.fn()
 
     const {getByText} = render(<Embed onSubmit={handleEmbedCode} onDismiss={onDismiss} />)
     expect(getByText('Embed')).toBeInTheDocument()
   })
 
   it('submit calls handleEmbedCode and passes textarea value', () => {
-    const handleEmbedCode = jest.fn()
-    const onDismiss = jest.fn()
+    const handleEmbedCode = vi.fn()
+    const onDismiss = vi.fn()
 
     const {getByLabelText, getByText} = render(
       <Embed onSubmit={handleEmbedCode} onDismiss={onDismiss} />,
@@ -48,15 +48,15 @@ describe('Embed', () => {
   })
 
   it('is disabled before EmbedPanel has a value', () => {
-    const handleEmbedCode = jest.fn()
-    const onDismiss = jest.fn()
+    const handleEmbedCode = vi.fn()
+    const onDismiss = vi.fn()
     const {getByText} = render(<Embed onSubmit={handleEmbedCode} onDismiss={onDismiss} />)
     expect(getByText('Submit').closest('button')).toHaveAttribute('disabled')
   })
 
   it('is enabled once EmbedPanel has a value', () => {
-    const handleEmbedCode = jest.fn()
-    const onDismiss = jest.fn()
+    const handleEmbedCode = vi.fn()
+    const onDismiss = vi.fn()
     const {getByText, getByLabelText} = render(
       <Embed onSubmit={handleEmbedCode} onDismiss={onDismiss} />,
     )

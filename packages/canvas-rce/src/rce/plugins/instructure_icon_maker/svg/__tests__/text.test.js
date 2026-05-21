@@ -528,13 +528,13 @@ describe('getContainerWidth()', () => {
 
   it('returns text width if is greater', () => {
     const mockCanvas = {
-      getContext: jest.fn(() => ({
-        measureText: jest.fn(text => ({
+      getContext: vi.fn(() => ({
+        measureText: vi.fn(text => ({
           width: text.length * 5,
         })),
       })),
     }
-    jest.spyOn(document, 'createElement').mockReturnValue(mockCanvas)
+    vi.spyOn(document, 'createElement').mockReturnValue(mockCanvas)
     expect(getContainerWidth({...settings, text: 'This is a long text for testing'})).toBe(125)
     document.createElement.mockRestore()
   })

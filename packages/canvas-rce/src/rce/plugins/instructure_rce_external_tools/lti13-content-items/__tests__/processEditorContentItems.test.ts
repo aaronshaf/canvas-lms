@@ -31,8 +31,8 @@ import {ExternalToolsEditor, externalToolsEnvFor} from '../../ExternalToolsEnv'
 import RCEWrapper from '../../../../RCEWrapper'
 import {showFlashAlert} from '../../../../../common/FlashAlert'
 
-jest.mock('../../../../../common/FlashAlert', () => ({
-  showFlashAlert: jest.fn(),
+vi.mock('../../../../../common/FlashAlert', () => ({
+  showFlashAlert: vi.fn(),
 }))
 
 describe('processEditorContentItems', () => {
@@ -93,7 +93,7 @@ describe('processEditorContentItems', () => {
   const rceWrapper = createDeepMockProxy<RCEWrapper>()
 
   beforeAll(() => {
-    jest.spyOn(RCEWrapper, 'getByEditor').mockImplementation(e => {
+    vi.spyOn(RCEWrapper, 'getByEditor').mockImplementation(e => {
       if (e === editor) return rceWrapper
       else {
         throw new Error('Wrong editor requested')
@@ -107,13 +107,13 @@ describe('processEditorContentItems', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('static', () => {
     it('handles an event with all valid content items by closing the dialog', async () => {
       const ev = {data: {content_items: validContentItems, subject: 'LtiDeepLinkingResponse'}}
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
       await processEditorContentItems(ev, externalToolsEnvFor(editor), dialog)
       expect(dialog.close).toHaveBeenCalled()
       expect(showFlashAlert).not.toHaveBeenCalled()
@@ -121,7 +121,7 @@ describe('processEditorContentItems', () => {
 
     it('ignores messages without content_items', async () => {
       const ev = {data: {subject: 'OtherMessage'}}
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
 
       await processEditorContentItems(
         // Bypass type checking to ensure it can handle bad data from javascript
@@ -134,7 +134,7 @@ describe('processEditorContentItems', () => {
 
     it('shows a message with showFlashAlert() if msg is present', async () => {
       const ev = {data: {content_items: validContentItems, msg: 'test message'}}
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
 
       await processEditorContentItems(ev, externalToolsEnvFor(editor), dialog)
       expect(showFlashAlert).toHaveBeenCalledTimes(1)
@@ -145,7 +145,7 @@ describe('processEditorContentItems', () => {
 
     it('shows an error message with showFlashAlert() if errormsg is present', async () => {
       const ev = {data: {content_items: validContentItems, errormsg: 'test error message'}}
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
 
       await processEditorContentItems(ev, externalToolsEnvFor(editor), dialog)
       expect(showFlashAlert).toHaveBeenCalledTimes(1)
@@ -156,7 +156,7 @@ describe('processEditorContentItems', () => {
     })
 
     it('handles an event with all unsupported items, showing a warning once and closing the dialog', async () => {
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
 
       await processEditorContentItems(
         // Bypass type checking to ensure it can handle bad data from javascript
@@ -183,7 +183,7 @@ describe('processEditorContentItems', () => {
     })
 
     it('handles an event with some unsupported items, showing a warning once and closing the dialog', async () => {
-      const dialog = {close: jest.fn()}
+      const dialog = {close: vi.fn()}
 
       await processEditorContentItems(
         // Bypass type checking to ensure it can handle bad data from javascript

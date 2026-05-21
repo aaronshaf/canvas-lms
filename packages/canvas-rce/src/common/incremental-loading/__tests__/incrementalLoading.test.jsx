@@ -37,8 +37,8 @@ describe('RCE > Common > Incremental Loading', () => {
     loaderOptions = {
       hasMore: null,
       isLoading: false,
-      onLoadInitial: jest.fn(),
-      onLoadMore: jest.fn(),
+      onLoadInitial: vi.fn(),
+      onLoadMore: vi.fn(),
       records: [],
       contextType: 'course',
       sortBy: {

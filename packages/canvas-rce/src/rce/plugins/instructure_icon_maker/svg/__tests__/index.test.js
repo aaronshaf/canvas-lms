@@ -22,7 +22,7 @@ import {DEFAULT_SETTINGS} from '../constants'
 import base64EncodedFont from '../font'
 
 // The real font is massive so lets avoid it in snapshots
-jest.mock('../../svg/font')
+vi.mock('../../svg/font')
 base64EncodedFont.mockReturnValue('data:;base64,')
 
 let settings, options
