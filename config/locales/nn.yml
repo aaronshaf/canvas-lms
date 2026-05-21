@@ -1845,7 +1845,7 @@ nn:
       pending_batches_title: "Ventande batchar"
       process_data_button: "Behandle data"
       select_file_instructions: |-
-          Vel ZIP-fila du har importert.  
+          Vel ZIP-fila du har importert.
           For ei skildring av korleis du skal generere desse ZIP-filene, [sjå denne dokumentasjonen](%{url}).
       sis_import_crumb: SIS-import
       started_at_message: "Starta: %{started_at}"
@@ -4443,7 +4443,7 @@ nn:
     processing_submission: "Canvas handsamar innleveringa di. Du kan forlate denne sida. Vi sender deg ein e-post hvis handsaminga feilar. "
     redirect_page: 
       redirect_message: |-
-          Denne innleveringa er ei URL-adresse. Du går vidare til URL-lenka no.  
+          Denne innleveringa er ei URL-adresse. Du går vidare til URL-lenka no.
           [Klikk her for å gå til innleveringa](%{url})
     remove_never_drop_rule: "Fjern regelen om å ikkje fjerne"
     remove_unsaved_never_drop_rule: "Fjern den ulagra regelen om å ikkje fjerne"
