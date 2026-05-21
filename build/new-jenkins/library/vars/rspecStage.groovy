@@ -76,6 +76,14 @@ def tearDownNode() {
 
   archiveArtifacts allowEmptyArchive: true, artifacts: "$destDir/**/*"
 
+  // maxAttemptByTest tracks the highest failed attempt index per test.
+  // "Initial" maps to attempt 1; "Rerun_N" maps to attempt N+1.
+  // Used after the loop to compute number_of_attempts for the retry data event.
+  def maxAttemptByTest = [:]
+  // testNameBySpec stores the human-readable test description extracted from
+  // the first <h1> tag in each spec_failures index.html (e.g. "MyClass#method desc").
+  def testNameBySpec = [:]
+
   findFiles(glob: "$destDir/spec_failures/**/index.html").each { file ->
     // tmp/node_18/spec_failures/Initial/spec/selenium/force_failure_spec.rb:20/TestFailure::ErrorClass/index
     // split on the 5th to give us the rerun category (Initial, Rerun_1, Rerun_2...)
@@ -95,6 +103,59 @@ def tearDownNode() {
     } else {
       buildSummaryReport.setFailureCategoryUnlessExists(specTitle, buildSummaryReport.FAILURE_TYPE_TEST_PASSED_ON_RETRY)
     }
+
+    // Track highest failed attempt index so we can compute number_of_attempts below
+    def attemptIndex = pathCategory == 'Initial' ? 1 : pathCategory.replace('Rerun_', '').toInteger() + 1
+    if (!maxAttemptByTest.containsKey(specTitle) || attemptIndex > maxAttemptByTest[specTitle]) {
+      maxAttemptByTest[specTitle] = attemptIndex
+    }
+
+    // Extract the human-readable test name from the first <h1> in the failure
+    // report. Each spec_failures/index.html has the full RSpec description chain
+    // as its only <h1>; section headers use <h2>, so the first match is unambiguous.
+    // Only record it once per specTitle (any attempt's index.html will do).
+    if (!testNameBySpec.containsKey(specTitle)) {
+      def htmlContent = readFile(file.path)
+      def h1Match = (htmlContent =~ /<h1>(.*?)<\/h1>/)
+      testNameBySpec[specTitle] = h1Match ? h1Match[0][1]
+          .replace('&lt;',  '<')
+          .replace('&gt;',  '>')
+          .replace('&amp;', '&')
+          .replace('&quot;', '"') : ''
+    }
+  }
+
+  // Emit retry data to Observe for any test that had at least one failure.
+  // status=FAILURE means the test never passed (used all retry slots).
+  // status=PASSED means the test eventually passed after one or more retries.
+  // number_of_attempts counts every execution including the final pass/fail.
+  // Clean passes (number_of_attempts=1) are not emitted here; derive them from
+  // build_report in Observe using: total_build_report_runs - flaky_runs - hard_fail_runs.
+  if (!maxAttemptByTest.isEmpty()) {
+    def maxReruns = env.RERUNS_RETRY.toInteger()
+    def testResults = maxAttemptByTest.collect { specTitle, maxAttemptIndex ->
+      def isNeverPassed = (maxAttemptIndex == maxReruns + 1)
+      // classname matches build_report.event.testsuite.testcase.classname and allows
+      // joining the two datasets in Observe on (build_number, classname).
+      // specTitle can be in two forms:
+      //   file:line   e.g. spec/foo_spec.rb:42        (line-number reference)
+      //   file[...]   e.g. spec/foo_spec.rb[1:2:3]    (shared-example reference)
+      // The first replaceAll strips the suffix with a non-capturing alternation:
+      //   :\\d+  — colon followed by digits (line number)
+      //   \\[.*  — opening bracket and everything after it (shared-example index)
+      // Using \\[.* rather than \\[.*\\] means no closing bracket is required,
+      // so the pattern is safe even if the path is truncated or malformed.
+      def classname = specTitle.replaceAll('(?::\\d+|\\[.*)$', '').replaceAll('/', '.').replaceAll('\\.rb$', '')
+      [
+        spec_location      : specTitle,
+        classname          : classname,
+        test_name          : testNameBySpec[specTitle] ?: '',
+        status             : isNeverPassed ? 'FAILURE' : 'PASSED',
+        number_of_attempts : isNeverPassed ? maxAttemptIndex : maxAttemptIndex + 1
+      ]
+    }
+
+    reportBuildLog('rspecq_retry_data', [test_results: testResults], 'observe-test-tracking-token')
   }
 
   // Find and process skipped tests
