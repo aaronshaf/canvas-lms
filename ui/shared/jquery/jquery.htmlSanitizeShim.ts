@@ -103,9 +103,8 @@ const IN_PLACE_CONFIG = {
   IN_PLACE: true,
 } as const
 
-const isTrustedHTML = (value: unknown): boolean => {
-  if (typeof window === 'undefined') return false
-  const tt = (window as unknown as {trustedTypes?: {isHTML?: (v: unknown) => boolean}}).trustedTypes
+const isTrustedHTML = (value: unknown): value is TrustedHTML => {
+  const tt = (window as Window & {trustedTypes?: {isHTML?: (v: unknown) => boolean}}).trustedTypes
   return Boolean(tt?.isHTML?.(value))
 }
 
