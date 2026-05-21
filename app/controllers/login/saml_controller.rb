@@ -175,7 +175,6 @@ class Login::SamlController < ApplicationController
       session[:name_qualifier] = subject_name_id&.name_qualifier
       session[:sp_name_qualifier] = subject_name_id&.sp_name_qualifier
       session[:session_index] = assertion.authn_statements.first&.session_index
-      session[:login_aac] = aac.id
 
       Login::Shared.set_return_to_from_provider(request, session, pseudonym, @domain_root_account, relay_state)
       pseudonym.infer_auth_provider(aac)

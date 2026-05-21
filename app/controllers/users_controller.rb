@@ -88,6 +88,7 @@ class UsersController < ApplicationController
   include Api::V1::Submission
   include ObserverEnrollmentsHelper
   include HorizonMode
+  include Login::Shared
 
   skip_before_action :require_user, only: %i[avatar_image
                                              create
@@ -3419,6 +3420,7 @@ class UsersController < ApplicationController
 
     save_user = @recaptcha_errors.nil? && @user.valid? && @pseudonym.valid? && (@invalid_observee_creds.nil? & @invalid_observee_code.nil?)
 
+    new_user_redirect = nil
     message_sent = User.transaction do
       if save_user
         # saving the user takes care of the @pseudonym and @cc, so we can't call
@@ -3428,14 +3430,18 @@ class UsersController < ApplicationController
         # back in once his session expires)
         if @current_user
           @pseudonym.send(:skip_session_maintenance=, true)
-        else # automagically logged in
-          PseudonymSession.new(@pseudonym).save unless @pseudonym.new_record?
         end
 
         @user.save!
         # Explicitly save communication channel if it exists (especially when reactivating a retired CC)
         # @user.save! only auto-saves new associated records, not existing ones that were found and modified
         @cc.save! if @cc&.changed?
+
+        unless @current_user # automagically logged in after the user is saved
+          @pseudonym.infer_auth_provider(@context.canvas_authentication_provider) if password_provided && @context.canvas_authentication?
+          PseudonymSession.new(@pseudonym).save unless @pseudonym.new_record?
+          new_user_redirect = successful_login(@user, @pseudonym, return_redirect: true)
+        end
 
         if @observee && !@user.as_observer_observation_links.where(user_id: @observee, root_account: @context).exists?
           UserObservationLink.create_or_restore(student: @observee, observer: @user, root_account: @context)
@@ -3478,10 +3484,7 @@ class UsersController < ApplicationController
         # ignore
       end
 
-      if !data.key?("destination") && (oauth = session[:oauth2])
-        provider = Canvas::OAuth::Provider.new(oauth[:client_id], oauth[:redirect_uri], oauth[:scopes], oauth[:purpose])
-        data["destination"] = Canvas::OAuth::Provider.confirmation_redirect(self, provider, @user).to_s
-      end
+      data["destination"] ||= new_user_redirect if new_user_redirect
 
       render(json: data)
     else

@@ -99,7 +99,6 @@ class Login::OAuthBaseController < ApplicationController
       @domain_root_account.pseudonyms.scoping do
         PseudonymSession.create!(pseudonym, false)
       end
-      session[:login_aac] = @aac.global_id
       @aac.try(:persist_to_session, request, session, pseudonym, @domain_root_account, token) if token
 
       successful_login(user, pseudonym, otp_passed: @aac.try(:mfa_passed?, token))

@@ -108,7 +108,6 @@ class Login::CanvasController < ApplicationController
         pseudonym.infer_auth_provider(aac)
         @pseudonym_session = PseudonymSession.new(pseudonym, params[:pseudonym_session][:remember_me] == "1")
         @pseudonym_session.save
-        session[:login_aac] = aac.id
       end
     end
 
@@ -154,12 +153,6 @@ class Login::CanvasController < ApplicationController
 
     # If the user is registered and logged in, redirect them to their dashboard page
     if found && (user = pseudonym.login_assertions_for_user)
-      # Call for some cleanups that should be run when a user logs in
-
-      ap = pseudonym.authentication_provider
-
-      session[:login_aac] ||= ap.id
-      session[:login_aac_is_canvas] = true if ap&.auth_type == "canvas"
       successful_login(user, pseudonym)
     else
       link_url = @domain_root_account.login_help_url.presence ||

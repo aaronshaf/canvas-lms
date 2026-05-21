@@ -78,12 +78,16 @@ module Login::Shared
 
   def finalize_login(_user, _pseudonym); end
 
-  def successful_login(user, pseudonym, otp_passed: false)
+  def successful_login(user, pseudonym, otp_passed: false, return_redirect: false)
+    auth_provider = pseudonym&.authentication_provider
+
+    session[:login_aac] = auth_provider&.id
+    session[:login_aac_is_canvas] = true if auth_provider&.auth_type == "canvas"
+
     reset_authenticity_token!
     Auditors::Authentication.record(pseudonym, "login")
 
-    auth_provider = pseudonym&.authentication_provider
-    increment_statsd(:success, authentication_provider: pseudonym&.authentication_provider)
+    increment_statsd(:success, authentication_provider: auth_provider)
 
     # Since the user just logged in, we'll reset the context to include their info.
     setup_live_events_context
@@ -97,6 +101,8 @@ module Login::Shared
     # TODO: check if this can safely be made just pseudonym instead of @current_pseudonym
     unless otp_passed || !canvas_mfa_required?(user, pseudonym: @current_pseudonym)
       session[:pending_otp] = true
+      return otp_login_url if return_redirect
+
       respond_to do |format|
         format.html { redirect_to otp_login_url }
         format.json { render json: { otp_required: true }, status: :ok }
@@ -129,32 +135,31 @@ module Login::Shared
 
     finalize_login(user, pseudonym)
 
+    if (oauth = session[:oauth2])
+      # redirect to external OAuth provider
+      provider = Canvas::OAuth::Provider.new(oauth[:client_id], oauth[:redirect_uri], oauth[:scopes], oauth[:purpose])
+      redirect_target = Canvas::OAuth::Provider.confirmation_redirect(self, provider, user)
+    elsif session[:course_uuid] && user && (course = Course.where(uuid: session[:course_uuid], workflow_state: "created").first)
+      # redirect to course if session includes valid course UUID
+      claim_session_course(course, user)
+      redirect_target = course_url(course, login_success: "1")
+    elsif session[:confirm]
+      # redirect to registration confirmation
+      redirect_target = registration_confirmation_path(session.delete(:confirm),
+                                                       enrollment: session.delete(:enrollment),
+                                                       login_success: 1,
+                                                       confirm: ((user.id == session.delete(:expected_user_id)) ? 1 : nil))
+    else
+      # the URL to redirect back to is stored in the session, so it's
+      # assumed that if that URL is found rather than using the default,
+      # they must have cookies enabled and we don't need to worry about
+      # adding the :login_success param to it.
+      redirect_target = delegated_auth_redirect_uri(redirect_back_or_default(return_redirect ? nil : dashboard_url(login_success: "1")))
+    end
+
+    return redirect_target if return_redirect
+
     respond_to do |format|
-      if (oauth = session[:oauth2])
-        # redirect to external OAuth provider
-        provider = Canvas::OAuth::Provider.new(oauth[:client_id], oauth[:redirect_uri], oauth[:scopes], oauth[:purpose])
-        redirect_target = Canvas::OAuth::Provider.confirmation_redirect(self, provider, user)
-
-      elsif session[:course_uuid] && user && (course = Course.where(uuid: session[:course_uuid], workflow_state: "created").first)
-        # redirect to course if session includes valid course UUID
-        claim_session_course(course, user)
-        redirect_target = course_url(course, login_success: "1")
-
-      elsif session[:confirm]
-        # redirect to registration confirmation
-        redirect_target = registration_confirmation_path(session.delete(:confirm),
-                                                         enrollment: session.delete(:enrollment),
-                                                         login_success: 1,
-                                                         confirm: ((user.id == session.delete(:expected_user_id)) ? 1 : nil))
-
-      else
-        # the URL to redirect back to is stored in the session, so it's
-        # assumed that if that URL is found rather than using the default,
-        # they must have cookies enabled and we don't need to worry about
-        # adding the :login_success param to it.
-        redirect_target = delegated_auth_redirect_uri(redirect_back_or_default(dashboard_url(login_success: "1")))
-      end
-
       format.html { redirect_to redirect_target }
       format.json { render json: pseudonym.as_json(methods: :user_code).merge(location: redirect_target), status: :ok }
     end
@@ -252,7 +257,7 @@ module Login::Shared
     action ||= params[:action]
     authentication_provider ||= @aac
     target_provider = try(:target_auth_provider)
-    auth_type = authentication_provider&.auth_type || self.auth_type
+    auth_type = authentication_provider&.auth_type || (respond_to?(:auth_type, true) ? self.auth_type : nil)
 
     tags ||= {}
     tags = tags.reverse_merge({ auth_type:, domain: request.host })

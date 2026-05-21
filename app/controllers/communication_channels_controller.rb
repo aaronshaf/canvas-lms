@@ -90,6 +90,7 @@ class CommunicationChannelsController < ApplicationController
   skip_before_action :require_user, only: :confirm
   before_action :reject_student_view_student
 
+  include Login::Shared
   include Api::V1::CommunicationChannel
 
   # @API List user communication channels
@@ -450,11 +451,14 @@ class CommunicationChannelsController < ApplicationController
               @enrollment&.accept
               reset_session_saving_keys(:return_to)
               @user.register
-
+              @pseudonym.infer_auth_provider(@root_account.canvas_authentication_provider) if params.dig(:pseudonym, :password) && @root_account.canvas_authentication?
               # Login, since we're satisfied that this person is the right person.
               @pseudonym_session = PseudonymSession.new(@pseudonym, true)
               @pseudonym_session.save
               add_additional_email_if_allowed
+              persist_confirmation_redirect
+              successful_login(@user, @pseudonym)
+              return
             else
               failed = true
             end
@@ -515,6 +519,17 @@ class CommunicationChannelsController < ApplicationController
     @cc.reset_bounce_count!
 
     render json: communication_channel_json(@cc, current_principal, session)
+  end
+
+  def persist_confirmation_redirect
+    @current_user ||= @user # since dashboard_url may need it
+    default_url = confirmation_redirect_url(@communication_channel) || dashboard_url
+    if @enrollment
+      session[:return_to] = course_url(@course)
+    else
+      session[:return_to] ||= default_url
+    end
+    flash[:notice] = t "notices.registration_confirmed", "Registration confirmed!" # rubocop:disable Rails/ActionControllerFlashBeforeRender
   end
 
   def redirect_with_success_flash

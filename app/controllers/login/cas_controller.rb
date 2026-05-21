@@ -144,7 +144,6 @@ class Login::CasController < ApplicationController
         PseudonymSession.create!(pseudonym, false)
       end
       session[:cas_session] = params[:ticket]
-      session[:login_aac] = aac.id
 
       pseudonym.infer_auth_provider(aac)
       successful_login(user, pseudonym)
