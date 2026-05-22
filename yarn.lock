@@ -3242,12 +3242,12 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.11.tgz#01d9d6e6cfe419fce1f52b16fe12300eff0abd62"
   integrity sha512-JfSDeC+e8m98Eyc4EcWsBJpdPotpGtw7tRLKsufT4DJbam4ld8QTWklf4u4StAqgOggsaPxHbFAjLSZkuVDmpg==
 
-"@instructure/platform-study-assist@0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-study-assist/-/platform-study-assist-0.12.1.tgz#ad58842d5eee34ba1c92cad92feb48025e25a3c0"
-  integrity sha512-NGoL9c73t5t5qCZhMBvoekyesgDES2wtIII57joDEJpScw+rz9Q/0eIbXT2rdPGPVJavwY5ZDAsAh6K1pPH4aw==
+"@instructure/platform-study-assist@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-study-assist/-/platform-study-assist-2.2.1.tgz#664c537b6773c3305b254d850adac19988f34462"
+  integrity sha512-giTCM8VdWorRcH0w25iA09V4nYrnDkFcDZ5Qzr1/7Rbjdm1A5E1CY5FxZZhEzPOO5W9FNPo0Q/fy9O9iXuQLyw==
   dependencies:
-    uuid "^9.0.0"
+    uuid "^11.1.1"
 
 "@instructure/platform-widget-dashboard@6.0.0":
   version "6.0.0"
@@ -17287,12 +17287,8 @@ punycode.js@^2.3.1:
   resolved "https://registry.yarnpkg.com/punycode.js/-/punycode.js-2.3.1.tgz#6b53e56ad75588234e79f4affa90972c7dd8cdb7"
   integrity sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==
 
-punycode2@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/punycode2/-/punycode2-1.0.1.tgz#7190290a2f672a97c18bda38ad9f402787b4eded"
-  integrity sha512-+TXpd9YRW4YUZZPoRHJ3DILtWwootGc2DsgvfHmklQ8It1skINAuqSdqizt5nlTaBmwrYACHkHApCXjc9gHk2Q==
-
-punycode@1.4.1, punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1, "punycode@npm:punycode2@1.0.1":
+punycode2@1.0.1, punycode@1.4.1, punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1, "punycode@npm:punycode2@1.0.1":
+  name punycode
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/punycode2/-/punycode2-1.0.1.tgz#7190290a2f672a97c18bda38ad9f402787b4eded"
   integrity sha512-+TXpd9YRW4YUZZPoRHJ3DILtWwootGc2DsgvfHmklQ8It1skINAuqSdqizt5nlTaBmwrYACHkHApCXjc9gHk2Q==
@@ -20843,11 +20839,6 @@ uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuid@^9.0.0:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
-  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

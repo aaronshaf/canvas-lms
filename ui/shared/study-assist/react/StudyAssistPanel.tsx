@@ -69,6 +69,7 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
                 screenReaderLabel={t('Back')}
                 onClick={resetChat}
                 data-testid="study-assist-back-button"
+                data-pendo="study-assist-back"
               >
                 <IconArrowStartLine />
               </IconButton>
@@ -117,6 +118,7 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
                   withBorder={false}
                   screenReaderLabel={t('AI information')}
                   data-testid="study-assist-ai-info-button"
+                  data-pendo="study-assist-info"
                 >
                   <IconInfoLine />
                 </IconButton>
@@ -133,6 +135,7 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
               color="primary-inverse"
               screenReaderLabel={t('Close')}
               data-testid="study-assist-close-button"
+              data-pendo="study-assist-close"
             />
           </Flex.Item>
         </Flex>
@@ -200,7 +203,6 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
         {allowedPrompts.length > 0 ? (
           <div style={{padding: '0 1rem'}}>
             <AssistContent
-              chatEnabled={false}
               showLargePrompts={true}
               onAnalyticsEvent={handleAnalyticsEvent}
               allowedPrompts={allowedPrompts}

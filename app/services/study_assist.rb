@@ -129,7 +129,7 @@ module StudyAssist
       chips = TOOLS.each_with_object([]) do |(tool_key, cfg), memo|
         next unless @course.feature_enabled?(cfg[:feature_flag])
 
-        memo << { chip: chip_display_for(tool_key), prompt: cfg[:chip_label] }
+        memo << { chip: chip_display_for(tool_key), prompt: cfg[:chip_label], kind: tool_key.to_s }
       end
       { chips: }
     end

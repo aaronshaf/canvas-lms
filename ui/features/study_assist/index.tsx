@@ -38,6 +38,7 @@ function StudyAssistTrigger() {
       shape="circle"
       color="ai-primary"
       onClick={dispatchOpen}
+      data-pendo="study-assist-trigger"
     >
       <IconAiSolid />
     </IconButton>

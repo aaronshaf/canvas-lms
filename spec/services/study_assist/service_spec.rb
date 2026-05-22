@@ -106,6 +106,11 @@ describe StudyAssist::Service do
       expect(result[:chips].pluck(:chip)).to eq(["Summarize", "Quiz me", "Flashcards"])
     end
 
+    it "includes the tool kind on each chip" do
+      result = call_service(prompt: "", state: {})
+      expect(result[:chips].pluck(:kind)).to eq(%w[summarize quiz flashcards])
+    end
+
     it "omits a chip when its per-tool flag is disabled" do
       @course.disable_feature!(:study_assist_quiz_me)
       result = call_service(prompt: "", state: {})
@@ -129,9 +134,9 @@ describe StudyAssist::Service do
       result = call_service(prompt: "", state: {})
 
       expect(result[:chips]).to eq([
-                                     { chip: "Resumir", prompt: "Summarize" },
-                                     { chip: "Examinarme", prompt: "Quiz me" },
-                                     { chip: "Tarjetas", prompt: "Flashcards" }
+                                     { chip: "Resumir", prompt: "Summarize", kind: "summarize" },
+                                     { chip: "Examinarme", prompt: "Quiz me", kind: "quiz" },
+                                     { chip: "Tarjetas", prompt: "Flashcards", kind: "flashcards" }
                                    ])
     end
   end

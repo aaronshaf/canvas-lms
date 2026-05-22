@@ -158,7 +158,6 @@ describe('StudyAssistPanel', () => {
     )
     expect(mockAssistContent).toHaveBeenCalledWith(
       expect.objectContaining({
-        chatEnabled: false,
         showLargePrompts: true,
         allowedPrompts: ['Summarize', 'Quiz me', 'Flashcards'],
       }),
