@@ -118,4 +118,3 @@
   <%= render partial: "display_question", object: question, locals: {in_group: true, editing: true, asset_string: "quiz_question_#{question['id']}", group_id: group["id"]} %>
 <% end %>
 <%= tag.div(nbsp, class: "group_bottom", style: (hidden unless group), id: ("group_bottom_template" unless group)) %>
-e
