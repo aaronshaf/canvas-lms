@@ -33,7 +33,7 @@ Three artifacts, one canonical source of truth:
 
 - **`_shared/request-test-rules.md`** holds every composition rule, its reasoning, and the severity/letter-grade rubric. Nothing else *describes* the rules — every consumer `@include`s this file.
 - **`agents/request-test-grader.md`** is a workflow definition only: parse input, resolve route, read controller, apply rules from the shared file, emit a structured report. It explicitly does not restate any rule content.
-- **`skills/request-test-grader/SKILL.md`** is a thin user-facing entry point. It parses input (path:line or path + description matcher), spawns the agent, relays the report.
+- **`skills/request-test-grader/SKILL.md`** is the user-facing entry point. It parses input, resolves description-style targets down to a concrete `path:line` (via `Grep` + an `AskUserQuestion` disambiguation loop when multiple `it` blocks match), spawns the agent, and relays the report. Description resolution lives in the skill, not the agent — see *Decision: where target resolution lives*, below.
 
 The writer skill's former Self-review step becomes "invoke the grader agent and act on its verdict."
 
@@ -66,6 +66,19 @@ Two compounding effects, both available only to the agent design:
 - **Prompt caching.** The agent's system prompt + shared rules file (~7–8k tokens) cache for ~5 minutes. Repeated grades within a session hit warm cache; subsequent invocations effectively skip the overhead. Skill-in-main cannot cache because the surrounding main context shifts on every grade, invalidating prefix matches.
 - **Parallelism.** N agents can grade concurrently. N skill calls are serial. Wall-clock matters when auditing a directory.
 
+## Decision: where target resolution lives
+
+The agent's input contract is `path:line` only. Description-style targets ("grade the `it` that says X") are resolved in the calling skill before invocation.
+
+An earlier iteration accepted both forms at the agent boundary, with the agent emitting an `ambiguity` mode report when a description matched multiple `it` blocks (Canvas specs frequently repeat `it "..."` descriptions across `describe`/`context` blocks). The skill then parsed that report and used `AskUserQuestion` to disambiguate. We moved resolution into the skill for two reasons:
+
+1. **`AskUserQuestion` is a skill-side tool.** Threading user-facing interactivity through a structured agent-report contract required the agent to emit a machine-parseable Candidates table — markdown tables embedded in a trailer, escape rules for pipe characters in `describe` descriptions, plus a prose-vs-trailer consistency rule. None of that is needed if the skill simply greps the file itself and constructs `AskUserQuestion` options from the matches.
+2. **Cheaper rejection paths.** Not-found and ambiguity are both detectable with one `Grep`. Spawning an agent just to learn "your description doesn't match anything" was wasted overhead.
+
+Shape-check refusal stayed in the agent: deciding whether an `it` body contains an HTTP call requires reading the body, which the agent does anyway as part of grading. It's a defensive backstop against caller misuse, not a routing concern.
+
+The narrowed agent contract has exactly two output modes (shape-check refusal, standard grading), distinguished by `refusal=true` vs `blockers=N` in the trailer.
+
 ## Costs we accepted
 
 The agent design is *not* free. Honest accounting:
@@ -84,7 +97,7 @@ Future maintainers: these are not stylistic preferences. Violating any of them c
 1. **Rule content lives only in `_shared/request-test-rules.md`.** The agent file does not restate rules. The writer SKILL.md does not restate rules. The grader SKILL.md does not restate rules. All three `@include` the shared file. The instant a second copy of any rule appears, drift begins.
 2. **The agent grades one `it` per invocation.** Batch grading (file, directory) is implemented by spawning N agents *outside* the agent, not by teaching one agent to loop. Looping inside the agent defeats the context-isolation win.
 3. **The agent is read-only and hermetic.** Tools: Read, Grep, Glob — no shell, no Edit, no Write. No Docker/Rails dependency, no non-determinism from external processes. The verdict is a report. Any "apply the fix" workflow lives elsewhere.
-4. **The grader skill is thin.** It parses input, spawns the agent, relays output. It does not duplicate the agent's grading logic. If the skill grows substantive logic, that's a smell — it probably belongs in the agent.
+4. **The grader skill is thin *with respect to grading*.** It owns input parsing and target resolution (description → `path:line`, via `Grep` + `AskUserQuestion`) — that work is intentionally skill-side because it's interactive and uses tools the agent doesn't have. It does *not* duplicate the agent's grading logic: rule application, route resolution, controller reading, severity classification, and report emission all live in the agent. If the skill starts reading controllers, applying rules, or rendering verdicts, that's a smell — that work belongs in the agent.
 
 ## When to revisit
 

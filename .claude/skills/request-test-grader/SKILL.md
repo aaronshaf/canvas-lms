@@ -29,30 +29,47 @@ This skill is a thin entry point. The actual grading is performed by the `reques
 
 Run the steps in order. Do not narrate transitions — just emit the specified outputs.
 
-### 1. Resolve the target
+The agent only accepts `path:line`. This skill is responsible for collapsing any description-based input down to a single line number before invocation. Ambiguity and "no match" are handled here, not by the agent.
+
+### 1. Parse the input
 
 If the user invoked the skill with a target argument, parse it. Accept both forms:
 
-- **`path:line`** — `spec/requests/courses_api_spec.rb:42`.
-- **`path` + quoted description** — `spec/requests/courses_api_spec.rb "returns the requesting teacher's TeacherEnrollment"`. The quoted string may also be prefixed with `#` (e.g., `path#description`).
+- **`path:line`** — `spec/requests/courses_api_spec.rb:42`. Skip directly to step 3.
+- **`path` + quoted description** — `spec/requests/courses_api_spec.rb "returns the requesting teacher's TeacherEnrollment"`. The quoted string may also be prefixed with `#` (e.g., `path#description`). Continue to step 2.
 
 If no argument was provided, use `AskUserQuestion` to collect it. Ask in this order, one question at a time:
 
 1. "What spec file?" — collect the path.
 2. "Identify the `it` block by line number or by its description?" — two-option select.
-3. Either "Which line?" (free-form integer) or "Which description?" (free-form text matching an `it "..."` in the file).
+3. Either "Which line?" (free-form integer) or "Which description?" (free-form text).
 
-Do **not** perform deeper validation in this skill (file existence, line points at an `it`, description matches exactly one). The agent does that and reports ambiguity / not-found as a structured result. Pre-validating here would duplicate the agent's logic.
+If the user answered with a line number, skip to step 3 with that `path:line`. If with a description, continue to step 2.
 
-### 2. Spawn the grader agent
+### 2. Resolve description to `path:line`
+
+Use `Grep` to find lines in the spec file matching `it "<description>"` (substring match against the `it "..."` string is fine — exact-string matching is too strict for human input). Three cases:
+
+- **Zero matches.** Print: ``No `it` block in `<path>` matched `<description>`. Try a different description, or pass `<path>:<line>` directly.`` Then stop. Do not invoke the agent.
+- **Exactly one match.** Take that line number as the resolved target and continue to step 3.
+- **Multiple matches** (common — the same `it "..."` description legitimately recurs under different `describe`/`context` blocks).
+   1. `Read` the spec file. For each matching `it` line, walk *backward* through the file, tracking unclosed `do`/`end` pairs, and collect each enclosing `describe "..."` / `context "..."` description string until you reach the top of the file. The chain is outermost → innermost, joined by ` > ` (space-greater-space). If an enclosing block has no description string (e.g., `context do ... end`), use `<unnamed>` for that link.
+   2. Build `AskUserQuestion` options — one per candidate, in source order (lowest line number first):
+      - `label`: the innermost `describe`/`context` description, truncated to ~5 words. This is what the user sees at a glance.
+      - `description`: the full context chain (outermost → innermost, joined by ` > `) followed by ` — <path>:<line>`. Long lines here are fine — `description` is the disambiguating context.
+      Keep an internal mapping from each option to its line number; the user's selection only carries back the label/description, so the skill needs to know which line each option pointed to.
+   3. `AskUserQuestion` allows at most 4 options. If there are more than 4 candidates, show the first 3 in source order and a fourth option with label `Other` and a description telling the user to re-invoke with a `path:line` target. If the user chooses `Other`, stop and wait for re-invocation; do not try to grade anything.
+   4. Take the line number for the selected option from the internal mapping. That is the resolved target. Continue to step 3.
+
+### 3. Spawn the grader agent
 
 Invoke the `request-test-grader` subagent via the Agent tool. The `subagent_type` is `request-test-grader`. The `prompt` is just the resolved target, e.g. `Target: spec/requests/courses_api_spec.rb:42`. The agent owns its own input contract, workflow, and output schema — do not restate them in the prompt. If you find yourself tempted to add instructions, edit the agent file instead.
 
-The `description` field of the Agent invocation should be a short tag like `Grade <basename>:<line>` or `Grade <basename> "<short desc>"` — enough for the call to be identifiable in the user's transcript.
+The `description` field of the Agent invocation should be a short tag like `Grade <basename>:<line>` — enough for the call to be identifiable in the user's transcript.
 
 Spawn the agent in the foreground. The user is waiting on the report; backgrounding would only make sense if you were doing additional work in parallel, which you are not.
 
-### 3. Relay the report
+### 4. Relay the report
 
 Print the agent's report verbatim. Do not:
 
@@ -60,8 +77,6 @@ Print the agent's report verbatim. Do not:
 - Add a preamble ("Here's the grade for your test:").
 - Add a summary or interpretation after it.
 - Convert any of its structure to markdown headers, tables, or code blocks beyond what the agent already emitted.
-
-If the agent's report indicates ambiguity (e.g., "multiple `it` blocks match the description"), reprint the report and use `AskUserQuestion` to collect a more specific identifier, then re-invoke the agent. Do not try to guess which match the user meant.
 
 ## Boundaries
 

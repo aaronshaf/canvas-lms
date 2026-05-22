@@ -2,44 +2,35 @@
 
 Canonical output contract for the `request-test-grader` agent. `@include`d into the agent's prompt; nothing else describes the output format. Edits here are authoritative.
 
-## Two output modes
+## Output modes
 
-The grader emits one of two reports per invocation. The choice is determined by the agent's Input resolution step 2 (shape check). The two modes do not mix — emit exactly one report, in full, and stop.
+The grader emits one of two reports per invocation. The choice is determined by the agent's Input resolution step 2 (shape check). The modes do not mix — emit exactly one report, in full, and stop.
 
 | Mode | When | Sections |
 |------|------|----------|
-| Shape-check refusal | Target is not a request test (no HTTP call in the `it` body) | Title → Executive Summary → Findings → Machine-readable trailer |
-| Standard grading | Target passed shape check | Title → Executive Summary → RITE Evaluation → Per-rule verdict → Top fixes → Machine-readable trailer |
+| Shape-check refusal | Target is not a request test (no HTTP call in the `it` body) | Next step → Machine-readable trailer |
+| Standard grading | Shape check passed | Title → Executive Summary → RITE Evaluation → Per-rule verdict → Top fixes → Machine-readable trailer |
 
-The title `# Canvas Request-Test Grader Report` is the literal first line of every report, both modes. The trailer is the literal last block of every report, both modes. Nothing precedes the title; nothing follows the trailer.
+Only standard grading mode emits the full report scaffolding (title, Executive Summary, etc.). Shape-check refusal is deliberately minimal — a `## Next step` section telling the caller what to do, followed by the machine-readable trailer. Nothing else. The trailer is the literal last block of every report. Nothing follows the trailer.
+
+The agent assumes its caller resolved the target to a single `it` block before invoking — disambiguation of `it "..."` descriptions across multiple `describe`/`context` blocks happens upstream in the calling skill, not here.
 
 ## Shape-check refusal mode
+
+Emit when the target's `it` body contains no HTTP call (`get`, `post`, `put`, `patch`, `delete` as the first non-comment token on a line) — the request-spec rules don't apply to this shape.
 
 Emit verbatim:
 
 ```
-# Canvas Request-Test Grader Report
+## Next step
 
-## Executive Summary
-
-**Grade: N/A** — not a request test.
-
-## Findings
-
-| Field | Value |
-|-------|-------|
-| Target | `<path>:<line>` — "<it description>" |
-| Likely shape | <unit / model / service / other> — based on <one short signal, e.g. "described_class.new on line N, no response.parsed_body anywhere"> |
-| Recommendation | this grader is request-spec-only; use a different reviewer for this spec shape |
-
-## Machine-readable trailer
+`<path>:<line>` ("<it description>") is not a request test — no HTTP call in the `it` body. Likely shape: <unit / model / service / other>, based on <one short signal, e.g. "described_class.new on line N, no response.parsed_body anywhere">. This grader is request-spec-only; use a different reviewer for this spec shape.
 
 === machine-readable ===
 grade=N/A
+refusal=true
 === end ===
 ```
-
-No per-rule verdict, no `Top fixes` — the request-spec rules don't apply.
 
 ## Standard grading mode
 
@@ -105,6 +96,8 @@ Every report — both modes — ends with this block. It exists for non-LLM cons
 
 The two modes emit different trailer contents (shown in their respective sections above), but the framing markers are identical: opening `=== machine-readable ===` and closing `=== end ===` on their own lines. A parser splits the output on these markers and reads the inner `key=value` lines.
 
+Mode dispatch for parsers: standard mode has `blockers=`; refusal mode has `refusal=true`. A parser that finds neither has received malformed output.
+
 ### Field rules
 
 | Field | Type | Format | Notes |
@@ -115,18 +108,20 @@ The two modes emit different trailer contents (shown in their respective section
 | `minors` | integer | bare digits, no padding | Mirrors Executive Summary's count tally. |
 | `fail` | slug list | comma-separated kebab-case, no surrounding spaces | Set of rule slugs marked ✗ in the per-rule verdict. Empty value (`fail=`) means the empty list. |
 | `na` | slug list | comma-separated kebab-case, no surrounding spaces | Set of rule slugs marked N/A in the per-rule verdict. Empty value means the empty list. |
-| `rite` | dimension verdicts | exactly four pairs `readable:<v>,isolated:<v>,thorough:<v>,explicit:<v>` where `<v>` is `good`, `mixed`, or `poor` | One pair per RITE dimension, in this order, comma-separated, no surrounding spaces. Lowercase verdicts. Mirrors the `## RITE Evaluation` table. Omitted in refusal-mode trailer. |
+| `rite` | dimension verdicts | exactly four pairs `readable:<v>,isolated:<v>,thorough:<v>,explicit:<v>` where `<v>` is `good`, `mixed`, or `poor` | One pair per RITE dimension, in this order, comma-separated, no surrounding spaces. Lowercase verdicts. Mirrors the `## RITE Evaluation` table. Standard mode only. |
+| `refusal` | bool | literal `true` | Present only in shape-check refusal trailers. |
 
 Additional constraints:
 
 - Fields appear in the order shown. Each field appears at most once.
-- Refusal-mode trailer omits the count and list fields entirely; only `grade=N/A` is present. A parser that doesn't find `blockers=` knows it's refusal mode.
+- Standard-mode trailer has all of `grade`, `blockers`, `majors`, `minors`, `fail`, `na`, `rite`, and lacks `refusal`.
+- Refusal-mode trailer has `grade=N/A` and `refusal=true`, and lacks the count/slug/rite fields entirely.
 - All values are ASCII. No quoting, no escaping, no Unicode.
 - Slugs come from `_shared/request-test-rules.md`. No slug appears in both `fail` and `na` for the same report.
 
 ## Emission rules (standard grading mode only)
 
-- **Title is the literal first line.** Every report begins with `# Canvas Request-Test Grader Report` on its own line. No preamble, no leading whitespace, no alternate phrasing, no prose before the title. Reasoning emitted as plain text ahead of the title pollutes the report and is forbidden.
+- **Title is the literal first line.** The standard-grading report begins with `# Canvas Request-Test Grader Report` on its own line. No preamble, no leading whitespace, no alternate phrasing, no prose before the title. Reasoning emitted as plain text ahead of the title pollutes the report and is forbidden. (Shape-check refusal has no title — it opens directly with `## Next step`.)
 - **Sections appear in the documented order.** `## Executive Summary` → `## Per-rule verdict` → `## Top fixes` → `## Machine-readable trailer`. No reordering, no omissions (use `No fixes required.` body when `Top fixes` has nothing).
 - **Executive Summary opens with bold grade.** The Executive Summary's first non-blank line is exactly `**Grade: <X>** — <Bn> blocker(s), <Mn> major(s), <Mn> minor(s)`. `<X>` is one of `A`, `A-`, `B`, `C`, `D`, `F`, `N/A`. ASCII hyphen-minus in `A-`, never Unicode minus.
 - **Executive Summary's Target/Route table is two columns.** `| Field | Value |`. The Route row reads `route-unresolvable` (verbatim) when the route couldn't be grepped from `config/routes.rb`.
