@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/MultipleDescribes
 #
 # Copyright (C) 2015 - present Instructure, Inc.
 #
@@ -18,6 +19,27 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+describe Login::ExternalAuthObserversController, type: :request do
+  describe "POST #redirect_login" do
+    let(:valid_params) do
+      {
+        "user" => { "name" => "parent", "terms_of_use" => "1", "initial_enrollment_type" => "observer" },
+        "pseudonym" => { "unique_id" => "parent@test.com" },
+        "observee" => { "unique_id" => "childstudent" },
+        "authenticity_token" => "9fHC1DSto0V"
+      }
+    end
+
+    it "returns an error if unique_id is not valid" do
+      invalid_params = valid_params.merge("observee" => { "unique_id" => "nonexistent" })
+      post("/external_auth_observers/redirect_login", params: invalid_params)
+      expect(response).to have_http_status :unprocessable_content
+    end
+  end
+end
+
+# ExternalAuthObservers "redirects to login path" test requires controller spec style due to
+# session serialization issues in request specs. This is kept separate for clarity.
 describe Login::ExternalAuthObserversController do
   describe "POST #redirect_login" do
     let(:params) do
@@ -30,15 +52,10 @@ describe Login::ExternalAuthObserversController do
     end
 
     it "redirects to login path" do
-      allow(controller).to receive_messages(valid_user_unique_id?: true, valid_observee_unique_id?: true)
+      allow(controller).to receive_messages(valid_observee_unique_id?: true, observer_email_taken?: false)
       subject = post(:redirect_login, params:)
       expect(subject).to be_successful
     end
-
-    it "returns an error if unique_id is not valid" do
-      allow(controller).to receive(:valid_user_unique_id?).and_return(false)
-      post(:redirect_login, params:)
-      expect(response).to have_http_status :unprocessable_content
-    end
   end
 end
+# rubocop:enable RSpec/MultipleDescribes
