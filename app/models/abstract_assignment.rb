@@ -4476,7 +4476,7 @@ class AbstractAssignment < ApplicationRecord
   end
 
   def self.disable_post_to_sis_if_grading_period_closed
-    eligible_root_accounts = Account.root_accounts.active.select do |account|
+    eligible_root_accounts = Account.root_accounts.active.non_shadow.select do |account|
       account.feature_enabled?(:disable_post_to_sis_when_grading_period_closed) &&
         account.feature_enabled?(:new_sis_integrations) &&
         account.disable_post_to_sis_when_grading_period_closed?
