@@ -47,4 +47,20 @@ describe ExternalFeedEntry do
       expect(persisted_message(entry)).not_to include("alert(1)")
     end
   end
+
+  describe "reader override sanitization of message" do
+    before do
+      course_factory
+      @feed = external_feed_model(context: @course)
+    end
+
+    it "strips XSS payload on direct read even when dirty data is in the DB" do
+      entry = @feed.external_feed_entries.create!(message: "<p>safe</p>")
+      entry.update_column(:message, "<p>safe</p><script>alert('xss')</script>")
+      entry.reload
+      expect(entry.message).not_to include("<script>")
+      expect(entry.message).not_to include("alert(")
+      expect(entry.message).to include("<p>safe</p>")
+    end
+  end
 end
