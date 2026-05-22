@@ -22,6 +22,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react'
 import {RotationControls} from '../RotationControls'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('RotationControls', () => {
   it('renders buttons', () => {

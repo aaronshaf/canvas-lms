@@ -137,6 +137,37 @@ const s_params = 'some super secure params'
 // Mock RCE initialization
 EditView.prototype._attachEditorToDescription = () => {}
 
+const unmountViewRoots = v => {
+  if (!v) return
+  try {
+    v.moderatedGradingRoot?.unmount()
+  } catch {}
+  try {
+    v.allowedAttemptsRoot?.unmount()
+  } catch {}
+  try {
+    v.annotatedDocumentRoot?.unmount()
+  } catch {}
+  try {
+    v.usageRightsRoot?.unmount()
+  } catch {}
+  try {
+    v.defaultToolFormRoot?.unmount()
+  } catch {}
+  try {
+    v.submissionTypeContainerRoot?.unmount()
+  } catch {}
+  try {
+    v.submissionTypeSelectionDialogRoot?.unmount()
+  } catch {}
+  try {
+    v.errorRoots && Object.values(v.errorRoots).forEach(r => r?.unmount())
+  } catch {}
+  try {
+    v.remove()
+  } catch {}
+}
+
 const createEditView = (assignmentOpts = {}) => {
   const defaultAssignmentOpts = {
     name: 'Test Assignment',
@@ -245,6 +276,7 @@ describe('EditView#handleModeratedGradingChanged', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })
@@ -310,6 +342,7 @@ describe('EditView#handleGraderCommentsVisibleToGradersChanged', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })
@@ -391,6 +424,7 @@ describe('EditView#uncheckAndHideGraderAnonymousToGraders', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })

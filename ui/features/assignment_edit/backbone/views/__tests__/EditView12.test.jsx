@@ -137,6 +137,7 @@ const s_params = 'some super secure params'
 // Mock RCE initialization
 EditView.prototype._attachEditorToDescription = () => {}
 
+const _createdViews = []
 const createEditView = (assignmentOpts = {}) => {
   const defaultAssignmentOpts = {
     name: 'Test Assignment',
@@ -186,7 +187,9 @@ const createEditView = (assignmentOpts = {}) => {
     canEditGrades: window.ENV.PERMISSIONS.can_edit_grades || !assignment.gradedSubmissionsExist(),
   })
 
-  return app.render()
+  const view = app.render()
+  _createdViews.push(view)
+  return view
 }
 
 describe('EditView - External Tools and Asset Processors', () => {
@@ -238,12 +241,40 @@ describe('EditView - External Tools and Asset Processors', () => {
   })
 
   afterEach(() => {
+    _createdViews.splice(0).forEach(v => {
+      try {
+        v.moderatedGradingRoot?.unmount()
+      } catch {}
+      try {
+        v.allowedAttemptsRoot?.unmount()
+      } catch {}
+      try {
+        v.annotatedDocumentRoot?.unmount()
+      } catch {}
+      try {
+        v.usageRightsRoot?.unmount()
+      } catch {}
+      try {
+        v.defaultToolFormRoot?.unmount()
+      } catch {}
+      try {
+        v.submissionTypeContainerRoot?.unmount()
+      } catch {}
+      try {
+        v.submissionTypeSelectionDialogRoot?.unmount()
+      } catch {}
+      try {
+        v.errorRoots && Object.values(v.errorRoots).forEach(r => r?.unmount())
+      } catch {}
+      try {
+        v.remove()
+      } catch {}
+    })
     document.body.removeChild(fixtures)
     $('.ui-dialog').remove()
     $('ul[id^=ui-id-]').remove()
     $('.form-dialog').remove()
     server.resetHandlers()
-    vi.resetModules()
     vi.clearAllMocks()
     fakeEnv.teardown()
   })

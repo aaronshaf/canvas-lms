@@ -39,6 +39,10 @@ describe('AttachmentDisplay', () => {
     vi.useFakeTimers()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders the attachments', () => {
     const {getAllByTestId} = setup()
     expect(getAllByTestId('attachment')).toHaveLength(2)

@@ -235,7 +235,7 @@ function EditView() {
   this.settingsToCache = this.settingsToCache.bind(this)
   this.handleCancel = this.handleCancel.bind(this)
   this.handleMessageEvent = this.handleMessageEvent.bind(this)
-  window.addEventListener('message', this.handleMessageEvent.bind(this))
+  window.addEventListener('message', this.handleMessageEvent)
   this.hideErrors = this.hideErrors.bind(this)
   this.errorRoots = {}
 
@@ -1310,8 +1310,10 @@ EditView.prototype.handleSubmissionTypeSelectionLaunch = function () {
     }
 
     removeListener()
+    this._deepLinkingCleanup = null
     this.handleSubmissionTypeSelectionDialogClose()
   })
+  this._deepLinkingCleanup = removeListener
 
   return this.renderSubmissionTypeSelectionDialog(true)
 }
@@ -2605,6 +2607,15 @@ EditView.prototype.renderAllowedAttempts = function () {
   const element = React.createElement(AllowedAttemptsWithState, props)
   const container = document.querySelector('#allowed-attempts-target')
   this.allowedAttemptsRoot = syncRender(this.allowedAttemptsRoot, element, container)
+}
+
+EditView.prototype.remove = function () {
+  window.removeEventListener('message', this.handleMessageEvent)
+  if (this._deepLinkingCleanup) {
+    this._deepLinkingCleanup()
+    this._deepLinkingCleanup = null
+  }
+  return EditView.__super__.remove.call(this)
 }
 
 export default EditView

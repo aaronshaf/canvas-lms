@@ -106,6 +106,37 @@ const currentOrigin = window.location.origin
 // Mock RCE initialization
 EditView.prototype._attachEditorToDescription = () => {}
 
+const unmountViewRoots = v => {
+  if (!v) return
+  try {
+    v.moderatedGradingRoot?.unmount()
+  } catch {}
+  try {
+    v.allowedAttemptsRoot?.unmount()
+  } catch {}
+  try {
+    v.annotatedDocumentRoot?.unmount()
+  } catch {}
+  try {
+    v.usageRightsRoot?.unmount()
+  } catch {}
+  try {
+    v.defaultToolFormRoot?.unmount()
+  } catch {}
+  try {
+    v.submissionTypeContainerRoot?.unmount()
+  } catch {}
+  try {
+    v.submissionTypeSelectionDialogRoot?.unmount()
+  } catch {}
+  try {
+    v.errorRoots && Object.values(v.errorRoots).forEach(r => r?.unmount())
+  } catch {}
+  try {
+    v.remove()
+  } catch {}
+}
+
 const nameLengthHelper = (
   view,
   length,
@@ -232,6 +263,7 @@ describe('EditView#handleModeratedGradingChanged', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })
@@ -338,6 +370,7 @@ describe('EditView#handleMessageEvent', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })
@@ -459,6 +492,7 @@ describe('EditView#handlesuppressFromGradebookChange', () => {
   })
 
   afterEach(() => {
+    unmountViewRoots(view)
     fakeENV.teardown()
     document.body.innerHTML = ''
   })

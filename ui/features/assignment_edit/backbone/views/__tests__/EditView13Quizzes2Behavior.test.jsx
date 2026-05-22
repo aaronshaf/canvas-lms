@@ -246,13 +246,38 @@ describe('EditView - Quizzes 2 Behavior', () => {
   })
 
   afterEach(() => {
-    // Unmount any React roots created by the AssetProcessorsForAssignment mock
-    // before tearing down the DOM, to avoid "window is not defined" errors
-    // from React trying to flush work after the JSDOM environment is gone.
     while (assetProcessorRoots.length > 0) {
       assetProcessorRoots.pop().unmount()
     }
-    view?.remove()
+    if (view) {
+      try {
+        view.moderatedGradingRoot?.unmount()
+      } catch {}
+      try {
+        view.allowedAttemptsRoot?.unmount()
+      } catch {}
+      try {
+        view.annotatedDocumentRoot?.unmount()
+      } catch {}
+      try {
+        view.usageRightsRoot?.unmount()
+      } catch {}
+      try {
+        view.defaultToolFormRoot?.unmount()
+      } catch {}
+      try {
+        view.submissionTypeContainerRoot?.unmount()
+      } catch {}
+      try {
+        view.submissionTypeSelectionDialogRoot?.unmount()
+      } catch {}
+      try {
+        view.errorRoots && Object.values(view.errorRoots).forEach(r => r?.unmount())
+      } catch {}
+      try {
+        view.remove()
+      } catch {}
+    }
     document.getElementById('fixtures').innerHTML = ''
   })
 

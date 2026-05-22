@@ -27,6 +27,7 @@ vi.mock('../../util/mediaUtils', () => ({
 }))
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('Attachment', () => {
   const getProps = (override = {}) => {
@@ -95,9 +96,7 @@ describe('Attachment', () => {
 
   test('displays an error on focus if getShouldShowFileRequiredError returns true', () => {
     const {getByTestId, getByText} = render(
-      <Attachment
-        {...getProps({getShouldShowFileRequiredError: vi.fn().mockReturnValue(true)})}
-      />,
+      <Attachment {...getProps({getShouldShowFileRequiredError: vi.fn().mockReturnValue(true)})} />,
     )
     const fileInput = getByTestId('file-upload-0')
     fireEvent.focus(fileInput)

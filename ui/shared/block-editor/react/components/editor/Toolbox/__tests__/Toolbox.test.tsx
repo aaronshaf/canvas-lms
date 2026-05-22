@@ -56,6 +56,7 @@ describe('Toolbox', () => {
   })
 
   afterEach(() => {
+    document.querySelectorAll('.block-editor-editor').forEach(el => el.remove())
     vi.clearAllMocks()
   })
 

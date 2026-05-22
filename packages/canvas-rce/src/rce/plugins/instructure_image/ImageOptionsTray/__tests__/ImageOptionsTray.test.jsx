@@ -24,6 +24,7 @@ import ImageOptionsTrayDriver from './ImageOptionsTrayDriver'
 import {CUSTOM} from '../../ImageEmbedOptions'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('RCE "Images" Plugin > ImageOptionsTray', () => {
   let props

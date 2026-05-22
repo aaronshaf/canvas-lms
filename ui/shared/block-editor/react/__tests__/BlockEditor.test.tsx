@@ -63,6 +63,8 @@ describe('BlockEditor', () => {
     fetchMock.delete(`${template_url}/1`, 200)
   })
 
+  afterAll(() => fetchMock.restore())
+
   afterEach(() => vi.clearAllMocks())
 
   it('renders', async () => {

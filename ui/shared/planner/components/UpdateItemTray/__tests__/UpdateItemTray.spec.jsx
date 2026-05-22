@@ -50,6 +50,7 @@ beforeAll(() => {
 
 afterAll(() => {
   if (ariaLive) ariaLive.remove()
+  vi.useRealTimers()
 })
 
 afterEach(() => {

@@ -31,6 +31,7 @@ import {
 } from '@canvas/outcomes/react/hooks/useOutcomesImport'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('FindOutcomesView', () => {
   let onChangeHandlerMock

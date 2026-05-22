@@ -39,6 +39,32 @@ function emptyArrayReplaceCustomizer(obj, src) {
   return undefined
 }
 
+// Build once per fork — makeExecutableSchema parses the entire schema.graphql,
+// which is expensive. addMocksToSchema uses mapSchema (returns a new schema,
+// never mutates), so sharing this base schema across calls is safe.
+let _executableSchema = null
+function getExecutableSchema() {
+  if (_executableSchema) return _executableSchema
+  if (!schemaString) return null
+  _executableSchema = makeExecutableSchema({
+    typeDefs: schemaString,
+    resolverValidationOptions: {
+      requireResolversForResolveType: false,
+    },
+  })
+  return _executableSchema
+}
+
+// Build a fresh schemaWithMocks per call — addMocksToSchema is O(types×fields) via
+// mapSchema but is far cheaper than makeExecutableSchema (which parses the entire SDL).
+// We reuse the cached _executableSchema and let addMocksToSchema rebuild mock wrappers
+// each time to avoid mock-state leakage between calls.
+// NOTE: resolvers must be passed to addMocksToSchema (not addResolversToSchema) because
+// some callers pass resolvers as a function, which only @graphql-tools/mock understands.
+function getSchemaWithMocks(schema, mocks, resolvers) {
+  return addMocksToSchema({schema, mocks, resolvers})
+}
+
 // Get and cache the valid types that can be mocked
 let _typeIntrospectionSet = null
 async function getValidTypes() {
@@ -46,18 +72,13 @@ async function getValidTypes() {
     return _typeIntrospectionSet
   }
 
-  const typeIntrospectionQuery = '{ __schema { types { name } } }'
   if (!schemaString) {
     // schema.graphql not available in this environment — return empty set
     _typeIntrospectionSet = new Set()
     return _typeIntrospectionSet
   }
-  const schema = makeExecutableSchema({
-    typeDefs: schemaString,
-    resolverValidationOptions: {
-      requireResolversForResolveType: false,
-    },
-  })
+  const typeIntrospectionQuery = '{ __schema { types { name } } }'
+  const schema = getExecutableSchema()
   const result = await graphql({schema, source: typeIntrospectionQuery})
   _typeIntrospectionSet = new Set(result.data.__schema.types.map(type => type.name))
   return _typeIntrospectionSet
@@ -141,20 +162,17 @@ export default async function mockGraphqlQuery(
 
   // Turn the AST query into a string that can be used to make a query against graphql.js
   const queryStr = print(addTypenameToDocument(queryAST))
-  if (!schemaString) {
+  const schema = getExecutableSchema()
+  if (!schema) {
     throw new Error(
       'schema.graphql is not available in this test environment. Ensure the file exists at the workspace root.',
     )
   }
-  const schema = makeExecutableSchema({
-    typeDefs: schemaString,
-    resolverValidationOptions: {
-      requireResolversForResolveType: false,
-    },
-  })
 
-  // Run our query againsted the mocked server
-  const schemaWithMocks = addMocksToSchema({schema, resolvers, mocks})
+  // Run our query against the mocked server. Reuses cached _executableSchema
+  // (the expensive SDL parse) but builds fresh mock wrappers each call to avoid
+  // state leakage between tests.
+  const schemaWithMocks = getSchemaWithMocks(schema, mocks, resolvers)
   const result = await graphql({
     schema: schemaWithMocks,
     resolvers,

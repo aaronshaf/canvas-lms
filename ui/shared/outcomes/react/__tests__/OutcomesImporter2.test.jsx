@@ -90,6 +90,10 @@ describe('OutcomesImporter', () => {
     mockedApiClient.queryImportCreatedGroupIds.mockResolvedValue({data: []})
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('uploads file when the upload begins', async () => {
     const disableOutcomeViews = vi.fn()
     const resetOutcomeViews = vi.fn()

@@ -22,6 +22,7 @@ import {Highlight} from '../Highlight'
 import {DiscussionManagerUtilityContext} from '../../../utils/constants'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 const setup = props => {
   return render(

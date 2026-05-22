@@ -32,6 +32,7 @@ vi.mock('@instructure/canvas-media', async () => ({
 }))
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
   let props

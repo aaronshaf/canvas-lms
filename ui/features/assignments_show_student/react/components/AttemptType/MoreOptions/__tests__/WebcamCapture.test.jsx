@@ -53,6 +53,7 @@ describe('WebcamCapture', () => {
   afterEach(() => {
     vi.resetAllMocks()
     vi.runOnlyPendingTimers()
+    vi.useRealTimers()
     delete navigator.mediaDevices
   })
 

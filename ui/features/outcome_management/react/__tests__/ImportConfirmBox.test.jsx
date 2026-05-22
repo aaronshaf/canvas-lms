@@ -22,6 +22,7 @@ import userEvent from '@testing-library/user-event'
 import ImportConfirmBox, {showImportConfirmBox} from '../ImportConfirmBox'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('ImportConfirmBox', () => {
   let alertDiv

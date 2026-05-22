@@ -50,6 +50,7 @@ function defaultProps() {
 }
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 it('renders the base component correctly with one of each kind of opportunity', () => {
   const {container, getByRole} = render(<Opportunities {...defaultProps()} />)

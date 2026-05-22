@@ -31,6 +31,7 @@ vi.mock('@instructure/platform-alerts', async () => {
 vi.mock('@canvas/rce/RichContentEditor')
 vi.mock('axios')
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 // FOO-3827
 describe('OutcomeManagementPanel - Modals', () => {

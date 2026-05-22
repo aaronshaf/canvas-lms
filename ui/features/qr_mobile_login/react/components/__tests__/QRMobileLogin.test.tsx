@@ -63,6 +63,7 @@ describe('QRMobileLogin', () => {
     })
 
     afterEach(() => {
+      vi.useRealTimers()
       fetchMock.restore()
     })
 

@@ -24,6 +24,7 @@ import {MathfieldElement} from 'mathlive'
 import RCEGlobals from '../../../../RCEGlobals'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 const r = String.raw
 

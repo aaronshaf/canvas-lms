@@ -21,6 +21,7 @@ import {render, fireEvent, act} from '@testing-library/react'
 import AddContentItem from '../AddContentItem'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('AddContentItem', () => {
   let onSaveHandler, onHideHandler

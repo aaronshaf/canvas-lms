@@ -24,6 +24,10 @@ describe('useDebouncedSearchTerm', () => {
     vi.useFakeTimers()
   })
 
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   it('debounces updates to the searchTerm state', () => {
     const {result} = renderHook(() => useDebouncedSearchTerm('default'))
     act(() => result.current.setSearchTerm('updated'))

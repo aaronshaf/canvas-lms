@@ -26,6 +26,7 @@ import {MockedProvider} from '@apollo/client/testing'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')

@@ -98,8 +98,13 @@ describe('modulePageCommandEventHandlers', () => {
     server.listen()
   })
 
+  afterAll(() => {
+    server.close()
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
+    server.resetHandlers()
   })
 
   beforeEach(() => {

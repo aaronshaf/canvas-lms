@@ -42,6 +42,10 @@ describe('LinkValidator', () => {
     $.screenReaderFlashMessage = mockScreenReaderFlashMessage
   })
 
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
   })

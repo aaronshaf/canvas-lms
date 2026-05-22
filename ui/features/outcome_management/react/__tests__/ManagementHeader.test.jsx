@@ -35,6 +35,7 @@ CreateOutcomeModal.mockImplementation(({starterGroupId = ''}) => (
   </div>
 ))
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 let cache
 

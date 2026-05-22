@@ -30,6 +30,7 @@ injectGlobalAlertContainers()
 
 vi.mock('@instructure/platform-alerts')
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('GroupEditModal', () => {
   let cache

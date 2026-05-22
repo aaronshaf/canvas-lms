@@ -22,6 +22,7 @@ import Focus from '../Focus'
 import {render} from '@testing-library/react'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('Focus', () => {
   it('focus the children', () => {

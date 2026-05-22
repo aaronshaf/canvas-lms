@@ -62,6 +62,7 @@ describe('useCourseAlignmentStats', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
 
   const createWrapper =

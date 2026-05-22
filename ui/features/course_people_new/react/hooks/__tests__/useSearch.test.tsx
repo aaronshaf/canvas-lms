@@ -23,6 +23,10 @@ import {ChangeEvent} from 'react'
 vi.useFakeTimers()
 
 describe('useSearch', () => {
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   const event = {
     target: {
       value: '123',

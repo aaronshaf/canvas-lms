@@ -41,6 +41,10 @@ describe('ContentShareUserSearchSelector', () => {
     vi.useFakeTimers()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('initially searches with an empty search term', () => {
     render(<ContentShareUserSearchSelector courseId="42" onUserSelected={() => {}} />)
     expect(useContentShareUserSearchApi).toHaveBeenCalledWith(

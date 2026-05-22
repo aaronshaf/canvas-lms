@@ -39,6 +39,10 @@ function createReadyAnimation() {
   return result
 }
 
+afterAll(() => {
+  vi.useRealTimers()
+})
+
 afterEach(() => {
   vi.resetAllMocks()
 })

@@ -69,6 +69,10 @@ describe('GradebookHistory::SearchFormComponent', () => {
     vi.useFakeTimers()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('displays a flash alert on fetch failure', () => {
     const {rerender} = mountSubject()
     let flash = document.getElementById('flashalert_message_holder')

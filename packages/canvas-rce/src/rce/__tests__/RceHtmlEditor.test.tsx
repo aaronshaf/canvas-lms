@@ -43,6 +43,7 @@ document.createRange = () => {
 
 describe('RceHtmlEditor', () => {
   beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
 
   it('renders', () => {
     const editorRef = {current: null}

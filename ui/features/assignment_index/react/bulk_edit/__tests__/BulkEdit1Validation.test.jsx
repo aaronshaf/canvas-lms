@@ -95,6 +95,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   fetchMock.reset()
 })
 

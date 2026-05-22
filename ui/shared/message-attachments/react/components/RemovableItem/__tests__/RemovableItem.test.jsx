@@ -38,6 +38,10 @@ describe('RemovableItem', () => {
     vi.useFakeTimers()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders remove icon while hovered', () => {
     const {getByTestId, queryByTestId} = setup()
     const item = getByTestId('removable-item')

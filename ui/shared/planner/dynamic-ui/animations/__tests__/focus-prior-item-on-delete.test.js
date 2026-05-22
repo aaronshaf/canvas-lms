@@ -23,6 +23,9 @@ import {specialFallbackFocusId} from '../../util'
 
 // it uses a timer to work around an inst ui bug. See code in uiDidUpdate
 vi.useFakeTimers()
+afterAll(() => {
+  vi.useRealTimers()
+})
 function prepareAnimation(animation) {
   animation.acceptAction(deletedPlannerItem({uniqueId: 'doomed-item'}))
   animation.uiWillUpdate()

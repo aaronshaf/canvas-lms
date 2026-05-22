@@ -28,6 +28,7 @@ import base64EncodedFont from '../../svg/font'
 import * as shouldIgnoreCloseRef from '../../utils/IconMakerClose'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 vi.mock('../../../../../bridge')
 vi.mock('../../svg/font')
 vi.mock('../../../../../rcs/api')

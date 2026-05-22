@@ -20,6 +20,7 @@ import {renderHook, act} from '@testing-library/react'
 import useSearch from '../useSearch'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('useSearch', () => {
   const event = {

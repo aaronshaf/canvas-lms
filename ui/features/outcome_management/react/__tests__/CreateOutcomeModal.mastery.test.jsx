@@ -27,6 +27,7 @@ import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobal
 injectGlobalAlertContainers()
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('CreateOutcomeModal', () => {
   let onCloseHandlerMock

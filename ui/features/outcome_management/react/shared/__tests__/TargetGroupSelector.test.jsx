@@ -32,6 +32,7 @@ import * as FlashAlert from '@instructure/platform-alerts'
 
 vi.mock('@instructure/platform-alerts')
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('TargetGroupSelector', () => {
   let cache

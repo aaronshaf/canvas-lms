@@ -59,6 +59,7 @@ function renderStudentsSearcher(usersAndVariables, useAssignment) {
 }
 
 beforeEach(() => vi.useFakeTimers())
+afterEach(() => vi.useRealTimers())
 
 describe('StudentsSearcher', () => {
   it('renders a spinner while loading', () => {

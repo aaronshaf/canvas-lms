@@ -22,6 +22,7 @@ import {Mathml} from '../mathml'
 import * as instructureHelper from '../instructure_helper'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 const subject = bodyHTML => {
   document.body.querySelector('.user_content').innerHTML = `${bodyHTML}`

@@ -39,6 +39,7 @@ vi.mock('@instructure/platform-alerts', async () => {
 
 vi.mock('@canvas/progress/resolve_progress')
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 treeGroupMocks({
   groupsStruct: {

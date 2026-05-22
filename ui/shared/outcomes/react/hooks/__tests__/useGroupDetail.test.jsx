@@ -64,6 +64,7 @@ describe('groupDetailHook', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
 
   const wrapper = ({children}) => (

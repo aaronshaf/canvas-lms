@@ -38,6 +38,7 @@ vi.mock('@instructure/platform-alerts', async () => {
   }
 })
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('OutcomeMoveModal', () => {
   let cache

@@ -22,6 +22,7 @@ import {render, fireEvent, act} from '@testing-library/react'
 import TreeBrowser from '../TreeBrowser'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('TreeBrowser', () => {
   let onCollectionToggle, collections, onCreateGroup

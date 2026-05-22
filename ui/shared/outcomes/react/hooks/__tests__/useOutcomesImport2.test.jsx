@@ -33,6 +33,7 @@ import resolveProgress from '@canvas/progress/resolve_progress'
 vi.mock('@canvas/progress/resolve_progress')
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')

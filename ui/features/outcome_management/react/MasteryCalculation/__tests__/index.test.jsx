@@ -42,6 +42,7 @@ describe('MasteryCalculation', () => {
 
   afterAll(() => {
     server.close()
+    vi.useRealTimers()
   })
 
   beforeEach(() => {

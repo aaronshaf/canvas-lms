@@ -19,6 +19,7 @@
 import {makeAllExternalLinksExternalLinks} from '../external_links'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 const setup = html => {
   document.body.innerHTML = `<div id="content">${html}</div>`

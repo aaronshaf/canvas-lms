@@ -40,6 +40,7 @@ describe('AlignmentSummary', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
 
   const render = (

@@ -23,6 +23,7 @@ import {Size} from '../../../../svg/constants'
 import {convertFileToBase64} from '../../../../../shared/fileUtils'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 vi.mock('../../../../../shared/StoreContext', async () => {
   return {
     ...(await vi.importActual('../../../../../shared/StoreContext')),

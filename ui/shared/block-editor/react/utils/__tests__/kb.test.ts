@@ -41,6 +41,10 @@ const makeKeyboardEvent = (opts = {}) => {
 }
 
 describe('keyboard utilities', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   describe('isAnyModifierKeyPressed', () => {
     it('should return false if no modifier key is pressed', () => {
       expect(isAnyModifierKeyPressed(makeKeyboardEvent())).toBe(false)

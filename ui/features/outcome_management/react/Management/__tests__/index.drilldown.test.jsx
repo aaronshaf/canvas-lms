@@ -39,6 +39,7 @@ describe('OutcomeManagementPanel - URL Query Parameter Processing', () => {
   afterAll(() => {
     // Restore original location
     window.location = originalLocation
+    jest.useRealTimers()
   })
 
   beforeEach(() => {

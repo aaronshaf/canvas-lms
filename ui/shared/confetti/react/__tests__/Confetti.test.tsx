@@ -24,6 +24,10 @@ import fakeENV from '@canvas/test-utils/fakeENV'
 vi.useFakeTimers()
 
 describe('Confetti', () => {
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   beforeEach(() => {
     act(() => {
       vi.advanceTimersByTime(10000)

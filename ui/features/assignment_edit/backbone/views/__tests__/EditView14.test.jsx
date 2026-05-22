@@ -242,8 +242,36 @@ describe('EditView - Points Tooltip', () => {
   })
 
   afterEach(() => {
+    if (view) {
+      try {
+        view.moderatedGradingRoot?.unmount()
+      } catch {}
+      try {
+        view.allowedAttemptsRoot?.unmount()
+      } catch {}
+      try {
+        view.annotatedDocumentRoot?.unmount()
+      } catch {}
+      try {
+        view.usageRightsRoot?.unmount()
+      } catch {}
+      try {
+        view.defaultToolFormRoot?.unmount()
+      } catch {}
+      try {
+        view.submissionTypeContainerRoot?.unmount()
+      } catch {}
+      try {
+        view.submissionTypeSelectionDialogRoot?.unmount()
+      } catch {}
+      try {
+        view.errorRoots && Object.values(view.errorRoots).forEach(r => r?.unmount())
+      } catch {}
+      try {
+        view.remove()
+      } catch {}
+    }
     fakeENV.teardown()
-    view.remove()
     $('#fixtures').empty()
   })
 

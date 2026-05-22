@@ -84,6 +84,10 @@ describe('PaceContextsContent', () => {
     vi.useFakeTimers()
   })
 
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   beforeEach(() => {
     fetchMock.get(SECTION_CONTEXTS_API, PACE_CONTEXTS_SECTIONS_RESPONSE)
     fetchMock.get(STUDENT_CONTEXTS_API, PACE_CONTEXTS_STUDENTS_RESPONSE)

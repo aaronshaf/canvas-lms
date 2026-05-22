@@ -24,6 +24,7 @@ import VideoOptionsTrayDriver from './VideoOptionsTrayDriver'
 import {createLiveRegion, removeLiveRegion} from '../../../../__tests__/liveRegionHelper'
 import RCEGlobals from '../../../../../rce/RCEGlobals'
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
   let props

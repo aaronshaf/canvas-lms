@@ -279,6 +279,7 @@ describe('DeveloperKeys App', () => {
 
   describe('when developer keys saved ', () => {
     vi.useFakeTimers()
+    afterAll(() => vi.useRealTimers())
     let ref
     beforeEach(() => {
       fakeENV.setup({FEATURES: {developer_key_page_checkboxes: true}})

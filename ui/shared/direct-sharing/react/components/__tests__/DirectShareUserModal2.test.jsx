@@ -111,6 +111,7 @@ describe('DirectShareUserModal', () => {
 
   afterEach(async () => {
     await flushAllTimersAndPromises()
+    vi.useRealTimers()
     server.resetHandlers()
   })
 

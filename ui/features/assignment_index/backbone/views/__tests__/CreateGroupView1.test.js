@@ -215,5 +215,6 @@ describe('CreateGroupView', () => {
     view.onSaveSuccess()
     vi.advanceTimersByTime(101)
     expect($.flashMessage).toHaveBeenCalledWith('Assignment group was saved successfully')
+    vi.useRealTimers()
   })
 })

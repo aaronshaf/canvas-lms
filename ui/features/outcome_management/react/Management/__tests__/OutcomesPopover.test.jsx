@@ -21,6 +21,7 @@ import {render, fireEvent, act} from '@testing-library/react'
 import OutcomesPopover from '../OutcomesPopover'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('OutcomesPopover', () => {
   let onClearHandlerMock

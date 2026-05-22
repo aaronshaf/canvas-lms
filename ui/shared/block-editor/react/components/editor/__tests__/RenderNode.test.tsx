@@ -26,11 +26,14 @@ import {LATEST_BLOCK_DATA_VERSION} from '../../../utils/transformations'
 
 const user = userEvent.setup()
 
+const _containers: HTMLElement[] = []
+
 function renderEditor(props = {}) {
   const container = document.createElement('div')
   container.id = 'drawer-layout-content'
   container.scrollTo = () => {}
   document.body.appendChild(container)
+  _containers.push(container)
 
   return render(
     <BlockEditor
@@ -57,6 +60,10 @@ const getBlockTag = () => document.querySelector('.block-tag') as HTMLElement
 describe('BlockEditor', () => {
   beforeAll(() => {
     window.alert = vi.fn()
+  })
+
+  afterEach(() => {
+    _containers.splice(0).forEach(c => c.remove())
   })
 
   it('renders', () => {

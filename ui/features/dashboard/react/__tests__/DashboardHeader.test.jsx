@@ -37,6 +37,7 @@ vi.mock('@canvas/planner', async () => {
 injectGlobalAlertContainers()
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 const defaultEnv = {
   current_user: {id: '1'},

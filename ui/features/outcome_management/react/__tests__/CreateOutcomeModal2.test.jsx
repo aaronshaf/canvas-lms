@@ -37,6 +37,7 @@ import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobal
 injectGlobalAlertContainers()
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')

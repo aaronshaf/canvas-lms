@@ -305,6 +305,7 @@ describe('MoreOptions', () => {
 
     afterEach(() => {
       vi.runOnlyPendingTimers()
+      vi.useRealTimers()
       delete navigator.mediaDevices
     })
 

@@ -27,6 +27,7 @@ import OutcomesContext from '@canvas/outcomes/react/contexts/OutcomesContext'
 import {defaultRatingsAndCalculationMethod} from '../Management/__tests__/helpers'
 
 vi.useFakeTimers()
+afterAll(() => vi.useRealTimers())
 
 describe('FindOutcomeItem', () => {
   let onMenuHandlerMock

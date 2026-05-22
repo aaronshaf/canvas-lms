@@ -49,6 +49,10 @@ describe('ContentShareUserSearchSelector', () => {
     vi.useFakeTimers()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders', () => {
     const {getByLabelText} = renderComponent()
     fireEvent.click(getByLabelText(/select at least one person/i))
