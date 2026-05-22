@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe SectionsController do
+describe SectionsController, type: :request do
   describe "user_count" do
     before do
       course_with_teacher_logged_in(active_all: true)
@@ -34,7 +34,7 @@ describe SectionsController do
       @section1.enroll_user(@student2, "StudentEnrollment")
       @section2.enroll_user(@student1, "StudentEnrollment")
 
-      get "user_count", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/sections/user_count"
 
       json_response = response.parsed_body
 
@@ -51,7 +51,7 @@ describe SectionsController do
       @section2.enroll_user(@student1, "StudentEnrollment")
       @student2.destroy
 
-      get "user_count", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/sections/user_count"
 
       json_response = response.parsed_body
 
@@ -67,7 +67,7 @@ describe SectionsController do
       @section1.enroll_user(@student1, "StudentEnrollment")
       @section2.enroll_user(@student2, "StudentEnrollment")
 
-      get "user_count", params: { course_id: @course.id, exclude: ["section_#{@section1.id}"] }
+      get "/courses/#{@course.id}/sections/user_count", params: { exclude: ["section_#{@section1.id}"] }
 
       json_response = response.parsed_body
 
@@ -79,7 +79,7 @@ describe SectionsController do
     end
 
     it "should exclude section if name does not match the search term" do
-      get "user_count", params: { course_id: @course.id, search: "ion1" }
+      get "/courses/#{@course.id}/sections/user_count", params: { search: "ion1" }
 
       json_response = response.parsed_body
 
@@ -95,7 +95,7 @@ describe SectionsController do
         unauthorized_user = user_with_pseudonym(active_all: true, name: "Unauthorized", username: "unauth-user-count@test.com")
         user_session(unauthorized_user)
 
-        get "user_count", params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/sections/user_count.json"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -107,7 +107,7 @@ describe SectionsController do
         @section1.enroll_user(student, "StudentEnrollment", enrollment_state: "active")
         user_session(student)
 
-        get "user_count", params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/sections/user_count.json"
 
         expect(response).to have_http_status(:ok)
         returned_ids = response.parsed_body["sections"].pluck("id")
@@ -123,7 +123,7 @@ describe SectionsController do
         ta_enrollment.update!(limit_privileges_to_course_section: true)
         user_session(restricted_ta)
 
-        get "user_count", params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/sections/user_count.json"
 
         expect(response).to have_http_status(:ok)
         returned_ids = response.parsed_body["sections"].pluck("id")
@@ -154,14 +154,14 @@ describe SectionsController do
     before { course_with_teacher_logged_in(active_all: true, course: @course) }
 
     it "returns all users in the section" do
-      get "users", params: { id: @section.id }, format: :json
+      get "/api/v1/sections/#{@section.id}/users"
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id, @student3.id, @ta.id])
     end
 
     it "returns users matching search_term" do
-      get "users", params: { id: @section.id, search_term: "Alice" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { search_term: "Alice" }
 
       json_response = response.parsed_body
       expect(response).to be_successful
@@ -171,56 +171,56 @@ describe SectionsController do
     end
 
     it "returns users matching partial search_term" do
-      get "users", params: { id: @section.id, search_term: "Student" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { search_term: "Student" }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id, @student3.id])
     end
 
     it "excludes inactive enrollments when exclude_inactive is true" do
-      get "users", params: { id: @section.id, exclude_inactive: true }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { exclude_inactive: true }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id, @ta.id])
     end
 
     it "includes inactive enrollments when exclude_inactive is false" do
-      get "users", params: { id: @section.id, exclude_inactive: false }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { exclude_inactive: false }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id, @student3.id, @ta.id])
     end
 
     it "filters users by enrollment_type student" do
-      get "users", params: { id: @section.id, enrollment_type: "student" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { enrollment_type: "student" }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id, @student3.id])
     end
 
     it "filters users by enrollment_type ta" do
-      get "users", params: { id: @section.id, enrollment_type: "ta" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { enrollment_type: "ta" }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@ta.id])
     end
 
     it "combines search_term with enrollment_type filter" do
-      get "users", params: { id: @section.id, search_term: "li", enrollment_type: "student" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { search_term: "li", enrollment_type: "student" }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student3.id])
     end
 
     it "combines exclude_inactive with enrollment_type filter" do
-      get "users", params: { id: @section.id, exclude_inactive: true, enrollment_type: "student" }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { exclude_inactive: true, enrollment_type: "student" }
 
       expect(response).to be_successful
       expect(response.parsed_body.pluck("id")).to match_array([@student1.id, @student2.id])
     end
 
     it "includes avatar_url when requested" do
-      get "users", params: { id: @section.id, include: ["avatar_url"] }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { include: ["avatar_url"] }
 
       json_response = response.parsed_body
       expect(response).to be_successful
@@ -234,7 +234,7 @@ describe SectionsController do
         @section.enroll_user(student, "StudentEnrollment", "active")
       end
 
-      get "users", params: { id: @section.id, per_page: 5 }, format: :json
+      get "/api/v1/sections/#{@section.id}/users", params: { per_page: 5 }
 
       expect(response).to be_successful
       json_response = response.parsed_body
@@ -243,7 +243,7 @@ describe SectionsController do
     end
 
     it "returns 404 for non-existent section" do
-      get "users", params: { id: 999_999 }, format: :json
+      get "/api/v1/sections/999999/users"
 
       expect(response).to have_http_status(:not_found)
     end
@@ -251,7 +251,7 @@ describe SectionsController do
     it "returns 404 for deleted section" do
       @section.destroy
 
-      get "users", params: { id: @section.id }, format: :json
+      get "/api/v1/sections/#{@section.id}/users"
 
       expect(response).to have_http_status(:not_found)
     end
@@ -261,7 +261,7 @@ describe SectionsController do
         unauthorized_user = user_with_pseudonym(active_all: true, name: "Unauthorized", username: "unauth@test.com")
         user_session(unauthorized_user)
 
-        get "users", params: { id: @section.id }, format: :json
+        get "/api/v1/sections/#{@section.id}/users"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -274,7 +274,7 @@ describe SectionsController do
           ta_enrollment.update!(limit_privileges_to_course_section: true)
           user_session(section_limited_ta)
 
-          get "users", params: { id: @section.id }, format: :json
+          get "/api/v1/sections/#{@section.id}/users"
 
           expect(response).to have_http_status(:forbidden)
           expect(response.parsed_body["error"]).to eq("section is not visible to the current user")
@@ -286,7 +286,7 @@ describe SectionsController do
           Account.default.role_overrides.create!(permission: :read_roster, role: student_role, enabled: false)
           user_session(@student1)
 
-          get "users", params: { id: @section.id }, format: :json
+          get "/api/v1/sections/#{@section.id}/users"
 
           expect(response).to have_http_status(:forbidden)
         end
