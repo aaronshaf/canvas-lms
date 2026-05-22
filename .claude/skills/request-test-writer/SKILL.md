@@ -19,9 +19,6 @@ allowed_tools:
   - Edit
   - Grep
   - WebFetch(domain:developerdocs.instructure.com)
-  - Bash(cp * *.mutation-bak)
-  - Bash(cp *.mutation-bak *)
-  - Bash(rm *.mutation-bak)
   - Bash(docker ps*)
   - Bash(docker inspect*)
   - Bash(docker cp*)
@@ -241,39 +238,7 @@ If failing, iterate up to **3 attempts** to fix. Each attempt:
 
 If still failing after 3 attempts, stop and report. Do not declare success.
 
-### Mutation check (only when test is green)
-
-Identify production lines that the action's code path actually exercises — controller action, called service methods, policies, model callbacks invoked by the request. Pick mutation targets *after* the **Lint** step's rubocop autofix has run, so the lines you target match what's on disk.
-
-**Before any mutation**, snapshot each candidate file:
-
-```bash
-cp <file> <file>.mutation-bak
-```
-
-This `.mutation-bak` is the authoritative restore source. Do **not** rely on Edit's `old_string` matching to restore — autofix may have moved the line, and mutations can accidentally collide with similar text elsewhere in the file.
-
-Then, up to a **budget of 5 mutation attempts total** across all candidate files, repeat:
-
-1. Apply one mutation at a time using Edit. Mutation operators:
-   - Invert a boolean condition (`if x` → `if !x`).
-   - Change a return value (`return foo` → `return nil`).
-   - Flip a comparison (`==` → `!=`, `>` → `<=`).
-   - Replace a value with a sentinel.
-2. Run the spec.
-3. **Restore** by `cp <file>.mutation-bak <file>`. Verify by re-reading the mutated line; the file must match the backup before the next attempt.
-4. Record the outcome: did the spec fail with an **assertion failure** (`RSpec::Expectations::ExpectationNotMetError`) — not a `NameError`, `NoMethodError`, or other crash?
-5. **Stop early** as soon as one mutation produces an assertion failure — that's a pass; further mutations add no signal.
-
-When the check ends (budget exhausted or early pass), delete every `*.mutation-bak` file you created and confirm the originals are intact by re-reading the mutated lines.
-
-**If restoration ever fails** (`cp` errors, backup missing, file modified between snapshot and restore): stop, do not proceed to the next mutation, and clearly tell the user which file is still mutated and where the `.mutation-bak` lives on disk so they can restore manually. Littering is acceptable as long as the user is loudly informed; silent leftovers are not.
-
-The mutation check **passes** if at least one mutation within the 5-attempt budget produces an assertion failure. A crash-on-mutation does not count — that proves the code path runs, not that the assertion catches a behavior change.
-
-If no mutation produces an assertion failure, the test is tautological. Rewrite it with stronger assertions and rerun **Lint → Run → Mutation check**.
-
-> **TODO:** Managing files for mutations should be scripted or outsourced. Until then, give the LLM written instructions.
+This skill verifies the test runs green. It does **not** verify the test catches behavior changes — that's mutation testing's job, and it belongs in a separate workflow that operates at module scope, not per-test. The Final summary nudges the user toward the `/test-mutation` command from the [claude-swe-workflows](https://github.com/chrisallenlane/claude-swe-workflows) plugin (not installed by default in this repo) as an optional follow-up.
 
 ### Self-review (delegated to the request-test-grader agent)
 
@@ -307,9 +272,16 @@ Print:
 File:              <path>
 Test description:  <the it string>
 Status:            green / failed (after N attempts)
-Mutation check:    passed (caught: <mutation>) / passed (N/M mutations caught) / failed
 Grader verdict:    <letter grade> (after <N> rewrite iteration(s))
 ```
+
+When `Status: green`, append a nudge that explains *why* the user should follow up:
+
+```
+Next: a green test only proves the spec runs — not that it would catch a bug. Only mutation testing proves the assertions actually fail when production behavior changes. Consider running `/test-mutation` from the claude-swe-workflows plugin (https://github.com/chrisallenlane/claude-swe-workflows) against this module. Not installed by default in this repo.
+```
+
+Omit the nudge when the run failed.
 
 ## Authentication helpers
 
@@ -322,10 +294,8 @@ Grader verdict:    <letter grade> (after <N> rewrite iteration(s))
 
 ## Failure handling
 
-- **Mutation cleanup:** restore each mutated file by `cp <file>.mutation-bak <file>`, then delete the `.mutation-bak` snapshot. No `git checkout`, no stash — Claude undoes its own edits in-process, scoped to the specific file. This avoids ever touching the user's uncommitted work in unrelated files.
-- **If a restore fails** (cp errors, backup missing, file modified between snapshot and restore): stop immediately. Tell the user exactly which file is still mutated and where the `.mutation-bak` lives on disk, so they can restore manually. Littering is acceptable as long as it is loudly reported; silent leftovers are not.
 - **Spec file:** left in place on disk for the user to inspect, regardless of outcome. The user can `git rm` or edit it manually.
-- **Always print the final summary**, even on failure. Tell the user what state the working tree is in (e.g., "spec file written but failing; production code restored", or "spec file written; mutation still applied to `app/controllers/foo.rb:123` — please revert manually").
+- **Always print the final summary**, even on failure. Tell the user what state the working tree is in (e.g., "spec file written but failing — last failure attached").
 
 ## Example output
 
