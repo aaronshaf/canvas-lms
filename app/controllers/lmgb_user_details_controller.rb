@@ -84,19 +84,17 @@ class LmgbUserDetailsController < ApplicationController
 
   private
 
-  # Authorization logic matching outcome_rollups
   def require_outcome_context
     reject! "invalid context type" unless @context.is_a?(Course)
 
-    return true if @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
-
-    # Students can only access their own data
-    user_id = params[:id].to_i
-    reject! "not authorized to read grades for specified user", :forbidden unless user_id == @current_user.id
-
-    # Validate that the user_id is within the allowed set of users
-    user_ids = Api.map_ids([params[:id]], users_for_outcome_context, @domain_root_account, @current_user)
-    verify_readable_grade_enrollments(user_ids)
+    if @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+      reject! "not authorized to read grades for specified user", :forbidden unless users_for_outcome_context.where(id: params[:id]).exists?
+    else
+      # Students can only access their own data
+      user_id = params[:id].to_i
+      reject! "not authorized to read grades for specified user", :forbidden unless user_id == @current_user.id
+      reject! "user is not allowed to read grades", :forbidden unless @context.grants_right?(@current_user, session, :read_grades)
+    end
   end
 
   def users_for_outcome_context

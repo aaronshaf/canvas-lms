@@ -34,7 +34,7 @@ describe "LMGB User Details API", type: :request do
   end
 
   describe "authorization" do
-    it "requires manage_grades permission for teachers" do
+    it "allows access for teacher with manage_grades permission" do
       @user = @teacher
       raw_api_call(:get,
                    lmgb_user_details_url(@course, @student),
@@ -72,7 +72,7 @@ describe "LMGB User Details API", type: :request do
       assert_forbidden
     end
 
-    it "requires user to have view_all_grades permission" do
+    it "denies access when teacher lacks both manage_grades and view_all_grades" do
       other_teacher = teacher_in_course(active_all: true).user
       @course.account.role_overrides.create!(role: teacher_role, enabled: false, permission: :view_all_grades)
       @course.account.role_overrides.create!(role: teacher_role, enabled: false, permission: :manage_grades)
@@ -87,13 +87,74 @@ describe "LMGB User Details API", type: :request do
                    id: @student.id.to_s)
       assert_forbidden
     end
+
+    it "allows a section-restricted teacher to read details for any student when limit_section_visibility_in_lmgb is off" do
+      allow_any_instance_of(Account).to receive(:feature_enabled?).and_call_original
+      allow_any_instance_of(Account).to receive(:feature_enabled?).with(:limit_section_visibility_in_lmgb).and_return(false)
+      hidden_student = student_in_course(course: @course, active_all: true, section: @section2).user
+      restricted_enrollment = teacher_in_course(course: @course, active_all: true, section: @section1)
+      restricted_enrollment.update!(limit_privileges_to_course_section: true)
+
+      @user = restricted_enrollment.user
+      raw_api_call(:get,
+                   lmgb_user_details_url(@course, hidden_student),
+                   controller: "lmgb_user_details",
+                   action: "show",
+                   format: "json",
+                   course_id: @course.id.to_s,
+                   id: hidden_student.id.to_s)
+      expect(response).to be_successful
+    end
+
+    it "does not allow a section-restricted teacher to read details for a student outside their section" do
+      hidden_student = student_in_course(course: @course, active_all: true, section: @section2).user
+      restricted_enrollment = teacher_in_course(course: @course, active_all: true, section: @section1)
+      restricted_enrollment.update!(limit_privileges_to_course_section: true)
+
+      @user = restricted_enrollment.user
+      raw_api_call(:get,
+                   lmgb_user_details_url(@course, hidden_student),
+                   controller: "lmgb_user_details",
+                   action: "show",
+                   format: "json",
+                   course_id: @course.id.to_s,
+                   id: hidden_student.id.to_s)
+      assert_forbidden
+    end
+
+    it "does not allow a teacher from another course to access a student's details" do
+      course_b = course_factory(active_course: true)
+      course_b.enroll_student(@student, enrollment_state: "active")
+
+      @user = @teacher
+      raw_api_call(:get,
+                   lmgb_user_details_url(course_b, @student),
+                   controller: "lmgb_user_details",
+                   action: "show",
+                   format: "json",
+                   course_id: course_b.id.to_s,
+                   id: @student.id.to_s)
+      assert_forbidden
+    end
+
+    it "returns 404 for a non-existent course" do
+      @user = @teacher
+      raw_api_call(:get,
+                   "/api/v1/courses/0/users/#{@student.id}/lmgb_user_details",
+                   controller: "lmgb_user_details",
+                   action: "show",
+                   format: "json",
+                   course_id: "0",
+                   id: @student.id.to_s)
+      expect(response).to have_http_status(:not_found)
+    end
   end
 
   describe "response format" do
     before do
       @user = @teacher
-      @student.pseudonyms.create!(unique_id: "test@example.com", account: @course.account)
-      @student.pseudonyms.first.update!(last_login_at: Time.zone.parse("2024-06-01T12:00:00Z"))
+      @pseudonym = @student.pseudonyms.create!(unique_id: "test@example.com", account: @course.account)
+      @pseudonym.update!(last_login_at: Time.zone.parse("2024-06-01T12:00:00Z"))
     end
 
     it "returns course name" do
@@ -227,7 +288,7 @@ describe "LMGB User Details API", type: :request do
     end
 
     it "returns null for last_login when user has never logged in" do
-      @student.pseudonyms.first.update!(last_login_at: nil)
+      @pseudonym.update!(last_login_at: nil)
 
       json = api_call(:get,
                       lmgb_user_details_url(@course, @student),
