@@ -199,6 +199,29 @@ describe CanvasSanitize do
       expect(res).to include('numalign="left"')
       expect(res).to include('denomalign="right"')
     end
+
+    describe "mspace spacing attributes" do
+      it "preserves width, height, and depth on mspace" do
+        str = %(<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mn>1</mn><mspace width="2em" height="1em" depth="0.5em"/><mn>2</mn></mrow></math>)
+        res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+        expect(res).to include('width="2em"')
+        expect(res).to include('height="1em"')
+        expect(res).to include('depth="0.5em"')
+      end
+
+      it "preserves mspace with only width" do
+        str = %(<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn>1</mn><mspace width="1em"/><mn>2</mn></mrow></math>)
+        res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+        expect(res).to include('width="1em"')
+      end
+
+      it "strips unknown attributes from mspace" do
+        str = %(<math xmlns="http://www.w3.org/1998/Math/MathML"><mspace width="1em" notanattr="x"/></math>)
+        res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+        expect(res).to include('width="1em"')
+        expect(res).not_to include("notanattr")
+      end
+    end
   end
 
   it "removes and not escape contents of style tags" do

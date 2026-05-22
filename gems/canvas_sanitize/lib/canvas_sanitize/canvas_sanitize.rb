@@ -537,7 +537,7 @@ module CanvasSanitize # :nodoc:
                      leftoverhang
                      rightoverhang
                      mslinethickness].freeze,
-      "mspace" => %w[href xref mathcolor mathbackground intent arg mathvariant mathsize].freeze,
+      "mspace" => %w[href xref mathcolor mathbackground intent arg mathvariant mathsize width height depth].freeze,
       "msqrt" => %w[href xref mathcolor mathbackground intent arg].freeze,
       "msrow" => %w[href xref mathcolor mathbackground intent arg position].freeze,
       "mstack" => %w[href
