@@ -100,7 +100,7 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
               )}
               dataRetention={t('Data is not stored or reused by the model.')}
               dataLogging={t('Does Not Log Data')}
-              regionsSupported={t('US')}
+              regionsSupported={t('Global')}
               isPIIExposed={false}
               isPIIExposedDescription={t(
                 'PII in page content may be included, but no PII is intentionally sent to the model.',

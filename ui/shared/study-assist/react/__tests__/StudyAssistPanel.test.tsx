@@ -24,14 +24,15 @@ import * as PendoModule from '@canvas/pendo'
 
 const mockAssistContent = vi.fn((_props: object) => <div data-testid="assist-content" />)
 const mockAssistFlashCardsInteraction = vi.fn((_props: object) => <div />)
+const mockAiInformation = vi.fn(({triggerButton}: {triggerButton: React.ReactNode}) => (
+  <div data-testid="ai-information">{triggerButton}</div>
+))
 const mockResetChat = vi.fn()
 const mockUseAssistContext = vi.fn(() => ({showBackButton: false, resetChat: mockResetChat}))
 const mockTrack = vi.fn()
 
 vi.mock('@canvas/ai-information', () => ({
-  default: ({triggerButton}: {triggerButton: React.ReactNode}) => (
-    <div data-testid="ai-information">{triggerButton}</div>
-  ),
+  default: (props: object) => mockAiInformation(props as {triggerButton: React.ReactNode}),
 }))
 
 vi.mock('@instructure/platform-study-assist', () => ({
@@ -76,6 +77,7 @@ describe('StudyAssistPanel', () => {
     onDismiss.mockReset()
     mockAssistContent.mockClear()
     mockAssistFlashCardsInteraction.mockClear()
+    mockAiInformation.mockClear()
     mockTrack.mockClear()
     mockResetChat.mockReset()
     mockUseAssistContext.mockReturnValue({showBackButton: false, resetChat: mockResetChat})
@@ -84,6 +86,19 @@ describe('StudyAssistPanel', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  it('passes Global as regionsSupported to AI information', () => {
+    render(
+      <StudyAssistPanel
+        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+    expect(mockAiInformation).toHaveBeenCalledWith(
+      expect.objectContaining({regionsSupported: 'Global'}),
+    )
   })
 
   it('renders the AI information button', () => {
