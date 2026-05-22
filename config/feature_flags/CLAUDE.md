@@ -7,7 +7,7 @@ feature_name:
   state: hidden|allowed|allowed_on # Feature state (see below)
   display_name: "Human Name"       # UI display name
   description: "What it does"      # Feature description
-  applies_to: RootAccount|Course|SiteAdmin  # Scope level
+  applies_to: SiteAdmin|RootAccount|Account|Course|User|InheritableUser  # Scope level
   shadow: true|false               # Shadow flag (optional)
   root_opt_in: true|false         # Root account opt-in required
   environments:                    # Environment-specific overrides
@@ -85,10 +85,18 @@ const isFeatureEnabled = ENV.FEATURES?.my_feature || false
 - Consider `root_opt_in` for gradual rollouts
 
 ## Applies To Scopes
-- **RootAccount**: Feature applies to entire root account and sub-accounts
-- **Course**: Feature can be enabled per course
+
+`applies_to` describes the scope of contexts that can manage the flag.
+
 - **SiteAdmin**: Feature only available to site administrators
-- **User**: Feature applies to individual users (rare)
+- **RootAccount**: Feature applies to entire root account and sub-accounts
+- **Account**: Feature can be controlled per account (and parent accounts)
+- **Course**: Feature can be enabled per course
+- **User**: Feature applies to individual users (toggled by the user or site admin)
+- **InheritableUser**: Per-user feature whose default can be set on a root account; the root account flag is inherited by all users in that root account (lookup walks SiteAdmin -> RootAccount -> User; the first locked ancestor wins, otherwise the most specific override applies)
+
+### Hidden Feature Visibility
+For `hidden` features, visibility is gated by `feature_def.hidden?` plus per-level `can_override?`: site admin always sees them, and lower levels only see the feature once an ancestor with `can_override?` opts in.
 
 ## Root Opt-in
 - `root_opt_in: true` requires root account to explicitly enable before sub-accounts can use

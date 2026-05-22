@@ -114,7 +114,10 @@ class Feature
   #   automatic_essay_grading: {
   #     display_name: -> { I18n.t('features.automatic_essay_grading', 'Automatic Essay Grading') },
   #     description: -> { I18n.t('features.automatic_essay_grading_description, 'Popup text describing the feature goes here') },
-  #     applies_to: 'Course',     # or 'RootAccount' or 'Account' or 'User'
+  #     applies_to: 'Course',     # or 'SiteAdmin', 'RootAccount', 'Account', 'User', or 'InheritableUser'
+  #                               # - 'InheritableUser': per-user feature whose default can be set on a root
+  #                               #   account; lookup walks SiteAdmin -> RootAccount -> User, first locked
+  #                               #   ancestor wins, otherwise the most specific override applies
   #     state: 'allowed',         # or 'on', 'hidden', or 'disabled'
   #                               # - 'hidden' means the feature must be set by a site admin before it will be visible
   #                               #   (in that context and below) to other users
@@ -157,7 +160,8 @@ class Feature
   STATE_DISABLED = "disabled"
 
   VALID_STATES = [STATE_ON, STATE_DEFAULT_OFF, STATE_DEFAULT_ON, STATE_HIDDEN, STATE_DISABLED].freeze
-  VALID_APPLIES_TO = %w[Course Account RootAccount User InheritableUser SiteAdmin].freeze
+  # keep in sync with config/feature_flags/CLAUDE.md and feature_flags_controller.rb FeatureFlag doc
+  VALID_APPLIES_TO = %w[SiteAdmin RootAccount Account Course User InheritableUser].freeze
   VALID_ENVS = %i[development ci beta test production].freeze
   VALID_TYPES = %w[feature_option setting].freeze
 
