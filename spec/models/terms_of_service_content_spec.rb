@@ -17,6 +17,10 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 describe TermsOfServiceContent do
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { TermsOfServiceContent.new }
+  end
+
   before :once do
     @ac = account_model
     @user = user_model
