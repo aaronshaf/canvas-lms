@@ -460,6 +460,47 @@ describe FeatureFlags do
         end
       end
 
+      context "with a real consortium parent via the federated-parent hook" do
+        let(:consortium_parent) { account_model }
+        let(:current_dra) { t_root_account }
+
+        include_context "with saved current_domain_root_account"
+
+        before do
+          # add_site_admin_to_chain! calls add_federated_parent_to_chain! before
+          # appending site_admin, so the chain becomes
+          # [t_root_account, consortium_parent, site_admin]; after the .reverse
+          # in inheritable_user_account_ids the account walk is
+          # [site_admin, consortium_parent, t_root_account], then
+          # lookup_feature_flag checks the user-level override last.
+          allow(Account).to receive(:add_federated_parent_to_chain!).and_wrap_original do |original, chain|
+            original.call(chain)
+            chain << consortium_parent
+            chain
+          end
+        end
+
+        it "honors a flag set on the consortium parent" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq consortium_parent
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "lets the current root account override consortium 'allowed_on'" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "does not let the root account override a locked consortium flag" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq consortium_parent
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+      end
+
       context "cross-shard" do
         specs_require_sharding
 
