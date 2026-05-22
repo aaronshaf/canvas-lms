@@ -20,8 +20,6 @@
 
 # @API Services
 class ServicesApiController < ApplicationController
-  before_action :get_context, only: [:rce_config]
-
   # @API Get Kaltura config
   # Return the config information for the Kaltura plugin in json format.
   #
@@ -111,6 +109,8 @@ class ServicesApiController < ApplicationController
   end
 
   def rce_config
+    get_context(allow_query_params: true)
+
     @include_js_env = true
     inst = inst_env || {}
     env = rce_js_env || {}

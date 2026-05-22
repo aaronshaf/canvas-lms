@@ -290,4 +290,18 @@ describe "site-wide" do
       expect(html.at_css("body.full-width")).not_to be_nil
     end
   end
+
+  context "get_context" do
+    it "checks only path params" do
+      course_with_teacher(active_all: true)
+      student_in_course(active_all: true)
+      user_session @student
+      get "/calendar?user_id=#{@teacher.id}"
+      expect(response).to be_successful
+      html = Nokogiri::HTML5(response.body)
+      body_classes = html.css("body").attribute("class").value
+      expect(body_classes).to include(@student.asset_string)
+      expect(body_classes).not_to include(@teacher.asset_string)
+    end
+  end
 end

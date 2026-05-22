@@ -138,6 +138,8 @@ describe "Services API", type: :request do
                          format: "json",
                          course_id: @course.to_param
                        },
+                       {},
+                       {},
                        { expected_status: 200 }).deep_symbolize_keys
     end
 

@@ -1547,10 +1547,18 @@ class ApplicationController < ActionController::Base
   # to.  So /courses/5/assignments would have a @context=Course.find(5).
   # Also assigns @context_membership to the membership type of @current_user
   # if @current_user is a member of the context.
-  def get_context(user_scope: nil)
+  def get_context(user_scope: nil, allow_query_params: false)
+    # check only path parameters for context ids, to avoid the possibility of
+    # unexpected query params setting @context to an arbitrary object
+    path_params = if allow_query_params || (Rails.env.test? && request.is_a?(ActionController::TestRequest))
+                    ->(key) { params[key] }
+                  else
+                    ->(key) { request.path_parameters[key] }
+                  end
+
     GuardRail.activate(:secondary) do
       unless @context
-        if params[:course_id]
+        if path_params[:course_id] || (@section && (params[:course_id].to_i == @section.course_id))
           course_scope = @token ? Course : Course.active
           @context = api_find(course_scope, params[:course_id])
           @context.root_account = @domain_root_account if @context.root_account_id == @domain_root_account.id # no sense in refetching it
@@ -1562,7 +1570,7 @@ class ApplicationController < ActionController::Base
           end
           @context_membership = @context_enrollment
           check_for_readonly_enrollment_state
-        elsif params[:account_id] || (is_a?(AccountsController) && (params[:account_id] = params[:id]))
+        elsif path_params[:account_id] || (is_a?(AccountsController) && (params[:account_id] = path_params[:id]))
           account_scope = (params.dig(:account, :event) && params[:account][:event] == "restore") ? Account : Account.active
           @context = api_find(account_scope, params[:account_id])
           params[:context_id] = @context.id
@@ -1570,22 +1578,22 @@ class ApplicationController < ActionController::Base
           @context_enrollment = @context.account_users.active.where(user_id: @current_user.id).first if @context && @current_user
           @context_membership = @context_enrollment
           @account = @context
-        elsif params[:group_id]
+        elsif path_params[:group_id]
           @context = api_find(Group.active, params[:group_id])
           params[:context_id] = params[:group_id]
           params[:context_type] = "Group"
           @context_enrollment = @context.group_memberships.where(user_id: @current_user).first if @context && @current_user
           @context_membership = @context_enrollment
-        elsif params[:user_id] || (is_a?(UsersController) && (params[:user_id] = params[:id]))
+        elsif path_params[:user_id] || (is_a?(UsersController) && (params[:user_id] = path_params[:id]))
           @context = api_find(user_scope || User.active, params[:user_id])
           params[:context_id] = params[:user_id]
           params[:context_type] = "User"
           @context_membership = @context if @context == @current_user
-        elsif params[:course_section_id] || (is_a?(SectionsController) && (params[:course_section_id] = params[:id]))
+        elsif path_params[:course_section_id] || (is_a?(SectionsController) && (params[:course_section_id] = path_params[:id]))
           params[:context_id] = params[:course_section_id]
           params[:context_type] = "CourseSection"
           @context = api_find(CourseSection, params[:course_section_id])
-        elsif params[:assessment_question_id]
+        elsif path_params[:assessment_question_id]
           params[:context_id] = params[:assessment_question_id]
           params[:context_type] = "AssessmentQuestion"
           @context = api_find(AssessmentQuestion, params[:assessment_question_id])
@@ -3180,7 +3188,7 @@ class ApplicationController < ActionController::Base
   helper_method :get_active_tab
 
   def get_course_from_section
-    if params[:section_id]
+    if request.path_parameters[:section_id]
       @section = api_find(CourseSection, params.delete(:section_id))
       params[:course_id] = @section.course_id
     end
