@@ -259,12 +259,18 @@ describe('addHTMLFeedback — XSS prevention', () => {
     return $template
   }
 
+  let _savedGetTemplateData: unknown
+
   beforeEach(() => {
+    _savedGetTemplateData = ($ as any).fn.getTemplateData
     delete (window as any).__xss_fired
     buildQuestionFormTemplate()
   })
 
   afterEach(() => {
+    // buildFeedbackFixture overrides $.fn.getTemplateData; restore it so later
+    // describe blocks still see the real implementation.
+    ;($ as any).fn.getTemplateData = _savedGetTemplateData
     $fixture?.remove()
     $('#question_form_template').remove()
     document.body.innerHTML = ''
