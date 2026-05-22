@@ -8,6 +8,7 @@
     <div class="control-group">
       <label class="control-label" for="ag_{{label_id}}_name">
         {{#t "group_name"}}Group Name:{{/t}}
+        <span id="ag_{{label_id}}_name_asterisk" aria-hidden="true">*</span>
       </label>
       <div class="controls">
         <input
@@ -16,6 +17,7 @@
           name="name"
           value="{{name}}"
           placeholder='{{#t "example_group_name"}}e.g., Essay Group 1{{/t}}'
+          aria-required="true"
         />
         <div id="ag_{{label_id}}_name_errors"></div>
       </div>

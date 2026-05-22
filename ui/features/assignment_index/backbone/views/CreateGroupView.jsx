@@ -253,7 +253,7 @@ class CreateGroupView extends DialogFormView {
     const container = this.getElement(selector)
     if (container) {
       container.classList.add('error-outline')
-      container.setAttribute('aria-label', message)
+      container.setAttribute('aria-describedby', `${fieldSelector}_errors`)
     }
     const errorsContainer = this.getElement(`#${fieldSelector}_errors`)
     if (errorsContainer) {
@@ -285,7 +285,7 @@ class CreateGroupView extends DialogFormView {
     const selector = this.isDropInput(field) ? `.${fieldSelector}_container` : `#${fieldSelector}`
     const container = this.getElement(selector)
     container?.classList.remove('error-outline')
-    container?.removeAttribute('aria-label')
+    container?.removeAttribute('aria-describedby')
     this.errorRoots[field]?.unmount()
     delete this.errorRoots[field]
   }

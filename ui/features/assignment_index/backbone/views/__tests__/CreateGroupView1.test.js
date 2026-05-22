@@ -228,4 +228,58 @@ describe('CreateGroupView', () => {
     expect($title).toHaveLength(1)
     expect($title[0].tagName).toBe('H2')
   })
+
+  test('showInputError uses aria-describedby not aria-label on the name input', () => {
+    view = createView()
+    document.getElementById('fixtures').appendChild(view.el)
+    view.render()
+
+    view.showInputError('name', 'Group Name is required')
+
+    const input = view.$('#ag_0_name')[0]
+    expect(input).not.toHaveAttribute('aria-label')
+    expect(input).toHaveAttribute('aria-describedby', 'ag_0_name_errors')
+  })
+
+  test('hideErrors removes aria-describedby from the name input', () => {
+    view = createView()
+    document.getElementById('fixtures').appendChild(view.el)
+    view.render()
+
+    view.showInputError('name', 'Group Name is required')
+    view.hideErrors('name')
+
+    const input = view.$('#ag_0_name')[0]
+    expect(input).not.toHaveAttribute('aria-describedby')
+  })
+
+  test('Group Name input is aria-required with aria-hidden asterisk in label (new group)', () => {
+    view = createView({newGroup: true})
+    document.getElementById('fixtures').appendChild(view.el)
+    view.render()
+
+    const input = view.$('#ag_new_name')[0]
+    expect(input).toBeTruthy()
+    expect(input).toHaveAttribute('aria-required', 'true')
+
+    const asterisk = view.$('#ag_new_name_asterisk')[0]
+    expect(asterisk).toBeTruthy()
+    expect(asterisk).toHaveAttribute('aria-hidden', 'true')
+    expect(asterisk.textContent.trim()).toBe('*')
+  })
+
+  test('Group Name input is aria-required with aria-hidden asterisk in label (edit group)', () => {
+    view = createView()
+    document.getElementById('fixtures').appendChild(view.el)
+    view.render()
+
+    const input = view.$('#ag_0_name')[0]
+    expect(input).toBeTruthy()
+    expect(input).toHaveAttribute('aria-required', 'true')
+
+    const asterisk = view.$('#ag_0_name_asterisk')[0]
+    expect(asterisk).toBeTruthy()
+    expect(asterisk).toHaveAttribute('aria-hidden', 'true')
+    expect(asterisk.textContent.trim()).toBe('*')
+  })
 })
