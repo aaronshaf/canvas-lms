@@ -3239,6 +3239,11 @@
   dependencies:
     uuid "^9.0.0"
 
+"@instructure/platform-sanitize@0.3.11":
+  version "0.3.11"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.11.tgz#01d9d6e6cfe419fce1f52b16fe12300eff0abd62"
+  integrity sha512-JfSDeC+e8m98Eyc4EcWsBJpdPotpGtw7tRLKsufT4DJbam4ld8QTWklf4u4StAqgOggsaPxHbFAjLSZkuVDmpg==
+
 "@instructure/platform-sanitize@0.3.4":
   version "0.3.4"
   resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.4.tgz#36104657fd8561f7460e32927a1c5ac0250382dc"
