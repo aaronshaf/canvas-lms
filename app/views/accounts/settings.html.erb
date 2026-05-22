@@ -599,8 +599,14 @@
           <fieldset>
             <legend><%= t("Content Privacy Settings") %></legend>
             <%= f.fields_for :settings do |settings| %>
-              <%= settings.check_box :has_underage_users, checked: @account.settings[:has_underage_users] %>
-              <%= settings.label :has_underage_users, t("This account has underage users")%>
+              <div>
+                <%= settings.check_box :has_underage_users, checked: @account.settings[:has_underage_users] %>
+                <%= settings.label :has_underage_users, t("This account has underage users")%>
+              </div>
+              <div>
+                <%= settings.check_box :only_impact_guide_events, checked: @account.settings[:only_impact_guide_events] %>
+                <%= settings.label :only_impact_guide_events, t("Send only Impact guide events")%>
+              </div>
             <% end %>
           </fieldset>
         <% end %>

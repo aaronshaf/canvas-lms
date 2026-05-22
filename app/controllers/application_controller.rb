@@ -354,12 +354,15 @@ class ApplicationController < ActionController::Base
         consented_usage_metrics = load_consented_usage_metrics?
         cookie_consent_necessary = cached_features[:cookie_consent_necessary]
         potentially_underage = potentially_underage_user?
+        pendo_extended = cached_features[:pendo_extended]
 
         @js_env[:EXPECTED_USAGE_METRICS_BEHAVIOR] = should_track_usage(
           classic_usage_metrics:,
           consented_usage_metrics:,
           cookie_consent_necessary:,
-          potentially_underage:
+          potentially_underage:,
+          only_impact_guide_events: nil,
+          pendo_extended:
         )
 
         @js_env[:PRE_COOKIE_CONSENT] = if @js_env[:EXPECTED_USAGE_METRICS_BEHAVIOR] == "track_usage"
@@ -443,7 +446,7 @@ class ApplicationController < ActionController::Base
                                     elsif @context.is_a?(Course)
                                       @context.account.horizon_account?
                                     end
-        if (load_usage_metrics? || load_consented_usage_metrics?) && (@context.is_a?(Course) || @context.is_a?(Account))
+        if (classic_usage_metrics || consented_usage_metrics) && (@context.is_a?(Course) || @context.is_a?(Account))
           @js_env[:FEATURES][:ai_rubrics] = @context.feature_enabled?(:ai_rubrics)
           @js_env[:FEATURES][:discussion_insights] = @context.feature_enabled?(:discussion_insights)
           @js_env[:FEATURES][:discussion_summary] = @context.feature_enabled?(:discussion_summary)
@@ -453,7 +456,7 @@ class ApplicationController < ActionController::Base
           @js_env[:FEATURES][:translation] = @context.feature_enabled?(:translation)
         end
 
-        if (load_usage_metrics? || load_consented_usage_metrics?) && @domain_root_account&.feature_enabled?(:pendo_extended)
+        if (classic_usage_metrics || consented_usage_metrics) && cached_features[:pendo_extended]
           @js_env[:USAGE_METRICS_METADATA] ||= {}
           @js_env[:USAGE_METRICS_METADATA][:instance_domain] = HostUrl.context_host(@domain_root_account, request.host)
           @js_env[:USAGE_METRICS_METADATA][:sub_account_id] = effective_account_attribute(@context, :id)
@@ -3825,18 +3828,26 @@ class ApplicationController < ActionController::Base
     @current_user&.underage? || k12? || @domain_root_account&.settings&.dig(:has_underage_users) || k5_user?
   end
 
-  def should_track_usage(classic_usage_metrics: nil, consented_usage_metrics: nil, cookie_consent_necessary: nil, potentially_underage: nil)
-    classic_usage_metrics ||= @domain_root_account&.feature_enabled?(:send_usage_metrics) && usage_metrics_api_key.present?
-    consented_usage_metrics ||= @domain_root_account&.feature_enabled?(:send_usage_metrics_after_consent) && usage_metrics_regional_api_key.present? && usage_metrics_regional_api_env.present?
-    cookie_consent_necessary ||= @domain_root_account&.feature_enabled?(:cookie_consent_necessary)
-    potentially_underage ||= potentially_underage_user?
+  def should_track_usage(classic_usage_metrics: nil, consented_usage_metrics: nil, cookie_consent_necessary: nil, potentially_underage: nil, only_impact_guide_events: nil, pendo_extended: nil)
+    classic_usage_metrics = @domain_root_account&.feature_enabled?(:send_usage_metrics) && usage_metrics_api_key.present? if classic_usage_metrics.nil?
+    consented_usage_metrics = @domain_root_account&.feature_enabled?(:send_usage_metrics_after_consent) && usage_metrics_regional_api_key.present? && usage_metrics_regional_api_env.present? if consented_usage_metrics.nil?
+    cookie_consent_necessary = @domain_root_account&.feature_enabled?(:cookie_consent_necessary) if cookie_consent_necessary.nil?
+    pendo_extended = @domain_root_account&.feature_enabled?(:pendo_extended) if pendo_extended.nil?
+    potentially_underage = potentially_underage_user? if potentially_underage.nil?
+    only_impact_guide_events = @domain_root_account&.settings&.dig(:only_impact_guide_events) if only_impact_guide_events.nil?
 
-    if !@current_user || (!consented_usage_metrics && !classic_usage_metrics) || (consented_usage_metrics && potentially_underage)
+    has_usage_metrics = @current_user && (classic_usage_metrics || (consented_usage_metrics && !potentially_underage))
+    only_guide_events = has_usage_metrics && pendo_extended && only_impact_guide_events
+    must_ask_for_consent = has_usage_metrics && !only_guide_events && consented_usage_metrics && cookie_consent_necessary
+
+    if !has_usage_metrics
       "no_track_usage"
-    elsif classic_usage_metrics || (consented_usage_metrics && !cookie_consent_necessary)
-      "track_usage"
-    elsif consented_usage_metrics && cookie_consent_necessary
+    elsif only_guide_events
+      "only_guide_events"
+    elsif must_ask_for_consent
       "ask_for_consent"
+    else
+      "track_usage"
     end
   end
 

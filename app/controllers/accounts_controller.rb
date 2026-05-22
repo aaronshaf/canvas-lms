@@ -2449,6 +2449,7 @@ class AccountsController < ApplicationController
                                    :global_includes,
                                    :google_docs_domain,
                                    :has_underage_users,
+                                   :only_impact_guide_events,
                                    :help_link_icon,
                                    :help_link_name,
                                    :include_integration_ids_in_gradebook_exports,

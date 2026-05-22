@@ -472,6 +472,7 @@ class Account < ApplicationRecord
   add_setting :onetrust_consent_domain_id, root_only: true
   add_setting :has_underage_users, boolean: true, root_only: true, default: false
   add_setting :elevated_auth_provider_global_id, root_only: true
+  add_setting :only_impact_guide_events, boolean: true, root_only: true, default: false
 
   # suppress_notifications can be:
   #   true          - suppress all notifications (backward compatible)

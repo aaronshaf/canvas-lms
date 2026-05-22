@@ -152,6 +152,12 @@ export interface EnvCommon {
   PRE_COOKIE_CONSENT?: string
   PENDO_APP_ID: string
   PENDO_APP_ENV: string
+  EXPECTED_USAGE_METRICS_BEHAVIOR:
+    | 'no_track_usage'
+    | 'track_usage'
+    | 'ask_for_consent'
+    | 'only_guide_events'
+    | string
   ROOT_OUTCOME_GROUP: GroupOutcome
   k12: false
   help_link_name: string

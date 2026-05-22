@@ -34,8 +34,11 @@ const isDevEnv: boolean = ENV && ENV.RAILS_ENVIRONMENT === 'development'
 let libraryInitialized: boolean = false
 let whenPendoReady: Promise<any> | null = null
 let pendoInitializing: boolean = false
-let pendoInitParams: PendoConfig | null = null
+// should be PendoConfig, but we need support on excludeNonGuideAnalytics
+// which is not yet in the type definition
+let pendoInitParams: any = null
 let thePendo: any = null
+let pendoInImpactMode: boolean = ENV.FEATURES.pendo_extended === true
 let debuglog: (msg: string) => void
 
 function initializeLib(): void {
@@ -68,6 +71,7 @@ function initializeLib(): void {
           initializePendo()
         } else if (!pendoInitializing && thePendo && !thePendo.isReady()) {
           debuglog('Restarting Pendo.')
+          pendoInitParams['excludeNonGuideAnalytics'] = false
           thePendo.initialize(pendoInitParams)
           whenPendoReady = Promise.resolve(thePendo)
         }
@@ -78,13 +82,11 @@ function initializeLib(): void {
           debuglog('Pendo is still initializing, will teardown once ready.')
           whenPendoReady.then(() => {
             debuglog('Pendo finished initializing, now tearing down due to revoked consent.')
-            thePendo?.teardown()
-            whenPendoReady = Promise.resolve(null)
+            deInitializePendo()
           })
         } else if (thePendo && thePendo.isReady()) {
           debuglog('Tearing down Pendo immediately due to revoked consent.')
-          thePendo.teardown()
-          whenPendoReady = Promise.resolve(null)
+          deInitializePendo()
         }
       }
     })
@@ -95,8 +97,12 @@ export async function initializePendo() {
   initializeLib()
 
   if (window.CANVAS_COOKIE_CONSENT_STATE !== true) {
-    debuglog('User has not consented to cookies. Pendo will not be initialized.')
-    return Promise.resolve(null)
+    if (pendoInImpactMode || ENV.EXPECTED_USAGE_METRICS_BEHAVIOR === 'only_guide_events') {
+      debuglog('Pendo will be initialized in only_guide_events mode due to account settings.')
+    } else {
+      debuglog('User has not consented to cookies. Pendo will not be initialized.')
+      return Promise.resolve(null)
+    }
   }
 
   if (!whenPendoReady) {
@@ -128,11 +134,27 @@ export async function initializePendo() {
   return whenPendoReady
 }
 
+function deInitializePendo() {
+  thePendo?.teardown()
+  whenPendoReady = Promise.resolve(null)
+  if (pendoInImpactMode) {
+    pendoInitParams['excludeNonGuideAnalytics'] = true
+    thePendo?.initialize(pendoInitParams)
+    whenPendoReady = Promise.resolve(thePendo)
+  }
+}
+
 function init(): Promise<any> | null {
   if (!ENV.PENDO_APP_ID) return null
 
   // Lazy-load Pendo only when needed (e.g., in browser)
   return import('@pendo/agent').then(({initialize, Replay, VocPortal}) => {
+    let eNGA: boolean = false
+    if (window.CANVAS_COOKIE_CONSENT_STATE !== true && pendoInImpactMode) {
+      eNGA = true
+      debuglog('Pendo will use excludeNonGuideAnalytics = true')
+    }
+
     pendoInitParams = {
       apiKey: ENV.PENDO_APP_ID,
       env: ENV.PENDO_APP_ENV,
@@ -140,6 +162,7 @@ function init(): Promise<any> | null {
       account: buildAccountData(ENV),
       globalKey: 'canvasUsageMetrics',
       plugins: [Replay, VocPortal],
+      excludeNonGuideAnalytics: eNGA,
     }
 
     return initialize(pendoInitParams)

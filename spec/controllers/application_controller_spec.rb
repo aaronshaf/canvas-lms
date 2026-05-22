@@ -979,6 +979,20 @@ RSpec.describe ApplicationController do
               expect(controller.send(:should_track_usage)).to eq "ask_for_consent"
             end
           end
+
+          describe "returns only_guide_events" do
+            before do
+              @account.settings[:only_impact_guide_events] = true
+              @account.save
+            end
+
+            it "if SUM/SUMAC is active, pendo_extended is active, and the account setting is true" do
+              controller.instance_variable_set(:@current_user, user_model)
+              @account.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:pendo_extended)
+              expect(controller.send(:should_track_usage)).to eq "only_guide_events"
+            end
+          end
         end
 
         describe "PENDO_APP_ID" do
@@ -1111,23 +1125,25 @@ RSpec.describe ApplicationController do
               @account.enable_feature!(:pendo_extended)
             end
 
-            it "adds extra fields to js_env when enabled and SUM is on" do
-              @account.enable_feature!(:send_usage_metrics)
-              mock_dynamic_settings_for_pendo_cc("pendos!")
-              expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
-            end
+            describe "extra fields behavior" do
+              it "adds extra fields to js_env when enabled and SUM is on" do
+                @account.enable_feature!(:send_usage_metrics)
+                mock_dynamic_settings_for_pendo_cc("pendos!")
+                expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
+              end
 
-            it "adds extra fields to js_env when enabled and SUMAC is on" do
-              @account.enable_feature!(:send_usage_metrics_after_consent)
-              mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp")
-              expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
-            end
+              it "adds extra fields to js_env when enabled and SUMAC is on" do
+                @account.enable_feature!(:send_usage_metrics_after_consent)
+                mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp")
+                expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
+              end
 
-            it "does not add extra fields to js_env when enabled but SUM and SUMAC are off" do
-              @account.disable_feature!(:send_usage_metrics)
-              @account.disable_feature!(:send_usage_metrics_after_consent)
-              mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "jp")
-              expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+              it "does not add extra fields to js_env when enabled but SUM and SUMAC are off" do
+                @account.disable_feature!(:send_usage_metrics)
+                @account.disable_feature!(:send_usage_metrics_after_consent)
+                mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "jp")
+                expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+              end
             end
           end
         end
