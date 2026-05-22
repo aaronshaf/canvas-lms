@@ -229,6 +229,27 @@ describe Login::OtpController do
         expect(session[:mfa_verified_ips]).to eq %w[1.1.1.1 2.2.2.2 3.3.3.3]
       end
 
+      it "stores the request UA hash in mfa_verified_uas" do
+        request.env["HTTP_USER_AGENT"] = "Mozilla/5.0 (test browser)"
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_uas]).to include(Digest::MD5.hexdigest("Mozilla/5.0 (test browser)"))
+      end
+
+      it "evicts the oldest UA when the verified list is full" do
+        request.env["HTTP_USER_AGENT"] = "browser-6"
+        session[:mfa_verified_uas] = %w[a b c d e]
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_uas]).to eq ["b", "c", "d", "e", Digest::MD5.hexdigest("browser-6")]
+      end
+
+      it "does not duplicate a UA already in the verified list" do
+        request.env["HTTP_USER_AGENT"] = "browser-3"
+        ua3 = Digest::MD5.hexdigest("browser-3")
+        session[:mfa_verified_uas] = ["a", ua3, "b"]
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_uas]).to eq ["a", "b", ua3]
+      end
+
       it "continues to the dashboard if part of the login flow" do
         session[:pending_otp] = true
         post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
@@ -304,6 +325,23 @@ describe Login::OtpController do
         code = ROTP::TOTP.new(@user.otp_secret_key).now
         post :create, params: { otp_login: { verification_code: code } }
         expect(session[:mfa_verified_ips]).to include(request.remote_ip)
+      end
+
+      it "is not blocked by a UA mismatch" do
+        request.env["HTTP_USER_AGENT"] = "Mozilla/5.0 (new browser)"
+        session[:mfa_verified_uas] = [Digest::MD5.hexdigest("Mozilla/5.0 (old browser)")]
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) do
+          code = ROTP::TOTP.new(@user.otp_secret_key).now
+          post :create, params: { otp_login: { verification_code: code } }
+        end
+        expect(response).to redirect_to dashboard_url(login_success: 1)
+      end
+
+      it "stores the request UA hash in the session as mfa_verified_uas" do
+        request.env["HTTP_USER_AGENT"] = "Mozilla/5.0 (test browser)"
+        code = ROTP::TOTP.new(@user.otp_secret_key).now
+        post :create, params: { otp_login: { verification_code: code } }
+        expect(session[:mfa_verified_uas]).to include(Digest::MD5.hexdigest("Mozilla/5.0 (test browser)"))
       end
 
       it "verifies a code entered with spaces" do
@@ -606,6 +644,29 @@ describe Login::OtpController do
       expect(response).to redirect_to(otp_login_url)
       expect(session[:pending_otp]).to be_truthy
       expect(@user.reload.otp_secret_key).not_to be_nil
+    end
+
+    it "enforces UA check on destroy" do
+      request.env["HTTP_USER_AGENT"] = "Mozilla/5.0 (new browser)"
+      session[:mfa_verified_ips] = [request.remote_ip]
+      session[:mfa_verified_uas] = [Digest::MD5.hexdigest("Mozilla/5.0 (old browser)")]
+      override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_all_mfa_users" => true } } }) do
+        delete :destroy, params: { user_id: "self" }
+      end
+      expect(response).to redirect_to(otp_login_url)
+      expect(session[:pending_otp]).to be_truthy
+      expect(@user.reload.otp_secret_key).not_to be_nil
+    end
+
+    it "allows destroy when both the IP and UA hash match" do
+      request.env["HTTP_USER_AGENT"] = "Mozilla/5.0 (test browser)"
+      session[:mfa_verified_ips] = [request.remote_ip]
+      session[:mfa_verified_uas] = [Digest::MD5.hexdigest("Mozilla/5.0 (test browser)")]
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true, "mfa_ua_enforce_all_mfa_users" => true } } }) do
+        delete :destroy, params: { user_id: "self" }
+      end
+      expect(response).to be_successful
+      expect(@user.reload.otp_secret_key).to be_nil
     end
   end
 end

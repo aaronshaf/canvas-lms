@@ -28,7 +28,7 @@ class Login::OtpController < ApplicationController
   before_action :require_password_session
   before_action :forbid_on_files_domain
   skip_before_action :require_password_reset
-  skip_before_action :check_mfa_ips, except: :destroy
+  skip_before_action :check_mfa_ips_and_user_agents, except: :destroy
 
   def new
     # if we waiting on OTP for login, but we're not yet configured, start configuring
@@ -138,7 +138,7 @@ class Login::OtpController < ApplicationController
       if session.delete(:pending_otp)
         successful_login(@current_user, @current_pseudonym, otp_passed: true)
       else
-        add_mfa_verified_ip
+        add_mfa_verified_ip_and_user_agent
         respond_to do |format|
           format.html do
             flash[:notice] = t "Multi-factor authentication configured"

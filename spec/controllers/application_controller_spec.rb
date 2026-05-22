@@ -4841,7 +4841,7 @@ RSpec.describe ApplicationController, "#require_password_reset" do
   end
 end
 
-RSpec.describe ApplicationController, "#check_mfa_ips" do
+RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
   controller do
     def index
       render json: { ok: true }
@@ -5022,6 +5022,116 @@ RSpec.describe ApplicationController, "#check_mfa_ips" do
       context "for a regular user" do
         it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
         it_behaves_like "enforces mfa ip"
+      end
+    end
+  end
+
+  context "user agent verification" do
+    let(:ua) { "Mozilla/5.0 (test browser)" }
+    let(:ua_md5) { Digest::MD5.hexdigest(ua) }
+
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      request.env["HTTP_USER_AGENT"] = ua
+    end
+
+    it "allows the request when both the IP and the UA hash are in the verified lists" do
+      session[:mfa_verified_ips] = [request.remote_ip]
+      session[:mfa_verified_uas] = [ua_md5]
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true, "mfa_ua_enforce_all_mfa_users" => true } } }) do
+        get :index, format: :html
+      end
+      expect(response).to be_successful
+    end
+
+    it "compares against the MD5 hash, not the raw UA string" do
+      session[:mfa_verified_ips] = [request.remote_ip]
+      session[:mfa_verified_uas] = [ua]
+      override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_all_mfa_users" => true } } }) do
+        get :index, format: :html
+      end
+      expect(response).to redirect_to(otp_login_url)
+    end
+
+    context "when only the UA differs from stored UAs (IP matches)" do
+      before do
+        session[:mfa_verified_ips] = [request.remote_ip]
+        session[:mfa_verified_uas] = [Digest::MD5.hexdigest("a different browser")]
+      end
+
+      it "emits canvas.mfa_ua_mismatch tagged user_type:regular" do
+        allow(InstStatsd::Statsd).to receive(:increment)
+        expect(InstStatsd::Statsd).to receive(:increment)
+          .with("canvas.mfa_ua_mismatch", tags: { user_type: "regular" })
+        get :index, format: :html
+      end
+
+      it "does not emit canvas.mfa_ip_mismatch" do
+        allow(InstStatsd::Statsd).to receive(:increment)
+        get :index, format: :html
+        expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ip_mismatch", anything)
+      end
+
+      context "with no UA enforcement keys set" do
+        around { |example| override_dynamic_settings({}) { example.run } }
+
+        it_behaves_like "allows request through"
+      end
+
+      context "with mfa_ua_enforce_all_mfa_users: true" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_all_mfa_users" => true } } }) { example.run }
+        end
+
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "with mfa_ua_enforce_site_admins: true" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_site_admins" => true } } }) { example.run }
+        end
+
+        context "for a site admin" do
+          let(:user) { site_admin_user }
+
+          it_behaves_like "enforces mfa ip"
+        end
+
+        context "for a regular user" do
+          it_behaves_like "allows request through"
+        end
+      end
+
+      context "with mfa_ua_enforce_account_admins: true" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_account_admins" => true } } }) { example.run }
+        end
+
+        context "for an account admin" do
+          let(:user) { account_admin_user(account: Account.default) }
+
+          it_behaves_like "enforces mfa ip"
+        end
+
+        context "for a regular user" do
+          it_behaves_like "allows request through"
+        end
+      end
+    end
+
+    context "when both IP and UA differ from stored values" do
+      before do
+        session[:mfa_verified_ips] = ["1.2.3.4"]
+        session[:mfa_verified_uas] = [Digest::MD5.hexdigest("a different browser")]
+        request.env["REMOTE_ADDR"] = "9.9.9.9"
+      end
+
+      it "emits both canvas.mfa_ip_mismatch and canvas.mfa_ua_mismatch" do
+        allow(InstStatsd::Statsd).to receive(:increment)
+        expect(InstStatsd::Statsd).to receive(:increment).with("canvas.mfa_ip_mismatch", tags: { user_type: "regular" })
+        expect(InstStatsd::Statsd).to receive(:increment).with("canvas.mfa_ua_mismatch", tags: { user_type: "regular" })
+        get :index, format: :html
       end
     end
   end

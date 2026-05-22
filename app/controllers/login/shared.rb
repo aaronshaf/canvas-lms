@@ -105,7 +105,7 @@ module Login::Shared
       end
     end
 
-    add_mfa_verified_ip if otp_passed
+    add_mfa_verified_ip_and_user_agent if otp_passed
 
     # ensure the next page rendered includes an instfs pixel to log them in
     # there
@@ -249,10 +249,15 @@ module Login::Shared
     false
   end
 
-  def add_mfa_verified_ip
+  def add_mfa_verified_ip_and_user_agent
     ips = Array(session[:mfa_verified_ips]).reject { |ip| ip == request.remote_ip }
     ips.shift if ips.size >= 5
     session[:mfa_verified_ips] = ips + [request.remote_ip]
+
+    ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
+    uas = Array(session[:mfa_verified_uas]).reject { |ua| ua == ua_md5 }
+    uas.shift if uas.size >= 5
+    session[:mfa_verified_uas] = uas + [ua_md5]
   end
 
   def increment_statsd(counter, tags: {}, action: nil, reason: nil, authentication_provider: nil)

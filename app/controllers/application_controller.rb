@@ -73,7 +73,7 @@ class ApplicationController < ActionController::Base
   before_action :annotate_apm
   before_action :annotate_sentry
   before_action :check_pending_otp
-  before_action :check_mfa_ips
+  before_action :check_mfa_ips_and_user_agents
   before_action :set_user_id_header
   before_action :set_time_zone
   before_action :set_page_view
@@ -1280,12 +1280,17 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def check_mfa_ips
+  def check_mfa_ips_and_user_agents
     return unless logged_in_user
     return unless logged_in_user.canvas_mfa?
 
     verified_ips = session[:mfa_verified_ips]
-    return if verified_ips&.include?(request.remote_ip)
+    ip_match = verified_ips&.include?(request.remote_ip)
+
+    ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
+    verified_uas = session[:mfa_verified_uas]
+    ua_match = verified_uas&.include?(ua_md5)
+    return if ip_match && ua_match
 
     is_site_admin = Account.site_admin.grants_right?(logged_in_user, :read)
     is_account_admin = !is_site_admin && @domain_root_account.cached_all_account_users_for(logged_in_user).any?
@@ -1295,12 +1300,19 @@ class ApplicationController < ActionController::Base
                 else "regular"
                 end
 
-    InstStatsd::Statsd.increment("canvas.mfa_ip_mismatch", tags: { user_type: })
+    InstStatsd::Statsd.increment("canvas.mfa_ip_mismatch", tags: { user_type: }) unless ip_match
+    InstStatsd::Statsd.increment("canvas.mfa_ua_mismatch", tags: { user_type: }) unless ua_match
 
     settings = DynamicSettings.find(tree: :private)
-    enforce = (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
-              (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
-              settings["mfa_ip_enforce_all_mfa_users"]
+    enforce = if !ip_match
+                (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
+                  (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
+                  settings["mfa_ip_enforce_all_mfa_users"]
+              elsif !ua_match
+                (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
+                  (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
+                  settings["mfa_ua_enforce_all_mfa_users"]
+              end
 
     return unless enforce
 
