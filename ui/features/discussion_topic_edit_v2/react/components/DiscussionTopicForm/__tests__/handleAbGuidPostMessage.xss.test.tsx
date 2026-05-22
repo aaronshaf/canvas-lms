@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type {Mock} from 'vitest'
 import {handleAbGuidPostMessage} from '../DiscussionTopicForm'
 
 const VALID_GUID = '1E20776E-7053-11DF-8EBF-BE719DFF4B22'
@@ -32,7 +33,7 @@ const buildPayload = () => ({
 })
 
 describe('handleAbGuidPostMessage — XSS regression at postMessage origin', () => {
-  let setAbGuid: ReturnType<typeof vi.fn>
+  let setAbGuid: Mock<(guids: string[]) => void>
   let originalEnv: typeof window.ENV
 
   beforeEach(() => {
