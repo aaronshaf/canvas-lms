@@ -1169,5 +1169,219 @@ describe "Feature Flags API", type: :request do
                        { domain_root_account: t_root_account })
       expect(t_teacher.feature_flags.where(feature: "inheritable_user_feature").first.state).to eq "on"
     end
+
+    it "resolves to the current domain root account for users in multiple root accounts" do
+      other_root = account_model
+      t_root_account.feature_flags.create!(feature: "inheritable_user_feature", state: "on")
+      other_root.feature_flags.create!(feature: "inheritable_user_feature", state: "off")
+
+      json_home = api_call_as_user(t_teacher,
+                                   :get,
+                                   "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature",
+                                   { controller: "feature_flags", action: "show", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature" },
+                                   {},
+                                   {},
+                                   { domain_root_account: t_root_account })
+      expect(json_home["feature"]).to eq "inheritable_user_feature"
+      expect(json_home["state"]).to eq "on"
+      expect(json_home["context_id"]).to eq t_root_account.id
+
+      json_other = api_call_as_user(t_teacher,
+                                    :get,
+                                    "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature",
+                                    { controller: "feature_flags", action: "show", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature" },
+                                    {},
+                                    {},
+                                    { domain_root_account: other_root })
+      expect(json_other["feature"]).to eq "inheritable_user_feature"
+      expect(json_other["state"]).to eq "off"
+      expect(json_other["context_id"]).to eq other_root.id
+    end
+
+    describe "lifecycle integration" do
+      before do
+        allow(Feature).to receive(:definitions).and_return({
+                                                             "inheritable_user_feature" => Feature.new(feature: "inheritable_user_feature", applies_to: "InheritableUser", state: "allowed"),
+                                                             "hidden_inheritable_user_feature" => Feature.new(feature: "hidden_inheritable_user_feature", applies_to: "InheritableUser", state: "hidden"),
+                                                             "root_opt_in_inheritable_user_feature" => Feature.new(feature: "root_opt_in_inheritable_user_feature", applies_to: "InheritableUser", state: "allowed", root_opt_in: true),
+                                                             "account_feature" => Feature.new(feature: "account_feature", applies_to: "Account", state: "allowed"),
+                                                           })
+      end
+
+      def user_show(state_expected:, locked: nil, context_id: nil, context_type: nil)
+        json = api_call_as_user(t_teacher,
+                                :get,
+                                "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature",
+                                { controller: "feature_flags", action: "show", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature" },
+                                {},
+                                {},
+                                { domain_root_account: t_root_account })
+        expect(json["state"]).to eq state_expected
+        expect(json["locked"]).to eq(locked) unless locked.nil?
+        expect(json["context_id"]).to eq(context_id) unless context_id.nil?
+        expect(json["context_type"]).to eq(context_type) unless context_type.nil?
+        json
+      end
+
+      def user_index(domain_root_account: t_root_account)
+        api_call_as_user(t_teacher,
+                         :get,
+                         "/api/v1/users/#{t_teacher.id}/features",
+                         { controller: "feature_flags", action: "index", format: "json", user_id: t_teacher.to_param },
+                         {},
+                         {},
+                         { domain_root_account: })
+      end
+
+      it "walks SiteAdmin -> RootAccount -> User states end to end over the HTTP API" do
+        allow(LoadAccount).to receive(:from_host).and_return(t_site_admin)
+        api_call_as_user(site_admin_user,
+                         :put,
+                         "/api/v1/accounts/#{t_site_admin.id}/features/flags/inheritable_user_feature?state=allowed_on",
+                         { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "inheritable_user_feature", state: "allowed_on" })
+        expect(t_site_admin.feature_flags.find_by(feature: "inheritable_user_feature").state).to eq "allowed_on"
+        user_show(state_expected: "allowed_on", locked: false)
+
+        api_call_as_user(t_root_admin,
+                         :put,
+                         "/api/v1/accounts/#{t_root_account.id}/features/flags/inheritable_user_feature?state=allowed",
+                         { controller: "feature_flags", action: "update", format: "json", account_id: t_root_account.to_param, feature: "inheritable_user_feature", state: "allowed" })
+        expect(t_root_account.feature_flags.find_by(feature: "inheritable_user_feature").state).to eq "allowed"
+        user_show(state_expected: "allowed", locked: false)
+
+        api_call_as_user(t_teacher,
+                         :put,
+                         "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=on",
+                         { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "on" },
+                         {},
+                         {},
+                         { domain_root_account: t_root_account })
+        expect(t_teacher.feature_flags.find_by(feature: "inheritable_user_feature").state).to eq "on"
+        user_show(state_expected: "on")
+      end
+
+      it "does not audit-log a User-context InheritableUser flag write" do
+        expect(Auditors::FeatureFlag).not_to receive(:record)
+        api_call_as_user(t_teacher,
+                         :put,
+                         "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=on",
+                         { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "on" },
+                         {},
+                         {},
+                         { domain_root_account: t_root_account })
+        expect(t_teacher.feature_flags.find_by(feature: "inheritable_user_feature").state).to eq "on"
+      end
+
+      it "audit-logs a RootAccount-context InheritableUser flag write" do
+        expect(Auditors::FeatureFlag)
+          .to receive(:record)
+          .with(have_attributes(feature: "inheritable_user_feature"), t_root_admin, anything, post_state: "on")
+          .at_least(:once)
+        api_call_as_user(t_root_admin,
+                         :put,
+                         "/api/v1/accounts/#{t_root_account.id}/features/flags/inheritable_user_feature?state=on",
+                         { controller: "feature_flags", action: "update", format: "json", account_id: t_root_account.to_param, feature: "inheritable_user_feature", state: "on" })
+        expect(t_root_account.feature_flags.find_by(feature: "inheritable_user_feature").state).to eq "on"
+      end
+
+      it "DELETE on a user's own InheritableUser flag reverts to the root-account default" do
+        t_root_account.feature_flags.create!(feature: "inheritable_user_feature", state: "allowed_on")
+        t_teacher.feature_flags.create!(feature: "inheritable_user_feature", state: "off")
+        user_show(state_expected: "off", context_id: t_teacher.id, context_type: "User")
+
+        api_call_as_user(t_teacher,
+                         :delete,
+                         "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature",
+                         { controller: "feature_flags", action: "delete", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature" },
+                         {},
+                         {},
+                         { domain_root_account: t_root_account })
+
+        expect(t_teacher.feature_flags.where(feature: "inheritable_user_feature")).not_to be_any
+        user_show(state_expected: "allowed_on", context_id: t_root_account.id, context_type: "Account")
+      end
+
+      it "treats a SiteAdmin lock as binding for the user via the API" do
+        user_flag = t_teacher.feature_flags.create!(feature: "inheritable_user_feature", state: "on")
+        t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+
+        user_show(state_expected: "off", locked: true, context_id: t_site_admin.id, context_type: "Account")
+
+        api_call_as_user(t_teacher,
+                         :put,
+                         "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=on",
+                         { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "on" },
+                         {},
+                         {},
+                         { domain_root_account: t_root_account, expected_status: 403 })
+
+        expect(user_flag.reload.state).to eq "on"
+        user_show(state_expected: "off", locked: true, context_id: t_site_admin.id, context_type: "Account")
+      end
+
+      it "treats a RootAccount off-lock as binding for the user via the API" do
+        user_flag = t_teacher.feature_flags.create!(feature: "inheritable_user_feature", state: "on")
+        t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+
+        user_show(state_expected: "off", locked: true, context_id: t_root_account.id, context_type: "Account")
+
+        api_call_as_user(t_teacher,
+                         :put,
+                         "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=on",
+                         { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "on" },
+                         {},
+                         {},
+                         { domain_root_account: t_root_account, expected_status: 403 })
+
+        expect(user_flag.reload.state).to eq "on"
+        user_show(state_expected: "off", locked: true, context_id: t_root_account.id, context_type: "Account")
+      end
+
+      it "does not include InheritableUser features in GET features for course" do
+        json = api_call_as_user(t_teacher,
+                                :get,
+                                "/api/v1/courses/#{t_course.id}/features",
+                                { controller: "feature_flags", action: "index", format: "json", course_id: t_course.to_param })
+        features = json.pluck("feature")
+        expect(features).not_to include("inheritable_user_feature")
+      end
+
+      it "rejects PUT InheritableUser flag on course" do
+        json = api_call_as_user(t_root_admin,
+                                :put,
+                                "/api/v1/courses/#{t_course.id}/features/flags/inheritable_user_feature?state=on",
+                                { controller: "feature_flags", action: "update", format: "json", course_id: t_course.to_param, feature: "inheritable_user_feature", state: "on" },
+                                {},
+                                {},
+                                { expected_status: 400 })
+        expect(json["message"]).to eq("invalid feature")
+        expect(t_course.feature_flags.where(feature: "inheritable_user_feature")).not_to be_any
+      end
+
+      it "hides root_opt_in InheritableUser features until the root account opts in" do
+        expect(user_index.pluck("feature")).not_to include("root_opt_in_inheritable_user_feature")
+
+        api_call_as_user(t_root_admin,
+                         :put,
+                         "/api/v1/accounts/#{t_root_account.id}/features/flags/root_opt_in_inheritable_user_feature?state=allowed",
+                         { controller: "feature_flags", action: "update", format: "json", account_id: t_root_account.to_param, feature: "root_opt_in_inheritable_user_feature", state: "allowed" })
+
+        opted_in = user_index.find { |f| f["feature"] == "root_opt_in_inheritable_user_feature" }
+        expect(opted_in).not_to be_nil
+        expect(opted_in["feature_flag"]["state"]).to eq "allowed"
+      end
+
+      it "hides hidden InheritableUser features until a SiteAdmin unhides them" do
+        expect(user_index.pluck("feature")).not_to include("hidden_inheritable_user_feature")
+
+        allow(LoadAccount).to receive(:from_host).and_return(t_site_admin)
+        api_call_as_user(site_admin_user,
+                         :put,
+                         "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_inheritable_user_feature?state=allowed",
+                         { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "hidden_inheritable_user_feature", state: "allowed" })
+
+        expect(user_index.pluck("feature")).to include("hidden_inheritable_user_feature")
+      end
+    end
   end
 end

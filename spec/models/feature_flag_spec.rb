@@ -122,6 +122,12 @@ describe FeatureFlag do
         expect(flag.errors[:feature].first).to eq("does not apply to context")
       end
 
+      # Group has no feature_flags association; assert the underlying Feature contract directly.
+      it "does not apply to a group context" do
+        group = group_model(context: t_root_account)
+        expect(Feature.feature_applies_to_object("inheritable_user_feature", group)).to be false
+      end
+
       it "populates root_account_ids from the account when an InheritableUser flag is saved on a root account" do
         flag = t_root_account.feature_flags.create!(feature: "inheritable_user_feature", state: "allowed")
         expect(flag.root_account_ids).to eq([t_root_account.id])
