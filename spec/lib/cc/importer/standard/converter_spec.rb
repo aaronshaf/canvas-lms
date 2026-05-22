@@ -27,14 +27,14 @@ RSpec.describe CC::Importer::Standard::Converter do
   describe "#replace_urls" do
     subject { described_class.new(unzipped_file_path:) }
 
-    it "handles deeply nested html up to depth of 1_000" do
-      html = "<html><body>" + ("<div>" * 998) + ("</div>" * 998) + "</body></html>"
+    it "handles deeply nested html up to depth of 10_000" do
+      html = "<html><body>" + ("<div>" * 9_998) + ("</div>" * 9_998) + "</body></html>"
 
       expect { subject.replace_urls(html) }.not_to raise_error
     end
 
-    it "raises error when html is beyond depth of 1_000" do
-      html = "<html><body>" + ("<div>" * 999) + ("</div>" * 999) + "</body></html>"
+    it "raises error when html is beyond depth of 10_000" do
+      html = "<html><body>" + ("<div>" * 9_999) + ("</div>" * 9_999) + "</body></html>"
 
       expect { subject.replace_urls(html) }.to raise_error("Document tree depth limit exceeded")
     end

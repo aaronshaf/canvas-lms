@@ -20,16 +20,16 @@ RSpec.describe Canvas::Migration::XMLHelper do
   let(:xml_helper) { Class.new { extend Canvas::Migration::XMLHelper } }
 
   describe "#open_file_html5" do
-    it "handles deeply nested html up to depth of 1_000" do
-      html = "<html><body>" + ("<div>" * 998) + ("</div>" * 998) + "</body></html>"
+    it "handles deeply nested html up to depth of 10_000" do
+      html = "<html><body>" + ("<div>" * 9_998) + ("</div>" * 9_998) + "</body></html>"
       file = Tempfile.new("html")
       file.write(html)
 
       expect { xml_helper.open_file_html5(file.path) }.not_to raise_error
     end
 
-    it "raises error when html is beyond depth of 1_000" do
-      html = "<html><body>" + ("<div>" * 999) + ("</div>" * 999) + "</body></html>"
+    it "raises error when html is beyond depth of 10_000" do
+      html = "<html><body>" + ("<div>" * 9_999) + ("</div>" * 9_999) + "</body></html>"
       file = Tempfile.new("html")
       file.write(html)
 
