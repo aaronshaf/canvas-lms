@@ -26,7 +26,7 @@ class AssessmentQuestion < ApplicationRecord
   has_many :quiz_questions, class_name: "Quizzes::QuizQuestion"
   has_many :attachments, as: :context, inverse_of: :context
 
-  delegate :context, :context_id, :context_type, to: :assessment_question_bank
+  delegate :context, :context_id, :context_type, to: :assessment_question_bank, allow_nil: true
   attr_accessor :initial_context
 
   belongs_to :assessment_question_bank, touch: true
@@ -66,17 +66,17 @@ class AssessmentQuestion < ApplicationRecord
 
   set_policy do
     given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_edit)
+      context&.grants_right?(user, session, :manage_assignments_edit)
     end
     can :read and can :create and can :update and can :delete
 
     given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_add)
+      context&.grants_right?(user, session, :manage_assignments_add)
     end
     can :read and can :create
 
     given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_delete)
+      context&.grants_right?(user, session, :manage_assignments_delete)
     end
     can :read and can :delete
   end

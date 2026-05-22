@@ -604,4 +604,44 @@ describe AssessmentQuestion do
       end
     end
   end
+
+  describe "with an orphaned bank" do
+    let(:orphan_question) do
+      question = assessment_question_model(bank: @bank)
+      question.update_columns(assessment_question_bank_id: nil)
+      question.reload
+    end
+
+    it "returns nil from #context instead of raising" do
+      expect(orphan_question.context).to be_nil
+    end
+
+    it "returns nil from #context_id instead of raising" do
+      expect(orphan_question.context_id).to be_nil
+    end
+
+    it "returns nil from #context_type instead of raising" do
+      expect(orphan_question.context_type).to be_nil
+    end
+
+    it "denies all granted rights without raising" do
+      expect(orphan_question.grants_right?(@teacher, :read)).to be false
+      expect(orphan_question.grants_right?(@teacher, :update)).to be false
+      expect(orphan_question.grants_right?(@teacher, :delete)).to be false
+      expect(orphan_question.grants_right?(@teacher, :create)).to be false
+    end
+
+    it "denies attachment read for a student whose quiz does not reference the orphan" do
+      attachment = Attachment.create!(
+        filename: "test.jpg",
+        display_name: "test.jpg",
+        uploaded_data: StringIO.new("psych!"),
+        context: orphan_question
+      )
+      student = student_in_course(course: @course, active_all: true).user
+
+      expect(attachment.grants_right?(student, :read)).to be false
+      expect(attachment.grants_right?(student, :download)).to be false
+    end
+  end
 end
