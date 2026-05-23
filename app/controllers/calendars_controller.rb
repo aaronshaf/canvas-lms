@@ -28,6 +28,8 @@ class CalendarsController < ApplicationController
 
   def show
     get_context
+    return unless authorized_action(@context, @current_user, :read)
+
     @show_account_calendars = @current_user.all_account_calendars.any?
     if params[:include_contexts]
       # We had some bad links in ics calendar feeds that tried to link to a course section calendar

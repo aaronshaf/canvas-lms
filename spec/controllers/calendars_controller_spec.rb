@@ -226,6 +226,38 @@ describe CalendarsController do
       expect(InstStatsd::Statsd).to have_received(:distributed_increment).once.with("calendar.visit", tags: %w[enrollment_type:StudentEnrollment enrollment_type:TeacherEnrollment])
     end
 
+    it "checks permission on courses" do
+      get "show", params: { course_id: @course.id }
+      expect(response).to be_successful
+
+      user_factory
+      user_session(@user)
+      get "show", params: { course_id: @course.id }
+      expect(response).to be_unauthorized
+    end
+
+    it "checks permission on groups" do
+      group = @course.groups.create!(name: "Group 1")
+      group.add_user(@student)
+      get "show", params: { group_id: group.id }
+      expect(response).to be_successful
+
+      user_factory
+      user_session(@user)
+      get "show", params: { group_id: group.id }
+      expect(response).to be_unauthorized
+    end
+
+    it "checks permission on users" do
+      get "show", params: { user_id: @student.id }
+      expect(response).to be_successful
+
+      user_factory
+      user_session(@user)
+      get "show", params: { user_id: @student.id }
+      expect(response).to be_unauthorized
+    end
+
     context "with sharding" do
       specs_require_sharding
 
