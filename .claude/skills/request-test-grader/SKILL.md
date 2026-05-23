@@ -21,15 +21,13 @@ allowed_tools:
 
 ## Purpose
 
-Grade exactly one Canvas request test (`it` block) against the rules defined in `.claude/skills/_shared/request-test-rules.md`. Emit a letter grade, a per-rule verdict, and a prioritized list of fixes. Make no changes.
+Grade exactly one Canvas request test (`it` block) against the rules in `.claude/skills/request-test-grader/references/request-test-rules.md`. Make no changes.
 
-This skill is a thin entry point. The actual grading is performed by the `request-test-grader` subagent. The skill's job is input parsing, agent invocation, and relaying the report. **Do not** grade the test yourself in this skill's context — that defeats the agent isolation that the architecture is designed around (see `.claude/skills/request-test-grader/DESIGN.md`).
+This skill is a thin entry point. The `request-test-grader` subagent does the grading; the skill parses input, resolves any description-style target down to `path:line`, invokes the agent, and relays the report. **Do not** grade the test in this skill's context — that defeats the agent isolation the architecture is built around (see `references/design.md`).
 
 ## Workflow
 
 Run the steps in order. Do not narrate transitions — just emit the specified outputs.
-
-The agent only accepts `path:line`. This skill is responsible for collapsing any description-based input down to a single line number before invocation. Ambiguity and "no match" are handled here, not by the agent.
 
 ### 1. Parse the input
 
@@ -61,50 +59,41 @@ Use `Grep` to find lines in the spec file matching `it "<description>"` (substri
    3. `AskUserQuestion` allows at most 4 options. If there are more than 4 candidates, show the first 3 in source order and a fourth option with label `Other` and a description telling the user to re-invoke with a `path:line` target. If the user chooses `Other`, stop and wait for re-invocation; do not try to grade anything.
    4. Take the line number for the selected option from the internal mapping. That is the resolved target. Continue to step 3.
 
-### 3. Spawn the grader agent
+### 3. Verify the target is a request test
 
-Invoke the `request-test-grader` subagent via the Agent tool. The `subagent_type` is `request-test-grader`. The `prompt` is just the resolved target, e.g. `Target: spec/requests/courses_api_spec.rb:42`. The agent owns its own input contract, workflow, and output schema — do not restate them in the prompt. If you find yourself tempted to add instructions, edit the agent file instead.
+The grader applies only to request tests. Before invoking the agent, confirm one of these is true:
 
-The `description` field of the Agent invocation should be a short tag like `Grade <basename>:<line>` — enough for the call to be identifiable in the user's transcript.
+- The path is under `spec/requests/`, `spec/integration/`, or `spec/apis/`, *or*
+- The file declares `type: :request` (e.g., `RSpec.describe "...", type: :request do`). Use `Grep` to check for `type: :request` in the file.
 
-Spawn the agent in the foreground. The user is waiting on the report; backgrounding would only make sense if you were doing additional work in parallel, which you are not.
+If neither holds, stop and print exactly one line:
 
-### 4. Relay the report
+```
+The request-test grader applies only to request tests. <path> is not under spec/requests/, spec/integration/, or spec/apis/, and does not declare `type: :request`.
+```
 
-Print the agent's report verbatim. Do not:
+Do not invoke the agent. Model specs, controller specs, service specs, etc. fall outside this grader's scope.
 
-- Reformat it.
-- Add a preamble ("Here's the grade for your test:").
-- Add a summary or interpretation after it.
-- Convert any of its structure to markdown headers, tables, or code blocks beyond what the agent already emitted.
+### 4. Spawn the grader agent
+
+Invoke the `request-test-grader` subagent via the Agent tool, in the foreground.
+
+- **subagent_type:** `request-test-grader`
+- **description:** `Grade <basename>:<line>`
+- **prompt:** the resolved target, e.g. `Target: spec/requests/courses_api_spec.rb:42`
+
+The agent owns its own input contract, workflow, and output schema. Do not restate them in the prompt.
+
+### 5. Relay the report
+
+Print the agent's report verbatim. Do not reformat it, add a preamble, or append a summary.
 
 ## Boundaries
 
-- **Report-only.** This skill does not edit the test, the controller, or any other file. Fixing violations is the user's job (or a separate skill's). If the user asks the skill to fix the violations, suggest they re-invoke the `request-test-writer` skill with the corrected scenario, or apply the fixes manually using the `Top fixes` list as a punch-list.
-- **One `it` per invocation.** This matches the agent's contract. To grade a whole file or directory, invoke this skill once per `it`. (A future batch skill could spawn N agents in parallel — that is out of scope here, intentionally; see `DESIGN.md`.)
-- **No interactive disambiguation of rules.** If the user asks "why did you mark X a ✗?", point them to the rule slug in the report and the shared rules file. The skill does not re-litigate rules; the rules file is the canonical answer.
+- **Report-only.** This skill does not edit any file. To act on violations, re-invoke `request-test-writer` or apply `Top fixes` manually.
+- **One `it` per invocation.** Matches the agent's contract. Grade a whole file by invoking once per `it`.
 
-## What the grader checks
-
-The full list of rules, their reasoning, the severity classifications, and the letter-grade rubric live in:
-
-```
-.claude/skills/_shared/request-test-rules.md
-```
-
-If the user asks what rules the grader applies, `Read` that file and relay its contents (or the relevant section). Do not paraphrase from memory — the file is the authoritative source.
-
-The skill deliberately does **not** `@include` the rules file here. The rules are loaded into the *agent's* context at grade time (the agent `@include`s them); loading them into this skill's main-session context on every invocation would erode the token savings the agent architecture is designed to capture. See `DESIGN.md` for the full reasoning.
-
-## What the grader emits
-
-The output contract (two modes — shape-check refusal and standard grading — plus emission rules) lives in:
-
-```
-.claude/skills/request-test-grader/references/report-template.md
-```
-
-If the user asks what the report looks like or why a particular line in the report is shaped a certain way, `Read` that file and relay the relevant section. Same non-`@include` reasoning as above: the template is in the *agent's* context at grade time, not the skill's.
+If the user asks what rules the grader applies, `Read` `.claude/skills/request-test-grader/references/request-test-rules.md` and relay the relevant section — that is the authoritative source.
 
 ## Example invocations
 

@@ -163,6 +163,8 @@ end
 
 *Why:* A reader of the rspec failure output should be able to identify the bug without re-running the test or reading the test code. Generic matchers like `be_truthy` or `include` produce failure messages that hide the difference between expected and actual; precise matchers surface it.
 
+*Independence from `shape-and-value`:* These two rules cover distinct concerns — assertion *completeness* (does it check the value?) and assertion *precision* (does the matcher produce an informative failure message?) — and fire independently. A shape-only body matcher like `have_key("id")` violates both: `shape-and-value ✗ blocker` for skipping the value check, `precise-matchers ✗ minor` for the uninformative true/false failure message. The grader emits both verdicts deliberately; do not suppress one in favor of the other. A single fix (e.g. switching to `expect(body["id"]).to eq(course.id)`) typically resolves both, but the two signals train the reader to think about both concerns.
+
 ### eql-for-numerics (blocker)
 
 **Use `eql` for numeric assertions where Integer-vs-Float matters; `eq` everywhere else; `be` only for `true` / `false` / `nil` / object-identity.** `eq` uses `==`, which treats `5` and `5.0` as equal — fine for strings, IDs, arrays, hashes, and custom objects. For numeric fields whose type is part of the response contract (scores, points_possible, percentages), use `eql` — it uses `.eql?` and refuses to call `5` and `5.0` equal. Example: `expect(response.parsed_body["points_possible"]).to eql(10)` catches a serializer regression that flips the value to `10.0`; `eq(10)` would silently pass.

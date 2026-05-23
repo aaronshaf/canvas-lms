@@ -66,7 +66,7 @@ To use the skill in red-phase TDD, satisfy the precondition before invoking:
 
 This contract keeps the writer single-purpose ("test an existing action") and gives TDD users a predictable failure mode (route resolves → write proceeds → Run fails loudly), instead of a half-broken workflow that proceeds into steps that assume controller behavior exists.
 
-The central principle, the test contract, the key distinctions about what is and isn't part of the system under test, and the full rule set this skill enforces are defined in `@../_shared/request-test-rules.md` and included below. Two writer-specific operational notes that don't appear there:
+The central principle, the test contract, the key distinctions about what is and isn't part of the system under test, and the full rule set this skill enforces are defined in `@../request-test-grader/references/request-test-rules.md` and included below. Two writer-specific operational notes that don't appear there:
 
 - **Encourage breadth.** When a scenario has natural variations, invoke the skill once per variation. The skill does not refuse to add the 27th `it` to a file.
 - **Suite-level config beats per-test ceremony for invariants.** If a constraint applies to *every* test of this shape (e.g., outbound HTTP must be stubbed, transactional isolation, time freezing baseline), it belongs in `spec/spec_helper.rb` or a `type:`-scoped hook — not duplicated in every `it`. When this skill is tempted to mandate ceremony in every test, prefer asking "should this be set once at the suite level?" first. Per-test ceremony is appropriate only when the invariant genuinely varies per test (e.g., the specific feature flag the test exercises).
@@ -87,7 +87,7 @@ The unit this skill protects is the **individual `it` block**, not the file. A s
 
 Apply this skill's rules over the `rspec` skill's rules whenever generating a request test from a G/W/T scenario.
 
-@../_shared/request-test-rules.md
+@../request-test-grader/references/request-test-rules.md
 
 ## Workflow
 
@@ -183,7 +183,7 @@ Pick the spec file by following precedent:
 - If the file exists, plan to append a new `it` inside the existing `describe` block whose convention best fits the new test — see **one-it**.
 - If the route maps to multiple plausible spec files (e.g., the controller spans several specs), use `AskUserQuestion`.
 
-When the chosen target file already exists and is at or above the **500-line soft cap** defined in `@../_shared/request-test-rules.md`, surface a `File size:` row in the **Pre-flight summary** with a split recommendation. Do not refuse the write.
+When the chosen target file already exists and is at or above the **500-line soft cap** defined in `@../request-test-grader/references/request-test-rules.md`, surface a `File size:` row in the **Pre-flight summary** with a split recommendation. Do not refuse the write.
 
 ### Pre-flight summary
 
@@ -211,7 +211,7 @@ Planned assertions:
 
 ### Write the test
 
-Insert the new `it` block following the composition rules defined in `@../_shared/request-test-rules.md` (loaded above).
+Insert the new `it` block following the composition rules defined in `@../request-test-grader/references/request-test-rules.md` (loaded above).
 
 ### Detect the run environment
 
@@ -242,7 +242,7 @@ This skill verifies the test runs green. It does **not** verify the test catches
 
 ### Self-review (delegated to the request-test-grader agent)
 
-Invoke the `request-test-grader` subagent via the Agent tool to grade the new `it` block. The grader is the canonical enforcer of every rule defined in `@../_shared/request-test-rules.md`; this skill does not re-implement the checklist.
+Invoke the `request-test-grader` subagent via the Agent tool to grade the new `it` block. The grader is the canonical enforcer of every rule defined in `@../request-test-grader/references/request-test-rules.md`; this skill does not re-implement the checklist.
 
 Invocation:
 
