@@ -174,7 +174,8 @@
 class WikiPagesApiController < ApplicationController
   include HorizonMode
 
-  allow_public_horizon_access :index, :show
+  allow_public_horizon_access :index, :show, :show_front_page
+  skip_before_action :require_user, only: %i[index show show_front_page]
 
   AI_ALT_TEXT_MAX_LENGTH = 120
   AI_ALT_TEXT_FEATURE_FLAG_SLUG = "alttext"

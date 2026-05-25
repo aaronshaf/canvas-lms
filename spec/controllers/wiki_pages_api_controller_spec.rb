@@ -922,4 +922,79 @@ describe WikiPagesApiController, type: :request do
       end
     end
   end
+
+  describe "unauthenticated access to public courses" do
+    before :once do
+      course_with_teacher(active_all: true)
+      @page = @course.wiki_pages.create!(title: "Public Page", body: "hello", workflow_state: "active")
+    end
+
+    context "when the course is public" do
+      before do
+        @course.update!(is_public: true)
+      end
+
+      it "allows unauthenticated users to list pages" do
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/pages",
+                 { controller: "wiki_pages_api", action: "index", format: "json", course_id: @course.id.to_s },
+                 {},
+                 {},
+                 { expected_status: 200, skip_token_auth: true })
+      end
+
+      it "allows unauthenticated users to view a single page" do
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/pages/#{@page.url}",
+                 { controller: "wiki_pages_api", action: "show", format: "json", course_id: @course.id.to_s, url_or_id: @page.url },
+                 {},
+                 {},
+                 { expected_status: 200, skip_token_auth: true })
+      end
+
+      it "allows unauthenticated users to view the front page" do
+        @course.wiki.set_front_page_url!(@page.url)
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/front_page",
+                 { controller: "wiki_pages_api", action: "show_front_page", format: "json", course_id: @course.id.to_s },
+                 {},
+                 {},
+                 { expected_status: 200, skip_token_auth: true })
+      end
+    end
+
+    context "when the course is not public" do
+      before do
+        @course.update!(is_public: false)
+      end
+
+      it "blocks unauthenticated users from listing pages" do
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/pages",
+                 { controller: "wiki_pages_api", action: "index", format: "json", course_id: @course.id.to_s },
+                 {},
+                 {},
+                 { expected_status: 401, skip_token_auth: true })
+      end
+
+      it "blocks unauthenticated users from viewing a single page" do
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/pages/#{@page.url}",
+                 { controller: "wiki_pages_api", action: "show", format: "json", course_id: @course.id.to_s, url_or_id: @page.url },
+                 {},
+                 {},
+                 { expected_status: 401, skip_token_auth: true })
+      end
+
+      it "blocks unauthenticated users from viewing the front page" do
+        @course.wiki.set_front_page_url!(@page.url)
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/front_page",
+                 { controller: "wiki_pages_api", action: "show_front_page", format: "json", course_id: @course.id.to_s },
+                 {},
+                 {},
+                 { expected_status: 401, skip_token_auth: true })
+      end
+    end
+  end
 end
