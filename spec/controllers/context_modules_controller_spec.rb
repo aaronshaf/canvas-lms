@@ -2290,6 +2290,19 @@ describe ContextModulesController do
       get "show", params: { course_id: @course.id, id: @m1.id }
       assert_unauthorized
     end
+
+    it "redirects unauthenticated users to the module index for public courses" do
+      @course.update!(is_public: true)
+      @m = @course.context_modules.create!(name: "public module")
+      get "show", params: { course_id: @course.id, id: @m.id }
+      expect(response).to redirect_to course_context_modules_url(course_id: @course.id, anchor: "module_#{@m.id}")
+    end
+
+    it "blocks unauthenticated users from private courses" do
+      @m = @course.context_modules.create!(name: "private module")
+      get "show", params: { course_id: @course.id, id: @m.id }
+      assert_unauthorized
+    end
   end
 
   describe "GET 'choose_mastery_path'" do
