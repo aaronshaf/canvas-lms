@@ -50,6 +50,10 @@
       <td><%= f.blabel :max_query_directives, en: "The max number of query directives allowed in a single query" %></td>
       <td><%= f.number_field :max_query_directives, value: settings[:max_query_directives] %></td>
     </tr>
+    <tr>
+      <td><%= f.blabel :max_mutations, en: "The max number of mutations allowed in a single request" %></td>
+      <td><%= f.number_field :max_mutations, value: settings[:max_mutations] %></td>
+    </tr>
   </table>
 <% end %>
 

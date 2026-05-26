@@ -29,6 +29,7 @@ RSpec.describe GraphQLTuning do
       "max_query_string_tokens" => "500",
       "max_query_aliases" => "10",
       "max_query_directives" => "5",
+      "max_mutations" => "3",
       "create_conversation_rate_limit" => {
         "teachers_score" => "15",
         "group_score" => "60",
@@ -90,6 +91,20 @@ RSpec.describe GraphQLTuning do
   describe ".max_query_directives" do
     it "returns max_query_directives as integer from config" do
       expect(described_class.max_query_directives).to eq(5)
+    end
+  end
+
+  describe ".max_mutations" do
+    it "returns max_mutations as integer from config" do
+      expect(described_class.max_mutations).to eq(3)
+    end
+
+    context "when max_mutations is not in config" do
+      before { plugin_settings.delete("max_mutations") }
+
+      it "returns 5 as the default" do
+        expect(described_class.max_mutations).to eq(5)
+      end
     end
   end
 

@@ -24,11 +24,18 @@ module Analyzers
       super
       @alias_count = 0
       @directive_count = 0
+      @mutation_count = 0
     end
 
     def on_leave_field(node, _parent, _visitor)
       @alias_count += 1 if node.alias
       @directive_count += node.directives.length unless node.directives.empty?
+    end
+
+    def on_enter_operation_definition(node, _parent, _visitor)
+      if node.operation_type == "mutation"
+        @mutation_count += node.selections.length
+      end
     end
 
     def result
@@ -39,7 +46,14 @@ module Analyzers
 
       if @directive_count > GraphQLTuning.max_query_directives
         InstStatsd::Statsd.distribution("graphql.excessive_directive_count", @directive_count)
-        GraphQL::AnalysisError.new("max query directives exceeded")
+        return GraphQL::AnalysisError.new("max query directives exceeded")
+      end
+
+      if @mutation_count > GraphQLTuning.max_mutations
+        InstStatsd::Statsd.distribution("graphql.excessive_mutation_count", @mutation_count)
+        if Account.site_admin.feature_enabled?(:graphql_mutation_limit)
+          GraphQL::AnalysisError.new("max mutations per request exceeded")
+        end
       end
     end
   end

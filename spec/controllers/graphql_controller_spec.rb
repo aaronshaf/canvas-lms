@@ -148,6 +148,43 @@ describe GraphQLController do
       end
     end
 
+    describe "#mutation_field_names" do
+      it "returns nil when the query cannot be parsed" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "{{{"))
+        expect(controller.send(:mutation_field_names)).to be_nil
+      end
+
+      it "returns nil for a non-mutation query" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "query GetCourse { course(id: \"1\") { id } }"))
+        expect(controller.send(:mutation_field_names)).to be_nil
+      end
+
+      it "returns the top-level field name for a single mutation" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "mutation { createAssignment(input: {courseId: \"1\", name: \"x\"}) { assignment { id } } }"))
+        expect(controller.send(:mutation_field_names)).to eq("createAssignment")
+      end
+
+      it "returns comma-separated names for multiple top-level mutations" do
+        query = <<~GQL
+          mutation {
+            createAssignment(input: {courseId: "1", name: "x"}) { assignment { id } }
+            updateAssignment(input: {id: "1", name: "y"}) { assignment { id } }
+          }
+        GQL
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query:))
+        expect(controller.send(:mutation_field_names)).to eq("createAssignment,updateAssignment")
+      end
+
+      it "truncates at 255 chars when a name is excessively long" do
+        long_name = "a" * 300
+        query = "mutation { #{long_name} { errors { message } } }"
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query:))
+        result = controller.send(:mutation_field_names)
+        expect(result.length).to be <= 255
+        expect(result).to end_with("...")
+      end
+    end
+
     context "CreateSubmission" do
       before do
         Setting.set("enable_page_views", "db")

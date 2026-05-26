@@ -43,6 +43,7 @@ class GraphQLController < ApplicationController
     RequestContext::Generator.add_meta_header("ge", any_error_occured ? "t" : "f")
     RequestContext::Generator.add_or_replace_meta_header("on", operation_name)
     RequestContext::Generator.add_meta_header("ot", operation_type)
+    RequestContext::Generator.add_meta_header("gmf", mutation_field_names)
     if any_error_occured
       disable_page_views
       Rails.logger.info "There are GraphQL errors: #{safe_to_json({ graphql_errors:, query_errors: }.compact)}"
@@ -183,5 +184,14 @@ class GraphQLController < ApplicationController
     return nil unless parsed_query
 
     parsed_query.definitions.find { |d| d.is_a?(GraphQL::Language::Nodes::OperationDefinition) }&.operation_type || "query"
+  end
+
+  def mutation_field_names
+    return nil unless parsed_query
+
+    names = parsed_query.definitions
+                        .select { |d| d.is_a?(GraphQL::Language::Nodes::OperationDefinition) && d.operation_type == "mutation" }
+                        .flat_map { |d| d.selections.filter_map { |s| s.name if s.respond_to?(:name) } }
+    names.join(",").truncate(255).presence # truncate to prevent excessively long header values
   end
 end

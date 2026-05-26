@@ -63,6 +63,35 @@ describe Analyzers::CanvasAntiabuseAnalyzer do
     end
   end
 
+  describe "#on_enter_operation_definition" do
+    let(:node) do
+      instance_double(
+        GraphQL::Language::Nodes::OperationDefinition,
+        operation_type:,
+        name: "TestMutation",
+        selections: [double, double, double]
+      )
+    end
+
+    context "when operation type is mutation" do
+      let(:operation_type) { "mutation" }
+
+      it "increments mutation count by number of selections" do
+        analyzer.on_enter_operation_definition(node, nil, nil)
+        expect(analyzer.instance_variable_get(:@mutation_count)).to eq(3)
+      end
+    end
+
+    context "when operation type is query" do
+      let(:operation_type) { "query" }
+
+      it "does not increment mutation count" do
+        analyzer.on_enter_operation_definition(node, nil, nil)
+        expect(analyzer.instance_variable_get(:@mutation_count)).to eq(0)
+      end
+    end
+  end
+
   describe "#result" do
     before do
       allow(GraphQLTuning).to receive_messages(max_query_aliases: 5, max_query_directives: 3)
@@ -108,6 +137,36 @@ describe Analyzers::CanvasAntiabuseAnalyzer do
         expect(InstStatsd::Statsd).not_to receive(:distribution)
 
         expect(analyzer.result).to be_nil
+      end
+    end
+
+    context "when mutation count exceeds max" do
+      before do
+        allow(GraphQLTuning).to receive(:max_mutations).and_return(2)
+        analyzer.instance_variable_set(:@mutation_count, 5)
+        allow(InstStatsd::Statsd).to receive(:distribution)
+      end
+
+      context "when graphql_mutation_limit feature flag is enabled" do
+        before { allow(Account.site_admin).to receive(:feature_enabled?).with(:graphql_mutation_limit).and_return(true) }
+
+        it "returns a mutation limit error and sends metrics" do
+          expect(InstStatsd::Statsd).to receive(:distribution).with("graphql.excessive_mutation_count", 5)
+
+          result = analyzer.result
+          expect(result).to be_a(GraphQL::AnalysisError)
+          expect(result.message).to eq("max mutations per request exceeded")
+        end
+      end
+
+      context "when graphql_mutation_limit feature flag is disabled" do
+        before { allow(Account.site_admin).to receive(:feature_enabled?).with(:graphql_mutation_limit).and_return(false) }
+
+        it "sends metrics but returns no error" do
+          expect(InstStatsd::Statsd).to receive(:distribution).with("graphql.excessive_mutation_count", 5)
+
+          expect(analyzer.result).to be_nil
+        end
       end
     end
   end

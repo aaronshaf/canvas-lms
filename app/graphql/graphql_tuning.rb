@@ -54,6 +54,10 @@ class GraphQLTuning
     config["max_query_directives"].to_i
   end
 
+  def self.max_mutations
+    config["max_mutations"]&.to_i || 5
+  end
+
   def self.create_conversation_rate_limit_defaults
     {
       teachers_score: 5,

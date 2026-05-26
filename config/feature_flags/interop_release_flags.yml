@@ -113,6 +113,19 @@ feature_flag_ui_sorting:
       state: allowed_on
     ci:
       state: allowed_on
+graphql_mutation_limit:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: GraphQL Mutation Limit
+  description: >-
+    Limits the number of top-level mutations allowed in a single GraphQL
+    request. The limit is configurable via the GraphQL Tuning plugin settings.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 lock_lti_registrations:
   state: hidden
   shadow: true

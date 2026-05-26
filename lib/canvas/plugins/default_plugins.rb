@@ -410,6 +410,7 @@ module Canvas::Plugins::DefaultPlugins
                                 max_query_string_tokens: 5_000,
                                 max_query_aliases: 20,
                                 max_query_directives: 5,
+                                max_mutations: 5,
                                 create_conversation_rate_limit: {
                                   **GraphQLTuning.create_conversation_rate_limit_defaults
                                 },
