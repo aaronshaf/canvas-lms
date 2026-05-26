@@ -260,7 +260,7 @@ module Types
           :manage_account_settings,
           :manage_sis
         )
-      ) && enrollment.can_be_deleted_by(current_user, context[:course], context[:session])
+      ) && enrollment.can_be_deleted_by(current_principal, context[:course], context[:session])
     end
 
     field :concluded, Boolean, null: true

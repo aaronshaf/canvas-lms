@@ -1004,30 +1004,30 @@ class Enrollment < ApplicationRecord
 
   # Determine if a user has permissions to conclude this enrollment.
   #
-  # user    - The user requesting permission to conclude/delete enrollment.
+  # principal    - The user requesting permission to conclude/delete enrollment.
   # context - The current context, e.g. course or section.
   # session - The current user's session (pass nil if not available).
   #
   # return Boolean
-  def can_be_concluded_by(user, context, session)
+  def can_be_concluded_by(principal, context, session)
     can_remove = [StudentEnrollment].include?(self.class) &&
-                 context.grants_right?(user, session, :manage_students) &&
+                 context.grants_right?(principal, session, :manage_students) &&
                  context.id == (context.is_a?(Course) ? course_id : course_section_id)
-    can_remove || context.grants_right?(user, session, :allow_course_admin_actions)
+    can_remove || context.grants_right?(principal, session, :allow_course_admin_actions)
   end
 
   # Determine if a user has permissions to delete this enrollment.
   #
-  # user    - The user requesting permission to conclude/delete enrollment.
+  # principal - The user requesting permission to conclude/delete enrollment.
   # context - The current context, e.g. course or section.
   # session - The current user's session (pass nil if not available).
   #
   # return Boolean
-  def can_be_deleted_by(user, context, session)
-    return context.grants_right?(user, session, :use_student_view) if fake_student?
+  def can_be_deleted_by(principal, context, session)
+    return context.grants_right?(principal, session, :use_student_view) if fake_student?
 
-    can_remove = can_delete_via_granular(user, session, context)
-    can_remove &&= user_id != user.id || context.account.grants_right?(user, session, :allow_course_admin_actions)
+    can_remove = can_delete_via_granular(principal, session, context)
+    can_remove &&= user_id != principal.user.id || context.account.grants_right?(principal, session, :allow_course_admin_actions)
     can_remove && context.id == (context.is_a?(Course) ? course_id : course_section_id)
   end
 
@@ -1687,12 +1687,12 @@ class Enrollment < ApplicationRecord
     ).where.not(id:).where.not(workflow_state: :deleted)
   end
 
-  def can_delete_via_granular(user, session, context)
-    (teacher? && context.grants_right?(user, session, :remove_teacher_from_course)) ||
-      (ta? && context.grants_right?(user, session, :remove_ta_from_course)) ||
-      (designer? && context.grants_right?(user, session, :remove_designer_from_course)) ||
-      (observer? && context.grants_right?(user, session, :remove_observer_from_course)) ||
-      (student? && context.grants_right?(user, session, :remove_student_from_course))
+  def can_delete_via_granular(principal, session, context)
+    (teacher? && context.grants_right?(principal, session, :remove_teacher_from_course)) ||
+      (ta? && context.grants_right?(principal, session, :remove_ta_from_course)) ||
+      (designer? && context.grants_right?(principal, session, :remove_designer_from_course)) ||
+      (observer? && context.grants_right?(principal, session, :remove_observer_from_course)) ||
+      (student? && context.grants_right?(principal, session, :remove_student_from_course))
   end
 
   def remove_user_as_final_grader?

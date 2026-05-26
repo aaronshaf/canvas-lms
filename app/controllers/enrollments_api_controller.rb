@@ -965,7 +965,7 @@ class EnrollmentsApiController < ApplicationController
         :conclude
       end
 
-    unless @enrollment.send(permission, @current_user, @context, session)
+    unless @enrollment.send(permission, current_principal, @context, session)
       return render_unauthorized_action
     end
 
@@ -1040,7 +1040,7 @@ class EnrollmentsApiController < ApplicationController
   def reactivate
     @enrollment = @context.enrollments.find(params[:id])
 
-    unless @enrollment.send(:can_be_deleted_by, @current_user, @context, session)
+    unless @enrollment.can_be_deleted_by(current_principal, @context, session)
       return render_unauthorized_action
     end
 

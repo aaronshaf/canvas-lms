@@ -2849,7 +2849,7 @@ class CoursesController < ApplicationController
   def conclude_user
     get_context
     @enrollment = @context.enrollments.find(params[:id])
-    if @enrollment.can_be_concluded_by(@current_user, @context, session)
+    if @enrollment.can_be_concluded_by(current_principal, @context, session)
       respond_to do |format|
         if @enrollment.conclude
           format.json { render json: @enrollment }
@@ -2899,7 +2899,7 @@ class CoursesController < ApplicationController
   def unenroll_user
     get_context
     @enrollment = @context.enrollments.find(params[:id])
-    if @enrollment.can_be_deleted_by(@current_user, @context, session)
+    if @enrollment.can_be_deleted_by(current_principal, @context, session)
       if (!@enrollment.defined_by_sis? || @context.grants_any_right?(current_principal, session, :manage_account_settings, :manage_sis)) && @enrollment.destroy
         render json: @enrollment
       else
