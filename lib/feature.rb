@@ -19,6 +19,13 @@
 #
 
 class Feature
+  # visible_on Proc contract:
+  # The Proc receives the lookup context (the receiver of lookup_feature_flag) as
+  # its single argument. For features with applies_to == "InheritableUser" the
+  # context can be a User; root-account-dependent visibility hooks must read
+  # Account.current_domain_root_account themselves rather than expecting the
+  # DRA to be passed in (see existing oak_for_users_visible_on_hook for the
+  # established pattern).
   ATTRS = %i[feature
              display_name
              description

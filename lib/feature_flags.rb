@@ -151,9 +151,9 @@ module FeatureFlags
     # inherit the feature definition as a default unless it's a hidden feature
     retval = feature_def.clone_for_cache unless feature_def.hidden? && !is_site_admin && !override_hidden
 
-    @feature_flag_cache ||= {}
+    cache_store = feature_flag_lookup_cache(inheritable_user_lookup, feature, dra)
     cache_key = feature_flag_memo_key(feature, dra)
-    return @feature_flag_cache[cache_key] if @feature_flag_cache.key?(cache_key) && !inherited_only && !skip_cache
+    return cache_store[cache_key] if cache_store.key?(cache_key) && !inherited_only && !skip_cache
 
     # find the highest flag that doesn't allow override,
     # or the most specific flag otherwise
@@ -196,16 +196,26 @@ module FeatureFlags
         # the feature doesn't exist beneath the root account until the root account opts in
         return nil
       else
-        @feature_flag_cache[cache_key] = nil
+        cache_store[cache_key] = nil
         return nil
       end
     end
 
-    @feature_flag_cache[cache_key] = retval unless inherited_only
+    cache_store[cache_key] = retval unless inherited_only
     retval
   end
 
   private
+
+  # IU-on-User lookups memo through RequestCache (dies with the request); other
+  # lookups memo on the @feature_flag_cache instance var (request-stable key).
+  def feature_flag_lookup_cache(inheritable_user_lookup, feature, dra)
+    if inheritable_user_lookup
+      RequestCache.cache("feature_flag_iu_lookup", self, feature, dra&.global_id) { {} }
+    else
+      @feature_flag_cache ||= {} # rubocop:disable Naming/MemoizedInstanceVariableName -- shared with set_feature_flag!
+    end
+  end
 
   def inheritable_user_lookup?(feature)
     is_a?(User) && Feature.definitions[feature.to_s]&.applies_to == "InheritableUser"

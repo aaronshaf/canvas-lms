@@ -224,6 +224,49 @@ describe FeatureFlag do
         end
       end
     end
+
+    context "cross-region fan-out for InheritableUser writes" do
+      before do
+        allow(Feature).to receive(:definitions).and_return(
+          {
+            "iu_feature" => Feature.new(feature: "iu_feature", applies_to: "InheritableUser"),
+            "user_only_feature" => Feature.new(feature: "user_only_feature", applies_to: "User")
+          }
+        )
+        @target_user = user_model
+      end
+
+      it "fans out the per-context feature_flag_cache delete for User-context IU writes" do
+        expect(Switchman::DatabaseServer).to receive(:send_in_each_region)
+          .with(FeatureFlag, :clear_feature_flag_cache_in_region, {}, @target_user, "iu_feature")
+        @target_user.feature_flags.create! feature: "iu_feature", state: "on"
+      end
+
+      it "fans out :feature_flags cache_key bump for RootAccount-context IU writes" do
+        expect(Switchman::DatabaseServer).to receive(:send_in_each_region)
+          .with(FeatureFlag, :clear_feature_flag_cache_in_region, {}, t_root_account, "iu_feature")
+        expect(Switchman::DatabaseServer).to receive(:send_in_each_region)
+          .with(t_root_account, :clear_cache_key, {}, :feature_flags)
+        t_root_account.feature_flags.create! feature: "iu_feature", state: "allowed_on"
+      end
+
+      it "does not fan out for non-IU User-context writes" do
+        expect(Switchman::DatabaseServer).not_to receive(:send_in_each_region)
+        @target_user.feature_flags.create! feature: "user_only_feature", state: "on"
+      end
+
+      it "clear_feature_flag_cache_in_region deletes the per-context Rails.cache key" do
+        memory_store = ActiveSupport::Cache::MemoryStore.new
+        allow(@target_user).to receive(:feature_flag_cache).and_return(memory_store)
+        cache_key = @target_user.feature_flag_cache_key("iu_feature")
+        memory_store.write(cache_key, "seeded-stale-value")
+        expect(memory_store.read(cache_key)).to eq "seeded-stale-value"
+
+        FeatureFlag.clear_feature_flag_cache_in_region(@target_user, "iu_feature")
+
+        expect(memory_store.read(cache_key)).to be_nil
+      end
+    end
   end
 
   describe "audit log" do

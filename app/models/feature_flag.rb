@@ -70,11 +70,21 @@ class FeatureFlag < ApplicationRecord
           # Shard scope is not as pertinent for Account or Course context as they
           # reside on their home shard, but when deleting cache entries for cross-shard
           # users that have keys prefixed by shard_id, we need to scope appropriately.
-          context.feature_flag_cache.delete(context.feature_flag_cache_key(feature))
+          if inheritable_user_feature?
+            Switchman::DatabaseServer.send_in_each_region(
+              self.class,
+              :clear_feature_flag_cache_in_region,
+              {},
+              context,
+              feature
+            )
+          else
+            context.feature_flag_cache.delete(context.feature_flag_cache_key(feature))
+          end
           context.touch if Feature.definitions[feature].try(:touch_context) || context.try(:root_account?)
 
           if context.is_a?(Account)
-            if context.site_admin?
+            if context.site_admin? || inheritable_user_feature?
               Switchman::DatabaseServer.send_in_each_region(context, :clear_cache_key, {}, :feature_flags)
             else
               context.clear_cache_key(:feature_flags)
@@ -124,7 +134,17 @@ class FeatureFlag < ApplicationRecord
     Feature.definitions[feature]&.state || "undefined"
   end
 
+  def self.clear_feature_flag_cache_in_region(context, feature)
+    context.shard.activate do
+      context.feature_flag_cache.delete(context.feature_flag_cache_key(feature))
+    end
+  end
+
   private
+
+  def inheritable_user_feature?
+    Feature.definitions[feature]&.applies_to == "InheritableUser"
+  end
 
   def valid_state
     unless [Feature::STATE_OFF, Feature::STATE_ON].include?(state) || (context.is_a?(Account) && [Feature::STATE_DEFAULT_OFF, Feature::STATE_DEFAULT_ON].include?(state))

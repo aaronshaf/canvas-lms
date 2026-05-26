@@ -30,6 +30,21 @@ describe FeatureFlags do
   let(:t_course) { course_with_teacher(user: t_user, account: t_sub_account, active_all: true).course }
   let(:analytics_service) { class_double(Services::FeatureAnalyticsService).as_stubbed_const }
 
+  # Save and restore Account.current_domain_root_account for the duration of an
+  # example. If the including context defines `let(:current_dra) { ... }` the
+  # value is assigned up-front; otherwise the example is responsible for
+  # setting DRA itself (used by cross-shard / caching contexts that flip DRA
+  # mid-example).
+  shared_context "with saved current_domain_root_account" do
+    around do |example|
+      prev = Account.current_domain_root_account
+      Account.current_domain_root_account = current_dra if respond_to?(:current_dra)
+      example.run
+    ensure
+      Account.current_domain_root_account = prev
+    end
+  end
+
   before do
     silence_undefined_feature_flag_errors
     allow(InstStatsd::Statsd).to receive(:distributed_increment)
@@ -234,13 +249,9 @@ describe FeatureFlags do
       end
 
       context "user lookup with inheritance" do
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = t_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        let(:current_dra) { t_root_account }
+
+        include_context "with saved current_domain_root_account"
 
         it "a SiteAdmin 'on' flag wins over user-level overrides" do
           t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "on"
@@ -335,14 +346,9 @@ describe FeatureFlags do
 
       context "multi-root-account user" do
         let(:other_root_account) { account_model }
+        let(:current_dra) { other_root_account }
 
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = other_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        include_context "with saved current_domain_root_account"
 
         it "resolves via the current domain root account, not the user's home root" do
           t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
@@ -353,13 +359,9 @@ describe FeatureFlags do
       end
 
       context "without a current domain root account" do
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = nil
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        let(:current_dra) { nil }
+
+        include_context "with saved current_domain_root_account"
 
         it "uses SiteAdmin-only chain when current_domain_root_account is unset" do
           t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
@@ -368,13 +370,9 @@ describe FeatureFlags do
       end
 
       context "with hidden feature" do
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = t_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        let(:current_dra) { t_root_account }
+
+        include_context "with saved current_domain_root_account"
 
         it "returns nil at user context with no admin-level flag" do
           expect(t_user.lookup_feature_flag("hidden_inheritable_user_feature")).to be_nil
@@ -406,13 +404,9 @@ describe FeatureFlags do
       end
 
       context "with root_opt_in feature" do
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = t_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        let(:current_dra) { t_root_account }
+
+        include_context "with saved current_domain_root_account"
 
         it "returns nil at user context until the root account opts in" do
           expect(t_user.lookup_feature_flag("root_opt_in_inheritable_user_feature")).to be_nil
@@ -435,14 +429,9 @@ describe FeatureFlags do
 
       context "with a consortium parent in the chain" do
         let(:consortium_parent) { account_model }
+        let(:current_dra) { t_root_account }
 
-        around do |example|
-          prev = Account.current_domain_root_account
-          Account.current_domain_root_account = t_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        include_context "with saved current_domain_root_account"
 
         before do
           allow(t_root_account).to receive(:account_chain)
@@ -474,12 +463,7 @@ describe FeatureFlags do
       context "cross-shard" do
         specs_require_sharding
 
-        around do |example|
-          prev = Account.current_domain_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        include_context "with saved current_domain_root_account"
 
         it "resolves the current_domain_root_account on its own shard for a user on a different shard" do
           @other_root_account = @shard1.activate { Account.create! }
@@ -529,12 +513,7 @@ describe FeatureFlags do
       end
 
       context "caching" do
-        around do |example|
-          prev = Account.current_domain_root_account
-          example.run
-        ensure
-          Account.current_domain_root_account = prev
-        end
+        include_context "with saved current_domain_root_account"
 
         it "re-evaluates when current_domain_root_account changes on the same user instance" do
           other_root = account_model
@@ -564,6 +543,18 @@ describe FeatureFlags do
             t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
             expect(t_user.lookup_feature_flag("inheritable_user_feature", inherited_only: true).context).to eq t_root_account
             expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_user
+          end
+
+          it "does not store the IU memo on the user instance across requests" do
+            t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+            expect(t_user.lookup_feature_flag("inheritable_user_feature").state).to eq "on"
+
+            instance_cache = t_user.instance_variable_get(:@feature_flag_cache) || {}
+            expect(instance_cache).not_to have_key(["inheritable_user_feature", t_root_account.global_id])
+
+            RequestCache.clear
+            t_root_account.feature_flags.where(feature: "inheritable_user_feature").update_all(state: "off")
+            expect(t_user.lookup_feature_flag("inheritable_user_feature", skip_cache: true).state).to eq "off"
           end
         end
       end
