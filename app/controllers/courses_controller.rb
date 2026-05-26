@@ -424,7 +424,7 @@ class CoursesController < ApplicationController
   # @argument exclude_blueprint_courses [Boolean]
   #   When set, only return courses that are not configured as blueprint courses.
   #
-  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"public_description"|"total_scores"|"current_grading_period_scores"|"grading_periods"|"term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"course_image"|"banner_image"|"concluded"|"post_manually"]
+  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"syllabus_versions"|"public_description"|"total_scores"|"current_grading_period_scores"|"grading_periods"|"term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"course_image"|"banner_image"|"concluded"|"post_manually"]
   #   - "needs_grading_count": Optional information to include with each Course.
   #     When needs_grading_count is given, and the current user has grading
   #     rights, the total number of submissions needing grading for all
@@ -520,6 +520,11 @@ class CoursesController < ApplicationController
   #   - "post_manually": Optional information to include with each Course. Returns true if
   #     the course post policy is set to Manually post grades. Returns false if the the course
   #     post policy is set to Automatically post grades.
+  #   - "syllabus_versions": Optional information to include with each Course.
+  #     Returns recent saved versions of the syllabus body. Requires the
+  #     syllabus_versioning feature flag and permission to manage course
+  #     content. Version numbers can be passed to the Restore course
+  #     syllabus version API.
   #
   # @argument state[] [String, "unpublished"|"available"|"completed"|"deleted"]
   #   If set, only return courses that are in the given state(s).
@@ -669,7 +674,7 @@ class CoursesController < ApplicationController
   # @API List courses for a user
   # Returns a paginated list of active courses for this user. To view the course list for a user other than yourself, you must be either an observer of that user or an administrator.
   #
-  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"public_description"|"total_scores"|"current_grading_period_scores"|"grading_periods"|term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"course_image"|"banner_image"|"concluded"|"post_manually"]
+  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"syllabus_versions"|"public_description"|"total_scores"|"current_grading_period_scores"|"grading_periods"|"term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"course_image"|"banner_image"|"concluded"|"post_manually"]
   #   - "needs_grading_count": Optional information to include with each Course.
   #     When needs_grading_count is given, and the current user has grading
   #     rights, the total number of submissions needing grading for all
@@ -752,6 +757,11 @@ class CoursesController < ApplicationController
   #   - "post_manually": Optional information to include with each Course. Returns true if
   #     the course post policy is set to "Manually". Returns false if the the course post
   #     policy is set to "Automatically".
+  #   - "syllabus_versions": Optional information to include with each Course.
+  #     Returns recent saved versions of the syllabus body. Requires the
+  #     syllabus_versioning feature flag and permission to manage course
+  #     content. Version numbers can be passed to the Restore course
+  #     syllabus version API.
   #
   # @argument state[] [String, "unpublished"|"available"|"completed"|"deleted"]
   #   If set, only return courses that are in the given state(s).
@@ -2331,7 +2341,7 @@ class CoursesController < ApplicationController
   #
   # Accepts the same include[] parameters as the list action plus:
   #
-  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"public_description"|"total_scores"|"current_grading_period_scores"|"term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"all_courses"|"permissions"|"course_image"|"banner_image"|"concluded"|"lti_context_id"|"post_manually"]
+  # @argument include[] [String, "needs_grading_count"|"syllabus_body"|"syllabus_versions"|"public_description"|"total_scores"|"current_grading_period_scores"|"term"|"account"|"course_progress"|"sections"|"storage_quota_used_mb"|"total_students"|"passback_status"|"favorites"|"teachers"|"observed_users"|"all_courses"|"permissions"|"course_image"|"banner_image"|"concluded"|"lti_context_id"|"post_manually"]
   #   - "all_courses": Also search recently deleted courses.
   #   - "permissions": Include permissions the current user has
   #     for the course.
@@ -2344,6 +2354,11 @@ class CoursesController < ApplicationController
   #   - "lti_context_id": Include course LTI tool id.
   #   - "post_manually": Include course post policy. If the post policy is manually post grades,
   #     the value will be true. If the post policy is automatically post grades, the value will be false.
+  #   - "syllabus_versions": Optional information to include with each Course.
+  #     Returns recent saved versions of the syllabus body. Requires the
+  #     syllabus_versioning feature flag and permission to manage course
+  #     content. Version numbers can be passed to the Restore course
+  #     syllabus version API.
   #
   # @argument teacher_limit [Integer]
   #   The maximum number of teacher enrollments to show.
@@ -4614,13 +4629,18 @@ class CoursesController < ApplicationController
   end
   helper_method :accessibility_issues_count
 
-  # @API Restore course version
+  # @API Restore course syllabus version
   #
-  # Restore a course to a prior version.
+  # Restore a course's syllabus body to a previously saved version.
+  # No other course content is affected.
+  #
+  # Requires the syllabus_versioning feature flag to be enabled on the
+  # account, and the caller must have permission to manage course content.
   #
   # @argument version_id [Required, Integer]
-  #   The version to restore to (use the syllabus_versions include parameter
-  #   in the course show API to see available versions)
+  #   The version number to restore to. Available version numbers are
+  #   returned by the Get a single course API when include[]=syllabus_versions
+  #   is passed.
   #
   # @example_request
   #    curl -X POST -H 'Authorization: Bearer <token>' \
