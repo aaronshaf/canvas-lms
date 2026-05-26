@@ -1289,17 +1289,34 @@ describe AssignmentOverride do
     end
 
     it "does nothing if the set is not empty" do
-      allow(@override).to receive_messages(set_type: "ADHOC", set: [1, 2, 3])
-      expect(@override).not_to receive(:destroy)
+      course_with_student(active_all: true)
+      assignment = assignment_model(course: @course)
+      override = create_adhoc_override_for_assignment(assignment, @student)
 
-      @override.destroy_if_empty_set
+      override.destroy_if_empty_set
+
+      expect(override.reload.workflow_state).to eq("active")
     end
 
     it "destroys itself if the set is empty" do
-      allow(@override).to receive_messages(set_type: "ADHOC", set: [])
-      expect(@override).to receive(:destroy).once
+      course_with_student(active_all: true)
+      assignment = assignment_model(course: @course)
+      override = create_adhoc_override_for_assignment(assignment, @student)
+      override.assignment_override_students.update_all(workflow_state: "deleted")
 
-      @override.destroy_if_empty_set
+      override.destroy_if_empty_set
+
+      expect(override.reload.workflow_state).to eq("deleted")
+    end
+
+    it "checks emptiness without loading users" do
+      course_with_student(active_all: true)
+      assignment = assignment_model(course: @course)
+      override = create_adhoc_override_for_assignment(assignment, @student)
+
+      count = count_sql_queries(matcher: /"users"/) { override.destroy_if_empty_set }
+
+      expect(count).to eq(0)
     end
   end
 

@@ -557,7 +557,7 @@ class AssignmentOverride < ApplicationRecord
     return unless set_type == "ADHOC"
 
     assignment_override_students.reload if previously_new_record? # fixes a problem with rails 4.2 caching an empty association scope
-    destroy if set.empty?
+    destroy unless assignment_override_students.exists?
   end
 
   has_a_broadcast_policy
