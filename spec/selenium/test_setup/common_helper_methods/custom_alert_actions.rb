@@ -72,6 +72,29 @@ module CustomAlertActions
     JS
   end
 
+  def expect_no_dialog_fired
+    driver.execute_script(<<~JS)
+      window.canvasTestSavedAlert   = window.alert;
+      window.canvasTestSavedConfirm = window.confirm;
+      window.canvasTestSavedPrompt  = window.prompt;
+      window.canvasTestDialogFired  = false;
+      window.alert   = function() { window.canvasTestDialogFired = true; return true; };
+      window.confirm = function() { window.canvasTestDialogFired = true; return true; };
+      window.prompt  = function() { window.canvasTestDialogFired = true; return true; };
+    JS
+
+    yield
+
+    fired = driver.execute_script(<<~JS)
+      var fired = window.canvasTestDialogFired;
+      window.alert   = window.canvasTestSavedAlert;
+      window.confirm = window.canvasTestSavedConfirm;
+      window.prompt  = window.canvasTestSavedPrompt;
+      return fired;
+    JS
+    expect(fired).to be(false), "Unexpected dialog (alert/confirm/prompt) — JavaScript was executed"
+  end
+
   def close_modal_if_present
     # if an alert is present, this will trigger the error below
     block_given? ? yield : driver.title
