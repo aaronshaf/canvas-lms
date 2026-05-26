@@ -16,6 +16,7 @@ RSpec.describe "PUT /api/v1/grader_fixture/c", type: :request do
 
     # Assert
     expect(response).to have_http_status(:ok)
+    expect(response.parsed_body["name"]).to eq("New Name")
     expect(course.name).to eq("New Name")
   end
 end

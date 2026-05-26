@@ -36,7 +36,7 @@ and report PASS / FAIL / UNTESTED for each.
 3. Verify each returned report against:
 
    - §8.2 — `grade=` matches the expected row.
-   - §4 — trailer shape and consistency.
+   - §4 — `<report>` framing and machine-readable trailer shape & consistency.
    - §5 — per-rule table slug set equals the slugs declared in
      `references/request-test-rules.md` (grep `^### ` for the list).
    - §6 — Top fixes rows sorted by **source line**, not rules-file
@@ -44,11 +44,13 @@ and report PASS / FAIL / UNTESTED for each.
    - §7 — each RITE verdict traced to its contributing-rules set in
      the rules file, not eyeballed.
 
-4. For §1.3, §1.4, §1.5, §2.1–§2.4, §3.1, §3.2, and §9.\*, verify
-   each case is encoded in SKILL.md or agent.md and cite the encoding
-   line in the Note column. §1.4 and §3.2 are *also* exercised by
-   step 2's fixture runs — note both. Do not skip this step; do not
-   mark these UNTESTED.
+4. For §1.1, §1.2, §1.3, §1.4, §1.5, §2.1–§2.4, §3.1, §3.2, and §9.\*,
+   verify each case is encoded in SKILL.md or agent.md and cite the
+   encoding line in the Note column. §1.4 and §3.2 are *also*
+   exercised by step 2's fixture runs — note both. Do not skip this
+   step; do not mark these UNTESTED. Do NOT execute §1.1 or §1.2
+   manually (no skill invocation with no-args or ambiguous descriptions);
+   verify them by encoding citation only.
 
 Output:
 
@@ -59,9 +61,31 @@ Output:
   does not affect the verdict.
 - A final line: `Overall: PASS` or `Overall: FAIL`.
 
-Read-only on the codebase. Invoking the grader skill via the Skill
-tool to execute §1.1 and §1.2 is part of QA execution, not a
-mutation.
+After the verdict, append a `## Manual follow-up` section reminding
+the user that §1.1 and §1.2 require interactive verification and
+providing the exact copy-paste prompts below:
+
+  **§1.1 — No argument → interactive collection**
+
+      /request-test-grader
+
+  Expected: the skill prompts you for a target instead of emitting a
+  report.
+
+  **§1.2 — Description matches multiple `it` blocks → user picks**
+
+      /request-test-grader spec/apis/v1/courses_api_spec.rb "updates settings"
+
+  Expected: the skill lists candidate `it` blocks disambiguated by
+  their `describe`/`context` chain and waits for your selection
+  before emitting exactly one report. (`"updates settings"` matches
+  lines 5357 and 6223 — one under a course-settings context, one
+  under `/quizzes` > `as teacher`.)
+
+Read-only on the codebase. Do not invoke the grader skill to exercise
+§1.1 (no-args interactive collection) or §1.2 (ambiguous-description
+disambiguation) — verify those by encoding citation only and surface
+them in `## Manual follow-up`.
 ````
 
 ## Conventions
@@ -103,7 +127,7 @@ Then a report is emitted for that `it`. No disambiguation prompt is shown.
 ## 2. Bad targets
 
 For every case in this section, the output is a single diagnostic line.
-No report. No machine-readable trailer.
+No `<report>` block. No machine-readable trailer.
 
 ### 2.1 Malformed target
 
@@ -141,9 +165,16 @@ Then the skill spawns the agent and produces a report — even if the path doesn
 
 ---
 
-## 4. Trailer (machine-readable)
+## 4. Report framing & machine-readable trailer
 
-The trailer is the parser contract — these invariants are non-negotiable.
+The `<report>...</report>` framing and the machine-readable trailer together form the parser contract — these invariants are non-negotiable.
+
+**Framing.**
+
+- [ ] The report opens with a literal `<report>` on its own line and closes with a literal `</report>` on its own line. Both tags appear exactly once per emitted report.
+- [ ] The machine-readable trailer appears as the last block inside `<report>`, immediately before the closing `</report>` tag and after `## Top fixes`.
+
+**Trailer fields.**
 
 - [ ] All seven fields present and in order: `grade`, `blockers`, `majors`, `minors`, `fail`, `na`, `rite`.
 - [ ] Each field appears exactly once.
@@ -157,8 +188,7 @@ The trailer is the parser contract — these invariants are non-negotiable.
 
 ## 5. Per-rule verdict table
 
-- [ ] Rows appear in the order rules are defined in `request-test-rules.md`. Each applicable rule appears exactly once.
-- [ ] The set of slugs in the Rule column equals the set of rule slugs declared in `request-test-rules.md` (Composition rules + Canvas-specific gradable rules). No invented slugs (e.g., `adequate-coverage`); no omissions. This is the integrity check against the model fabricating or skipping rules.
+- [ ] The set of slugs in the Rule column equals the set of rule slugs declared in `request-test-rules.md` (Composition rules + Canvas-specific gradable rules). Every applicable rule appears exactly once. No invented slugs (e.g., `adequate-coverage`); no omissions. This is the integrity check against the model fabricating or skipping rules.
 - [ ] N/A is explicit, with a reason in the Note cell. Silence never implies ✓.
 
 ---
@@ -224,7 +254,7 @@ To verify: invoke the grader agent on each fixture (target the first `it` line) 
 | `fixtures/rubric_c.rb` | `C` | `reload-assertions` — C (not F). |
 | `fixtures/rubric_d.rb` | `D` | `shape-and-value`, `reload-assertions`, `precise-matchers` — D via the 2-blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
 | `fixtures/rubric_f.rb` | `F` | `shape-and-value`, `reload-assertions`, `one-request`, `precise-matchers` — F via the blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
-| `fixtures/rubric_f_majors.rb` | `F` | `one-it`, `no-shared-setup`, `no-runtime-branching`, `literal-path`, `auth-matches-initiator` — F via the majors arm (not D or C). |
+| `fixtures/rubric_f_majors.rb` | `F` | `one-it`, `no-runtime-branching`, `literal-path`, `auth-matches-initiator`, `precedent-matched` — F via the majors arm (not D or C). |
 
 ---
 

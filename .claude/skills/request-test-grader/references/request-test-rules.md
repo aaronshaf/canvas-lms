@@ -53,7 +53,7 @@ Each rule has a **severity** indicating its impact when violated:
 
 **Exactly one `it`** per scenario. The Given/When/Then collapses into a single example. Nest inside an appropriate `describe` block: when creating a new spec file, use `describe "<VERB> <path>"`; when appending to an existing file, follow that file's existing convention (Canvas request specs commonly use `describe "<Resource Name>"` + nested `describe "<action>"`). Don't fight the file's style.
 
-*Why:* One scenario → one test gives clean failure attribution. When the test breaks, the broken behavior is unambiguous. Splitting into multiple `it`s fragments the signal and creates pressure to share setup — which **no-shared-setup** forbids. Matching the surrounding file's `describe` convention keeps grep, suite listings, and code review unsurprising; deviating only at the seam where this skill's test lands is more cost than signal.
+*Why:* One scenario → one test gives clean failure attribution. When the test breaks, the broken behavior is unambiguous. Splitting into multiple `it`s fragments the signal and creates pressure to share setup — which **setup-in-it** forbids. Matching the surrounding file's `describe` convention keeps grep, suite listings, and code review unsurprising; deviating only at the seam where this skill's test lands is more cost than signal.
 
 ### aaa-headers (minor)
 
@@ -103,12 +103,6 @@ end
 
 *Why:* ActiveRecord caches attributes on the in-memory object. Without `.reload` you may assert against the *pre-request* state — passing when the DB actually changed (false positive) or failing when the request correctly persisted a different value (false negative). `.reload` guarantees you're checking what was actually saved.
 
-### no-shared-setup (major)
-
-**No `let`, no `subject`, no `@instance_vars`, no `before` blocks.** All setup is local to the `it` block.
-
-*Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling and no lazy-evaluation surprises. `let` is lazily evaluated, which makes execution order non-obvious. `before` blocks introduce hidden mutation order — when multiple `before` blocks compose (top-level, nested `context`, shared examples), the order they fire and the state they leave on `@vars` is hard to reason about. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY that `let`/`subject`/`before` provides.
-
 ### no-runtime-branching (major)
 
 **No conditional logic whose branch can vary between runs. Loops only in Arrange, only for creating N similar records.** Banned: `if`/`unless`/`case` whose path depends on time, randomness, or external state. Allowed: deterministic filtering — `Array#detect`/`#find`/`#select` to pick a specific record out of a fixed collection (the response order is the only path).
@@ -127,11 +121,11 @@ end
 
 *Why:* Symbols encode intent — `:forbidden` reads as "403 was the right answer", while `403` requires the reader to translate. In code review, `:ok` vs. `:created` is unmistakable; `200` vs. `201` is a one-character diff easy to miss. Typo'd symbols (`:okk`) raise loudly; typo'd integers (`405` instead of `404`) silently change the assertion.
 
-### no-before-all (blocker)
+### setup-in-it (blocker)
 
-**No `before(:all)` / `before(:context)`.**
+**All setup lives inside the `it` body.** No `before` hooks of any flavor (`before`, `before(:each)`, `before(:example)`, `before(:all)`, `before(:context)`, `before(:once)`, `before(:suite)`), no `let`, no `subject`, no `@instance_vars` inherited from enclosing scope. Every record, stub, and bit of state the assertions depend on is created in the `it`, in source order.
 
-*Why:* `before(:all)` runs once per group and persists records *outside* the per-example transaction wrapper, so they leak across examples. If any example mutates them, downstream examples see undefined state — producing order-dependent failures that are notoriously hard to reproduce. **no-shared-setup** already forbids all `before` blocks; this rule pins the worst variant specifically because the failure mode (cross-test leakage) is categorically different from "hidden setup."
+*Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling. Every forbidden mechanism violates that invariant: `before` hooks move setup outside the test and compose across nested contexts in a sequence the reader has to mentally simulate; once-per-group variants (`before(:all)` / `before(:context)` / `before(:once)`) additionally share the same record graph across examples, so any in-example mutation leaks to siblings and produces order-dependent failures (Canvas's `before(:once)` wraps in a savepoint but still shares record identities, so the leakage mode is the same); `let` and `subject` are lazily evaluated, which makes execution order non-obvious; `@instance_vars` from enclosing scope force the reader to scroll up and reconstruct the setup graph. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY these mechanisms provide.
 
 ### one-request (blocker)
 
@@ -259,7 +253,7 @@ These inform write-time judgment but the grader does not produce report violatio
 
 - **File size — soft cap at 500 lines per spec file.** When a request-spec file at the writer's chosen target path is already at or above 500 lines, surface a warning before adding the next `it` and recommend splitting. Suggested split axes, in preference order: by sub-resource (e.g., peel `_enrollments_spec.rb` off `_courses_spec.rb`), by HTTP verb (`_courses_index_spec.rb` vs. `_courses_update_spec.rb`), or by initiator (UI vs. API-client specs as sibling files). The cap is a soft signal, not a refusal — adding the 28th `it` is allowed when the user accepts the warning. The "encourage breadth" stance the writer holds still applies; this cap addresses *file scannability and context cost*, not test count.
 
-  *Why:* request-spec files grow naturally as scenarios accumulate. Past ~500 lines a file becomes hard to scan during review, expensive to load into context when grading or refactoring, and a magnet for cross-`it` coupling pressure — even though **no-shared-setup** forbids the `let`/`before` shortcuts that pressure would normally take, the temptation to refactor toward shared helpers grows with file size. Splitting at sub-resource / verb / initiator seams keeps each file purpose-coherent and each `it` independently scannable.
+  *Why:* request-spec files grow naturally as scenarios accumulate. Past ~500 lines a file becomes hard to scan during review, expensive to load into context when grading or refactoring, and a magnet for cross-`it` coupling pressure — even though **setup-in-it** forbids the `let`/`before` shortcuts that pressure would normally take, the temptation to refactor toward shared helpers grows with file size. Splitting at sub-resource / verb / initiator seams keeps each file purpose-coherent and each `it` independently scannable.
 
 ## Severity classification (summary)
 
@@ -269,7 +263,7 @@ These inform write-time judgment but the grader does not produce report violatio
 - `verify-stubs`
 - `shape-and-value`
 - `reload-assertions`
-- `no-before-all`
+- `setup-in-it`
 - `one-request`
 - `stub-outbound`
 - `no-magic-values`
@@ -278,7 +272,6 @@ These inform write-time judgment but the grader does not produce report violatio
 **Major** (correctness or attribution risk):
 
 - `one-it`
-- `no-shared-setup`
 - `no-runtime-branching`
 - `literal-path`
 - `feature-flag-setup`
@@ -321,7 +314,7 @@ Rules with trigger conditions, and when each is `N/A`:
 | `use-timecop` | Test manipulates time (`Timecop.freeze` / `Timecop.travel`) | Test does not manipulate time |
 | `precedent-matched` | Initiator is a sibling service, or controller makes an outbound HTTP call requiring a stub | Neither condition is present |
 
-All other rules (`one-it`, `aaa-headers`, `no-internal-mocks`, `shape-and-value`, `no-shared-setup`, `no-runtime-branching`, `literal-path`, `symbol-statuses`, `no-before-all`, `one-request`, `plain-english-it`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`, `use-parsed-body`) apply to every test and never receive `N/A`.
+All other rules (`one-it`, `aaa-headers`, `no-internal-mocks`, `shape-and-value`, `setup-in-it`, `no-runtime-branching`, `literal-path`, `symbol-statuses`, `one-request`, `plain-english-it`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`, `use-parsed-body`) apply to every test and never receive `N/A`.
 
 **`N/A` does not count toward the letter grade in either direction.** The letter grade is computed only from `✗` counts. **`N/A` also does not push RITE dimension verdicts toward Mixed or Poor** — a dimension whose only non-✓ rules are `N/A` is graded `Good`.
 
@@ -335,8 +328,8 @@ Each rule contributes to one or more dimensions. Some rules contribute to multip
 
 | Dimension | What it means for a request test | Contributing rules |
 |-----------|----------------------------------|-------------------|
-| **Readable** | A reader can follow the `it` top-to-bottom without scrolling, knows what the test does from its description, and can locate Arrange/Act/Assert at fixed positions. | `aaa-headers`, `plain-english-it`, `literal-path`, `no-shared-setup`, `one-it`, `use-parsed-body` |
-| **Isolated** | The test stands alone — no order dependencies, no cross-`it` state leakage, no hidden setup that varies between runs, exactly one HTTP call to Canvas. | `one-it`, `one-request`, `no-before-all`, `no-shared-setup`, `no-runtime-branching`, `stub-outbound`, `use-timecop` |
+| **Readable** | A reader can follow the `it` top-to-bottom without scrolling, knows what the test does from its description, and can locate Arrange/Act/Assert at fixed positions. | `aaa-headers`, `plain-english-it`, `literal-path`, `setup-in-it`, `one-it`, `use-parsed-body` |
+| **Isolated** | The test stands alone — no order dependencies, no cross-`it` state leakage, no hidden setup that varies between runs, exactly one HTTP call to Canvas. | `one-it`, `one-request`, `setup-in-it`, `no-runtime-branching`, `stub-outbound`, `use-timecop` |
 | **Thorough** | The test proves behavior, not coincidence — full-shape assertions, every collaborator verified, DB state reloaded, deterministic numeric types, feature flags pinned. | `shape-and-value`, `verify-stubs`, `reload-assertions`, `eql-for-numerics`, `feature-flag-setup`, `no-internal-mocks` |
 | **Explicit** | Every value the assertions depend on appears in setup; matchers carry intent (`:ok`, not `200`); auth pattern matches initiator; nothing inferred from defaults or precedent-by-convention. | `literal-path`, `no-magic-values`, `symbol-statuses`, `precise-matchers`, `auth-matches-initiator`, `eql-for-numerics`, `precedent-matched`, `feature-flag-setup`, `no-internal-mocks` |
 
@@ -367,4 +360,4 @@ Patterns the grader catches via existing rules. This table is for users coming f
 | Stale DB reads (forgot `.reload`) | Asserts against the in-memory ActiveRecord cache, not what was persisted. | `reload-assertions` |
 | Unverified stubs (defined but never hit) | The production code took a different branch; the stub never fired; the test silently passes. | `verify-stubs` |
 | `eq` on numeric serializer fields | `5` and `5.0` are equal under `eq`; an Integer-to-Float regression is silent. | `eql-for-numerics` |
-| Order-dependent tests via `before(:all)` | Records persist across examples; downstream tests see undefined state. | `no-before-all` |
+| Setup hidden outside the `it` (`before` hooks of any flavor, `let`, `subject`, enclosing-scope `@instance_vars`) | Reader can't see what the `it` depends on without scrolling; lazy `let`s hide execution order; once-per-group `before` variants also leak record state across examples. | `setup-in-it` |

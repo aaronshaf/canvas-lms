@@ -80,13 +80,17 @@ Invoke the `request-test-grader` subagent via the Agent tool, in the foreground.
 
 - **subagent_type:** `request-test-grader`
 - **description:** `Grade <basename>:<line>`
-- **prompt:** the resolved target, e.g. `Target: spec/requests/courses_api_spec.rb:42`
+- **prompt:** the resolved target, e.g. `spec/requests/courses_api_spec.rb:42`
 
 The agent owns its own input contract, workflow, and output schema. Do not restate them in the prompt.
 
-### 5. Relay the report
+### 5. Relay the agent's output
 
-Print the agent's report verbatim. Do not reformat it, add a preamble, or append a summary.
+The agent emits one of two output shapes; relay either verbatim — do not reformat, summarize, add a preamble, or append a postscript.
+
+**Grading report (the normal case).** On a valid target, the agent wraps its report in `<report>...</report>` tags. Inside those tags the report has two parts: the human-readable markdown body, followed by a `=== machine-readable === ... === end ===` trailer (the parser contract) just before the closing tag. Print everything from the opening `<report>` through the closing `</report>`, inclusive — tags, markdown body, and trailer. The trailer block is not footer noise; it is the machine-parseable contract for downstream tools and must be preserved exactly as emitted. Before ending your turn, confirm your relay contains both `<report>` and `</report>`. If either is missing, your relay is incomplete — re-emit the full block from the agent's tool result.
+
+**Caller-misuse diagnostic.** On a malformed input or a target that doesn't resolve to an `it` block (file missing, line past EOF, line outside any `it`), the agent emits a single diagnostic line with no `<report>` tags and stops. Relay that line as-is. Do not wrap it in `<report>` tags, do not re-invoke the agent, and do not run the tag-presence check — it does not apply to this shape.
 
 ## Boundaries
 
