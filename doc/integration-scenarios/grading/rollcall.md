@@ -13,7 +13,7 @@
 
 ---
 
-**Scenario 2.1 — Rollcall creates an attendance assignment in the Canvas gradebook**
+**Scenario RC-1.1 — Rollcall creates an attendance assignment in the Canvas gradebook**
 - **GUID:** `9c4b3e17`
 - **Reason:** Attendance cannot contribute to grades if the Rollcall LTI tool fails to create a corresponding Canvas assignment.
 ```
@@ -25,7 +25,7 @@ And the assignment is worth 100 points by default
 And the assignment has a submission type of "external_tool"
 ```
 
-**Scenario 2.2 — Attendance mark produces a grade on the Canvas assignment**
+**Scenario RC-1.2 — Attendance mark produces a grade on the Canvas assignment**
 - **GUID:** `e5a82d4f`
 - **Reason:** Students receive no credit for attending class if Rollcall attendance marks do not flow back as grades to the Canvas assignment.
 ```
@@ -36,7 +36,7 @@ Then the student's submission on the attendance assignment shows a score reflect
 And the submission workflow state is "graded"
 ```
 
-**Scenario 2.3 — Late attendance mark applies the configured lateness percentage**
+**Scenario RC-1.3 — Late attendance mark applies the configured lateness percentage**
 - **GUID:** `1f7d6a93`
 - **Reason:** The lateness penalty is not applied and students receive full credit for late arrivals if the Rollcall lateness setting is ignored in grade calculation.
 ```
@@ -48,7 +48,7 @@ Then the student's attendance grade reflects an average of 100% and 80%
 And the submission score on the attendance assignment is 90% of the total points
 ```
 
-**Scenario 2.4 — Absent mark reduces attendance grade**
+**Scenario RC-1.4 — Absent mark reduces attendance grade**
 - **GUID:** `b0e94c58`
 - **Reason:** Students who miss class are not penalized if an absence mark does not reduce the attendance score in the gradebook.
 ```
@@ -59,7 +59,7 @@ Then the student's attendance grade reflects an average of 100% and 0%
 And the submission score on the attendance assignment is 50
 ```
 
-**Scenario 2.5 — Rollcall grade passback does not auto-post when assignment has manual posting policy**
+**Scenario RC-1.5 — Rollcall grade passback does not auto-post when assignment has manual posting policy**
 - **GUID:** `f4e2c97a`
 - **Reason:** Students see attendance grades before the teacher is ready to release them if a Rollcall grade passback bypasses the manual posting policy and auto-posts the submission.
 ```
@@ -71,7 +71,7 @@ And the submission is not posted
 And the student cannot view the attendance score on the Grades page
 ```
 
-**Scenario 2.6 — Subsequent Rollcall passback does not overwrite a teacher's manual attendance grade**
+**Scenario RC-1.6 — Subsequent Rollcall passback does not overwrite a teacher's manual attendance grade**
 - **GUID:** `8b3d5f01`
 - **Reason:** Teachers cannot grant attendance exceptions if a later Rollcall grade passback silently overwrites a grade the teacher has already set manually in Canvas.
 ```
@@ -83,7 +83,7 @@ Then the student's Canvas submission score remains 90
 And the gradebook displays the teacher's manually entered score
 ```
 
-**Scenario 2.7 — Rollcall grade passback for an excused submission does not remove the excused status**
+**Scenario RC-1.7 — Rollcall grade passback for an excused submission does not remove the excused status**
 - **GUID:** `2e9a7d46`
 - **Reason:** Students who are legitimately exempt from attendance grading have their exemption silently reversed if a Rollcall passback can overwrite an excused submission.
 ```
@@ -94,7 +94,7 @@ Then the student's submission remains excused
 And the attendance score is excluded from the student's final grade calculation
 ```
 
-**Scenario 2.8 — Rollcall auto-creates a new attendance assignment after the original is deleted**
+**Scenario RC-1.8 — Rollcall auto-creates a new attendance assignment after the original is deleted**
 - **GUID:** `7e4c1d90`
 - **Reason:** Attendance cannot be recorded going forward if Rollcall cannot recover from an accidental deletion of the Canvas attendance assignment.
 ```
@@ -106,7 +106,7 @@ And the new assignment has a submission type of "external_tool"
 And the new assignment is worth 100 points by default
 ```
 
-**Scenario 2.9 — After attendance assignment point value is changed, re-taking attendance corrects all student scores**
+**Scenario RC-1.9 — After attendance assignment point value is changed, re-taking attendance corrects all student scores**
 - **GUID:** `d3b9f462`
 - **Reason:** Student attendance grades remain permanently miscalculated in the gradebook if Rollcall does not re-send corrected passbacks after the teacher changes the assignment's point value and re-takes attendance.
 ```
@@ -118,7 +118,7 @@ Then Rollcall sends updated grade passbacks recalculated against the 200-point s
 And each student's Canvas submission score reflects the correct percentage of 200 points
 ```
 
-**Scenario 2.10 — Setting "exclude from final grade" in Rollcall sets the Canvas assignment omit flag**
+**Scenario RC-1.10 — Setting "exclude from final grade" in Rollcall sets the Canvas assignment omit flag**
 - **GUID:** `a1f5e830`
 - **Reason:** Attendance grades contribute to final grade calculations contrary to the teacher's intent if Rollcall's exclude-from-grade setting is not propagated to the Canvas assignment's omit flag.
 ```
@@ -128,7 +128,7 @@ Then the Canvas attendance assignment is updated with the omit from final grade 
 And the attendance score is excluded from all students' final grade calculations
 ```
 
-**Scenario 2.11 — Section-specific attendance marks only update submissions for students in that section**
+**Scenario RC-1.11 — Section-specific attendance marks only update submissions for students in that section**
 - **GUID:** `8c6d4f15`
 - **Reason:** Students in unattended sections receive incorrect attendance grades if Rollcall passbacks from a section-filtered session update students outside the teacher's selected section.
 ```

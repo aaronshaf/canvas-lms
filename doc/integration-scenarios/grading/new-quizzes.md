@@ -14,7 +14,7 @@
 
 ---
 
-**Scenario 1.1 — Auto-graded New Quizzes score flows to Canvas gradebook**
+**Scenario NQ-1.1 — Auto-graded New Quizzes score flows to Canvas gradebook**
 - **GUID:** `7e2b4f91`
 - **Reason:** Students see incorrect or missing quiz scores if auto-graded results from New Quizzes do not pass back to the Canvas submission record.
 ```
@@ -25,7 +25,7 @@ Then the student's Canvas submission for the quiz assignment shows a score of 80
 And the submission workflow state is "graded"
 ```
 
-**Scenario 1.2 — Teacher manually grades a New Quizzes essay question**
+**Scenario NQ-1.2 — Teacher manually grades a New Quizzes essay question**
 - **GUID:** `d4a6e823`
 - **Reason:** Essay and file-upload questions remain unscored in the gradebook if the teacher's manual grade is not persisted to the Canvas submission.
 ```
@@ -37,7 +37,7 @@ Then the student's Canvas submission score reflects the combined auto-graded and
 And the submission workflow state is "graded"
 ```
 
-**Scenario 1.3 — New Quizzes grade passback does not auto-post when assignment has manual posting policy**
+**Scenario NQ-1.3 — New Quizzes grade passback does not auto-post when assignment has manual posting policy**
 - **GUID:** `3d2f9e74`
 - **Reason:** Students see quiz scores before the teacher is ready to release them if a NQ grade passback bypasses the manual posting policy and auto-posts the submission.
 ```
@@ -49,7 +49,7 @@ And the submission is not posted
 And the student cannot view the quiz score on the Grades page
 ```
 
-**Scenario 1.4 — Subsequent New Quizzes passback does not overwrite a teacher's manual grade**
+**Scenario NQ-1.4 — Subsequent New Quizzes passback does not overwrite a teacher's manual grade**
 - **GUID:** `a0b5c81f`
 - **Reason:** Teachers lose the ability to correct auto-grading errors if a later NQ grade passback silently overwrites a grade the teacher has already set manually in Canvas.
 ```
@@ -61,7 +61,7 @@ Then the student's Canvas submission score remains 85
 And the gradebook displays the teacher's manually entered score
 ```
 
-**Scenario 1.5 — New Quizzes grade passback for a moderated assignment creates a provisional grade**
+**Scenario NQ-1.5 — New Quizzes grade passback for a moderated assignment creates a provisional grade**
 - **GUID:** `e7d3a429`
 - **Reason:** The moderated grading workflow is bypassed if a NQ grade passback writes directly to the final submission score instead of creating a provisional grade for moderator review.
 ```
@@ -73,7 +73,7 @@ And the student's final submission score is not yet updated
 And the student cannot view the score
 ```
 
-**Scenario 1.6 — New Quizzes passback delivers outcome result and quiz grade in the same operation**
+**Scenario NQ-1.6 — New Quizzes passback delivers outcome result and quiz grade in the same operation**
 - **GUID:** `6c1f8b50`
 - **Reason:** Students receive a quiz score but no mastery credit, or mastery credit with no score, if NQ passback does not persist both the grade and the outcome result to Canvas.
 ```
@@ -85,7 +85,7 @@ And an outcome result for the aligned outcome is created in Canvas
 And both the submission score and the outcome result reference the same quiz assignment
 ```
 
-**Scenario 1.7 — Fudge points applied in New Quizzes update the Canvas submission score**
+**Scenario NQ-1.7 — Fudge points applied in New Quizzes update the Canvas submission score**
 - **GUID:** `b5f3a91d`
 - **Reason:** Teachers cannot make holistic score adjustments if fudge-point changes made in NQ are not reflected in the Canvas submission record.
 ```
@@ -96,7 +96,7 @@ Then the student's Canvas submission score is 80
 And the submission workflow state is "graded"
 ```
 
-**Scenario 1.8 — Second NQ attempt passback updates the Canvas submission score**
+**Scenario NQ-1.8 — Second NQ attempt passback updates the Canvas submission score**
 - **GUID:** `c8d2e05f`
 - **Reason:** Students are permanently penalized with their first-attempt score even after earning a higher score on a permitted retake if NQ does not pass the updated score back to Canvas.
 ```
@@ -107,7 +107,7 @@ Then the student's Canvas submission score is updated to 85
 And the submission workflow state is "graded"
 ```
 
-**Scenario 1.9 — Canvas availability "Until" date causes NQ to auto-submit an in-progress quiz**
+**Scenario NQ-1.9 — Canvas availability "Until" date causes NQ to auto-submit an in-progress quiz**
 - **GUID:** `4d7e2b93`
 - **Reason:** Students receive no submission record or grade if NQ does not auto-submit and send grade passback when the Canvas availability window closes on an in-progress attempt.
 ```
@@ -119,7 +119,7 @@ And New Quizzes sends a grade passback to Canvas for the auto-submitted attempt
 And the student's Canvas submission has a workflow state of "graded"
 ```
 
-**Scenario 1.10 — NQ grade passback for a student with a concluded enrollment is not recorded in Canvas**
+**Scenario NQ-1.10 — NQ grade passback for a student with a concluded enrollment is not recorded in Canvas**
 - **GUID:** `17a60e2d`
 - **Reason:** Gradebook integrity is compromised if NQ grade passbacks are accepted for students whose enrollment has ended, creating or modifying grade records for non-active students.
 ```

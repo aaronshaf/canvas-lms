@@ -13,7 +13,7 @@ Behavioral scenario inventory for Canvas LMS integration boundaries. Each subdir
 Each scenario follows this structure:
 
 ```markdown
-**Scenario {file#}.{scenario#} — {Short imperative title}**
+**Scenario {SERVICE-PREFIX}-{file#}.{scenario#} — {Short imperative title}**
 - **GUID:** `{8-char lowercase hex}`
 - **Reason:** {One sentence — the impact if this fails.}
 \```
@@ -35,7 +35,7 @@ Then {expected outcome(s)}
 **Example:**
 
 ```markdown
-**Scenario {file#}.{scenario#} — {Title}**
+**Scenario {SERVICE-PREFIX}-{file#}.{scenario#} — {Title}**
 - **GUID:** `{8-char lowercase hex}`
 - **Reason:** {One sentence — the impact if this fails.}
 \```
@@ -52,4 +52,4 @@ And {additional outcome}
 
 | Directory | Description |
 |-----------|-------------|
-| [grading/](grading/README.md) | Grade passback and gradebook behavior at the boundary between Canvas and external tools (New Quizzes, Rollcall) |
+| [grading/](grading/README.md) | Grade passback and gradebook behavior at the boundary between Canvas and external tools (New Quizzes, Rollcall, Mastery Connect) |
