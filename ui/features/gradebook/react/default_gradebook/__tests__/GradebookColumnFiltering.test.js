@@ -61,7 +61,10 @@ vi.mock('../GradebookGrid', () => {
 
   return {
     __esModule: true,
-    default: vi.fn().mockImplementation(() => gridInstance),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockGrid() {
+      return gridInstance
+    }),
   }
 })
 
@@ -132,9 +135,7 @@ vi.mock('../Gradebook', () => {
           assignments,
           assignmentGroups,
         },
-        getAssignment: vi
-          .fn()
-          .mockImplementation(id => assignments[id.replace('assignment_', '')]),
+        getAssignment: vi.fn().mockImplementation(id => assignments[id.replace('assignment_', '')]),
         getAssignmentGroup: vi.fn().mockImplementation(id => assignmentGroups[id]),
         getEnterGradesAsSetting: vi.fn(),
         getAssignmentGradingScheme: vi.fn(),

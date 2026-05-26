@@ -26,6 +26,7 @@ import fakeENV from '@canvas/test-utils/fakeENV'
 
 vi.mock('@canvas/calendar/jquery/CommonEvent/index')
 vi.mock('@canvas/calendar/react/RecurringEvents/UpdateCalendarEventDialog')
+vi.mock('@canvas/rce/serviceRCELoader')
 
 describe('CalendarEventDetailsForm frequency picker', () => {
   let defaultProps

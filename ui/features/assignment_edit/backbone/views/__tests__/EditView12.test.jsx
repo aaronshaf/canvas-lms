@@ -39,6 +39,8 @@ import {http, HttpResponse} from 'msw'
 import {getUrlWithHorizonParams} from '@canvas/horizon/utils'
 import fakeEnv from '@canvas/test-utils/fakeENV'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 // Mock the horizon utils module
 vi.mock('@canvas/horizon/utils', () => ({
   getUrlWithHorizonParams: vi.fn(),

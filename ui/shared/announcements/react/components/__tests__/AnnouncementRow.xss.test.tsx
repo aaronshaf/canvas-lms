@@ -32,10 +32,9 @@ import {render} from '@testing-library/react'
 import AnnouncementRow from '../AnnouncementRow'
 
 vi.mock('@canvas/lock-icon', () => ({
-  default: vi.fn(() => ({
-    render: vi.fn(),
-    remove: vi.fn(),
-  })),
+  default: vi.fn(function MockLockIconView() {
+    return {render: vi.fn(), remove: vi.fn()}
+  }),
 }))
 
 const EVENT_HANDLER_ATTR = /^on[a-z]+$/i

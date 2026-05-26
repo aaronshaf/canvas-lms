@@ -29,7 +29,10 @@ describe('ContextModuleApi', () => {
       footerInstance = {fetch: vi.fn(() => Promise.resolve(footerInstance))}
 
       ModuleSequenceFooter.mockClear()
-      ModuleSequenceFooter.mockImplementation(() => footerInstance)
+      // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+      ModuleSequenceFooter.mockImplementation(function MockModuleSequenceFooter() {
+        return footerInstance
+      })
     })
 
     it('initializes a ModuleSequenceFooter object with the given course and assignment IDs', async () => {

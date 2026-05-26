@@ -114,9 +114,9 @@ describe('enrollmentTermsApi', () => {
     const mockDispatch = {
       getDepaginated: vi.fn().mockReturnValue(mockDeferred),
     }
-    ;(NaiveRequestDispatch as any).mockImplementation(
-      () => mockDispatch as unknown as NaiveRequestDispatch,
-    )
+    ;(NaiveRequestDispatch as any).mockImplementation(function MockNaiveRequestDispatch() {
+      return mockDispatch as unknown as NaiveRequestDispatch
+    })
   })
 
   afterEach(() => {

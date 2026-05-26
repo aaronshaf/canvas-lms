@@ -89,8 +89,18 @@ describe('SignIn', () => {
   beforeEach(() => {
     fakeENV.setup()
     vi.clearAllMocks()
-    vi.restoreAllMocks()
-    // reset the mock implementation to return the default values
+    mockUseNewLogin.mockImplementation(() => ({
+      isUiActionPending: false,
+      setIsUiActionPending: vi.fn(),
+      otpRequired: false,
+      setOtpRequired: vi.fn(),
+      rememberMe: false,
+      setRememberMe: vi.fn(),
+      showForgotPassword: false,
+      setShowForgotPassword: vi.fn(),
+      otpCommunicationChannelId: null,
+      setOtpCommunicationChannelId: vi.fn(),
+    }))
     mockUseNewLoginData.mockImplementation(() => ({
       isDataLoading: false,
       loginHandleName: 'Email',

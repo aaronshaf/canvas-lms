@@ -28,6 +28,7 @@ import * as UpdateCalendarEventDialogModule from '@canvas/calendar/react/Recurri
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 vi.mock('@canvas/calendar/jquery/CommonEvent/index')
+vi.mock('@canvas/rce/serviceRCELoader')
 vi.mock('@canvas/calendar/react/RecurringEvents/UpdateCalendarEventDialog')
 
 let defaultProps = eventFormProps()

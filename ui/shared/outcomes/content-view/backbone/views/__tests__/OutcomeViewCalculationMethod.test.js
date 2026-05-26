@@ -23,6 +23,7 @@ import Outcome from '../../../../backbone/models/Outcome'
 import OutcomeContentBase from '../OutcomeContentBase'
 import OutcomeView from '../OutcomeView'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 // stub function that creates the RCE to avoid
 // its async initialization
 OutcomeContentBase.prototype.readyForm = () => {}

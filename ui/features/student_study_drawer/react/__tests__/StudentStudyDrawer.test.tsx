@@ -52,7 +52,9 @@ vi.mock('@instructure/platform-notebook', () => ({
 }))
 
 vi.mock('@canvas/notebook', () => ({
-  CanvasNotebookApi: vi.fn().mockImplementation(() => ({})),
+  CanvasNotebookApi: vi.fn(function MockCanvasNotebookApi() {
+    return {}
+  }),
   notebookTranslations: {},
   notebookTranslate: vi.fn((key: string) => key),
   HIGHLIGHT_THEME: {},

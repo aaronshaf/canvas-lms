@@ -22,9 +22,10 @@ import SetDefaultGradeDialogManager from '../SetDefaultGradeDialogManager'
 import AsyncComponents from '../../default_gradebook/AsyncComponents'
 
 vi.mock('@canvas/grading/jquery/SetDefaultGradeDialog', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    show: vi.fn(),
-  })),
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  default: vi.fn(function MockSetDefaultGradeDialog() {
+    return {show: vi.fn()}
+  }),
 }))
 
 const createAssignmentProp = () => ({

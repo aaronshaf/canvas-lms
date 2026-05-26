@@ -37,34 +37,53 @@ let server
 
 vi.mock('@canvas/user-settings')
 
+vi.mock('@canvas/rce/serviceRCELoader', () => ({
+  default: {
+    loadOnTarget: vi.fn(),
+    loadRCE: vi.fn(),
+    preload: vi.fn(),
+    getTargetTextarea: vi.fn(),
+    getRenderingTarget: vi.fn(),
+    createRCEProps: vi.fn(),
+    loadingCallbacks: [],
+    RCE: null,
+  },
+}))
+
 // Mock SectionCollection
 vi.mock('@canvas/sections/backbone/collections/SectionCollection', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      length: 1,
-      add: vi.fn(),
-      models: [],
-      courseSectionID: '1',
-    })),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockSectionCollection() {
+      return {
+        length: 1,
+        add: vi.fn(),
+        models: [],
+        courseSectionID: '1',
+      }
+    }),
   }
 })
 
 // Mock DueDateList
 vi.mock('@canvas/due-dates/backbone/models/DueDateList', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      sections: {
-        length: 1,
-        add: vi.fn(),
-        models: [],
-      },
-      overrides: {
-        length: 0,
-        models: [],
-      },
-      courseSectionID: '1',
-      _addOverrideForDefaultSectionIfNeeded: vi.fn(),
-    })),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockDueDateList() {
+      return {
+        sections: {
+          length: 1,
+          add: vi.fn(),
+          models: [],
+        },
+        overrides: {
+          length: 0,
+          models: [],
+        },
+        courseSectionID: '1',
+        _addOverrideForDefaultSectionIfNeeded: vi.fn(),
+      }
+    }),
   }
 })
 

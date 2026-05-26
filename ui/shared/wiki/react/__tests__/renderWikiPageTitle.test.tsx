@@ -24,6 +24,7 @@ import type {Props as ComponentProps} from '../renderWikiPageTitle'
 import type JQuery from 'jquery'
 import {checkForTitleConflictDebounced} from '../../utils/titleConflicts'
 
+vi.mock('@canvas/rce/RichContentEditor')
 vi.mock('../../utils/titleConflicts', () => ({
   checkForTitleConflictDebounced: vi.fn(),
 }))

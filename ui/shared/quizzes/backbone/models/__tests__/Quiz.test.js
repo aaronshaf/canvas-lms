@@ -325,10 +325,13 @@ describe('Quiz polling', () => {
       start: vi.fn(),
       stop: vi.fn(),
     }
-    PandaPubPoller.mockImplementation((_interval, _maxAttempts, callback) => {
-      callback(() => {})
-      return pollerMock
-    })
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    PandaPubPoller.mockImplementation(
+      function MockPandaPubPoller(_interval, _maxAttempts, callback) {
+        callback(() => {})
+        return pollerMock
+      },
+    )
   })
 
   afterEach(() => {

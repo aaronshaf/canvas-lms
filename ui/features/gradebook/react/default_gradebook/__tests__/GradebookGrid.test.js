@@ -22,43 +22,46 @@ import slickgrid from 'slickgrid'
 import {vi} from 'vitest'
 
 vi.mock('slickgrid', () => {
-  const mockGrid = vi.fn().mockImplementation(() => ({
-    getColumns: vi.fn().mockReturnValue([]),
-    getOptions: vi.fn().mockReturnValue({numberOfColumnsToFreeze: 2}),
-    destroy: vi.fn(),
-    invalidate: vi.fn(),
-    updateCell: vi.fn(),
-    setNumberOfColumnsToFreeze: vi.fn(),
-    setColumns: vi.fn(),
-    onColumnsReordered: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onColumnsResized: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onKeyDown: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onClick: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onHeaderClick: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onHeaderKeyDown: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-    onBeforeEditCell: {
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    },
-  }))
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  const mockGrid = vi.fn(function MockSlickGrid() {
+    return {
+      getColumns: vi.fn().mockReturnValue([]),
+      getOptions: vi.fn().mockReturnValue({numberOfColumnsToFreeze: 2}),
+      destroy: vi.fn(),
+      invalidate: vi.fn(),
+      updateCell: vi.fn(),
+      setNumberOfColumnsToFreeze: vi.fn(),
+      setColumns: vi.fn(),
+      onColumnsReordered: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onColumnsResized: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onKeyDown: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onClick: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onHeaderClick: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onHeaderKeyDown: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+      onBeforeEditCell: {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+      },
+    }
+  })
   return {
     default: {Grid: mockGrid},
     Grid: mockGrid,
@@ -66,38 +69,41 @@ vi.mock('slickgrid', () => {
 })
 
 vi.mock('../GradebookGrid/GridSupport/index', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    initialize: vi.fn(),
-    destroy: vi.fn(),
-    columns: {
-      getColumns: vi.fn(),
-      scrollToStart: vi.fn(),
-      scrollToEnd: vi.fn(),
-    },
-    events: {
-      onKeyDown: {
-        subscribe: vi.fn(),
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  default: vi.fn(function MockGridSupport() {
+    return {
+      initialize: vi.fn(),
+      destroy: vi.fn(),
+      columns: {
+        getColumns: vi.fn(),
+        scrollToStart: vi.fn(),
+        scrollToEnd: vi.fn(),
       },
-      onColumnsReordered: {
-        subscribe: vi.fn(),
+      events: {
+        onKeyDown: {
+          subscribe: vi.fn(),
+        },
+        onColumnsReordered: {
+          subscribe: vi.fn(),
+        },
+        onColumnsResized: {
+          subscribe: vi.fn(),
+        },
+        onClick: {
+          subscribe: vi.fn(),
+        },
+        onHeaderClick: {
+          subscribe: vi.fn(),
+        },
+        onHeaderKeyDown: {
+          subscribe: vi.fn(),
+        },
+        onBeforeEditCell: {
+          subscribe: vi.fn(),
+        },
       },
-      onColumnsResized: {
-        subscribe: vi.fn(),
-      },
-      onClick: {
-        subscribe: vi.fn(),
-      },
-      onHeaderClick: {
-        subscribe: vi.fn(),
-      },
-      onHeaderKeyDown: {
-        subscribe: vi.fn(),
-      },
-      onBeforeEditCell: {
-        subscribe: vi.fn(),
-      },
-    },
-  })),
+    }
+  }),
 }))
 
 describe.skip('GradebookGrid', () => {

@@ -29,6 +29,7 @@ import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 
 vi.mock('@canvas/calendar/jquery/CommonEvent/index')
+vi.mock('@canvas/rce/serviceRCELoader')
 vi.mock('@canvas/calendar/react/RecurringEvents/UpdateCalendarEventDialog')
 
 const server = setupServer()

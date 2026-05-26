@@ -24,6 +24,8 @@ import WikiPage from '../../models/WikiPage'
 import WikiPageEditView from '../WikiPageEditView'
 
 // Mock the horizon utils module
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/horizon/utils', () => ({
   redirectWithHorizonParams: vi.fn(),
 }))

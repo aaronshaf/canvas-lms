@@ -27,12 +27,15 @@ import 'jquery-migrate'
 // jquery-popover requires real DOM positioning (jqueryui/position) which
 // doesn't work in jsdom — stub it so we can exercise the template seam.
 vi.mock('jquery-popover', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    el: $('<div>'),
-    show: vi.fn(),
-    hide: vi.fn(),
-    on: vi.fn(),
-  })),
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  default: vi.fn(function MockPopover() {
+    return {
+      el: $('<div>'),
+      show: vi.fn(),
+      hide: vi.fn(),
+      on: vi.fn(),
+    }
+  }),
 }))
 
 const OutcomeColumnView = (await import('../OutcomeColumnView')).default

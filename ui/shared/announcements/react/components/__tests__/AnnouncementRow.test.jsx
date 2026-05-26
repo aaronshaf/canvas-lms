@@ -26,7 +26,10 @@ const mockLockIconView = {
 }
 
 vi.mock('@canvas/lock-icon', () => ({
-  default: vi.fn(() => mockLockIconView),
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  default: vi.fn(function MockLockIconView() {
+    return mockLockIconView
+  }),
 }))
 
 const defaultProps = (props = {}) => ({

@@ -22,7 +22,7 @@ import React from 'react'
 import store from '../../stores/index'
 
 describe('GradeLoadingSpinner', () => {
-  let props: {onLoadingChange: ReturnType<typeof vi.fn>}
+  let props: {onLoadingChange: any}
   beforeEach(() => {
     props = {onLoadingChange: vi.fn()}
   })

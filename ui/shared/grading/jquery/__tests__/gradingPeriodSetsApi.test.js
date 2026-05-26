@@ -149,9 +149,9 @@ describe('gradingPeriodSetsApi', () => {
     ENV.GRADING_PERIOD_SET_UPDATE_URL = 'api/grading_period_sets/${id}'
 
     mockGetDepaginated = vi.fn()
-    NaiveRequestDispatch.mockImplementation(() => ({
-      getDepaginated: mockGetDepaginated,
-    }))
+    NaiveRequestDispatch.mockImplementation(function () {
+      return {getDepaginated: mockGetDepaginated}
+    })
   })
 
   afterEach(() => {

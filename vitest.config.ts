@@ -22,6 +22,7 @@ import {defineConfig} from 'vitest/config'
 import {resolve} from 'path'
 import handlebarsPlugin from './ui-build/esbuild/handlebars-plugin'
 import svgPlugin from './ui-build/esbuild/svg-plugin'
+import {HeapReporter} from './ui/shared/test-utils/heap-reporter'
 
 // Plugin to handle .graphql files as raw text
 const graphqlPlugin = {
@@ -114,9 +115,6 @@ const jestMockHoistPlugin = {
 }
 
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-  },
   test: {
     testTimeout: 30000,
     hookTimeout: 30000,
@@ -131,13 +129,9 @@ export default defineConfig({
     // Switching to pool:'threads' would break the guard — globalThis would be
     // shared across files and React would capture setImmediate before the guard runs.
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        minForks: 1,
-        maxForks: 4,
-        isolate: true,
-      },
-    },
+    isolate: true,
+    minWorkers: 1,
+    maxWorkers: 4,
     sequence: {
       shuffle: true,
     },
@@ -152,6 +146,7 @@ export default defineConfig({
             : './coverage-js/junit-reports/jest.xml',
         },
       ],
+      ...(process.env.TEST_RESULT_OUTPUT_DIR ? [new HeapReporter()] : []),
     ],
     // Configure jsdom to use http://localhost without port (matching Jest's default)
     // This prevents test failures where URLs are compared with hardcoded 'http://localhost/...'

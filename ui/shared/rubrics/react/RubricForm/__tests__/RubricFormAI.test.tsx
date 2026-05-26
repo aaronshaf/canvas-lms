@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import {type Mock} from 'vitest'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {RubricForm, type RubricFormComponentProp} from '../index'
@@ -76,7 +76,8 @@ describe('RubricForm AI Tests', () => {
     })
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    await act(async () => {})
     queryClient.clear()
     vi.resetAllMocks()
     fakeEnv.teardown()

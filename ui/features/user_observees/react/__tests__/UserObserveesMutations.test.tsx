@@ -104,7 +104,7 @@ const renderComponent = (queryClient: QueryClient) =>
   )
 
 describe('UserObservees Mutations', () => {
-  let confirmMock: ReturnType<typeof vi.fn>
+  let confirmMock: any
   let originalConfirm: typeof window.confirm
 
   beforeAll(() => {

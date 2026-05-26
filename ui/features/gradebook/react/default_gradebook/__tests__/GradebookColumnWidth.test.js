@@ -25,32 +25,43 @@ import SlickGridSpecHelper from '../GradebookGrid/GridSupport/__tests__/SlickGri
 vi.mock('../GradebookGrid', () => {
   return {
     __esModule: true,
-    default: vi.fn().mockImplementation(() => ({
-      initialize: vi.fn(),
-      destroy: vi.fn(),
-      events: {
-        onColumnsReordered: {
-          subscribe: vi.fn(),
-          trigger: vi.fn(),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockGradebookGrid() {
+      return {
+        initialize: vi.fn(),
+        destroy: vi.fn(),
+        events: {
+          onColumnsReordered: {
+            subscribe: vi.fn(),
+            trigger: vi.fn(),
+          },
+          onColumnsResized: {
+            subscribe: vi.fn(),
+            trigger: vi.fn(),
+          },
         },
-        onColumnsResized: {
-          subscribe: vi.fn(),
-          trigger: vi.fn(),
-        },
-      },
-      grid: {
-        getColumnIndex: vi.fn().mockReturnValue(0),
-        getColumns: vi.fn().mockReturnValue([
-          {id: 'assignment_2301', width: 150},
-          {id: 'assignment_2302', width: 150},
-          {id: 'assignment_2303', width: 150},
-          {id: 'assignment_2304', width: 150},
-        ]),
-        setColumns: vi.fn(),
-        invalidate: vi.fn(),
-        render: vi.fn(),
-        getHeaderRow: vi.fn().mockReturnValue({
-          querySelector: vi.fn().mockReturnValue({
+        grid: {
+          getColumnIndex: vi.fn().mockReturnValue(0),
+          getColumns: vi.fn().mockReturnValue([
+            {id: 'assignment_2301', width: 150},
+            {id: 'assignment_2302', width: 150},
+            {id: 'assignment_2303', width: 150},
+            {id: 'assignment_2304', width: 150},
+          ]),
+          setColumns: vi.fn(),
+          invalidate: vi.fn(),
+          render: vi.fn(),
+          getHeaderRow: vi.fn().mockReturnValue({
+            querySelector: vi.fn().mockReturnValue({
+              offsetWidth: 150,
+              classList: {
+                contains: vi.fn().mockReturnValue(false),
+                add: vi.fn(),
+                remove: vi.fn(),
+              },
+            }),
+          }),
+          getCellNode: vi.fn().mockReturnValue({
             offsetWidth: 150,
             classList: {
               contains: vi.fn().mockReturnValue(false),
@@ -58,34 +69,26 @@ vi.mock('../GradebookGrid', () => {
               remove: vi.fn(),
             },
           }),
-        }),
-        getCellNode: vi.fn().mockReturnValue({
-          offsetWidth: 150,
-          classList: {
-            contains: vi.fn().mockReturnValue(false),
-            add: vi.fn(),
-            remove: vi.fn(),
-          },
-        }),
-      },
-      gridSupport: {
-        events: {
-          onColumnsResized: {
-            subscribe: vi.fn(),
-            trigger: vi.fn(),
-          },
         },
-      },
-      gridData: {
-        columns: {
-          definitions: {
-            assignment_2304: {
-              width: 150,
+        gridSupport: {
+          events: {
+            onColumnsResized: {
+              subscribe: vi.fn(),
+              trigger: vi.fn(),
             },
           },
         },
-      },
-    })),
+        gridData: {
+          columns: {
+            definitions: {
+              assignment_2304: {
+                width: 150,
+              },
+            },
+          },
+        },
+      }
+    }),
   }
 })
 
@@ -326,10 +329,7 @@ describe('Gradebook Grid Column Widths', () => {
       return columnData[columnId]
     })
 
-    gridSpecHelper.listColumnIds = vi.fn().mockReturnValue([
-      'assignment_2301',
-      'assignment_2304',
-    ])
+    gridSpecHelper.listColumnIds = vi.fn().mockReturnValue(['assignment_2301', 'assignment_2304'])
 
     // Set up gradebookGrid
     gradebook.gradebookGrid = {
@@ -469,12 +469,14 @@ describe('Gradebook Grid Column Widths', () => {
         return columnData[columnId]
       })
 
-      gridSpecHelper.listColumnIds = vi.fn().mockReturnValue([
-        'assignment_2301',
-        'assignment_2302',
-        'assignment_2303',
-        'assignment_2304',
-      ])
+      gridSpecHelper.listColumnIds = vi
+        .fn()
+        .mockReturnValue([
+          'assignment_2301',
+          'assignment_2302',
+          'assignment_2303',
+          'assignment_2304',
+        ])
 
       // Set up gradebookGrid
       gradebook.gradebookGrid = {

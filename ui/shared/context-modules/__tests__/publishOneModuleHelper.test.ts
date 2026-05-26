@@ -36,15 +36,17 @@ vi.mock('../utils/showAllOrLess', () => ({
 }))
 
 vi.mock('@canvas/relock-modules-dialog', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    renderIfNeeded: vi.fn().mockImplementation(json => {
-      if (json.relock_warning) {
-        const dialog = document.createElement('div')
-        dialog.className = 'relock-modules-dialog'
-        document.body.appendChild(dialog)
-      }
-    }),
-  })),
+  default: vi.fn(function MockRelockModulesDialog() {
+    return {
+      renderIfNeeded: vi.fn().mockImplementation((json: any) => {
+        if (json.relock_warning) {
+          const dialog = document.createElement('div')
+          dialog.className = 'relock-modules-dialog'
+          document.body.appendChild(dialog)
+        }
+      }),
+    }
+  }),
 }))
 
 const {

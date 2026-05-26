@@ -80,7 +80,10 @@ vi.mock('../GradebookGrid', () => {
 
   return {
     __esModule: true,
-    default: vi.fn().mockImplementation(() => gridInstance),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockGrid() {
+      return gridInstance
+    }),
   }
 })
 
@@ -143,9 +146,7 @@ vi.mock('../Gradebook', () => {
           assignments,
           assignmentGroups,
         },
-        getAssignment: vi
-          .fn()
-          .mockImplementation(id => assignments[id.replace('assignment_', '')]),
+        getAssignment: vi.fn().mockImplementation(id => assignments[id.replace('assignment_', '')]),
         getAssignmentGroup: vi.fn().mockImplementation(id => assignmentGroups[id]),
         getEnterGradesAsSetting: vi.fn(),
         getAssignmentGradingScheme: vi.fn(),
@@ -199,8 +200,7 @@ vi.mock('../Gradebook', () => {
           instance.gradebookGrid.grid.setColumns(sortedColumns)
         }),
         options: {
-          custom_grade_statuses_enabled:
-            props.gradebookEnv?.custom_grade_statuses_enabled ?? false,
+          custom_grade_statuses_enabled: props.gradebookEnv?.custom_grade_statuses_enabled ?? false,
           show_similarity_score: props.gradebookEnv?.show_similarity_score ?? false,
           show_total_grade_as_points: props.gradebookEnv?.show_total_grade_as_points ?? false,
         },

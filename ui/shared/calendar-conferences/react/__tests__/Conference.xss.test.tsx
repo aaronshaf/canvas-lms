@@ -29,6 +29,8 @@ import Conference from '../Conference'
 
 // Conference's HtmlConference path triggers RichContentEditor.preloadRemoteModule()
 // at module load. Mock it the same way the existing Conference.test.jsx does.
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rce/RichContentEditor')
 
 const EVENT_HANDLER_ATTR = /^on[a-z]+$/i

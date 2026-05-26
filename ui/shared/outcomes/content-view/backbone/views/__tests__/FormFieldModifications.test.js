@@ -24,6 +24,7 @@ import OutcomeContentBase from '../OutcomeContentBase'
 import OutcomeView from '../OutcomeView'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 // stub function that creates the RCE to avoid
 // its async initialization
 OutcomeContentBase.prototype.readyForm = () => {}

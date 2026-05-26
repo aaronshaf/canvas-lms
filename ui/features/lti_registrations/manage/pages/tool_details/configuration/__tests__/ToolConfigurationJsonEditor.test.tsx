@@ -38,8 +38,8 @@ vi.mock('react-router-dom', async () => {
 const server = setupServer()
 
 describe('ToolConfigurationJsonEditor', () => {
-  let mockNavigate: ReturnType<typeof vi.fn>
-  let mockUsePrompt: ReturnType<typeof vi.fn>
+  let mockNavigate: any
+  let mockUsePrompt: any
 
   beforeAll(() => server.listen())
   afterAll(() => server.close())

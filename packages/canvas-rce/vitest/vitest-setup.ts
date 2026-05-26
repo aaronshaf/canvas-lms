@@ -75,9 +75,11 @@ if (!('createRange' in document)) {
   })
 }
 
-if (typeof window.URL.createObjectURL === 'undefined') {
-  Object.defineProperty(window.URL, 'createObjectURL', {value: () => 'http://example.com/whatever'})
-}
+Object.defineProperty(window.URL, 'createObjectURL', {
+  writable: true,
+  configurable: true,
+  value: () => 'http://example.com/whatever',
+})
 
 global.DataTransferItem = global.DataTransferItem || class DataTransferItem {}
 

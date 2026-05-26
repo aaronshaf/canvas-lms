@@ -208,7 +208,7 @@ describe('ItemAssignToTray - Rendering', () => {
   })
 
   describe('in a paced course', () => {
-    let overridesFetched: ReturnType<typeof vi.fn>
+    let overridesFetched: any
 
     beforeEach(() => {
       ENV.IN_PACED_COURSE = true

@@ -84,7 +84,11 @@ describe('TagAsModal', () => {
       defaultOptions: {queries: {retry: false}, mutations: {retry: false}},
     })
   })
-  afterEach(() => server.resetHandlers())
+  afterEach(async () => {
+    await act(async () => {})
+    queryClient.clear()
+    server.resetHandlers()
+  })
 
   describe('rendering', () => {
     it('renders the modal when isOpen is true', () => {

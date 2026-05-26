@@ -25,8 +25,9 @@ let headerGridArgs = {columns: [], data: [], options: {}}
 let mockGrid
 
 // Mock Slick global
+// Must use function (not arrow) — vitest 4.x requires constructable mocks.
 global.Slick = {
-  Grid: vi.fn((container, data, columns, options) => {
+  Grid: vi.fn(function MockSlickGrid(container, data, columns, options) {
     if (container.is('#gradebook_grid')) {
       mainGridArgs = {data, columns, options}
     } else if (container.is('#gradebook_grid_header')) {
@@ -156,7 +157,8 @@ describe('GradebookUploads', () => {
     }
 
     $.fn.fillWindowWithMe = vi.fn()
-    $.fn.SlickGrid = vi.fn((container, data, columns, options) => {
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    $.fn.SlickGrid = vi.fn(function MockSlickGridJQuery(container, data, columns, options) {
       if (container.is('#gradebook_grid')) {
         mainGridArgs = {data, columns, options}
       } else if (container.is('#gradebook_grid_header')) {

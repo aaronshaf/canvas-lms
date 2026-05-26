@@ -91,41 +91,46 @@ describe('FileSelectBox', () => {
       items: [],
     }
 
-    FileStore.mockImplementation(() => ({
-      getState: () => fileStoreState,
-      addChangeListener: callback => {
-        fileStoreCallback = () => {
-          fileStoreState = {
-            isLoading: false,
-            items: files,
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    FileStore.mockImplementation(function MockFileStore() {
+      return {
+        getState: () => fileStoreState,
+        addChangeListener: callback => {
+          fileStoreCallback = () => {
+            fileStoreState = {
+              isLoading: false,
+              items: files,
+            }
+            callback(fileStoreState)
           }
-          callback(fileStoreState)
-        }
-      },
-      fetch: () => {
-        setTimeout(() => {
-          fileStoreCallback()
-        }, 0)
-      },
-    }))
+        },
+        fetch: () => {
+          setTimeout(() => {
+            fileStoreCallback()
+          }, 0)
+        },
+      }
+    })
 
-    FolderStore.mockImplementation(() => ({
-      getState: () => folderStoreState,
-      addChangeListener: callback => {
-        folderStoreCallback = () => {
-          folderStoreState = {
-            isLoading: false,
-            items: folders,
+    FolderStore.mockImplementation(function MockFolderStore() {
+      return {
+        getState: () => folderStoreState,
+        addChangeListener: callback => {
+          folderStoreCallback = () => {
+            folderStoreState = {
+              isLoading: false,
+              items: folders,
+            }
+            callback(folderStoreState)
           }
-          callback(folderStoreState)
-        }
-      },
-      fetch: () => {
-        setTimeout(() => {
-          folderStoreCallback()
-        }, 0)
-      },
-    }))
+        },
+        fetch: () => {
+          setTimeout(() => {
+            folderStoreCallback()
+          }, 0)
+        },
+      }
+    })
   })
 
   afterEach(() => {

@@ -23,6 +23,7 @@ import RichContentEditor from '@canvas/rce/RichContentEditor'
 import $ from 'jquery'
 import {fireEvent} from '@testing-library/react'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 describe('SyllabusBehaviors', () => {
   let container
   let consoleWarn

@@ -147,11 +147,7 @@ export default defineConfig({
       exclude: ['**/__tests__/**', '**/__mocks__/**'],
     },
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        isolate: true,
-      },
-    },
+    isolate: true,
     server: {
       deps: {
         inline: ['@instructure/canvas-media'],

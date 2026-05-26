@@ -28,6 +28,7 @@ import Outcome from '../../../../backbone/models/Outcome'
 import OutcomeContentBase from '../OutcomeContentBase'
 import OutcomeView from '../OutcomeView'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 OutcomeContentBase.prototype.readyForm = () => {}
 
 function buildOutcome(description) {

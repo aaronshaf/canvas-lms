@@ -25,15 +25,15 @@ import {useTranslation} from '../useTranslation'
 vi.mock('../useTranslationStore')
 vi.mock('../useTranslation')
 
-const useTranslationStoreMock = useTranslationStore as unknown as ReturnType<typeof vi.fn> & {
-  getState: ReturnType<typeof vi.fn>
+const useTranslationStoreMock = useTranslationStore as unknown as any & {
+  getState: any
 }
-const useTranslationMock = useTranslation as ReturnType<typeof vi.fn>
+const useTranslationMock = useTranslation as any
 
 describe('useObservedTranslations', () => {
-  let setTranslationStartMock: ReturnType<typeof vi.fn>
-  let enqueueTranslationMock: ReturnType<typeof vi.fn>
-  let translateEntryMock: ReturnType<typeof vi.fn>
+  let setTranslationStartMock: any
+  let enqueueTranslationMock: any
+  let translateEntryMock: any
   let observerInstance: IntersectionObserver
   let observerCallback: IntersectionObserverCallback
 
@@ -62,8 +62,8 @@ describe('useObservedTranslations', () => {
       translateEntry: translateEntryMock,
     })
 
-    // Mock IntersectionObserver
-    global.IntersectionObserver = vi.fn(callback => {
+    // Mock IntersectionObserver.
+    global.IntersectionObserver = vi.fn(function MockIntersectionObserver(callback: any) {
       observerCallback = callback
       observerInstance = {
         observe: vi.fn(),

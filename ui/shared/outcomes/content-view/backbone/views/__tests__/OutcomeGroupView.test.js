@@ -23,6 +23,7 @@ import OutcomeGroup from '../../../../backbone/models/OutcomeGroup'
 import OutcomeGroupView from '../OutcomeGroupView'
 import {waitFor} from '@testing-library/dom'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 // Stub RCE initialization
 const readyForm = vi.fn()
 OutcomeContentBase.prototype.readyForm = readyForm

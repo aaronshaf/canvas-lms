@@ -44,16 +44,22 @@ vi.mock('@canvas/rce/RichContentEditor', () => ({
     callOnRCE: vi.fn(() => ''),
   },
 }))
-vi.mock('@canvas/due-dates', () => ({default: vi.fn(() => ({render: vi.fn()}))}))
+vi.mock('@canvas/due-dates', () => ({
+  default: vi.fn(function MockDueDates() {
+    return {render: vi.fn()}
+  }),
+}))
 vi.mock('@canvas/due-dates/backbone/models/DueDateList', () => ({default: vi.fn()}))
 vi.mock('@canvas/sections/backbone/collections/SectionCollection', () => ({default: vi.fn()}))
 vi.mock('@canvas/due-dates/backbone/views/MissingDateDialogView', () => ({default: vi.fn()}))
 vi.mock('@canvas/blueprint-courses/react/components/LockManager/index', () => ({
-  default: vi.fn(() => ({
-    init: vi.fn(),
-    isChildContent: vi.fn(() => false),
-    getItemLocks: vi.fn(() => ({})),
-  })),
+  default: vi.fn(function MockLockManager() {
+    return {
+      init: vi.fn(),
+      isChildContent: vi.fn(() => false),
+      getItemLocks: vi.fn(() => ({})),
+    }
+  }),
 }))
 vi.mock('@canvas/quizzes/backbone/models/Quiz', () => ({default: vi.fn()}))
 vi.mock('@canvas/conditional-release-editor', () => ({default: {attach: vi.fn()}}))

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {RubricForm, type RubricFormComponentProp} from '../index'
 
@@ -42,6 +42,10 @@ const ROOT_OUTCOME_GROUP = {
   description: 'Root Outcome Group Description',
   url: 'https://example.com/root',
 }
+
+afterEach(async () => {
+  await act(async () => {})
+})
 
 describe('RubricForm canUseForGrading integration', () => {
   const renderComponent = (props?: Partial<RubricFormComponentProp>) => {

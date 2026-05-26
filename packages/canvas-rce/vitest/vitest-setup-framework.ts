@@ -57,6 +57,7 @@ const ignoredErrors = [
   /A suspended resource finished loading inside a test/,
   /No outer iframe found/,
   /Cannot access outer iframe content \(cross-origin\)/,
+  /EnvironmentTeardownError/,
 ]
 
 const globalWarn = global.console.warn

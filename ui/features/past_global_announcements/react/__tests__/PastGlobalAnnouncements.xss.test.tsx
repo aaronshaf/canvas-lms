@@ -35,6 +35,7 @@ import PastGlobalAnnouncements from '../PastGlobalAnnouncements'
 import AnnouncementFactory from '../AnnouncementFactory'
 import AnnouncementPagination from '../AnnouncementPagination'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 const EVENT_HANDLER_ATTR = /^on[a-z]+$/i
 
 const expectNoEventHandlers = (root: HTMLElement) => {

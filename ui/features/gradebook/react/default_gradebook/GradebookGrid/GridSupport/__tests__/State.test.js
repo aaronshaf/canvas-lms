@@ -24,16 +24,19 @@ import GridSupport from '../index'
 vi.mock('../GridHelper', () => {
   return {
     __esModule: true,
-    default: vi.fn().mockImplementation(() => ({
-      commitCurrentEdit: vi.fn().mockReturnValue(true),
-      focus: vi.fn(),
-      getBeforeGridNode: vi.fn().mockReturnValue({
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockGridHelper() {
+      return {
+        commitCurrentEdit: vi.fn().mockReturnValue(true),
         focus: vi.fn(),
-      }),
-      getAfterGridNode: vi.fn().mockReturnValue({
-        focus: vi.fn(),
-      }),
-    })),
+        getBeforeGridNode: vi.fn().mockReturnValue({
+          focus: vi.fn(),
+        }),
+        getAfterGridNode: vi.fn().mockReturnValue({
+          focus: vi.fn(),
+        }),
+      }
+    }),
   }
 })
 
@@ -78,7 +81,10 @@ vi.mock('../../../GradebookGrid', () => {
 
   return {
     __esModule: true,
-    default: vi.fn().mockImplementation(() => gridInstance),
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    default: vi.fn(function MockGrid() {
+      return gridInstance
+    }),
   }
 })
 
@@ -98,7 +104,8 @@ vi.mock('slickgrid', () => {
     isActive: vi.fn(),
   }
 
-  const mockGrid = vi.fn().mockImplementation(() => {
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  const mockGrid = vi.fn(function MockSlickGrid() {
     const grid = {
       init: vi.fn(),
       destroy: vi.fn(),

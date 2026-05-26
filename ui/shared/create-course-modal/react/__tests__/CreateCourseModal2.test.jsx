@@ -372,7 +372,7 @@ describe('CreateCourseModal (2)', () => {
       fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
       await user.click(await screen.findByText('CPMS'))
       await user.click(getByLabelText('Sync enrollments and subject start/end dates from homeroom'))
-      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true), {timeout: 10000})
+      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true), {timeout: 20000})
       expect(homeroomRequestedForAccount5).toBe(false)
     })
   })

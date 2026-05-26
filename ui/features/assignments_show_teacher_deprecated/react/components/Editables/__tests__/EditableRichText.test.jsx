@@ -21,6 +21,7 @@ import React from 'react'
 import {render} from '@testing-library/react'
 import EditableRichText from '../EditableRichText'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 it('renders the value in view mode', () => {
   const {getByText} = render(
     <EditableRichText

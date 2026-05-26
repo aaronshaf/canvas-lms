@@ -168,17 +168,20 @@ describe('ImageSection', () => {
         originalFileReader = FileReader
         Object.defineProperty(global, 'FileReader', {
           writable: true,
-          value: vi.fn().mockImplementation(() => ({
-            set onload(value) {
-              // Used when FileReader for converting to Blob
-              value()
-            },
-            readAsDataURL() {
-              // Used to fetch url
-              this.onloadend && this.onloadend()
-            },
-            result: 'data:image/png;base64,asdfasdfjksdf==',
-          })),
+          // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+          value: vi.fn(function MockFileReader() {
+            return {
+              set onload(value) {
+                // Used when FileReader for converting to Blob
+                value()
+              },
+              readAsDataURL() {
+                // Used to fetch url
+                this.onloadend && this.onloadend()
+              },
+              result: 'data:image/png;base64,asdfasdfjksdf==',
+            }
+          }),
         })
       })
 

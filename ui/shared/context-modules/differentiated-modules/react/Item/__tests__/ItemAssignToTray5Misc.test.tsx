@@ -108,8 +108,8 @@ describe('ItemAssignToTray - Module Overrides', () => {
 })
 
 describe('ItemAssignToTray - Paced Course with Mastery Paths', () => {
-  let sectionsFetched: ReturnType<typeof vi.fn>
-  let overridesFetched: ReturnType<typeof vi.fn>
+  let sectionsFetched: any
+  let overridesFetched: any
 
   beforeAll(() => {
     setupFlashHolder()

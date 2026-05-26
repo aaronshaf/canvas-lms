@@ -39,8 +39,11 @@ describe('useNavigateEntries', () => {
     delete window.location
     window.location = url
 
-    // Mock URL constructor to return our test URL
-    global.URL = vi.fn(() => url)
+    // Mock URL constructor to return our test URL.
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    global.URL = vi.fn(function MockURL() {
+      return url
+    })
 
     // Default mock implementations
     vi.spyOn(useSpeedGraderModule, 'default').mockReturnValue({

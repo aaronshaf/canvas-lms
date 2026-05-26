@@ -113,7 +113,7 @@ describe('DifferentiatedModulesTray', () => {
   })
 
   describe('In a paced course', () => {
-    let overridesFetched: ReturnType<typeof vi.fn>
+    let overridesFetched: any
 
     beforeEach(() => {
       overridesFetched = vi.fn()

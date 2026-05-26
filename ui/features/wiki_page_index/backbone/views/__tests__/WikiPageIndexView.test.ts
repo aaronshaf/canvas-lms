@@ -25,6 +25,8 @@ import '@canvas/jquery/jquery.disableWhileLoading'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import * as ConfirmDeleteModal from '../../../react/ConfirmDeleteModal'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('../../../react/ConfirmDeleteModal', () => ({
   showConfirmDelete: vi.fn(),
 }))

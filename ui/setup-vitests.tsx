@@ -18,7 +18,7 @@
 
 import '@testing-library/jest-dom'
 import {cleanup, configure} from '@testing-library/react'
-import {vi, afterEach, beforeEach} from 'vitest'
+import {vi, afterEach, afterAll, beforeEach} from 'vitest'
 
 // Default waitFor/findBy timeout is 1000ms. MSW round-trips under CI load
 // regularly exceed that. 3000ms is enough headroom without masking real slowness.
@@ -170,6 +170,38 @@ afterEach(() => {
   activeMutationObservers.clear()
 })
 
+// CFA-1074: log worker PID per file so we can verify fork recycling in CI.
+// Each test file gets its own fork; if PIDs repeat across files, tinypool is
+// reusing workers and the guard in pre-setup-scheduler-guard.ts may not run
+// for each file. Written to TEST_RESULT_OUTPUT_DIR/fork-pids-<node>.jsonl.
+if (process.env.TEST_RESULT_OUTPUT_DIR) {
+  const pidLog = (() => {
+    try {
+      const {appendFileSync, mkdirSync} = require('fs') as typeof import('fs')
+      const {join} = require('path') as typeof import('path')
+      const dir = process.env.TEST_RESULT_OUTPUT_DIR!
+      mkdirSync(dir, {recursive: true})
+      const nodeIndex = process.env.CI_NODE_INDEX ?? 'local'
+      const file = join(dir, `fork-pids-${nodeIndex}.jsonl`)
+      return (entry: Record<string, unknown>) => {
+        try {
+          appendFileSync(file, JSON.stringify(entry) + '\n')
+        } catch {
+          // best-effort — never fail the test run
+        }
+      }
+    } catch {
+      // best-effort — never fail the test run
+      return (_entry: Record<string, unknown>) => {}
+    }
+  })()
+  afterAll(() => {
+    // With pool:'forks'+isolate:true, each fork runs one file so pid uniquely
+    // identifies the fork; matching against heap-reporter entries gives the file.
+    pidLog({pid: process.pid, ts: Date.now()})
+  })
+}
+
 // jQuery plugins (toJSON, dialog, droppable, etc.) are added via the jquery-with-plugins.ts wrapper
 // which is aliased in vitest.config.ts. All imports of 'jquery' get the pre-configured instance.
 
@@ -205,7 +237,6 @@ vi.mock('@canvas/calendar/jquery/fcUtil', async () => {
       wrap(date: Date | string | null | undefined) {
         if (!date) return null
         try {
-          // fudgeDateForProfileTimezone may not be available, so just use moment directly
           return moment.default(date)
         } catch (e) {
           console.error('Error in fcUtil.wrap:', e)
@@ -402,12 +433,14 @@ vi.stubGlobal('matchMedia', () => ({
 
 vi.stubGlobal(
   'BroadcastChannel',
-  vi.fn().mockImplementation(() => ({
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    postMessage: vi.fn(),
-    close: vi.fn(),
-  })),
+  vi.fn(function MockBroadcastChannel(this: Record<string, unknown>) {
+    Object.assign(this, {
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      postMessage: vi.fn(),
+      close: vi.fn(),
+    })
+  }),
 )
 
 // Mock performance API - needed for wasPageReloaded.ts

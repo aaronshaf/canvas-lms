@@ -29,6 +29,8 @@ import {setupServer} from 'msw/node'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import deparam from 'deparam'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rce/RichContentEditor')
 vi.mock('@canvas/calendar/react/RecurringEvents/UpdateCalendarEventDialog', () => ({
   renderUpdateCalendarEventDialog: vi.fn().mockImplementation(() => Promise.resolve('all')),

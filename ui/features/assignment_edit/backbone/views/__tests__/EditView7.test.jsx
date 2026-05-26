@@ -66,7 +66,10 @@ const widgetPrototype = {
   option: vi.fn(),
 }
 
-$.Widget = vi.fn(() => widgetPrototype)
+// Must use function (not arrow) — vitest 4.x requires constructable mocks.
+$.Widget = vi.fn(function MockWidget() {
+  return widgetPrototype
+})
 $.Widget.prototype = widgetPrototype
 
 // Mock widget creation

@@ -28,6 +28,8 @@ import WikiPageEditView from '../WikiPageEditView'
 import {renderAssignToTray} from '../../../react/renderAssignToTray'
 
 // Mock the horizon utils module
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/horizon/utils', () => ({
   redirectWithHorizonParams: vi.fn(),
 }))

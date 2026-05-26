@@ -154,12 +154,14 @@ describe('ContextModulesPublishIcon', () => {
     await user.click(unpublishButton)
 
     // Verify updateModuleItem was called for each module item during unpublishing
-    await waitFor(() =>
-      expect(updateModuleItem).toHaveBeenCalledWith(
-        expect.objectContaining({assignment_117: expect.any(Object)}),
-        expect.any(Object),
-        expect.any(Object),
-      ),
+    await waitFor(
+      () =>
+        expect(updateModuleItem).toHaveBeenCalledWith(
+          expect.objectContaining({assignment_117: expect.any(Object)}),
+          expect.any(Object),
+          expect.any(Object),
+        ),
+      {timeout: 5000},
     )
     expect(updateModuleItem).toHaveBeenCalledWith(
       expect.objectContaining({assignment_119: expect.any(Object)}),

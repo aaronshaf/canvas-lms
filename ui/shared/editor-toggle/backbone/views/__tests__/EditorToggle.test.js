@@ -21,6 +21,8 @@ import 'jquery-migrate'
 import EditorToggle from '../EditorToggle'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rce/RichContentEditor', () => ({
   default: {
     destroyRCE: vi.fn(),

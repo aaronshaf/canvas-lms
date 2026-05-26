@@ -137,7 +137,8 @@ describe('ShowEventDetailsDialog edit button for peer review assignments', () =>
 
   beforeEach(() => {
     vi.mocked(eventDetailsTemplate).mockReturnValue('<button class="edit_event_link">Edit</button>')
-    vi.mocked(Popover).mockImplementation((_jsEvent, html) => {
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    vi.mocked(Popover).mockImplementation(function MockPopover(_jsEvent, html) {
       const container = document.createElement('div')
       container.innerHTML = html
       return {el: $(container), trapFocus: vi.fn(), hide: vi.fn()}

@@ -26,12 +26,15 @@ describe('useDataUrl()', () => {
   beforeEach(() => {
     Object.defineProperty(global, 'FileReader', {
       writable: true,
-      value: vi.fn().mockImplementation(() => ({
-        readAsDataURL() {
-          this.onloadend()
-        },
-        result: 'data:image/png;base64,asdfasdfjksdf==',
-      })),
+      // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+      value: vi.fn(function MockFileReader() {
+        return {
+          readAsDataURL() {
+            this.onloadend()
+          },
+          result: 'data:image/png;base64,asdfasdfjksdf==',
+        }
+      }),
     })
   })
 
@@ -86,13 +89,16 @@ describe('useDataUrl()', () => {
     beforeEach(async () => {
       Object.defineProperty(global, 'FileReader', {
         writable: true,
-        value: vi.fn().mockImplementation(() => ({
-          readAsDataURL() {
-            // eslint-disable-next-line no-throw-literal
-            throw 'an error occured!'
-          },
-          result: 'data:image/png;base64,asdfasdfjksdf==',
-        })),
+        // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+        value: vi.fn(function MockFileReaderError() {
+          return {
+            readAsDataURL() {
+              // eslint-disable-next-line no-throw-literal
+              throw 'an error occured!'
+            },
+            result: 'data:image/png;base64,asdfasdfjksdf==',
+          }
+        }),
       })
 
       const {result} = subject()

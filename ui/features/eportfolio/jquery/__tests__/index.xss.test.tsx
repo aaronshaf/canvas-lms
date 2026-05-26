@@ -27,6 +27,8 @@
 
 import $ from 'jquery'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rce/RichContentEditor', () => ({
   default: {
     preloadRemoteModule: vi.fn(),

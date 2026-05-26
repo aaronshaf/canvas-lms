@@ -36,6 +36,8 @@ import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {getUrlWithHorizonParams} from '@canvas/horizon/utils'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/horizon/utils', () => ({
   getUrlWithHorizonParams: vi.fn(),
 }))

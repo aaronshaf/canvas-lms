@@ -25,6 +25,8 @@ import * as RubricFormQueries from '@canvas/rubrics/react/RubricForm/queries/Rub
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {destroyContainer as destroyFlashAlertContainer} from '@instructure/platform-alerts'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rubrics/react/RubricForm/queries/RubricFormQueries', async importOriginal => {
   const actual =
     await importOriginal<

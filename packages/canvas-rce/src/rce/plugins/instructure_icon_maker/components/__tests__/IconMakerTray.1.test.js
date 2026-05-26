@@ -72,7 +72,10 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
       getFile: vi.fn(() => Promise.resolve({name: 'Test Icon.svg'})),
     }
 
-    RceApiSource.mockImplementation(() => rcs)
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    RceApiSource.mockImplementation(function MockRceApiSource() {
+      return rcs
+    })
 
     delete window.confirm
     window.confirm = vi.fn(() => true)

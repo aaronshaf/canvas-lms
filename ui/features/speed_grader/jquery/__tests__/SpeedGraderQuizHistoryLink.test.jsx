@@ -73,7 +73,10 @@ describe('SpeedGrader Quiz History Link', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     }
-    global.XMLHttpRequest = vi.fn(() => mockXHR)
+    // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+    global.XMLHttpRequest = vi.fn(function MockXHR() {
+      return mockXHR
+    })
 
     fixtures = document.createElement('div')
     fixtures.id = 'fixtures'

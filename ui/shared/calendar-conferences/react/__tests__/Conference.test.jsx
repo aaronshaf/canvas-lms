@@ -24,6 +24,8 @@ import Conference from '../Conference'
 // we use RichContentEditor.preloadRemoteModule() to consolidate the import of
 // tinymce in the code, but since dynamic loading takes time during tests, we do
 // a static import here and mock out the dynamic
+vi.mock('@canvas/rce/serviceRCELoader')
+
 vi.mock('@canvas/rce/RichContentEditor')
 
 describe('Conference', () => {

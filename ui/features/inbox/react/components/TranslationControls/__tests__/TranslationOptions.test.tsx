@@ -23,7 +23,7 @@ import {useTranslationContext} from '../../../hooks/useTranslationContext'
 
 vi.mock('../../../hooks/useTranslationContext')
 
-const mockUseTranslationContext = useTranslationContext as ReturnType<typeof vi.fn>
+const mockUseTranslationContext = useTranslationContext as any
 
 const translateBody = vi.fn()
 

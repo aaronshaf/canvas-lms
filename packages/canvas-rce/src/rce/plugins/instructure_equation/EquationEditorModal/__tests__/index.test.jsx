@@ -93,7 +93,8 @@ vi.mock('../advancedPreference', () => {
   }
 })
 vi.mock('mathlive', () => ({
-  MathfieldElement: vi.fn().mockImplementation(() => {
+  // Must use function (not arrow) — vitest 4.x requires constructable mocks.
+  MathfieldElement: vi.fn(function MockMathfieldElement() {
     return {
       mathfield: vi.fn(),
       setOptions: vi.fn(),

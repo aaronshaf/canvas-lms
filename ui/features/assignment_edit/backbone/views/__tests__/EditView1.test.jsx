@@ -37,6 +37,8 @@ import fakeENV from '@canvas/test-utils/fakeENV'
 import EditView from '../EditView'
 import '@canvas/jquery/jquery.simulate'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 const s_params = 'some super secure params'
 
 const nameLengthHelper = (

@@ -65,6 +65,7 @@ describe('QRMobileLogin', () => {
     afterEach(() => {
       vi.useRealTimers()
       fetchMock.restore()
+      vi.useRealTimers()
     })
 
     // advances both global time and the vi timers by the given time duration

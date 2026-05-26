@@ -326,10 +326,9 @@ describe('SplitScreenThreadsContainer', () => {
   })
 
   describe('auto read', () => {
-    const intersectionObserverMock = () => ({
-      observe: () => null,
-      unobserve: () => null,
-    })
+    const intersectionObserverMock = function () {
+      return {observe: () => null, unobserve: () => null}
+    }
 
     beforeEach(() => {
       window.IntersectionObserver = vi.fn().mockImplementation(intersectionObserverMock)

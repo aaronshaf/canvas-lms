@@ -21,6 +21,7 @@ import PastGlobalAnnouncements from '../PastGlobalAnnouncements'
 import {render, fireEvent} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
+vi.mock('@canvas/rce/serviceRCELoader')
 describe('past_global_announcements::pastGlobalAnnouncements', () => {
   describe('render announcements', () => {
     beforeEach(() => {

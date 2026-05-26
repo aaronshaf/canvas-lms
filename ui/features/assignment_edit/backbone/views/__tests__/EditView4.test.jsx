@@ -39,6 +39,8 @@ import {getUrlWithHorizonParams} from '@canvas/horizon/utils'
 import {SETTING_MESSAGES} from '@canvas/assignments/react/hooks/useSettingDependency'
 import fakeEnv from '@canvas/test-utils/fakeENV'
 
+vi.mock('@canvas/rce/serviceRCELoader')
+
 // Mock the horizon utils module
 vi.mock('@canvas/horizon/utils', () => ({
   getUrlWithHorizonParams: vi.fn(),
