@@ -42,19 +42,23 @@ describe InstFS do
     end
 
     context "validate_capture_jwt" do
-      it "returns true for jwt signed with primary key" do
-        token = Canvas::Security.create_jwt({}, nil, secret, :HS512)
-        expect(InstFS.validate_capture_jwt(token)).to be(true)
+      it "returns decoded payload for jwt signed with primary key" do
+        payload = { "context_type" => "Course", "user_id" => "1" }
+        token = Canvas::Security.create_jwt(payload, nil, secret, :HS512)
+        result = InstFS.validate_capture_jwt(token)
+        expect(result).to include(payload)
       end
 
-      it "returns true for jwt signed with rotating key" do
-        token = Canvas::Security.create_jwt({}, nil, rotating_secret, :HS512)
-        expect(InstFS.validate_capture_jwt(token)).to be(true)
+      it "returns decoded payload for jwt signed with rotating key" do
+        payload = { "context_type" => "Course", "user_id" => "1" }
+        token = Canvas::Security.create_jwt(payload, nil, rotating_secret, :HS512)
+        result = InstFS.validate_capture_jwt(token)
+        expect(result).to include(payload)
       end
 
-      it "returns false for jwt signed with bogus key" do
+      it "returns nil for jwt signed with bogus key" do
         token = Canvas::Security.create_jwt({}, nil, "boguskey", :HS512)
-        expect(InstFS.validate_capture_jwt(token)).to be(false)
+        expect(InstFS.validate_capture_jwt(token)).to be_nil
       end
     end
 

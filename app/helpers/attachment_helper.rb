@@ -29,6 +29,10 @@ module AttachmentHelper
 
   def sanitized_verifier
     value = params[:verifier].to_s
+    sanitize_verifier value
+  end
+
+  def sanitize_verifier(value)
     VALID_VERIFIER_FORMAT.match?(value) ? value : nil
   end
 

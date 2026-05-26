@@ -423,15 +423,13 @@ describe "Files API", type: :request do
 
   describe "api_capture" do
     let(:secret) { "secret" }
-    let(:jwt) { Canvas::Security.create_jwt({}, nil, secret) }
     let(:folder) { Folder.root_folders(@course).first }
     let(:instfs_uuid) { 123 }
 
-    # default set of params; parts will be overridden per test
-    let(:base_params) do
+    let(:capture_payload) do
       {
         user_id: @user.id,
-        context_type: Course,
+        context_type: "Course",
         context_id: @course.id,
         size: 2.megabytes,
         name: "test.txt",
@@ -440,8 +438,16 @@ describe "Files API", type: :request do
         quota_exempt: true,
         folder_id: folder.id,
         on_duplicate: "overwrite",
-        token: jwt,
       }
+    end
+    let(:jwt) { Canvas::Security.create_jwt(capture_payload, nil, secret) }
+    let(:base_params) { capture_payload.merge(token: jwt) }
+
+    # builds params with overridden capture fields signed into a fresh JWT
+    def capture_with(**overrides)
+      payload = capture_payload.merge(overrides)
+      token = Canvas::Security.create_jwt(payload, nil, secret)
+      payload.merge(token:)
     end
 
     before do
@@ -465,9 +471,9 @@ describe "Files API", type: :request do
     end
 
     it "checks quota unless exempt" do
-      @course.storage_quota = base_params[:size] / 2
+      @course.storage_quota = capture_payload[:size] / 2
       @course.save!
-      params = base_params.merge(quota_exempt: false)
+      params = capture_with(quota_exempt: false)
       json = api_call(:post,
                       "/api/v1/files/capture?#{params.to_query}",
                       params.merge(controller: "files", action: "api_capture", format: "json"),
@@ -476,12 +482,11 @@ describe "Files API", type: :request do
     end
 
     it "bypasses quota when exempt" do
-      @course.storage_quota = base_params[:size] / 2
+      @course.storage_quota = capture_payload[:size] / 2
       @course.save!
-      params = base_params.merge(quota_exempt: true)
       raw_api_call(:post,
-                   "/api/v1/files/capture?#{params.to_query}",
-                   params.merge(controller: "files", action: "api_capture", format: "json"))
+                   "/api/v1/files/capture?#{base_params.to_query}",
+                   base_params.merge(controller: "files", action: "api_capture", format: "json"))
       assert_status(201)
     end
 
@@ -506,13 +511,12 @@ describe "Files API", type: :request do
     end
 
     it "handle duplicate paths according to on_duplicate" do
-      params = base_params.merge(on_duplicate: "overwrite")
       existing = Attachment.create!(
         context: @course,
         folder:,
         uploaded_data: StringIO.new("existing"),
-        filename: params[:name],
-        display_name: params[:name]
+        filename: capture_payload[:name],
+        display_name: capture_payload[:name]
       )
       api_call(:post,
                "/api/v1/files/capture?#{base_params.to_query}",
@@ -520,7 +524,7 @@ describe "Files API", type: :request do
       existing.reload
       attachment = Attachment.where(instfs_uuid:).first
       expect(attachment).not_to eq(existing)
-      expect(attachment.display_name).to eq params[:name]
+      expect(attachment.display_name).to eq capture_payload[:name]
       expect(existing).to be_deleted
       expect(existing.replacement_attachment).to eq attachment
     end
@@ -528,7 +532,7 @@ describe "Files API", type: :request do
     it "is permitted if attachment context is an account" do
       account = Account.default
       folder = Folder.root_folders(account).first
-      params = base_params.merge(context_type: "Account", context_id: account.global_id, folder: folder.id, size: 864.kilobytes)
+      params = capture_with(context_type: "Account", context_id: account.global_id, folder_id: folder.id, size: 864.kilobytes)
       raw_api_call(:post,
                    "/api/v1/files/capture?#{params.to_query}",
                    params.merge(controller: "files", action: "api_capture", format: "json"))
@@ -536,7 +540,7 @@ describe "Files API", type: :request do
     end
 
     it "fixes broken content_types" do
-      params = base_params.merge(name: "file.doc", content_type: "application/x-cfb")
+      params = capture_with(name: "file.doc", content_type: "application/x-cfb")
       api_call(:post,
                "/api/v1/files/capture?#{params.to_query}",
                params.merge(controller: "files", action: "api_capture", format: "json"))
@@ -545,27 +549,31 @@ describe "Files API", type: :request do
     end
 
     describe "re-uploading a file" do
-      before :once do
+      before do
         @existing = Attachment.create!(
           context: @course,
           folder:,
           uploaded_data: StringIO.new("a file"),
-          filename: base_params[:name],
-          display_name: base_params[:name],
+          filename: "test.txt",
+          display_name: "test.txt",
           instfs_uuid: "old-instfs-uuid"
         )
-        @capture_params = base_params.merge(controller: "files",
-                                            action: "api_capture",
-                                            format: "json",
-                                            size: @existing.size,
-                                            sha512: @existing.md5,
-                                            instfs_uuid: "new-instfs-uuid",
-                                            on_duplicate: "overwrite")
+      end
+
+      let(:reupload_params) do
+        capture_with(
+          context_id: @existing.context_id,
+          folder_id: @existing.folder_id,
+          size: @existing.size,
+          sha512: @existing.md5,
+          instfs_uuid: "new-instfs-uuid",
+          on_duplicate: "overwrite"
+        ).merge(controller: "files", action: "api_capture", format: "json")
       end
 
       it "reuses the Attachment if a file is re-uploaded to the same folder" do
         expect(InstFS).to receive(:delete_file).with("new-instfs-uuid")
-        json = api_call(:post, "/api/v1/files/capture?#{@capture_params.to_query}", @capture_params)
+        json = api_call(:post, "/api/v1/files/capture?#{reupload_params.to_query}", reupload_params)
         expect(json["id"]).to eq @existing.id
         expect(@existing.reload.instfs_uuid).to eq "old-instfs-uuid"
       end
@@ -576,7 +584,7 @@ describe "Files API", type: :request do
         other_file.instfs_uuid = "new-instfs-uuid"
         other_file.save!
         expect(InstFS).not_to receive(:delete_file)
-        json = api_call(:post, "/api/v1/files/capture?#{@capture_params.to_query}", @capture_params)
+        json = api_call(:post, "/api/v1/files/capture?#{reupload_params.to_query}", reupload_params)
         expect(json["id"]).to eq @existing.id
         expect(@existing.reload.instfs_uuid).to eq "old-instfs-uuid"
         expect(other_file.reload.instfs_uuid).to eq "new-instfs-uuid"
@@ -585,21 +593,17 @@ describe "Files API", type: :request do
       it "does not reuse a deleted Attachment" do
         @existing.destroy
         expect(InstFS).not_to receive(:delete_file)
-        json = api_call(:post, "/api/v1/files/capture?#{@capture_params.to_query}", @capture_params)
+        json = api_call(:post, "/api/v1/files/capture?#{reupload_params.to_query}", reupload_params)
         expect(json["id"]).not_to eq @existing.id
       end
     end
 
     it "redirect has preview_url include if requested" do
+      params = capture_with(include: ["preview_url"])
       raw_api_call(
         :post,
-        "/api/v1/files/capture?#{base_params.to_query}",
-        base_params.merge(
-          controller: "files",
-          action: "api_capture",
-          format: "json",
-          include: ["preview_url"]
-        )
+        "/api/v1/files/capture?#{params.to_query}",
+        params.merge(controller: "files", action: "api_capture", format: "json")
       )
       expect(redirect_params["include"]).to include("preview_url")
       expect(redirect_params["include"]).not_to include("enhanced_preview_url")
@@ -609,26 +613,18 @@ describe "Files API", type: :request do
       raw_api_call(
         :post,
         "/api/v1/files/capture?#{base_params.to_query}",
-        base_params.merge(
-          controller: "files",
-          action: "api_capture",
-          format: "json"
-        )
+        base_params.merge(controller: "files", action: "api_capture", format: "json")
       )
       expect(redirect_params["include"]).to include("enhanced_preview_url")
     end
 
     it "includes enhanced_preview_url in group context" do
       group = @course.groups.create!
-      params = base_params.merge(context_type: Group, context_id: group.id)
+      params = capture_with(context_type: "Group", context_id: group.id)
       raw_api_call(
         :post,
         "/api/v1/files/capture?#{params.to_query}",
-        params.merge(
-          controller: "files",
-          action: "api_capture",
-          format: "json"
-        )
+        params.merge(controller: "files", action: "api_capture", format: "json")
       )
       expect(redirect_params["include"]).to include("enhanced_preview_url")
     end
@@ -636,14 +632,11 @@ describe "Files API", type: :request do
     context "with 'category' not present in params" do
       subject { Attachment.find_by(instfs_uuid:) }
 
-      let(:category) { "" }
-      let(:params) { base_params.merge(category:, controller: "files", action: "api_capture", format: "json") }
-
       it "uses the default category" do
         raw_api_call(
           :post,
-          "/api/v1/files/capture?#{params.to_query}",
-          params
+          "/api/v1/files/capture?#{base_params.to_query}",
+          base_params.merge(controller: "files", action: "api_capture", format: "json")
         )
 
         expect(subject.category).to eq "uncategorized"
@@ -654,13 +647,13 @@ describe "Files API", type: :request do
       subject { Attachment.find_by(instfs_uuid:) }
 
       let(:category) { Attachment::ICON_MAKER_ICONS }
-      let(:params) { base_params.merge(category:, controller: "files", action: "api_capture", format: "json") }
 
       it "sets the attachment category" do
+        params = capture_with(category:)
         raw_api_call(
           :post,
           "/api/v1/files/capture?#{params.to_query}",
-          params
+          params.merge(controller: "files", action: "api_capture", format: "json")
         )
 
         expect(subject.category).to eq category

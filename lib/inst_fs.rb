@@ -114,9 +114,8 @@ module InstFS
 
     def validate_capture_jwt(token)
       Canvas::Security.decode_jwt(token, jwt_secrets)
-      true
     rescue
-      false
+      nil
     end
 
     def upload_preflight_json(context:,

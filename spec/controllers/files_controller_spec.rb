@@ -2247,7 +2247,6 @@ describe FilesController do
   describe "POST api_capture" do
     before do
       allow(InstFS).to receive_messages(enabled?: true, jwt_secrets: ["jwt signing key"])
-      @token = Canvas::Security.create_jwt({}, nil, InstFS.jwt_secret)
     end
 
     it "rejects if InstFS integration is disabled" do
@@ -2262,23 +2261,54 @@ describe FilesController do
       assert_forbidden
     end
 
-    it "rejects if required params aren't included" do
-      post "api_capture", params: { id: 1, user_id: 1, context_type: "Course", token: @token }
-      # `context_id` is excluded
+    %i[user_id context_type context_id].each do |missing_param|
+      it "rejects when #{missing_param} is missing from JWT" do
+        payload = { user_id: 1, context_type: "Course", context_id: 1 }.except(missing_param)
+        token = Canvas::Security.create_jwt(payload, nil, InstFS.jwt_secret)
+        post "api_capture", params: { id: 1, token: }
+        assert_status(400)
+      end
+    end
+
+    it "rejects an invalid context_type from JWT" do
+      jwt = Canvas::Security.create_jwt(
+        { user_id: 1, context_type: "Kernel", context_id: 1 },
+        nil,
+        InstFS.jwt_secret
+      )
+      post "api_capture", params: { id: 1, token: jwt }
       assert_status(400)
+    end
+
+    it "rejects CourseSection context type that is valid Context type but not valid attachment context" do
+      context_type = "CourseSection"
+      jwt = Canvas::Security.create_jwt(
+        { user_id: 1, context_type:, context_id: 1 },
+        nil,
+        InstFS.jwt_secret
+      )
+      post "api_capture", params: { id: 1, token: jwt }
+      assert_status(400)
+    end
+
+    # If this test fails, a new context type was added to VALID_ATTACHMENT_CONTEXTS.
+    # Update the list below and add a corresponding "works with <Type> as the context"
+    # test in the "context types" section to ensure it is covered.
+    it "has exactly the expected valid attachment contexts" do
+      expect(FilesController::VALID_ATTACHMENT_CONTEXTS).to match_array(
+        %w[Account Course Group Assignment User ContentMigration Quizzes::QuizSubmission SisBatch]
+      )
     end
 
     context "with a course" do
       let(:course) { Course.create }
       let(:user) { User.create!(name: "me") }
       let(:folder) { Folder.create!(name: "test", context: course) }
-      let(:params) do
+      let(:capture_payload) do
         {
-          id: 1,
           user_id: user.id,
           context_type: "Course",
           context_id: course.id,
-          token: @token,
           name: "test.txt",
           size: 42,
           content_type: "text/plain",
@@ -2286,6 +2316,8 @@ describe FilesController do
           folder_id: folder.id,
         }
       end
+      let(:token) { Canvas::Security.create_jwt(capture_payload, nil, InstFS.jwt_secret) }
+      let(:params) { { id: 1, token: } }
 
       it "creates a new attachment" do
         post("api_capture", params:)
@@ -2296,7 +2328,8 @@ describe FilesController do
       end
 
       it "populates the md5 column with the instfs sha512" do
-        post "api_capture", params: params.merge(sha512: "deadbeef")
+        jwt = Canvas::Security.create_jwt(capture_payload.merge(sha512: "deadbeef"), nil, InstFS.jwt_secret)
+        post "api_capture", params: { id: 1, token: jwt }
         assert_status(201)
         expect(folder.attachments.first.md5).to eq "deadbeef"
       end
@@ -2311,14 +2344,87 @@ describe FilesController do
         expect(data["url"]).not_to be_nil
       end
 
+      it "ignores request params for fields signed in the JWT" do
+        post "api_capture", params: params.merge(
+          user_id: 99_999,
+          context_type: "User",
+          context_id: 99_999,
+          folder_id: 99_999,
+          name: "override.txt",
+          size: 999
+        )
+        assert_status(201)
+        attachment = folder.attachments.first
+        expect(attachment).not_to be_nil
+        expect(attachment.user).to eq user
+        expect(attachment.context).to eq course
+        expect(attachment.folder).to eq folder
+        expect(attachment.filename).to eq "test.txt"
+        expect(attachment.size).to eq 42
+      end
+
+      it "sets the category from the JWT" do
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(category: "icon_maker_icons"),
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { id: 1, token: jwt }
+        assert_status(201)
+        expect(folder.attachments.first.category).to eq "icon_maker_icons"
+      end
+
+      it "handles on_duplicate rename from the JWT" do
+        Attachment.create!(
+          context: course,
+          folder:,
+          user:,
+          filename: "test.txt",
+          display_name: "test.txt",
+          uploaded_data: StringIO.new("existing"),
+          instfs_uuid: "existing-uuid"
+        )
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(on_duplicate: "rename"),
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { id: 1, token: jwt }
+        assert_status(201)
+        new_attachment = Attachment.where(context: course).order(:id).last
+        expect(new_attachment.display_name).not_to eq "test.txt"
+      end
+
+      it "works with an Account as the context" do
+        account = Account.create!
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(context_type: "Account", context_id: account.id),
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { id: 1, token: jwt }
+        assert_status(201)
+      end
+
+      it "works with a Group as the context" do
+        group = Group.create!(context: course)
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(context_type: "Group", context_id: group.id),
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { id: 1, token: jwt }
+        assert_status(201)
+      end
+
       it "works with a ContentMigration as the context" do
         migration = course.content_migrations.create!
-        request_params = params.merge(
-          context_id: migration.id,
-          context_type: "ContentMigration"
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(context_id: migration.id, context_type: "ContentMigration"),
+          nil,
+          InstFS.jwt_secret
         )
-
-        post "api_capture", params: request_params
+        post "api_capture", params: { id: 1, token: jwt }
         assert_status(201)
       end
 
@@ -2326,24 +2432,26 @@ describe FilesController do
         quiz = course.quizzes.create!
         submission = quiz.quiz_submissions.create!(user:)
 
-        request_params = params.merge(
-          context_type: "Quizzes::QuizSubmission",
-          context_id: submission.id
+        jwt = Canvas::Security.create_jwt(
+          capture_payload.merge(context_type: "Quizzes::QuizSubmission", context_id: submission.id),
+          nil,
+          InstFS.jwt_secret
         )
-
-        post "api_capture", params: request_params
+        post "api_capture", params: { id: 1, token: jwt }
         assert_status(201)
       end
 
       context "with Submission, Assignment, and Progress" do
         let(:assignment) { course.assignments.create! }
         let(:submission) { assignment.submissions.create!(user: @student) }
-        let(:assignment_params) do
-          params.merge(
+        let(:assignment_payload) do
+          capture_payload.merge(
             context_type: "Assignment",
             context_id: assignment.id
           )
         end
+        let(:assignment_token) { Canvas::Security.create_jwt(assignment_payload, nil, InstFS.jwt_secret) }
+        let(:assignment_params) { { id: 1, token: assignment_token } }
         let(:attachment) do
           Attachment.create!(
             context: assignment,
@@ -2371,11 +2479,10 @@ describe FilesController do
         end
 
         context "with progress_id param" do
-          let(:progress_params) do
-            assignment_params.merge(
-              progress_id: progress.id
-            )
+          let(:progress_token) do
+            Canvas::Security.create_jwt(assignment_payload.merge(progress_id: progress.id), nil, InstFS.jwt_secret)
           end
+          let(:progress_params) { { id: 1, token: progress_token } }
           let(:request) do
             post "api_capture", params: progress_params
             progress.reload
@@ -2410,15 +2517,17 @@ describe FilesController do
               .tap(&:save!)
           end
 
-          let(:progress_params) do
-            assignment_params.merge(
+          let(:eula_agreement_timestamp) { "1522419910" }
+          let(:comment) { "my assignment comment" }
+          let(:upload_payload) do
+            assignment_payload.merge(
               progress_id: progress.id,
               comment:,
               eula_agreement_timestamp:
             )
           end
-          let(:eula_agreement_timestamp) { "1522419910" }
-          let(:comment) { "my assignment comment" }
+          let(:upload_token) { Canvas::Security.create_jwt(upload_payload, nil, InstFS.jwt_secret) }
+          let(:progress_params) { { id: 1, token: upload_token } }
           let(:request) { post "api_capture", params: progress_params }
 
           before do
@@ -2432,12 +2541,14 @@ describe FilesController do
 
           it "submits the attachment if the submit_assignment param is set to true" do
             expect(homework_service).to receive(:submit).with(eula_agreement_timestamp, comment)
-            post "api_capture", params: progress_params.merge(submit_assignment: true)
+            jwt = Canvas::Security.create_jwt(upload_payload.merge(submit_assignment: true), nil, InstFS.jwt_secret)
+            post "api_capture", params: { id: 1, token: jwt }
           end
 
           it "does not submit the attachment if the submit_assignment param is set to false" do
             expect(homework_service).not_to receive(:submit)
-            post "api_capture", params: progress_params.merge(submit_assignment: false)
+            jwt = Canvas::Security.create_jwt(upload_payload.merge(submit_assignment: false), nil, InstFS.jwt_secret)
+            post "api_capture", params: { id: 1, token: jwt }
           end
 
           it "saves the eula_agreement_timestamp" do
@@ -2484,11 +2595,11 @@ describe FilesController do
           )
         end
 
-        let(:params) do
-          super().merge(
-            precreated_attachment_id: attachment.id
-          )
+        let(:precreated_token) do
+          payload = capture_payload.merge(precreated_attachment_id: attachment.id)
+          Canvas::Security.create_jwt(payload, nil, InstFS.jwt_secret)
         end
+        let(:params) { { id: 1, token: precreated_token } }
 
         it "marks attachment available" do
           post("api_capture", params:)
@@ -2496,10 +2607,9 @@ describe FilesController do
         end
 
         context "when id is wrong" do
-          let(:params) do
-            super().merge(
-              precreated_attachment_id: attachment.id + 42
-            )
+          let(:precreated_token) do
+            payload = capture_payload.merge(precreated_attachment_id: attachment.id + 42)
+            Canvas::Security.create_jwt(payload, nil, InstFS.jwt_secret)
           end
 
           it "returns an error" do
@@ -2515,17 +2625,19 @@ describe FilesController do
 
       it "creates the attachment on the context's shard" do
         user = @shard1.activate { User.create!(name: "me") }
-        post "api_capture", params: {
-          user_id: user.global_id,
-          context_type: "User",
-          context_id: user.global_id,
-          token: @token,
-          name: "test.txt",
-          size: 42,
-          content_type: "text/plain",
-          instfs_uuid: 1,
-          folder_id: user.profile_pics_folder.global_id,
-        }
+        jwt = Canvas::Security.create_jwt(
+          { user_id: user.global_id,
+            context_type: "User",
+            context_id: user.global_id,
+            folder_id: user.profile_pics_folder.global_id,
+            name: "test.txt",
+            size: 42,
+            content_type: "text/plain",
+            instfs_uuid: 1 },
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { token: jwt }
         assert_status(201)
         attachment = assigns[:attachment]
         expect(attachment).not_to be_nil
@@ -2536,17 +2648,19 @@ describe FilesController do
         account = @shard1.activate { Account.create! }
         user = User.create!(name: "me")
         Attachment.current_root_account = account
-        post "api_capture", params: {
-          user_id: user.global_id,
-          context_type: "User",
-          context_id: user.global_id,
-          token: @token,
-          name: "test.txt",
-          size: 42,
-          content_type: "text/plain",
-          instfs_uuid: 1,
-          folder_id: user.profile_pics_folder.global_id,
-        }
+        jwt = Canvas::Security.create_jwt(
+          { user_id: user.global_id,
+            context_type: "User",
+            context_id: user.global_id,
+            folder_id: user.profile_pics_folder.global_id,
+            name: "test.txt",
+            size: 42,
+            content_type: "text/plain",
+            instfs_uuid: 1 },
+          nil,
+          InstFS.jwt_secret
+        )
+        post "api_capture", params: { token: jwt }
         assert_status(201)
         attachment = assigns[:attachment]
         expect(attachment.root_account_id).to eq account.global_id
@@ -2560,18 +2674,22 @@ describe FilesController do
 
       expect_any_instantiation_of(batch).to receive(:file_upload_success_callback).and_call_original
 
-      post "api_capture", params: {
-        user_id: user.id,
-        context_type: "SisBatch",
-        context_id: batch.id,
-        token: @token,
-        name: "test.csv",
-        size: 1024,
-        quota_exempt: true,
-        content_type: "text/csv",
-        instfs_uuid: "test-uuid",
-        sha512: "test-hash"
-      }
+      jwt = Canvas::Security.create_jwt(
+        {
+          user_id: user.id,
+          context_type: "SisBatch",
+          context_id: batch.id,
+          name: "test.csv",
+          size: 1024,
+          quota_exempt: true,
+          content_type: "text/csv",
+          instfs_uuid: "test-uuid",
+          sha512: "test-hash"
+        },
+        nil,
+        InstFS.jwt_secret
+      )
+      post "api_capture", params: { id: 1, token: jwt }
 
       expect(response).to have_http_status(:created)
       expect(batch.reload).to be_created

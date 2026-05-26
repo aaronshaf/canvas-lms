@@ -1110,31 +1110,31 @@ class FilesController < ApplicationController
       return
     end
 
-    # check service authorization
-    unless InstFS.validate_capture_jwt(params[:token])
+    # check service authorization and extract pre-authorized params from JWT
+    signed_params = InstFS.validate_capture_jwt(params[:token])&.with_indifferent_access
+    unless signed_params
       head :forbidden
       return
     end
 
-    # validate params
-    unless params[:user_id] && params[:context_type] && params[:context_id]
+    unless signed_params[:user_id] && signed_params[:context_type] && signed_params[:context_id]
       head :bad_request
       return
     end
 
-    unless VALID_ATTACHMENT_CONTEXTS.include?(params[:context_type])
+    unless VALID_ATTACHMENT_CONTEXTS.include?(signed_params[:context_type])
       head :bad_request
       return
     end
 
-    model = Object.const_get(params[:context_type])
-    @context = model.where(id: params[:context_id]).first
+    model = Object.const_get(signed_params[:context_type])
+    @context = model.where(id: signed_params[:context_id]).first
 
     unused_instfs_uuid = nil
-    @attachment = if params.key?(:precreated_attachment_id)
-                    att = Attachment.find_by(id: params[:precreated_attachment_id])
+    @attachment = if signed_params.key?(:precreated_attachment_id)
+                    att = Attachment.find_by(id: signed_params[:precreated_attachment_id])
                     if att.nil?
-                      reject! "Requested to use precreated attachment, but attachment with id #{params[:precreated_attachment_id]} doesn't exist", 422
+                      reject! "Requested to use precreated attachment, but attachment with id #{signed_params[:precreated_attachment_id]} doesn't exist", 422
                     else
                       att.file_state = "available"
                       att
@@ -1142,16 +1142,16 @@ class FilesController < ApplicationController
                   else
                     @context.shard.activate do
                       # avoid creating an identical Attachment
-                      if params.key?(:folder_id) && params[:on_duplicate] != "rename"
+                      if signed_params.key?(:folder_id) && signed_params[:on_duplicate] != "rename"
                         att = Attachment
                               .active
                               .where.not(instfs_uuid: nil)
                               .find_by(context: @context,
-                                       folder_id: params[:folder_id],
-                                       display_name: params[:display_name] || params[:name],
-                                       size: params[:size],
-                                       md5: params[:sha512])
-                        unused_instfs_uuid = params[:instfs_uuid] if att
+                                       folder_id: signed_params[:folder_id],
+                                       display_name: signed_params[:display_name] || signed_params[:name],
+                                       size: signed_params[:size],
+                                       md5: signed_params[:sha512])
+                        unused_instfs_uuid = signed_params[:instfs_uuid] if att
                       end
                       att || Attachment.where(context: @context).build
                     end
@@ -1169,30 +1169,30 @@ class FilesController < ApplicationController
     # help people that are using the database dump directly, though. they'll
     # just need to be aware of the disconnect between name and use.
     #
-    @attachment.filename = params[:name]
-    @attachment.display_name = params[:display_name] || params[:name]
-    @attachment.size = params[:size]
-    @attachment.content_type = process_content_type_from_instfs(params[:content_type], @attachment.display_name)
-    @attachment.instfs_uuid = params[:instfs_uuid] unless unused_instfs_uuid
-    @attachment.md5 = params[:sha512]
+    @attachment.filename = signed_params[:name]
+    @attachment.display_name = signed_params[:display_name] || signed_params[:name]
+    @attachment.size = signed_params[:size]
+    @attachment.content_type = process_content_type_from_instfs(signed_params[:content_type], @attachment.display_name)
+    @attachment.instfs_uuid = signed_params[:instfs_uuid] unless unused_instfs_uuid
+    @attachment.md5 = signed_params[:sha512]
     @attachment.modified_at = Time.zone.now
     @attachment.workflow_state = "processed"
 
     # check non-exempt quota usage now that we have an actual size
-    return unless value_to_boolean(params[:quota_exempt]) || check_quota_after_attachment
+    return unless value_to_boolean(signed_params[:quota_exempt]) || check_quota_after_attachment
 
     # capture params
-    @attachment.folder = Folder.where(id: params[:folder_id]).first
-    @attachment.user = api_find(User, params[:user_id])
+    @attachment.folder = Folder.where(id: signed_params[:folder_id]).first
+    @attachment.user = api_find(User, signed_params[:user_id])
     @attachment.set_publish_state_for_usage_rights
-    @attachment.category = params[:category] if params[:category].present?
+    @attachment.category = signed_params[:category] if signed_params[:category].present?
     @attachment.save!
 
     # apply duplicate handling
     if unused_instfs_uuid
       @attachment.delay_if_production.safe_delete_unused_instfs_uuid(unused_instfs_uuid)
     else
-      @attachment.handle_duplicates(params[:on_duplicate])
+      @attachment.handle_duplicates(signed_params[:on_duplicate])
     end
 
     # trigger upload success callbacks
@@ -1200,16 +1200,16 @@ class FilesController < ApplicationController
       @context.file_upload_success_callback(@attachment)
     end
 
-    if params[:progress_id]
-      progress = Progress.find(params[:progress_id])
-      submit_assignment = params.key?(:submit_assignment) ? value_to_boolean(params[:submit_assignment]) : true
+    if signed_params[:progress_id]
+      progress = Progress.find(signed_params[:progress_id])
+      submit_assignment = signed_params.key?(:submit_assignment) ? value_to_boolean(signed_params[:submit_assignment]) : true
 
       # If the attachment is for an Assignment's upload_via_url and the submit_assignment flag is set, submit it
       if progress.tag == "upload_via_url" && progress.context.is_a?(Assignment) && submit_assignment
         homework_service = Services::SubmitHomeworkService.new(@attachment, progress)
 
         begin
-          homework_service.submit(params[:eula_agreement_timestamp], params[:comment])
+          homework_service.submit(signed_params[:eula_agreement_timestamp], signed_params[:comment])
           homework_service.success!
         rescue => e
           error_id = Canvas::Errors.capture_exception(self.class.name, e)[:error_report]
@@ -1224,7 +1224,7 @@ class FilesController < ApplicationController
     end
 
     includes = []
-    if Array(params[:include]).include?("preview_url")
+    if Array(signed_params[:include]).include?("preview_url")
       includes << "preview_url"
     # only use implicit enhanced_preview_url if there is no explicit preview_url
     elsif @context.is_a?(User) || @context.is_a?(Course) || @context.is_a?(Group)
@@ -1234,7 +1234,7 @@ class FilesController < ApplicationController
     render status: :created,
            json: attachment_json(@attachment,
                                  @attachment.user.principal,
-                                 { verifier: sanitized_verifier },
+                                 { verifier: nil },
                                  { include: includes }),
            location: api_v1_attachment_url(@attachment, include: includes)
   end
