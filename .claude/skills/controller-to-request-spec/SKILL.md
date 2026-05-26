@@ -1,7 +1,8 @@
 ---
 name: controller-to-request-spec
-description: Convert Canvas controller specs (spec/controllers/*) into request specs by rewriting action-based calls to URL-based calls. Use this when migrating a *_controller_spec.rb to the request style (`type: :request`).
-allowed-tools: Bash(bin/rails routes*), Bash(docker compose run --rm web rails routes*), grep*, rg*, Edit, Read, Write
+description: Convert Canvas controller specs (spec/controllers/*) into request specs by rewriting action-based calls to URL-based calls. Use this when migrating a *_controller_spec.rb to the request style (`type: :request`). After the mechanical port, the skill enters Grading mode by default — pass `--no-grading` to skip.
+allowed-tools: Bash(bin/rails routes*), Bash(docker compose run --rm web rails routes*), grep*, rg*, Edit, Read, Write, Agent, AskUserQuestion
+argument-hint: "[--no-grading]"
 ---
 
 Canvas is migrating its `spec/controllers/*_controller_spec.rb` files to the request-spec style (`type: :request`). Request specs make real HTTP requests to the Rails router, so they catch routing bugs that controller specs silently mask. Controller specs have also been deprecated by the rails maintainers.
@@ -76,4 +77,37 @@ Request specs don't expose the controller instance, so these controller-spec idi
 5. Address the non-translating idioms listed above. If a test relies on something request specs can't observe, surface it to the user rather than silently weakening the assertion.
 6. Run the linter: `docker compose run --rm web rubocop -a <path>`. Accept any changes that it makes. If the linter can't be run or throws an error, skip this part.
 7. Run the spec: `docker compose run --rm web bin/rspec <path>`. Failures here usually mean either a wrong URL, a missing `params:` key, or an `assigns`-style assertion that now needs to read the response.
+8. Enter **Grading mode** (next section) unless the skill was invoked with `--no-grading`. Grading mode is the default; `--no-grading` exits here and reports the mechanical port as the final output.
+
+## Grading mode
+
+Grading mode brings every converted `it` block to grade `A` or `A-` per the rubric in `.claude/skills/request-test-grader/references/request-test-rules.md` (0 blockers, 0 majors, ≤ 2 minors). It runs by default after step 7. `--no-grading` skips it entirely.
+
+**Precondition.** Step 7 reported all converted `it`s green. If any spec is still failing, do not enter Grading mode — surface the failures and stop. Grading a broken conversion produces noise.
+
+### Workflow
+
+1. **Load the rules.** Use the `Read` tool to read `.claude/skills/request-test-grader/references/request-test-rules.md` into context at the start of Grading mode. This is the same authoritative rules file the grader subagent applies, and the same one `request-test-writer` consumes.
+2. **Pre-alignment pass.** Walk every converted `it` once and apply the cheap per-`it` rules inline before invoking the grader: `literal-path`, `symbol-statuses`, `aaa-headers`, `reload-assertions`, `plain-english-it`. Fixing these mechanically avoids burning grader cycles on violations the converter can catch up-front.
+3. **Parallel grade.** For each converted `it`, spawn the `request-test-grader` subagent in parallel via the `Agent` tool.
+   - **subagent_type:** `request-test-grader`
+   - **description:** `Grade <basename>:<line>`
+   - **prompt:** `<path>:<line>`
+4. **Parse the trailers.** Each report ends with a machine-readable trailer (`grade=`, `blockers=`, `majors=`, `minors=`, `fail=`, `na=`, `rite=`). Read these — not the prose — to drive the fix loop.
+5. **File-wide ✗ rules.** If any `it` reports `no-shared-setup` or `no-before-all` as ✗, batch them into a single `AskUserQuestion` *per file* with three options:
+   - *Refactor file-wide* — inline the `let`/`before` setup into every converted `it`. May also touch sibling unconverted `it`s in the same file; warn the user inline.
+   - *Leave + TODO comment* — preserve the structure and add `# TODO: grader violation — <rule>` to each affected `it`.
+6. **Serial fix pass.** For each `it` with ✗ blockers or majors, apply the `Top fixes` block from its grader report. Fix in source order to keep diffs reviewable.
+7. **Parallel re-grade.** Re-spawn the grader subagent for each fixed `it`. Parse the new trailers.
+8. **Cap at 2 fix-and-regrade cycles per `it`.** After two cycles, accept the current state and move to escalation.
+9. **Pass condition.** Every converted `it` reaches grade `A` or `A-`. If yes, Grading mode is done.
+10. **Escalation.** For any `it` still below `A-`, print its grader report verbatim and end with a summary list of escalated `it`s. Do not silently mark these as done.
+
+### `--no-grading`
+
+Skips the rules load, pre-alignment, grader spawns, file-wide AskUserQuestion, and fix loop. The skill stops at step 7 of Process and reports the mechanical port as the final output. Use this for batch migrations where grading runs as a separate pass, or for scratch ports where rule compliance isn't the goal.
+
+### Planned: per-file grader
+
+A per-file grading skill is currently in development. When it lands, this workflow can invoke it once per file in place of the N parallel per-`it` subagent spawns — same fix-and-regrade structure, fewer agent invocations. Re-evaluate the grade step (workflow item 3) once that skill is available; the rest of the loop stays the same.
 
