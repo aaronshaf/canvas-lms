@@ -66,6 +66,10 @@ module AuthenticationMethods
     ::AuthenticationMethods::AccessTokenAttributes.current_token = @token
     ::AuthenticationMethods::AccessTokenAttributes.current_developer_key = developer_key
 
+    RequestContext::Generator.add_meta_header("at", @token.jti)
+    RequestContext::Generator.add_meta_header("dk", developer_key.global_id) if developer_key
+    RequestContext::Generator.add_meta_header("utid", developer_key.unified_tool_id) if developer_key&.unified_tool_id
+
     if auth_context[:real_current_user]
       @real_current_user = auth_context[:real_current_user]
       @real_current_pseudonym = auth_context[:real_current_pseudonym]

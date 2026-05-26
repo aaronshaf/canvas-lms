@@ -660,6 +660,29 @@ describe AuthenticationMethods do
             expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
           end
         end
+
+        context "meta headers" do
+          let(:developer_key) do
+            key = DeveloperKey.create!(name: "key", account:)
+            key.developer_key_account_bindings.first.update!(workflow_state: "on")
+            key
+          end
+          let(:token) do
+            InstAccess::Token.for_user(
+              user_uuid: user.uuid,
+              account_uuid: account.uuid,
+              client_id: developer_key.global_id
+            )
+          end
+
+          it "emits at and dk meta headers so Observe can attribute the request" do
+            allow(RequestContext::Generator).to receive(:add_meta_header).with(any_args)
+            expect(RequestContext::Generator).to receive(:add_meta_header).with("at", token.jti)
+            expect(RequestContext::Generator).to receive(:add_meta_header).with("dk", developer_key.global_id)
+            controller = setup_with_inst_access_token(token)
+            controller.send(:load_user)
+          end
+        end
       end
     end
   end
