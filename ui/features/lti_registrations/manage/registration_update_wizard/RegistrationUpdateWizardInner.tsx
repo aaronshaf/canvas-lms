@@ -18,7 +18,6 @@
 
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 import type {LtiScope} from '@canvas/lti/model/LtiScope'
 import {Flex} from '@instructure/ui-flex'
 import {ProgressBar} from '@instructure/ui-progress'
@@ -264,58 +263,29 @@ export const RegistrationUpdateWizardInner = ({
     )
   }
 
-  if (isAlreadyApplied) {
+  if (isAlreadyApplied || isRejected) {
+    const appNameDelimiter = '\u0000'
+    const sentence = isAlreadyApplied
+      ? I18n.t('This update has already been applied to %{appName}.', {appName: appNameDelimiter})
+      : I18n.t('This update has already been rejected for %{appName}.', {appName: appNameDelimiter})
+    const [before, after] = sentence.split(appNameDelimiter)
     return (
       <>
-        <Header onClose={onDismiss} headerText={I18n.t('Already Applied')} />
+        <Header
+          onClose={onDismiss}
+          headerText={isAlreadyApplied ? I18n.t('Already Applied') : I18n.t('Already Rejected')}
+        />
         <RegistrationModalBody>
           <View as="div" padding="large" textAlign="center">
             <Heading level="h3" margin="0 0 medium 0">
-              {I18n.t('Update Already Applied')}
+              {isAlreadyApplied
+                ? I18n.t('Update Already Applied')
+                : I18n.t('Update Already Rejected')}
             </Heading>
             <Text size="medium">
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHTML(
-                    I18n.t('This update has already been applied to *%{appName}*.', {
-                      appName,
-                      wrappers: ['<strong>$1</strong>'],
-                    }),
-                  ),
-                }}
-              />
-            </Text>
-          </View>
-        </RegistrationModalBody>
-        <Modal.Footer>
-          <Button onClick={onDismiss} color="primary">
-            {I18n.t('Close')}
-          </Button>
-        </Modal.Footer>
-      </>
-    )
-  }
-
-  if (isRejected) {
-    return (
-      <>
-        <Header onClose={onDismiss} headerText={I18n.t('Already Rejected')} />
-        <RegistrationModalBody>
-          <View as="div" padding="large" textAlign="center">
-            <Heading level="h3" margin="0 0 medium 0">
-              {I18n.t('Update Already Rejected')}
-            </Heading>
-            <Text size="medium">
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHTML(
-                    I18n.t('This update has already been rejected for *%{appName}*.', {
-                      appName,
-                      wrappers: ['<strong>$1</strong>'],
-                    }),
-                  ),
-                }}
-              />
+              {before}
+              <strong>{appName}</strong>
+              {after}
             </Text>
           </View>
         </RegistrationModalBody>
