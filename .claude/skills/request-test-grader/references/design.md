@@ -4,6 +4,8 @@ Audience: engineers maintaining the `request-test-writer` and `request-test-grad
 
 Not referenced by the skill or agent files at runtime. This document exists to explain *why* the grader is shaped the way it is, so future maintainers can evaluate proposed changes against the original reasoning rather than re-deriving it from scratch.
 
+**This is a historical decision log, not a current-state specification.** The design evolves — sections below describe choices made at the time, with the reasoning current at the time, in roughly chronological order. Later decisions may supersede earlier ones; trailer fields, output schemas, and workflow steps have all changed across iterations and will change again. When a section's text disagrees with the current `agents/request-test-grader.md` or `references/request-test-rules.md`, those files are authoritative — this one preserves the *why* behind how we got here. Add new entries as the design changes; don't rewrite history in place.
+
 ## Problem statement
 
 Two needs:
@@ -25,14 +27,14 @@ Both needs reduce to the same primitive: **given one `it` block, apply the share
     └── request-test-grader/
         ├── SKILL.md                       ← user-invocable entry point; spawns grader agent
         └── references/
-            ├── request-test-rules.md     ← canonical rules + rubric (SoT)
+            ├── request-test-rules.md     ← canonical rules (SoT)
             ├── test-cases.md             ← behavioral contract / QA checklist
             └── design.md                  ← this file
 ```
 
 Three artifacts, one canonical source of truth per concern:
 
-- **`references/request-test-rules.md`** holds every composition rule, its reasoning, and the severity/letter-grade rubric. Nothing else *describes* the rules — every consumer `@include`s this file.
+- **`references/request-test-rules.md`** holds every composition rule and its reasoning. Nothing else *describes* the rules — every consumer `@include`s this file.
 - **`agents/request-test-grader.md`** holds the workflow (validate input, locate `it`, resolve route, read controller, grade each rule, emit report) and the report's output schema (worked example, critical invariants, trailer schema) inline in a single file. It `@include`s the shared rules but does not restate any rule content.
 - **`skills/request-test-grader/SKILL.md`** is the user-facing entry point. It parses input, resolves description-style targets down to a concrete `path:line` (via `Grep` + an `AskUserQuestion` disambiguation loop when multiple `it` blocks match), spawns the agent, and relays the report verbatim. Description resolution lives in the skill, not the agent — see *Decision: where target resolution lives*, below. The skill is deliberately ignorant of the report's shape: the agent owns its output contract.
 
@@ -85,7 +87,7 @@ Future maintainers: these are not stylistic preferences. Violating any of them c
 1. **Rule content lives only in `references/request-test-rules.md`.** The agent file does not restate rules. The writer SKILL.md does not restate rules. The grader SKILL.md does not restate rules. All three `@include` the shared file. The instant a second copy of any rule appears, drift begins.
 2. **The agent grades one `it` per invocation.** Batch grading (file, directory) is implemented by spawning N agents *outside* the agent, not by teaching one agent to loop. Looping inside the agent defeats the context-isolation win.
 3. **The agent is read-only and hermetic.** Tools: Read, Grep, Glob — no shell, no Edit, no Write. No Docker/Rails dependency, no non-determinism from external processes. The verdict is a report. Any "apply the fix" workflow lives elsewhere.
-4. **The grader skill is thin *with respect to grading*.** It owns input parsing and target resolution (description → `path:line`, via `Grep` + `AskUserQuestion`) — that work is intentionally skill-side because it's interactive and uses tools the agent doesn't have. It does *not* duplicate the agent's grading logic: rule application, route resolution, controller reading, severity classification, and report emission all live in the agent. If the skill starts reading controllers, applying rules, or rendering verdicts, that's a smell — that work belongs in the agent.
+4. **The grader skill is thin *with respect to grading*.** It owns input parsing and target resolution (description → `path:line`, via `Grep` + `AskUserQuestion`) — that work is intentionally skill-side because it's interactive and uses tools the agent doesn't have. It does *not* duplicate the agent's grading logic: rule application, route resolution, controller reading, and report emission all live in the agent. If the skill starts reading controllers, applying rules, or rendering verdicts, that's a smell — that work belongs in the agent.
 
 ## When to revisit
 
@@ -155,7 +157,7 @@ The motivation, in increasing weight:
 What we kept from the prior design:
 
 - The per-rule verdict as the single source of truth, computed in working memory before any section is emitted. The "Projections are mechanical from the per-rule table" invariant in the agent prompt still applies — the surface area is just smaller.
-- The `<report>...</report>` framing and the machine-readable trailer as the parser contract. Trailer fields shrank from seven to three (`result`, `failures`, `na`) but the framing and emission discipline are identical. The two redundant fields (`findings=` count, derivable from `failures=` cardinality; original `fail=` renamed to `failures=` to read more clearly as a list rather than a boolean) were dropped as part of the same simplification — every remaining field carries signal that isn't trivially derivable. `result=` is kept despite being derivable because the consuming agent is itself an LLM and literal-field lookup is more reliable than computing "is `failures=` non-empty" mid-stream; `na=` is kept because the grader is non-deterministic (unlike RuboCop) and the integrity check ("did the agent consider every rule?") needs explicit listing of considered-but-N/A rules.
+- The `<report>...</report>` framing and the machine-readable trailer as the parser contract. Trailer fields shrank from seven to three (`result`, `failures`, `na`) during the pass/fail collapse, then grew to four with the addition of `passing=` (the explicit list of `pass`-verdict slugs). The framing and emission discipline are unchanged. `result=` is kept despite being derivable because the consuming agent is itself an LLM and literal-field lookup is more reliable than computing "is `failures=` non-empty" mid-stream. `failures=`, `passing=`, and `na=` together form a strict partition of the full rule set — that partition is the integrity check that proves the grader processed every rule. Originally `passing=` was implicit (computed by subtracting `failures=` and `na=` from the full rule set in the rules file). Making it explicit lets a downstream consumer detect drift — new rule the grader didn't apply, renamed rule the grader still references by the old slug — directly from one report, without re-reading the rules file.
 - The N/A handling. Rules whose trigger condition is absent still emit explicitly to `na=` so the integrity check ("every rule was considered") still works.
 
 What we removed:

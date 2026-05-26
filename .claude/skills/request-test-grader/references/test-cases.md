@@ -36,7 +36,7 @@ and report PASS / FAIL / UNTESTED for each.
 
    - §8.2 — `result=` and `failures=` match the expected row.
    - §4 — `<report>` framing and machine-readable trailer shape & consistency.
-   - §5 — per-rule slug set in `failures=` and `na=` together (plus the silent `pass` rules) equals the slug set declared in `references/request-test-rules.md` (grep `^### ` for the list).
+   - §5 — per-rule slug set: union of `failures=`, `passing=`, and `na=` equals the slug set declared in `references/request-test-rules.md` (grep `^### ` for the list), and the three lists are pairwise disjoint.
    - §6 — Failures rows sorted by **source line**, not rules-file order.
 
 4. For §1.1, §1.2, §1.3, §1.4, §1.5, §2.1–§2.4, §3.1, §3.2, and §9.\*,
@@ -171,19 +171,20 @@ The `<report>...</report>` framing and the machine-readable trailer together for
 
 **Trailer fields.**
 
-- [ ] All three fields present and in order: `result`, `failures`, `na`.
+- [ ] All four fields present and in order: `result`, `failures`, `passing`, `na`.
 - [ ] Each field appears exactly once.
 - [ ] `result` is `pass` or `fail` (lowercase) and matches the bold `**PASS**` / `**FAIL**` in the `## Result` heading.
-- [ ] `failures` set equals the set of `fail`-verdict rules; `na` set equals the set of `na`-verdict rules; no slug appears in both.
-- [ ] Empty list fields render as `failures=` / `na=` — never `none` or `[]`.
+- [ ] `failures` set equals the set of `fail`-verdict rules; `passing` set equals the set of `pass`-verdict rules; `na` set equals the set of `na`-verdict rules; the three sets are pairwise disjoint.
+- [ ] Empty list fields render as `failures=` / `passing=` / `na=` — never `none` or `[]`.
 - [ ] When `result=pass`, `failures=` is empty; when `failures=` is empty, `result=pass`.
 
 ---
 
 ## 5. Per-rule coverage
 
-- [ ] The union of `failures=`, `na=`, and the silent `pass` rules (computed by subtracting the first two from the full rule set in `references/request-test-rules.md`) equals the full rule set. No invented slugs; no omissions.
-- [ ] `na` is explicit, listed in the `## Rules N/A` section with a brief reason per rule. Silence never implies `pass` for an `na` rule.
+- [ ] The union of `failures=`, `passing=`, and `na=` equals the full rule slug set declared in `references/request-test-rules.md` (grep `^### ` for the list). No invented slugs; no omissions.
+- [ ] The three lists (`failures`, `passing`, `na`) are pairwise disjoint — no slug appears in more than one.
+- [ ] `na` is explicit, listed in the `## Rules N/A` section with a brief reason per rule. The `## Failures` and `## Rules N/A` prose sections are silent on `pass`-verdict rules, but those slugs are still listed in the trailer's `passing=` field.
 
 ---
 
@@ -244,7 +245,9 @@ To verify: invoke the grader agent on each fixture (target the first `it` line) 
 | `fixtures/auth_mismatch.rb` | `fail` | `auth-matches-initiator` | Single `fail`. Description names an external-API-client-bearer initiator but setup uses `user_session`. |
 | `fixtures/magic_values.rb` | `fail` | `no-magic-values` | Single `fail`. Assertion checks `"Unnamed Course"`, which is never set explicitly in setup. |
 
-The `failures=` and `na=` trailer fields are **unordered sets**. Any permutation of the expected slugs is correct — do not compare the comma lists as strings.
+The `failures=`, `passing=`, and `na=` trailer fields are **unordered sets**. Any permutation of the expected slugs is correct — do not compare the comma lists as strings.
+
+For each fixture, also verify the **partition invariant** against the canonical rule set: compute the full slug set by grepping `^### ` in `references/request-test-rules.md`, then check that `failures ∪ passing ∪ na` equals that set with the three lists pairwise disjoint. The expected `passing=` for each fixture is implicit — it is `(full rule set) − (expected failures=) − (the rule's actual `na=` from the report)` — so verification doesn't require enumerating expected passes per fixture, but the partition check must succeed.
 
 ---
 

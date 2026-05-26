@@ -93,7 +93,7 @@ Grading mode brings every converted `it` block to `result=pass` per the grader r
    - **subagent_type:** `request-test-grader`
    - **description:** `Grade <basename>:<line>`
    - **prompt:** `<path>:<line>`
-4. **Parse the trailers.** Each report ends with a machine-readable trailer (`result=`, `failures=`, `na=`). Read these — not the prose — to drive the fix loop.
+4. **Parse the trailers.** Each report ends with a machine-readable trailer (`result=`, `failures=`, `passing=`, `na=`). Read these — not the prose — to drive the fix loop. Only `result=` and `failures=` matter for routing fixes; `passing=` and `na=` are present for rule-set drift detection and can be ignored by this skill.
 5. **File-wide failure rules.** If any `it` reports `no-before-once` as `fail` because of a file-wide `before(:once)` block, batch them into a single `AskUserQuestion` *per file* with two options:
    - *Convert to `before(:each)`* — change the `before(:once)` to `before(:each)` in place. Sibling unconverted `it`s in the same file will also see the change; warn the user inline.
    - *Leave + TODO comment* — preserve the `before(:once)` and add `# TODO: grader violation — no-before-once` to each affected `it`.

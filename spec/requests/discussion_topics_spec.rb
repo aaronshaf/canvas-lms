@@ -54,7 +54,6 @@ describe "Discussion Topics API" do
   end
 
   describe "DELETE /groups/:group_id/discussion_topics/:id" do
-    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
     it "allows group members to delete their own announcements" do
       # Arrange
       course_with_teacher(active_all: true)
@@ -73,7 +72,6 @@ describe "Discussion Topics API" do
       expect(topic.reload.workflow_state).to eq("deleted")
     end
 
-    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
     it "allows teachers to delete their own group announcements" do
       # Arrange
       course_with_teacher(active_all: true)
@@ -91,7 +89,6 @@ describe "Discussion Topics API" do
       expect(topic.reload.workflow_state).to eq("deleted")
     end
 
-    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
     it "allows teachers to delete group member announcements" do
       # Arrange
       course_with_teacher(active_all: true)

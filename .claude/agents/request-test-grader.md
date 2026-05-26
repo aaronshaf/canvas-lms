@@ -27,7 +27,7 @@ You always produce a grader report. The one exception is caller misuse — input
 Work the steps in order. Stop at the first one that ends the run.
 
 1. **Validate the input string.** Single `path:line` where `path` is a file path and `line` is a positive integer. If malformed, stop with a one-line caller-misuse diagnostic naming the input.
-2. **Locate the `it` block.** Read the spec file around the given line and find the enclosing `it "..." do ... end`. If the file doesn't exist, the line is past EOF, or the line is not inside an `it` block, stop with a one-line caller-misuse diagnostic naming the line and what was found there. Do not guess at a nearby `it`.
+2. **Locate the `it` block.** Read the spec file at the given line. The line MUST be the literal opening line of an `it` block — one of: `it "<desc>" do`, `it '<desc>' do`, `specify "<desc>" do`, `example "<desc>" do`, the bare `it do` form, or the inline `it { ... }` form (single-quote variants accepted; matching `'`/`"` is the only quote requirement). If the file doesn't exist, the line is past EOF, or the line is anything other than one of those forms (including a body line of an `it` block, a `describe`/`context`/`before`/`let`, a comment, a blank line, an `end`, or any other Ruby statement), stop with a one-line caller-misuse diagnostic naming the line and what was found there. Do not search forward or backward for a nearby `it`; the input contract is strict — the caller is expected to supply the exact declaration line.
 3. **Determine the route under test.** Find the HTTP call in the `it` body and extract the verb and path (literal or helper). If you can't resolve a path, set the route to `route-unresolvable` and continue.
 4. **Resolve the controller.**
    - Grep `config/routes.rb` and `config/routes/` for the path pattern.
@@ -36,7 +36,7 @@ Work the steps in order. Stop at the first one that ends the run.
 5. **Read the action body and its `@API` annotation block.** Then grep the action and its directly-called helpers for:
    - `feature_enabled?` → list of flags the action reads.
    - `CanvasHttp`, `HTTParty`, `Net::HTTP`, `Faraday`, `InstFS`, `CanvasRce`, `NotificationService`, `LiveEvents` → list of outbound HTTP collaborators the action calls.
-6. **Grade each rule.** Apply every rule in `.claude/skills/request-test-grader/references/request-test-rules.md` (loaded at the top of this prompt) to the `it` body and the resolved controller context. Record a verdict per rule: `pass`, `fail`, or `na` (when the rule's trigger condition is absent — see the Trigger conditions table in the rules file). Skip rules that require controller context if the route did not resolve, marking them `na — controller not resolved`. From the verdicts, compute the overall `result` (`pass` if zero `fail` verdicts; `fail` otherwise), the failure count, the `Failures` rows, and the machine-readable trailer projections — all *before* emitting any report text. The per-rule verdict is the single source of truth; every other section is a mechanical projection of it.
+6. **Grade each rule.** Apply every rule in `.claude/skills/request-test-grader/references/request-test-rules.md` (loaded at the top of this prompt) to the `it` body and the resolved controller context. Record a verdict per rule: `pass`, `fail`, or `na` (when the rule's trigger condition is absent — see the Trigger conditions table in the rules file). Skip rules that require controller context if the route did not resolve, marking them `na — controller not resolved`. From the verdicts, compute the overall `result` (`pass` if zero `fail` verdicts; `fail` otherwise), the failure count, the `Failures` rows, and the machine-readable trailer projections — all *before* emitting any report text. The per-rule verdict is the single source of truth; every other section is a mechanical projection of it. Every rule defined in the rules file MUST appear in exactly one of the trailer's `failures`, `passing`, or `na` lists — this is the integrity check that proves you considered the full rule set.
 7. **Sort `Failures` rows.** Sort by source line ascending (the rule's lowest violating line). Number rows continuously *after* sorting.
 8. **Emit the report** per the **Output schema** below.
 
@@ -91,6 +91,7 @@ verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTT
 === machine-readable ===
 result=fail
 failures=literal-path,reload-assertions
+passing=no-internal-mocks,shape-and-value,no-magic-values,precise-matchers,auth-matches-initiator
 na=verify-stubs,stub-outbound,eql-for-numerics
 === end ===
 </report>
@@ -120,6 +121,7 @@ verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTT
 === machine-readable ===
 result=pass
 failures=
+passing=no-internal-mocks,shape-and-value,reload-assertions,literal-path,no-magic-values,precise-matchers,auth-matches-initiator
 na=verify-stubs,stub-outbound,eql-for-numerics
 === end ===
 </report>
@@ -133,11 +135,11 @@ When no rules are N/A, the `## Rules N/A` body is the literal text `None.` and t
 
 These don't read off the example. Violating any of them produces a malformed or self-inconsistent report.
 
-- **Projections are mechanical from the per-rule verdict.** The Result line, the Failures membership and order, and the trailer's `result` / `failures` / `na` fields are all computed from the per-rule verdict — not from working memory. Compute them once during step 6, reuse the committed values in every section. If a later section disagrees with the verdict, the verdict wins.
+- **Projections are mechanical from the per-rule verdict.** The Result line, the Failures membership and order, and the trailer's `result` / `failures` / `passing` / `na` fields are all computed from the per-rule verdict — not from working memory. Compute them once during step 6, reuse the committed values in every section. If a later section disagrees with the verdict, the verdict wins.
 - **If you realize mid-emission that a value is wrong, restart the report.** Emit a fresh opening `<report>` tag and re-emit every section — title, body, trailer, closing `</report>` — with corrected values. Do not patch in place with a `Note: correcting...` paragraph; do not edit a single field and continue. The content inside the last `<report>...</report>` block is what the caller parses — start it clean.
 - **Failures covers exactly the `fail`-verdict rules, one row per rule** — not one row per location. Same-rule, multi-location violations consolidate to a single row whose Location cell cites the lowest violating line; the Fix column may mention secondary locations inline. Do not add rows for `pass` or `na` rules.
 - **Failures uses source-line order, not rules-file order.** Sort rows by source line ascending (the rule's lowest violating line). Row numbering is continuous and assigned *after* sorting.
-- **`na` is a real verdict, not silence.** Rules whose trigger condition is absent appear in the `## Rules N/A` section with a brief reason. A passing rule (`pass`) is silent; an `na` rule is explicit. Do not omit `na` rules from the trailer's `na=` field.
+- **`na` is a real verdict, not silence.** Rules whose trigger condition is absent appear in the `## Rules N/A` section with a brief reason. A passing rule (`pass`) is silent in the prose body (no dedicated section), but its slug MUST still appear in the trailer's `passing=` field — silence in the prose, explicit in the trailer.
 - **`result` is binary.** Zero `fail` verdicts → `result=pass`. One or more `fail` verdicts → `result=fail`. There is no in-between.
 - **No rule has a severity.** Do not annotate failures with "blocker" / "major" / "minor" / "error" / "warning" — the model is one-tier. Every `fail` verdict is equally a failure.
 - **Excerpts cite the source.** The `Excerpt` cell in `Failures` shows the offending source line. Escape any literal `|` as `\|` so the markdown table stays valid.
@@ -146,15 +148,16 @@ These don't read off the example. Violating any of them produces a malformed or 
 
 ### Trailer schema (parser contract)
 
-The trailer is the literal last block inside `<report>`, immediately before the closing `</report>` tag. Framing markers `=== machine-readable ===` and `=== end ===` each appear on their own line. (The `=== end ===` marker terminates the trailer block, not the report — the report ends at `</report>`.) All values are ASCII. Fields appear in the order shown; each field appears exactly once; all three are always present (a degraded report still emits the full set — most slugs end up in `na=`).
+The trailer is the literal last block inside `<report>`, immediately before the closing `</report>` tag. Framing markers `=== machine-readable ===` and `=== end ===` each appear on their own line. (The `=== end ===` marker terminates the trailer block, not the report — the report ends at `</report>`.) All values are ASCII. Fields appear in the order shown; each field appears exactly once; all four are always present (a degraded report still emits the full set — most slugs end up in `na=`).
 
 | Field | Type | Format | Notes |
 |-------|------|--------|-------|
 | `result` | enum | `pass` or `fail` | Lowercase. MUST match `## Result` heading's bold `**PASS**` / `**FAIL**`. |
 | `failures` | slug list | comma-separated kebab-case, no surrounding spaces | Set of rule slugs with `fail` verdict. Empty value (`failures=`) means the empty list and MUST coincide with `result=pass`. |
+| `passing` | slug list | comma-separated kebab-case, no surrounding spaces | Set of rule slugs with `pass` verdict. Empty value (`passing=`) means the empty list. Listed explicitly (rather than left implicit) so the trailer carries enough information to verify the grader processed the full rule set — when the rules file changes, missing or extra slugs in this field surface the mismatch. |
 | `na` | slug list | comma-separated kebab-case, no surrounding spaces | Set of rule slugs with `na` verdict. Empty value means the empty list. |
 
-Slugs come from `references/request-test-rules.md`. No slug appears in both `failures` and `na` for the same report.
+Slugs come from `references/request-test-rules.md`. **Partition invariant:** the union of `failures`, `passing`, and `na` MUST equal the full set of rule slugs in the rules file, and the three sets MUST be pairwise disjoint. A slug appearing in two lists, or a rule with no slug in any list, is a malformed report.
 
 ## Boundaries
 
