@@ -49,13 +49,13 @@ export const PREDEFINED_COLORS: ColorInfo[] = [
     },
   },
   {
-    hexcode: '#FF2717',
+    hexcode: '#E62429',
     get name() {
       return I18n.t('Red')
     },
   },
   {
-    hexcode: '#E71F63',
+    hexcode: '#BA2083',
     get name() {
       return I18n.t('Magenta')
     },
@@ -73,9 +73,9 @@ export const PREDEFINED_COLORS: ColorInfo[] = [
     },
   },
   {
-    hexcode: '#4554A4',
+    hexcode: '#17478B',
     get name() {
-      return I18n.t('Indigo')
+      return I18n.t('Navy')
     },
   },
   {
@@ -85,49 +85,49 @@ export const PREDEFINED_COLORS: ColorInfo[] = [
     },
   },
   {
-    hexcode: '#0B9BE3',
+    hexcode: '#2063C1',
     get name() {
-      return I18n.t('Light Blue')
+      return I18n.t('Sapphire')
     },
   },
   {
-    hexcode: '#06A3B7',
+    hexcode: '#00828E',
     get name() {
       return I18n.t('Cyan')
     },
   },
   {
-    hexcode: '#009688',
+    hexcode: '#048660',
     get name() {
       return I18n.t('Teal')
     },
   },
   {
-    hexcode: '#009606',
+    hexcode: '#03893D',
     get name() {
       return I18n.t('Green')
     },
   },
   {
-    hexcode: '#8D9900',
+    hexcode: '#996E00',
     get name() {
       return I18n.t('Olive')
     },
   },
   {
-    hexcode: '#D97900',
+    hexcode: '#BF5811',
     get name() {
       return I18n.t('Pumpkin')
     },
   },
   {
-    hexcode: '#FD5D10',
+    hexcode: '#CF4A00',
     get name() {
       return I18n.t('Orange')
     },
   },
   {
-    hexcode: '#F06291',
+    hexcode: '#C54396',
     get name() {
       return I18n.t('Pink')
     },

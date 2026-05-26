@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {render, fireEvent} from '@testing-library/react'
+import tinycolor from 'tinycolor2'
 import ColorPicker, {PREDEFINED_COLORS} from '../index'
 import {isValidHex, getColorName} from '../utils'
 import {destroyContainer} from '@instructure/platform-alerts'
@@ -181,10 +182,10 @@ describe('ColorPicker', () => {
       })
 
       const colorButtons = container.querySelectorAll('.ColorPicker__ColorBlock')
-      const nonSelectedButton = colorButtons[1] // Second color is #FF2717
+      const nonSelectedButton = colorButtons[1] // Second color is #E62429
 
       // Should have the color's own hexcode as border color, not the selected style
-      expect(nonSelectedButton).toHaveStyle('border-color: #FF2717')
+      expect(nonSelectedButton).toHaveStyle('border-color: #E62429')
 
       // Verify it's not selected by checking it doesn't have the selected border color
       expect(nonSelectedButton).not.toHaveStyle('border-color: #6A7883')
@@ -218,6 +219,16 @@ describe('ColorPicker', () => {
 
       expect(checkIcon).toBeInTheDocument()
     })
+  })
+
+  describe('PREDEFINED_COLORS accessibility', () => {
+    it.each(PREDEFINED_COLORS)(
+      'swatch $name ($hexcode) meets WCAG AA 4.5:1 against white',
+      ({hexcode}) => {
+        const ratio = tinycolor.readability(hexcode, '#FFFFFF')
+        expect(ratio).toBeGreaterThanOrEqual(4.5)
+      },
+    )
   })
 
   describe('utility functions', () => {
