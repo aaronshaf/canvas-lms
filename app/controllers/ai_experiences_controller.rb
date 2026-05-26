@@ -475,11 +475,10 @@ class AiExperiencesController < ApplicationController
                                       .order(updated_at: :desc)
                                       .first
 
-      # Determine submission status based on conversation state
-      submission_status = if latest_conversation.nil?
+      submission_status = if latest_conversation&.completed?
+                            "completed"
+                          elsif latest_conversation.nil? || latest_conversation.ended?
                             "not_started"
-                          elsif latest_conversation.completed?
-                            "submitted"
                           else
                             "in_progress"
                           end

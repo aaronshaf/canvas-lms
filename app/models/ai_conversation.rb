@@ -31,14 +31,14 @@ class AiConversation < ApplicationRecord
   belongs_to :ai_experience
 
   validates :llm_conversation_id, presence: true, uniqueness: true
-  validates :workflow_state, presence: true, inclusion: { in: %w[active completed deleted] }
+  validates :workflow_state, presence: true, inclusion: { in: %w[active ended completed deleted] }
 
   scope :for_user, ->(user_id) { where(user_id:) }
   scope :for_course, ->(course_id) { where(course_id:) }
   scope :for_account, ->(account_id) { where(account_id:) }
   scope :for_ai_experience, ->(ai_experience_id) { where(ai_experience_id:) }
   scope :active, -> { where(workflow_state: "active") }
-  scope :completed, -> { where(workflow_state: "completed") }
+  scope :ended, -> { where(workflow_state: "ended") }
   scope :deleted, -> { where(workflow_state: "deleted") }
 
   before_create :set_account_associations
@@ -49,18 +49,26 @@ class AiConversation < ApplicationRecord
     update_column(:workflow_state, "deleted")
   end
 
-  def complete!
+  def end_session!
     return false if deleted?
 
-    update_column(:workflow_state, "completed")
+    update_column(:workflow_state, "ended")
+  end
+
+  def mark_objectives_met!
+    update_column(:all_objectives_met, true)
   end
 
   def active?
     workflow_state == "active"
   end
 
+  def ended?
+    workflow_state == "ended"
+  end
+
   def completed?
-    workflow_state == "completed"
+    all_objectives_met?
   end
 
   def deleted?

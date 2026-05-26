@@ -37,7 +37,7 @@ interface AIExperienceRowProps {
   canUnpublish: boolean
   contextReady: boolean
   createdAt: string
-  submissionStatus?: 'not_started' | 'in_progress' | 'submitted'
+  submissionStatus?: 'not_started' | 'in_progress' | 'completed'
   onEdit: (id: number) => void
   onTestConversation: (id: number) => void
   onPublishToggle: (id: number, newState: 'published' | 'unpublished') => void
@@ -152,7 +152,7 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
               ) : (
                 <Pill
                   color={
-                    submissionStatus === 'submitted'
+                    submissionStatus === 'completed'
                       ? 'success'
                       : submissionStatus === 'in_progress'
                         ? 'info'
@@ -164,7 +164,7 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
                     I18n.t('In Progress (%{percentage}%)', {
                       percentage: fetchedProgressPercentage ?? 0,
                     })}
-                  {submissionStatus === 'submitted' && I18n.t('Submitted')}
+                  {submissionStatus === 'completed' && I18n.t('Completed')}
                 </Pill>
               )}
             </View>

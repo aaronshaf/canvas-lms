@@ -239,16 +239,16 @@ describe('AIExperienceRow', () => {
       })
     })
 
-    it('displays Submitted pill when submission_status is submitted', () => {
-      render(<AIExperienceRow {...studentProps} submissionStatus="submitted" />)
-      expect(screen.getByText('Submitted')).toBeInTheDocument()
+    it('displays Completed pill when submission_status is completed', () => {
+      render(<AIExperienceRow {...studentProps} submissionStatus="completed" />)
+      expect(screen.getByText('Completed')).toBeInTheDocument()
     })
 
     it('does not display pill when submission_status is undefined', () => {
       render(<AIExperienceRow {...studentProps} />)
       expect(screen.queryByText('Not Started')).not.toBeInTheDocument()
       expect(screen.queryByText(/In Progress/)).not.toBeInTheDocument()
-      expect(screen.queryByText('Submitted')).not.toBeInTheDocument()
+      expect(screen.queryByText('Completed')).not.toBeInTheDocument()
     })
   })
 

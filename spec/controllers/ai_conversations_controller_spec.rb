@@ -241,7 +241,7 @@ describe AiConversationsController do
         expect(conversation.workflow_state).to eq("active")
       end
 
-      it "completes existing active conversation and creates a new one" do
+      it "ends existing active conversation and creates a new one" do
         existing_conversation = @ai_experience.ai_conversations.create!(
           llm_conversation_id: "existing-id",
           user: @teacher,
@@ -264,9 +264,8 @@ describe AiConversationsController do
 
         expect(response).to have_http_status(:created)
 
-        # Check that old conversation was marked as completed
         existing_conversation.reload
-        expect(existing_conversation.workflow_state).to eq("completed")
+        expect(existing_conversation.workflow_state).to eq("ended")
 
         # Check that new conversation was created
         new_conversation = AiConversation.active.for_user(@teacher.id).first
@@ -482,6 +481,85 @@ describe AiConversationsController do
 
         expect(response).to be_successful
       end
+
+      it "sets all_objectives_met when progress is complete" do
+        mock_service = instance_double(AiExperiences::ConversationContinueService)
+        allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:continue).and_return({
+                                                               messages: [],
+                                                               progress: { current: 3, total: 3, percentage: 100 }
+                                                             })
+
+        expect do
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @student_conversation.id,
+                 message: "Test"
+               },
+               format: :json
+        end.to change { @student_conversation.reload.all_objectives_met }.from(false).to(true)
+      end
+
+      it "does not set all_objectives_met when progress is incomplete" do
+        mock_service = instance_double(AiExperiences::ConversationContinueService)
+        allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:continue).and_return({
+                                                               messages: [],
+                                                               progress: { current: 2, total: 3, percentage: 66 }
+                                                             })
+
+        expect do
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @student_conversation.id,
+                 message: "Test"
+               },
+               format: :json
+        end.not_to change { @student_conversation.reload.all_objectives_met }
+      end
+
+      it "does not set all_objectives_met when progress is nil" do
+        mock_service = instance_double(AiExperiences::ConversationContinueService)
+        allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
+
+        expect do
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @student_conversation.id,
+                 message: "Test"
+               },
+               format: :json
+        end.not_to change { @student_conversation.reload.all_objectives_met }
+
+        expect(response).to be_successful
+      end
+
+      it "does not set all_objectives_met when current and total are both zero" do
+        mock_service = instance_double(AiExperiences::ConversationContinueService)
+        allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:continue).and_return({
+                                                               messages: [],
+                                                               progress: { current: 0, total: 0, percentage: 0 }
+                                                             })
+
+        expect do
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @student_conversation.id,
+                 message: "Test"
+               },
+               format: :json
+        end.not_to change { @student_conversation.reload.all_objectives_met }
+      end
     end
   end
 
@@ -500,17 +578,17 @@ describe AiConversationsController do
     context "as teacher" do
       before { user_session(@teacher) }
 
-      it "marks the conversation as completed" do
+      it "ends the conversation" do
         delete :destroy,
                params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
                format: :json
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
-        expect(json_response["message"]).to eq("Conversation completed successfully")
+        expect(json_response["message"]).to eq("Conversation ended successfully")
 
         @conversation.reload
-        expect(@conversation.workflow_state).to eq("completed")
+        expect(@conversation.workflow_state).to eq("ended")
       end
     end
 

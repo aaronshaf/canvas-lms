@@ -315,7 +315,7 @@ describe AiExperiencesController, type: :request do
           expect(experience["submission_status"]).to eq("in_progress")
         end
 
-        it "includes submission_status as submitted when completed conversation exists" do
+        it "includes submission_status as completed when all_objectives_met is true" do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
@@ -324,14 +324,14 @@ describe AiExperiencesController, type: :request do
             workflow_state: "published"
           )
 
-          # Create a completed conversation for the student
           published_experience.ai_conversations.create!(
             llm_conversation_id: "test-conversation-id",
             user: @student,
             course: @course,
             root_account: @course.root_account,
             account: @course.account,
-            workflow_state: "completed"
+            workflow_state: "active",
+            all_objectives_met: true
           )
 
           get "/courses/#{@course.id}/ai_experiences.json"
@@ -339,7 +339,60 @@ describe AiExperiencesController, type: :request do
           experiences = json_response["experiences"]
 
           experience = experiences.find { |e| e["id"] == published_experience.id }
-          expect(experience["submission_status"]).to eq("submitted")
+          expect(experience["submission_status"]).to eq("completed")
+        end
+
+        it "includes submission_status as completed when conversation is ended and all_objectives_met is true" do
+          published_experience = @course.ai_experiences.create!(
+            title: "Published Experience",
+            facts: "Test prompt",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test guidance",
+            workflow_state: "published"
+          )
+
+          published_experience.ai_conversations.create!(
+            llm_conversation_id: "test-conversation-id",
+            user: @student,
+            course: @course,
+            root_account: @course.root_account,
+            account: @course.account,
+            workflow_state: "ended",
+            all_objectives_met: true
+          )
+
+          get "/courses/#{@course.id}/ai_experiences.json"
+          json_response = json_parse(response.body)
+          experiences = json_response["experiences"]
+
+          experience = experiences.find { |e| e["id"] == published_experience.id }
+          expect(experience["submission_status"]).to eq("completed")
+        end
+
+        it "includes submission_status as not_started when conversation is ended without objectives met" do
+          published_experience = @course.ai_experiences.create!(
+            title: "Published Experience",
+            facts: "Test prompt",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test guidance",
+            workflow_state: "published"
+          )
+
+          published_experience.ai_conversations.create!(
+            llm_conversation_id: "test-conversation-id",
+            user: @student,
+            course: @course,
+            root_account: @course.root_account,
+            account: @course.account,
+            workflow_state: "ended"
+          )
+
+          get "/courses/#{@course.id}/ai_experiences.json"
+          json_response = json_parse(response.body)
+          experiences = json_response["experiences"]
+
+          experience = experiences.find { |e| e["id"] == published_experience.id }
+          expect(experience["submission_status"]).to eq("not_started")
         end
 
         it "uses the latest conversation when multiple exist" do
@@ -351,14 +404,14 @@ describe AiExperiencesController, type: :request do
             workflow_state: "published"
           )
 
-          # Create an older completed conversation
+          # Create an older ended conversation
           published_experience.ai_conversations.create!(
             llm_conversation_id: "old-conversation-id",
             user: @student,
             course: @course,
             root_account: @course.root_account,
             account: @course.account,
-            workflow_state: "completed",
+            workflow_state: "ended",
             created_at: 2.days.ago,
             updated_at: 2.days.ago
           )
@@ -1297,7 +1350,7 @@ describe AiExperiencesController, type: :request do
         course: @course,
         root_account: @course.root_account,
         account: @course.account,
-        workflow_state: "completed"
+        workflow_state: "ended"
       )
 
       # Student 3 has no conversation
@@ -1369,7 +1422,7 @@ describe AiExperiencesController, type: :request do
           course: @course,
           root_account: @course.root_account,
           account: @course.account,
-          workflow_state: "completed",
+          workflow_state: "ended",
           created_at: 2.days.ago,
           updated_at: 2.days.ago
         )

@@ -115,8 +115,8 @@ class AiConversationsController < ApplicationController
 
     result = nil
     InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_create_conversation")) do
-      # If active conversation exists, complete it before creating a new one
-      existing_conversation&.complete!
+      # If active conversation exists, end it before creating a new one
+      existing_conversation&.end_session!
 
       result = AiExperiences::ConversationStartService.new(account: @context.root_account).start(
         current_user: @current_user,
@@ -174,20 +174,25 @@ class AiConversationsController < ApplicationController
       )
     end
 
+    progress = result[:progress]
+    if progress && progress[:total].to_i > 0 && progress[:current].to_i == progress[:total].to_i
+      @conversation.mark_objectives_met!
+    end
+
     # Return only the Canvas conversation ID, messages, and progress
-    render json: { id: @conversation.id, messages: result[:messages], progress: result[:progress] }
+    render json: { id: @conversation.id, messages: result[:messages], progress: }
   rescue LlmConversation::Errors::ConversationError => e
     render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Delete AI conversation
   #
-  # Mark a conversation as completed/deleted
+  # End the current conversation session
   #
   # @returns {Object} Success message
   def destroy
-    @conversation.complete!
-    render json: { message: "Conversation completed successfully" }
+    @conversation.end_session!
+    render json: { message: "Conversation ended successfully" }
   end
 
   # @API Get conversation evaluation

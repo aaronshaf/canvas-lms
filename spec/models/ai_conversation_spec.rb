@@ -55,23 +55,76 @@ describe AiConversation do
   describe "workflow state management" do
     let(:conversation) { AiConversation.create!(valid_attributes) }
 
-    it "can be completed and deleted" do
-      expect(conversation.complete!).to be true
-      expect(conversation.reload).to be_completed
+    describe "#ended?" do
+      it "returns true when workflow_state is ended" do
+        conversation.end_session!
+        expect(conversation.reload).to be_ended
+      end
 
-      expect(conversation.delete).to be true
-      expect(conversation.reload).to be_deleted
-      expect(conversation.complete!).to be false # Cannot complete deleted
+      it "returns false when workflow_state is active" do
+        expect(conversation).not_to be_ended
+      end
+    end
+
+    describe "#end_session!" do
+      it "transitions active conversation to ended" do
+        expect(conversation.end_session!).to be true
+        expect(conversation.reload).to be_ended
+      end
+
+      it "returns false and does not change state when already deleted" do
+        conversation.delete
+        expect(conversation.end_session!).to be false
+        expect(conversation.reload).to be_deleted
+      end
+    end
+
+    describe "#delete" do
+      it "transitions active conversation to deleted" do
+        expect(conversation.delete).to be true
+        expect(conversation.reload).to be_deleted
+      end
+
+      it "returns false when already deleted" do
+        conversation.delete
+        expect(conversation.delete).to be false
+      end
+    end
+
+    describe "#mark_objectives_met!" do
+      it "sets all_objectives_met to true" do
+        expect { conversation.mark_objectives_met! }
+          .to change { conversation.reload.all_objectives_met }.from(false).to(true)
+      end
+    end
+  end
+
+  describe "#completed?" do
+    let(:conversation) { AiConversation.create!(valid_attributes) }
+
+    it "returns false when all_objectives_met is false" do
+      expect(conversation).not_to be_completed
+    end
+
+    it "returns true when all_objectives_met is true" do
+      conversation.mark_objectives_met!
+      expect(conversation.reload).to be_completed
+    end
+
+    it "is independent of workflow_state — an ended conversation with objectives met is still completed" do
+      conversation.mark_objectives_met!
+      conversation.end_session!
+      expect(conversation.reload).to be_completed
     end
   end
 
   describe "scopes" do
     let!(:active_conversation) { AiConversation.create!(valid_attributes.merge(llm_conversation_id: "active-123")) }
-    let!(:completed_conversation) { AiConversation.create!(valid_attributes.merge(llm_conversation_id: "completed-123", workflow_state: "completed")) }
+    let!(:ended_conversation) { AiConversation.create!(valid_attributes.merge(llm_conversation_id: "ended-123", workflow_state: "ended")) }
 
     it "filters by workflow state" do
       expect(AiConversation.active).to contain_exactly(active_conversation)
-      expect(AiConversation.completed).to contain_exactly(completed_conversation)
+      expect(AiConversation.ended).to contain_exactly(ended_conversation)
     end
   end
 end
