@@ -91,3 +91,13 @@ enforce_session_fingerprinting:
   description: Require MFA if a session's user agent or IP address changes
   shadow: true
   secure: true
+block_cross_domain_session_cookies:
+  state: hidden
+  display_name: Block cross-domain session cookies
+  applies_to: SiteAdmin
+  description: Session cookies will be generated and accepted based on domain root account.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
