@@ -819,6 +819,40 @@ describe "Feature Flags API", type: :request do
     end
   end
 
+  describe "secure" do
+    let(:admin) { site_admin_user }
+
+    before do
+      allow(Feature).to receive(:definitions).and_return(
+        {
+          "secure_feature" => Feature.new(feature: "secure_feature", applies_to: "Account", state: "hidden", shadow: true, secure: true)
+        }
+      )
+    end
+
+    it "refuses to update a secure feature via API" do
+      allow(LoadAccount).to receive(:from_host).and_return(t_site_admin)
+      api_call_as_user(admin,
+                       :put,
+                       "/api/v1/accounts/#{t_site_admin.id}/features/flags/secure_feature",
+                       { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "secure_feature" },
+                       {},
+                       {},
+                       { domain_root_account: t_site_admin, expected_status: 403 })
+    end
+
+    it "refuses to delete a secure feature via API" do
+      t_sub_account.enable_feature!(:secure_feature)
+      api_call_as_user(admin,
+                       :delete,
+                       "/api/v1/accounts/#{t_sub_account.id}/features/flags/secure_feature",
+                       { controller: "feature_flags", action: "delete", format: "json", account_id: t_sub_account.id.to_s, feature: "secure_feature" },
+                       {},
+                       {},
+                       { expected_status: 403 })
+    end
+  end
+
   describe "site admin domain enforcement" do
     let(:admin) { site_admin_user }
 

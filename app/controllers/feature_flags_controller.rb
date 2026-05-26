@@ -278,6 +278,9 @@ class FeatureFlagsController < ApplicationController
       feature_def = Feature.definitions[params[:feature]]
       return render json: { message: "invalid feature" }, status: :bad_request unless feature_def&.applies_to_object(@context)
 
+      # TODO: implement step-up auth. for now such features can't be toggled in the API at all
+      return render_unauthorized_action if feature_def.secure?
+
       # check whether the feature is locked
       current_flag = @context.lookup_feature_flag(params[:feature], skip_cache: true)
       if current_flag
@@ -360,6 +363,9 @@ class FeatureFlagsController < ApplicationController
 
       feature_def = Feature.definitions[feature_param]
       return render json: { message: "invalid feature" }, status: :bad_request unless feature_def&.applies_to_object(@context)
+
+      # TODO: implement step-up auth. for now such features can't be toggled in the API at all
+      return render_unauthorized_action if feature_def.secure?
 
       if feature_def.root_opt_in && @context.is_a?(Account) && @context.root_account?
         # Root account flags with root_opt_in=true must not be deleted once the user opted in. Knowing that the flag once set is essential

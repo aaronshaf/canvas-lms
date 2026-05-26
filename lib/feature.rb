@@ -36,6 +36,7 @@ class Feature
              beta
              type
              shadow
+             secure
              release_notes_url
              custom_transition_proc
              visible_on
@@ -85,6 +86,10 @@ class Feature
     @shadow || false
   end
 
+  def secure?
+    @secure || false
+  end
+
   def self.environment
     if Rails.env.development?
       :development
@@ -120,6 +125,7 @@ class Feature
   #     early_access_program: false, # if true, a root account admin must accept Early Access Program terms to allow
   #                                  # or enable the feature. implies root_opt_in
   #     beta: false,              # 'beta' tag shown in UI
+  #     secure: false,            # if true, require step-up auth to toggle
   #     release_notes_url: 'http://example.com/',
   #
   #     # allow overriding feature definitions on a per-environment basis

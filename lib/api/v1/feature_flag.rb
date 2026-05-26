@@ -31,8 +31,9 @@ module Api::V1::FeatureFlag
                                  "release_notes_url",
                                  "autoexpand",
                                  "type")
-    # Only show the shdadow attribute if it's true, non-site-admin users don't need to see it exists
+    # Only show the shadow/secure attributes if true; non-site-admin users don't need to see they exist
     hash["shadow"] = true if feature.shadow?
+    hash["secure"] = true if feature.secure?
     add_localized_attr(hash, feature, "display_name")
     add_localized_attr(hash, feature, "description")
     hash
