@@ -32,10 +32,10 @@ const DeprecationNoticeAlert: React.FC<Props> = ({open = true}) => {
   if (!open) return null
   const title = I18n.t('ePortfolios Will Be Sunset')
   const body = I18n.t(
-    'The ePortfolios feature is planned for deprecation. We recommend exporting or migrating any important content. Please watch upcoming release notes for timelines and alternatives.',
+    'Legacy ePortfolio will now be retired on December 30, 2026. Export your ePortfolios before the end of the year to avoid losing access.',
   )
   const communityUrl =
-    'https://community.canvaslms.com/t5/Canvas-Basics-Guide/How-do-I-download-the-contents-of-my-ePortfolio/ta-p/616170'
+    'https://community.instructure.com/en/kb/articles/662836-unknown#download-eportfolio'
   return (
     <Alert variant="warning" open={true} data-testid="eportfolio-deprecation-notice">
       <Flex direction="column" gap="x-small">
@@ -49,7 +49,7 @@ const DeprecationNoticeAlert: React.FC<Props> = ({open = true}) => {
             color="primary"
             data-testid="eportfolio-deprecation-community-link"
           >
-            {I18n.t('Go to community page')}
+            {I18n.t('Learn how to export your ePortfolios')}
           </Button>
         </Flex>
       </Flex>

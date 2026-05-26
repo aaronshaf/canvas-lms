@@ -25,11 +25,11 @@ describe('DeprecationNoticeAlert', () => {
     const alert = screen.getByTestId('eportfolio-deprecation-notice')
     expect(alert).toBeVisible()
     expect(screen.getByText('ePortfolios Will Be Sunset')).toBeInTheDocument()
-    expect(screen.getByText(/planned for deprecation/i)).toBeInTheDocument()
+    expect(screen.getByText(/retired on December 30, 2026/i)).toBeInTheDocument()
 
     const link = screen.getByTestId('eportfolio-deprecation-community-link')
     expect(link).toBeVisible()
-    expect(link.getAttribute('href')).toMatch(/^https:\/\/community\.canvaslms\.com\//)
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/community\.instructure\.com\//)
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
