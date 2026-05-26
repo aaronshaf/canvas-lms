@@ -84,6 +84,8 @@ begin
         doc/examples:examples
         --format
         #{DOC_FORMAT}
+        --markup-provider
+        redcarpet
       ]
 
       # t.options << '--verbose'
