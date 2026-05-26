@@ -30,35 +30,6 @@ describe OutcomeFriendlyDescription do
     let(:creation_arguments) { [creation_params, creation_params.merge(context: course_model)] }
   end
 
-  describe "sanitization" do
-    it "strips script tags from description on save" do
-      desc = OutcomeFriendlyDescription.create!(creation_params.merge(description: "<script>alert('xss')</script>safe"))
-      expect(desc.description).not_to include("<script>")
-      expect(desc.description).to include("safe")
-    end
-
-    it "strips onerror attributes from description on save" do
-      desc = OutcomeFriendlyDescription.create!(creation_params.merge(description: '<img src="x" onerror="alert(1)">'))
-      expect(desc.description).not_to include("onerror")
-    end
-
-    it "strips javascript: hrefs from description on save" do
-      desc = OutcomeFriendlyDescription.create!(creation_params.merge(description: '<a href="javascript:alert(1)">click</a>'))
-      expect(desc.description).not_to include("javascript:")
-    end
-
-    it "preserves safe HTML in description on save" do
-      desc = OutcomeFriendlyDescription.create!(creation_params.merge(description: "<p>Hello <strong>world</strong></p>"))
-      expect(desc.description).to include("<strong>world</strong>")
-    end
-
-    it "also sanitizes on update" do
-      desc = OutcomeFriendlyDescription.create!(creation_params)
-      desc.update!(description: '<img onerror="xss()" src="x">')
-      expect(desc.reload.description).not_to include("onerror")
-    end
-  end
-
   describe "root_account_id" do
     subject { OutcomeFriendlyDescription.create!(description: "A", context: @context, learning_outcome: outcome_model) }
 

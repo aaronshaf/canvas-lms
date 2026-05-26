@@ -29,6 +29,4 @@ class OutcomeFriendlyDescription < ApplicationRecord
   validates :context, presence: true
   validates :learning_outcome_id, uniqueness: { scope: [:context_type, :context_id] }
   validates :description, length: { maximum: maximum_string_length, allow_blank: false }
-
-  sanitize_field :description, CanvasSanitize::SANITIZE
 end

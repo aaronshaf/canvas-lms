@@ -59,9 +59,6 @@ OutcomeColumnView.prototype.createPopover = function (e) {
   const attributes = lodashExtend(new Outcome(this.attributes).present(), {
     account_level_scales: this.account_level_scales(),
   })
-  if (attributes.friendly_description) {
-    attributes.friendly_description = sanitizeHTML(attributes.friendly_description)
-  }
   if (attributes.description) {
     attributes.description = sanitizeHTML(attributes.description)
   }

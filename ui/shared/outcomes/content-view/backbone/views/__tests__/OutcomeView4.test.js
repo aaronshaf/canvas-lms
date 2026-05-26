@@ -87,41 +87,15 @@ describe('OutcomeView', () => {
     fakeENV.teardown()
   })
 
-  describe('friendly_description sanitization', () => {
-    it('strips script tags from friendly_description before rendering', () => {
+  describe('friendly_description', () => {
+    it('is html escaped (treated as plain text)', () => {
       const view = createView({
         model: newOutcome({friendly_description: "<script>alert('xss')</script>safe"}),
         state: 'show',
       })
-      expect(view.$('.friendly-description-info').html()).not.toContain('<script>')
-      expect(view.$('.friendly-description-info').text()).toContain('safe')
-      view.remove()
-    })
-
-    it('strips onerror attributes from friendly_description before rendering', () => {
-      const view = createView({
-        model: newOutcome({friendly_description: '<img src="x" onerror="alert(1)">'}),
-        state: 'show',
-      })
-      expect(view.$('.friendly-description-info').html()).not.toContain('onerror')
-      view.remove()
-    })
-
-    it('strips javascript: hrefs from friendly_description before rendering', () => {
-      const view = createView({
-        model: newOutcome({friendly_description: '<a href="javascript:alert(1)">click</a>'}),
-        state: 'show',
-      })
-      expect(view.$('.friendly-description-info').html()).not.toContain('javascript:')
-      view.remove()
-    })
-
-    it('preserves safe HTML in friendly_description', () => {
-      const view = createView({
-        model: newOutcome({friendly_description: '<p>Hello <strong>world</strong></p>'}),
-        state: 'show',
-      })
-      expect(view.$('.friendly-description-info strong').text()).toBe('world')
+      expect(view.$('.friendly-description-info').html()).toBe(
+        "&lt;script&gt;alert('xss')&lt;/script&gt;safe",
+      )
       view.remove()
     })
 

@@ -47,9 +47,6 @@ class OutcomePopoverView extends Backbone.View {
   // Overrides
   render() {
     const data = this.toJSON()
-    if (data.friendly_description) {
-      data.friendly_description = String(sanitizeHTML(data.friendly_description))
-    }
     if (data.description) {
       data.description = String(sanitizeHTML(data.description))
     }

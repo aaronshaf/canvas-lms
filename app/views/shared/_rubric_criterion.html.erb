@@ -33,7 +33,6 @@
 
   long_description_text = criterion.try(:long_description) || ''
   long_description_text = html_sanitize(long_description_text) if long_description_text.present?
-  friendly_description = html_sanitize(friendly_description) if friendly_description.present?
 
   description = criterion.try(:description) || t('defaults.description', "Description of criterion")
 %>
@@ -51,7 +50,15 @@
           <span class="learning_outcome_id" style="display: none;"><%= learning_outcome_criterion %></span>
           <span class="criterion_id" style="display: none;"><%= criterion.try(:id) %></span>
           <% if !assessing %>
-            <div class="long_description small_description"><%= (@context.respond_to?(:user_is_student?) && @context.user_is_student?(@current_user, include_fake_student: true) && !friendly_description.empty?) ? friendly_description : long_description_text %></div>
+            <div class="long_description small_description">
+              <%#
+                Note to future code spelunkers:
+                - long_description_text holds rich text
+                - friendly_description holds plain text
+                - As such, the former gets sanitized and marked as HTML safe before rendering here. The latter does not.
+              %>
+              <%= (@context.respond_to?(:user_is_student?) && @context.user_is_student?(@current_user, include_fake_student: true) && !friendly_description.empty?) ? friendly_description : long_description_text %>
+            </div>
           <% end %>
           <div role="text" class="threshold toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
             <%= before_label :threshold, "threshold" %>

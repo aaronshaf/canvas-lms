@@ -145,34 +145,19 @@ describe('OutcomeDialogView', () => {
     })
   })
 
-  describe('XSS hardening', () => {
-    it('strips onerror handlers from friendly_description', () => {
-      outcomeDialogView.model.set(
-        'friendly_description',
-        '<img src="x" onerror="window.__xssDlg1=1">',
-      )
+  describe('friendly_description', () => {
+    it('is not sanitized (will be html escaped by handlebars)', () => {
+      outcomeDialogView.model.set('friendly_description', "<script>alert('xss')</script>safe")
       const json = outcomeDialogView.toJSON()
-      expect(json.friendly_description).not.toMatch(/onerror/i)
+      expect(json.friendly_description).toBe("<script>alert('xss')</script>safe")
     })
+  })
 
+  describe('XSS hardening for description', () => {
     it('strips javascript: hrefs from description', () => {
       outcomeDialogView.model.set('description', '<a href="javascript:window.__xssDlg2=1">x</a>')
       const json = outcomeDialogView.toJSON()
       expect(json.description).not.toMatch(/javascript:/i)
-    })
-
-    it('strips <script> tags from friendly_description', () => {
-      outcomeDialogView.model.set('friendly_description', '<script>window.__xssDlg3=1</script>safe')
-      const json = outcomeDialogView.toJSON()
-      expect(json.friendly_description).not.toMatch(/<script/i)
-      expect(json.friendly_description).toContain('safe')
-    })
-
-    it('preserves benign markup in friendly_description', () => {
-      outcomeDialogView.model.set('friendly_description', '<strong>keep me</strong>')
-      const json = outcomeDialogView.toJSON()
-      expect(json.friendly_description).toContain('<strong>')
-      expect(json.friendly_description).toContain('keep me')
     })
   })
 })

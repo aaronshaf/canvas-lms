@@ -64,26 +64,10 @@ describe "shared/_rubric_criterion" do
            }
   end
 
-  describe "friendly_description sanitization" do
-    it "strips script tags" do
+  describe "friendly_description" do
+    it "is html escaped (treated as plain text)" do
       render_criterion(friendly_description: "<script>alert('xss')</script>safe")
-      expect(html.to_s).not_to include("<script>")
-      expect(html.css(".long_description").text).to include("safe")
-    end
-
-    it "strips onerror attributes" do
-      render_criterion(friendly_description: '<img src="x" onerror="alert(1)">')
-      expect(html.to_s).not_to include("onerror")
-    end
-
-    it "strips javascript: hrefs" do
-      render_criterion(friendly_description: '<a href="javascript:alert(1)">click</a>')
-      expect(html.to_s).not_to include("javascript:")
-    end
-
-    it "preserves safe HTML formatting" do
-      render_criterion(friendly_description: "<p>Hello <strong>world</strong></p>")
-      expect(html.css(".long_description strong").text).to eq("world")
+      expect(html.to_s).to include("&lt;script&gt;alert('xss')&lt;/script&gt;")
     end
 
     it "renders nothing when friendly_description is blank" do

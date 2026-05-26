@@ -70,9 +70,6 @@ class OutcomeResultsDialogView extends DialogBaseView {
       ...super.toJSON(...arguments),
       dialog: true,
     }
-    if (data.friendly_description) {
-      data.friendly_description = String(sanitizeHTML(data.friendly_description))
-    }
     if (data.description) {
       data.description = String(sanitizeHTML(data.description))
     }

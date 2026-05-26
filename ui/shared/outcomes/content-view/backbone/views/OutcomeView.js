@@ -332,9 +332,6 @@ export default class OutcomeView extends OutcomeContentBase {
         if (!data.mastery_points) {
           data.mastery_points = 0
         }
-        if (data.friendly_description) {
-          data.friendly_description = sanitizeHTML(data.friendly_description)
-        }
         if (data.description) {
           data.description = sanitizeHTML(data.description)
         }

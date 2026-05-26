@@ -16,11 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// XSS regression tests for the Learning Mastery Gradebook column popover.
-// outcomePopover.handlebars uses triple-stash for description and
-// friendly_description, so OutcomeColumnView must sanitizeHTML before
-// passing data to the template.
-
 import $ from 'jquery'
 import 'jquery-migrate'
 
@@ -84,27 +79,16 @@ describe('OutcomeColumnView XSS hardening', () => {
   // exercises the same template branch the popover/dialog hit in production.
   const base = {path: ['root'], ratings: []}
 
-  it('strips <script> tags from friendly_description before render', () => {
+  it('html escapes friendly_description (treats as plain text)', () => {
     view = buildView({
       ...base,
       id: 1,
       title: 'Outcome 1',
-      friendly_description: '<script>window.__xssCol1=1</script>safe',
+      friendly_description: "<script>alert('xss')</script>safe",
     })
     const html = renderedHTMLFor(view)
-    expect(html).not.toMatch(/<script/i)
-    expect(html).toContain('safe')
-  })
-
-  it('strips onerror handlers from friendly_description', () => {
-    view = buildView({
-      ...base,
-      id: 2,
-      title: 'Outcome 2',
-      friendly_description: '<img src="x" onerror="window.__xssCol2=1">',
-    })
-    const html = renderedHTMLFor(view)
-    expect(html).not.toMatch(/onerror/i)
+    // Handlebars escapes quotes as &#x27;
+    expect(html).toContain('&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;safe')
   })
 
   it('strips javascript: hrefs from description', () => {
@@ -116,17 +100,5 @@ describe('OutcomeColumnView XSS hardening', () => {
     })
     const html = renderedHTMLFor(view)
     expect(html).not.toMatch(/javascript:/i)
-  })
-
-  it('preserves benign markup in friendly_description', () => {
-    view = buildView({
-      ...base,
-      id: 4,
-      title: 'Outcome 4',
-      friendly_description: '<strong>keep me</strong>',
-    })
-    const html = renderedHTMLFor(view)
-    expect(html).toContain('<strong>')
-    expect(html).toContain('keep me')
   })
 })
