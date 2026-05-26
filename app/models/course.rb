@@ -3815,6 +3815,12 @@ class Course < ApplicationRecord
         external_tabs += NavMenuLinkTabs.course_tabs(self)
       end
 
+      if item_banks_tab
+        tabs = tabs.map do |tab|
+          (tab[:id] == TAB_ITEM_BANKS) ? tab.merge(id: item_banks_tab[:id]) : tab
+        end
+      end
+
       tabs = tabs.map do |tab|
         default_tab = default_tabs.find { |t| t[:id] == tab[:id] } ||
                       external_tabs.find { |t| t[:id] == tab[:id] }

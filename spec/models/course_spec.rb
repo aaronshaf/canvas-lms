@@ -3582,6 +3582,12 @@ describe Course do
             available_tabs = @course.tabs_available(@user, include_external: true).pluck(:id)
             expect(available_tabs).to include(Course::TAB_ITEM_BANKS)
           end
+
+          it "respects hidden: true saved in tab_configuration using TAB_ITEM_BANKS id" do
+            @course.tab_configuration = [{ id: Course::TAB_ITEM_BANKS, hidden: true }]
+            tab = @course.tabs_available(@user, include_external: true).find { |t| t[:id] == Course::TAB_ITEM_BANKS }
+            expect(tab[:hidden]).to be true
+          end
         end
 
         context "and the ams_root_account_integration is enabled" do
@@ -3610,6 +3616,12 @@ describe Course do
               available_tabs = @course.tabs_available(@user, include_external: true).pluck(:id)
               expect(available_tabs).to include(Course::TAB_ITEM_BANKS)
               expect(available_tabs).not_to include("context_external_tool_#{quiz_lti_tool.id}")
+            end
+
+            it "respects hidden: true saved in tab_configuration using TAB_ITEM_BANKS id" do
+              @course.tab_configuration = [{ id: Course::TAB_ITEM_BANKS, hidden: true }]
+              tab = @course.tabs_available(@user, include_external: true).find { |t| t[:id] == Course::TAB_ITEM_BANKS }
+              expect(tab[:hidden]).to be true
             end
           end
         end
