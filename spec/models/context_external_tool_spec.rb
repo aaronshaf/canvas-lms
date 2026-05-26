@@ -18,6 +18,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 describe ContextExternalTool do
+  it_behaves_like "rejects dangerous URL schemes" do
+    let(:record) { external_tool_model(context: account_model) }
+    let(:url_fields) { %i[url] }
+  end
+
   before(:once) do
     @root_account = Account.default
     @account = account_model(root_account: @root_account, parent_account: @root_account)

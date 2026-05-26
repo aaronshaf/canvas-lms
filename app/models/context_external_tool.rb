@@ -571,7 +571,9 @@ class ContextExternalTool < ApplicationRecord
   private :validate_urls
 
   def validate_url(u)
-    u = URI.parse(u)
+    return if u.blank?
+
+    u = CanvasHttp.validate_url(u, allowed_schemes: %w[http https])
   rescue
     errors.add(:url,
                t("url_or_domain_no_valid", "Incorrect url for %{url}", url: u))

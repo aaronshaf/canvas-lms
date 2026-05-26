@@ -70,7 +70,7 @@ shared_examples_for "an endpoint which uses parent_frame_context to set the CSP 
   end
 
   it "doesn't add the parent_frame_context tool's URL to the header if it is a data URL" do
-    pfc_tool.update! url: "data:123"
+    pfc_tool.update_attribute :url, "data:123"
     subject
     expect(response).to be_successful
     expect(csp_header).not_to include("data:abc")
