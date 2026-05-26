@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe PlannerOverridesController do
+describe PlannerOverridesController, type: :request do
   before :once do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
@@ -41,12 +41,12 @@ describe PlannerOverridesController do
 
   context "unauthenticated" do
     it "returns unauthorized" do
-      get :index
+      get "/api/v1/planner/overrides"
       assert_unauthorized
 
-      post :create, params: { plannable_type: "assignment",
-                              plannable_id: @assignment.id,
-                              marked_complete: false }
+      post "/api/v1/planner/overrides", params: { plannable_type: "assignment",
+                                                  plannable_id: @assignment.id,
+                                                  marked_complete: false }
       assert_unauthorized
     end
   end
@@ -58,49 +58,49 @@ describe PlannerOverridesController do
 
     describe "GET #index" do
       it "returns http success" do
-        get :index
-        expect(response).to be_successful
+        get "/api/v1/planner/overrides"
+        expect(response).to have_http_status(:ok)
       end
     end
 
     describe "GET #show" do
       it "returns http success" do
-        get :show, params: { id: @planner_override.id }
-        expect(response).to be_successful
+        get "/api/v1/planner/overrides/#{@planner_override.id}"
+        expect(response).to have_http_status(:ok)
       end
     end
 
     describe "PUT #update" do
       it "returns http success" do
         expect(@planner_override.marked_complete).to be_falsey
-        put :update, params: { id: @planner_override.id, marked_complete: true, dismissed: true }
-        expect(response).to be_successful
+        put "/api/v1/planner/overrides/#{@planner_override.id}", params: { marked_complete: true, dismissed: true }
+        expect(response).to have_http_status(:ok)
         expect(@planner_override.reload.marked_complete).to be_truthy
         expect(@planner_override.dismissed).to be_truthy
       end
 
       it "invalidates the planner cache" do
-        expect(Rails.cache).to receive(:delete).with(/#{controller.planner_meta_cache_key}/)
-        put :update, params: { id: @planner_override.id, marked_complete: true, dismissed: true }
+        expect(Rails.cache).to receive(:delete).with(/#{PlannerHelper.planner_meta_cache_key(@student)}/)
+        put "/api/v1/planner/overrides/#{@planner_override.id}", params: { marked_complete: true, dismissed: true }
       end
     end
 
     describe "POST #create" do
       it "returns http success" do
-        post :create, params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
+        post "/api/v1/planner/overrides", params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
         expect(response).to have_http_status(:created)
         expect(PlannerOverride.where(user_id: @student.id).count).to be 2
       end
 
       it "invalidates the planner cache" do
-        expect(Rails.cache).to receive(:delete).with(/#{controller.planner_meta_cache_key}/)
-        post :create, params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
+        expect(Rails.cache).to receive(:delete).with(/#{PlannerHelper.planner_meta_cache_key(@student)}/)
+        post "/api/v1/planner/overrides", params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
       end
 
       it "saves announcement overrides with a plannable_type of announcement" do
         announcement_model(context: @course)
-        post :create, params: { plannable_type: "announcement", plannable_id: @a.id, user_id: @student.id, marked_complete: true }
-        json = json_parse(response.body)
+        post "/api/v1/planner/overrides", params: { plannable_type: "announcement", plannable_id: @a.id, user_id: @student.id, marked_complete: true }
+        json = response.parsed_body
         expect(json["plannable_type"]).to eq "announcement"
       end
 
@@ -110,7 +110,7 @@ describe PlannerOverridesController do
         expect(ovr).to receive(:save) do
           raise ActiveRecord::RecordNotUnique, "PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint..."
         end
-        post :create, params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
+        post "/api/v1/planner/overrides", params: { plannable_type: "assignment", plannable_id: @assignment2.id, marked_complete: true }
         expect(response).to have_http_status(:bad_request)
         expect(PlannerOverride.where(user_id: @student.id).count).to be 1
       end
@@ -119,9 +119,9 @@ describe PlannerOverridesController do
         @course.account.enable_feature!(:peer_review_allocation_and_grading)
         parent_assignment = @course.assignments.create!(title: "Parent Assignment", peer_reviews: true)
         prsa = PeerReviewSubAssignment.create!(parent_assignment:, context: @course, title: "Peer Review", points_possible: 10)
-        post :create, params: { plannable_type: "peer_review_sub_assignment", plannable_id: prsa.id, user_id: @student.id, marked_complete: true }
+        post "/api/v1/planner/overrides", params: { plannable_type: "peer_review_sub_assignment", plannable_id: prsa.id, user_id: @student.id, marked_complete: true }
         expect(response).to have_http_status(:created)
-        json = json_parse(response.body)
+        json = response.parsed_body
         expect(json["plannable_type"]).to eq "peer_review_sub_assignment"
         expect(json["marked_complete"]).to be true
       end
@@ -129,11 +129,11 @@ describe PlannerOverridesController do
       it "saves sub_assignment overrides with plannable type sub_assignment" do
         @course.account.enable_feature!(:discussion_checkpoints)
         @reply_to_topic, @reply_to_entry = graded_discussion_topic_with_checkpoints(context: @course)
-        post :create, params: { plannable_type: "sub_assignment", plannable_id: @reply_to_topic.id, user_id: @student.id, marked_complete: true }
-        json = json_parse(response.body)
+        post "/api/v1/planner/overrides", params: { plannable_type: "sub_assignment", plannable_id: @reply_to_topic.id, user_id: @student.id, marked_complete: true }
+        json = response.parsed_body
         expect(json["plannable_type"]).to eq "sub_assignment"
-        post :create, params: { plannable_type: "sub_assignment", plannable_id: @reply_to_entry.id, user_id: @student.id, marked_complete: true }
-        json = json_parse(response.body)
+        post "/api/v1/planner/overrides", params: { plannable_type: "sub_assignment", plannable_id: @reply_to_entry.id, user_id: @student.id, marked_complete: true }
+        json = response.parsed_body
         expect(json["plannable_type"]).to eq "sub_assignment"
       end
     end
@@ -149,18 +149,18 @@ describe PlannerOverridesController do
       end
 
       it "returns 404 when showing another user's override" do
-        get :show, params: { id: @other_override.id }
+        get "/api/v1/planner/overrides/#{@other_override.id}"
         expect(response).to have_http_status(:not_found)
       end
 
       it "returns 404 when updating another user's override" do
-        put :update, params: { id: @other_override.id, marked_complete: true }
+        put "/api/v1/planner/overrides/#{@other_override.id}", params: { marked_complete: true }
         expect(response).to have_http_status(:not_found)
         expect(@other_override.reload.marked_complete).to be_falsey
       end
 
       it "returns 404 when deleting another user's override" do
-        delete :destroy, params: { id: @other_override.id }
+        delete "/api/v1/planner/overrides/#{@other_override.id}"
         expect(response).to have_http_status(:not_found)
         expect(@other_override.reload).not_to be_deleted
       end
@@ -168,14 +168,14 @@ describe PlannerOverridesController do
 
     describe "DELETE #destroy" do
       it "returns http success" do
-        delete :destroy, params: { id: @planner_override.id }
-        expect(response).to be_successful
+        delete "/api/v1/planner/overrides/#{@planner_override.id}"
+        expect(response).to have_http_status(:ok)
         expect(@planner_override.reload).to be_deleted
       end
 
       it "invalidates the planner cache" do
-        expect(Rails.cache).to receive(:delete).with(/#{controller.planner_meta_cache_key}/)
-        delete :destroy, params: { id: @planner_override.id }
+        expect(Rails.cache).to receive(:delete).with(/#{PlannerHelper.planner_meta_cache_key(@student)}/)
+        delete "/api/v1/planner/overrides/#{@planner_override.id}"
       end
     end
   end

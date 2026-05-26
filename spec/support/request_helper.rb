@@ -24,4 +24,11 @@ module RequestHelper
 
     JSON.parse(Regexp.last_match(1).chop) # chop off the semicolon at the end
   end
+
+  def remotes_from_response(response)
+    match = /REMOTES = (.+);/.match(response.body)
+    return {} unless match
+
+    JSON.parse(match[1])
+  end
 end

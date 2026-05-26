@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe TermsApiController do
+describe TermsApiController, type: :request do
   context "pagination" do
     before do
       account_model
@@ -34,49 +34,46 @@ describe TermsApiController do
     end
 
     it "gets the default term (non-paginated)" do
-      get "index", params: { account_id: @account.id }
+      get "/api/v1/accounts/#{@account.id}/terms"
 
-      terms = assigns[:terms]
-      expect(terms).to eq @account.enrollment_terms
+      terms = response.parsed_body["enrollment_terms"]
       expect(terms.length).to eq 1
+      expect(terms.pluck("id")).to eq @account.enrollment_terms.pluck(:id)
     end
 
     it "gets the first and second page of terms" do
-      terms_per_page_count = TermsApiController::PER_PAGE
-      new_terms_count = 25
+      terms_per_page_count = Api::PER_PAGE
+      new_terms_count = terms_per_page_count + 5
       default_term_count = 1
 
-      get "index", params: { account_id: @account.id }
-      expect(response).to be_successful
+      get "/api/v1/accounts/#{@account.id}/terms"
+      expect(response).to have_http_status(:ok)
 
       # create new terms
       create_terms_with_same_start(new_terms_count)
 
       # get the first page of term results
-      get "index", params: { account_id: @account.id }
-      expect(response).to be_successful
-      expect(assigns[:terms].length).to eq terms_per_page_count
+      get "/api/v1/accounts/#{@account.id}/terms"
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["enrollment_terms"].length).to eq terms_per_page_count
 
       # get the second page of term results
-      get "index", params: { account_id: @account.id,
-                             page: 2 }
-      expect(response).to be_successful
-      expect(assigns[:terms].length).to eq (new_terms_count - terms_per_page_count) + default_term_count
+      get "/api/v1/accounts/#{@account.id}/terms", params: { page: 2 }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["enrollment_terms"].length).to eq (new_terms_count - terms_per_page_count) + default_term_count
     end
 
     it "gets terms sorted by id when start_at matches" do
-      new_terms_count = 10
+      new_terms_count = 5
 
-      # create new terms
       create_terms_with_same_start(new_terms_count)
 
-      # get terms
-      get "index", params: { account_id: @account.id }
-      expect(response).to be_successful
+      get "/api/v1/accounts/#{@account.id}/terms"
+      expect(response).to have_http_status(:ok)
 
-      # compare first and last id
-      first_term_id = assigns[:terms].first.id
-      last_term_id = assigns[:terms].last.id
+      terms = response.parsed_body["enrollment_terms"]
+      first_term_id = terms.first["id"]
+      last_term_id = terms.last["id"]
       expect(first_term_id).to be < last_term_id
     end
   end
@@ -93,17 +90,15 @@ describe TermsApiController do
         @account.enrollment_terms.create!(name: "term #{i}")
       end
 
-      get "index", params: { account_id: @account.id,
-                             term_name: "term 2" }
-      expect(response).to be_successful
-      expect(assigns[:terms]).to eq [terms[2]]
+      get "/api/v1/accounts/#{@account.id}/terms", params: { term_name: "term 2" }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["enrollment_terms"].pluck("id")).to eq [terms[2].id]
     end
 
     it "searches for a term that does not exist" do
-      get "index", params: { account_id: @account.id,
-                             term_name: "term 2" }
-      expect(response).to be_successful
-      expect(assigns[:terms]).to eq []
+      get "/api/v1/accounts/#{@account.id}/terms", params: { term_name: "term 2" }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["enrollment_terms"]).to eq []
     end
   end
 
@@ -121,8 +116,8 @@ describe TermsApiController do
 
     it "correctly sets used_in_subaccount indicator when subaccount_id is the root account" do
       @account.courses.create!(enrollment_term_id: @term0)
-      get "index", params: { account_id: @account.id, subaccount_id: @account.id }, format: :json
-      expect(response).to be_successful
+      get "/api/v1/accounts/#{@account.id}/terms", params: { subaccount_id: @account.id }
+      expect(response).to have_http_status(:ok)
       term_0 = response.parsed_body["enrollment_terms"].find { |term| term["id"] == @term0.id }
       term_1 = response.parsed_body["enrollment_terms"].find { |term| term["id"] == @term1.id }
       expect(term_0["used_in_subaccount"]).to be(true)
@@ -133,8 +128,8 @@ describe TermsApiController do
       subaccount = @account.sub_accounts.create!(name: "sub")
       subsub = subaccount.sub_accounts.create!(name: "subsub")
       subsub.courses.create!(enrollment_term_id: @term0)
-      get "index", params: { account_id: @account.id, subaccount_id: subsub.id }, format: :json
-      expect(response).to be_successful
+      get "/api/v1/accounts/#{@account.id}/terms", params: { subaccount_id: subsub.id }
+      expect(response).to have_http_status(:ok)
       term_0 = response.parsed_body["enrollment_terms"].find { |term| term["id"] == @term0.id }
       term_1 = response.parsed_body["enrollment_terms"].find { |term| term["id"] == @term1.id }
       expect(term_0["used_in_subaccount"]).to be(true)
@@ -142,7 +137,7 @@ describe TermsApiController do
     end
 
     it "404s if subaccount_id is an unrelated account" do
-      get "index", params: { account_id: @account.id, subaccount_id: account_model.id }, format: :json
+      get "/api/v1/accounts/#{@account.id}/terms", params: { subaccount_id: account_model.id }
       expect(response).to have_http_status :not_found
     end
   end
@@ -157,39 +152,39 @@ describe TermsApiController do
 
     it "returns json for teachers" do
       user_session(@teacher)
-      get "index", params: { account_id: @account.id, format: :json }
+      get "/api/v1/accounts/#{@account.id}/terms"
 
-      expect(response).to be_successful
-      terms = assigns[:terms]
-      expect(terms).to eq @account.enrollment_terms
+      expect(response).to have_http_status(:ok)
+      terms = response.parsed_body["enrollment_terms"]
+      expect(terms.pluck("id")).to match_array @account.enrollment_terms.pluck(:id)
     end
 
     it "renders unauthorized access for teachers" do
       user_session(@teacher)
-      get "index", params: { account_id: @account.id, format: :html }
+      get "/accounts/#{@account.id}/terms"
       # render_unauthorized_action => 401 when html format
       expect(response).to have_http_status(:unauthorized)
     end
 
     it "returns 403 for students" do
       user_session(@student)
-      get "index", params: { account_id: @account.id, format: :json }
+      get "/api/v1/accounts/#{@account.id}/terms"
 
       expect(response).to have_http_status(:forbidden)
     end
 
     it "renders view for admin users" do
       user_session(@admin_user)
-      get "index", params: { account_id: @account.id, format: :html }
-      expect(response).to be_successful
+      get "/accounts/#{@account.id}/terms"
+      expect(response).to have_http_status(:ok)
     end
 
     it "returns json for admin users" do
       user_session(@admin_user)
-      get "index", params: { account_id: @account.id, format: :json }
-      expect(response).to be_successful
-      terms = assigns[:terms]
-      expect(terms).to eq @account.enrollment_terms
+      get "/api/v1/accounts/#{@account.id}/terms"
+      expect(response).to have_http_status(:ok)
+      terms = response.parsed_body["enrollment_terms"]
+      expect(terms.pluck("id")).to match_array @account.enrollment_terms.pluck(:id)
     end
   end
 end

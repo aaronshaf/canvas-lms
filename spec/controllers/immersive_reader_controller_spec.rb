@@ -20,7 +20,7 @@
 
 require "webmock/rspec"
 
-describe ImmersiveReaderController do
+describe ImmersiveReaderController, type: :request do
   around do |example|
     WebMock.disable_net_connect!(allow_localhost: true)
     example.run
@@ -37,14 +37,14 @@ describe ImmersiveReaderController do
   end
 
   it "requires a user be logged in" do
-    get "authenticate"
+    get "/api/v1/immersive_reader/authenticate"
     assert_unauthorized
   end
 
   it "requires the plugin be configured" do
     user_model
     user_session(@user)
-    get "authenticate"
+    get "/api/v1/immersive_reader/authenticate"
     assert_status(404)
   end
 
@@ -52,11 +52,11 @@ describe ImmersiveReaderController do
     before do
       user_model
       user_session(@user)
-      allow(controller).to receive(:ir_config).and_return(ir_config)
+      allow_any_instance_of(ImmersiveReaderController).to receive(:ir_config).and_return(ir_config)
     end
 
     it "returns 404 without contacting cognitive services" do
-      get "authenticate"
+      get "/api/v1/immersive_reader/authenticate"
       assert_status(404)
       expect(WebMock).not_to have_requested(:post, /login\.windows\.net/)
     end
@@ -67,14 +67,14 @@ describe ImmersiveReaderController do
       user_model
       @user.enable_feature!(:user_immersive_reader_wiki_pages)
       user_session(@user)
-      allow(controller).to receive(:ir_config).and_return(ir_config)
+      allow_any_instance_of(ImmersiveReaderController).to receive(:ir_config).and_return(ir_config)
     end
 
     it "authenticates with cognitive services" do
       stub_request(:post, "https://login.windows.net/faketenantid/oauth2/token")
         .to_return(status: 200, body: { access_token: "tok-123" }.to_json)
 
-      get "authenticate"
+      get "/api/v1/immersive_reader/authenticate"
 
       expect(WebMock).to have_requested(:post, "https://login.windows.net/faketenantid/oauth2/token")
         .with(
@@ -91,8 +91,8 @@ describe ImmersiveReaderController do
         .to_return(status: 200, body: { access_token: "tok-cached" }.to_json)
 
       enable_cache do
-        get "authenticate"
-        get "authenticate"
+        get "/api/v1/immersive_reader/authenticate"
+        get "/api/v1/immersive_reader/authenticate"
       end
 
       expect(WebMock).to have_requested(:post, "https://login.windows.net/faketenantid/oauth2/token").once
@@ -109,7 +109,7 @@ describe ImmersiveReaderController do
         tags: { cache: "miss" }
       )
 
-      get "authenticate"
+      get "/api/v1/immersive_reader/authenticate"
     end
 
     it "writes an audit log line on success" do
@@ -119,7 +119,7 @@ describe ImmersiveReaderController do
 
       expect(Rails.logger).to receive(:info).with(/\[immersive_reader\] token issued/).at_least(:once)
 
-      get "authenticate"
+      get "/api/v1/immersive_reader/authenticate"
     end
 
     context "when the token request fails" do
@@ -144,7 +144,7 @@ describe ImmersiveReaderController do
             :warn
           )
 
-          get "authenticate"
+          get "/api/v1/immersive_reader/authenticate"
         end
 
         it "increments the error counter" do
@@ -155,7 +155,7 @@ describe ImmersiveReaderController do
             tags: { status: "401" }
           )
 
-          get "authenticate"
+          get "/api/v1/immersive_reader/authenticate"
         end
 
         it "does not emit a success statsd counter" do
@@ -166,7 +166,7 @@ describe ImmersiveReaderController do
             anything
           )
 
-          get "authenticate"
+          get "/api/v1/immersive_reader/authenticate"
         end
       end
 

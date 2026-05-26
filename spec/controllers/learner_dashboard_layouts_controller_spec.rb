@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe LearnerDashboardLayoutsController do
+describe LearnerDashboardLayoutsController, type: :request do
   before :once do
     @root_account = Account.default
     @root_account.enable_feature!(:horizon_course_setting)
@@ -33,14 +33,14 @@ describe LearnerDashboardLayoutsController do
 
   describe "GET #index" do
     it "lists layouts visible to the account" do
-      get :index, params: { account_id: @root_account.id }, format: :json
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts"
       expect(response).to have_http_status(:ok)
       ids = response.parsed_body.pluck("id")
       expect(ids).to include(@layout.id, @sub_layout.id)
     end
 
     it "scopes to sub-account subtree" do
-      get :index, params: { account_id: @sub_account.id }, format: :json
+      get "/api/v1/accounts/#{@sub_account.id}/learner_dashboard_layouts"
       expect(response).to have_http_status(:ok)
       ids = response.parsed_body.pluck("id")
       expect(ids).to include(@sub_layout.id)
@@ -49,13 +49,13 @@ describe LearnerDashboardLayoutsController do
 
     it "returns 401 without permission" do
       user_session(user_factory(active_all: true))
-      get :index, params: { account_id: @root_account.id }, format: :json
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts"
       expect(response).to have_http_status(:forbidden)
     end
 
     it "returns 404 when feature flag disabled" do
       @root_account.disable_feature!(:horizon_configurable_learner_dashboard)
-      get :index, params: { account_id: @root_account.id }, format: :json
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts"
       expect(response).to have_http_status(:not_found)
     end
   end
@@ -63,7 +63,7 @@ describe LearnerDashboardLayoutsController do
   describe "GET #show" do
     it "returns layout with block_editor_data" do
       allow_any_instance_of(LearnerDashboardLayout).to receive(:get_block_editor_data).and_return({ "blocks" => [] })
-      get :show, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
       expect(response).to have_http_status(:ok)
       body = response.parsed_body
       expect(body["id"]).to eq(@layout.id)
@@ -71,7 +71,7 @@ describe LearnerDashboardLayoutsController do
     end
 
     it "returns 404 for layout outside subtree" do
-      get :show, params: { account_id: @sub_account.id, id: @layout.id }, format: :json
+      get "/api/v1/accounts/#{@sub_account.id}/learner_dashboard_layouts/#{@layout.id}"
       expect(response).to have_http_status(:not_found)
     end
 
@@ -80,7 +80,7 @@ describe LearnerDashboardLayoutsController do
         "service down", service_errors: []
       )
       allow_any_instance_of(LearnerDashboardLayout).to receive(:get_block_editor_data).and_raise(error)
-      get :show, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
       expect(response).to have_http_status(:service_unavailable)
     end
   end
@@ -88,7 +88,8 @@ describe LearnerDashboardLayoutsController do
   describe "POST #create" do
     it "creates a layout" do
       expect do
-        post :create, params: { account_id: @root_account.id, name: "New" }, format: :json
+        post "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts",
+             params: { name: "New" }
       end.to change { LearnerDashboardLayout.count }.by(1)
       expect(response).to have_http_status(:created)
       expect(response.parsed_body["name"]).to eq("New")
@@ -96,11 +97,8 @@ describe LearnerDashboardLayoutsController do
 
     it "creates with block_editor_data" do
       allow_any_instance_of(LearnerDashboardLayout).to receive(:create_block_editor_data)
-      post(
-        :create,
-        params: { account_id: @root_account.id, name: "With Data", block_editor_data: { blocks: [] } },
-        format: :json
-      )
+      post "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts",
+           params: { name: "With Data", block_editor_data: { blocks: [] } }
       expect(response).to have_http_status(:created)
     end
 
@@ -114,44 +112,37 @@ describe LearnerDashboardLayoutsController do
         expect(args[:data]).not_to be_a(ActionController::Parameters)
         expect(args[:data]["templateLayout"]).to be_present
       end
-      post(
-        :create,
-        params: { account_id: @root_account.id, name: "Extracted", block_editor_data: block_data },
-        format: :json
-      )
+      post "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts",
+           params: { name: "Extracted", block_editor_data: block_data }
       expect(response).to have_http_status(:created)
     end
 
     it "returns 422 with invalid params" do
-      post :create, params: { account_id: @root_account.id, name: "" }, format: :json
+      post "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts",
+           params: { name: "" }
       expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "returns 401 without add permission" do
       user_session(user_factory(active_all: true))
-      post :create, params: { account_id: @root_account.id, name: "X" }, format: :json
+      post "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts",
+           params: { name: "X" }
       expect(response).to have_http_status(:forbidden)
     end
   end
 
   describe "PUT #update" do
     it "updates layout name" do
-      put(
-        :update,
-        params: { account_id: @root_account.id, id: @layout.id, name: "Renamed" },
-        format: :json
-      )
+      put "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}",
+          params: { name: "Renamed" }
       expect(response).to have_http_status(:ok)
       expect(@layout.reload.name).to eq("Renamed")
     end
 
     it "updates block_editor_data" do
       allow_any_instance_of(LearnerDashboardLayout).to receive(:update_block_editor_data)
-      put(
-        :update,
-        params: { account_id: @root_account.id, id: @layout.id, name: @layout.name, block_editor_data: { blocks: [1] } },
-        format: :json
-      )
+      put "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}",
+          params: { name: @layout.name, block_editor_data: { blocks: [1] } }
       expect(response).to have_http_status(:ok)
     end
 
@@ -165,16 +156,14 @@ describe LearnerDashboardLayoutsController do
         expect(args[:data]).not_to be_a(ActionController::Parameters)
         expect(args[:data]["templateLayout"]).to be_present
       end
-      put(
-        :update,
-        params: { account_id: @root_account.id, id: @layout.id, name: @layout.name, block_editor_data: block_data },
-        format: :json
-      )
+      put "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}",
+          params: { name: @layout.name, block_editor_data: block_data }
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 404 for missing layout" do
-      put :update, params: { account_id: @root_account.id, id: 0, name: "X" }, format: :json
+      put "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/0",
+          params: { name: "X" }
       expect(response).to have_http_status(:not_found)
     end
   end
@@ -183,7 +172,7 @@ describe LearnerDashboardLayoutsController do
     it "soft-deletes the layout" do
       layout = LearnerDashboardLayout.create!(name: "Delete Me", account: @root_account)
       expect do
-        delete :destroy, params: { account_id: @root_account.id, id: layout.id }, format: :json
+        delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{layout.id}"
       end.to change { LearnerDashboardLayout.active.count }.by(-1)
       expect(response).to have_http_status(:no_content)
     end
@@ -191,13 +180,13 @@ describe LearnerDashboardLayoutsController do
     it "returns 404 for already deleted layout" do
       layout = LearnerDashboardLayout.create!(name: "Gone", account: @root_account)
       layout.destroy
-      delete :destroy, params: { account_id: @root_account.id, id: layout.id }, format: :json
+      delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{layout.id}"
       expect(response).to have_http_status(:not_found)
     end
 
     it "returns 401 without delete permission" do
       user_session(user_factory(active_all: true))
-      delete :destroy, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
       expect(response).to have_http_status(:forbidden)
     end
   end
