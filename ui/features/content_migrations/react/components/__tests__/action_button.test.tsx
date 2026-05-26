@@ -108,6 +108,31 @@ describe('ActionButton', () => {
       expect(link).toHaveTextContent('My description 1')
     })
 
+    it('strips javascript: hrefs on the fix-issue link', async () => {
+      server.use(
+        http.get('https://mock.issues.url', () =>
+          HttpResponse.json([
+            {
+              id: 1,
+              description: 'XSS',
+              workflow_state: 'active',
+              fix_issue_html_url: 'javascript:alert(1)',
+              issue_type: 'error',
+              created_at: '1997-04-15T00:00:00Z',
+              updated_at: '1997-04-15T00:00:00Z',
+              content_migration_url: 'https://mock.migration.url',
+              error_message: 'XSS',
+            },
+          ]),
+        ),
+      )
+
+      renderComponent()
+      await userEvent.click(screen.getByRole('button', {name: 'View Issues'}))
+      const link = await screen.findByRole('link', {name: 'XSS'})
+      expect(link.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+    })
+
     describe('has more issues', () => {
       beforeEach(() => {
         const issues = generateMigrationIssues(15)

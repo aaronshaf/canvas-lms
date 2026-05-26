@@ -28,6 +28,7 @@ import {List} from '@instructure/ui-list'
 import {Alert} from '@instructure/ui-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {Flex} from '@instructure/ui-flex'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import type {EnvCourseSettings} from '@canvas/global/env/EnvCourse'
@@ -136,7 +137,7 @@ const MigrationIssuesModal = ({
           {issues.map(({id, description, fix_issue_html_url}) => (
             <ListItem key={id}>
               {fix_issue_html_url ? (
-                <Link href={fix_issue_html_url}>{description}</Link>
+                <Link href={sanitizeUrl(fix_issue_html_url)}>{description}</Link>
               ) : (
                 <Text>{description}</Text>
               )}
