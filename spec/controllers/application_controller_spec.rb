@@ -4900,6 +4900,33 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
     expect(response).to be_successful
   end
 
+  context "when authenticated via API token" do
+    before do
+      routes.draw { get "api/v1/check_mfa_test" => "anonymous#index" }
+      user.otp_secret_key = "secret"
+      user.save!
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      session[:mfa_verified_uas] = [Digest::MD5.hexdigest("a different browser")]
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+      enable_developer_key_account_binding!(DeveloperKey.default)
+      token = user.access_tokens.create!(purpose: "test")
+      request.headers["Authorization"] = "Bearer #{token.full_token}"
+    end
+
+    around do |example|
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true, "mfa_ua_enforce_all_mfa_users" => true } } }) { example.run }
+    end
+
+    it_behaves_like "allows request through"
+
+    it "does not emit mfa mismatch metrics" do
+      allow(InstStatsd::Statsd).to receive(:increment)
+      get :index
+      expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ip_mismatch", anything)
+      expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ua_mismatch", anything)
+    end
+  end
+
   context "when mfa_verified_ips is absent (pre-existing session)" do
     before do
       user.otp_secret_key = "secret"
