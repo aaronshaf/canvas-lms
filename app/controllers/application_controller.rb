@@ -1291,7 +1291,6 @@ class ApplicationController < ActionController::Base
     ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
     verified_uas = session[:mfa_verified_uas]
     ua_match = verified_uas&.include?(ua_md5)
-    return if ip_match && ua_match
 
     is_site_admin = Account.site_admin.grants_right?(logged_in_user, :read)
     is_account_admin = !is_site_admin && @domain_root_account.cached_all_account_users_for(logged_in_user).any?
@@ -1301,8 +1300,21 @@ class ApplicationController < ActionController::Base
                 else "regular"
                 end
 
-    InstStatsd::Statsd.increment("canvas.mfa_ip_mismatch", tags: { user_type: }) unless ip_match
-    InstStatsd::Statsd.increment("canvas.mfa_ua_mismatch", tags: { user_type: }) unless ua_match
+    if Account.site_admin.feature_enabled?(:mfa_event_collection)
+      event_tags = { user_type:, account_domain: request.host, account_global_id: @domain_root_account&.global_id&.to_s }
+
+      InstStatsd::Statsd.event("MFA Request", "canvas.mfa_request", type: :mfa_request, alert_type: :info, tags: event_tags)
+
+      unless ip_match
+        InstStatsd::Statsd.event("MFA IP Mismatch", "canvas.mfa_ip_mismatch", type: :mfa_ip_mismatch, alert_type: :warning, tags: event_tags)
+      end
+
+      unless ua_match
+        InstStatsd::Statsd.event("MFA UA Mismatch", "canvas.mfa_ua_mismatch", type: :mfa_ua_mismatch, alert_type: :warning, tags: event_tags)
+      end
+    end
+
+    return if ip_match && ua_match
 
     settings = DynamicSettings.find(tree: :private)
     enforce = if !ip_match

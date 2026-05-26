@@ -1,4 +1,11 @@
 ---
+mfa_event_collection:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: MFA IP/UA Event Collection
+  description: When enabled, emits observability events for MFA IP and user-agent
+    checks on every browser request from users with Canvas MFA enrolled. Disable
+    once sufficient data has been collected.
 access_key_expiration_email:
   state: hidden
   shadow: true

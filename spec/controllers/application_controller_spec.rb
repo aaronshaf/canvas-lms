@@ -4848,11 +4848,11 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
     end
   end
 
-  shared_examples "emits mfa_ip_mismatch metric" do |user_type:|
+  shared_examples "emits mfa_ip_mismatch event" do |user_type:|
     it "emits canvas.mfa_ip_mismatch tagged user_type:#{user_type}" do
-      allow(InstStatsd::Statsd).to receive(:increment)
-      expect(InstStatsd::Statsd).to receive(:increment)
-        .with("canvas.mfa_ip_mismatch", tags: { user_type: })
+      allow(InstStatsd::Statsd).to receive(:event)
+      expect(InstStatsd::Statsd).to receive(:event)
+        .with("MFA IP Mismatch", "canvas.mfa_ip_mismatch", type: :mfa_ip_mismatch, alert_type: :warning, tags: hash_including(user_type:))
       get :index, format: :html
     end
   end
@@ -4876,6 +4876,7 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
   let(:pseudonym) { user.pseudonyms.create!(unique_id: "user@example.com", password: "qwertyuiop", password_confirmation: "qwertyuiop") }
 
   before do
+    Account.site_admin.enable_feature!(:mfa_event_collection)
     user_session(user, pseudonym)
   end
 
@@ -4883,6 +4884,22 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
     session[:mfa_verified_ips] = [request.remote_ip]
     get :index, format: :html
     expect(response).to be_successful
+  end
+
+  context "when mfa_event_collection feature flag is disabled" do
+    before do
+      Account.site_admin.disable_feature!(:mfa_event_collection)
+      user.otp_secret_key = "secret"
+      user.save!
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+    end
+
+    it "does not emit any mfa events" do
+      allow(InstStatsd::Statsd).to receive(:event)
+      get :index, format: :html
+      expect(InstStatsd::Statsd).not_to have_received(:event).with(a_string_starting_with("MFA"), anything, anything)
+    end
   end
 
   it "allows the request when the user does not have Canvas MFA enrolled, regardless of mfa_verified_ips" do
@@ -4919,11 +4936,11 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
 
     it_behaves_like "allows request through"
 
-    it "does not emit mfa mismatch metrics" do
-      allow(InstStatsd::Statsd).to receive(:increment)
+    it "does not emit mfa mismatch events" do
+      allow(InstStatsd::Statsd).to receive(:event)
       get :index
-      expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ip_mismatch", anything)
-      expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ua_mismatch", anything)
+      expect(InstStatsd::Statsd).not_to have_received(:event).with("MFA IP Mismatch", anything, anything)
+      expect(InstStatsd::Statsd).not_to have_received(:event).with("MFA UA Mismatch", anything, anything)
     end
   end
 
@@ -4960,7 +4977,7 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
     context "with no enforcement keys set" do
       around { |example| override_dynamic_settings({}) { example.run } }
 
-      it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+      it_behaves_like "emits mfa_ip_mismatch event", user_type: "regular"
       it_behaves_like "allows request through"
     end
 
@@ -4972,19 +4989,19 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       context "for a site admin" do
         let(:user) { site_admin_user }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
         it_behaves_like "enforces mfa ip"
       end
 
       context "for an account admin" do
         let(:user) { account_admin_user(account: Account.default) }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "account_admin"
         it_behaves_like "allows request through"
       end
 
       context "for a regular user" do
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "regular"
         it_behaves_like "allows request through"
       end
 
@@ -4997,7 +5014,7 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
           controller.instance_variable_set(:@real_current_user, masquerader)
         end
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
         it_behaves_like "enforces mfa ip"
       end
     end
@@ -5010,19 +5027,19 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       context "for a site admin" do
         let(:user) { site_admin_user }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
         it_behaves_like "allows request through"
       end
 
       context "for an account admin" do
         let(:user) { account_admin_user(account: Account.default) }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "account_admin"
         it_behaves_like "enforces mfa ip"
       end
 
       context "for a regular user" do
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "regular"
         it_behaves_like "allows request through"
       end
     end
@@ -5035,19 +5052,19 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       context "for a site admin" do
         let(:user) { site_admin_user }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
         it_behaves_like "enforces mfa ip"
       end
 
       context "for an account admin" do
         let(:user) { account_admin_user(account: Account.default) }
 
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "account_admin"
         it_behaves_like "enforces mfa ip"
       end
 
       context "for a regular user" do
-        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "emits mfa_ip_mismatch event", user_type: "regular"
         it_behaves_like "enforces mfa ip"
       end
     end
@@ -5072,6 +5089,15 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       expect(response).to be_successful
     end
 
+    it "emits canvas.mfa_request even when both IP and UA match" do
+      session[:mfa_verified_ips] = [request.remote_ip]
+      session[:mfa_verified_uas] = [ua_md5]
+      allow(InstStatsd::Statsd).to receive(:event)
+      expect(InstStatsd::Statsd).to receive(:event)
+        .with("MFA Request", "canvas.mfa_request", type: :mfa_request, alert_type: :info, tags: hash_including(user_type: "regular"))
+      get :index, format: :html
+    end
+
     it "compares against the MD5 hash, not the raw UA string" do
       session[:mfa_verified_ips] = [request.remote_ip]
       session[:mfa_verified_uas] = [ua]
@@ -5088,16 +5114,16 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       end
 
       it "emits canvas.mfa_ua_mismatch tagged user_type:regular" do
-        allow(InstStatsd::Statsd).to receive(:increment)
-        expect(InstStatsd::Statsd).to receive(:increment)
-          .with("canvas.mfa_ua_mismatch", tags: { user_type: "regular" })
+        allow(InstStatsd::Statsd).to receive(:event)
+        expect(InstStatsd::Statsd).to receive(:event)
+          .with("MFA UA Mismatch", "canvas.mfa_ua_mismatch", type: :mfa_ua_mismatch, alert_type: :warning, tags: hash_including(user_type: "regular"))
         get :index, format: :html
       end
 
       it "does not emit canvas.mfa_ip_mismatch" do
-        allow(InstStatsd::Statsd).to receive(:increment)
+        allow(InstStatsd::Statsd).to receive(:event)
         get :index, format: :html
-        expect(InstStatsd::Statsd).not_to have_received(:increment).with("canvas.mfa_ip_mismatch", anything)
+        expect(InstStatsd::Statsd).not_to have_received(:event).with("MFA IP Mismatch", anything, anything)
       end
 
       context "with no UA enforcement keys set" do
@@ -5155,9 +5181,11 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       end
 
       it "emits both canvas.mfa_ip_mismatch and canvas.mfa_ua_mismatch" do
-        allow(InstStatsd::Statsd).to receive(:increment)
-        expect(InstStatsd::Statsd).to receive(:increment).with("canvas.mfa_ip_mismatch", tags: { user_type: "regular" })
-        expect(InstStatsd::Statsd).to receive(:increment).with("canvas.mfa_ua_mismatch", tags: { user_type: "regular" })
+        allow(InstStatsd::Statsd).to receive(:event)
+        expect(InstStatsd::Statsd).to receive(:event)
+          .with("MFA IP Mismatch", "canvas.mfa_ip_mismatch", type: :mfa_ip_mismatch, alert_type: :warning, tags: hash_including(user_type: "regular"))
+        expect(InstStatsd::Statsd).to receive(:event)
+          .with("MFA UA Mismatch", "canvas.mfa_ua_mismatch", type: :mfa_ua_mismatch, alert_type: :warning, tags: hash_including(user_type: "regular"))
         get :index, format: :html
       end
     end
