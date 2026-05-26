@@ -20,14 +20,13 @@ import React, {useState, useEffect, useRef, useCallback} from 'react'
 import {InstUISettingsProvider} from '@instructure/emotion'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
-import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {TextArea} from '@instructure/ui-text-area'
 import {Button} from '@instructure/ui-buttons'
 import {Alert} from '@instructure/ui-alerts'
-import {IconRefreshLine, IconFullScreenLine, IconAiSolid} from '@instructure/ui-icons'
+import {IconRefreshLine, IconFullScreenLine} from '@instructure/ui-icons'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import type {
@@ -40,7 +39,7 @@ import ConversationProgressComponent from './ConversationProgress'
 import FocusMode from './FocusMode'
 import GradientBorder from './GradientBorder'
 import MessageThread from './MessageThread'
-import {BRAND_GRADIENT, RADIUS_SM, RADIUS_PILL, navyButtonTheme, roundedTheme} from '../brand'
+import {RADIUS_PILL, navyButtonTheme, roundedTheme} from '../brand'
 
 declare const ENV: GlobalEnv & {AI_EXPERIENCES_MESSAGE_MAX_LENGTH?: number}
 
@@ -68,19 +67,6 @@ const overCapMessages = (value: string) =>
 const expandButtonTheme = {borderRadius: RADIUS_PILL, smallHeight: '1.75rem'}
 const sendButtonTheme = navyButtonTheme
 
-const gradientTextStyle = {
-  background: BRAND_GRADIENT,
-  WebkitBackgroundClip: 'text' as const,
-  WebkitTextFillColor: 'transparent' as const,
-  backgroundClip: 'text' as const,
-}
-
-const gradientButtonWrapperStyle = {
-  display: 'inline-block',
-  background: BRAND_GRADIENT,
-  borderRadius: RADIUS_SM,
-}
-
 interface ConversationResponse {
   id: string
   messages: LLMConversationMessage[]
@@ -97,9 +83,6 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
   facts: _facts,
   learningObjectives,
   scenario: _scenario,
-  isExpanded = false,
-  onToggleExpanded,
-  isTeacherPreview = false,
 }) => {
   const [messages, setMessages] = useState<LLMConversationMessage[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
@@ -171,13 +154,13 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
   }, [messages, isLoading, isFocusModeOpen, isInitializing])
 
   useEffect(() => {
-    if (isOpen && isExpanded && messagesRef.current.length === 0) {
+    if (isOpen && messagesRef.current.length === 0) {
       initializeConversation()
     }
-    if (isOpen && isExpanded && closeButtonRef.current) {
+    if (isOpen && closeButtonRef.current) {
       closeButtonRef.current.focus()
     }
-  }, [isOpen, isExpanded, initializeConversation])
+  }, [isOpen, initializeConversation])
 
   // Announce new Assistant messages to screen readers
   useEffect(() => {
@@ -303,14 +286,18 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           {error}
         </Alert>
       )}
-      <View
-        as="div"
-        margin="0 0 medium 0"
-        padding="xx-small"
+      <div
+        ref={el => {
+          normalModeMessagesContainerRef.current = el
+        }}
         role="log"
         aria-label={I18n.t('Conversation messages')}
-        elementRef={el => {
-          normalModeMessagesContainerRef.current = el as HTMLDivElement | null
+        style={{
+          minHeight: '300px',
+          height: 'calc(100vh - 480px)',
+          overflowY: 'auto',
+          padding: '2px',
+          marginBottom: '1rem',
         }}
       >
         <MessageThread
@@ -321,7 +308,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           isLoading={isLoading}
           isInitializing={isInitializing}
         />
-      </View>
+      </div>
 
       <GradientBorder>
         <div style={{padding: '0.75rem'}}>
@@ -374,56 +361,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
 
   if (!isOpen) return null
 
-  // Collapsed state - preview card with gradient header and start chatting CTA
-  if (!isExpanded) {
-    const objectivesCount = learningObjectives?.split('\n').filter(Boolean).length ?? 0
-    return (
-      <InstUISettingsProvider theme={roundedTheme}>
-        <div
-          ref={(el: HTMLDivElement | null) => {
-            if (el && returnFocusRef) returnFocusRef.current = el
-          }}
-        >
-          <GradientBorder>
-            <ConversationHeader />
-            <View as="div" padding="x-large" background="primary" textAlign="center">
-              <View as="div" margin="0 0 small 0">
-                <Heading level="h3">
-                  <span style={gradientTextStyle}>{I18n.t('Preview the chat')}</span>
-                </Heading>
-              </View>
-              <View as="div" margin="0 0 medium 0">
-                <Text>
-                  {isTeacherPreview
-                    ? I18n.t('Chat with the AI just like a learner')
-                    : I18n.t(
-                        'Show what you know. %{count} learning targets to complete this activity.',
-                        {count: objectivesCount},
-                      )}
-                </Text>
-              </View>
-              <div style={gradientButtonWrapperStyle}>
-                <Button
-                  data-testid="llm-conversation-start-button"
-                  onClick={onToggleExpanded}
-                  color="primary-inverse"
-                  withBackground={false}
-                  themeOverride={{borderRadius: '0.5rem'}}
-                >
-                  <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
-                    <IconAiSolid />
-                    {I18n.t('Test as learner')}
-                  </span>
-                </Button>
-              </div>
-            </View>
-          </GradientBorder>
-        </div>
-      </InstUISettingsProvider>
-    )
-  }
-
-  // Expanded state - full conversation interface
+  // Full conversation interface
   return (
     <InstUISettingsProvider theme={roundedTheme}>
       <GradientBorder>

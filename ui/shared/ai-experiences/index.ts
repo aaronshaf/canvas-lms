@@ -17,4 +17,6 @@
  */
 
 export {default as LLMConversationView} from './react/components/LLMConversationView'
+export {default as ConversationLanding} from './react/components/ConversationLanding'
 export type {LLMConversationMessage, LLMConversationViewProps} from './types'
+export type {ConversationLandingProps} from './react/components/ConversationLanding'

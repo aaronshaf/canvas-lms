@@ -34,8 +34,6 @@ const defaultProps = {
   facts: 'Test facts',
   learningObjectives: 'Test objectives',
   scenario: 'Test scenario',
-  isExpanded: true,
-  onToggleExpanded: vi.fn(),
 }
 
 describe('LLMConversationView', () => {
@@ -77,52 +75,10 @@ describe('LLMConversationView', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders collapsed state when not expanded (teacher preview)', () => {
-    render(<LLMConversationView {...defaultProps} isExpanded={false} isTeacherPreview={true} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText('Preview the chat')).toBeInTheDocument()
-    expect(screen.getByText('Chat with the AI just like a learner')).toBeInTheDocument()
-    expect(screen.getByTestId('llm-conversation-start-button')).toHaveTextContent('Test as learner')
-  })
-
-  it('renders collapsed state when not expanded (student view)', () => {
-    render(<LLMConversationView {...defaultProps} isExpanded={false} isTeacherPreview={false} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText(/Show what you know\./)).toBeInTheDocument()
-  })
-
-  it('renders expanded state when expanded (teacher preview)', () => {
-    render(<LLMConversationView {...defaultProps} isTeacherPreview={true} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText('Reset')).toBeInTheDocument()
-  })
-
-  it('renders expanded state when expanded (student view)', () => {
-    render(<LLMConversationView {...defaultProps} isTeacherPreview={false} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText('Reset')).toBeInTheDocument()
-  })
-
-  it('renders restart button', () => {
+  it('renders chat interface when open', () => {
     render(<LLMConversationView {...defaultProps} />)
+    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
     expect(screen.getByText('Reset')).toBeInTheDocument()
-  })
-
-  it('calls onToggleExpanded when start button is clicked', () => {
-    const onToggleExpanded = vi.fn()
-    render(
-      <LLMConversationView
-        {...defaultProps}
-        isExpanded={false}
-        isTeacherPreview={true}
-        onToggleExpanded={onToggleExpanded}
-      />,
-    )
-
-    const startButton = screen.getByTestId('llm-conversation-start-button')
-    fireEvent.click(startButton)
-
-    expect(onToggleExpanded).toHaveBeenCalled()
   })
 
   it('initializes conversation on mount', async () => {

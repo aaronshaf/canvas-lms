@@ -105,7 +105,4 @@ export interface LLMConversationViewProps {
   facts?: string
   learningObjectives?: string
   scenario?: string
-  isExpanded?: boolean
-  onToggleExpanded?: () => void
-  isTeacherPreview?: boolean
 }

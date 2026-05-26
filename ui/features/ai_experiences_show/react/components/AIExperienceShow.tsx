@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useRef} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import {InstUISettingsProvider} from '@instructure/emotion'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
@@ -34,6 +34,7 @@ import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
 import {AIExperience} from '../../types'
 import {FileList} from '@canvas/canvas-file-upload/react/FileList'
 import LLMConversationView from '../../../../shared/ai-experiences/react/components/LLMConversationView'
+import ConversationLanding from '../../../../shared/ai-experiences/react/components/ConversationLanding'
 import AIExperiencePublishButton from './AIExperiencePublishButton'
 import AIConversationsContainer from '@canvas/ai-experiences/react/components/AIConversationsContainer'
 import {navyButtonTheme, roundedTheme} from '../../../../shared/ai-experiences/react/brand'
@@ -51,15 +52,39 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
   const isIndexing = indexStatus === 'in_progress'
   const isIndexFailed = indexStatus === 'failed'
   const [workflowState, setWorkflowState] = useState(aiExperience.workflow_state)
-  const [isPreviewExpanded, setIsPreviewExpanded] = useState(() => {
+  const [isShowingChat, setIsShowingChat] = useState(() => {
     const params = new URLSearchParams(window.location.search)
     const shouldPreview = params.get('preview') === 'true'
-    // Clean up URL parameter after reading it
     if (shouldPreview) {
       window.history.replaceState({}, '', window.location.pathname)
     }
     return shouldPreview
   })
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
+
+  useEffect(() => {
+    if (isShowingChat) {
+      setIsCheckingSession(false)
+      return
+    }
+    let cancelled = false
+    doFetchApi<{id?: string}>({
+      path: `/api/v1/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}/conversations`,
+      method: 'GET',
+    })
+      .then(({json}) => {
+        if (!cancelled) {
+          if (json?.id) setIsShowingChat(true)
+          setIsCheckingSession(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsCheckingSession(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [aiExperience.course_id, aiExperience.id, isShowingChat])
   const [selectedTab, setSelectedTab] = useState<number>(0)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -157,7 +182,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
         <Tabs onRequestTabChange={(_e, {index}) => setSelectedTab(index)}>
           <Tabs.Panel
             id="knowledge-chat-tab"
-            renderTitle={I18n.t('Knowledge chat')}
+            renderTitle={I18n.t('Preview')}
             isSelected={selectedTab === 0}
           >
             {isIndexFailed ? (
@@ -210,10 +235,10 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                   </Flex.Item>
                 </Flex>
               </View>
-            ) : (
+            ) : isCheckingSession ? null : isShowingChat ? (
               <LLMConversationView
                 isOpen={true}
-                onClose={() => setIsPreviewExpanded(false)}
+                onClose={() => setIsShowingChat(false)}
                 returnFocusRef={previewCardRef}
                 courseId={aiExperience.course_id}
                 aiExperienceId={aiExperience.id}
@@ -221,25 +246,51 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                 facts={aiExperience.facts}
                 learningObjectives={aiExperience.learning_objective}
                 scenario={aiExperience.pedagogical_guidance}
-                isExpanded={isPreviewExpanded}
-                onToggleExpanded={() => setIsPreviewExpanded(!isPreviewExpanded)}
+              />
+            ) : (
+              <ConversationLanding
                 isTeacherPreview={true}
+                onStart={() => setIsShowingChat(true)}
+                returnFocusRef={previewCardRef}
               />
             )}
+          </Tabs.Panel>
 
+          <Tabs.Panel
+            id="conversations-tab"
+            renderTitle={I18n.t('Conversations')}
+            isSelected={selectedTab === 1}
+          >
+            <AIConversationsContainer
+              aiExperience={{
+                id: aiExperience.id as string,
+                course_id: aiExperience.course_id as string | number,
+                title: aiExperience.title,
+                can_manage: aiExperience.can_manage,
+                description: aiExperience.description,
+                facts: aiExperience.facts,
+                learning_objective: aiExperience.learning_objective,
+                pedagogical_guidance: aiExperience.pedagogical_guidance,
+              }}
+              courseId={aiExperience.course_id as string | number}
+            />
+          </Tabs.Panel>
+
+          <Tabs.Panel
+            id="configurations-tab"
+            renderTitle={I18n.t('Configurations')}
+            isSelected={selectedTab === 2}
+          >
             <InstUISettingsProvider theme={roundedTheme}>
               <View
                 as="div"
-                margin="large 0 0 0"
+                margin="medium 0 0 0"
                 borderWidth="small"
                 borderRadius="medium"
                 background="primary"
                 padding="medium"
               >
                 <View as="div" margin="0 0 medium 0">
-                  <Heading level="h2" margin="0 0 xx-small 0">
-                    {I18n.t('Configurations')}
-                  </Heading>
                   <Text size="small" color="secondary">
                     {I18n.t(
                       'The completion rules, pedagogical guidance, and sources of the large language model (LLM).',
@@ -301,61 +352,27 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
               </View>
             </InstUISettingsProvider>
           </Tabs.Panel>
-
-          <Tabs.Panel
-            id="conversations-tab"
-            renderTitle={I18n.t('Conversations')}
-            isSelected={selectedTab === 1}
-          >
-            <AIConversationsContainer
-              aiExperience={{
-                id: aiExperience.id as string,
-                course_id: aiExperience.course_id as string | number,
-                title: aiExperience.title,
-                can_manage: aiExperience.can_manage,
-                description: aiExperience.description,
-                facts: aiExperience.facts,
-                learning_objective: aiExperience.learning_objective,
-                pedagogical_guidance: aiExperience.pedagogical_guidance,
-              }}
-              courseId={aiExperience.course_id as string | number}
-            />
-          </Tabs.Panel>
         </Tabs>
       ) : (
         <>
-          {aiExperience.learning_objective && (
-            <View as="div" margin="large 0">
-              <Heading level="h2" margin="0 0 small 0">
-                {I18n.t('Learning Objectives')}
-              </Heading>
-              <View
-                as="div"
-                padding="medium"
-                background="primary"
-                borderWidth="small"
-                borderRadius="medium"
-              >
-                <Text size="medium" data-testid="ai-experience-show-student-goals-text">
-                  <span style={{whiteSpace: 'pre-wrap'}}>{aiExperience.learning_objective}</span>
-                </Text>
-              </View>
-            </View>
+          {isCheckingSession ? null : isShowingChat ? (
+            <LLMConversationView
+              isOpen={true}
+              onClose={() => setIsShowingChat(false)}
+              returnFocusRef={previewCardRef}
+              courseId={aiExperience.course_id}
+              aiExperienceId={aiExperience.id}
+              aiExperienceTitle={aiExperience.title}
+              facts={aiExperience.facts}
+              learningObjectives={aiExperience.learning_objective}
+              scenario={aiExperience.pedagogical_guidance}
+            />
+          ) : (
+            <ConversationLanding
+              onStart={() => setIsShowingChat(true)}
+              returnFocusRef={previewCardRef}
+            />
           )}
-          <LLMConversationView
-            isOpen={true}
-            onClose={() => setIsPreviewExpanded(false)}
-            returnFocusRef={previewCardRef}
-            courseId={aiExperience.course_id}
-            aiExperienceId={aiExperience.id}
-            aiExperienceTitle={aiExperience.title}
-            facts={aiExperience.facts}
-            learningObjectives={aiExperience.learning_objective}
-            scenario={aiExperience.pedagogical_guidance}
-            isExpanded={isPreviewExpanded}
-            onToggleExpanded={() => setIsPreviewExpanded(!isPreviewExpanded)}
-            isTeacherPreview={false}
-          />
         </>
       )}
 

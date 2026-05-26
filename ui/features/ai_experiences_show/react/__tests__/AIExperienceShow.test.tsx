@@ -85,36 +85,59 @@ describe('AIExperienceShow', () => {
     expect(screen.queryByText('Description')).not.toBeInTheDocument()
   })
 
-  it('renders configuration section with all fields', () => {
+  it('renders configuration section with all fields when Configurations tab is selected', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    expect(screen.getByText('Configurations')).toBeInTheDocument()
-    expect(screen.getByText('Text source')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'You are a customer service representative helping customers with billing issues.',
-      ),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Learning Objectives')).toBeInTheDocument()
-    expect(
-      screen.getByText('Students will learn to handle customer complaints professionally'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Pedagogical activity guidance')).toBeInTheDocument()
-    expect(screen.getByText('A customer calls about incorrect billing')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Configurations'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Text source')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'You are a customer service representative helping customers with billing issues.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Learning Objectives')).toBeInTheDocument()
+      expect(
+        screen.getByText('Students will learn to handle customer complaints professionally'),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Pedagogical activity guidance')).toBeInTheDocument()
+      expect(screen.getByText('A customer calls about incorrect billing')).toBeInTheDocument()
+    })
   })
 
-  it('renders preview in collapsed state by default', () => {
+  it('renders landing when no active session exists', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
-    expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
-    expect(screen.getByText('Chat with the AI just like a learner')).toBeInTheDocument()
-    expect(screen.queryByText('Reset')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+      expect(screen.getByText('Chat with the AI just like a learner')).toBeInTheDocument()
+      expect(screen.queryByText('Reset')).not.toBeInTheDocument()
+    })
   })
 
-  it('expands preview when clicked', async () => {
+  it('auto-skips landing when an active session exists', async () => {
+    server.use(
+      http.get('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+        return HttpResponse.json({id: '99', messages: []})
+      }),
+      http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+        return HttpResponse.json({id: '99', messages: []})
+      }),
+    )
+    render(<AIExperienceShow aiExperience={mockAiExperience} />)
+    await waitFor(() => {
+      expect(screen.getByText('Reset')).toBeInTheDocument()
+      expect(screen.queryByText('Chat with the AI just like a learner')).not.toBeInTheDocument()
+    })
+  })
+
+  it('opens chat when start button is clicked', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    const startButton = screen.getByTestId('llm-conversation-start-button')
-    fireEvent.click(startButton)
+    await waitFor(() => {
+      expect(screen.getByTestId('llm-conversation-start-button')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('llm-conversation-start-button'))
 
     await waitFor(() => {
       expect(screen.getByText('Reset')).toBeInTheDocument()
@@ -144,10 +167,11 @@ describe('AIExperienceShow', () => {
     expect(screen.getByTestId('ai-experience-show-edit-button')).toBeInTheDocument()
   })
 
-  it('renders Knowledge chat and Conversations tabs for teachers', () => {
+  it('renders Preview, Conversations, and Configurations tabs for teachers', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
-    expect(screen.getByText('Knowledge chat')).toBeInTheDocument()
+    expect(screen.getByText('Preview')).toBeInTheDocument()
     expect(screen.getAllByText('Conversations')[0]).toBeInTheDocument()
+    expect(screen.getByText('Configurations')).toBeInTheDocument()
   })
 
   it('switches to Conversations tab and shows student filter', async () => {
@@ -163,7 +187,7 @@ describe('AIExperienceShow', () => {
   it('does not render tabs or Edit button when can_manage is false', () => {
     render(<AIExperienceShow aiExperience={{...mockAiExperience, can_manage: false}} />)
     expect(screen.queryByTestId('ai-experience-show-edit-button')).not.toBeInTheDocument()
-    expect(screen.queryByText('Knowledge chat')).not.toBeInTheDocument()
+    expect(screen.queryByText('Preview')).not.toBeInTheDocument()
   })
 
   it('opens delete confirmation modal when Delete is clicked', async () => {
@@ -245,11 +269,11 @@ describe('AIExperienceShow', () => {
     })
   })
 
-  it('passes returnFocusRef to LLMConversationView', () => {
+  it('passes returnFocusRef to ConversationLanding', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
-    // The start button should be rendered and focusable
-    const startButton = screen.getByTestId('llm-conversation-start-button')
-    expect(startButton).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('llm-conversation-start-button')).toBeInTheDocument()
+    })
   })
 
   it('renders kebab menu when can_manage is true', () => {
@@ -282,8 +306,8 @@ describe('AIExperienceShow', () => {
           'Preview and Conversations will be available once processing is complete. Check back later.',
         ),
       ).toBeInTheDocument()
-      // Preview chat is hidden — replaced by the notice
-      expect(screen.queryByText('Preview')).not.toBeInTheDocument()
+      // Preview chat landing is hidden — replaced by the notice
+      expect(screen.queryByTestId('llm-conversation-start-button')).not.toBeInTheDocument()
     })
 
     it('does not show indexing notice when context_ready is true', () => {
@@ -304,7 +328,7 @@ describe('AIExperienceShow', () => {
       expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
     })
 
-    it('students always see the preview even when context_ready is false', () => {
+    it('students always see the preview even when context_ready is false', async () => {
       render(
         <AIExperienceShow
           aiExperience={{
@@ -317,7 +341,9 @@ describe('AIExperienceShow', () => {
       )
       expect(screen.queryByTestId('ai-experience-show-indexing-notice')).not.toBeInTheDocument()
       // Students see the conversation view (not the teacher's "Preview" panel)
-      expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+      })
     })
   })
 
@@ -404,21 +430,30 @@ describe('AIExperienceShow', () => {
       },
     ]
 
-    it('renders File sources section when files are present', () => {
+    it('renders File sources section when files are present', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      expect(screen.getByText('File sources')).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByText('File sources')).toBeInTheDocument()
+      })
     })
 
-    it('renders each file as a list item with its name', () => {
+    it('renders each file as a list item with its name', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      expect(screen.getByText('lecture-notes.pdf')).toBeInTheDocument()
-      expect(screen.getByText('rubric.docx')).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByText('lecture-notes.pdf')).toBeInTheDocument()
+        expect(screen.getByText('rubric.docx')).toBeInTheDocument()
+      })
     })
 
-    it('renders a download button for each file', () => {
+    it('renders a download button for each file', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      expect(screen.getByTestId('download-file-f1')).toBeInTheDocument()
-      expect(screen.getByTestId('download-file-f2')).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByTestId('download-file-f1')).toBeInTheDocument()
+        expect(screen.getByTestId('download-file-f2')).toBeInTheDocument()
+      })
     })
 
     it('does not render remove buttons on the show page', () => {
@@ -437,7 +472,7 @@ describe('AIExperienceShow', () => {
       expect(screen.queryByText('File sources')).not.toBeInTheDocument()
     })
 
-    it('renders failed file as a warning pill (failed text) in file sources section', () => {
+    it('renders failed file as a warning pill (failed text) in file sources section', async () => {
       render(
         <AIExperienceShow
           aiExperience={{
@@ -447,10 +482,13 @@ describe('AIExperienceShow', () => {
           }}
         />,
       )
-      expect(screen.getByText('lecture-notes.pdf failed')).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByText('lecture-notes.pdf failed')).toBeInTheDocument()
+      })
     })
 
-    it('does not render failed file as a normal pill when it is in failed_context_file_names', () => {
+    it('does not render failed file as a normal pill when it is in failed_context_file_names', async () => {
       render(
         <AIExperienceShow
           aiExperience={{
@@ -460,10 +498,13 @@ describe('AIExperienceShow', () => {
           }}
         />,
       )
-      // The file should appear once as a warning ("lecture-notes.pdf failed") not as a normal download pill
-      expect(screen.queryByTestId('download-file-f1')).not.toBeInTheDocument()
-      // Non-failed file still renders normally
-      expect(screen.getByTestId('download-file-f2')).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        // The file should appear once as a warning ("lecture-notes.pdf failed") not as a normal download pill
+        expect(screen.queryByTestId('download-file-f1')).not.toBeInTheDocument()
+        // Non-failed file still renders normally
+        expect(screen.getByTestId('download-file-f2')).toBeInTheDocument()
+      })
     })
 
     it('does not render a dismiss button for failed files on the show page', () => {
