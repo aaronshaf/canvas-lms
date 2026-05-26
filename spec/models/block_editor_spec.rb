@@ -19,27 +19,63 @@
 #
 
 describe BlockEditor do
+  let_once(:wiki_page) do
+    course_with_teacher
+    @course.wiki_pages.create!(title: "page")
+  end
+
+  def build_blocks(node_id, resolved_name, props)
+    {
+      node_id => {
+        "type" => { "resolvedName" => resolved_name },
+        "props" => props,
+        "nodes" => [],
+        "linkedNodes" => {}
+      }
+    }
+  end
+
   describe "#viewer_iframe_html" do
-    before do
-      course_with_teacher
-      @wiki_page = @course.wiki_pages.create!(title: "page")
-      @block_editor = BlockEditor.create!(
-        context: @wiki_page,
+    let_once(:block_editor) do
+      BlockEditor.create!(
+        context: wiki_page,
         editor_version: BlockEditor::LATEST_VERSION,
-        blocks: { ROOT: {} }
+        blocks: { "ROOT" => {} }
       )
     end
 
     it "renders a sandboxed iframe so the framed page cannot read parent cookies or window.ENV" do
-      html = @block_editor.viewer_iframe_html
+      html = block_editor.viewer_iframe_html
       expect(html).to match(/<iframe[^>]*\bsandbox="allow-scripts"/)
       expect(html).not_to include("allow-same-origin")
     end
 
     it "returns html_safe output built with attribute-escaping helpers" do
-      html = @block_editor.viewer_iframe_html
+      html = block_editor.viewer_iframe_html
       expect(html).to be_html_safe
-      expect(html).to include("src=\"/block_editors/#{@block_editor.id}\"")
+      expect(html).to include("src=\"/block_editors/#{block_editor.id}\"")
+    end
+  end
+
+  describe "sanitize_blocks" do
+    let(:xss_payload) { '<img src=x onerror="alert(1)">' }
+
+    it "sanitizes TextBlock content" do
+      block_data = BlockEditor.create!(
+        context: wiki_page,
+        editor_version: BlockEditor::LATEST_VERSION,
+        blocks: build_blocks("abc", "TextBlock", { "content" => xss_payload })
+      )
+      expect(block_data.blocks.dig("abc", "props", "content")).not_to include("onerror")
+    end
+
+    it "sanitizes ImageTextBlock content" do
+      block_data = BlockEditor.create!(
+        context: wiki_page,
+        editor_version: BlockEditor::LATEST_VERSION,
+        blocks: build_blocks("xyz", "ImageTextBlock", { "content" => xss_payload })
+      )
+      expect(block_data.blocks.dig("xyz", "props", "content")).not_to include("onerror")
     end
   end
 end

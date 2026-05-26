@@ -20,11 +20,17 @@
 
 class BlockEditor < ApplicationRecord
   belongs_to :context, polymorphic: [:wiki_page]
+  before_validation :sanitize_blocks
   before_create :set_root_account_id
 
   alias_attribute :version, :editor_version
 
   LATEST_VERSION = "0.2"
+
+  HTML_SINK_FIELDS = {
+    "TextBlock" => %w[content],
+    "ImageTextBlock" => %w[content]
+  }.freeze
 
   def set_root_account_id
     self.root_account_id = context&.root_account_id unless root_account_id
@@ -43,5 +49,26 @@ class BlockEditor < ApplicationRecord
       sandbox: "allow-scripts"
     )
     helpers.safe_join([style, iframe])
+  end
+
+  private
+
+  def sanitize_blocks
+    return unless blocks_changed? && blocks.is_a?(Hash)
+
+    blocks.each_value do |node|
+      next unless node.is_a?(Hash) && node["type"].is_a?(Hash)
+
+      fields = HTML_SINK_FIELDS[node.dig("type", "resolvedName")]
+      next unless fields
+
+      props = node["props"]
+      next unless props.is_a?(Hash)
+
+      fields.each do |field|
+        value = props[field]
+        props[field] = Sanitize.fragment(value, CanvasSanitize::SANITIZE) if value.is_a?(String) && value.include?("<")
+      end
+    end
   end
 end
