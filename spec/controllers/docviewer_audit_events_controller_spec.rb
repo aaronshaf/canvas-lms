@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe DocviewerAuditEventsController do
+describe "DocviewerAuditEvents", type: :request do
   before :once do
     @course = Course.create!(name: "a course")
     @student = student_in_course(name: "Student", course: @course, enrollment_state: :active).user
@@ -57,8 +57,7 @@ describe DocviewerAuditEventsController do
       },
       token: Canvas::Security.create_jwt({}, nil, @secret, :HS512),
       canvas_user_id: @teacher.id,
-      document_id: @attachment.canvadoc.document_id,
-      submission_id: @submission.id
+      document_id: @attachment.canvadoc.document_id
     }
   end
 
@@ -66,35 +65,35 @@ describe DocviewerAuditEventsController do
     it "renders status unauthorized if not passed a correct jwt auth token" do
       assignment = Assignment.create!(course: @course, name: "anonymous", anonymous_grading: true)
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-      post :create, format: :json, params: default_params.merge(token: "wrong token")
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(token: "wrong token"), as: :json
       expect(response).to have_http_status(:unauthorized)
     end
 
     it "explains if not passed a correct jwt auth token" do
       assignment = Assignment.create!(course: @course, name: "anonymous", anonymous_grading: true)
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-      post :create, format: :json, params: default_params.merge(token: "wrong token")
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(token: "wrong token"), as: :json
       expect(response.parsed_body.fetch("message")).to eq "JWT signature invalid"
     end
 
     it "renders status bad_request if param values are missing" do
       assignment = Assignment.create!(course: @course, name: "anonymous", anonymous_grading: true)
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-      post :create, format: :json, params: default_params.except(:docviewer_audit_event)
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.except(:docviewer_audit_event), as: :json
       expect(response).to have_http_status(:bad_request)
     end
 
     it "renders status not_acceptable for a non-moderated, non-anonymous assignment" do
       assignment = Assignment.create!(course: @course, name: "non-moderated and non-anonymous")
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       expect(response).to have_http_status(:not_acceptable)
     end
 
     it "explains why it rendered status not_acceptable" do
       assignment = Assignment.create!(course: @course, name: "non-moderated and non-anonymous")
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       expect(response.parsed_body.fetch("message")).to eq "Assignment is neither anonymous nor moderated"
     end
 
@@ -103,7 +102,7 @@ describe DocviewerAuditEventsController do
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
 
       default_params[:docviewer_audit_event][:event_type] = "miscellaneous_annotation_created"
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       expect(response).to have_http_status(:unprocessable_content)
     end
 
@@ -112,7 +111,7 @@ describe DocviewerAuditEventsController do
       @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
 
       default_params[:document_id] = "bad_string_#{@attachment.canvadoc.document_id}"
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       expect(response).to have_http_status(:not_found)
     end
 
@@ -131,7 +130,7 @@ describe DocviewerAuditEventsController do
       )
 
       expect do
-        post :create, format: :json, params: default_params
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       end.to change {
         AnonymousOrModerationEvent.where(assignment:, submission: @submission, user: @teacher).count
       }.by(1)
@@ -151,7 +150,7 @@ describe DocviewerAuditEventsController do
       @submission = assignment.submissions.find_by(user_id: @student.id)
 
       expect do
-        post :create, format: :json, params: default_params
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
       end.to change {
         AnonymousOrModerationEvent.where(assignment:, submission: @submission, user: @teacher).count
       }.by(1)
@@ -167,7 +166,7 @@ describe DocviewerAuditEventsController do
           final_grader: @teacher
         )
         @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-        post :create, format: :json, params: default_params.merge(canvas_user_id: @first_ta.id)
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @first_ta.id), as: :json
         expect(response).to have_http_status(:ok)
       end
 
@@ -181,7 +180,7 @@ describe DocviewerAuditEventsController do
         )
         @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
         assignment.grade_student(@student, grade: 10, grader: @first_ta, provisional: true)
-        post :create, format: :json, params: default_params
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
         expect(response).to have_http_status(:ok)
       end
 
@@ -195,7 +194,7 @@ describe DocviewerAuditEventsController do
         )
         @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
         assignment.grade_student(@student, grade: 10, grader: @first_ta, provisional: true)
-        post :create, format: :json, params: default_params.merge(canvas_user_id: @second_ta.id)
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @second_ta.id), as: :json
         expect(response).to have_http_status(:forbidden)
       end
 
@@ -209,7 +208,7 @@ describe DocviewerAuditEventsController do
         )
         @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
         assignment.grade_student(@student, grade: 10, grader: @first_ta, provisional: true)
-        post :create, format: :json, params: default_params.merge(canvas_user_id: @second_ta.id)
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @second_ta.id), as: :json
         expect(response.parsed_body.fetch("message")).to eq "Reached maximum number of graders for assignment"
       end
     end
@@ -218,7 +217,7 @@ describe DocviewerAuditEventsController do
       it "renders status ok" do
         assignment = Assignment.create!(course: @course, name: "anonymous", anonymous_grading: true)
         @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-        post :create, format: :json, params: default_params
+        post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
         expect(response).to have_http_status(:ok)
       end
     end
@@ -228,7 +227,7 @@ describe DocviewerAuditEventsController do
     assignment = Assignment.create!(course: @course, name: "anonymous", anonymous_grading: true)
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
     expect do
-      post :create, format: :json, params: default_params.merge(canvas_user_id: @student.id)
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @student.id), as: :json
     end.to change { AnonymousOrModerationEvent.where(assignment:, submission: @submission).count }.by(1)
   end
 
@@ -240,7 +239,7 @@ describe DocviewerAuditEventsController do
     @submission = assignment.submit_homework(fake_student, submission_type: "online_upload", attachments: [attachment])
     params = default_params.merge(canvas_user_id: fake_student.id, document_id: doc.document_id)
     expect do
-      post :create, format: :json, params:
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params:, as: :json
     end.to change {
       AnonymousOrModerationEvent.where(assignment:, submission: @submission).count
     }.by(1)
@@ -248,7 +247,7 @@ describe DocviewerAuditEventsController do
 
   context "as an admin" do
     subject(:annotate_as_admin) do
-      -> { post :create, format: :json, params: default_params.merge(canvas_user_id: account_admin_user.id) }
+      -> { post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: account_admin_user.id), as: :json }
     end
 
     before(:once) do
@@ -285,7 +284,7 @@ describe DocviewerAuditEventsController do
     )
     existing_grader = assignment.moderation_graders.create!(user: @first_ta, anonymous_id: "12345", slot_taken: false)
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.merge(canvas_user_id: @first_ta.id)
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @first_ta.id), as: :json
     expect(existing_grader.reload.slot_taken).to be true
   end
 
@@ -297,7 +296,7 @@ describe DocviewerAuditEventsController do
     @submission.update!(submitted_at: 1.hour.ago)
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [second_attachment])
     expect do
-      post :create, format: :json, params: default_params.merge(canvas_user_id: @teacher.id)
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @teacher.id), as: :json
     end.to change {
       AnonymousOrModerationEvent.where(assignment:, submission: @submission).count
     }.by(1)
@@ -312,7 +311,7 @@ describe DocviewerAuditEventsController do
       final_grader: @teacher
     )
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.merge(canvas_user_id: @first_ta.id)
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @first_ta.id), as: :json
     expect(assignment.moderation_graders.pluck(:user_id)).to include @first_ta.id
   end
 
@@ -326,7 +325,7 @@ describe DocviewerAuditEventsController do
     )
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
     assignment.grade_student(@student, grade: 10, grader: @first_ta, provisional: true)
-    post :create, format: :json, params: default_params
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
     expect(assignment.moderation_graders.pluck(:user_id)).to include @teacher.id
   end
 
@@ -342,7 +341,7 @@ describe DocviewerAuditEventsController do
     assignment.grade_student(@student, grade: 10, grader: @teacher, provisional: true)
     assignment.update!(grades_published_at: Time.zone.now)
     expect do
-      post :create, format: :json, params: default_params.merge(canvas_user_id: @first_ta.id)
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.merge(canvas_user_id: @first_ta.id), as: :json
     end.to change {
       AnonymousOrModerationEvent.where(assignment:, canvadoc: @attachment.canvadoc, submission: @submission).count
     }.by(1)
@@ -352,7 +351,7 @@ describe DocviewerAuditEventsController do
     assignment = Assignment.create!(course: @course, anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
     expect do
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
     end.to change {
       AnonymousOrModerationEvent.where(assignment:, canvadoc: @attachment.canvadoc, submission: @submission).count
     }.by(1)
@@ -361,7 +360,7 @@ describe DocviewerAuditEventsController do
   it "saves a copy of the annotation_body in the payload" do
     assignment = Assignment.create!(course: @course, anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.deep_merge(docviewer_audit_event: { annotation_body: { type: "a type" } })
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.deep_merge(docviewer_audit_event: { annotation_body: { type: "a type" } }), as: :json
     event = AnonymousOrModerationEvent.find_by!(assignment:, canvadoc: @attachment.canvadoc, submission: @submission)
     type = event.payload.fetch("annotation_body").fetch("type")
     expect(type).to eq "a type"
@@ -370,15 +369,15 @@ describe DocviewerAuditEventsController do
   it "saves the annotation_id in the payload" do
     assignment = @course.assignments.create!(anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.deep_merge(docviewer_audit_event: { annotation_id: 23 })
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.deep_merge(docviewer_audit_event: { annotation_id: 23 }), as: :json
     event = AnonymousOrModerationEvent.find_by!(assignment:, submission: @submission)
-    expect(event.payload.fetch("annotation_id")).to eq "23"
+    expect(event.payload.fetch("annotation_id")).to eq 23
   end
 
   it "saves the context in the payload" do
     assignment = @course.assignments.create!(anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.deep_merge(docviewer_audit_event: { context: "a context" })
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.deep_merge(docviewer_audit_event: { context: "a context" }), as: :json
     event = AnonymousOrModerationEvent.find_by!(assignment:, submission: @submission)
     expect(event.payload.fetch("context")).to eq "a context"
   end
@@ -386,15 +385,15 @@ describe DocviewerAuditEventsController do
   it "saves the related_annotation_id in the payload" do
     assignment = Assignment.create!(course: @course, anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.deep_merge(docviewer_audit_event: { related_annotation_id: 23 })
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.deep_merge(docviewer_audit_event: { related_annotation_id: 23 }), as: :json
     event = AnonymousOrModerationEvent.find_by!(assignment:, canvadoc: @attachment.canvadoc, submission: @submission)
-    expect(event.payload["related_annotation_id"]).to eq "23"
+    expect(event.payload["related_annotation_id"]).to eq 23
   end
 
   it "renders a json representation of the event on successful creation" do
     assignment = Assignment.create!(course: @course, anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
     event = AnonymousOrModerationEvent.find_by!(assignment:, canvadoc: @attachment.canvadoc, submission: @submission)
     expect(response.parsed_body.fetch("anonymous_or_moderation_event").fetch("id")).to eq event.id
   end
@@ -402,7 +401,7 @@ describe DocviewerAuditEventsController do
   it "is okay if related_annotation_id is not passed" do
     assignment = Assignment.create!(course: @course, anonymous_grading: true, name: "anonymous")
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
-    post :create, format: :json, params: default_params.except(:related_annotation_id)
+    post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params.except(:related_annotation_id), as: :json
     expect(response).to have_http_status(:ok)
   end
 
@@ -411,7 +410,7 @@ describe DocviewerAuditEventsController do
     @submission = assignment.submit_homework(@student, submission_type: "online_upload", attachments: [@attachment])
 
     expect do
-      post :create, format: :json, params: default_params
+      post "/submissions/#{@submission.id}/docviewer_audit_events.json", params: default_params, as: :json
     end.to change {
       AnonymousOrModerationEvent.where(
         assignment:,

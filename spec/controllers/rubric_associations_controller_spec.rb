@@ -18,37 +18,38 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe RubricAssociationsController do
+describe "RubricAssociations", type: :request do
   describe "POST 'create'" do
     it "requires authorization" do
       course_with_teacher(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      post "create", params: { course_id: @course.id, rubric_association: { rubric_id: @rubric.id } }
+      post "/courses/#{@course.id}/rubric_associations", params: { rubric_association: { rubric_id: @rubric.id } }
       assert_unauthorized
     end
 
     it "assigns variables" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      post "create", params: { course_id: @course.id,
-                               rubric_association: { rubric_id: @rubric.id,
-                                                     title: "some association",
-                                                     association_type: @rubric_association.association_object.class.name,
-                                                     association_id: @rubric_association.association_object.id } }
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association].title).to eql("some association")
+      post "/courses/#{@course.id}/rubric_associations", params: {
+        rubric_association: { rubric_id: @rubric.id,
+                              title: "some association",
+                              association_type: @rubric_association.association_object.class.name,
+                              association_id: @rubric_association.association_object.id }
+      }
       expect(response).to be_successful
+      expect(response.parsed_body["rubric_association"]["title"]).to eql("some association")
     end
 
     it "creates without manager_rubrics permission" do
       course_with_teacher_logged_in(active_all: true)
       @course.account.role_overrides.create! role: teacher_role, permission: "manage_rubrics", enabled: false
       rubric_association_model(user: @user, context: @course)
-      post "create", params: { course_id: @course.id,
-                               rubric_association: { rubric_id: @rubric.id,
-                                                     title: "some association",
-                                                     association_type: @rubric_association.association_object.class.name,
-                                                     association_id: @rubric_association.association_object.id } }
+      post "/courses/#{@course.id}/rubric_associations", params: {
+        rubric_association: { rubric_id: @rubric.id,
+                              title: "some association",
+                              association_type: @rubric_association.association_object.class.name,
+                              association_id: @rubric_association.association_object.id }
+      }
       expect(response).to be_successful
     end
 
@@ -58,8 +59,7 @@ describe RubricAssociationsController do
         rubric = @course.rubrics.create!(title: "Test Rubric")
         assignment = @course.assignments.create!(title: "Test Assignment")
 
-        post "create", params: {
-          course_id: @course.id,
+        post "/courses/#{@course.id}/rubric_associations", params: {
           rubric_association: {
             rubric_id: rubric.id,
             association_type: "Assignment",
@@ -68,8 +68,7 @@ describe RubricAssociationsController do
         }
 
         expect(response).to be_successful
-        json_response = json_parse(response.body)
-        expect(json_response["rubric_association"]["association_count"]).to eq 1
+        expect(response.parsed_body["rubric_association"]["association_count"]).to eq 1
       end
 
       it "includes correct association_count when there are multiple associations" do
@@ -87,8 +86,7 @@ describe RubricAssociationsController do
         )
 
         # Create second association via API
-        post "create", params: {
-          course_id: @course.id,
+        post "/courses/#{@course.id}/rubric_associations", params: {
           rubric_association: {
             rubric_id: rubric.id,
             association_type: "Assignment",
@@ -97,8 +95,7 @@ describe RubricAssociationsController do
         }
 
         expect(response).to be_successful
-        json_response = json_parse(response.body)
-        expect(json_response["rubric_association"]["association_count"]).to eq 2
+        expect(response.parsed_body["rubric_association"]["association_count"]).to eq 2
       end
     end
 
@@ -112,7 +109,7 @@ describe RubricAssociationsController do
         { association_id: assignment.id, association_type: "Assignment", rubric_id: rubric.id }
       end
       let(:request_params) do
-        { course_id: course.id, assignment_id: assignment.id, rubric_association: association_params }
+        { assignment_id: assignment.id, rubric_association: association_params }
       end
 
       let(:last_created_event) { AnonymousOrModerationEvent.where(event_type: "rubric_created").last }
@@ -123,24 +120,24 @@ describe RubricAssociationsController do
 
       it "records a rubric_created event for the assignment" do
         expect do
-          post("create", params: request_params)
+          post("/courses/#{course.id}/rubric_associations", params: request_params)
         end.to change {
           AnonymousOrModerationEvent.where(event_type: "rubric_created", assignment:).count
         }.by(1)
       end
 
       it "includes the ID of the added rubric in the payload" do
-        post("create", params: request_params)
+        post("/courses/#{course.id}/rubric_associations", params: request_params)
         expect(last_created_event.payload["id"]).to eq rubric.id
       end
 
       it "includes the updating user on the event" do
-        post("create", params: request_params)
+        post("/courses/#{course.id}/rubric_associations", params: request_params)
         expect(last_created_event.user_id).to eq teacher.id
       end
 
       it "includes the associated assignment on the event" do
-        post("create", params: request_params)
+        post("/courses/#{course.id}/rubric_associations", params: request_params)
         expect(last_created_event.assignment_id).to eq assignment.id
       end
     end
@@ -157,26 +154,35 @@ describe RubricAssociationsController do
 
         it "duplicates the associated rubric" do
           expect do
-            post "create", params: { course_id: @course2.id, rubric_association: { rubric_id: @rubric.id } }
+            post "/courses/#{@course2.id}/rubric_associations", params: { rubric_association: { rubric_id: @rubric.id } }
           end.to change {
             Rubric.count
           }.by(1)
-          expect(assigns[:rubric].context).to eq @course2
-          expect(assigns[:rubric].data).to eq @rubric.data
+          new_rubric = Rubric.where(context: @course2).order(:created_at).last
+          expect(new_rubric.context).to eq @course2
+          expect(new_rubric.data).to eq @rubric.data
         end
 
         it "duplicates the associated rubric into the correct shard" do
-          @rubric.context = @course2
+          # GuardRail.activate(:secondary) runs SET ROLE canvas_readonly_user on
+          # the current connection. When the request routes to shard2, this would
+          # block writes. In production, secondary uses a separate read-replica
+          # connection and cross-shard writes are unaffected.
+          allow(GuardRail).to receive(:activate).and_call_original
+          allow(GuardRail).to receive(:activate).with(:secondary).and_yield
           @shard2.activate do
             account_model
             @course3 = course_factory(account: @account)
             @assignment = assignment_model(course: @course3)
             course_with_teacher_logged_in(active_all: true, course: @course3)
           end
-          post "create", params: { course_id: @course3.id, rubric_association: { rubric_id: @rubric.id, association_id: @assignment.id, association_type: "Assignment" } }
-          expect(assigns[:rubric].context).to eq @course3
-          expect(assigns[:rubric].data).to eq @rubric.data
-          expect(assigns[:rubric].shard).to eq @shard2
+          post "/courses/#{@course3.global_id}/rubric_associations", params: {
+            rubric_association: { rubric_id: @rubric.global_id, association_id: @assignment.id, association_type: "Assignment" }
+          }
+          new_rubric = @shard2.activate { Rubric.where(context: @course3).order(:created_at).last }
+          expect(new_rubric.context).to eq @course3
+          expect(new_rubric.data).to eq @rubric.data
+          expect(new_rubric.shard).to eq @shard2
         end
 
         describe "with the account_level_mastery_scales FF" do
@@ -187,8 +193,9 @@ describe RubricAssociationsController do
             end
 
             it "uses the new course mastery scales for learning outcome criterion" do
-              post "create", params: { course_id: @course2.id, rubric_association: { rubric_id: @rubric.id } }
-              outcome_criterion = assigns[:rubric].data[0]
+              post "/courses/#{@course2.id}/rubric_associations", params: { rubric_association: { rubric_id: @rubric.id } }
+              new_rubric = Rubric.where(context: @course2).last
+              outcome_criterion = new_rubric.data[0]
               expect(outcome_criterion[:ratings].length).to eq 2
               expect(outcome_criterion[:points]).to eq 10
               expect(outcome_criterion[:mastery_points]).to eq 10
@@ -203,8 +210,8 @@ describe RubricAssociationsController do
             end
 
             it "does not change the existing criterions" do
-              post "create", params: { course_id: @course2.id, rubric_association: { rubric_id: @rubric.id } }
-              expect(assigns[:rubric].data).to eq @rubric.data
+              post "/courses/#{@course2.id}/rubric_associations", params: { rubric_association: { rubric_id: @rubric.id } }
+              expect(Rubric.where(context: @course2).last.data).to eq @rubric.data
             end
           end
         end
@@ -218,12 +225,15 @@ describe RubricAssociationsController do
         end
 
         it "does not duplicate the rubric" do
+          assignment = @course.assignments.create!(title: "Test Assignment")
           expect do
-            post "create", params: { course_id: @course.id, rubric_association: { rubric_id: @rubric.id } }
+            post "/courses/#{@course.id}/rubric_associations", params: {
+              rubric_association: { rubric_id: @rubric.id, association_type: "Assignment", association_id: assignment.id }
+            }
           end.not_to change {
             Rubric.count
           }
-          expect(assigns[:rubric]).to eq @rubric
+          expect(response.parsed_body["rubric"]["id"]).to eq @rubric.id
         end
       end
     end
@@ -233,40 +243,35 @@ describe RubricAssociationsController do
     it "requires authorization" do
       course_with_teacher(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      put "update", params: { course_id: @course.id, id: @rubric_association.id }
+      put "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
       assert_unauthorized
     end
 
     it "assigns variables" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      put "update", params: { course_id: @course.id, id: @rubric_association.id, rubric_association: { title: "some association" } }
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association].title).to eql("some association")
+      put "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}", params: { rubric_association: { title: "some association" } }
       expect(response).to be_successful
+      expect(response.parsed_body["rubric_association"]["title"]).to eql("some association")
     end
 
     it "updates the rubric if updateable" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      put "update", params: { course_id: @course.id, id: @rubric_association.id, rubric: { title: "new title" }, rubric_association: { title: "some association" } }
-      expect(assigns[:rubric]).not_to be_nil
-      expect(assigns[:rubric].title).to eql("new title")
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association].title).to eql("some association")
+      put "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}", params: { rubric: { title: "new title" }, rubric_association: { title: "some association" } }
       expect(response).to be_successful
+      expect(response.parsed_body["rubric"]["title"]).to eql("new title")
+      expect(response.parsed_body["rubric_association"]["title"]).to eql("some association")
     end
 
     it "does not update the rubric if not updateable (should make a new one instead)" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course, purpose: "grading")
       @rubric.associate_with(@course, @course, purpose: "grading")
-      put "update", params: { course_id: @course.id, id: @rubric_association.id, rubric: { title: "new title" }, rubric_association: { title: "some association" } }
-      expect(assigns[:rubric]).not_to be_nil
-      expect(assigns[:rubric].title).not_to eql("new title")
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association].title).to eql("some association")
+      put "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}", params: { rubric: { title: "new title" }, rubric_association: { title: "some association" } }
       expect(response).to be_successful
+      expect(@rubric.reload.title).not_to eql("new title")
+      expect(response.parsed_body["rubric_association"]["title"]).to eql("some association")
     end
 
     describe "AnonymousOrModerationEvent creation for auditable assignments" do
@@ -279,27 +284,23 @@ describe RubricAssociationsController do
         { association_id: assignment.id, association_type: "Assignment", rubric_id: rubric.id }
       end
       let(:request_params) do
-        { course_id: course.id, assignment_id: assignment.id, rubric_association: association_params }
+        { assignment_id: assignment.id, rubric_association: association_params }
       end
 
       let(:old_rubric) { Rubric.create!(title: "zzz", context: course) }
       let(:last_updated_event) { AnonymousOrModerationEvent.where(event_type: "rubric_updated").last }
+      let(:existing_rubric_association) do
+        RubricAssociation.generate(teacher, old_rubric, course, association_object: assignment, purpose: "grading")
+      end
 
       before do
-        RubricAssociation.generate(
-          teacher,
-          old_rubric,
-          course,
-          association_object: assignment,
-          purpose: "grading"
-        )
-
+        existing_rubric_association
         user_session(teacher)
       end
 
       it "records a rubric_updated event for the assignment" do
         expect do
-          put("update", params: request_params)
+          put("/courses/#{course.id}/rubric_associations/0", params: request_params)
         end.to change {
           AnonymousOrModerationEvent.where(
             event_type: "rubric_updated",
@@ -309,22 +310,22 @@ describe RubricAssociationsController do
       end
 
       it "includes the ID of the removed rubric in the payload" do
-        put("update", params: request_params)
+        put("/courses/#{course.id}/rubric_associations/0", params: request_params)
         expect(last_updated_event.payload["id"].first).to eq old_rubric.id
       end
 
       it "includes the ID of the added rubric in the payload" do
-        put("update", params: request_params)
+        put("/courses/#{course.id}/rubric_associations/0", params: request_params)
         expect(last_updated_event.payload["id"].second).to eq rubric.id
       end
 
       it "includes the updating user on the event" do
-        put("update", params: request_params)
+        put("/courses/#{course.id}/rubric_associations/0", params: request_params)
         expect(last_updated_event.user_id).to eq teacher.id
       end
 
       it "includes the associated assignment on the event" do
-        put("update", params: request_params)
+        put("/courses/#{course.id}/rubric_associations/0", params: request_params)
         expect(last_updated_event.assignment_id).to eq assignment.id
       end
     end
@@ -334,32 +335,28 @@ describe RubricAssociationsController do
     it "requires authorization" do
       course_with_teacher(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      delete "destroy", params: { course_id: @course.id, id: @rubric_association.id }
+      delete "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
       assert_unauthorized
     end
 
     it "deletes the rubric if deletable" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course)
-      delete "destroy", params: { course_id: @course.id, id: @rubric_association.id }
+      delete "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
       expect(response).to be_successful
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association]).to be_deleted
-      expect(assigns[:rubric]).not_to be_nil
-      expect(assigns[:rubric]).to be_deleted
+      expect(@rubric_association.reload).to be_deleted
+      expect(@rubric.reload).to be_deleted
     end
 
     it "should_not delete the rubric if still created at the context level instead of the assignment level" do
       course_with_teacher_logged_in(active_all: true)
       rubric_association_model(user: @user, context: @course)
       @rubric.associate_with(@course, @course, purpose: "bookmark")
-      delete "destroy", params: { course_id: @course.id, id: @rubric_association.id }
+      delete "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
       expect(response).to be_successful
-      expect(assigns[:rubric]).not_to be_nil
-      expect(assigns[:rubric]).not_to be_deleted
-      expect(assigns[:rubric]).not_to be_frozen
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association]).to be_deleted
+      expect(@rubric.reload).not_to be_deleted
+      expect(@rubric.reload).not_to be_frozen
+      expect(@rubric_association.reload).to be_deleted
     end
 
     it "deletes only the association if the rubric is not deletable" do
@@ -368,13 +365,11 @@ describe RubricAssociationsController do
       rubric_association_model(user: @user, context: @course, rubric: @rubric, purpose: "grading")
       @rubric.associate_with(@course, @course, purpose: "grading")
       @rubric.associate_with(@course, @course, purpose: "bookmark")
-      delete "destroy", params: { course_id: @course.id, id: @rubric_association.id }
+      delete "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
       expect(response).to be_successful
-      expect(assigns[:rubric]).not_to be_nil
-      expect(assigns[:rubric]).not_to be_deleted
-      expect(assigns[:rubric]).not_to be_frozen
-      expect(assigns[:association]).not_to be_nil
-      expect(assigns[:association]).to be_deleted
+      expect(@rubric.reload).not_to be_deleted
+      expect(@rubric.reload).not_to be_frozen
+      expect(@rubric_association.reload).to be_deleted
     end
 
     it "removes aligments links" do
@@ -385,7 +380,7 @@ describe RubricAssociationsController do
       expect(@rubric_association_object.reload.learning_outcome_alignments.count).to eq 1
       expect(@rubric.reload.learning_outcome_alignments.count).to eq 1
 
-      delete "destroy", params: { course_id: @course.id, id: @rubric_association.id }
+      delete "/courses/#{@course.id}/rubric_associations/#{@rubric_association.id}"
 
       expect(@rubric.reload.deleted?).to be_truthy
       expect(@rubric_association_object.reload.learning_outcome_alignments.count).to eq 0
@@ -407,14 +402,14 @@ describe RubricAssociationsController do
 
       it "creates an AnonymousOrModerationEvent capturing the deletion" do
         expect do
-          delete("destroy", params: { course_id: course.id, id: rubric_association.id })
+          delete("/courses/#{course.id}/rubric_associations/#{rubric_association.id}")
         end.to change {
           AnonymousOrModerationEvent.where(event_type: "rubric_deleted", assignment:, user: teacher).count
         }.by(1)
       end
 
       it "includes the removed rubric in the event payload" do
-        delete("destroy", params: { course_id: course.id, id: rubric_association.id })
+        delete("/courses/#{course.id}/rubric_associations/#{rubric_association.id}")
 
         event = AnonymousOrModerationEvent.find_by(event_type: "rubric_deleted", assignment:, user: teacher)
         expect(event.payload["id"]).to eq rubric.id

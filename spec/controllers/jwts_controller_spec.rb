@@ -17,21 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe JwtsController do
+describe "JwtsController", type: :request do
   include_context "JWT setup"
   let(:token_user) { user_with_pseudonym }
   let(:other_user) { user_with_pseudonym }
   let(:admin_user) { site_admin_user }
   let(:translate_token) do
     lambda do |resp|
-      utf8_token_string = json_parse(resp.body)["token"]
+      utf8_token_string = resp.parsed_body["token"]
       decoded_crypted_token = Canvas::Security.base64_decode(utf8_token_string)
       CanvasSecurity::ServicesJwt.decrypt(decoded_crypted_token)
     end
   end
   let(:translate_unencrypted_token) do
     lambda do |resp|
-      utf8_token_string = json_parse(resp.body)["token"]
+      utf8_token_string = resp.parsed_body["token"]
       decoded_token = Canvas::Security.base64_decode(utf8_token_string)
       CanvasSecurity.decode_jwt(decoded_token, [CanvasSecurity::ServicesJwt::KeyStorage.present_key])
     end
@@ -39,22 +39,24 @@ describe JwtsController do
 
   describe "#generate" do
     it "requires being logged in" do
-      post "create"
-      expect(response).to be_redirect
-      expect(response).to have_http_status(:found)
+      post "/api/v1/jwts"
+      expect(response).to have_http_status(:unauthorized)
     end
 
     context "with valid user session" do
-      before { user_session(token_user) }
+      before do
+        user_session(token_user)
+        host! "test.host"
+      end
 
       it "generates a base64 encoded token for a user session with env var secrets" do
-        post "create", format: "json"
+        post "/api/v1/jwts", as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:sub]).to eq(token_user.global_id)
       end
 
       it "has the users domain in the token" do
-        post "create", format: "json"
+        post "/api/v1/jwts", as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:domain]).to eq("test.host")
       end
@@ -63,8 +65,7 @@ describe JwtsController do
         root_account_uuid = LoadAccount.default_domain_root_account.uuid
         pseudonym(admin_user)
         access_token = admin_user.access_tokens.create!(purpose: "test").full_token
-        request.headers["Authorization"] = "Bearer #{access_token}"
-        post "create", format: "json"
+        post "/api/v1/jwts", headers: { "Authorization" => "Bearer #{access_token}" }, as: :json
         jwt = translate_token.call(response)
         expect(jwt[:root_account_uuid]).to eq(root_account_uuid)
       end
@@ -74,21 +75,21 @@ describe JwtsController do
       before { user_session(token_user) }
 
       it "generates an unencrypted token for non-canvas audiences" do
-        post "create", params: { canvas_audience: false }, format: "json"
+        post "/api/v1/jwts", params: { canvas_audience: false }, as: :json
 
         jwt = translate_unencrypted_token.call(response)
         expect(jwt[:sub]).to eq(token_user.global_id)
       end
 
       it "generates an encrypted token by default" do
-        post "create", format: "json"
+        post "/api/v1/jwts", as: :json
 
         jwt = translate_token.call(response)
         expect(jwt[:sub]).to eq(token_user.global_id)
       end
 
       it "generates an encrypted token for the canvas audience" do
-        post "create", params: { canvas_audience: true }, format: "json"
+        post "/api/v1/jwts", params: { canvas_audience: true }, as: :json
 
         jwt = translate_token.call(response)
         expect(jwt[:sub]).to eq(token_user.global_id)
@@ -101,19 +102,19 @@ describe JwtsController do
           pseudonym(admin_user)
           access_token = admin_user.access_tokens.create!(purpose: "test").full_token
           admin_user.access_tokens.first.developer_key.update!(allowed_audiences: [allowed_audience])
-          request.headers["Authorization"] = "Bearer #{access_token}"
+          @admin_auth_header = { "Authorization" => "Bearer #{access_token}" }
         end
 
         context "when audience is allowed through the developer key" do
           it "returns unencrypted token" do
-            post "create", params: { audience: allowed_audience }, format: "json"
+            post "/api/v1/jwts", params: { audience: allowed_audience }, headers: @admin_auth_header, as: :json
 
             jwt = translate_unencrypted_token.call(response)
             expect(jwt[:sub]).to eq(admin_user.global_id)
           end
 
           it "generates a token that includes the requested audience" do
-            post "create", params: { audience: allowed_audience }, format: "json"
+            post "/api/v1/jwts", params: { audience: allowed_audience }, headers: @admin_auth_header, as: :json
 
             jwt = translate_unencrypted_token.call(response)
             expect(jwt[:aud]).to eq(["custom_audience"])
@@ -122,7 +123,7 @@ describe JwtsController do
 
         context "when at least one audience is not allowed through the developer key" do
           it "throws an error with status code bad request" do
-            post "create", params: { audience: "#{allowed_audience} not_allowed_audience" }, format: "json"
+            post "/api/v1/jwts", params: { audience: "#{allowed_audience} not_allowed_audience" }, headers: @admin_auth_header, as: :json
 
             expect(response).to have_http_status(:bad_request)
             expect(response.body).to include(/invalid_target/)
@@ -131,7 +132,7 @@ describe JwtsController do
 
         context "when no audience is allowed through the developer key" do
           it "returns an error with bad request status code" do
-            post "create", params: { audience: "not_allowed_audience" }, format: "json"
+            post "/api/v1/jwts", params: { audience: "not_allowed_audience" }, headers: @admin_auth_header, as: :json
 
             expect(response).to have_http_status(:bad_request)
             expect(response.body).to include(/invalid_target/)
@@ -144,13 +145,13 @@ describe JwtsController do
       before { user_session(token_user) }
 
       it "generates a token that doesn't have context_id" do
-        post "create", params: { workflows: ["ui"] }, format: "json"
+        post "/api/v1/jwts", params: { workflows: ["ui"] }, as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body).not_to have_key(:context_id)
       end
 
       it "generates a token that doesn't have context_type" do
-        post "create", params: { workflows: ["ui"] }, format: "json"
+        post "/api/v1/jwts", params: { workflows: ["ui"] }, as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body).not_to have_key(:context_type)
       end
@@ -168,92 +169,92 @@ describe JwtsController do
       let(:params) { { workflows: ["ui", "rich_content"], context_type: "Course", context_id: @context_id } }
 
       it "generates a token that has course context_id" do
-        post "create", params:, format: "json"
+        post "/api/v1/jwts", params:, as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_id]).to eq(@context_id.to_s)
       end
 
       it "generates a token that has course context_type" do
-        post "create", params:, format: "json"
+        post "/api/v1/jwts", params:, as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_type]).to eq("Course")
       end
 
       it "generates a token that has user context_id" do
-        post "create", params: params.merge(context_type: "User", context_id: @teacher.id), format: "json"
+        post "/api/v1/jwts", params: params.merge(context_type: "User", context_id: @teacher.id), as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_id]).to eq(@teacher.id.to_s)
       end
 
       it "generates a token that has user context_type" do
-        post "create", params: params.merge(context_type: "User", context_id: @teacher.id), format: "json"
+        post "/api/v1/jwts", params: params.merge(context_type: "User", context_id: @teacher.id), as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_type]).to eq("User")
       end
 
       it "generates a token that has account context_id" do
         user_session(admin_user)
-        post "create", params: params.merge(context_type: "Account", context_id: Account.last.id), format: "json"
+        post "/api/v1/jwts", params: params.merge(context_type: "Account", context_id: Account.last.id), as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_id].to_i).to eq(Account.last.id)
       end
 
       it "generates a token by account context_uuid" do
         user_session(admin_user)
-        post "create", params: params.except(:context_id).merge(context_type: "Account", context_uuid: Account.last.uuid), format: "json"
+        post "/api/v1/jwts", params: params.except(:context_id).merge(context_type: "Account", context_uuid: Account.last.uuid), as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_id].to_i).to eq(Account.last.id)
       end
 
       it "generates a token that has account context_type" do
         user_session(admin_user)
-        post "create", params: params.merge(context_type: "Account", context_id: Account.last.id), format: "json"
+        post "/api/v1/jwts", params: params.merge(context_type: "Account", context_id: Account.last.id), as: :json
         decrypted_token_body = translate_token.call(response)
         expect(decrypted_token_body[:context_type]).to eq("Account")
       end
 
       context "returns error when" do
         it "context_type param is missing" do
-          post "create", params: params.except(:context_type), format: "json"
+          post "/api/v1/jwts", params: params.except(:context_type), as: :json
           expect(response).to have_http_status(:bad_request)
         end
 
         it "context_id or context_uuid param is missing" do
-          post "create", params: params.except(:context_id), format: "json"
+          post "/api/v1/jwts", params: params.except(:context_id), as: :json
           expect(response).to have_http_status(:bad_request)
         end
 
         it "context_type and context_uuid are passed" do
-          post "create", params: params.merge({ context_uuid: @context_uuid }), format: "json"
+          post "/api/v1/jwts", params: params.merge({ context_uuid: @context_uuid }), as: :json
           expect(response).to have_http_status(:bad_request)
         end
 
         it "context_type is invalid" do
-          post "create", params: params.merge({ context_type: "unknown" }), format: "json"
+          post "/api/v1/jwts", params: params.merge({ context_type: "unknown" }), as: :json
           expect(response).to have_http_status(:bad_request)
         end
 
         it "context not found with id" do
-          post "create", params: params.merge({ context_id: "unknown" }), format: "json"
+          post "/api/v1/jwts", params: params.merge({ context_id: "unknown" }), as: :json
           expect(response).to have_http_status(:not_found)
         end
 
         it "context not found with uuid" do
-          post "create", params: params.except(:context_id).merge({ context_uuid: "unknown" }), format: "json"
+          post "/api/v1/jwts", params: params.except(:context_id).merge({ context_uuid: "unknown" }), as: :json
           expect(response).to have_http_status(:not_found)
         end
 
         it "context is unauthorized" do
           generic_user = user_factory
           user_session(generic_user)
-          post "create", params:, format: "json"
+          post "/api/v1/jwts", params:, as: :json
           assert_forbidden
         end
 
         it "generic user is unauthorized for Account context type" do
           generic_user = user_factory
           user_session(generic_user)
-          post "create", params: params.merge(context_type: "Account", context_id: Account.last.id), format: "json"
+          post "/api/v1/jwts", params: params.merge(context_type: "Account", context_id: Account.last.id), as: :json
           assert_forbidden
         end
       end
@@ -261,8 +262,7 @@ describe JwtsController do
 
     it "doesn't allow using a token to gen a token" do
       token = build_wrapped_token(token_user.global_id)
-      @request.headers["Authorization"] = "Bearer #{token}"
-      get "create", format: "json"
+      post "/api/v1/jwts", headers: { "Authorization" => "Bearer #{token}" }, as: :json
       expect(response).to have_http_status(:forbidden)
       expect(response.body).to match(/cannot generate a JWT when authorized by a JWT/)
     end
@@ -270,15 +270,13 @@ describe JwtsController do
 
   describe "#refresh" do
     it "requires being logged in" do
-      post "refresh"
-      expect(response).to be_redirect
-      expect(response).to have_http_status(:found)
+      post "/api/v1/jwts/refresh"
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "doesn't allow using a token to gen a token" do
       token = build_wrapped_token(token_user.global_id)
-      @request.headers["Authorization"] = "Bearer #{token}"
-      get "refresh", format: "json"
+      post "/api/v1/jwts/refresh", headers: { "Authorization" => "Bearer #{token}" }, as: :json
       expect(response).to have_http_status(:forbidden)
       expect(response.body).to match(/cannot generate a JWT when authorized by a JWT/)
     end
@@ -286,11 +284,11 @@ describe JwtsController do
     context "with valid user session" do
       before do
         user_session(token_user)
-        request.env["HTTP_HOST"] = "testhost"
+        host! "testhost"
       end
 
       it "requires a jwt param" do
-        post "refresh"
+        post "/api/v1/jwts/refresh"
         expect(response).not_to have_http_status(:ok)
       end
 
@@ -302,7 +300,7 @@ describe JwtsController do
         expect(services_jwt).to receive(:refresh_for_user)
           .with("testjwt", "testhost", other_user, real_user:, symmetric: true)
           .and_return("refreshedjwt")
-        post "refresh", params: { jwt: "testjwt", as_user_id: other_user.id }, format: "json"
+        post "/api/v1/jwts/refresh", params: { jwt: "testjwt", as_user_id: other_user.id }, as: :json
         token = response.parsed_body["token"]
         expect(token).to eq("refreshedjwt")
       end
@@ -310,11 +308,11 @@ describe JwtsController do
       it "returns a different jwt when refresh is called" do
         course_factory
         original_jwt = CanvasSecurity::ServicesJwt.for_user(
-          request.host_with_port,
+          "testhost",
           token_user,
           symmetric: true
         )
-        post "refresh", params: { jwt: original_jwt }
+        post "/api/v1/jwts/refresh", params: { jwt: original_jwt }
         refreshed_jwt = response.parsed_body["token"]
         expect(refreshed_jwt).not_to eq(original_jwt)
       end
@@ -324,7 +322,7 @@ describe JwtsController do
                        .as_stubbed_const(transfer_nested_constants: true)
         expect(services_jwt).to receive(:refresh_for_user)
           .and_raise(CanvasSecurity::ServicesJwt::InvalidRefresh)
-        post "refresh", params: { jwt: "testjwt" }, format: "json"
+        post "/api/v1/jwts/refresh", params: { jwt: "testjwt" }, as: :json
         expect(response).to have_http_status(:bad_request)
       end
     end
@@ -340,8 +338,7 @@ describe JwtsController do
       context "calling user cannot refresh for another user" do
         before do
           access_token = other_user.access_tokens.create!(purpose: "test").full_token
-          request.headers["Authorization"] = "Bearer #{access_token}"
-          post "refresh", params: { jwt: "testjwt" }, format: "json"
+          post "/api/v1/jwts/refresh", params: { jwt: "testjwt" }, headers: { "Authorization" => "Bearer #{access_token}" }, as: :json
         end
 
         it "returns an invalid refresh error" do
@@ -355,17 +352,16 @@ describe JwtsController do
           pseudonym(admin_user)
           access_token = admin_user.access_tokens.create!(purpose: "test").full_token
           admin_user.access_tokens.first.developer_key.update!(internal_service: true)
-          request.headers["Authorization"] = "Bearer #{access_token}"
           expect(CanvasSecurity::ServicesJwt).to receive(:refresh_for_user)
             .with(
               "testjwt",
-              request.host_with_port,
+              "www.example.com",
               token_user,
               real_user: nil,
               symmetric: true
             ).and_return("fresh-jwt")
 
-          post "refresh", params: { jwt: "testjwt" }, format: "json"
+          post "/api/v1/jwts/refresh", params: { jwt: "testjwt" }, headers: { "Authorization" => "Bearer #{access_token}" }, as: :json
         end
 
         it "returns with a fresh JWT" do
@@ -379,9 +375,8 @@ describe JwtsController do
           pseudonym(admin_user)
           access_token = admin_user.access_tokens.create!(purpose: "test").full_token
           admin_user.access_tokens.first.developer_key.update!(internal_service: false)
-          request.headers["Authorization"] = "Bearer #{access_token}"
 
-          post "refresh", params: { jwt: "testjwt" }, format: "json"
+          post "/api/v1/jwts/refresh", params: { jwt: "testjwt" }, headers: { "Authorization" => "Bearer #{access_token}" }, as: :json
         end
 
         it "returns an invalid refresh error" do
@@ -391,14 +386,16 @@ describe JwtsController do
       end
 
       context "incoming JWT is invalid and decryption fails" do
+        let(:internal_access_token) do
+          pseudonym(admin_user)
+          token = admin_user.access_tokens.create!(purpose: "test").full_token
+          admin_user.access_tokens.first.developer_key.update!(internal_service: true)
+          token
+        end
+
         before do
           allow(CanvasSecurity::ServicesJwt).to receive(:decrypt).and_raise(JSON::JWE::DecryptionFailed)
-          pseudonym(admin_user)
-          access_token = admin_user.access_tokens.create!(purpose: "test").full_token
-          admin_user.access_tokens.first.developer_key.update!(internal_service: true)
-          request.headers["Authorization"] = "Bearer #{access_token}"
-
-          post "refresh", params: { jwt: "invalid jwt" }, format: "json"
+          post "/api/v1/jwts/refresh", params: { jwt: "invalid jwt" }, headers: { "Authorization" => "Bearer #{internal_access_token}" }, as: :json
         end
 
         it "returns an invalid refresh error" do
@@ -408,7 +405,10 @@ describe JwtsController do
 
         context "incoming jwt invalid formatting" do
           before do
+            # Override the DecryptionFailed stub and issue a new request so
+            # the it block sees a response from the InvalidFormat code path.
             allow(CanvasSecurity::ServicesJwt).to receive(:decrypt).and_raise(JSON::JWT::InvalidFormat)
+            post "/api/v1/jwts/refresh", params: { jwt: "invalid jwt" }, headers: { "Authorization" => "Bearer #{internal_access_token}" }, as: :json
           end
 
           it "returns an invalid refresh error" do

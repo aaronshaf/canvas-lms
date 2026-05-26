@@ -109,6 +109,7 @@ class RubricAssociationsController < ApplicationController
       @rubric.context = @context
       @rubric.update_mastery_scales(save: false)
       @rubric.shard = @context.shard if from_different_shard
+      @rubric.root_account_id = nil if from_different_shard
       @rubric.save!
     elsif params[:rubric] && @rubric.grants_right?(@current_user, session, :update)
       @rubric.update_criteria(params[:rubric])

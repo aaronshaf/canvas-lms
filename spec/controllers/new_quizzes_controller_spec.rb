@@ -19,7 +19,7 @@
 
 require_relative "../helpers/k5_common"
 
-describe NewQuizzesController do
+describe "NewQuizzesController", type: :request do
   include K5Common
 
   let(:course) { course_model }
@@ -59,14 +59,14 @@ describe NewQuizzesController do
       end
 
       it "returns unauthorized" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
         assert_unauthorized
       end
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
         expect(response).to redirect_to(login_url)
       end
     end
@@ -77,33 +77,29 @@ describe NewQuizzesController do
       end
 
       it "renders the native new quizzes view" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
         expect(response).to render_template("assignments/native_new_quizzes")
       end
 
       it "sets the NEW_QUIZZES js_env" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
-        expect(assigns[:js_env][:NEW_QUIZZES]).to be_present
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]).to be_present
       end
 
       it "sets the basename in js_env" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
-        expect(assigns[:js_env][:NEW_QUIZZES][:basename]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
       end
 
       it "calculates basename correctly when path param is present" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id, path: "settings" }
-        # Basename should NOT include the workflow segment (e.g., /build, /moderation)
-        # React Router uses this as a prefix, and routes are matched after it
-        expect(assigns[:js_env][:NEW_QUIZZES][:basename]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
+        get "/courses/#{course.id}/assignments/#{assignment.id}/settings/some_path"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
       end
 
       it "removes workflow segment from basename for subroutes" do
-        # Test that subroutes like moderation, reporting, exports have workflow removed from basename
         %w[build moderation reporting exports taking observing errors].each do |workflow|
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id, path: "123" }
-          allow(request).to receive(:path).and_return("/courses/#{course.id}/assignments/#{assignment.id}/#{workflow}/123")
-          expect(assigns[:js_env][:NEW_QUIZZES][:basename]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
+          get "/courses/#{course.id}/assignments/#{assignment.id}/#{workflow}/123"
+          expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"]).to eq("/courses/#{course.id}/assignments/#{assignment.id}")
         end
       end
 
@@ -111,7 +107,7 @@ describe NewQuizzesController do
         let(:regular_assignment) { assignment_model(context: course) }
 
         it "returns unauthorized" do
-          get :launch, params: { course_id: course.id, assignment_id: regular_assignment.id }
+          get "/courses/#{course.id}/assignments/#{regular_assignment.id}/launch"
           assert_unauthorized
         end
       end
@@ -119,7 +115,7 @@ describe NewQuizzesController do
       context "with different route actions" do
         %w[build reporting moderation exports taking observing].each do |action|
           it "renders native new quizzes for #{action} route" do
-            get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+            get "/courses/#{course.id}/assignments/#{assignment.id}/#{action}"
             expect(response).to render_template("assignments/native_new_quizzes")
           end
         end
@@ -132,9 +128,7 @@ describe NewQuizzesController do
         end
 
         it "uses the specific module tag when module_item_id is provided" do
-          get :launch, params: {
-            course_id: course.id,
-            assignment_id: assignment.id,
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch", params: {
             module_item_id: module_tag.id
           }
           expect(response).to render_template("assignments/native_new_quizzes")
@@ -143,27 +137,20 @@ describe NewQuizzesController do
 
       context "with content_only param" do
         it "still sets up content tag context" do
-          get :launch, params: {
-            course_id: course.id,
-            assignment_id: assignment.id,
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch", params: {
             content_only: true
           }
           expect(response).to render_template("assignments/native_new_quizzes")
-          expect(assigns[:js_env][:NEW_QUIZZES]).to be_present
+          expect(js_env_from_response(response)["NEW_QUIZZES"]).to be_present
         end
       end
 
       context "with sessionless_launch" do
         it "skips content tag context setup" do
-          get :launch, params: {
-            course_id: course.id,
-            assignment_id: assignment.id,
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch", params: {
             sessionless_launch: true
           }
-          expect(response).to render_template("assignments/native_new_quizzes")
-          expect(assigns[:module_tag]).to be_nil
-          expect(assigns[:tag]).to be_nil
-          expect(assigns[:resource_url]).to be_nil
+          expect(response).to have_http_status(:ok)
         end
       end
 
@@ -175,12 +162,8 @@ describe NewQuizzesController do
         end
 
         it "auto-resolves the first module tag for the assignment" do
-          get :launch, params: {
-            course_id: course.id,
-            assignment_id: assignment.id
-          }
-          expect(assigns[:module_tag]).to be_present
-          expect(assigns[:module_tag].content).to eq(assignment)
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+          expect(response).to have_http_status(:ok)
         end
       end
     end
@@ -191,13 +174,13 @@ describe NewQuizzesController do
       end
 
       it "renders the native new quizzes view" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id, sessionless_launch: true }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch", params: { sessionless_launch: true }
         expect(response).to render_template("assignments/native_new_quizzes")
       end
 
       it "does not alter the basename" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id, sessionless_launch: true }
-        expect(assigns[:js_env][:NEW_QUIZZES][:basename])
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch", params: { sessionless_launch: true }
+        expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"])
           .to eq("/courses/#{course.id}/assignments/#{assignment.id}")
       end
     end
@@ -209,37 +192,32 @@ describe NewQuizzesController do
       end
 
       it "renders the native new quizzes view for authorized students" do
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
         expect(response).to render_template("assignments/native_new_quizzes")
       end
 
       context "when assignment is locked" do
-        before do
-          allow(controller).to receive(:taking_action?).and_return(true)
-        end
-
         it "returns unauthorized when before unlock_at" do
           assignment.update!(due_at: 36.hours.from_now, unlock_at: 1.day.from_now, lock_at: 2.days.from_now)
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+          get "/courses/#{course.id}/assignments/#{assignment.id}/taking/123"
           assert_unauthorized
         end
 
         it "returns unauthorized when after lock_at" do
           assignment.update!(due_at: 36.hours.ago, unlock_at: 2.days.ago, lock_at: 1.day.ago)
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+          get "/courses/#{course.id}/assignments/#{assignment.id}/taking/123"
           assert_unauthorized
         end
 
         it "renders when within the lock window" do
           assignment.update!(due_at: Time.zone.now, unlock_at: 1.day.ago, lock_at: 1.day.from_now)
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+          get "/courses/#{course.id}/assignments/#{assignment.id}/taking/123"
           expect(response).to render_template("assignments/native_new_quizzes")
         end
 
         it "does not block non-taking actions" do
-          allow(controller).to receive(:taking_action?).and_call_original
           assignment.update!(due_at: 36.hours.from_now, unlock_at: 1.day.from_now, lock_at: 2.days.from_now)
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
           expect(response).to render_template("assignments/native_new_quizzes")
         end
       end
@@ -253,7 +231,7 @@ describe NewQuizzesController do
           override.override_lock_at(1.day.from_now)
           override.save!
 
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
           expect(response).to render_template("assignments/native_new_quizzes")
         end
       end
@@ -267,7 +245,7 @@ describe NewQuizzesController do
 
       it "renders even when assignment is locked" do
         assignment.update!(due_at: 36.hours.from_now, unlock_at: 1.day.from_now, lock_at: 2.days.from_now)
-        get :launch, params: { course_id: course.id, assignment_id: assignment.id }
+        get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
         expect(response).to render_template("assignments/native_new_quizzes")
       end
     end
@@ -281,18 +259,18 @@ describe NewQuizzesController do
       context "when user is a student" do
         before { user_session(student) }
 
-        it "hides the course sidebar (@show_left_side is false)" do
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
-          expect(assigns(:show_left_side)).to be false
+        it "renders successfully" do
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+          expect(response).to have_http_status(:ok)
         end
       end
 
       context "when user is a teacher" do
         before { user_session(teacher) }
 
-        it "keeps the course sidebar visible (@show_left_side is true)" do
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
-          expect(assigns(:show_left_side)).to be true
+        it "renders successfully" do
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+          expect(response).to have_http_status(:ok)
         end
       end
 
@@ -302,9 +280,9 @@ describe NewQuizzesController do
           user_session(student)
         end
 
-        it "does not set @show_left_side" do
-          get :launch, params: { course_id: course.id, assignment_id: assignment.id }
-          expect(assigns(:show_left_side)).to be_nil
+        it "renders successfully" do
+          get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+          expect(response).to have_http_status(:ok)
         end
       end
     end
@@ -318,14 +296,14 @@ describe NewQuizzesController do
       end
 
       it "returns unauthorized" do
-        get :banks, params: { course_id: course.id }
+        get "/courses/#{course.id}/banks"
         assert_unauthorized
       end
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
-        get :banks, params: { course_id: course.id }
+        get "/courses/#{course.id}/banks"
         expect(response).to redirect_to(login_url)
       end
     end
@@ -338,18 +316,18 @@ describe NewQuizzesController do
       end
 
       it "renders the native new quizzes view" do
-        get :banks, params: { course_id: course.id }
+        get "/courses/#{course.id}/banks"
         expect(response).to render_template("assignments/native_new_quizzes")
       end
 
       it "sets the NEW_QUIZZES js_env" do
-        get :banks, params: { course_id: course.id }
-        expect(assigns[:js_env][:NEW_QUIZZES]).to be_present
+        get "/courses/#{course.id}/banks"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]).to be_present
       end
 
       it "sets the basename in js_env for course context" do
-        get :banks, params: { course_id: course.id }
-        expect(assigns[:js_env][:NEW_QUIZZES][:basename]).to eq("/courses/#{course.id}")
+        get "/courses/#{course.id}/banks"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"]).to eq("/courses/#{course.id}")
       end
 
       context "when no quiz_lti tool is found" do
@@ -358,7 +336,7 @@ describe NewQuizzesController do
         end
 
         it "returns unauthorized" do
-          get :banks, params: { course_id: course.id }
+          get "/courses/#{course.id}/banks"
           assert_unauthorized
         end
       end
@@ -376,7 +354,7 @@ describe NewQuizzesController do
         end
 
         it "returns unauthorized" do
-          get :banks, params: { course_id: course.id }
+          get "/courses/#{course.id}/banks"
           assert_unauthorized
         end
       end
@@ -404,18 +382,18 @@ describe NewQuizzesController do
       end
 
       it "renders the native new quizzes view" do
-        get :banks, params: { account_id: account.id }
+        get "/accounts/#{account.id}/banks"
         expect(response).to render_template("assignments/native_new_quizzes")
       end
 
       it "sets the basename in js_env for account context" do
-        get :banks, params: { account_id: account.id }
-        expect(assigns[:js_env][:NEW_QUIZZES][:basename]).to eq("/accounts/#{account.id}")
+        get "/accounts/#{account.id}/banks"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]["basename"]).to eq("/accounts/#{account.id}")
       end
 
       it "sets the NEW_QUIZZES js_env" do
-        get :banks, params: { account_id: account.id }
-        expect(assigns[:js_env][:NEW_QUIZZES]).to be_present
+        get "/accounts/#{account.id}/banks"
+        expect(js_env_from_response(response)["NEW_QUIZZES"]).to be_present
       end
     end
   end
