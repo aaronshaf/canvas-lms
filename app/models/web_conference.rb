@@ -98,6 +98,10 @@ class WebConference < ApplicationRecord
   end
 
   def lti_settings=(new_settings)
+    new_settings = new_settings&.to_h&.symbolize_keys
+    if new_settings&.key?(:html)
+      new_settings[:html] = Sanitize.fragment(new_settings[:html].to_s, CanvasSanitize::SANITIZE)
+    end
     settings[:lti_settings] = new_settings
   end
 

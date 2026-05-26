@@ -510,6 +510,44 @@ describe WebConference do
           expect(conference.errors[:settings].to_s).to include("visible in context")
         end
 
+        it "sanitizes lti_settings[:html] on assignment" do
+          conference = course.web_conferences.build
+          conference.user = user
+          conference.conference_type = "LtiConference"
+          conference.lti_settings = { tool_id: tool.id, type: "html", html: "<img src=x onerror=alert(1)>" }
+          expect(conference.lti_settings[:html]).not_to include("onerror")
+        end
+
+        it "sanitizes lti_settings[:html] when assigned with string keys" do
+          conference = course.web_conferences.build
+          conference.user = user
+          conference.conference_type = "LtiConference"
+          conference.lti_settings = { "tool_id" => tool.id, "type" => "html", "html" => "<img src=x onerror=alert(1)>" }
+          expect(conference.lti_settings[:html]).not_to include("onerror")
+        end
+
+        it "persists lti_settings the same way whether assigned with string or symbol keys" do
+          symbol_conference = course.web_conferences.create! do |c|
+            c.user = user
+            c.conference_type = "LtiConference"
+            c.lti_settings = { tool_id: tool.id, type: "html", html: "<p>hi</p>" }
+          end
+
+          string_conference = course.web_conferences.create! do |c|
+            c.user = user
+            c.conference_type = "LtiConference"
+            c.lti_settings = { "tool_id" => tool.id, "type" => "html", "html" => "<p>hi</p>" }
+          end
+
+          symbol_reloaded = WebConference.find(symbol_conference.id).lti_settings
+          string_reloaded = WebConference.find(string_conference.id).lti_settings
+
+          expect(string_reloaded).to eq(symbol_reloaded)
+          expect(string_reloaded.keys).to eq(symbol_reloaded.keys)
+          expect(string_reloaded[:tool_id]).to eq(tool.id)
+          expect(string_reloaded[:html]).to eq("<p>hi</p>")
+        end
+
         it "requires the external tool have a conference_selection placement" do
           another_tool = new_valid_tool(course)
           another_tool.editor_button = { message_type: "LtiResourceLinkRequest" }
