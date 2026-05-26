@@ -697,7 +697,30 @@ class OutcomeResultsController < ApplicationController
     results
   end
 
+  def canvas_results_base_scope(user_ids)
+    scope = LearningOutcomeResult.active.with_active_link.where(
+      context_code: @context.asset_string,
+      user_id: user_ids,
+      hidden: false
+    )
+    unless @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
+      scope = scope.exclude_muted_associations
+    end
+    scope
+  end
+
   def find_canvas_os_results(opts = { all_users: false })
+    if @prefetched_canvas_results
+      users = opts[:all_users] ? @all_users : @users
+      user_id_order = users.each_with_index.with_object({}) { |(u, i), h| h[u.id] = i }
+      outcome_ids = @outcomes.to_set(&:id)
+      filtered = @prefetched_canvas_results
+                 .select { |r| user_id_order.key?(r.user_id) && outcome_ids.include?(r.learning_outcome_id) }
+      canvas_results = filtered.sort_by { |r| [user_id_order[r.user_id], r.learning_outcome_id, r.id] }
+      os_results = @prefetched_os_results&.select { |r| user_id_order.key?(r.user_id) }
+      return [canvas_results, os_results]
+    end
+
     canvas_results = find_outcome_results(
       @current_user,
       users: opts[:all_users] ? @all_users : @users,
@@ -791,7 +814,11 @@ class OutcomeResultsController < ApplicationController
       remove_users_without_results(@results, @outcome_service_results) if excludes.include?("missing_user_rollups")
       remove_outcomes_without_results(@results, @outcome_service_results) if excludes.include?("missing_outcome_results")
 
-      @results = @results.preload(:user)
+      if @results.respond_to?(:preload)
+        @results = @results.preload(:user)
+      else
+        ActiveRecord::Associations.preload(@results, :user)
+      end
       ActiveRecord::Associations.preload(@results, :learning_outcome)
       if @outcome_service_results.nil?
         outcome_results_rollups(results: @results, users: @users, excludes:, context: @context)
@@ -916,44 +943,38 @@ class OutcomeResultsController < ApplicationController
 
   def user_rollups_sorted_by_alignment_score_json
     missing_score_sort = (params[:sort_order] == "desc") ? CanvasSort::First : CanvasSort::Last
-    alignment_id_param = params[:sort_alignment_id]
-
-    content_tag_id = alignment_id_param.split("_").last.to_i
-
-    all_canvas_results = LearningOutcomeResult.active.with_active_link
-                                              .where(
-                                                context_code: @context.asset_string,
-                                                user_id: @all_users.map(&:id),
-                                                hidden: false
-                                              )
-    unless @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
-      all_canvas_results = all_canvas_results.exclude_muted_associations
-    end
-    all_canvas_results = all_canvas_results.to_a
-    canvas_results = all_canvas_results.select { |r| r.content_tag_id == content_tag_id }
+    content_tag_id = params[:sort_alignment_id].split("_").last.to_i
 
     os_results = fetch_and_convert_os_results(all_users: true)
-    os_results_for_alignment = os_results&.select { |r| r.content_tag_id == content_tag_id } || []
 
-    all_alignment_results = canvas_results + os_results_for_alignment
-    results_by_user = all_alignment_results.index_by(&:user_id)
-
-    @all_users.sort_by! do |user|
-      result = results_by_user[user.id]
-      score = result&.score
-      [score || missing_score_sort, Canvas::ICU.collation_key(user.sortable_name)]
-    end
-    @all_users.reverse! if params[:sort_order] == "desc"
-
-    # When missing_user_rollups is excluded, filter @all_users to only students
-    # with any outcome results before paginating, so the pagination count and
-    # page count are consistent with the "Students with no results = OFF" setting.
     if Api.value_to_array(params[:exclude]).include?("missing_user_rollups")
+      # Fetch all outcome results once: used for the missing_user_rollups check,
+      # alignment sorting (in-memory content_tag_id filter), and rollup computation
+      # (stored for reuse in find_canvas_os_results via @prefetched_canvas_results).
+      all_canvas_results = canvas_results_base_scope(@all_users.map(&:id)).to_a
+      canvas_results_for_alignment = all_canvas_results.select { |r| r.content_tag_id == content_tag_id }
+
       canvas_user_ids_with_results = all_canvas_results.map(&:user_id).uniq
       os_user_ids_with_results = os_results&.map(&:user_id)&.uniq || []
       user_ids_with_results = canvas_user_ids_with_results | os_user_ids_with_results
       @all_users = @all_users.select { |u| user_ids_with_results.include?(u.id) }
+
+      @prefetched_canvas_results = all_canvas_results
+      @prefetched_os_results = os_results
+    else
+      # Results for a single alignment live in one DB only (canvas or OS), so we
+      # query just that alignment instead of loading all outcome results.
+      canvas_results_for_alignment = canvas_results_base_scope(@all_users.map(&:id)).where(content_tag_id:).to_a
     end
+
+    os_results_for_alignment = os_results&.select { |r| r.content_tag_id == content_tag_id } || []
+    results_by_user = (canvas_results_for_alignment + os_results_for_alignment).index_by(&:user_id)
+
+    @all_users.sort_by! do |user|
+      score = results_by_user[user.id]&.score
+      [score || missing_score_sort, Canvas::ICU.collation_key(user.sortable_name)]
+    end
+    @all_users.reverse! if params[:sort_order] == "desc"
 
     @users = @all_users
     @users = Api.paginate(@users, self, api_v1_course_outcome_rollups_url(@context))
@@ -961,7 +982,7 @@ class OutcomeResultsController < ApplicationController
     # When sorting by contributing score, don't filter out users or outcomes without results
     # since we want to show all users sorted by this specific alignment
     original_exclude = params[:exclude]
-    params[:exclude] = Api.value_to_array(params[:exclude]).reject { |e| e == "missing_user_rollups" || e == "missing_outcome_results" }
+    params[:exclude] = Api.value_to_array(params[:exclude]).reject { |e| %w[missing_user_rollups missing_outcome_results].include?(e) }
 
     rollups = user_rollups
     json = outcome_results_rollups_json(rollups)

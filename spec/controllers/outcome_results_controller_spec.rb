@@ -2089,6 +2089,54 @@ describe OutcomeResultsController do
           expect(json["rollups"].length).to eq(3)
         end
 
+        def broad_lor_queries_during
+          lor_queries = []
+          subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+            lor_queries << payload[:sql] if payload[:sql].include?("learning_outcome_results")
+          end
+          yield
+          ActiveSupport::Notifications.unsubscribe(subscription)
+          # with_active_link always adds a JOIN on content_tag_id, so we check
+          # only the WHERE clause to avoid false negatives from the JOIN condition.
+          lor_queries.reject do |sql|
+            where_clause = sql.split(/\bWHERE\b/i, 2).last || ""
+            where_clause.include?("content_tag_id") || where_clause.include?("learning_outcome_id")
+          end
+        end
+
+        it "does not issue a broad learning_outcome_results query for sorting" do
+          queries = broad_lor_queries_during do
+            get_rollups(sort_by: "contributing_score", sort_alignment_id: @alignment_id)
+          end
+          expect(queries).to be_empty,
+                             "Unexpected broad LOR queries: #{queries.inspect}"
+        end
+
+        it "does not issue a separate rollup query when exclude: missing_user_rollups" do
+          lor_queries = []
+          subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+            lor_queries << payload[:sql] if payload[:sql].include?("learning_outcome_results")
+          end
+          begin
+            get_rollups(
+              sort_by: "contributing_score",
+              sort_alignment_id: @alignment_id,
+              exclude: ["missing_user_rollups"]
+            )
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscription)
+          end
+          # The broad all-outcomes query is fetched once and reused for rollup
+          # computation via prefetching, so user_rollups must not issue a second
+          # outcome-scoped (find_outcome_results) query to learning_outcome_results.
+          rollup_queries = lor_queries.select do |sql|
+            where_clause = sql.split(/\bWHERE\b/i, 2).last || ""
+            where_clause.include?("learning_outcome_id")
+          end
+          expect(rollup_queries).to be_empty,
+                                    "user_rollups issued a redundant rollup query: #{rollup_queries.inspect}"
+        end
+
         it "sorts rollups by descending alignment score" do
           get_rollups(sort_by: "contributing_score", sort_alignment_id: @alignment_id, sort_order: "desc")
           expect(response).to be_successful
@@ -2149,7 +2197,8 @@ describe OutcomeResultsController do
             expect(response).to be_successful
             json = parse_response(response)
             expect(json["rollups"].length).to be(2)
-            expect_user_order(json["rollups"], [@student1, @student2])
+            # ascending sort: student2 (score 1) before student1 (score 3)
+            expect_user_order(json["rollups"], [@student2, @student1])
           end
 
           it "pagination count reflects only students with results" do
