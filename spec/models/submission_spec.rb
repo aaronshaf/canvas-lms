@@ -10667,6 +10667,52 @@ describe Submission do
         it { is_expected.to be_hide_grade_from_student }
       end
     end
+
+    context "when the assignment is suppressed" do
+      before { assignment.update!(suppress_assignment: true) }
+
+      it { is_expected.to be_hide_grade_from_student }
+
+      context "and the submission is graded and posted" do
+        before do
+          assignment.grade_student(student, score: 5, grader: teacher)
+          submission.update!(posted_at: Time.zone.now)
+        end
+
+        it { is_expected.to be_hide_grade_from_student }
+      end
+    end
+
+    context "when the assignment is a peer review sub-assignment whose parent is suppressed" do
+      before { course.enable_feature!(:peer_review_allocation_and_grading) }
+
+      let(:parent_assignment) do
+        course.assignments.create!(
+          points_possible: 10,
+          submission_types: "online_text_entry",
+          peer_reviews: true,
+          automatic_peer_reviews: false
+        )
+      end
+      let(:peer_review_sub) do
+        PeerReview::PeerReviewCreatorService.call(
+          parent_assignment:,
+          points_possible: 5,
+          grading_type: "points"
+        )
+      end
+
+      it "hides the grade once the parent assignment is suppressed" do
+        peer_review_sub.grade_student(student, grader: teacher, score: 5)
+        expect(peer_review_sub.submission_for_student(student)).not_to be_hide_grade_from_student
+
+        # reload so the parent's peer_review_sub_assignment association is fresh,
+        # as it would be on a separate request when the teacher toggles suppression
+        parent_assignment.reload.update!(suppress_assignment: true)
+
+        expect(peer_review_sub.reload.submission_for_student(student)).to be_hide_grade_from_student
+      end
+    end
   end
 
   describe "posting and unposting" do
@@ -10829,6 +10875,12 @@ describe Submission do
       @assignment.mute!
       check_cache_clear do
         @assignment.unmute!
+      end
+    end
+
+    it "clears key when assignment is suppressed" do
+      check_cache_clear do
+        @assignment.update!(suppress_assignment: true)
       end
     end
   end

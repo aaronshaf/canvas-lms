@@ -3254,6 +3254,7 @@ class Submission < ApplicationRecord
 
   def hide_grade_from_student?(for_plagiarism: false)
     return false if for_plagiarism
+    return true if assignment.suppress_assignment?
 
     if assignment.post_manually?
       posted_at.blank?

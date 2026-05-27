@@ -229,6 +229,15 @@ RSpec.describe PeerReview::PeerReviewUpdaterService do
         expect(result.omit_from_final_grade).to be true
       end
 
+      it "updates suppress_assignment when parent assignment changes" do
+        existing_peer_review_sub_assignment.update!(suppress_assignment: false)
+        parent_assignment.update!(suppress_assignment: true)
+
+        result = service.call
+
+        expect(result.suppress_assignment).to be true
+      end
+
       it "updates both peer_review_submission_required and peer_review_across_sections together" do
         existing_peer_review_sub_assignment.update!(
           peer_review_submission_required: false,

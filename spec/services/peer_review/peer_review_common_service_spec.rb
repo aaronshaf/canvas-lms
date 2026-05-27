@@ -126,6 +126,7 @@ RSpec.describe PeerReview::PeerReviewCommonService do
         anonymous_peer_reviews
         automatic_peer_reviews
         intra_group_peer_reviews
+        suppress_assignment
         workflow_state
         group_category_id
       ]
@@ -203,6 +204,7 @@ RSpec.describe PeerReview::PeerReviewCommonService do
         peer_reviews
         peer_reviews_assigned
         peer_reviews_due_at
+        suppress_assignment
         workflow_state
       ]
 

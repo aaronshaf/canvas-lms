@@ -367,6 +367,8 @@ class Assignment < AbstractAssignment
     stream_item_contexts = stream_items.map { |si| [si.context_type, si.context_id] }
     user_ids = submissions.map(&:user_id).uniq
 
+    self.class.connection.after_transaction_commit { User.clear_cache_keys(user_ids, :submissions) }
+
     Shard.partition_by_shard(user_ids) do |user_ids_subset|
       StreamItemInstance.where(stream_item_id: stream_items, user_id: user_ids_subset)
                         .update_all_with_invalidation(stream_item_contexts, hidden: suppress_assignment?)

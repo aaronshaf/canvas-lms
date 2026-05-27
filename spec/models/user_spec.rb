@@ -963,6 +963,54 @@ describe User do
       expect(student.recent_feedback(contexts: [post_policies_course])).not_to be_empty
     end
 
+    context "when the assignment is suppressed" do
+      it "does not include feedback for posted submissions on a suppressed assignment" do
+        auto_posted_assignment.update!(suppress_assignment: true)
+        auto_posted_assignment.grade_student(student, grader: teacher, score: 10)
+        expect(student.recent_feedback).to be_empty
+      end
+
+      it "does not include comment-driven feedback for a suppressed assignment" do
+        auto_posted_assignment.update!(suppress_assignment: true)
+        submission = auto_posted_assignment.submissions.find_by!(user: student)
+        submission.update!(last_comment_at: 1.day.ago, posted_at: nil)
+        expect(student.recent_feedback).to be_empty
+      end
+    end
+
+    context "peer review sub-assignments" do
+      before do
+        post_policies_course.enable_feature!(:peer_review_allocation_and_grading)
+      end
+
+      let(:parent_assignment) do
+        post_policies_course.assignments.create!(
+          points_possible: 10,
+          submission_types: "online_text_entry",
+          peer_reviews: true,
+          automatic_peer_reviews: false
+        )
+      end
+      let(:peer_review_sub) do
+        PeerReview::PeerReviewCreatorService.call(
+          parent_assignment:,
+          points_possible: 5,
+          grading_type: "points"
+        )
+      end
+
+      it "includes feedback for a graded peer review sub-assignment" do
+        peer_review_sub.grade_student(student, grader: teacher, score: 5)
+        expect(student.recent_feedback).to include(peer_review_sub.submission_for_student(student))
+      end
+
+      it "does not include feedback when the parent assignment is suppressed" do
+        peer_review_sub.grade_student(student, grader: teacher, score: 5)
+        parent_assignment.update!(suppress_assignment: true)
+        expect(student.recent_feedback).to be_empty
+      end
+    end
+
     context "discussion checkpoints" do
       before do
         root_account = Account.default
@@ -987,6 +1035,14 @@ describe User do
           @reply_to_topic.submission_for_student(@student),
           @reply_to_entry.submission_for_student(@student)
         )
+      end
+
+      it "does not include checkpoint submissions when the parent assignment is suppressed" do
+        @reply_to_topic.grade_student(@student, grade: 5, grader: @teacher)
+        @reply_to_entry.grade_student(@student, grade: 8, grader: @teacher)
+        @topic.assignment.update!(suppress_assignment: true)
+
+        expect(@student.recent_feedback).to be_empty
       end
 
       it "does not include parent assignment submission with recent feedback" do

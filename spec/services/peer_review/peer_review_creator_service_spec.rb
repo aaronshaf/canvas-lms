@@ -145,6 +145,13 @@ RSpec.describe PeerReview::PeerReviewCreatorService do
         expect(result.group_category_id).to eq(parent_assignment.group_category_id)
       end
 
+      it "inherits suppress_assignment from a suppressed parent" do
+        parent_assignment.update!(suppress_assignment: true)
+
+        result = service.call
+        expect(result.suppress_assignment).to be true
+      end
+
       it "recomputes due dates after creating the sub assignment" do
         expect(PeerReviewSubAssignment).to receive(:clear_cache_keys).with(
           an_instance_of(PeerReviewSubAssignment),

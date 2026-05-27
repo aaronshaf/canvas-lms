@@ -2769,6 +2769,7 @@ class User < ApplicationRecord
           submissions += self.submissions.posted.where("GREATEST(submissions.submitted_at, submissions.created_at) > ?", start_at)
                              .where(course_id: course_ids).eager_load(:assignment)
                              .where("submissions.score IS NOT NULL AND assignments.workflow_state=?", "published")
+                             .merge(AbstractAssignment.without_suppressed_assignments)
                              .order("submissions.created_at DESC")
                              .limit(limit).to_a
 
@@ -2777,6 +2778,7 @@ class User < ApplicationRecord
                                    .where("submissions.posted_at IS NOT NULL OR post_policies.post_manually IS FALSE")
                                    .joins(:assignment, assignment: [:post_policy])
                                    .where(assignments: { workflow_state: "published" })
+                                   .merge(AbstractAssignment.without_suppressed_assignments)
                                    .where("last_comment_at > ?", start_at)
                                    .limit(limit).order(:last_comment_at).to_a
 
@@ -2784,7 +2786,7 @@ class User < ApplicationRecord
           submissions = submissions.uniq
           submissions.first(limit)
 
-          ActiveRecord::Associations.preload(submissions, [{ assignment: :context }, :user, :submission_comments])
+          ActiveRecord::Associations.preload(submissions, [{ assignment: [:context, :parent_assignment] }, :user, :submission_comments])
 
           # when discussion_checkpoints FF is enabled, we filter out parent assignment submissions
           # when that FF is disabled, we filter out sub_assignment submissions
@@ -2799,7 +2801,8 @@ class User < ApplicationRecord
                                                end
           submissions.delete_if do |sub|
             (sub.assignment.has_sub_assignments? && course_ids_with_active_checkpoints.include?(sub.course_id)) ||
-              (sub.assignment.is_a?(SubAssignment) && !course_ids_with_active_checkpoints.include?(sub.course_id))
+              (sub.assignment.is_a?(SubAssignment) && !course_ids_with_active_checkpoints.include?(sub.course_id)) ||
+              sub.assignment.parent_assignment&.suppress_assignment?
           end
         end
       end

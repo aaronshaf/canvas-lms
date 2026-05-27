@@ -40,6 +40,7 @@ class PeerReviewSubAssignment < AbstractAssignment
     peer_reviews
     peer_reviews_assigned
     peer_reviews_due_at
+    suppress_assignment
     title
     workflow_state
   ].freeze
