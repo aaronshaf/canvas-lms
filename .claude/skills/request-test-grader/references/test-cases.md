@@ -29,7 +29,7 @@ and report PASS / FAIL / UNTESTED for each.
    Use the lowest `it` per fixture (some have a second `it` to trip
    the `one-it` rule — not the target).
 
-2. Spawn all 9 `request-test-grader` agents in **one message**
+2. Spawn all 6 `request-test-grader` agents in **one message**
    (multiple Agent tool calls in a single turn). Prompt for each:
    `Target: <fixture-path>:<line>`.
 
@@ -247,14 +247,11 @@ To verify: invoke the grader agent on each fixture (target the first `it` line) 
 | Fixture | Expected `grade=` | Failing rules → boundary verified |
 |---------|-------------------|-----------------------------------|
 | `fixtures/rubric_a.rb` | `A` | (none) — A floor. |
-| `fixtures/rubric_a_minus_one_minor.rb` | `A-` | `aaa-headers` — A- lower bound (not A). |
-| `fixtures/rubric_a_minus.rb` | `A-` | `aaa-headers`, `symbol-statuses` — A- upper bound (not B). |
+| `fixtures/rubric_a_minus_one_minor.rb` | `A-` | `precise-matchers` — A- lower bound (not A). |
 | `fixtures/rubric_b.rb` | `B` | `literal-path` — B via the majors arm. |
-| `fixtures/rubric_b_minors.rb` | `B` | `aaa-headers`, `symbol-statuses`, `use-parsed-body` — B via the minors arm (not A-). |
 | `fixtures/rubric_c.rb` | `C` | `reload-assertions` — C (not F). |
 | `fixtures/rubric_d.rb` | `D` | `shape-and-value`, `reload-assertions`, `precise-matchers` — D via the 2-blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
-| `fixtures/rubric_f.rb` | `F` | `shape-and-value`, `reload-assertions`, `one-request`, `precise-matchers` — F via the blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
-| `fixtures/rubric_f_majors.rb` | `F` | `one-it`, `no-runtime-branching`, `literal-path`, `auth-matches-initiator`, `precedent-matched` — F via the majors arm (not D or C). |
+| `fixtures/rubric_f.rb` | `F` | `setup-in-it`, `shape-and-value`, `reload-assertions`, `precise-matchers` — F via the 3+ blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
 
 ---
 

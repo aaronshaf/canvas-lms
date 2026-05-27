@@ -55,30 +55,6 @@ Each rule has a **severity** indicating its impact when violated:
 
 *Why:* One scenario → one test gives clean failure attribution. When the test breaks, the broken behavior is unambiguous. Splitting into multiple `it`s fragments the signal and creates pressure to share setup — which **setup-in-it** forbids. Matching the surrounding file's `describe` convention keeps grep, suite listings, and code review unsurprising; deviating only at the seam where this skill's test lands is more cost than signal.
 
-### aaa-headers (minor)
-
-**Arrange-Act-Assert layout, labeled with `# Arrange` / `# Act` / `# Assert` comments.** Each phase is introduced by its own header comment on its own line, immediately above the first line of that phase. Use exactly these three labels — no variants (`# Setup`, `# Given`, `# Verify`). Separate phases from each other with a blank line; within Arrange, you may also use blank lines to group related setup steps.
-
-```ruby
-it "..." do
-  # Arrange
-  enrollment = course_with_teacher(active_all: true)
-  course = enrollment.course
-
-  teacher = enrollment.user
-  user_session(teacher)
-
-  # Act
-  get "/api/v1/courses/#{course.id}/enrollments"
-
-  # Assert
-  expect(response).to have_http_status(:ok)
-  expect(response.parsed_body.first["user_id"]).to eq(teacher.id)
-end
-```
-
-*Why:* The three phases of a test do different jobs and the reader needs to locate each at a glance. Blank-line separation alone is ambiguous because Arrange often benefits from its own internal blank lines (grouping factory setup, then auth, then stubs) — once Arrange has internal blanks, "the next blank line starts Act" stops being a reliable rule. Explicit `# Arrange` / `# Act` / `# Assert` headers make the phase boundaries unambiguous regardless of how much whitespace each phase uses internally, and they let a reader map the `it` body back to the original Given/When/Then clauses without parsing it.
-
 ### no-internal-mocks (blocker)
 
 **No mocks of Canvas's own code.** No `allow(SomeService).to receive(...)`, no `expect(SomeClass).to have_received(...)` against Canvas internals. The only allowed mocks are boundary mocks: WebMock (outbound HTTP), Timecop (time), filesystem stubs, ENV stubs, randomness stubs.
@@ -103,23 +79,11 @@ end
 
 *Why:* ActiveRecord caches attributes on the in-memory object. Without `.reload` you may assert against the *pre-request* state — passing when the DB actually changed (false positive) or failing when the request correctly persisted a different value (false negative). `.reload` guarantees you're checking what was actually saved.
 
-### no-runtime-branching (major)
-
-**No conditional logic whose branch can vary between runs. Loops only in Arrange, only for creating N similar records.** Banned: `if`/`unless`/`case` whose path depends on time, randomness, or external state. Allowed: deterministic filtering — `Array#detect`/`#find`/`#select` to pick a specific record out of a fixed collection (the response order is the only path).
-
-*Why:* Non-deterministic branching makes failure reproduction become "which branch did I hit?". Loops in assertions hide which iteration broke. Loops in Arrange (creating N similar records) are tolerated because each iteration is identical and the failure points to data setup, not assertion logic. Deterministic filtering is the legitimate way to address one element inside a list response — banning it would force fragile index-based assertions instead.
-
 ### literal-path (major)
 
 **Explicit verb + literal path + params/headers.** `get "/api/v1/courses/#{course.id}", params: {...}, headers: {...}`. No route helpers, no `process`.
 
 *Why:* The path the user actually hits is part of the contract under test. Hiding it behind `api_v1_course_url(course)` means a renamed route silently still passes — and the test no longer documents the URL. Literal paths also make grep-by-route trivial during route audits and incident triage.
-
-### symbol-statuses (minor)
-
-**Status assertions use Rails symbols.** `have_http_status(:ok)`, `:forbidden`, `:not_found`. Integer literal only when no symbol exists for that status code.
-
-*Why:* Symbols encode intent — `:forbidden` reads as "403 was the right answer", while `403` requires the reader to translate. In code review, `:ok` vs. `:created` is unmistakable; `200` vs. `201` is a one-character diff easy to miss. Typo'd symbols (`:okk`) raise loudly; typo'd integers (`405` instead of `404`) silently change the assertion.
 
 ### setup-in-it (blocker)
 
@@ -127,23 +91,11 @@ end
 
 *Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling. Every forbidden mechanism violates that invariant: `before` hooks move setup outside the test and compose across nested contexts in a sequence the reader has to mentally simulate; once-per-group variants (`before(:all)` / `before(:context)` / `before(:once)`) additionally share the same record graph across examples, so any in-example mutation leaks to siblings and produces order-dependent failures (Canvas's `before(:once)` wraps in a savepoint but still shares record identities, so the leakage mode is the same); `let` and `subject` are lazily evaluated, which makes execution order non-obvious; `@instance_vars` from enclosing scope force the reader to scroll up and reconstruct the setup graph. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY these mechanisms provide.
 
-### one-request (blocker)
-
-**Exactly one HTTP call to Canvas per test.** Setup happens via direct model creation and Canvas helpers, not via API calls.
-
-*Why:* A test with two requests has ambiguous failure attribution — when the second fails, was it the bug under test, or did the first request leave state the second didn't expect? One call = one behavior under test. API-driven setup also slows the test and implicitly tests endpoints that aren't the focus.
-
 ### stub-outbound (blocker)
 
 **Every outbound HTTP call the production code makes must be stubbed with WebMock** and verified with `have_requested` (per **verify-stubs**). The suite-wide WebMock posture (whether unstubbed non-localhost calls raise or pass through) is configured centrally in `spec/spec_helper.rb`; do not flip it from inside the `it` block.
 
 *Why:* Real outbound calls make the test slow, flaky, and dependent on services outside the system under test — directly violating the test contract's "single service" guarantee. Stubs at the boundary keep the test deterministic while still proving Canvas's contract with each collaborator. Flipping the global net-connect flag inside one `it` leaks the change to every subsequent example in the process — that's a suite-wide setting, not a per-test one.
-
-### plain-english-it (minor)
-
-**`it` description = plain-English Then.** No "should", no method names, no `#method_name` syntax. Describe observable behavior.
-
-*Why:* The description is what shows up in failure output and the suite's printed listing — a reader scanning failures should see the *user-visible behavior* that broke, not a Ruby symbol or implementation hint. Decoupling descriptions from method names also means internal refactors don't churn test names.
 
 ### no-magic-values (blocker)
 
@@ -167,20 +119,6 @@ end
 
 **Linter conflict.** If a cop (e.g., `RSpec/BeEql`) autocorrects `eql(...)` to `be(...)`, do not accept the autocorrect on these assertions — override with a single-line disable: `expect(body["score"]).to eql(8.0) # rubocop:disable RSpec/BeEql`. The comparison rule wins; the linter is silenced narrowly where it conflicts.
 
-### feature-flag-setup (major)
-
-**When the controller action reads a feature flag, the test sets the flag explicitly, *before* `user_session`, at the correct context, even if the dev default already matches.** Grep the action for `feature_enabled?` to find which flags it reads.
-
-Pick the enable site by the flag's `applies_to` (check `config/feature_flags/*.yml`):
-
-- `SiteAdmin` → `Account.site_admin.enable_feature!(:flag_name)`
-- `RootAccount` → `Account.default.enable_feature!(:flag_name)` (or `course.root_account.enable_feature!` if the test created its own root)
-- `Course` → `course.enable_feature!(:flag_name)`
-
-**Hidden-flag gotcha:** flags declared `state: hidden` in their YAML are invisible at lower contexts until enabled at SiteAdmin first. Grep the flag's YAML entry for `state: hidden` and, if present, also call `Account.site_admin.enable_feature!(:flag_name)` *before* the root/course enable — otherwise the lower call silently no-ops and the controller takes the flag-off branch.
-
-*Why:* Feature-flag defaults flip over time. A test that relied on the implicit default silently changes meaning the day the default flips, with no test edit. Explicit setting locks the test to the behavior it verifies. Pinning the right context prevents the "enabled on default account but the flag is SiteAdmin" silent miss. `RequestCache` and `Rails.cache` memoize `feature_enabled?` lookups within a request, so flipping a flag after the first lookup (e.g., after `user_session` has triggered any feature check) leaves the controller acting on stale state.
-
 ### auth-matches-initiator (major)
 
 **The auth pattern matches the request initiator.** Same Canvas endpoint (e.g. `/api/v1/conversations/unread_count`) is exercised by both the Canvas web UI (cookie/session) and external API clients (Bearer token), so route prefix alone is not enough.
@@ -193,35 +131,6 @@ Pick the enable site by the flag's `applies_to` (check `config/feature_flags/*.y
 | `anonymous` | No session setup. HTML routes redirect (302) to `login_url`; `/api/v1/...` routes return `:unauthorized` (401). Picking the wrong half is a common silent-pass. |
 
 *Why:* The same route can have entirely different auth semantics depending on who's calling. A teacher in the UI hitting `/api/v1/courses` uses session cookies; a script with a Bearer token hitting the same path is auth'd differently and may exercise different controller paths (e.g., masquerading-as-user logic). Picking the wrong pattern produces tests that either silently pass against the wrong code path or fail for reasons unrelated to the behavior under test.
-
-### precedent-matched (major) — when applicable
-
-**For `sibling-service-as-client(<service>)` scenarios, the request body, headers, and auth must match a precedent spec — nothing synthesized from the controller alone. For outbound stubs, the `with(...)` matcher and response shape must be mirrored from an existing spec for the same collaborator endpoint — never invented.**
-
-This rule applies *only* when:
-
-- the request initiator is a sibling service, *or*
-- the controller makes an outbound HTTP call that the test must stub.
-
-When neither condition holds, this rule is N/A (not graded).
-
-*Why:* The controller accepts a permissive superset of what the collaborator actually sends. A synthesized request only proves Canvas handles *some* shape — not the one the collaborator actually sends. The same logic applies to outbound stubs: an invented response body proves Canvas handles *some* response, not the one the collaborator actually returns. Mirroring from a precedent spec is how this skill ensures the contract under test matches reality.
-
-## Canvas-specific gradable rules
-
-These are Canvas-idiom-specific patterns with a mechanical right/wrong, so the grader checks them. They share the severity scheme above.
-
-### use-parsed-body (minor)
-
-**JSON response parsing uses `response.parsed_body`, never `JSON.parse(response.body)`.**
-
-*Why:* `parsed_body` is the Rails 7+ idiom, respects Content-Type, and produces clearer failure messages when the response isn't actually JSON (e.g., HTML error page). Mixing both forms in a suite makes failure-mode diagnosis inconsistent.
-
-### use-timecop (minor)
-
-**Time manipulation uses `Timecop.freeze(time) { ... }` or `Timecop.travel`, never Rails `travel_to` / `travel`.**
-
-*Why:* Canvas's existing suite is Timecop-based. Mixing in `travel_to` splits time control across two mechanisms with subtly different semantics (`travel_to` doesn't stack the way Timecop does), making time-bug debugging harder. Consistency over micro-preference.
 
 ## Canvas-specific defaults (guidance, not graded)
 
@@ -264,7 +173,6 @@ These inform write-time judgment but the grader does not produce report violatio
 - `shape-and-value`
 - `reload-assertions`
 - `setup-in-it`
-- `one-request`
 - `stub-outbound`
 - `no-magic-values`
 - `eql-for-numerics`
@@ -272,20 +180,12 @@ These inform write-time judgment but the grader does not produce report violatio
 **Major** (correctness or attribution risk):
 
 - `one-it`
-- `no-runtime-branching`
 - `literal-path`
-- `feature-flag-setup`
 - `auth-matches-initiator`
-- `precedent-matched` (when applicable)
 
 **Minor** (style / readability):
 
-- `aaa-headers`
-- `symbol-statuses`
-- `plain-english-it`
 - `precise-matchers`
-- `use-parsed-body`
-- `use-timecop`
 
 ## Letter grade rubric
 
@@ -294,11 +194,11 @@ The grader computes one letter grade per `it` it grades. The grade is determined
 | Grade | Condition |
 |---|---|
 | **A** | Zero ✗ across all applicable rules. |
-| **A-** | 1–2 minor ✗, no major or blocker ✗. |
-| **B** | 1 major ✗ and no blockers, OR 3+ minor ✗ and no blockers/majors. |
+| **A-** | 1 minor ✗, no major or blocker ✗. |
+| **B** | 1 major ✗ and no blockers. |
 | **C** | 2–3 major ✗ and no blockers, OR exactly 1 blocker ✗. |
 | **D** | Exactly 2 blocker ✗. |
-| **F** | 3+ blocker ✗, OR 5+ major ✗. |
+| **F** | 3+ blocker ✗. |
 
 **N/A handling.** Many rules have a *trigger condition* — circumstances under which the rule has something concrete to check. When a rule's trigger is absent from the test, mark it `N/A` rather than `✓`. The distinction matters: `✓` means "the rule applied and the test passed it"; `N/A` means "the rule never had a chance to fire here." Both are valid outcomes but carry different signal — a `✓` on `reload-assertions` reflects a real check on a real DB assertion, while `N/A` means the test simply didn't touch DB state. An eval harness reading the trailer's `na=` field can also assert which rules were *expected* to be out of scope for a fixture.
 
@@ -310,11 +210,8 @@ Rules with trigger conditions, and when each is `N/A`:
 | `reload-assertions` | Test asserts on DB state after the request | Test makes no DB-state assertions |
 | `stub-outbound` | Controller action makes outbound HTTP calls | Controller (and its directly-called helpers) make no outbound HTTP |
 | `eql-for-numerics` | Test makes numeric assertions on response or DB values | Test makes no numeric assertions |
-| `feature-flag-setup` | Controller action reads a feature flag whose default affects the branch under test | Controller does not read a relevant feature flag in the path the test exercises |
-| `use-timecop` | Test manipulates time (`Timecop.freeze` / `Timecop.travel`) | Test does not manipulate time |
-| `precedent-matched` | Initiator is a sibling service, or controller makes an outbound HTTP call requiring a stub | Neither condition is present |
 
-All other rules (`one-it`, `aaa-headers`, `no-internal-mocks`, `shape-and-value`, `setup-in-it`, `no-runtime-branching`, `literal-path`, `symbol-statuses`, `one-request`, `plain-english-it`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`, `use-parsed-body`) apply to every test and never receive `N/A`.
+All other rules (`one-it`, `no-internal-mocks`, `shape-and-value`, `setup-in-it`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `N/A`.
 
 **`N/A` does not count toward the letter grade in either direction.** The letter grade is computed only from `✗` counts. **`N/A` also does not push RITE dimension verdicts toward Mixed or Poor** — a dimension whose only non-✓ rules are `N/A` is graded `Good`.
 
@@ -328,10 +225,10 @@ Each rule contributes to one or more dimensions. Some rules contribute to multip
 
 | Dimension | What it means for a request test | Contributing rules |
 |-----------|----------------------------------|-------------------|
-| **Readable** | A reader can follow the `it` top-to-bottom without scrolling, knows what the test does from its description, and can locate Arrange/Act/Assert at fixed positions. | `aaa-headers`, `plain-english-it`, `literal-path`, `setup-in-it`, `one-it`, `use-parsed-body` |
-| **Isolated** | The test stands alone — no order dependencies, no cross-`it` state leakage, no hidden setup that varies between runs, exactly one HTTP call to Canvas. | `one-it`, `one-request`, `setup-in-it`, `no-runtime-branching`, `stub-outbound`, `use-timecop` |
-| **Thorough** | The test proves behavior, not coincidence — full-shape assertions, every collaborator verified, DB state reloaded, deterministic numeric types, feature flags pinned. | `shape-and-value`, `verify-stubs`, `reload-assertions`, `eql-for-numerics`, `feature-flag-setup`, `no-internal-mocks` |
-| **Explicit** | Every value the assertions depend on appears in setup; matchers carry intent (`:ok`, not `200`); auth pattern matches initiator; nothing inferred from defaults or precedent-by-convention. | `literal-path`, `no-magic-values`, `symbol-statuses`, `precise-matchers`, `auth-matches-initiator`, `eql-for-numerics`, `precedent-matched`, `feature-flag-setup`, `no-internal-mocks` |
+| **Readable** | A reader can follow the `it` top-to-bottom without scrolling and knows what the test does from its description. | `literal-path`, `setup-in-it`, `one-it` |
+| **Isolated** | The test stands alone — no order dependencies, no cross-`it` state leakage, no hidden setup that varies between runs. | `one-it`, `setup-in-it`, `stub-outbound` |
+| **Thorough** | The test proves behavior, not coincidence — full-shape assertions, every collaborator verified, DB state reloaded, deterministic numeric types. | `shape-and-value`, `verify-stubs`, `reload-assertions`, `eql-for-numerics`, `no-internal-mocks` |
+| **Explicit** | Every value the assertions depend on appears in setup; matchers carry intent; auth pattern matches initiator; nothing inferred from defaults. | `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`, `eql-for-numerics`, `no-internal-mocks` |
 
 ### Dimension verdict
 

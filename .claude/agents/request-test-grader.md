@@ -71,7 +71,7 @@ The example below is the literal shape to follow — `<report>` framing, section
 
 ## Executive Summary
 
-**Grade: C** — 1 blocker(s), 2 major(s), 2 minor(s)
+**Grade: C** — 1 blocker(s), 1 major(s), 0 minor(s)
 
 - **Target:** `spec/requests/courses_api_spec.rb:42` — "returns the requesting teacher's enrollment"
 - **Route:** `GET /api/v1/courses/:id/enrollments` → `EnrollmentsApiController#index`
@@ -80,36 +80,27 @@ The example below is the literal shape to follow — `<report>` framing, section
 
 | Dimension | Verdict | Notes |
 |-----------|---------|-------|
-| Readable | Mixed | aaa-headers ✗, literal-path ✗ |
+| Readable | Mixed | literal-path ✗ |
 | Isolated | Good | — |
 | Thorough | Poor | reload-assertions ✗ |
-| Explicit | Mixed | literal-path ✗, symbol-statuses ✗ |
+| Explicit | Mixed | literal-path ✗ |
 
 ## Per-rule verdict
 
 | Rule | Result | Note |
 |------|--------|------|
 | one-it | ✓ | — |
-| aaa-headers | ✗ minor | No `# Arrange` / `# Act` / `# Assert` headers |
 | no-internal-mocks | ✓ | — |
 | verify-stubs | N/A | no WebMock stubs |
 | shape-and-value | ✓ | — |
 | reload-assertions | ✗ blocker | Asserts `course.workflow_state` without `.reload` after a PUT that updates it |
 | setup-in-it | ✓ | — |
-| no-runtime-branching | ✓ | — |
 | literal-path | ✗ major | Uses `api_v1_course_enrollments_path(course)` route helper |
-| symbol-statuses | ✗ minor | Asserts `have_http_status(200)` instead of `:ok` |
-| one-request | ✓ | — |
 | stub-outbound | N/A | controller makes no outbound HTTP |
-| plain-english-it | ✓ | — |
 | no-magic-values | ✓ | — |
 | precise-matchers | ✓ | — |
 | eql-for-numerics | N/A | no numeric assertions |
-| feature-flag-setup | ✗ major | Action reads `feature_enabled?(:granular_permissions)` — flag not set in test |
 | auth-matches-initiator | ✓ | — |
-| precedent-matched | N/A | no sibling-service initiator and no outbound stub |
-| use-parsed-body | ✓ | — |
-| use-timecop | N/A | no time manipulation |
 
 ## Top fixes
 
@@ -124,22 +115,18 @@ The example below is the literal shape to follow — `<report>` framing, section
 | # | Location | Rule | Excerpt | Fix |
 |---|----------|------|---------|-----|
 | 2 | `spec/requests/courses_api_spec.rb:46` | literal-path | `get api_v1_course_enrollments_path(course)` | Per literal-path, replace the helper with the literal path: `get "/api/v1/courses/#{course.id}/enrollments"`. |
-| 3 | `spec/requests/courses_api_spec.rb:42` | feature-flag-setup | `it "returns the requesting teacher's enrollment" do` | Per feature-flag-setup, explicitly set the flag before `user_session`: `Account.default.enable_feature!(:granular_permissions)` (or disable, matching the branch under test). |
 
 ### Minors
 
-| # | Location | Rule | Excerpt | Fix |
-|---|----------|------|---------|-----|
-| 4 | `spec/requests/courses_api_spec.rb:42` | aaa-headers | `it "returns the requesting teacher's enrollment" do` | Per aaa-headers, label phases with `# Arrange` / `# Act` / `# Assert` headers above each phase's first line. |
-| 5 | `spec/requests/courses_api_spec.rb:49` | symbol-statuses | `expect(response).to have_http_status(200)` | Per symbol-statuses, use the Rails symbol: `have_http_status(:ok)`. |
+(none)
 
 === machine-readable ===
 grade=C
 blockers=1
-majors=2
-minors=2
-fail=aaa-headers,reload-assertions,literal-path,symbol-statuses,feature-flag-setup
-na=verify-stubs,stub-outbound,eql-for-numerics,precedent-matched,use-timecop
+majors=1
+minors=0
+fail=reload-assertions,literal-path
+na=verify-stubs,stub-outbound,eql-for-numerics
 rite=readable:mixed,isolated:good,thorough:poor,explicit:mixed
 === end ===
 </report>
@@ -156,7 +143,7 @@ These don't read off the example. Violating any of them produces a malformed or 
 - **Every applicable rule appears exactly once in the `Per-rule verdict` table.** No invented slugs; no omissions.
 - **Top fixes covers exactly the ✗ rules, one row per rule** — not one row per location. Same-rule, multi-location violations consolidate to a single row whose Location cell cites the lowest violating line; the Fix column may mention secondary locations inline. Severity sub-section matches the per-rule table. Do not add fix rows for `✓` or `N/A` rules.
 - **Top fixes uses source-line order, not rules-file order.** This is the single most common emission bug. Bucket ✗ rules by severity first, then sort each bucket by source line ascending (the rule's lowest violating line). Row numbering is continuous across sub-sections — number rows *after* sorting, not before. Do not iterate the per-rule verdict table and emit rows in the order you encounter them; that produces rules-file order, which is wrong.
-- **`N/A` is a real verdict, not silence.** Rules whose trigger condition is absent (`reload-assertions` when there are no DB assertions, `precedent-matched` when there's no sibling-service initiator and no outbound stub, controller-context rules when the route is unresolvable) appear as `N/A` rows with a brief reason in `Note`. Silence implies ✓; if a rule does not apply, say so explicitly.
+- **`N/A` is a real verdict, not silence.** Rules whose trigger condition is absent (`reload-assertions` when there are no DB assertions, `verify-stubs` when there are no WebMock stubs, controller-context rules when the route is unresolvable) appear as `N/A` rows with a brief reason in `Note`. Silence implies ✓; if a rule does not apply, say so explicitly.
 - **RITE verdict mapping is mechanical.** For each dimension, look up its contributing rules in `references/request-test-rules.md` (RITE dimensions table) and apply: all contributing rules `✓` or `N/A` → `Good`; any non-blocker `✗` → `Mixed`; any blocker `✗` → `Poor`. A rule that is *not* in a dimension's contributing-rule set cannot influence that dimension's verdict, even if it failed — only the contributing set is consulted. Notes cell cites the contributing ✗ rules (e.g., `reload-assertions ✗`) for Mixed/Poor, or `—` (em dash, U+2014) for Good. Do not graduate to `Poor` because the test "feels bad" — `Poor` requires a blocker ✗ in a contributing rule.
 - **Severity is fixed by the rules file.** Each rule's severity (`blocker` / `major` / `minor`) is declared in `references/request-test-rules.md`'s **Severity classification** section. A `✗` verdict on a rule uses that rule's declared severity verbatim — never downgraded or upgraded based on how the violation manifests in this test.
 - **Excerpts cite the source.** The `Excerpt` cell in `Top fixes` shows the offending source line. Escape any literal `|` as `\|` so the markdown table stays valid.

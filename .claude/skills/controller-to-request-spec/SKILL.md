@@ -88,7 +88,7 @@ Grading mode brings every converted `it` block to grade `A` or `A-` per the rubr
 ### Workflow
 
 1. **Load the rules.** Use the `Read` tool to read `.claude/skills/request-test-grader/references/request-test-rules.md` into context at the start of Grading mode. This is the same authoritative rules file the grader subagent applies, and the same one `request-test-writer` consumes.
-2. **Pre-alignment pass.** Walk every converted `it` once and apply the cheap per-`it` rules inline before invoking the grader: `literal-path`, `symbol-statuses`, `aaa-headers`, `reload-assertions`, `plain-english-it`. Fixing these mechanically avoids burning grader cycles on violations the converter can catch up-front.
+2. **Pre-alignment pass.** Walk every converted `it` once and apply the cheap per-`it` rules inline before invoking the grader: `literal-path`, `reload-assertions`. Fixing these mechanically avoids burning grader cycles on violations the converter can catch up-front.
 3. **Parallel grade.** For each converted `it`, spawn the `request-test-grader` subagent in parallel via the `Agent` tool.
    - **subagent_type:** `request-test-grader`
    - **description:** `Grade <basename>:<line>`

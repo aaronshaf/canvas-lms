@@ -42,11 +42,9 @@ The test must be readable, isolated, thorough, and explicit. It tests **behavior
 | **When** *(single HTTP action)* | **Act** | Exactly one HTTP request to Canvas — the behavior under test. | `get`/`post`/`put`/`patch`/`delete` with an explicit verb, literal path, and `params:` / `headers:`. One call only. |
 | **Then** *(observable outcome)* | **Assert** | Everything an outside observer can see after the request: response status, response body shape *and* values, DB state after `.reload`, and `have_requested` verification of every outbound stub. | `have_http_status`, `response.parsed_body` matchers, `record.reload.attr` matchers, `expect(WebMock).to have_requested(...)`. |
 
-Each phase in the `it` block is introduced by a `# Arrange` / `# Act` / `# Assert` header comment (**aaa-headers**), so a reader can locate each clause of the original scenario at a fixed position in the test body without parsing it — even when Arrange itself uses internal blank lines to group setup steps.
-
 Two consequences of this mapping that the skill enforces:
 
-- **A Given clause never becomes a request.** Setup is data, not API traffic — making it an API call collapses Arrange and Act, causes ambiguous failure attribution (**one-request**), and implicitly tests endpoints that aren't the focus.
+- **A Given clause never becomes a request.** Setup is data, not API traffic — making it an API call causes ambiguous failure attribution and implicitly tests endpoints that aren't the focus.
 - **A Then clause never becomes setup.** If the scenario's outcome is "the record now has X", the assertion belongs in Assert and must `.reload` (**reload-assertions**); pre-creating the record in state X verifies nothing.
 
 The goal is **heavy coverage at this layer** — write many of these, not few. Dozens of request tests covering grade-calculation variations is normal and desirable.
