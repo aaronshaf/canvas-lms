@@ -455,14 +455,16 @@ describe CanvasSanitize do
       expect(res).not_to include("javascript")
     end
 
-    it "removes protocol-relative candidates while preserving root-relative ones" do
-      res = Sanitize.clean('<source srcset="//evil.com/x.png 2x, /canvas/y.jpg 1x">', CanvasSanitize::SANITIZE)
-      expect(res).not_to include("evil.com")
-      expect(res).to include("/canvas/y.jpg")
+    it "removes bad protocol candidates while preserving allowed ones" do
+      res = Sanitize.clean('<source srcset="javascript:evil.com/x.png 2x, /canvas/y.jpg 1x">', CanvasSanitize::SANITIZE)
+      expect(res).to eq '<source srcset="/canvas/y.jpg 1x">'
+
+      res = Sanitize.clean('<source srcset="https://canvas.com/x.png 2x, javascript:evil/y.jpg 1x">', CanvasSanitize::SANITIZE)
+      expect(res).to eq '<source srcset="https://canvas.com/x.png 2x">'
     end
 
     it "strips the entire srcset attribute when all candidates are invalid" do
-      res = Sanitize.clean('<source srcset="//evil.com/x.png 2x, //other.com/y.png 1x">', CanvasSanitize::SANITIZE)
+      res = Sanitize.clean('<source srcset="javascript:evil.com/x.png 2x, script:other.com/y.png 1x">', CanvasSanitize::SANITIZE)
       expect(res).not_to include("srcset")
     end
 

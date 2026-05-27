@@ -97,7 +97,7 @@ module CanvasSanitize # :nodoc:
       candidates = node[attr].split(",").map(&:strip)
       clean = candidates.select do |candidate|
         url = candidate.split(/\s+/).first.to_s
-        url.match?(%r{\Ahttps?://}i) || (url.start_with?("/") && !url.start_with?("//")) || url.match?(/\Adata:/i)
+        url.match?(%r{\Ahttps?://}i) || url.start_with?("/") || url.match?(/\Adata:/i)
       end
       clean.empty? ? node.remove_attribute(attr) : node[attr] = clean.join(", ")
     end
