@@ -128,6 +128,56 @@ describe('pendo/index', () => {
       )
     })
 
+    it('includes only enabled IgniteAI flags from ENV.FEATURES on visitor', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      ;(globalThis as any).ENV = {
+        ...baseEnv,
+        FEATURES: {
+          ...baseEnv.FEATURES,
+          ai_rubrics: true,
+          smart_search: true,
+          translation: false,
+          discussion_summary: true,
+        },
+      }
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+
+      await initializePendo()
+
+      const visitor = mockInitialize.mock.calls[0][0].visitor
+      expect(visitor.igniteAiFlags).toEqual(
+        expect.arrayContaining(['ai_rubrics', 'smart_search', 'discussion_summary']),
+      )
+      expect(visitor.igniteAiFlags).not.toContain('translation')
+    })
+
+    it('omits igniteAiFlags from visitor when no IgniteAI flags are enabled', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+
+      await initializePendo()
+
+      const visitor = mockInitialize.mock.calls[0][0].visitor
+      expect(visitor).not.toHaveProperty('igniteAiFlags')
+    })
+
+    it('includes igniteAiFlags even when pendo_extended is off', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      ;(globalThis as any).ENV = {
+        ...baseEnv,
+        FEATURES: {...baseEnv.FEATURES, pendo_extended: false, translation: true},
+      }
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+
+      await initializePendo()
+
+      expect(mockInitialize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          visitor: expect.objectContaining({igniteAiFlags: ['translation']}),
+        }),
+      )
+    })
+
     it('does not re-initialize on subsequent calls', async () => {
       window.CANVAS_COOKIE_CONSENT_STATE = true
       mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})

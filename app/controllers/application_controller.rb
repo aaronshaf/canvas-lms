@@ -443,6 +443,16 @@ class ApplicationController < ActionController::Base
                                     elsif @context.is_a?(Course)
                                       @context.account.horizon_account?
                                     end
+        if (load_usage_metrics? || load_consented_usage_metrics?) && (@context.is_a?(Course) || @context.is_a?(Account))
+          @js_env[:FEATURES][:ai_rubrics] = @context.feature_enabled?(:ai_rubrics)
+          @js_env[:FEATURES][:discussion_insights] = @context.feature_enabled?(:discussion_insights)
+          @js_env[:FEATURES][:discussion_summary] = @context.feature_enabled?(:discussion_summary)
+          @js_env[:FEATURES][:new_quizzes_ai_quiz_generation] = @context.feature_enabled?(:new_quizzes_ai_quiz_generation)
+          @js_env[:FEATURES][:project_lhotse] = @context.feature_enabled?(:project_lhotse)
+          @js_env[:FEATURES][:smart_search] = @context.feature_enabled?(:smart_search)
+          @js_env[:FEATURES][:translation] = @context.feature_enabled?(:translation)
+        end
+
         if (load_usage_metrics? || load_consented_usage_metrics?) && @domain_root_account&.feature_enabled?(:pendo_extended)
           @js_env[:USAGE_METRICS_METADATA] ||= {}
           @js_env[:USAGE_METRICS_METADATA][:instance_domain] = HostUrl.context_host(@domain_root_account, request.host)
@@ -580,8 +590,10 @@ class ApplicationController < ActionController::Base
     ux_list_concluded_courses_in_bp
   ].freeze
   JS_ENV_ROOT_ACCOUNT_FEATURES = %i[
+    a11y_checker_ga1
     accessibility_automatic_scanning
     account_level_mastery_scales
+    ai_rubrics
     ams_root_account_integration
     ams_advanced_content_organization
     buttons_and_icons_root_account
@@ -597,6 +609,8 @@ class ApplicationController < ActionController::Base
     course_paces_skip_selected_days
     create_course_subaccount_picker
     disable_iframe_sandbox_file_show
+    discussion_insights
+    discussion_summary
     extended_submission_state
     file_verifiers_for_quiz_links
     grading_rubrics_pagination
@@ -620,9 +634,13 @@ class ApplicationController < ActionController::Base
     mobile_offline_mode
     modules_requirements_allow_percentage
     nav_menu_links
+    new_quizzes_ai_quiz_generation
     non_scoring_rubrics
+    oak_for_admins
+    oak_for_teachers
     pendo_extended
     product_tours
+    project_lhotse
     rce_asr_captioning_improvements
     rce_lite_enabled_speedgrader_comments
     rce_transform_loaded_content
@@ -632,7 +650,10 @@ class ApplicationController < ActionController::Base
     scheduled_page_publication
     send_usage_metrics
     send_usage_metrics_after_consent
+    smart_search
     top_navigation_placement
+    translate_inbox_messages
+    translation
     youtube_migration
     educator_dashboard
     widget_dashboard

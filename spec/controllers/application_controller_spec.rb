@@ -1036,6 +1036,67 @@ RSpec.describe ApplicationController do
           end
         end
 
+        describe "IgniteAI flags in FEATURES" do
+          it "exposes IgniteAI root-account flags in js_env[:FEATURES] when enabled" do
+            @account.enable_feature!(:ai_rubrics)
+            @account.set_feature_flag!(:translation, Feature::STATE_DEFAULT_ON)
+            features = controller.js_env[:FEATURES]
+            expect(features[:ai_rubrics]).to be true
+            expect(features[:translation]).to be true
+            expect(features[:smart_search]).to be false
+          end
+
+          it "exposes the site-admin scoped a11y_checker_ga2_features in js_env[:FEATURES]" do
+            Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+            expect(controller.js_env[:FEATURES][:a11y_checker_ga2_features]).to be true
+          end
+
+          describe "context-specific overrides when Pendo is loaded" do
+            before do
+              @account.enable_feature!(:send_usage_metrics)
+              mock_dynamic_settings_for_pendo_cc("pendos!")
+            end
+
+            it "reflects course-level state for course-scoped IgniteAI flags when context is a course" do
+              course = course_factory(account: @account)
+              course.enable_feature!(:ai_rubrics)
+              controller.instance_variable_set(:@context, course)
+              expect(controller.js_env[:FEATURES][:ai_rubrics]).to be true
+            end
+
+            it "reports course-scoped flag as off when disabled on the course but on at root account" do
+              course = course_factory(account: @account)
+              @account.enable_feature!(:smart_search)
+              course.disable_feature!(:smart_search)
+              controller.instance_variable_set(:@context, course)
+              expect(controller.js_env[:FEATURES][:smart_search]).to be false
+            end
+
+            it "reflects sub-account-level state when context is a sub-account" do
+              sub_account = Account.create!(parent_account: @account, name: "sub")
+              sub_account.enable_feature!(:ai_rubrics)
+              controller.instance_variable_set(:@context, sub_account)
+              expect(controller.js_env[:FEATURES][:ai_rubrics]).to be true
+            end
+
+            it "reports sub-account-disabled flag as off when root account has it on" do
+              sub_account = Account.create!(parent_account: @account, name: "sub")
+              @account.enable_feature!(:smart_search)
+              sub_account.disable_feature!(:smart_search)
+              controller.instance_variable_set(:@context, sub_account)
+              expect(controller.js_env[:FEATURES][:smart_search]).to be false
+            end
+          end
+
+          it "does not apply context override when Pendo is not loaded" do
+            course = course_factory(account: @account)
+            @account.enable_feature!(:ai_rubrics)
+            course.disable_feature!(:ai_rubrics)
+            controller.instance_variable_set(:@context, course)
+            expect(controller.js_env[:FEATURES][:ai_rubrics]).to be true
+          end
+        end
+
         describe "pendo_extended behavior" do
           it "does not add extra fields to js_env when disabled" do
             @account.enable_feature!(:send_usage_metrics)

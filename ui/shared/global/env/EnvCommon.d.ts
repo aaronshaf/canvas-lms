@@ -339,8 +339,10 @@ export type SiteAdminFeatureId =
  * From ApplicationController#JS_ENV_ROOT_ACCOUNT_FEATURES
  */
 export type RootAccountFeatureId =
+  | 'a11y_checker_ga1'
   | 'accessibility_automatic_scanning'
   | 'account_level_mastery_scales'
+  | 'ai_rubrics'
   | 'ams_root_account_integration'
   | 'ams_advanced_content_organization'
   | 'buttons_and_icons_root_account'
@@ -356,6 +358,8 @@ export type RootAccountFeatureId =
   | 'create_course_subaccount_picker'
   | 'default_discussion_options'
   | 'disable_iframe_sandbox_file_show'
+  | 'discussion_insights'
+  | 'discussion_summary'
   | 'extended_submission_state'
   | 'grading_rubrics_pagination'
   | 'institutional_tags'
@@ -376,9 +380,13 @@ export type RootAccountFeatureId =
   | 'mobile_offline_mode'
   | 'modules_requirements_allow_percentage'
   | 'nav_menu_links'
+  | 'new_quizzes_ai_quiz_generation'
   | 'non_scoring_rubrics'
+  | 'oak_for_admins'
+  | 'oak_for_teachers'
   | 'pendo_extended'
   | 'product_tours'
+  | 'project_lhotse'
   | 'rce_asr_captioning_improvements'
   | 'rce_lite_enabled_speedgrader_comments'
   | 'rce_studio_embed_improvements'
@@ -389,7 +397,10 @@ export type RootAccountFeatureId =
   | 'send_usage_metrics'
   | 'substitution_variable_display'
   | 'send_usage_metrics_after_consent'
+  | 'smart_search'
   | 'top_navigation_placement'
+  | 'translate_inbox_messages'
+  | 'translation'
   | 'course_navigation_and_feature_options_permissions'
 
 /**
