@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {cleanup, render, screen, waitFor, act} from '@testing-library/react'
+import {render, screen, waitFor, act} from '@testing-library/react'
 import {StudentSearch} from '../StudentSearch'
 import * as useStudentsHook from '../../../hooks/useStudents'
 import {Student} from '@canvas/outcomes/react/types/rollup'
@@ -232,6 +232,33 @@ describe('StudentSearch', () => {
 
     const combobox = screen.getByRole('combobox', {name: /student names/i})
     expect(combobox).toBeInTheDocument()
+  })
+
+  it('shows students when searching by last name', async () => {
+    const studentsWithDistinctNames: Student[] = [
+      {id: '10', name: 'Alice Johnson', display_name: 'Alice', sortable_name: 'Johnson, Alice'},
+      {id: '11', name: 'Bob Smith', display_name: 'Bob', sortable_name: 'Smith, Bob'},
+    ]
+    vi.spyOn(useStudentsHook, 'useStudents').mockReturnValue({
+      students: studentsWithDistinctNames,
+      isLoading: false,
+      error: null,
+    })
+
+    render(<StudentSearch {...defaultProps} />)
+    const input = screen.getByPlaceholderText('Search Students')
+
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(
+        input,
+        'Smith',
+      )
+      input.dispatchEvent(new Event('input', {bubbles: true}))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Bob Smith')).toBeInTheDocument()
+    })
   })
 
   it('renders with search icon customRenderBeforeInput', () => {

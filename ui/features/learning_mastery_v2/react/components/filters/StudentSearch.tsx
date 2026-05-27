@@ -16,12 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useEffect} from 'react'
-import CanvasMultiSelect from '@canvas/multi-select'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import CanvasMultiSelect from '@canvas/multi-select'
+import {Student} from '@canvas/outcomes/react/types/rollup'
 import {IconSearchLine} from '@instructure/ui-icons'
 import {debounce} from 'es-toolkit/compat'
-import {Student} from '@canvas/outcomes/react/types/rollup'
+import React, {useEffect, useRef, useState} from 'react'
 import {useStudents} from '../../hooks/useStudents'
 
 const I18n = createI18nScope('LearningMasteryGradebook')
@@ -41,28 +41,26 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('')
   const {students: initialStudents, isLoading} = useStudents(courseId, searchTerm)
 
+  const selectedUserIdsRef = useRef(selectedUserIds)
+  selectedUserIdsRef.current = selectedUserIds
+
   useEffect(() => {
-    if (initialStudents.length > 0) {
-      setStudents(prevStudents => {
-        // Keep previously selected students that are still selected
-        // Convert string IDs to numbers for comparison
-        const prevSelected = prevStudents.filter(s => selectedUserIds.includes(Number(s.id)))
-
-        // Merge with new results, avoiding duplicates
-        const newStudentIds = new Set(initialStudents.map(s => s.id))
-        const selectedNotInResults = prevSelected.filter(s => !newStudentIds.has(s.id))
-
-        return [...selectedNotInResults, ...initialStudents]
-      })
-    }
-  }, [initialStudents, selectedUserIds])
+    setStudents(prevStudents => {
+      const prevSelected = prevStudents.filter(s =>
+        selectedUserIdsRef.current.includes(Number(s.id)),
+      )
+      const newStudentIds = new Set(initialStudents.map(s => s.id))
+      const selectedNotInResults = prevSelected.filter(s => !newStudentIds.has(s.id))
+      return [...selectedNotInResults, ...initialStudents]
+    })
+  }, [initialStudents])
 
   const handleSelectedUsersChange = (selectedIds: string[]) => {
     onSelectedUserIdsChange(selectedIds.map(id => Number(id)))
     setSearchTerm('')
   }
 
-  const handleInputChange = debounce(async (searchTerm: string) => {
+  const handleInputChange = debounce((searchTerm: string) => {
     if (searchTerm.length > 0 && searchTerm.length < 2) return
 
     setSearchTerm(searchTerm)
@@ -76,6 +74,9 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({
       selectedOptionIds={selectedUserIds.map(id => String(id))}
       customRenderBeforeInput={tags => [<IconSearchLine key="search-icon" />].concat(tags || [])}
       customOnInputChange={handleInputChange}
+      customMatcher={(option: {label: string}, term: string) =>
+        option.label.toLowerCase().includes(term.trim().toLowerCase())
+      }
       isLoading={isLoading}
     >
       {students.map(student => (
