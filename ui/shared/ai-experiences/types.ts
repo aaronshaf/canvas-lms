@@ -95,6 +95,13 @@ export interface ConversationProgress {
   }>
 }
 
+export interface Snapshot {
+  total_objectives: number
+  completed: number
+  in_progress: number
+  not_started: number
+}
+
 export interface LLMConversationViewProps {
   isOpen: boolean
   onClose: () => void

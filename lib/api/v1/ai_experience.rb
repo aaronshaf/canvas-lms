@@ -26,7 +26,7 @@ module Api::V1::AiExperience
   }.freeze
 
   CONVERSATION_JSON_OPTS = {
-    only: %w[id llm_conversation_id workflow_state created_at updated_at user_id]
+    only: %w[id llm_conversation_id workflow_state all_objectives_met created_at updated_at user_id]
   }.freeze
 
   def ai_experience_json(ai_experience, user, session, opts = {})
@@ -59,6 +59,10 @@ module Api::V1::AiExperience
           content_type: attachment.content_type,
           url: attachment.public_url
         }
+      end
+
+      json[:evaluation_metrics] = ai_experience.ai_experience_evaluation_metrics.map do |m|
+        { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
       end
     end
 

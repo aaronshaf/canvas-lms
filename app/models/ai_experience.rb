@@ -24,6 +24,7 @@ class AiExperience < ApplicationRecord
 
   has_many :ai_conversations, dependent: :destroy
   has_many :ai_experience_context_files, dependent: :destroy
+  has_many :ai_experience_evaluation_metrics, -> { order(:position) }, dependent: :destroy
   # Excludes soft-deleted attachments. Note: if an attachment is deleted in Canvas
   # after being associated, the join record remains but the file is silently omitted
   # from context_data. The llm-conversation service JSONB will contain stale data
@@ -39,6 +40,10 @@ class AiExperience < ApplicationRecord
   # can verify pending attachments against the acting user. Service-layer callers
   # that legitimately bypass user auth (jobs, fixtures) leave this nil.
   attr_accessor :current_user, :current_session
+
+  # Set by the controller when evaluation_metrics are submitted. Each element is
+  # a hash with keys: key (string), enabled (bool), visible_to_learners (bool).
+  attr_reader :pending_evaluation_metrics
 
   # Length caps mirror llma's DTO limits (PR #259) so oversized payloads are
   # rejected at save time, before any upstream call. See AIEXP-004 / M-8.
@@ -87,10 +92,15 @@ class AiExperience < ApplicationRecord
   # sync_context_files must run before update_conversation_context so
   # files are persisted before the service is notified of changes.
   after_save :sync_context_files, if: :pending_context_file_ids?
+  after_save :sync_evaluation_metrics, if: :pending_evaluation_metrics?
   after_save :update_conversation_context
 
   def context_file_ids=(ids)
     @pending_context_file_ids = Array(ids).map(&:to_s)
+  end
+
+  def evaluation_metrics=(metrics)
+    @pending_evaluation_metrics = Array(metrics)
   end
 
   def delete
@@ -180,6 +190,24 @@ class AiExperience < ApplicationRecord
     !@pending_context_file_ids.nil?
   end
 
+  def pending_evaluation_metrics?
+    !@pending_evaluation_metrics.nil?
+  end
+
+  def sync_evaluation_metrics
+    incoming = @pending_evaluation_metrics.each_with_index.map do |m, i|
+      { name: m[:name] || m["name"],
+        enabled: m.fetch(:enabled, m.fetch("enabled", true)),
+        visible_to_learners: m.fetch(:visible_to_learners, m.fetch("visible_to_learners", false)),
+        position: i + 1 }
+    end
+
+    ai_experience_evaluation_metrics.destroy_all
+    incoming.each { |attrs| ai_experience_evaluation_metrics.create!(attrs.merge(root_account_id:)) }
+    @evaluation_metrics_changed = true
+    @pending_evaluation_metrics = nil
+  end
+
   # Belt-and-suspenders for the controller's authorize_context_file_ids! check.
   # Skips when current_user is nil (preserves service/job/fixture callers that do
   # not have a user context). When the controller sets current_user, every pending
@@ -256,7 +284,9 @@ class AiExperience < ApplicationRecord
 
     context_changed = saved_change_to_pedagogical_guidance? || saved_change_to_facts? || saved_change_to_learning_objective?
     context_changed ||= @context_files_changed.present?
+    context_changed ||= @evaluation_metrics_changed.present?
     @context_files_changed = nil
+    @evaluation_metrics_changed = nil
 
     context_changed
   end

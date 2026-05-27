@@ -950,4 +950,72 @@ describe AiExperience do
       end
     end
   end
+
+  describe "#sync_evaluation_metrics" do
+    let(:experience) do
+      allow_any_instance_of(AiExperiences::ConversationContextService).to receive(:update)
+      AiExperience.create!(valid_attributes)
+    end
+
+    it "creates metrics from the pending list" do
+      experience.evaluation_metrics = [
+        { name: "Summary", enabled: true, visible_to_learners: true },
+        { name: "Areas for improvement", enabled: false, visible_to_learners: false }
+      ]
+      experience.save!
+
+      metrics = experience.ai_experience_evaluation_metrics.order(:position)
+      expect(metrics.map(&:name)).to eq(["Summary", "Areas for improvement"])
+      expect(metrics.map(&:enabled)).to eq([true, false])
+      expect(metrics.map(&:visible_to_learners)).to eq([true, false])
+    end
+
+    it "assigns sequential positions starting at 1" do
+      experience.evaluation_metrics = [
+        { name: "Summary", enabled: true, visible_to_learners: false },
+        { name: "Areas for improvement", enabled: true, visible_to_learners: false }
+      ]
+      experience.save!
+
+      positions = experience.ai_experience_evaluation_metrics.order(:position).map(&:position)
+      expect(positions).to eq([1, 2])
+    end
+
+    it "replaces existing metrics on subsequent saves" do
+      experience.evaluation_metrics = [{ name: "Old metric", enabled: true, visible_to_learners: false }]
+      experience.save!
+
+      experience.evaluation_metrics = [{ name: "New metric", enabled: true, visible_to_learners: true }]
+      experience.save!
+
+      metrics = experience.ai_experience_evaluation_metrics.reload
+      expect(metrics.map(&:name)).to eq(["New metric"])
+    end
+
+    it "clears all metrics when given an empty array" do
+      experience.evaluation_metrics = [{ name: "Summary", enabled: true, visible_to_learners: false }]
+      experience.save!
+
+      experience.evaluation_metrics = []
+      experience.save!
+
+      expect(experience.ai_experience_evaluation_metrics.reload).to be_empty
+    end
+
+    it "does not touch metrics when evaluation_metrics is not assigned" do
+      experience.evaluation_metrics = [{ name: "Summary", enabled: true, visible_to_learners: false }]
+      experience.save!
+
+      experience.update!(title: "New title")
+
+      expect(experience.ai_experience_evaluation_metrics.count).to eq(1)
+    end
+
+    it "accepts string keys" do
+      experience.evaluation_metrics = [{ "name" => "Summary", "enabled" => true, "visible_to_learners" => false }]
+      experience.save!
+
+      expect(experience.ai_experience_evaluation_metrics.first.name).to eq("Summary")
+    end
+  end
 end

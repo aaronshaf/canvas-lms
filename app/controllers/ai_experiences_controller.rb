@@ -324,6 +324,28 @@ class AiExperiencesController < ApplicationController
     # Build a hash for quick lookup: user_id => conversation
     conversations_by_user = latest_conversations.index_by(&:user_id)
 
+    # Compute snapshot counts
+    users_with_conversation = latest_conversations.to_set(&:user_id)
+    completed_count = latest_conversations.count(&:completed?)
+    in_progress_count = latest_conversations.count { |c| c.active? && !c.completed? }
+    not_started_count = student_ids.count { |id| !users_with_conversation.include?(id) }
+    total_objectives = begin
+      AiExperiences::ConversationContextStatsService.new(account: @context.root_account)
+                                                    .total_objectives(context_id: @experience.llm_conversation_context_id)
+    rescue LlmConversation::Errors::ConversationError
+      0
+    end
+    evaluation_metrics = @experience.ai_experience_evaluation_metrics.map do |m|
+      { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
+    end
+    snapshot = {
+      completed: completed_count,
+      in_progress: in_progress_count,
+      not_started: not_started_count,
+      total_objectives:,
+      evaluation_metrics:
+    }
+
     # For each student, get their latest conversation for this experience
     conversations = students.map do |student|
       latest_conversation = conversations_by_user[student.id]
@@ -352,7 +374,7 @@ class AiExperiencesController < ApplicationController
       end
     end
 
-    render json: { conversations: }
+    render json: { conversations:, snapshot: }
   end
 
   # @API Show student AI conversation
@@ -427,7 +449,7 @@ class AiExperiencesController < ApplicationController
 
   def experience_params
     base_params = %i[title description facts learning_objective pedagogical_guidance workflow_state]
-    params.expect(ai_experience: [*base_params, { context_file_ids: [] }])
+    params.expect(ai_experience: [*base_params, { context_file_ids: [], evaluation_metrics: [%i[name enabled visible_to_learners]] }])
   end
 
   # Reject context_file_ids that reference attachments outside this course.

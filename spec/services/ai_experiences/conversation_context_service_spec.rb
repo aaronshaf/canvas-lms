@@ -346,6 +346,63 @@ describe AiExperiences::ConversationContextService do
     end
   end
 
+  describe "evaluation_metrics payload" do
+    before do
+      ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
+
+      stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
+        .to_return(status: 200,
+                   body: {
+                     "success" => true,
+                     "data" => { "id" => "context-uuid", "type" => "assignment", "data" => {} }
+                   }.to_json,
+                   headers: { "Content-Type" => "application/json" })
+    end
+
+    it "sends evaluation_metrics in the update payload" do
+      AiExperienceEvaluationMetric.create!(
+        ai_experience:,
+        name: "Summary",
+        enabled: true,
+        visible_to_learners: true
+      )
+
+      service.update(ai_experience:)
+
+      expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
+        .with(body: hash_including(
+          "evaluation_metrics" => [
+            { "name" => "Summary", "enabled" => true, "visible_to_learners" => true }
+          ]
+        ))
+    end
+
+    it "sends an empty evaluation_metrics array when no metrics exist" do
+      service.update(ai_experience:)
+
+      expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
+        .with(body: hash_including("evaluation_metrics" => []))
+    end
+
+    it "sends all metric fields: name, enabled, visible_to_learners" do
+      AiExperienceEvaluationMetric.create!(
+        ai_experience:,
+        name: "Areas for improvement",
+        enabled: false,
+        visible_to_learners: false
+      )
+
+      service.update(ai_experience:)
+
+      expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
+        .with(body: hash_including(
+          "evaluation_metrics" => [
+            { "name" => "Areas for improvement", "enabled" => false, "visible_to_learners" => false }
+          ]
+        ))
+    end
+  end
+
   describe "#delete" do
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")

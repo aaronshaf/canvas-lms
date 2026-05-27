@@ -34,7 +34,8 @@ module AiExperiences
       payload = {
         type: "assignment",
         data: context_data(ai_experience),
-        prompt_id: prompt["id"]
+        prompt_id: prompt["id"],
+        evaluation_metrics: evaluation_metrics_payload(ai_experience)
       }
 
       response = @client.post("/conversation-context", payload:)
@@ -46,7 +47,10 @@ module AiExperiences
     def update(ai_experience:)
       return unless ai_experience.llm_conversation_context_id.present?
 
-      payload = { data: context_data(ai_experience) }
+      payload = {
+        data: context_data(ai_experience),
+        evaluation_metrics: evaluation_metrics_payload(ai_experience)
+      }
       @client.patch("/conversation-context/#{ai_experience.llm_conversation_context_id}", payload:)
     end
 
@@ -58,6 +62,12 @@ module AiExperiences
     end
 
     private
+
+    def evaluation_metrics_payload(ai_experience)
+      ai_experience.ai_experience_evaluation_metrics.map do |m|
+        { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
+      end
+    end
 
     def get_prompt_by_code(code)
       response = @client.get("/prompts/by-code/#{code}")

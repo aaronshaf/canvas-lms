@@ -1089,6 +1089,61 @@ describe AiExperiencesController, type: :request do
       end
     end
 
+    context "evaluation_metrics" do
+      before { user_session(@teacher) }
+
+      it "saves evaluation_metrics when submitted" do
+        allow_any_instance_of(AiExperiences::ConversationContextService).to receive(:update)
+
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: {
+              ai_experience: {
+                evaluation_metrics: [
+                  { name: "Summary", enabled: true, visible_to_learners: true },
+                  { name: "Areas for improvement", enabled: false, visible_to_learners: false }
+                ]
+              }
+            }
+
+        expect(response).to have_http_status(:ok)
+        metrics = @ai_experience.reload.ai_experience_evaluation_metrics.order(:position)
+        expect(metrics.map(&:name)).to eq(["Summary", "Areas for improvement"])
+        expect(metrics.map(&:enabled)).to eq([true, false])
+      end
+
+      it "includes evaluation_metrics in the GET show response after saving" do
+        allow_any_instance_of(AiExperiences::ConversationContextService).to receive(:update)
+
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: {
+              ai_experience: {
+                evaluation_metrics: [{ name: "Summary", enabled: true, visible_to_learners: false }]
+              }
+            }
+
+        expect(response).to have_http_status(:ok)
+
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
+
+        json_response = json_parse(response.body)
+        expect(json_response).to have_key("evaluation_metrics")
+        expect(json_response["evaluation_metrics"].first["name"]).to eq("Summary")
+      end
+
+      it "rejects metric names with newlines" do
+        allow_any_instance_of(AiExperiences::ConversationContextService).to receive(:update)
+
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: {
+              ai_experience: {
+                evaluation_metrics: [{ name: "bad\ninjection", enabled: true, visible_to_learners: false }]
+              }
+            }
+
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
     context "as student" do
       before { user_session(@student) }
 
@@ -1435,6 +1490,55 @@ describe AiExperiencesController, type: :request do
         student1_conversations = conversations.select { |c| c["user_id"] == @student1.id }
         expect(student1_conversations.length).to eq(1)
         expect(student1_conversations.first["id"]).to eq(@conversation1.id)
+      end
+
+      context "snapshot" do
+        let(:stats_service) { instance_double(AiExperiences::ConversationContextStatsService) }
+
+        before do
+          allow(AiExperiences::ConversationContextStatsService).to receive(:new).and_return(stats_service)
+          allow(stats_service).to receive(:total_objectives).and_return(2)
+        end
+
+        it "includes snapshot in response" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
+          json_response = json_parse(response.body)
+          expect(json_response).to have_key("snapshot")
+          snapshot = json_response["snapshot"]
+          expect(snapshot.keys).to include("completed", "in_progress", "not_started", "total_objectives")
+        end
+
+        it "counts completed, in_progress, and not_started correctly" do
+          # student1: active, not completed → in_progress
+          # student2: ended, not completed → neither
+          # student3: no conversation → not_started
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
+          snapshot = json_parse(response.body)["snapshot"]
+          expect(snapshot["completed"]).to eq(0)
+          expect(snapshot["in_progress"]).to eq(1)
+          expect(snapshot["not_started"]).to eq(1)
+        end
+
+        it "counts completed when all_objectives_met is true" do
+          @conversation1.update_column(:all_objectives_met, true)
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
+          snapshot = json_parse(response.body)["snapshot"]
+          expect(snapshot["completed"]).to eq(1)
+          expect(snapshot["in_progress"]).to eq(0)
+        end
+
+        it "returns total_objectives from LLMA" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
+          expect(json_parse(response.body)["snapshot"]["total_objectives"]).to eq(2)
+        end
+
+        it "returns total_objectives: 0 when LLMA call fails" do
+          allow(stats_service).to receive(:total_objectives)
+            .and_raise(LlmConversation::Errors::ConversationError.new("LLMA unavailable"))
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
+          expect(response).to be_successful
+          expect(json_parse(response.body)["snapshot"]["total_objectives"]).to eq(0)
+        end
       end
     end
 

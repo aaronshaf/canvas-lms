@@ -261,6 +261,41 @@ describe Api::V1::AiExperience do
     end
   end
 
+  context "evaluation_metrics" do
+    it "includes evaluation_metrics when can_manage is true" do
+      AiExperienceEvaluationMetric.create!(
+        ai_experience: @ai_experience,
+        name: "Summary",
+        enabled: true,
+        visible_to_learners: false
+      )
+
+      json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
+
+      expect(json).to have_key(:evaluation_metrics)
+      expect(json[:evaluation_metrics]).to eq([{ "name" => "Summary", "enabled" => true, "visible_to_learners" => false }])
+    end
+
+    it "excludes evaluation_metrics when can_manage is false" do
+      AiExperienceEvaluationMetric.create!(
+        ai_experience: @ai_experience,
+        name: "Summary",
+        enabled: true,
+        visible_to_learners: false
+      )
+
+      json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: false)
+
+      expect(json).not_to have_key(:evaluation_metrics)
+    end
+
+    it "returns an empty array when no metrics exist" do
+      json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
+
+      expect(json[:evaluation_metrics]).to eq([])
+    end
+  end
+
   describe "ai_experiences_json" do
     it "returns array of ai experience json objects" do
       experiences = [@ai_experience]
