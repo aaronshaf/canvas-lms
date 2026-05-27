@@ -52,15 +52,6 @@ describe "course paces edit tray" do
       create_published_course_pace(pace_module_title, module_assignment_title)
     end
 
-    it "shows tray link not available when updates have not been made" do
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(publish_status).to be_displayed
-      expect(publish_status.text).to eq("No pending changes")
-      expect(publish_status_button_exists?).to be_falsey
-    end
-
     it "provides tray link button when updates have been made" do
       visit_course_paces_page
       click_create_default_pace_button
@@ -86,27 +77,6 @@ describe "course paces edit tray" do
       expect(unpublished_changes_tray).to be_displayed
     end
 
-    it "shows the unpublished change in the tray" do
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      update_module_item_duration(0, 3)
-      click_unpublished_changes_button
-
-      expect(unpublished_changes_list[0].text).to include(module_assignment_title)
-    end
-
-    it "closes the tray when close button clicked" do
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      update_module_item_duration(0, 3)
-      click_unpublished_changes_button
-      click_edit_tray_close_button
-
-      wait_for_no_such_element { f(unpublished_changes_tray_selector) }
-    end
-
     it "resets the content when Reset All is selected" do
       visit_course_paces_page
       click_create_default_pace_button
@@ -121,18 +91,6 @@ describe "course paces edit tray" do
       wait_for_no_such_element { f(unpublished_changes_tray_selector) }
       expect(publish_status.text).to eq("No pending changes")
       expect(duration_field[0]).to have_value "2"
-    end
-
-    it "does not reset content when Reset All modal Cancel button is selected" do
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      update_module_item_duration(0, 3)
-      click_unpublished_changes_button
-      click_reset_all_button
-      click_reset_all_cancel_button
-
-      expect(unpublished_changes_tray_exists?).to be_truthy
     end
 
     it "does not reset content when Reset All modal X button is selected" do

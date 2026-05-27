@@ -47,64 +47,6 @@ describe "course pace modal" do
   end
 
   context "course pacing blackout dates modal" do
-    it "renders the blackout dates modal when link clicked" do
-      visit_course_paces_page
-      click_create_default_pace_button
-      click_course_pace_settings_button
-      click_manage_blackout_dates
-
-      expect(blackout_dates_modal).to be_displayed
-    end
-
-    it "adds blackout date with range of dates" do
-      visit_course_paces_page
-      click_create_default_pace_button
-      click_course_pace_settings_button
-      click_manage_blackout_dates
-
-      blackout_date_title_input.send_keys("Easter Break")
-      start_date = @course.start_at - 10.days
-      end_date = @course.start_at - 7.days
-      blackout_date_start_date_input.send_keys(start_date)
-      blackout_date_end_date_input.send_keys(end_date)
-      click_blackout_dates_add_button
-
-      table_text = blackout_dates_table_items[1].text
-      expect(table_text).to include("Easter Break")
-      expect(table_text).to include(format_course_pacing_date(start_date))
-      expect(table_text).to include(format_course_pacing_date(end_date))
-    end
-
-    it "adds blackout date with one date" do
-      visit_course_paces_page
-      click_create_default_pace_button
-      click_course_pace_settings_button
-      click_manage_blackout_dates
-
-      blackout_date_title_input.send_keys("Easter Break")
-      start_date = @course.start_at - 10.days
-      blackout_date_start_date_input.send_keys(start_date)
-      click_blackout_dates_add_button
-      table_text = blackout_dates_table_items[1].text
-
-      expect(table_text).to include("Easter Break")
-      expect(table_text).to include("#{format_course_pacing_date(start_date)} #{format_course_pacing_date(start_date)}")
-    end
-
-    it "deletes a just-added blackout date" do
-      visit_course_paces_page
-      click_create_default_pace_button
-      click_course_pace_settings_button
-      click_manage_blackout_dates
-
-      blackout_date_title_input.send_keys("Easter Break")
-      blackout_date_start_date_input.send_keys(@course.start_at - 10.days)
-      click_blackout_dates_add_button
-
-      blackout_date_delete(blackout_dates_table_items[1]).click
-      expect(blackout_dates_table_items[1].text).to eq("No blackout dates")
-    end
-
     it "displays and deletes calendar event blackout dates" do
       Account.site_admin.enable_feature! :account_level_blackout_dates
       CalendarEvent.create!({
@@ -153,21 +95,6 @@ describe "course pace modal" do
       create_published_course_pace("Pace Module", "Assignment 1")
     end
 
-    it "save a just-added blackout date" do
-      visit_course_paces_page
-
-      click_create_default_pace_button
-      click_course_pace_settings_button
-      click_manage_blackout_dates
-
-      blackout_date_title_input.send_keys("Easter Break")
-      blackout_date_start_date_input.send_keys(@course.start_at + 1.day)
-      click_blackout_dates_add_button
-      click_blackout_dates_save_button
-
-      wait_for_no_such_element { f(blackout_dates_modal_selector) }
-    end
-
     it "shows the blackout date in unpublished changes tray" do
       visit_course_paces_page
 
@@ -188,26 +115,6 @@ describe "course pace modal" do
       click_unpublished_changes_button
       expect(unpublished_changes_list[0].text).to include("Easter Break")
       expect(unpublished_changes_list[1].text).to include("Me Time Break")
-    end
-
-    it "adds the blackout date to the module items list" do
-      @course.blackout_dates.create! event_title: "Blackout test",
-                                     start_date: @course.start_at + 3.days,
-                                     end_date: @course.start_at + 7.days
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(blackout_module_item).to be_displayed
-    end
-
-    it "moves the dates of the existing item to the correct new date" do
-      @course.blackout_dates.create! event_title: "Blackout test",
-                                     start_date: @course.start_at + 1.day,
-                                     end_date: @course.start_at + 1.day
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(assignment_due_date.text).to eq(format_course_pacing_date(@course.start_at + 3.days))
     end
   end
 

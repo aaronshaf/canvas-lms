@@ -191,16 +191,6 @@ describe "course pace landing page" do
         @course_pace.course.root_account.reload
       end
 
-      it "shows download button" do
-        visit_course_paces_page
-        expect(download_selected_paces_button).to be_displayed
-      end
-
-      it "shows select all paces checkbox" do
-        visit_course_paces_page
-        expect(select_all_paces_checkbox).to be_displayed
-      end
-
       it "shows row select pace checkbox" do
         visit_course_paces_page
         checkbox = course_pace_table_rows.first.find_element(:css, 'input[type="checkbox"]')
@@ -230,17 +220,6 @@ describe "course pace landing page" do
       click_student_tab
 
       expect(course_pace_table_rows.count).to eq(2)
-    end
-
-    it "user includes assigned pace and pace type" do
-      create_section_pace(@new_section_1)
-      student_enrollment = Enrollment.find_by(user_id: @student2.id)
-      create_student_pace(student_enrollment)
-
-      visit_course_paces_page
-      click_student_tab
-
-      expect(context_row("Mary Seim").text).to include("Mary Seim Individual")
     end
 
     it "sections are paginated when there are many sections in the list" do

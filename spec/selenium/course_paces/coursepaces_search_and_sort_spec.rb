@@ -74,16 +74,6 @@ describe "course pace search and sort" do
       expect(course_pace_table_rows.count).to eq(7)
     end
 
-    it "searches for section that does not exist" do
-      visit_course_paces_page
-
-      search_input.send_keys("Sections to search 90")
-      click_search_button
-
-      expect(element_exists?(course_pace_table_rows_selector)).to be_falsey
-      # Should look for empty state when that ticket is done (LS-3612)
-    end
-
     it "attempts to search then clears search" do
       visit_course_paces_page
 

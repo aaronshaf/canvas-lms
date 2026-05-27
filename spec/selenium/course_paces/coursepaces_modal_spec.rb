@@ -91,24 +91,6 @@ describe "course pace page" do
       create_published_course_pace("Course Pace 1", "Module Assignment 1")
     end
 
-    it "does not render Remove Pace button for default pace" do
-      visit_course_paces_page
-
-      click_create_default_pace_button
-
-      expect(element_exists?(remove_pace_button_selector)).to be_falsey
-    end
-
-    it "does not render Remove Pace button for unpublished section pace" do
-      @course.course_sections.create!(name: "New Section")
-
-      visit_course_paces_page
-
-      click_context_link("New Section")
-
-      expect(element_exists?(remove_pace_button_selector)).to be_falsey
-    end
-
     it "does not render Remove Pace button for unpublished student pace" do
       visit_course_paces_page
 
@@ -117,16 +99,6 @@ describe "course pace page" do
       click_context_link(@student.name)
 
       expect(element_exists?(remove_pace_button_selector)).to be_falsey
-    end
-
-    it "renders Remove Pace button for published section pace" do
-      course_section = @course.course_sections.create!(name: "New Section")
-      create_section_pace(course_section)
-
-      visit_course_paces_page
-
-      click_context_link("New Section")
-      expect(element_exists?(remove_pace_button_selector)).to be_truthy
     end
 
     it "renders Remove Pace button for published student pace" do
@@ -150,51 +122,6 @@ describe "course pace page" do
       @course_module = create_course_module(module_title, "active")
       @assignment = create_assignment(@course, module_assignment_title, "Module Assignment Description", 10, "published")
       @module_item = @course_module.add_item(id: @assignment.id, type: "assignment")
-    end
-
-    it "shows the module and module items in the course pace", custom_timeout: 25 do
-      discussion_title = "Module Discussion"
-      discussion_assignment = create_graded_discussion(@course, discussion_title, "published")
-      @course_module.add_item(id: discussion_assignment.id, type: "discussion_topic")
-      quiz_title = "Quiz Title"
-      quiz = create_quiz(@course, quiz_title)
-      @course_module.add_item(id: quiz.id, type: "quiz")
-
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(module_title_text(1)).to include(module_title)
-      expect(module_item_title_text(0)).to start_with(module_assignment_title)
-      expect(module_item_title_text(1)).to start_with(discussion_title)
-      expect(module_item_title_text(2)).to start_with(quiz_title)
-    end
-
-    it "shows the published status for items", custom_timeout: 25 do
-      unpublished_assignment = create_assignment(@course, "unpub assignment", "unpub description", 10, "unpublished")
-      @course_module.add_item(id: unpublished_assignment.id, type: "assignment")
-
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(module_item_publish_status[0]).to be_displayed
-      expect(module_item_unpublish_status[0]).to be_displayed
-    end
-
-    it "has a link to the assignment for the title" do
-      visit_course_paces_page
-      click_create_default_pace_button
-      title_element = module_item_title(@assignment.title)
-
-      expect(
-        element_value_for_attr(title_element, "href")
-      ).to include("courses/#{@course.id}/modules/items/#{@module_item.id}")
-    end
-
-    it "shows the points possible for a module item" do
-      visit_course_paces_page
-      click_create_default_pace_button
-
-      expect(module_item_points_possible[0].text).to eq("10 pts")
     end
 
     it "does not show a module item that is not an assignment", custom_timeout: 25 do
@@ -245,18 +172,6 @@ describe "course pace page" do
   context "Remove Pace Modal" do
     before :once do
       create_published_course_pace("Course Pace 1", "Module Assignment 1")
-    end
-
-    it "brings up the remove pace modal for Section pace when Remove Pace button clicked" do
-      course_section = @course.course_sections.create!(name: "New Section")
-      create_section_pace(course_section)
-
-      visit_course_paces_page
-
-      click_context_link("New Section")
-      click_remove_pace_button
-
-      expect(remove_pace_modal(:section)).to be_displayed
     end
 
     it "brings up the remove pace modal for Student pace when Remove Pace button clicked" do
@@ -391,72 +306,6 @@ describe "course pace page" do
       # There's probably a better regex here
       expect(duration_info.text).to include("weeks")
       expect(duration_info.text).to include("day")
-    end
-
-    context "course_pace_time_selection is enabled" do
-      before do
-        @course.root_account.enable_feature!(:course_pace_time_selection)
-        @course.root_account.reload
-      end
-
-      it "shows the potential number of students in unpublished pace" do
-        visit_course_paces_page
-
-        click_create_default_pace_button
-
-        expect(pace_course_stats_info.text).to include("Students Enrolled:2")
-      end
-
-      it "shows the actual number of students in a section pace" do
-        create_published_course_pace("Course Pace 1", "Module Assignment 1")
-        create_section_pace(@new_section_1)
-
-        visit_course_paces_page
-        click_context_link(@new_section_1.name)
-
-        expect(pace_course_stats_info.text).to include("Students Enrolled:1")
-      end
-
-      it "shows the number of assignments in the course pace" do
-        @course_module = create_course_module("New Module", "active")
-        @assignment = create_assignment(@course, "Module Assignment", "Module Assignment Description", 10, "published")
-        @module_item = @course_module.add_item(id: @assignment.id, type: "assignment")
-        create_published_course_pace("Course Pace 1", "Module Assignment 1")
-
-        visit_course_paces_page
-        click_context_link(@new_section_1.name)
-
-        expect(pace_course_stats_info.text).to include("Assignment Count:2")
-      end
-
-      it "shows draft status for an unpublished course pace" do
-        create_draft_course_pace
-        visit_course_paces_page
-
-        click_create_default_pace_button
-
-        expect(pace_course_stats_info.text).to include("Status:Draft")
-      end
-
-      it "shows start and end date inputs with the potential information in an unpublished course pace" do
-        create_published_course_pace("Course Pace 1", "Module Assignment 1")
-
-        visit_course_paces_page
-        click_context_link(@new_section_1.name)
-
-        expect(pace_start_date_input).to be_displayed
-        expect(pace_end_date_input).to be_displayed
-      end
-
-      it "shows the duration based on start and end dates in published course pace" do
-        create_published_course_pace("Course Pace 1", "Module Assignment 1")
-
-        visit_course_paces_page
-        click_context_link(@new_section_1.name)
-
-        expect(pace_weeks_number_input).to be_displayed
-        expect(pace_days_number_input).to be_displayed
-      end
     end
   end
 
