@@ -17,6 +17,8 @@
  */
 
 import {act, renderHook, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import useLaunchConversionJobHook, {
   CONVERSION_JOB_COMPLETE,
   CONVERSION_JOB_FAILED,
@@ -24,26 +26,24 @@ import useLaunchConversionJobHook, {
   CONVERSION_JOB_QUEUED,
   CONVERSION_JOB_RUNNING,
 } from '../LaunchConversionJobHook'
-import axios from 'axios'
 
-const {mockPut, mockGet} = vi.hoisted(() => ({
-  mockPut: vi.fn(),
-  mockGet: vi.fn(),
-}))
+const server = setupServer()
 
-vi.mock('axios', () => ({
-  default: {
-    put: mockPut,
-    get: mockGet,
-  },
-}))
+beforeAll(() => server.listen())
+afterAll(() => server.close())
 
 describe('useLaunchConversionJobHook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.useFakeTimers()
-    mockPut.mockResolvedValue({status: 204})
-    mockGet.mockResolvedValue({status: 200, data: {progress: 0, workflow_state: 'queued'}})
+    server.resetHandlers()
+    server.use(
+      http.put('/api/v1/courses/1/convert_tag_overrides', () => {
+        return new HttpResponse(null, {status: 204})
+      }),
+      http.get('/api/v1/courses/1/convert_tag_overrides/status', () => {
+        return HttpResponse.json({progress: 0, workflow_state: 'queued'})
+      }),
+    )
   })
 
   afterEach(() => {
@@ -70,14 +70,25 @@ describe('useLaunchConversionJobHook', () => {
     expect(result.current.conversionJobProgress).toBe(0)
   })
 
-  it('returns conversion job progress and state when polling job progress', async () => {
-    mockGet.mockResolvedValue({
-      status: 200,
-      data: {progress: 30, workflow_state: 'running'},
+  it('sets failed state when launchConversionJob PUT fails', async () => {
+    server.use(http.put('/api/v1/courses/1/convert_tag_overrides', () => HttpResponse.error()))
+    const {result} = renderHook(() => useLaunchConversionJobHook('1', false))
+
+    await act(async () => {
+      await result.current.launchConversionJob()
     })
+
+    expect(result.current.conversionJobState).toBe(CONVERSION_JOB_FAILED)
+  })
+
+  it('returns conversion job progress and state when polling job progress', async () => {
+    server.use(
+      http.get('/api/v1/courses/1/convert_tag_overrides/status', () => {
+        return HttpResponse.json({progress: 30, workflow_state: 'running'})
+      }),
+    )
     const {result} = renderHook(() => useLaunchConversionJobHook('1', true))
 
-    // Advance timer to trigger the polling interval
     await vi.advanceTimersByTimeAsync(1000)
 
     await waitFor(() => {
@@ -87,13 +98,13 @@ describe('useLaunchConversionJobHook', () => {
   })
 
   it('returns success state when job completes', async () => {
-    mockGet.mockResolvedValue({
-      status: 200,
-      data: {progress: 100, workflow_state: 'completed'},
-    })
+    server.use(
+      http.get('/api/v1/courses/1/convert_tag_overrides/status', () => {
+        return HttpResponse.json({progress: 100, workflow_state: 'completed'})
+      }),
+    )
     const {result} = renderHook(() => useLaunchConversionJobHook('1', true))
 
-    // Advance timer to trigger the polling interval
     await vi.advanceTimersByTimeAsync(1000)
 
     await waitFor(() => {
@@ -103,10 +114,13 @@ describe('useLaunchConversionJobHook', () => {
   })
 
   it('returns error state when job fails', async () => {
-    mockGet.mockRejectedValue(new Error('Network Error'))
+    server.use(
+      http.get('/api/v1/courses/1/convert_tag_overrides/status', () => {
+        return HttpResponse.error()
+      }),
+    )
     const {result} = renderHook(() => useLaunchConversionJobHook('1', true))
 
-    // Advance timer to trigger the polling interval
     await vi.advanceTimersByTimeAsync(1000)
 
     await waitFor(() => {

@@ -18,11 +18,11 @@
 
 import {render, screen, waitFor} from '@testing-library/react'
 import {userEvent} from '@testing-library/user-event'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import DifferentiationTagConverterMessage from '../DifferentiationTagConverterMessage'
-import axios from 'axios'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
-vi.mock('axios')
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')
   return {
@@ -30,6 +30,16 @@ vi.mock('@instructure/platform-alerts', async () => {
     showFlashAlert: vi.fn(),
   }
 })
+
+const server = setupServer(
+  http.put('/api/v1/courses/:courseId/assignments/:id/date_details/convert_tag_overrides', () => {
+    return new HttpResponse(null, {status: 204})
+  }),
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('DifferentiationTagConverterMessage', () => {
   let user: ReturnType<typeof userEvent.setup>
@@ -127,8 +137,6 @@ describe('DifferentiationTagConverterMessage', () => {
 
   describe('button click', () => {
     it('calls "onFinish" when button is clicked and query is successful', async () => {
-      vi.mocked(axios.put).mockResolvedValueOnce({status: 204} as any)
-
       const onFinishMethod = vi.fn()
       renderComponent({onFinish: onFinishMethod})
 
@@ -141,8 +149,11 @@ describe('DifferentiationTagConverterMessage', () => {
     })
 
     it('shows error message when query fails', async () => {
-      vi.mocked(axios.put).mockRejectedValueOnce(
-        new Error('Failed to convert differentiation tags.'),
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/assignments/:id/date_details/convert_tag_overrides',
+          () => HttpResponse.error(),
+        ),
       )
 
       renderComponent({})

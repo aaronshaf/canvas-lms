@@ -23,7 +23,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {Spinner} from '@instructure/ui-spinner'
-import axios from 'axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useState} from 'react'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
@@ -93,11 +93,10 @@ const DifferentiationTagConverterMessage = ({
 
   const convertTagOverrides = async () => {
     const url = getLearningObjectUrl()
-    let response
 
     try {
       setIsLoading(true)
-      response = await axios.put(url)
+      const {response} = await doFetchApi({path: url, method: 'PUT'})
       setIsLoading(false)
 
       if (response.status === 204) {
@@ -105,7 +104,7 @@ const DifferentiationTagConverterMessage = ({
       } else {
         displayFlashError()
       }
-    } catch (error) {
+    } catch (_error) {
       setIsLoading(false)
       displayFlashError()
     }

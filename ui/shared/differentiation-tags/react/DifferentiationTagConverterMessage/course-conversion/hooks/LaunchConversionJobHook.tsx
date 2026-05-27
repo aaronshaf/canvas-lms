@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from 'axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useEffect, useState} from 'react'
 import {useInterval} from 'react-use'
 
@@ -61,21 +61,19 @@ export default function useLaunchConversionJobHook(courseId: string, activeConve
     const url = `/api/v1/courses/${courseId}/convert_tag_overrides/status`
 
     try {
-      const response = await axios.get(url)
+      const {json} = await doFetchApi<{progress: number; workflow_state: string}>({path: url})
 
-      if (response.status === 200) {
-        setConversionJobProgress(response.data.progress || conversionJobProgress)
-        if (response.data.workflow_state === 'queued') {
-          setConversionJobState(CONVERSION_JOB_QUEUED)
-        } else if (response.data.workflow_state === 'running') {
-          setConversionJobState(CONVERSION_JOB_RUNNING)
-        } else if (response.data.workflow_state === 'completed') {
-          setConversionJobState(CONVERSION_JOB_COMPLETE)
-          stopJobProgressPolling()
-        } else if (response.data.workflow_state === 'failed') {
-          setConversionJobState(CONVERSION_JOB_FAILED)
-          stopJobProgressPolling()
-        }
+      setConversionJobProgress(json?.progress ?? conversionJobProgress)
+      if (json?.workflow_state === 'queued') {
+        setConversionJobState(CONVERSION_JOB_QUEUED)
+      } else if (json?.workflow_state === 'running') {
+        setConversionJobState(CONVERSION_JOB_RUNNING)
+      } else if (json?.workflow_state === 'completed') {
+        setConversionJobState(CONVERSION_JOB_COMPLETE)
+        stopJobProgressPolling()
+      } else if (json?.workflow_state === 'failed') {
+        setConversionJobState(CONVERSION_JOB_FAILED)
+        stopJobProgressPolling()
       }
     } catch (_error) {
       setConversionJobState(CONVERSION_JOB_FAILED)
@@ -88,7 +86,7 @@ export default function useLaunchConversionJobHook(courseId: string, activeConve
     const url = `/api/v1/courses/${courseId}/convert_tag_overrides`
 
     try {
-      const response = await axios.put(url)
+      const {response} = await doFetchApi({path: url, method: 'PUT'})
 
       if (response.status === 204) {
         setConversionJobState(CONVERSION_JOB_QUEUED)
