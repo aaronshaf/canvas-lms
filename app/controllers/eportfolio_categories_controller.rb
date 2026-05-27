@@ -21,8 +21,10 @@ class EportfolioCategoriesController < ApplicationController
   include Api::V1::Eportfolio
   include EportfolioPage
 
+  skip_before_action :require_user, only: %i[index show pages]
   before_action :rce_js_env
   before_action :get_eportfolio
+
   def index
     if authorized_action(@portfolio, @current_user, :read)
       @categories = @portfolio.eportfolio_categories

@@ -39,6 +39,22 @@ describe EportfolioCategoriesController do
       get "index", params: { eportfolio_id: @portfolio.id }
       expect(response).to be_redirect
     end
+
+    context "as an unauthenticated user" do
+      it "redirects to the eportfolio when it is public" do
+        @portfolio.update!(public: true)
+
+        get "index", params: { eportfolio_id: @portfolio.id }
+
+        expect(response).to redirect_to(eportfolio_url(@portfolio))
+      end
+
+      it "redirects to login when the eportfolio is private" do
+        get "index", params: { eportfolio_id: @portfolio.id }
+
+        expect(response).to redirect_to(login_url)
+      end
+    end
   end
 
   describe "GET 'show'" do
@@ -47,6 +63,25 @@ describe EportfolioCategoriesController do
     it "requires authorization" do
       get "show", params: { eportfolio_id: @portfolio.id, id: 1 }
       assert_unauthorized
+    end
+
+    context "as an unauthenticated user" do
+      before(:once) { eportfolio_entry(@category) }
+
+      it "renders the category when the eportfolio is public" do
+        @portfolio.update!(public: true)
+
+        get "show", params: { eportfolio_id: @portfolio.id, id: @category.id }
+
+        expect(response).to be_successful
+        expect(assigns[:category]).to eql(@category)
+      end
+
+      it "redirects to login when the eportfolio is private" do
+        get "show", params: { eportfolio_id: @portfolio.id, id: @category.id }
+
+        expect(response).to redirect_to(login_url)
+      end
     end
 
     it "assigns variables" do
@@ -220,6 +255,24 @@ describe EportfolioCategoriesController do
     it "requires authorization" do
       get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
       assert_unauthorized
+    end
+
+    context "as an unauthenticated user" do
+      it "returns the pages json when the eportfolio is public" do
+        @portfolio.update!(public: true)
+
+        get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
+
+        expect(response).to be_successful
+        expect(response.parsed_body.length).to be(1)
+        expect(response.parsed_body.first["id"]).to eql(@entry.id)
+      end
+
+      it "redirects to login when the eportfolio is private" do
+        get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
+
+        expect(response).to redirect_to(login_url)
+      end
     end
 
     it "assigns variables" do
