@@ -24,6 +24,44 @@ describe "RequestContext::Generator" do
   let(:request) { instance_double(ActionDispatch::Request, path_parameters: { controller: "users", action: "index" }, request_parameters: { "operationName" => "GetDiscussionQuery" }) }
   let(:context) { instance_double(ActiveRecord::Base, class: "Course", id: 15) }
 
+  describe ".add_or_replace_meta_header" do
+    it "appends a new key" do
+      _, headers, = RequestContext::Generator.new(lambda do |_env|
+        RequestContext::Generator.add_or_replace_meta_header("a1", "test1")
+        [200, {}, []]
+      end).call(env)
+      expect(headers["X-Canvas-Meta"]).to eql "a1=test1;"
+    end
+
+    it "replaces an existing key" do
+      _, headers, = RequestContext::Generator.new(lambda do |_env|
+        RequestContext::Generator.add_or_replace_meta_header("a1", "first")
+        RequestContext::Generator.add_or_replace_meta_header("a1", "second")
+        [200, {}, []]
+      end).call(env)
+      expect(headers["X-Canvas-Meta"]).to eql "a1=second;"
+    end
+
+    it "does not match the key name when it appears inside another entry's value" do
+      _, headers, = RequestContext::Generator.new(lambda do |_env|
+        # "Root=1-abc" contains "t=" (the "t" at the end of "Root"),
+        RequestContext::Generator.add_meta_header("tid", "Root=1-abc")
+        RequestContext::Generator.add_meta_header("t", "Course")
+        RequestContext::Generator.add_or_replace_meta_header("t", "Account")
+        [200, {}, []]
+      end).call(env)
+      expect(headers["X-Canvas-Meta"]).to eql "tid=Root=1-abc;t=Account;"
+    end
+
+    it "skips blank values" do
+      _, headers, = RequestContext::Generator.new(lambda do |_env|
+        RequestContext::Generator.add_or_replace_meta_header("a1", "")
+        [200, {}, []]
+      end).call(env)
+      expect(headers["X-Canvas-Meta"]).to be_nil
+    end
+  end
+
   it "generates the X-Canvas-Meta response header" do
     _, headers, = RequestContext::Generator.new(lambda do |_env|
       RequestContext::Generator.add_meta_header("a1", "test1")

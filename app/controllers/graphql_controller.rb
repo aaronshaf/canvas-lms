@@ -41,6 +41,8 @@ class GraphQLController < ApplicationController
 
     any_error_occured = graphql_errors.present? || query_errors.present?
     RequestContext::Generator.add_meta_header("ge", any_error_occured ? "t" : "f")
+    RequestContext::Generator.add_or_replace_meta_header("on", operation_name)
+    RequestContext::Generator.add_meta_header("ot", operation_type)
     if any_error_occured
       disable_page_views
       Rails.logger.info "There are GraphQL errors: #{safe_to_json({ graphql_errors:, query_errors: }.compact)}"
@@ -164,10 +166,21 @@ class GraphQLController < ApplicationController
     InstStatsd::Statsd.gauge("graphql.errors.exceeds_max_complexity.compexity", err_msg[/complexity of (\d+),/, 1]&.to_i, tags:)
   end
 
-  def operation_name
-    document = GraphQL.parse(params[:query])
-    document&.definitions&.find { |d| d.is_a?(GraphQL::Language::Nodes::OperationDefinition) }&.name
+  def parsed_query
+    @parsed_query ||= GraphQL.parse(params[:query])
   rescue GraphQL::ParseError
-    "unknown"
+    nil
+  end
+
+  def operation_name
+    return graphql_operation_name if graphql_operation_name.present?
+
+    parsed_query&.definitions&.find { |d| d.is_a?(GraphQL::Language::Nodes::OperationDefinition) }&.name || "unknown"
+  end
+
+  def operation_type
+    return nil unless parsed_query
+
+    parsed_query.definitions.find { |d| d.is_a?(GraphQL::Language::Nodes::OperationDefinition) }&.operation_type || "query"
   end
 end

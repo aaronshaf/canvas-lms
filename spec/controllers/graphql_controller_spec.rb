@@ -91,6 +91,63 @@ describe GraphQLController do
       end
     end
 
+    describe "#parsed_query" do
+      it "parses the query" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "query GetCourse { course(id: \"1\") { id } }"))
+        expect(controller.send(:parsed_query)).to be_a(GraphQL::Language::Nodes::Document)
+      end
+
+      it "memoizes the result" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "{ course(id: \"1\") { id } }"))
+        doc = controller.send(:parsed_query)
+        expect(controller.send(:parsed_query)).to be(doc)
+      end
+
+      it "returns nil for an unparseable query" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "{{{"))
+        expect(controller.send(:parsed_query)).to be_nil
+      end
+    end
+
+    describe "#operation_name" do
+      it "prefers the operationName param" do
+        allow(controller).to receive(:graphql_operation_name).and_return("ParamName")
+        expect(controller.send(:operation_name)).to eql "ParamName"
+      end
+
+      it "extracts the name from the query document" do
+        allow(controller).to receive_messages(params: ActionController::Parameters.new(query: "query DocName { course(id: \"1\") { id } }"), graphql_operation_name: nil)
+        expect(controller.send(:operation_name)).to eql "DocName"
+      end
+
+      it "returns \"unknown\" when the query cannot be parsed" do
+        allow(controller).to receive_messages(params: ActionController::Parameters.new(query: "{{{"), graphql_operation_name: nil)
+        expect(controller.send(:operation_name)).to eql "unknown"
+      end
+    end
+
+    describe "#operation_type" do
+      it "returns \"query\" for a query operation" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "query GetCourse { course(id: \"1\") { id } }"))
+        expect(controller.send(:operation_type)).to eql "query"
+      end
+
+      it "returns \"mutation\" for a mutation operation" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "mutation DoThing { createAssignment(input: {courseId: \"1\", name: \"a\"}) { assignment { id } } }"))
+        expect(controller.send(:operation_type)).to eql "mutation"
+      end
+
+      it "defaults to \"query\" for shorthand queries" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "{ course(id: \"1\") { id } }"))
+        expect(controller.send(:operation_type)).to eql "query"
+      end
+
+      it "returns nil when the query cannot be parsed" do
+        allow(controller).to receive(:params).and_return(ActionController::Parameters.new(query: "{{{"))
+        expect(controller.send(:operation_type)).to be_nil
+      end
+    end
+
     context "CreateSubmission" do
       before do
         Setting.set("enable_page_views", "db")

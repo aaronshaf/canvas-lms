@@ -95,6 +95,16 @@ module RequestContext
       meta_headers << "#{name}=#{value};"
     end
 
+    def self.add_or_replace_meta_header(name, value)
+      return if value.blank?
+
+      meta_headers = Thread.current[:context].try(:[], :meta_headers)
+      return unless meta_headers
+
+      meta_headers.gsub!(/(\A|;)#{Regexp.escape(name)}=[^;]*;/, '\1')
+      meta_headers << "#{name}=#{value};"
+    end
+
     def self.store_interaction_seconds_update(page_view, interaction_seconds)
       if page_view
         add_meta_header("r", "#{page_view.request_id}|#{page_view.created_at.utc.iso8601(2)}|#{interaction_seconds}")
