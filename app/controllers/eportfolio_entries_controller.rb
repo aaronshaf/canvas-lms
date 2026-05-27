@@ -22,6 +22,7 @@ class EportfolioEntriesController < ApplicationController
   include EportfolioPage
   include Api::V1::Eportfolio
 
+  skip_before_action :require_user, only: %i[attachment submission show]
   before_action :rce_js_env
   before_action :get_eportfolio
 

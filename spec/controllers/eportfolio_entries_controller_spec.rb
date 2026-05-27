@@ -99,6 +99,16 @@ describe EportfolioEntriesController do
       end
     end
 
+    context "when the eportfolio is public and the visitor is unauthenticated" do
+      before(:once) { @portfolio.update!(public: true) }
+
+      it "renders the entry without requiring a logged-in user" do
+        get "show", params: { eportfolio_id: @portfolio.id, id: @entry.id }
+        expect(response).to have_http_status(:ok)
+        expect(assigns[:page]).to eql(@entry)
+      end
+    end
+
     context "spam eportfolios" do
       before(:once) do
         @portfolio.update!(public: true)
@@ -233,6 +243,18 @@ describe EportfolioEntriesController do
         get "attachment", params: { eportfolio_id: @portfolio.id, entry_id: @entry.id, attachment_id: @a1.uuid }
       end
     end
+
+    context "when the eportfolio is public and the visitor is unauthenticated" do
+      before(:once) do
+        @portfolio.update!(public: true)
+        @attachment = Attachment.create!(user: @portfolio.user, context: @portfolio.user, filename: "test.jpg", uploaded_data: StringIO.new("data"))
+      end
+
+      it "redirects to the file download URL without requiring a logged-in user" do
+        get "attachment", params: { eportfolio_id: @portfolio.id, entry_id: @entry.id, attachment_id: @attachment.uuid }
+        expect(response).to redirect_to(file_download_url(@attachment, verifier: @attachment.uuid))
+      end
+    end
   end
 
   describe "GET 'submission'" do
@@ -304,6 +326,19 @@ describe EportfolioEntriesController do
                                                   }).and_call_original
 
       get "submission", params: { eportfolio_id: @portfolio.id, entry_id: @entry.id, submission_id: @submission.id }
+    end
+
+    context "when the eportfolio is public and the visitor is unauthenticated" do
+      before(:once) { @portfolio.update!(public: true) }
+
+      it "renders the submission preview without requiring a logged-in user" do
+        expect(controller).to receive(:render).with({
+                                                      template: "submissions/show_preview",
+                                                      locals: { anonymize_students: false }
+                                                    }).and_call_original
+        get "submission", params: { eportfolio_id: @portfolio.id, entry_id: @entry.id, submission_id: @submission.id }
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 end
