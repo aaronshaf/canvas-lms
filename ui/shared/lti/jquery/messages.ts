@@ -61,7 +61,13 @@ const SENDER_SCOPED_SUBJECTS = new Set<SubjectId>([
   'lti.removeUnloadMessage',
 ])
 
-const TOOL_IFRAME_SELECTOR = '.tool_content_wrapper, [data-lti-launch-id]'
+// Selectors that identify elements which either are, or are ancestors of, an LTI
+// tool launch iframe. Used to verify a postMessage sender is a legitimate LTI
+// launch rather than some other same-origin iframe
+//   .tool_content_wrapper   – standard full-page LTI launch wrapper
+//   [data-lti-launch-id]    – used for tray and modal launches
+//   iframe.lti-embed        – inline embeds in user content (e.g. Studio videos)
+const TOOL_IFRAME_SELECTOR = '.tool_content_wrapper, [data-lti-launch-id], iframe.lti-embed'
 
 // Returns the sender's tool iframe element, accounting for RCE-forwarded messages.
 // Only matches iframes inside a tool-launch wrapper so non-tool iframes

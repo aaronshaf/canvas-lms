@@ -595,6 +595,30 @@ describe('subject scope guard', () => {
       expect(domIframe.style.height).not.toBe('999px')
       expect(foreignIframe.style.height).not.toBe('999px')
     })
+
+    // Studio and other LTI tools embedded inline in user content render
+    // as `<iframe class="lti-embed">` without a `.tool_content_wrapper`.
+    it('resizes an inline `iframe.lti-embed` sender (e.g. Studio)', async () => {
+      const embedSource = {postMessage: vi.fn()} as any as Window
+      const embedIframe = document.createElement('iframe')
+      embedIframe.className = 'lti-embed'
+      Object.defineProperty(embedIframe, 'contentWindow', {
+        value: embedSource,
+        configurable: true,
+      })
+      document.body.appendChild(embedIframe)
+
+      try {
+        const event = {
+          data: {subject: 'lti.frameResize', height: 250},
+          source: embedSource,
+        } as unknown as MessageEvent
+        await ltiMessageHandler(event)
+        expect(embedIframe.style.height).toBe('250px')
+      } finally {
+        embedIframe.remove()
+      }
+    })
   })
 
   describe('lti.scrollToTop', () => {
