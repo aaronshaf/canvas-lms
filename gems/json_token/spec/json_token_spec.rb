@@ -33,10 +33,15 @@ describe JSONToken do
   end
 
   it "does not mutate the input when encoding" do
+    deep_freeze = lambda do |o|
+      case o
+      when Hash  then o.each_value { |v| deep_freeze.call(v) }
+      when Array then o.each { |v| deep_freeze.call(v) }
+      end
+      o.freeze
+    end
     binary = (+"\xD1\x9B\x86").force_encoding("ASCII-8BIT")
-    input = { "arr" => [binary] }
-    snapshot = Marshal.load(Marshal.dump(input))
-    JSONToken.encode(input)
-    expect(input).to eq snapshot
+    input = deep_freeze.call({ "arr" => [binary] })
+    expect { JSONToken.encode(input) }.not_to raise_error
   end
 end
