@@ -112,6 +112,42 @@ describe('useSettings', () => {
       await act(toggleEnabled)
     })
 
+    it('updates group and enabled state from the toggle response', async () => {
+      server.use(
+        http.get(`/api/v1/courses/${courseId}/microsoft_sync/group`, () => HttpResponse.json({})),
+        http.post(`/api/v1/courses/${courseId}/microsoft_sync/group`, () =>
+          HttpResponse.json({workflow_state: 'active'}, {status: 201}),
+        ),
+      )
+
+      const {result} = subject()
+      await waitFor(() => expect(result.current[2]).toBe(true))
+      await waitFor(() => expect(result.current[2]).toBe(false))
+
+      await act(result.current[4])
+
+      expect(result.current[0]).toEqual({workflow_state: 'active'})
+      expect(result.current[1]).toBe(true)
+    })
+
+    it('sets enabled to false when the toggle response has no workflow_state', async () => {
+      server.use(
+        http.get(`/api/v1/courses/${courseId}/microsoft_sync/group`, () =>
+          HttpResponse.json({workflow_state: 'active'}),
+        ),
+        http.delete(`/api/v1/courses/${courseId}/microsoft_sync/group`, () =>
+          HttpResponse.json({}, {status: 200}),
+        ),
+      )
+
+      const {result} = subject()
+      await waitFor(() => expect(result.current[1]).toBe(true))
+
+      await act(result.current[4])
+
+      expect(result.current[1]).toBe(false)
+    })
+
     it('uses the error message in the response if it exists', async () => {
       server.use(
         http.get(`/api/v1/courses/${courseId}/microsoft_sync/group`, () => HttpResponse.json({})),

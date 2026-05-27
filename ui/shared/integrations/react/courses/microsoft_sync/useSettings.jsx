@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from 'axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import React, {useState, useCallback} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import useFetchApi from '@canvas/use-fetch-api-hook'
@@ -32,13 +32,13 @@ function useSettings(courseId) {
   const groupEndpoint = `/api/v1/courses/${courseId}/microsoft_sync/group`
 
   async function toggleGroup() {
-    const response = await axios.request({
-      method: enabled ? 'delete' : 'post',
-      url: groupEndpoint,
+    const {json} = await doFetchApi({
+      path: groupEndpoint,
+      method: enabled ? 'DELETE' : 'POST',
     })
 
-    setGroup(response.data)
-    setEnabled(!!response.data.workflow_state)
+    setGroup(json ?? {})
+    setEnabled(!!json?.workflow_state)
     setError()
   }
 
@@ -79,8 +79,9 @@ function useSettings(courseId) {
     } catch (e) {
       let message
       try {
-        message = e.response.data.message
-      } catch (e) {
+        const body = await e.response.json()
+        message = body.message
+      } catch {
         message = null
       }
       setError(message ? {message} : e.message)
