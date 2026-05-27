@@ -228,6 +228,29 @@ describe('OutcomeDistributionPopover', () => {
     expect(onCloseHandler).toHaveBeenCalledTimes(1)
   })
 
+  it('wraps outcome description to prevent text overflow', async () => {
+    const user = userEvent.setup()
+    const outcomeWithLongDesc = {
+      ...outcome,
+      description: 'averylongwordwithnospacesthatwillcauseoverflowinaviewcomponent',
+    }
+    renderWithContext(
+      <OutcomeDistributionPopover
+        outcome={outcomeWithLongDesc}
+        courseId="5"
+        isOpen={true}
+        onCloseHandler={vi.fn()}
+        renderTrigger={<button>Trigger</button>}
+      />,
+    )
+
+    const infoButton = screen.getByTestId('outcome-distribution-popover-info-button')
+    await user.click(infoButton)
+
+    const descriptionEl = await screen.findByTestId('outcome-description')
+    expect(descriptionEl).toHaveStyle({wordBreak: 'break-word', overflowWrap: 'break-word'})
+  })
+
   it('toggles outcome info section when info button is clicked', async () => {
     const user = userEvent.setup()
     renderWithContext(

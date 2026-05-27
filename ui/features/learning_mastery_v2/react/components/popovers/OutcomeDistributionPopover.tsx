@@ -101,12 +101,16 @@ const InfoSection: React.FC<{
           <Heading level="h4">{outcome.display_name}</Heading>
         </View>
         {outcome.description && (
-          <View
-            display="block"
-            width="100%"
+          <div
             data-testid="outcome-description"
-            dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}}
-          />
+            style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}
+          >
+            <View
+              display="block"
+              width="100%"
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}}
+            />
+          </div>
         )}
       </View>
 
