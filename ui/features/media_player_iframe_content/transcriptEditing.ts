@@ -16,24 +16,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from "axios";
+import doFetchApi from '@canvas/do-fetch-api-effect'
+import {reloadWindow} from '@canvas/util/globalUtils'
 
 export function createOnTranscriptEdit(attachment_id: string, jwt: string) {
   return (formData: FormData): Promise<void> =>
-    new Promise((resolve, reject) =>
-      axios({
-        method: "POST",
-        url: `/media_attachments/${attachment_id}/media_tracks`,
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-        data: formData,
-      })
-        .then(() => resolve())
-        .catch(() => reject())
-    )
+    doFetchApi({
+      path: `/media_attachments/${attachment_id}/media_tracks`,
+      method: 'POST',
+      headers: {Authorization: `Bearer ${jwt}`},
+      body: formData,
+    }).then(() => undefined)
 }
 
 export function onConfirmEditChanges(): void {
-  window.location.reload()
+  reloadWindow()
 }
