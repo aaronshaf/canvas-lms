@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type {AllowedPromptKind} from '@instructure/platform-study-assist'
+
 /**
  * Common ENV variables, from ApplicationController#js_env
  *
@@ -103,7 +105,7 @@ export interface EnvCommon {
   WIKI_PAGE_ID?: string
   WIKI_PAGE_UPDATED_AT?: string
   FILE_ID?: string
-  STUDY_ASSIST_TOOLS?: string[]
+  STUDY_ASSIST_TOOLS?: AllowedPromptKind[]
   DOMAIN_ROOT_ACCOUNT_SFID: string
   active_brand_config_json_url: string
   active_brand_config: {

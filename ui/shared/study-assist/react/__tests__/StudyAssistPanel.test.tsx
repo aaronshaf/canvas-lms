@@ -70,7 +70,7 @@ describe('StudyAssistPanel', () => {
       ...window.ENV,
       COURSE_ID: '123',
       WIKI_PAGE_ID: 'test-page',
-      STUDY_ASSIST_TOOLS: ['Summarize', 'Quiz me', 'Flashcards'],
+      STUDY_ASSIST_TOOLS: [{kind: 'summarize'}, {kind: 'quiz'}, {kind: 'flashcards'}],
     } as any
     vi.spyOn(PendoModule, 'initializePendo').mockResolvedValue({track: mockTrack})
     onDismiss.mockReset()
@@ -118,8 +118,7 @@ describe('StudyAssistPanel', () => {
       />,
     )
     const closeEl = screen.getByTestId('study-assist-close-button')
-    const button = closeEl.tagName === 'BUTTON' ? closeEl : closeEl.querySelector('button')
-    await user.click(button!)
+    await user.click(closeEl.querySelector('button')!)
     expect(onDismiss).toHaveBeenCalledTimes(1)
   })
 
@@ -159,7 +158,7 @@ describe('StudyAssistPanel', () => {
     expect(mockAssistContent).toHaveBeenCalledWith(
       expect.objectContaining({
         showLargePrompts: true,
-        allowedPrompts: ['Summarize', 'Quiz me', 'Flashcards'],
+        allowedPrompts: [{kind: 'summarize'}, {kind: 'quiz'}, {kind: 'flashcards'}],
       }),
     )
   })
@@ -167,7 +166,7 @@ describe('StudyAssistPanel', () => {
   it('passes only enabled tools from STUDY_ASSIST_TOOLS', () => {
     window.ENV = {
       ...window.ENV,
-      STUDY_ASSIST_TOOLS: ['Summarize', 'Flashcards'],
+      STUDY_ASSIST_TOOLS: [{kind: 'summarize'}, {kind: 'flashcards'}],
     } as any
     render(
       <StudyAssistPanel
@@ -178,7 +177,7 @@ describe('StudyAssistPanel', () => {
     )
     expect(mockAssistContent).toHaveBeenCalledWith(
       expect.objectContaining({
-        allowedPrompts: ['Summarize', 'Flashcards'],
+        allowedPrompts: [{kind: 'summarize'}, {kind: 'flashcards'}],
       }),
     )
   })
@@ -392,9 +391,7 @@ describe('StudyAssistPanel', () => {
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
-      const backEl = screen.getByTestId('study-assist-back-button')
-      const button = backEl.tagName === 'BUTTON' ? backEl : backEl.querySelector('button')
-      await user.click(button!)
+      await user.click(screen.getByTestId('study-assist-back-button'))
       expect(mockResetChat).toHaveBeenCalledTimes(1)
     })
   })

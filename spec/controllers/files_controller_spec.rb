@@ -1424,13 +1424,20 @@ describe FilesController do
 
       it "sets STUDY_ASSIST_TOOLS with all tools enabled by default" do
         get "show", params: { course_id: @course.id, id: @file.id }
-        expect(assigns[:js_env][:STUDY_ASSIST_TOOLS]).to eq ["Summarize", "Quiz me", "Flashcards"]
+        expect(assigns[:js_env][:STUDY_ASSIST_TOOLS]).to eq [
+          { kind: "summarize" },
+          { kind: "quiz" },
+          { kind: "flashcards" }
+        ]
       end
 
       it "excludes tools when their feature flag is disabled" do
         @course.disable_feature!(:study_assist_quiz_me)
         get "show", params: { course_id: @course.id, id: @file.id }
-        expect(assigns[:js_env][:STUDY_ASSIST_TOOLS]).to eq %w[Summarize Flashcards]
+        expect(assigns[:js_env][:STUDY_ASSIST_TOOLS]).to eq [
+          { kind: "summarize" },
+          { kind: "flashcards" }
+        ]
       end
 
       it "returns empty array when all tool flags are disabled" do

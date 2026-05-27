@@ -129,7 +129,7 @@ describe('StudentStudyDrawer', () => {
       NOTEBOOK_OBJECT_ID: 1,
       WIKI_PAGE_UPDATED_AT: '2026-01-01T00:00:00Z',
       COURSE_ID: '42',
-      STUDY_ASSIST_TOOLS: ['Summarize'],
+      STUDY_ASSIST_TOOLS: [{kind: 'summarize'}],
       FEATURES: {study_assist: true, notebook: true},
     } as any
   })
