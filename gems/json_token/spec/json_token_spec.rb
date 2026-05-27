@@ -31,4 +31,12 @@ describe JSONToken do
     messy = (+"\xD1\x9B\x86").force_encoding("ASCII-8BIT")
     expect(JSONToken.decode(JSONToken.encode(messy))).to eq messy
   end
+
+  it "does not mutate the input when encoding" do
+    binary = (+"\xD1\x9B\x86").force_encoding("ASCII-8BIT")
+    input = { "arr" => [binary] }
+    snapshot = Marshal.load(Marshal.dump(input))
+    JSONToken.encode(input)
+    expect(input).to eq snapshot
+  end
 end

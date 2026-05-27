@@ -38,15 +38,11 @@ module JSONToken
 
   def self.walk_json(value, method)
     value = method.call(value)
-    keys = case value
-           when Hash then value.keys
-           when Array then 0...value.length
-           else; []
-           end
-    keys.each do |key|
-      value[key] = walk_json(value[key], method)
+    case value
+    when Hash then value.transform_values { |v| walk_json(v, method) }
+    when Array then value.map { |v| walk_json(v, method) }
+    else value
     end
-    value
   end
 
   def self.encode_binary_string(value)
