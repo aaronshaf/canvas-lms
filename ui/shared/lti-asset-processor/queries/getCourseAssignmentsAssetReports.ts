@@ -44,10 +44,10 @@ export const COURSE_ASSIGNMENTS_ASSET_REPORTS_QUERY = gql`
           nodes {
             _id
             name
-            ltiAssetProcessorsConnection {
+            ltiAssetProcessorsConnection(first: 10) {
               nodes { ...LtiAssetProcessorFragment }
             }
-            submissionsConnection(filter: {userId: $studentId, includeUnsubmitted: true}) {
+            submissionsConnection(filter: {userId: $studentId, includeUnsubmitted: true}, first: 1) {
               nodes {
                 _id
                 submissionType

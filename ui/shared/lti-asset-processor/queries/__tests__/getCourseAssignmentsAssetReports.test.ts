@@ -18,8 +18,10 @@
 
 // This test relies on types from codegen, generated with "yarn run graphql:codegen":
 // It makes sure the Zod types we use actually correspond to the GraphQL queries.
+import {visit, type FieldNode} from 'graphql'
 import {GetCourseAssignmentsAssetReportsQuery} from '@canvas/graphql/codegen/graphql'
 import {
+  COURSE_ASSIGNMENTS_ASSET_REPORTS_QUERY,
   ZGetCourseAssignmentsAssetReportsResult,
   type GetCourseAssignmentsAssetReportsResult,
 } from '../getCourseAssignmentsAssetReports'
@@ -157,5 +159,34 @@ describe('GetCourseAssignmentsAssetReportsResult', () => {
         }
       expect(zodParsedLegacyNodeOfCodegenType).toEqual(looseZodQuery2.legacyNode)
     }
+  })
+})
+
+describe('COURSE_ASSIGNMENTS_ASSET_REPORTS_QUERY complexity guards', () => {
+  const EXEMPT_CONNECTIONS = new Set(['assignmentsConnection'])
+
+  it('caps every nested connection with an explicit `first` argument', () => {
+    const offenders: string[] = []
+    visit(COURSE_ASSIGNMENTS_ASSET_REPORTS_QUERY, {
+      Field(node: FieldNode) {
+        if (!node.name.value.endsWith('Connection')) return
+        if (EXEMPT_CONNECTIONS.has(node.name.value)) return
+        const hasFirst = node.arguments?.some(a => a.name.value === 'first')
+        if (!hasFirst) offenders.push(node.name.value)
+      },
+    })
+    expect(offenders).toEqual([])
+  })
+
+  it('keeps submissionsConnection at first: 1 (safe due to unique (user_id, assignment_id) index)', () => {
+    let submissionsFirst: number | undefined
+    visit(COURSE_ASSIGNMENTS_ASSET_REPORTS_QUERY, {
+      Field(node: FieldNode) {
+        if (node.name.value !== 'submissionsConnection') return
+        const arg = node.arguments?.find(a => a.name.value === 'first')
+        if (arg?.value.kind === 'IntValue') submissionsFirst = Number(arg.value.value)
+      },
+    })
+    expect(submissionsFirst).toBe(1)
   })
 })
