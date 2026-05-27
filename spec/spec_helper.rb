@@ -523,6 +523,15 @@ RSpec.configure do |config|
     end
   end
 
+  if ENV["ENDPOINT_HIT_COUNTER"] == "1"
+    # The EndpointHitCounter::Tracker class overrides the get/post/put/delete methods
+    # and logs the URL of each request using those methods, then calls the original
+    # get/post/etc method. This allows us to output a list of which endpoints were
+    # triggered during our test runs and how many times each one was hit.
+    ActionDispatch::Integration::RequestHelpers.prepend(EndpointHitCounter::Tracker)
+    config.add_formatter EndpointHitCounter::Formatter
+  end
+
   config.around do |example|
     Rails.logger.info "STARTING SPEC #{example.full_description}"
     if ENV["PRE_EXAMPLE_CHECKS"] == "1"
