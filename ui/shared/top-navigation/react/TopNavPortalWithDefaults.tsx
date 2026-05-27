@@ -20,8 +20,8 @@ import React from 'react'
 import type {ITopNavProps} from '@canvas/top-navigation/react/TopNav'
 import {IconStudentViewLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import axios from 'axios'
 import {TopNavBar} from '@instructure/ui-top-nav-bar'
+import {handleStudentViewClick} from './studentViewUtils'
 import {render} from '@canvas/react'
 import {TopNavPortalBase, type WithProps, type Crumb, getMountPoint} from './TopNavPortalBase'
 import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/props'
@@ -43,17 +43,6 @@ type WindowEnvExtended = Window & {
 const isStudent = () => {
   const env = (window as WindowEnvExtended).ENV
   return env.current_user_roles?.includes('student') && !env.PERMISSIONS?.manage
-}
-
-const handleStudentViewClick = (studentViewUrl: string) => {
-  axios
-    .post(studentViewUrl)
-    .then(() => {
-      window.location.reload()
-    })
-    .catch(error => {
-      console.error('Error loading student view', error)
-    })
 }
 
 const handleBreadCrumbSetter = (
