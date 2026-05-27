@@ -518,7 +518,7 @@ describe('ExternalToolDialog', () => {
 
       expect(rceMock.insertCode).toHaveBeenNthCalledWith(
         1,
-        '<a href="http://www.tool.com" title="title" target="_blank">title</a>',
+        '<a href="http://www.tool.com" title="title" target="_blank" rel="noopener">title</a>',
       )
     })
 

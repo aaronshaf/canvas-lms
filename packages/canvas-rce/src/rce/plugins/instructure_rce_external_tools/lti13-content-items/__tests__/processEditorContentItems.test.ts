@@ -231,14 +231,14 @@ describe('processEditorContentItems', () => {
     it('creates content for a link content item', () => {
       expect(rceWrapper.insertCode).toHaveBeenNthCalledWith(
         1,
-        '<a href="http://www.test.com" title="link title" target="_blank">link text</a>',
+        '<a href="http://www.test.com" title="link title" target="_blank" rel="noopener">link text</a>',
       )
     })
 
     it('creates content for an LTI ResourceLink content item', () => {
       expect(rceWrapper.insertCode).toHaveBeenNthCalledWith(
         2,
-        '<a href="test?display=borderless" title="link title" target="_blank">link text</a>',
+        '<a href="test?display=borderless" title="link title" target="_blank" rel="noopener">link text</a>',
       )
     })
 
@@ -256,7 +256,7 @@ describe('processEditorContentItems', () => {
     it('inserts an ltiEndpoint link for content items with a lookup_uuid', () => {
       expect(rceWrapper.insertCode).toHaveBeenNthCalledWith(
         5,
-        '<a href="test?display=borderless&amp;resource_link_lookup_uuid=somerandomuuid" title="link title" target="_blank">link text</a>',
+        '<a href="test?display=borderless&amp;resource_link_lookup_uuid=somerandomuuid" title="link title" target="_blank" rel="noopener">link text</a>',
       )
     })
   })
@@ -280,14 +280,14 @@ describe('processEditorContentItems', () => {
     it('creates content for a link content item', () => {
       expect(rceWrapper.insertCode).toHaveBeenNthCalledWith(
         1,
-        '<a href="http://www.test.com" title="link title" target="_blank">user selection</a>',
+        '<a href="http://www.test.com" title="link title" target="_blank" rel="noopener">user selection</a>',
       )
     })
 
     it('creates content for an LTI ResourceLink content item', () => {
       expect(rceWrapper.insertCode).toHaveBeenNthCalledWith(
         2,
-        '<a href="test?display=borderless" title="link title" target="_blank">user selection</a>',
+        '<a href="test?display=borderless" title="link title" target="_blank" rel="noopener">user selection</a>',
       )
     })
   })
