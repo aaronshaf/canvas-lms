@@ -1315,6 +1315,7 @@ class ApplicationController < ActionController::Base
     end
 
     return if ip_match && ua_match
+    return unless @domain_root_account.feature_enabled?(:enforce_session_fingerprinting)
 
     settings = DynamicSettings.find(tree: :private)
     enforce = if !ip_match

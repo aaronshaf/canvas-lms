@@ -4991,6 +4991,15 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
 
         it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
         it_behaves_like "enforces mfa ip"
+
+        context "with enforce_session_fingerprinting turned off" do
+          before do
+            Account.default.disable_feature!(:enforce_session_fingerprinting)
+          end
+
+          it_behaves_like "emits mfa_ip_mismatch event", user_type: "site_admin"
+          it_behaves_like "allows request through"
+        end
       end
 
       context "for an account admin" do

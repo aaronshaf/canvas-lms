@@ -84,3 +84,10 @@ feature_rollout:
   display_name: Feature Rollout API and UI
   description: Expose the API and Account Settings tab for the Feature Rollout feature
   shadow: true
+enforce_session_fingerprinting:
+  state: allowed_on
+  applies_to: RootAccount
+  display_name: Enforce Session Fingerprinting
+  description: Require MFA if a session's user agent or IP address changes
+  shadow: true
+  secure: true
