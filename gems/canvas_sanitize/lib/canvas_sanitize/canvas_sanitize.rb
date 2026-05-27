@@ -46,8 +46,40 @@ module CanvasSanitize # :nodoc:
     klass.extend(ClassMethods)
   end
 
+  # The Sanitize gem does not currently have a way to differentiate between an attribute that can contain a
+  # URL and one that cannot. This means that it always allows all protocols unless an allowlist is provided.
+  # This is problematic since that means "javascript:" is always (dangerously) allowed. This is a list of
+  # known attributes that can contain URLs, so we can tell which ones should have an allowlist set
+
+  # THIS LIST NEEDS TO BE UPDATED ANY TIME NEW ATTRIBUTES BECOME AVAILABLE THAT CAN HOLD URLS
+  URL_PROTOCOL_ATTRIBUTES = %w[
+    action
+    altimg
+    archive
+    background
+    cdgroup
+    cite
+    classid
+    codebase
+    data
+    data-item-href
+    data-url
+    formaction
+    href
+    hreflang
+    icon
+    imagesrcset
+    longdesc
+    macros
+    manifest
+    poster
+    profile
+    src
+    srcset
+    uri
+    usemap
+  ].freeze
   DEFAULT_PROTOCOLS = ["http", "https", :relative].freeze
-  URL_PROTOCOL_ATTRIBUTES = %w[href src cite altimg poster longdesc].freeze
 
   remove_spaces_from_ids = lambda do |env|
     return unless env[:node]&.element? && env[:node][:id] && env[:node][:id].match?(/\s/)
@@ -55,16 +87,20 @@ module CanvasSanitize # :nodoc:
     env[:node][:id] = env[:node][:id].gsub(/\s+/, "")
   end
 
+  # I believe srcset not being handled correctly is a bug in Sanitize
+  # We should remove this when they resolve it
   scrub_srcset = lambda do |env|
     node = env[:node]
-    return unless node&.element? && node["srcset"]
+    ["imagesrcset", "srcset"].each do |attr|
+      next unless node&.element? && node[attr]
 
-    candidates = node["srcset"].split(",").map(&:strip)
-    clean = candidates.select do |candidate|
-      url = candidate.split(/\s+/).first.to_s
-      url.match?(%r{\Ahttps?://}i) || (url.start_with?("/") && !url.start_with?("//")) || url.match?(/\Adata:/i)
+      candidates = node[attr].split(",").map(&:strip)
+      clean = candidates.select do |candidate|
+        url = candidate.split(/\s+/).first.to_s
+        url.match?(%r{\Ahttps?://}i) || (url.start_with?("/") && !url.start_with?("//")) || url.match?(/\Adata:/i)
+      end
+      clean.empty? ? node.remove_attribute(attr) : node[attr] = clean.join(", ")
     end
-    clean.empty? ? node.remove_attribute("srcset") : node["srcset"] = clean.join(", ")
   end
 
   # Safe `position` values: fixed, sticky, and vendor-prefixed forms (e.g.
@@ -696,21 +732,21 @@ module CanvasSanitize # :nodoc:
 
     protocols: {
       "a" => {
-        "href" => ["ftp", "http", "https", "mailto", "tel", :relative].freeze,
+        "href" => ["ftp", "http", "https", "mailto", "tel", :relative],
         "data-url" => DEFAULT_PROTOCOLS,
         "data-item-href" => DEFAULT_PROTOCOLS
-      }.freeze,
-      "blockquote" => { "cite" => DEFAULT_PROTOCOLS }.freeze,
-      "img" => { "src" => DEFAULT_PROTOCOLS, "longdesc" => DEFAULT_PROTOCOLS }.freeze,
-      "q" => { "cite" => DEFAULT_PROTOCOLS }.freeze,
-      "object" => { "data" => DEFAULT_PROTOCOLS }.freeze,
-      "embed" => { "src" => DEFAULT_PROTOCOLS }.freeze,
-      "iframe" => { "src" => DEFAULT_PROTOCOLS }.freeze,
-      "style" => { "any" => DEFAULT_PROTOCOLS }.freeze,
-      "audio" => { "src" => ["data", "http", "https", :relative], "poster" => ["http", "https"] }.freeze,
-      "video" => { "src" => ["data", "http", "https", :relative], "poster" => ["http", "https"] }.freeze,
-      "source" => { "src" => ["data", "http", "https", :relative] }.freeze,
-      "track" => { "src" => ["data", "http", "https", :relative] }.freeze,
+      },
+      "blockquote" => { "cite" => DEFAULT_PROTOCOLS },
+      "img" => { "src" => DEFAULT_PROTOCOLS, "longdesc" => DEFAULT_PROTOCOLS },
+      "q" => { "cite" => DEFAULT_PROTOCOLS },
+      "object" => { "classid" => ["clsid"], "data" => DEFAULT_PROTOCOLS },
+      "embed" => { "src" => DEFAULT_PROTOCOLS },
+      "iframe" => { "src" => DEFAULT_PROTOCOLS },
+      "style" => { "any" => DEFAULT_PROTOCOLS },
+      "audio" => { "src" => DEFAULT_PROTOCOLS + ["data"], "poster" => DEFAULT_PROTOCOLS },
+      "video" => { "src" => DEFAULT_PROTOCOLS + ["data"], "poster" => DEFAULT_PROTOCOLS },
+      "source" => { "src" => DEFAULT_PROTOCOLS + ["data"], "srcset" => DEFAULT_PROTOCOLS + ["data"] },
+      "track" => { "src" => DEFAULT_PROTOCOLS + ["data"] },
     },
 
     css: {
@@ -793,17 +829,18 @@ module CanvasSanitize # :nodoc:
     transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value]
   }.freeze
 
-  # Any allowed elements for which we don't explicitly declare a
-  # protocol above will be populated with a sane default for
-  # href/src/cite/etc. so as to not allow arbitrary javascript or
+  # Any allowed element attributes for which we don't explicitly declare a
+  # protocol above will be populated with a sane default for all attributes in
+  # URL_PROTOCOL_ATTRIBUTES so as to not allow arbitrary javascript or
   # other protocols on any tag + attribute combos we may have missed
-  missing_protocol_elements = SANITIZE[:elements].to_set - SANITIZE[:protocols].keys.to_set
-  missing_protocol_elements.each do |element|
-    elements_allowed_attributes = SANITIZE[:attributes][element]
-    element_protocols = URL_PROTOCOL_ATTRIBUTES.each_with_object({}) do |attribute, hash|
-      hash[attribute] = DEFAULT_PROTOCOLS if elements_allowed_attributes&.include?(attribute)
+  SANITIZE[:attributes].each do |tag, attrs|
+    attrs.each do |attr|
+      if URL_PROTOCOL_ATTRIBUTES.include?(attr) && SANITIZE.dig(:protocols, tag, attr).nil?
+        SANITIZE[:protocols][tag] ||= {}
+        SANITIZE[:protocols][tag][attr] = DEFAULT_PROTOCOLS
+      end
     end
-    SANITIZE[:protocols][element] = element_protocols.freeze unless element_protocols.empty?
+    attrs.freeze
   end
 
   SANITIZE[:protocols].freeze

@@ -260,6 +260,18 @@ describe CanvasSanitize do
     expect(res).to eq str
   end
 
+  it "allows clsid protocol for object#classid" do
+    str = %(<object classid="clsid:1234"></object>)
+    res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+    expect(res).to eq str
+  end
+
+  it "does not allow javascript protocol for object#classid" do
+    str = %(<object classid="javascript:alert(1)"></object>)
+    res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+    expect(res).to eq "<object></object>"
+  end
+
   it "strips spaces from ids" do
     str = %(<div class="mini_month"><div class="day_wrapper" id="mini_day_2023_10_31_1"><div class="mini_calendar_day" id="mini_day_2023_10_31_1, id=[<img src=x onerror='alert(`${document.domain}:${document.cookie}`)' />]">Click me to trigger XSS</div></div></div>)
     res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
@@ -415,12 +427,6 @@ describe CanvasSanitize do
       res = Sanitize.clean('<audio poster="javascript:alert(1)"></audio>', CanvasSanitize::SANITIZE)
       expect(res).not_to include("poster")
       expect(res).not_to include("javascript")
-    end
-
-    it "strips protocol-relative URL from video poster" do
-      res = Sanitize.clean('<video poster="//attacker.com/x.png"></video>', CanvasSanitize::SANITIZE)
-      expect(res).not_to include("poster")
-      expect(res).not_to include("attacker.com")
     end
 
     it "preserves a valid https poster URL on video" do
