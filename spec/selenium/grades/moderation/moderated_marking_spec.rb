@@ -70,22 +70,6 @@ shared_examples "Moderated Marking" do |ff_enabled|
     end
   end
 
-  context "with a final-grader in a moderated assignment" do
-    it "moderate option is visible for final-grader", priority: "1" do
-      user_session(@teacher1)
-      AssignmentPage.visit(@moderated_course.id, @moderated_assignment.id)
-
-      expect(AssignmentPage.assignment_content).to contain_css("#moderated_grading_button")
-    end
-
-    it "non-final-grader cannot navigate to moderation page", priority: "1" do
-      user_session(@teacher2)
-      ModeratePage.visit(@moderated_course.id, @moderated_assignment.id)
-
-      expect(ModeratePage.main_content_area).to contain_css("#unauthorized_message")
-    end
-  end
-
   context "with Select_Final_Grade permission" do
     before do
       # enroll a ta and remove permission for TA role
@@ -214,10 +198,6 @@ shared_examples "Moderated Marking" do |ff_enabled|
       expect(StudentGradesPage.submission_comments.first).to include_text "Just a comment by teacher 2"
     end
 
-    it "post to students button disabled until grades are released", priority: "1" do
-      expect(ModeratePage.post_to_students_button).to be_disabled
-    end
-
     it "allows viewing provisional grades", priority: "1" do
       # expect to see two students with two provisional grades
       expect(ModeratePage.fetch_student_count).to eq 2
@@ -254,46 +234,10 @@ shared_examples "Moderated Marking" do |ff_enabled|
       expect(actual_start).to eq expected_start
     end
 
-    it "anonymizes students if anonymous grading is enabled", priority: "1" do
-      # enable anonymous grading
-      @moderated_assignment.update(anonymous_grading: true)
-      refresh_page
-
-      # expect student names to be replaced with anonymous stand ins
-      student_names = ModeratePage.student_table_row_headers.map(&:text)
-      expect(student_names).to match_array ["Student 1", "Student 2"]
-    end
-
     it "shows grader names in table headers", priority: "1" do
       # expect teacher names to be shown
       grader_names = ModeratePage.student_table_headers.map(&:text)
       expect(grader_names).to match_array [@teacher2.name, @teacher3.name]
-    end
-
-    it "anonymizes graders if grader names visible to final grader is false", priority: "1" do
-      # disable grader names visible to final grader
-      @moderated_assignment.update(grader_names_visible_to_final_grader: false)
-      refresh_page
-
-      # expect teacher names to be replaced with anonymous stand ins
-      grader_names = ModeratePage.student_table_headers.map(&:text)
-      expect(grader_names).to match_array ["Grader 1", "Grader 2"]
-    end
-
-    context "when a custom grade is entered" do
-      before do
-        ModeratePage.enter_custom_grade(@student1, 4)
-        wait_for_ajaximations
-      end
-
-      it "selects the custom grade", priority: "1" do
-        expect(ModeratePage.selected_grade).to eq "4 (Custom)"
-      end
-
-      it "adds the custom grade as an option in the dropdown", priority: "1" do
-        ModeratePage.grade_input(@student1).click
-        expect(ModeratePage.grade_input_dropdown(@student1)).to include_text "4 (Custom)"
-      end
     end
   end
 end

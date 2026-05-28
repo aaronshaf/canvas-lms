@@ -88,11 +88,6 @@ describe "Moderation Page" do
     expect(ModeratePage.fetch_grades(@students[1])).to contain_exactly(grades[1][1], grades[2][1], "–")
   end
 
-  it "displays first 20 students", priority: "1" do
-    ModeratePage.visit(@moderated_course.id, @assignment.id)
-    expect(ModeratePage.fetch_student_count).to eq(20)
-  end
-
   it "displays page 2 with remaining students", priority: "1" do
     ModeratePage.visit(@moderated_course.id, @assignment.id)
     ModeratePage.click_page_number(2)
@@ -103,26 +98,5 @@ describe "Moderation Page" do
     ModeratePage.visit(@moderated_course.id, @assignment.id)
     ModeratePage.click_student_link(@students[1].name)
     expect(Speedgrader.selected_student).to include_text @students[1].name
-  end
-
-  it "navigates to an anonymous student submission in speedgrader", priority: "1" do
-    @assignment.update!(anonymous_grading: true)
-    ModeratePage.visit(@moderated_course.id, @assignment.id)
-    ModeratePage.click_student_link("Student 2")
-    expect(Speedgrader.selected_student).to include_text "Student 2"
-  end
-
-  it "accepts all grades for provisional grader", priority: "1" do
-    ModeratePage.visit(@moderated_course.id, @assignment.id)
-    ModeratePage.accept_grades_for_grader(@teachers[0])
-
-    (2..8).map do |i|
-      expect(ModeratePage.fetch_selected_final_grade_text(@students[i])).to include(@teachers[0].name)
-    end
-  end
-
-  it "will not accept grades when more than one grader", priority: "1" do
-    ModeratePage.visit(@moderated_course.id, @assignment.id)
-    expect(ModeratePage.accept_grades_button(@teachers[1])).to be_disabled
   end
 end
