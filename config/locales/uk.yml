@@ -10816,6 +10816,11 @@ uk:
             
             Мережа Canvas
         course_starts_next_week: "Ваш курс почнеться наступного тижня"
+    default_email_address_changed: 
+      email: 
+        details_header: "Подробиці:"
+        html: 
+          details_header: "Подробиці:"
     dialog: 
       title: "Відправити повідомлення у відповідь"
     discussion_mention: 
@@ -10826,6 +10831,11 @@ uk:
       footer: |-
           Ви отримали це повідомлення, тому що ви є учасником одного чи декількох класів у системі Canvas.  Аби змінити чи вимкнути сповіщення через електронну пошту відвідайте:
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "Подробиці:"
+        html: 
+          details_header: "Подробиці:"
     enrollment_accepted: 
       email: 
         details: "Переглянути список поточних реєстрацій тут:"
@@ -11236,6 +11246,11 @@ uk:
         subject: "Нове обговорення - %{discussion_topic}: %{course}"
       twitter: 
         subject: "Canvas Оповіщення - Тема:  %{discussion_topic}, %{course}."
+    new_email_address_added: 
+      email: 
+        details_header: "Подробиці:"
+        html: 
+          details_header: "Подробиці:"
     new_event_created: 
       email: 
         body: "Заплановано нову подію для %{course_name}, про яку Ви маєте знати: "
