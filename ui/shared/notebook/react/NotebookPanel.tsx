@@ -16,11 +16,11 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useEffect, useMemo} from 'react'
+import React, {useCallback, useEffect} from 'react'
 import {
   NotesListView,
   useNotebook,
-  useGetNotes,
+  useNotesData,
   useUpdateNote,
   useDeleteNote,
   REACTION_TYPE,
@@ -33,6 +33,8 @@ import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('notebook')
+
+const TRAY_PAGE_SIZE = 10
 
 type Props = {
   onDismiss: () => void
@@ -94,17 +96,17 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const {data, isLoading, isError} = useGetNotes({
+  const {notes, pageInfo, isLoading, isError, currentPage, setPage} = useNotesData({
     api,
-    filter: {learningObject: {type: objectType, id: objectId}},
     courseId,
-    pageSize: 100,
+    learningObject: {type: objectType, id: objectId},
+    pageSize: TRAY_PAGE_SIZE,
   })
 
   const {mutate: updateNote} = useUpdateNote(api)
   const {mutate: deleteNote} = useDeleteNote(api)
 
-  const notes = useMemo(() => data?.notes ?? [], [data?.notes])
+  const totalPages = pageInfo?.totalNrOfPages ?? undefined
 
   const handleDelete = useCallback(
     (noteId: string) => {
@@ -162,9 +164,9 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
           notes={notes}
           isLoading={isLoading}
           isError={isError}
-          pageInfo={data?.pageInfo}
-          onPreviousPage={() => {}}
-          onNextPage={() => {}}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
           selectedNoteId={selectedNoteId ?? undefined}
           onNoteSelect={id => (id === selectedNoteId ? clearSelectedNote() : selectNote(id))}
           onNoteDelete={handleDelete}

@@ -36,8 +36,6 @@ export const GET_NOTES_QUERY = `
     $courseId: ID!
     $first: Int
     $after: String
-    $last: Int
-    $before: String
     $filter: StudyNoteFilterInput
   ) {
     studyNotesConnection(
@@ -45,17 +43,13 @@ export const GET_NOTES_QUERY = `
       filter: $filter
       first: $first
       after: $after
-      last: $last
-      before: $before
     ) {
       nodes {
         ...NotebookStudyNoteFields
       }
       pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
+        totalCount
+        totalNrOfPages
       }
     }
   }

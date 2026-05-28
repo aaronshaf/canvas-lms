@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {render, screen} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import NotebookIndexPage from '../NotebookIndexPage'
 
 const mockUseNotesData = vi.fn()
@@ -42,6 +43,9 @@ vi.mock('@instructure/platform-notebook', () => ({
     isLoading,
     isError,
     columnCount,
+    currentPage,
+    totalPages,
+    onPageChange,
     noteHref,
     renderNoteLink,
   }: {
@@ -49,6 +53,9 @@ vi.mock('@instructure/platform-notebook', () => ({
     isLoading: boolean
     isError: boolean
     columnCount?: number
+    currentPage?: number
+    totalPages?: number
+    onPageChange?: (page: number) => void
     noteHref?: (noteId: string, note: {id: string; objectId: string; courseId: string}) => string
     renderNoteLink?: (props: {href: string; children: React.ReactNode}) => React.ReactNode
   }) => {
@@ -56,7 +63,15 @@ vi.mock('@instructure/platform-notebook', () => ({
     if (isError) return <div data-testid="notes-error" />
     if (notes.length === 0) return <div data-testid="notes-empty" />
     return (
-      <div data-testid="notes-grid" data-column-count={columnCount}>
+      <div
+        data-testid="notes-grid"
+        data-column-count={columnCount}
+        data-current-page={currentPage}
+        data-total-pages={totalPages}
+      >
+        <button type="button" data-testid="notes-go-to-page-3" onClick={() => onPageChange?.(3)}>
+          page 3
+        </button>
         {notes.map(note => {
           const href = noteHref?.(note.id, note)
           return renderNoteLink ? (
@@ -115,6 +130,8 @@ const defaultNotesDataReturn = {
   setFilter: vi.fn(),
   courseFilter: null,
   setCourseFilter: vi.fn(),
+  currentPage: 1,
+  setPage: vi.fn(),
   fetchNextPage: vi.fn(),
   fetchPreviousPage: vi.fn(),
 }
@@ -207,7 +224,7 @@ describe('NotebookIndexPage', () => {
 
   it('passes the default page size to useNotesData', () => {
     render(<NotebookIndexPage />)
-    expect(mockUseNotesData).toHaveBeenCalledWith(expect.objectContaining({pageSize: 20}))
+    expect(mockUseNotesData).toHaveBeenCalledWith(expect.objectContaining({pageSize: 24}))
   })
 
   it('applies columnCount from useNotesColumnCount to NotesListView', () => {
@@ -218,5 +235,53 @@ describe('NotebookIndexPage', () => {
     })
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('notes-grid')).toHaveAttribute('data-column-count', '1')
+  })
+
+  it('renders the total results count when pageInfo includes totalCount', () => {
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+      pageInfo: {totalCount: 42},
+    })
+    render(<NotebookIndexPage />)
+    expect(screen.getByTestId('notebook-total-results')).toHaveTextContent('42 results')
+  })
+
+  it('omits the total results count when totalCount is unknown', () => {
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+      pageInfo: {},
+    })
+    render(<NotebookIndexPage />)
+    expect(screen.queryByTestId('notebook-total-results')).not.toBeInTheDocument()
+  })
+
+  it('passes currentPage and totalPages from useNotesData into NotesListView', () => {
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+      currentPage: 2,
+      pageInfo: {totalNrOfPages: 5},
+    })
+    render(<NotebookIndexPage />)
+    const grid = screen.getByTestId('notes-grid')
+    expect(grid).toHaveAttribute('data-current-page', '2')
+    expect(grid).toHaveAttribute('data-total-pages', '5')
+  })
+
+  it('forwards page changes to setPage from useNotesData', async () => {
+    const setPage = vi.fn()
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+      setPage,
+      currentPage: 1,
+      pageInfo: {totalNrOfPages: 5},
+    })
+    render(<NotebookIndexPage />)
+    const user = userEvent.setup()
+    await user.click(screen.getByTestId('notes-go-to-page-3'))
+    expect(setPage).toHaveBeenCalledWith(3)
   })
 })

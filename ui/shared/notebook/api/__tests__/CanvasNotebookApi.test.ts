@@ -67,12 +67,7 @@ describe('CanvasNotebookApi', () => {
         data: {
           studyNotesConnection: {
             nodes: [STUDY_NOTE_FIXTURE],
-            pageInfo: {
-              hasNextPage: true,
-              hasPreviousPage: false,
-              startCursor: 'c1',
-              endCursor: 'c2',
-            },
+            pageInfo: {totalCount: 1, totalNrOfPages: 1},
           },
         },
       })
@@ -89,8 +84,35 @@ describe('CanvasNotebookApi', () => {
         reaction: ['Important'],
         userId: 'u1',
       })
-      expect(result.pageInfo.hasNextPage).toBe(true)
-      expect(result.pageInfo.endCursor).toBe('c2')
+      expect(result.pageInfo.totalCount).toBe(1)
+      expect(result.pageInfo.totalNrOfPages).toBe(1)
+    })
+
+    it('returns totalCount and totalNrOfPages from pageInfo when provided', async () => {
+      mockGraphQL({
+        data: {
+          studyNotesConnection: {
+            nodes: [STUDY_NOTE_FIXTURE],
+            pageInfo: {totalCount: 42, totalNrOfPages: 5},
+          },
+        },
+      })
+
+      const result = await api.getNotes({pageSize: 10})
+      expect(result.pageInfo.totalCount).toBe(42)
+      expect(result.pageInfo.totalNrOfPages).toBe(5)
+    })
+
+    it('returns undefined totalCount and totalNrOfPages when not provided', async () => {
+      mockGraphQL({
+        data: {
+          studyNotesConnection: {nodes: [], pageInfo: {}},
+        },
+      })
+
+      const result = await api.getNotes({})
+      expect(result.pageInfo.totalCount).toBeUndefined()
+      expect(result.pageInfo.totalNrOfPages).toBeUndefined()
     })
 
     it('maps _id to id', async () => {
@@ -142,7 +164,7 @@ describe('CanvasNotebookApi', () => {
       })
     })
 
-    it('passes cursor as after when direction is next', async () => {
+    it('encodes offset as a base64 `after` cursor', async () => {
       const captured = {body: null as CapturedRequest | null}
       server.use(
         http.post('/api/graphql', async ({request}) => {
@@ -153,17 +175,12 @@ describe('CanvasNotebookApi', () => {
         }),
       )
 
-      await api.getNotes({direction: 'next', cursor: 'cursor-abc', pageSize: 5})
+      await api.getNotes({offset: 20, pageSize: 5})
 
-      expect(captured.body?.variables).toMatchObject({
-        first: 5,
-        after: 'cursor-abc',
-        last: null,
-        before: null,
-      })
+      expect(captured.body?.variables).toMatchObject({first: 5, after: btoa('20')})
     })
 
-    it('passes cursor as before when direction is prev', async () => {
+    it('omits the `after` cursor on the first page and defaults first to 10', async () => {
       const captured = {body: null as CapturedRequest | null}
       server.use(
         http.post('/api/graphql', async ({request}) => {
@@ -174,14 +191,9 @@ describe('CanvasNotebookApi', () => {
         }),
       )
 
-      await api.getNotes({direction: 'prev', cursor: 'cursor-xyz'})
+      await api.getNotes({})
 
-      expect(captured.body?.variables).toMatchObject({
-        first: null,
-        last: 10,
-        before: 'cursor-xyz',
-        after: null,
-      })
+      expect(captured.body?.variables).toMatchObject({first: 10, after: null})
     })
   })
 

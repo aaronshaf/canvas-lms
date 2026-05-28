@@ -22,6 +22,7 @@ import userEvent from '@testing-library/user-event'
 import {NotebookPanel} from '../NotebookPanel'
 
 const mockNotesListView = vi.fn((_props: object) => <div data-testid="notes-list-view" />)
+const mockUseNotesData = vi.fn()
 const mockUpdateNote = vi.fn()
 const mockDeleteNote = vi.fn()
 const mockCloseTray = vi.fn()
@@ -31,6 +32,21 @@ const NOTE_A = {
   userText: 'original text',
   reaction: ['Important'],
   highlightData: {text: 'some highlight'},
+}
+
+const defaultUseNotesDataReturn = {
+  notes: [NOTE_A],
+  pageInfo: {},
+  isLoading: false,
+  isError: false,
+  filter: null,
+  courseFilter: null,
+  currentPage: 1,
+  setFilter: vi.fn(),
+  setCourseFilter: vi.fn(),
+  setPage: vi.fn(),
+  fetchNextPage: vi.fn(),
+  fetchPreviousPage: vi.fn(),
 }
 
 vi.mock('@instructure/platform-notebook', () => ({
@@ -44,11 +60,7 @@ vi.mock('@instructure/platform-notebook', () => ({
     clearSelectedNote: vi.fn(),
     closeTray: mockCloseTray,
   }),
-  useGetNotes: () => ({
-    data: {notes: [NOTE_A], pageInfo: {}},
-    isLoading: false,
-    isError: false,
-  }),
+  useNotesData: (...args: unknown[]) => mockUseNotesData(...args),
   useUpdateNote: () => ({mutate: mockUpdateNote}),
   useDeleteNote: () => ({mutate: mockDeleteNote}),
   NotesListView: (props: object) => mockNotesListView(props),
@@ -59,6 +71,9 @@ type NotesListViewProps = {
   onNoteDelete: (id: string) => void
   onNoteSave: (id: string, text: string) => void
   onNoteTypeChange: (id: string, type: string) => void
+  onPageChange?: (page: number) => void
+  currentPage?: number
+  totalPages?: number
 }
 
 function getNotesListProps(): NotesListViewProps {
@@ -75,11 +90,38 @@ function renderPanel() {
 describe('NotebookPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseNotesData.mockReturnValue(defaultUseNotesDataReturn)
   })
 
   it('renders the heading', () => {
     renderPanel()
     expect(screen.getByText('Notebook')).toBeInTheDocument()
+  })
+
+  it('requests a page size of 10 and filters by learningObject from context', () => {
+    renderPanel()
+    expect(mockUseNotesData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pageSize: 10,
+        learningObject: {type: 'Page', id: 'page-1'},
+        courseId: '42',
+      }),
+    )
+  })
+
+  it('passes currentPage, totalPages, and onPageChange to NotesListView', () => {
+    const setPage = vi.fn()
+    mockUseNotesData.mockReturnValue({
+      ...defaultUseNotesDataReturn,
+      currentPage: 2,
+      setPage,
+      pageInfo: {totalNrOfPages: 5},
+    })
+    renderPanel()
+    const props = getNotesListProps()
+    expect(props.currentPage).toBe(2)
+    expect(props.totalPages).toBe(5)
+    expect(props.onPageChange).toBe(setPage)
   })
 
   it('calls onDismiss and closeTray when the close button is clicked', async () => {

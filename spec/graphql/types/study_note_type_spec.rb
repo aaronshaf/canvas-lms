@@ -135,6 +135,43 @@ describe Types::StudyNoteType do
       expect(nodes[0]["_id"]).to eq @note2.id.to_s
     end
 
+    it "returns totalCount in pageInfo" do
+      result = CanvasSchema.execute(<<~GQL, context: { current_user: @student, request: ActionDispatch::TestRequest.create, session: {} })
+        {
+          studyNotesConnection(courseId: "#{@course.id}", first: 1) {
+            nodes { _id }
+            pageInfo { totalCount }
+          }
+        }
+      GQL
+      expect(result["errors"]).to be_nil
+      expect(result.dig("data", "studyNotesConnection", "nodes").length).to eq 1
+      expect(result.dig("data", "studyNotesConnection", "pageInfo", "totalCount")).to eq 2
+    end
+
+    it "orders notes by created_at ascending, then id" do
+      result = execute_query(course_id: @course.id)
+      expect(result["errors"]).to be_nil
+      ids = result.dig("data", "studyNotesConnection", "nodes").pluck("_id")
+      expect(ids).to eq([@note1.id.to_s, @note2.id.to_s])
+    end
+
+    it "supports cursor-based jump-to-page via `after`" do
+      after_cursor = Base64.strict_encode64("1")
+      result = CanvasSchema.execute(<<~GQL, context: { current_user: @student, request: ActionDispatch::TestRequest.create, session: {} })
+        {
+          studyNotesConnection(courseId: "#{@course.id}", first: 5, after: "#{after_cursor}") {
+            nodes { _id }
+            pageInfo { totalCount }
+          }
+        }
+      GQL
+      expect(result["errors"]).to be_nil
+      ids = result.dig("data", "studyNotesConnection", "nodes").pluck("_id")
+      expect(ids).to eq([@note2.id.to_s])
+      expect(result.dig("data", "studyNotesConnection", "pageInfo", "totalCount")).to eq 2
+    end
+
     it "does not return another student's notes" do
       original_student = @student
       other_student = student_in_course(course: @course, active_all: true).user

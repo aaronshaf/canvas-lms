@@ -54,10 +54,8 @@ interface StudyNotesConnectionData {
   studyNotesConnection: {
     nodes: StudyNoteFields[]
     pageInfo: {
-      hasNextPage?: boolean | null
-      hasPreviousPage?: boolean | null
-      startCursor?: string | null
-      endCursor?: string | null
+      totalCount?: number | null
+      totalNrOfPages?: number | null
     }
   }
 }
@@ -141,23 +139,20 @@ export class CanvasNotebookApi implements NotebookApi {
         }
       : undefined
 
+    const offset = params.offset ?? 0
     const data = await executeGraphQL<StudyNotesConnectionData>(GET_NOTES_QUERY, {
       courseId: this.courseId,
       filter: canvasFilter,
-      first: params.direction === 'prev' ? null : (params.pageSize ?? 10),
-      last: params.direction === 'prev' ? (params.pageSize ?? 10) : null,
-      after: params.direction === 'next' ? params.cursor : null,
-      before: params.direction === 'prev' ? params.cursor : null,
+      first: params.pageSize ?? 10,
+      after: offset > 0 ? btoa(String(offset)) : null,
     })
 
     const {nodes, pageInfo} = data.studyNotesConnection
     return {
       notes: nodes.map(mapStudyNote),
       pageInfo: {
-        hasNextPage: pageInfo.hasNextPage ?? undefined,
-        hasPreviousPage: pageInfo.hasPreviousPage ?? undefined,
-        startCursor: pageInfo.startCursor ?? undefined,
-        endCursor: pageInfo.endCursor ?? undefined,
+        totalCount: pageInfo.totalCount ?? undefined,
+        totalNrOfPages: pageInfo.totalNrOfPages ?? undefined,
       },
     }
   }

@@ -468,16 +468,18 @@ module Types
         raise GraphQL::ExecutionError, I18n.t("User is not a student of this course")
       end
 
-      scope = StudyNote.active.for_user(current_user).for_course(course)
+      course.shard.activate do
+        scope = StudyNote.active.for_user(current_user).for_course(course)
 
-      if filter
-        if filter[:learning_object]
-          scope = scope.for_object(filter[:learning_object][:learning_object_type], filter[:learning_object][:learning_object_id])
+        if filter
+          if filter[:learning_object]
+            scope = scope.for_object(filter[:learning_object][:learning_object_type], filter[:learning_object][:learning_object_id])
+          end
+          scope = scope.with_reactions(filter[:reactions]) if filter[:reactions].present?
         end
-        scope = scope.with_reactions(filter[:reactions]) if filter[:reactions].present?
-      end
 
-      scope
+        scope.order(:created_at, :id)
+      end
     end
   end
 end

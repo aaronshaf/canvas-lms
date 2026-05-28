@@ -71,4 +71,14 @@ describe('NotebookFilters', () => {
     fireEvent.click(screen.getByTestId('reaction-filter-button'))
     expect(setFilter).toHaveBeenCalledWith('Important')
   })
+
+  it('renders the total results count when totalCount is provided', () => {
+    render(<NotebookFilters filter={null} setFilter={vi.fn()} totalCount={17} />)
+    expect(screen.getByTestId('notebook-total-results')).toHaveTextContent('17 results')
+  })
+
+  it('omits the total results count when totalCount is undefined', () => {
+    render(<NotebookFilters filter={null} setFilter={vi.fn()} />)
+    expect(screen.queryByTestId('notebook-total-results')).not.toBeInTheDocument()
+  })
 })

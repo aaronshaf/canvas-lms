@@ -18,19 +18,37 @@
 
 import React from 'react'
 import {Flex} from '@instructure/ui-flex'
+import {Text} from '@instructure/ui-text'
 import {REACTION_TYPE, useReactionFilter} from '@instructure/platform-notebook'
+import {useScope as createI18nScope} from '@canvas/i18n'
+
+const I18n = createI18nScope('notebook_index')
 
 export type NotebookFiltersProps = {
   filter: REACTION_TYPE | null
   setFilter: (filter: REACTION_TYPE | null) => void
+  totalCount?: number
 }
 
-export default function NotebookFilters({filter, setFilter}: NotebookFiltersProps) {
+export default function NotebookFilters({filter, setFilter, totalCount}: NotebookFiltersProps) {
   const {filterElement} = useReactionFilter({filter, setFilter})
 
   return (
-    <Flex as="div" alignItems="center" margin="0 0 medium 0" wrap="wrap">
+    <Flex
+      as="div"
+      alignItems="center"
+      justifyItems="space-between"
+      margin="0 0 medium 0"
+      wrap="wrap"
+    >
       <Flex.Item shouldShrink={false}>{filterElement}</Flex.Item>
+      {totalCount !== undefined && (
+        <Flex.Item shouldShrink={false}>
+          <Text size="small" color="secondary" data-testid="notebook-total-results">
+            {I18n.t({one: '1 result', other: '%{count} results'}, {count: totalCount})}
+          </Text>
+        </Flex.Item>
+      )}
     </Flex>
   )
 }

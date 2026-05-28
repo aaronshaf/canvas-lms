@@ -38,7 +38,7 @@ import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import NotebookFilters from './NotebookFilters'
 import {useNotesColumnCount} from '../hooks/useNotesColumnCount'
 
-const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 24
 const EMPTY_STATE_MAX_WIDTH = '35rem'
 
 const queryClient = new QueryClient({
@@ -53,7 +53,7 @@ const queryClient = new QueryClient({
 function NotebookIndexBody() {
   const {api, courseId} = useNotebook()
   const columnCount = useNotesColumnCount()
-  const {notes, pageInfo, isLoading, isError, filter, setFilter, fetchNextPage, fetchPreviousPage} =
+  const {notes, pageInfo, isLoading, isError, filter, setFilter, currentPage, setPage} =
     useNotesData({
       api,
       courseId,
@@ -84,10 +84,12 @@ function NotebookIndexBody() {
   )
 
   const isEmpty = !isLoading && !isError && notes.length === 0
+  const totalCount = pageInfo?.totalCount ?? undefined
+  const totalPages = pageInfo?.totalNrOfPages ?? undefined
 
   return (
     <>
-      <NotebookFilters filter={filter} setFilter={setFilter} />
+      <NotebookFilters filter={filter} setFilter={setFilter} totalCount={totalCount} />
       {isEmpty ? (
         <Flex height="100%" alignItems="center" justifyItems="center">
           <Flex.Item shouldGrow={false}>
@@ -101,9 +103,9 @@ function NotebookIndexBody() {
           notes={notes}
           isLoading={isLoading}
           isError={isError}
-          pageInfo={pageInfo}
-          onPreviousPage={fetchPreviousPage}
-          onNextPage={fetchNextPage}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
           highlightTheme={HIGHLIGHT_THEME}
           noteHref={noteHref}
           columnCount={columnCount}
