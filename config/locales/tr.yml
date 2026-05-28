@@ -19791,6 +19791,11 @@ tr:
             
             Canvas Ağ
         course_starts_next_week: "Dersiniz önümüzdeki hafta başlıyor"
+    default_email_address_changed: 
+      email: 
+        details_header: "Ayrıntılar:"
+        html: 
+          details_header: "Ayrıntılar:"
     dialog: 
       title: "Yanıt mesajını gönder"
     discussion_mention: 
@@ -19807,6 +19812,11 @@ tr:
       footer: |-
           Canvas'ı kullanarak bir veya daha fazla derse katıldığınız için bu epostayı aldınız. Eposta bildirimlerini değiştirme ya da kapatmak için şuraya gidin:
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "Ayrıntılar:"
+        html: 
+          details_header: "Ayrıntılar:"
     enrollment_accepted: 
       email: 
         body_designer: "%{user} kullanıcısı %{course} dersi için sadece tasarımcı olarak davetiniz kabul edildi."
@@ -20319,6 +20329,11 @@ tr:
         subject: "Yeni Tartışma - %{discussion_topic}: %{course}"
       twitter: 
         subject: "Canvas Uyarısı - Konu: %{discussion_topic}, %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: "Ayrıntılar:"
+        html: 
+          details_header: "Ayrıntılar:"
     new_event_created: 
       email: 
         body: "%{course_name} dersi için haberdar olmanız gereken planlanmış yeni bir olay var:"
