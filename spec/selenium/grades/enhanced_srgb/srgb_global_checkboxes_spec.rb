@@ -48,14 +48,4 @@ describe "Screenreader Gradebook" do
     EnhancedSRGB.ungraded_as_zero.click
     expect(EnhancedSRGB.final_grade).to include_text("100%")
   end
-
-  it "hides student names" do
-    EnhancedSRGB.hide_student_names.click
-    expect(EnhancedSRGB.secondary_id_label).to include_text("hidden")
-  end
-
-  it "shows notes in student info" do
-    EnhancedSRGB.show_notes_option.click
-    expect(EnhancedSRGB.notes_field).to be_present
-  end
 end

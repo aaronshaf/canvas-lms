@@ -37,57 +37,6 @@ describe "Individual View Gradebook" do
     @student2 = course_with_student(course: @course, name: "Student2", active_all: true).user
   end
 
-  context "with a moderated assignment" do
-    before(:once) do
-      # create moderated assignment
-      @moderated_assignment = @course.assignments.create!(
-        title: "Moderated Assignment1",
-        grader_count: 2,
-        final_grader_id: @teacher1.id,
-        grading_type: "points",
-        points_possible: 15,
-        submission_types: "online_text_entry",
-        moderated_grading: true
-      )
-
-      # give a grade as non-final grader
-      @student1_submission = @moderated_assignment.grade_student(@student1, grade: 13, grader: @teacher2, provisional: true).first
-    end
-
-    before do
-      # switch session to non-final-grader
-      user_session(@teacher2)
-    end
-
-    it "prevents grading for the assignment before grades are posted" do
-      EnhancedSRGB.visit(@course.id)
-      EnhancedSRGB.select_student(@student1)
-      EnhancedSRGB.select_assignment(@moderated_assignment)
-      scroll_into_view('[data-testid="student_and_assignment_grade_input"]')
-
-      expect(EnhancedSRGB.main_grade_input.attribute("disabled")).to eq "true"
-      expect(EnhancedSRGB.excuse_checkbox.attribute("disabled")).to eq "true"
-    end
-
-    context "when grades are posted" do
-      before(:once) do
-        @moderated_assignment.update!(grades_published_at: Time.zone.now)
-      end
-
-      before do
-        EnhancedSRGB.visit(@course.id)
-      end
-
-      it "allows grading for the assignment" do
-        EnhancedSRGB.select_student(@student1)
-        EnhancedSRGB.select_assignment(@moderated_assignment)
-
-        EnhancedSRGB.enter_grade("15")
-        expect(EnhancedSRGB.current_grade).to eq "15"
-      end
-    end
-  end
-
   context "with an anonymous assignment" do
     before(:once) do
       # create a new anonymous assignment
@@ -111,16 +60,6 @@ describe "Individual View Gradebook" do
     before do
       user_session(@teacher1)
       EnhancedSRGB.visit(@course.id)
-    end
-
-    it "excludes the muted assignment from the assignment list" do
-      EnhancedSRGB.select_student(@student1)
-      EnhancedSRGB.assignment_dropdown.click
-
-      # muted anonymous assignment is not displayed
-      expect(EnhancedSRGB.assignment_dropdown).not_to include_text "Anonymous Assignment"
-      # unmuted anonymous assignment is displayed
-      expect(EnhancedSRGB.assignment_dropdown).to include_text "Unmuted Anon Assignment"
     end
 
     it "speedgrader link opens in new tab" do

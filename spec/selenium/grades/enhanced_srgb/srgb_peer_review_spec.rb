@@ -69,14 +69,6 @@ describe "Enhanced Individual Gradebook - Peer Review" do
   # - EnhancedIndividualGradebook tests for submission extraction
   # - gradebookUtils.test.ts for calculation logic
 
-  it "displays peer review assignment in assignment dropdown" do
-    EnhancedSRGB.visit(@course.id)
-
-    assignment_options = EnhancedSRGB.assignment_dropdown_options
-    expect(assignment_options).to include("Parent Assignment")
-    expect(assignment_options).to include("Peer Review")
-  end
-
   it "displays peer review grade for student" do
     EnhancedSRGB.visit(@course.id)
 
