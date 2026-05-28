@@ -87,6 +87,13 @@ horizon_study_tools:
   display_name: "Canvas Career: Study Tools"
   description: |-
     Restricts AI study tools to Page and File learning object routes in Canvas Career.
+horizon_global_announcements:
+  applies_to: RootAccount
+  state: hidden
+  shadow: true
+  display_name: "Canvas Career: Global Announcements"
+  description: |-
+    Enables native global announcement authoring and management in Canvas Career.
 
 # Feature flags read by Canvas
 horizon_bulk_api_permission:

@@ -74,6 +74,7 @@ class CareerController < ApplicationController
       horizon_study_tools
       horizon_autopilot
       horizon_configurable_learner_dashboard
+      horizon_global_announcements
     ].index_with { |feature| @domain_root_account.feature_enabled?(feature) }
   end
 end

@@ -123,7 +123,8 @@ describe CareerController, type: :request do
             "horizon_block_content_editor" => false,
             "horizon_native_inbox" => false,
             "horizon_autopilot" => false,
-            "horizon_configurable_learner_dashboard" => false
+            "horizon_configurable_learner_dashboard" => false,
+            "horizon_global_announcements" => false
           )
         end
 
