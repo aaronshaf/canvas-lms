@@ -7278,4 +7278,269 @@ describe CoursesController do
       end
     end
   end
+
+  describe "selenium-derived coverage", type: :request do
+    render_views
+
+    describe "GET 'index' sort independence across enrollment tables" do
+      it "applies cc_/pc_/fc_ sort+order params independently across current/past/future tables" do
+        # Arrange
+        student = user_factory(active_all: true)
+
+        # Current enrollments: A unpublished, Z published. Student is a TA in
+        # both so the unpublished course is visible and renders in the table.
+        cur_a = Account.default.courses.create!(name: "A")
+        cur_z = Account.default.courses.create!(name: "Z")
+        cur_z.offer!
+        course_with_ta(course: cur_a, user: student, active_all: true)
+        course_with_ta(course: cur_z, user: student, active_all: true)
+
+        # Past enrollments: A student (completed), Z TA (completed)
+        past_a = Account.default.courses.create!(name: "PA")
+        past_z = Account.default.courses.create!(name: "PZ")
+        past_a.offer!
+        past_z.offer!
+        e_pa = course_with_student(user: student, course: past_a, active_all: true)
+        e_pz = course_with_ta(course: past_z, user: student, active_all: true)
+        [e_pa, e_pz].each(&:complete!)
+
+        # Future enrollments: A favorited, Z not favorited
+        fut_a = Account.default.courses.create!(name: "FA", start_at: 1.month.from_now, restrict_enrollments_to_course_dates: true)
+        fut_z = Account.default.courses.create!(name: "FZ", start_at: 1.month.from_now, restrict_enrollments_to_course_dates: true)
+        fut_a.offer!
+        fut_z.offer!
+        course_with_student(user: student, course: fut_a, active_all: true)
+        course_with_student(user: student, course: fut_z, active_all: true)
+        student.favorites.create!(context: fut_a)
+
+        user_session(student)
+
+        # Act: independent sort params for each of the three tables in a single request
+        get "/courses", params: {
+          cc_sort: "published",
+          cc_order: "desc",
+          pc_sort: "enrolled_as",
+          fc_sort: "favorite"
+        }
+
+        # Assert: each rendered table's row order reflects only its own sort params.
+        # Course ids come from the /courses/:id links rendered in each table.
+        expect(response).to have_http_status(:ok)
+        doc = Nokogiri::HTML5(response.body)
+        rendered_course_ids = lambda do |table_id|
+          doc.at_css("##{table_id}").css("a[href]").filter_map { |a| a["href"][%r{\A/courses/(\d+)}, 1]&.to_i }.uniq
+        end
+        # cc_order=desc on "published" lists unpublished first
+        expect(rendered_course_ids.call("my_courses_table")).to eq [cur_a.id, cur_z.id]
+        # pc_sort=enrolled_as asc: Student < TA
+        expect(rendered_course_ids.call("past_enrollments_table")).to eq [past_a.id, past_z.id]
+        # fc_sort=favorite asc: favorited courses first
+        expect(rendered_course_ids.call("future_enrollments_table")).to eq [fut_a.id, fut_z.id]
+      end
+    end
+
+    describe "PUT 'update' homeroom selection on K5 account" do
+      it "persists the selected homeroom_course_id and sync flag when sync_enrollments_from_homeroom is enabled" do
+        # Arrange
+        course_with_teacher(active_all: true)
+        @course.account.enable_as_k5_account!
+        homeroom = @course.account.courses.create!(name: "homeroom1", homeroom_course: true)
+        progress = instance_double(Progress).as_null_object
+        allow(Progress).to receive(:new).and_return(progress)
+        user_session(@teacher)
+
+        # Act
+        put "/courses/#{@course.id}", params: {
+          course: {
+            homeroom_course_id: homeroom.id,
+            sync_enrollments_from_homeroom: "1"
+          }
+        }
+
+        # Assert
+        @course.reload
+        expect(@course.homeroom_course_id).to eq homeroom.id
+        expect(@course.sync_enrollments_from_homeroom).to be_truthy
+      end
+    end
+
+    describe "PUT 'update' publishing a claimed course preserves lock_all_announcements" do
+      it "moves workflow_state to available and keeps lock_all_announcements=true after offer event" do
+        # Arrange
+        course_with_teacher(active_all: true)
+        @course.update!(workflow_state: "claimed", lock_all_announcements: true)
+        user_session(@teacher)
+
+        # Act
+        put "/courses/#{@course.id}", params: { course: { event: "offer" } }
+
+        # Assert
+        @course.reload
+        expect(response).to have_http_status(:found)
+        expect(@course.workflow_state).to eq "available"
+        expect(@course.lock_all_announcements).to be true
+      end
+    end
+
+    describe "PUT 'update' course details (name, code, locale, time zone)" do
+      it "persists name, course_code, locale, and time_zone in a single update" do
+        # Arrange
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+
+        # Act
+        put "/courses/#{@course.id}", params: {
+          course: {
+            name: "new course name",
+            course_code: "new course-101",
+            locale: "en",
+            time_zone: "Central Time (US & Canada)"
+          }
+        }
+
+        # Assert
+        @course.reload
+        expect(response).to have_http_status(:found)
+        expect(@course.name).to eq "new course name"
+        expect(@course.course_code).to eq "new course-101"
+        expect(@course.locale).to eq "en"
+        expect(@course.time_zone.name).to eq "Central Time (US & Canada)"
+      end
+    end
+
+    describe "GET 'show' course_home_sub_navigation LTI tool" do
+      it "renders the configured tool's launch link with its launch_type in the course home page" do
+        # Arrange
+        course_with_teacher(active_all: true)
+        tool = @course.context_external_tools.create!(
+          consumer_key: "test",
+          shared_secret: "secret",
+          url: "http://example.com/lti",
+          name: "home-sub-nav-tool",
+          course_home_sub_navigation: { enabled: true, visibility: "members" }
+        )
+        user_session(@teacher)
+
+        # Act
+        get "/courses/#{@course.id}"
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(tool.course_home_sub_navigation["enabled"]).to be true
+        # the view renders the tool as a launch link tagged with its launch_type
+        expect(response.body).to include("home-sub-nav-tool")
+        expect(response.body).to include("data-tool-launch-type=\"course_home_sub_navigation\"")
+        expect(response.body).to include("launch_type=course_home_sub_navigation")
+      end
+    end
+
+    describe "GET 'show' semi-public course permission cache invalidation" do
+      it "allows an authenticated non-enrolled user to view the course after is_public_to_auth_users flips to true" do
+        # Arrange
+        course_factory(active_all: true)
+        @course.update!(is_public_to_auth_users: false)
+        outsider = user_factory(active_all: true)
+        user_session(outsider)
+
+        enable_cache do
+          # Prime the negative permission cache for the outsider
+          @course.grants_right?(outsider, :read)
+
+          # Flip the flag - the cached permission must be invalidated
+          @course.update!(is_public_to_auth_users: true)
+
+          # Act
+          get "/courses/#{@course.id}"
+        end
+
+        # Assert: access is granted (the cached negative permission was invalidated)
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    describe "GET 'show' home page announcements js_env" do
+      it "exposes SHOW_ANNOUNCEMENTS=true and ANNOUNCEMENT_LIMIT matching the course's home_page_announcement_limit" do
+        # Arrange
+        course_with_teacher(active_all: true)
+        student_in_course(active_all: true)
+        @course.update!(show_announcements_on_home_page: true, home_page_announcement_limit: 2)
+        user_session(@student)
+
+        # Act
+        get "/courses/#{@course.id}"
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        js_env = js_env_from_response(response)
+        expect(js_env["SHOW_ANNOUNCEMENTS"]).to be true
+        expect(js_env["ANNOUNCEMENT_LIMIT"]).to eq 2
+      end
+    end
+
+    describe "GET 'show' invitation auto-accept when previews are disabled" do
+      it "auto-accepts the invited enrollment and sets the 'Invitation accepted!' flash notice" do
+        # Arrange
+        account = Account.create!(settings: { allow_invitation_previews: false })
+        course_with_student_logged_in(active_course: 1, account:)
+        expect(@enrollment).to be_invited
+
+        # Act
+        get "/courses/#{@course.id}", params: { invitation: @enrollment.uuid }
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        # the "Invitation accepted!" notice is surfaced to the user via the rendered js_env notices
+        notices = js_env_from_response(response)["notices"]
+        expect(notices.pluck("content")).to include(a_string_matching(/Invitation accepted!/))
+        expect(@enrollment.reload).to be_active
+      end
+    end
+
+    describe "POST 'enrollment_invitation' manual accept" do
+      it "activates the enrollment and sets the 'Invitation accepted!' flash notice" do
+        # Arrange
+        Account.default.settings[:allow_invitation_previews] = true
+        Account.default.save!
+        course_with_student_logged_in(active_course: true, active_user: true)
+        expect(@enrollment).to be_invited
+
+        # Act
+        post "/courses/#{@course.id}/enrollment_invitation", params: { accept: "1", invitation: @enrollment.uuid }
+
+        # Assert
+        expect(response).to redirect_to(course_url(@course.id))
+        expect(flash[:notice]).to match(/Invitation accepted!/)
+        expect(@enrollment.reload).to be_active
+      end
+    end
+
+    describe "GET 'show' course navigation collapse preference" do
+      it "renders successfully when collapse_course_nav preference is unset (default)" do
+        # Arrange
+        course_with_student_logged_in(active_all: true)
+        expect(@student.collapse_course_nav?).to be false
+
+        # Act
+        get "/courses/#{@course.id}"
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(@student.reload.collapse_course_nav?).to be false
+      end
+
+      it "renders successfully when collapse_course_nav preference is true and the preference is durable across requests" do
+        # Arrange
+        course_with_student_logged_in(active_all: true)
+        @student.preferences[:collapse_course_nav] = true
+        @student.save!
+
+        # Act
+        get "/courses/#{@course.id}"
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(@student.reload.collapse_course_nav?).to be true
+      end
+    end
+  end
 end
