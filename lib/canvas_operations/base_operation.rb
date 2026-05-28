@@ -41,9 +41,10 @@ module CanvasOperations
   #
   # See `./data_fixup.rb` for an example subclass implementation.
   class BaseOperation
-    extend CanvasOperations::BaseConcerns::Settings
-    extend CanvasOperations::BaseConcerns::Callbacks
-    extend CanvasOperations::BaseConcerns::ProgressTracking
+    extend BaseConcerns::Settings
+    extend BaseConcerns::Callbacks
+    extend BaseConcerns::ProgressTracking
+    extend BaseConcerns::Schema
 
     class << self
       def log_message(message, level: :info)
@@ -52,6 +53,10 @@ module CanvasOperations
 
       def operation_name
         name.demodulize.underscore.tr("/", "_")
+      end
+
+      def operation_title
+        operation_name.humanize
       end
     end
 

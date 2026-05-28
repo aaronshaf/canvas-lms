@@ -539,4 +539,195 @@ RSpec.describe CanvasOperations::BaseOperation do
       end
     end
   end
+
+  describe CanvasOperations::BaseConcerns::Schema::Argument do
+    let(:base_attrs) do
+      { name: :placeholder, type: :string, required: false, title: nil, description: nil, default: nil }
+    end
+
+    describe "#initialize" do
+      context "when given a Symbol type" do
+        subject(:arg) { described_class.new(**base_attrs, type: :boolean) }
+
+        it "stores the type" do
+          expect(arg.type).to be(:boolean)
+        end
+      end
+
+      context "when given an ActiveRecord subclass type" do
+        subject(:arg) { described_class.new(**base_attrs, type: User) }
+
+        it "stores the type" do
+          expect(arg.type).to be(User)
+        end
+      end
+
+      context "when given a non-Symbol, non-ActiveRecord type" do
+        it "raises ArgumentError" do
+          expect { described_class.new(**base_attrs, type: String) }
+            .to raise_error(ArgumentError, /must be a Symbol or ActiveRecord::Base subclass/)
+        end
+      end
+    end
+
+    describe "#active_record_type?" do
+      context "when the type is an ActiveRecord subclass" do
+        subject(:arg) { described_class.new(**base_attrs, type: User) }
+
+        it "is true" do
+          expect(arg.active_record_type?).to be(true)
+        end
+      end
+
+      context "when the type is a Symbol" do
+        subject(:arg) { described_class.new(**base_attrs, type: :boolean) }
+
+        it "is false" do
+          expect(arg.active_record_type?).to be(false)
+        end
+      end
+    end
+
+    describe "#property_name" do
+      context "when the type is an ActiveRecord subclass" do
+        subject(:arg) { described_class.new(**base_attrs, name: :root_account, type: Account) }
+
+        it "appends _id to the argument name" do
+          expect(arg.property_name).to be(:root_account_id)
+        end
+      end
+
+      context "when the type is a Symbol" do
+        subject(:arg) { described_class.new(**base_attrs, name: :skip_admins, type: :boolean) }
+
+        it "uses the argument name unchanged" do
+          expect(arg.property_name).to be(:skip_admins)
+        end
+      end
+    end
+
+    describe "#to_property" do
+      context "when the type is an ActiveRecord subclass" do
+        subject(:arg) do
+          described_class.new(**base_attrs, name: :user, type: User, title: "User", description: "The user")
+        end
+
+        it "emits a JSON Schema string type" do
+          expect(arg.to_property).to eql({ type: "string", title: "User", description: "The user" })
+        end
+      end
+
+      context "when the type is a Symbol" do
+        subject(:arg) { described_class.new(**base_attrs, name: :flag, type: :boolean, default: false) }
+
+        it "emits the symbol as the JSON Schema type" do
+          expect(arg.to_property).to eql({ type: "boolean", default: false })
+        end
+      end
+
+      context "when optional fields are nil" do
+        subject(:arg) { described_class.new(**base_attrs, name: :flag, type: :boolean) }
+
+        it "omits the nil keys" do
+          expect(arg.to_property).to eql({ type: "boolean" })
+        end
+      end
+    end
+  end
+
+  shared_context "schema operation" do
+    before do
+      stub_const("Operations::SchemaSpecTestOp", Class.new(described_class) do
+        description "A test operation."
+
+        argument :root_account,
+                 type: Account,
+                 required: true,
+                 title: "Root Account",
+                 description: "The root account."
+        argument :skip_admins,
+                 type: :boolean,
+                 required: false,
+                 default: false,
+                 title: "Skip Admins"
+
+        ui_schema "DescriptionHelper:short" => "A short description."
+      end)
+    end
+  end
+
+  describe ".argument" do
+    context "with a non-Symbol, non-ActiveRecord type" do
+      let(:operation_class) { Class.new(described_class) }
+
+      it "raises ArgumentError" do
+        expect { operation_class.class_eval { argument :nope, type: String } }
+          .to raise_error(ArgumentError, /must be a Symbol or ActiveRecord::Base subclass/)
+      end
+    end
+  end
+
+  describe ".ui_schema" do
+    context "with successive declarations" do
+      let(:operation_class) do
+        klass = Class.new(described_class)
+        stub_const("Operations::UiSchemaSpecOp", klass)
+        klass.class_eval do
+          ui_schema "a" => 1
+          ui_schema "b" => 2
+        end
+        klass
+      end
+
+      it "merges the keys across declarations" do
+        expect(operation_class.operation_schema[:ui_schema]).to eql("a" => 1, "b" => 2)
+      end
+    end
+  end
+
+  describe ".operation_schema" do
+    include_context "schema operation"
+
+    let(:schema) { Operations::SchemaSpecTestOp.operation_schema }
+
+    it "exposes the operation id derived from the class name" do
+      expect(schema[:id]).to eql("schema_spec_test_op")
+    end
+
+    it "exposes the humanized operation title" do
+      expect(schema[:title]).to eql("Schema spec test op")
+    end
+
+    it "exposes the declared description" do
+      expect(schema[:description]).to eql("A test operation.")
+    end
+
+    it "exposes the declared ui_schema" do
+      expect(schema[:ui_schema]).to eql("DescriptionHelper:short" => "A short description.")
+    end
+
+    it "wraps arguments in a JSON Schema object" do
+      expect(schema[:schema]).to include(type: "object", additionalProperties: false)
+    end
+
+    it "applies the _id suffix to ActiveRecord-backed property keys" do
+      expect(schema[:schema][:properties].keys).to eql(%i[root_account_id skip_admins])
+    end
+
+    it "lists required arguments by their property name" do
+      expect(schema[:schema][:required]).to eql([:root_account_id])
+    end
+
+    it "emits ActiveRecord-backed arguments as JSON Schema strings" do
+      expect(schema[:schema][:properties][:root_account_id]).to eql(
+        { type: "string", title: "Root Account", description: "The root account." }
+      )
+    end
+
+    it "emits primitive-typed arguments with their declared default" do
+      expect(schema[:schema][:properties][:skip_admins]).to eql(
+        { type: "boolean", title: "Skip Admins", default: false }
+      )
+    end
+  end
 end
