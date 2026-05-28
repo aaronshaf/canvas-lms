@@ -16,9 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {SortOrder} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
-import {AxiosResponse} from 'axios'
+import type {QueryParameterRecord} from '@instructure/query-string-encoding/index.d'
 import {MasteryDistributionResponse} from './types/mastery_distribution'
 import {DEFAULT_STUDENTS_PER_PAGE, SortBy} from './utils/constants'
 
@@ -28,49 +28,21 @@ export function createImport(contextRoot: string, file: File, learningOutcomeGro
   // xsslint safeString.identifier file
   data.append('attachment', file)
   const url = `/api/v1${contextRoot}/outcome_imports/${groupParam}?import_type=instructure_csv`
-  return axios.post(url, data)
+  return doFetchApi({path: url, method: 'POST', body: data})
 }
 
 export function queryImportStatus(contextRoot: string, outcomeImportId: string) {
-  return axios.get(`/api/v1${contextRoot}/outcome_imports/${outcomeImportId}`)
+  return doFetchApi({path: `/api/v1${contextRoot}/outcome_imports/${outcomeImportId}`})
 }
 
 export function queryImportCreatedGroupIds(contextRoot: string, outcomeImportId: string) {
-  return axios.get(`/api/v1${contextRoot}/outcome_imports/${outcomeImportId}/created_group_ids`)
-}
-
-/**
- * Parameters for outcome rollups API
- */
-interface RollupParams {
-  rating_percents?: boolean
-  per_page: number
-  exclude: string[]
-  include: string[]
-  sort_by: string
-  sort_order: string
-  page: number
-  add_defaults?: boolean
-  sort_outcome_id?: string
-  sort_alignment_id?: string
-  user_ids?: number[]
-  outcome_ids?: string[]
+  return doFetchApi({
+    path: `/api/v1${contextRoot}/outcome_imports/${outcomeImportId}/created_group_ids`,
+  })
 }
 
 /**
  * Load outcome rollups for a course
- * @param courseId - The ID of the course
- * @param gradebookFilters - Filters to exclude from the results
- * @param needDefaults - Whether to include default outcomes
- * @param page - The page number to retrieve
- * @param perPage - The number of results per page
- * @param sortOrder - The order to sort the results by
- * @param sortBy - The field to sort the results by
- * @param sortOutcomeId - The ID of the outcome to sort by (when sortBy is 'outcome')
- * @param selectedUserIds - Array of user IDs to filter by (optional)
- * @param selectedOutcomeIds - Array of outcome IDs to filter by (optional)
- * @param sortAlignmentId - The ID of the alignment to sort by (when sortBy is 'contributing_score')
- * @returns A promise that resolves to the API response
  */
 export const loadRollups = (
   courseId: string | number,
@@ -84,36 +56,29 @@ export const loadRollups = (
   selectedUserIds?: number[],
   selectedOutcomeIds?: string[],
   sortAlignmentId?: string,
-): Promise<AxiosResponse> => {
-  const params: {params: RollupParams} = {
-    params: {
-      per_page: perPage,
-      exclude: gradebookFilters,
-      include: ['outcomes', 'users'],
-      sort_by: sortBy,
-      sort_order: sortOrder,
-      page,
-      ...(needDefaults && {add_defaults: true}),
-      ...(sortOutcomeId && {sort_outcome_id: sortOutcomeId}),
-      ...(sortAlignmentId && {sort_alignment_id: sortAlignmentId}),
-      ...(selectedUserIds && selectedUserIds.length > 0 && {user_ids: selectedUserIds}),
-      ...(selectedOutcomeIds && selectedOutcomeIds.length > 0 && {outcome_ids: selectedOutcomeIds}),
-    },
+) => {
+  const params: QueryParameterRecord = {
+    per_page: perPage,
+    exclude: gradebookFilters,
+    include: ['outcomes', 'users'],
+    sort_by: sortBy,
+    sort_order: sortOrder,
+    page,
+    ...(needDefaults && {add_defaults: true}),
+    ...(sortOutcomeId && {sort_outcome_id: sortOutcomeId}),
+    ...(sortAlignmentId && {sort_alignment_id: sortAlignmentId}),
+    ...(selectedUserIds && selectedUserIds.length > 0 && {user_ids: selectedUserIds}),
+    ...(selectedOutcomeIds && selectedOutcomeIds.length > 0 && {outcome_ids: selectedOutcomeIds}),
   }
 
-  return axios.get(`/api/v1/courses/${courseId}/outcome_rollups`, params)
+  return doFetchApi({
+    path: `/api/v1/courses/${courseId}/outcome_rollups`,
+    params,
+  })
 }
 
 /**
  * Load mastery distribution data for a course
- * @param courseId - The ID of the course
- * @param filters - Filters to exclude from the results
- * @param outcomeIds - Array of outcome IDs to filter by (optional)
- * @param studentIds - Array of student IDs to filter by (optional)
- * @param includeAlignments - Whether to include alignment distributions
- * @param onlyAssignmentAlignments - Whether to include only assignment alignments
- * @param showUnpublishedAssignments - Whether to include unpublished assignments
- * @returns A promise that resolves to the mastery distribution response
  */
 export const loadMasteryDistribution = async (
   courseId: string,
@@ -124,7 +89,7 @@ export const loadMasteryDistribution = async (
   onlyAssignmentAlignments: boolean = false,
   showUnpublishedAssignments: boolean = false,
 ): Promise<MasteryDistributionResponse> => {
-  const params: Record<string, any> = {
+  const params: QueryParameterRecord = {
     exclude: filters,
     add_defaults: true,
   }
@@ -148,9 +113,10 @@ export const loadMasteryDistribution = async (
     params.include = includes
   }
 
-  const {data} = await axios.get(`/api/v1/courses/${courseId}/outcome_mastery_distribution`, {
+  const {json} = await doFetchApi<MasteryDistributionResponse>({
+    path: `/api/v1/courses/${courseId}/outcome_mastery_distribution`,
     params,
   })
 
-  return data
+  return json as MasteryDistributionResponse
 }

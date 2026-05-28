@@ -18,7 +18,8 @@
 
 import {act, fireEvent} from '@testing-library/react'
 import {within} from '@testing-library/dom'
-import axios from 'axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import OutcomeManagementPanel from '../index'
 import {setupTest, teardownTest, courseMocks, groupMocks, groupDetailMocks} from './testSetup'
 import {updateOutcomeGroupMock, createOutcomeGroupMocks} from '@canvas/outcomes/mocks/Management'
@@ -31,8 +32,12 @@ vi.mock('@instructure/platform-alerts', async () => {
   }
 })
 vi.mock('@canvas/rce/RichContentEditor')
-vi.mock('axios')
 vi.useFakeTimers()
+
+const server = setupServer()
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 // FOO-3827
 describe('OutcomeManagementPanel - Group Operations', () => {
@@ -93,7 +98,11 @@ describe('OutcomeManagementPanel - Group Operations', () => {
           withMorePage: false,
         }),
       ]
-      axios.delete.mockResolvedValue({status: 200})
+      server.use(
+        http.delete('/api/v1/courses/:contextId/outcome_groups/:groupId', () => {
+          return new HttpResponse(null, {status: 200})
+        }),
+      )
     })
 
     it('clears selected outcomes', async () => {

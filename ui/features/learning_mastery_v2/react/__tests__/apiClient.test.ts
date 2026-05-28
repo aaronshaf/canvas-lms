@@ -34,11 +34,19 @@ import {
   OutcomeArrangement,
 } from '@instructure/outcomes-ui/lib/util/gradebook/constants'
 import {type Mocked} from 'vitest'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 
 vi.mock('@canvas/axios')
 const mockedAxios = axios as Mocked<typeof axios>
 
+const server = setupServer()
+
 describe('apiClient', () => {
+  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+  afterEach(() => server.resetHandlers())
+  afterAll(() => server.close())
+
   beforeEach(() => {
     vi.clearAllMocks()
     mockedAxios.get.mockResolvedValue({data: {}, status: 200})
@@ -47,51 +55,57 @@ describe('apiClient', () => {
   })
 
   describe('loadRollups', () => {
+    let capturedRequest: Request | null = null
+
+    beforeEach(() => {
+      capturedRequest = null
+      server.use(
+        http.get('/api/v1/courses/:courseId/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json({outcomes: [], users: [], meta: {pagination: {}}})
+        }),
+      )
+    })
+
     it('calls the correct endpoint with default parameters', async () => {
       await loadRollups('123', [])
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/courses/123/outcome_rollups', {
-        params: {
-          per_page: DEFAULT_STUDENTS_PER_PAGE,
-          exclude: [],
-          include: ['outcomes', 'users'],
-          sort_by: SortBy.SortableName,
-          sort_order: SortOrder.ASC,
-          page: 1,
-        },
-      })
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/123/outcome_rollups')
+      expect(url.searchParams.get('per_page')).toBe(String(DEFAULT_STUDENTS_PER_PAGE))
+      expect(url.searchParams.getAll('include[]')).toEqual(['outcomes', 'users'])
+      expect(url.searchParams.get('sort_by')).toBe(SortBy.SortableName)
+      expect(url.searchParams.get('sort_order')).toBe(SortOrder.ASC)
+      expect(url.searchParams.get('page')).toBe('1')
+      expect(url.searchParams.has('add_defaults')).toBe(false)
     })
 
     it('calls the correct endpoint with custom parameters', async () => {
       await loadRollups('456', ['filter1', 'filter2'], true, 2, 50, SortOrder.DESC, 'custom_sort')
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/courses/456/outcome_rollups', {
-        params: {
-          per_page: 50,
-          exclude: ['filter1', 'filter2'],
-          include: ['outcomes', 'users'],
-          sort_by: 'custom_sort',
-          sort_order: SortOrder.DESC,
-          page: 2,
-          add_defaults: true,
-        },
-      })
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/456/outcome_rollups')
+      expect(url.searchParams.get('per_page')).toBe('50')
+      expect(url.searchParams.getAll('exclude[]')).toEqual(['filter1', 'filter2'])
+      expect(url.searchParams.getAll('include[]')).toEqual(['outcomes', 'users'])
+      expect(url.searchParams.get('sort_by')).toBe('custom_sort')
+      expect(url.searchParams.get('sort_order')).toBe(SortOrder.DESC)
+      expect(url.searchParams.get('page')).toBe('2')
+      expect(url.searchParams.get('add_defaults')).toBe('true')
     })
 
     it('does not include add_defaults when needDefaults is false', async () => {
       await loadRollups('123', [], false)
 
-      const callArgs = mockedAxios.get.mock.calls[0][1]
-      expect(callArgs?.params).not.toHaveProperty('add_defaults')
+      const url = new URL(capturedRequest!.url)
+      expect(url.searchParams.has('add_defaults')).toBe(false)
     })
 
     it('accepts numeric courseId', async () => {
       await loadRollups(789, [])
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        '/api/v1/courses/789/outcome_rollups',
-        expect.any(Object),
-      )
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/789/outcome_rollups')
     })
 
     it('includes user_ids when selectedUserIds is provided', async () => {
@@ -107,17 +121,8 @@ describe('apiClient', () => {
         [97, 42, 101],
       )
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/courses/123/outcome_rollups', {
-        params: {
-          per_page: DEFAULT_STUDENTS_PER_PAGE,
-          exclude: [],
-          include: ['outcomes', 'users'],
-          sort_by: SortBy.SortableName,
-          sort_order: SortOrder.ASC,
-          page: 1,
-          user_ids: [97, 42, 101],
-        },
-      })
+      const url = new URL(capturedRequest!.url)
+      expect(url.searchParams.getAll('user_ids[]')).toEqual(['97', '42', '101'])
     })
 
     it('does not include user_ids when selectedUserIds is empty array', async () => {
@@ -133,15 +138,15 @@ describe('apiClient', () => {
         [],
       )
 
-      const callArgs = mockedAxios.get.mock.calls[0][1]
-      expect(callArgs?.params).not.toHaveProperty('user_ids')
+      const url = new URL(capturedRequest!.url)
+      expect(url.searchParams.has('user_ids[]')).toBe(false)
     })
 
     it('does not include user_ids when selectedUserIds is undefined', async () => {
       await loadRollups('123', [])
 
-      const callArgs = mockedAxios.get.mock.calls[0][1]
-      expect(callArgs?.params).not.toHaveProperty('user_ids')
+      const url = new URL(capturedRequest!.url)
+      expect(url.searchParams.has('user_ids[]')).toBe(false)
     })
   })
 

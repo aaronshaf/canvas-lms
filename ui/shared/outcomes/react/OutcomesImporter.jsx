@@ -32,9 +32,9 @@ export function showOutcomesImporterIfInProgress({mount, ...props}, userId) {
   return apiClient
     .queryImportStatus(props.contextUrlRoot, 'latest')
     .then(response => {
-      if (response.status === 200 && response.data.workflow_state === 'importing') {
-        const importId = response.data.id
-        const invokedImport = userId === response.data.user.id
+      if (response.json?.workflow_state === 'importing') {
+        const importId = response.json.id
+        const invokedImport = userId === response.json.user.id
         const root = render(
           <OutcomesImporter
             {...props}
@@ -88,11 +88,11 @@ export default class OutcomesImporter extends Component {
   pollImportStatus(importId) {
     this.pollStatus = setInterval(() => {
       apiClient.queryImportStatus(this.props.contextUrlRoot, importId).then(response => {
-        const workflowState = response.data.workflow_state
+        const workflowState = response.json?.workflow_state
         if (workflowState === 'succeeded' || workflowState === 'failed') {
           this.completeUpload(
             importId,
-            response.data.processing_errors.length,
+            response.json?.processing_errors?.length ?? 0,
             workflowState === 'succeeded',
           )
           clearInterval(this.pollStatus)
@@ -114,7 +114,7 @@ export default class OutcomesImporter extends Component {
     if (file !== null) {
       apiClient
         .createImport(contextUrlRoot, file, learningOutcomeGroupId)
-        .then(resp => this.pollImportStatus(resp.data.id))
+        .then(resp => this.pollImportStatus(resp.json?.id))
         .catch(() => {
           showFlashAlert({
             type: 'error',
@@ -145,8 +145,8 @@ export default class OutcomesImporter extends Component {
       apiClient
         .queryImportCreatedGroupIds(this.props.contextUrlRoot, importId)
         .then(response => {
-          if (count > 0) this.completedWithErrors(response.data)
-          else this.successfulUpload(response.data)
+          if (count > 0) this.completedWithErrors(response.json)
+          else this.successfulUpload(response.json)
         })
         .catch(err => {
           throw err

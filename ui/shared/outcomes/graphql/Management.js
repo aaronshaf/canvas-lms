@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import pluralize from '@canvas/util/stringPluralize'
 import {gql} from '@canvas/apollo-v3'
 
@@ -424,7 +424,9 @@ export const SEARCH_OUTCOME_ALIGNMENTS = gql`
   }
 `
 
-export const removeOutcomeGroup = (contextType, contextId, groupId) =>
-  axios.delete(
-    `/api/v1/${pluralize(contextType).toLowerCase()}/${contextId}/outcome_groups/${groupId}`,
-  )
+export const removeOutcomeGroup = async (contextType, contextId, groupId) => {
+  await doFetchApi({
+    path: `/api/v1/${pluralize(contextType).toLowerCase()}/${contextId}/outcome_groups/${groupId}`,
+    method: 'DELETE',
+  })
+}

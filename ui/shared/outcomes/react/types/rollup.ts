@@ -91,19 +91,17 @@ export interface Pagination {
 }
 
 export interface RollupsResponse {
-  data: {
-    rollups: StudentRollup[]
-    linked: {
-      users: Student[]
-      outcomes: Outcome[]
-    }
-    meta: {
-      pagination: {
-        count: number
-        page: number
-        page_count: number
-        per_page: number
-      }
+  rollups: StudentRollup[]
+  linked: {
+    users: Student[]
+    outcomes: Outcome[]
+  }
+  meta: {
+    pagination: {
+      count: number
+      page: number
+      page_count: number
+      per_page: number
     }
   }
 }

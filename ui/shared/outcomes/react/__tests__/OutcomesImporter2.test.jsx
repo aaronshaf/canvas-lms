@@ -23,7 +23,6 @@ import * as apiClient from '../apiClient'
 
 vi.mock('@instructure/platform-alerts')
 
-// Mock the apiClient module since MSW doesn't intercept axios in Node.js
 vi.mock('../apiClient')
 const mockedApiClient = apiClient
 
@@ -82,12 +81,11 @@ describe('OutcomesImporter', () => {
     vi.clearAllTimers()
 
     // Default mock implementations
-    mockedApiClient.createImport.mockResolvedValue({data: {id: '10'}})
+    mockedApiClient.createImport.mockResolvedValue({json: {id: '10'}})
     mockedApiClient.queryImportStatus.mockResolvedValue({
-      status: 200,
-      data: {workflow_state: 'importing', processing_errors: []},
+      json: {workflow_state: 'importing', processing_errors: []},
     })
-    mockedApiClient.queryImportCreatedGroupIds.mockResolvedValue({data: []})
+    mockedApiClient.queryImportCreatedGroupIds.mockResolvedValue({json: []})
   })
 
   afterEach(() => {
@@ -137,8 +135,7 @@ describe('OutcomesImporter', () => {
 
     // Mock queryImportStatus to return failed state
     mockedApiClient.queryImportStatus.mockResolvedValue({
-      status: 200,
-      data: {workflow_state: 'failed', processing_errors: []},
+      json: {workflow_state: 'failed', processing_errors: []},
     })
 
     const {wrapper, unmount} = renderOutcomesImporter({
@@ -175,8 +172,7 @@ describe('OutcomesImporter', () => {
 
     // Mock queryImportStatus to return succeeded state
     mockedApiClient.queryImportStatus.mockResolvedValue({
-      status: 200,
-      data: {workflow_state: 'succeeded', processing_errors: []},
+      json: {workflow_state: 'succeeded', processing_errors: []},
     })
 
     const {ref, unmount} = renderOutcomesImporter({resetOutcomeViews})
@@ -208,8 +204,7 @@ describe('OutcomesImporter', () => {
     // Mock queryImportStatus to always return 'importing' state
     // This keeps the component visible (not unmounted via hide())
     mockedApiClient.queryImportStatus.mockResolvedValue({
-      status: 200,
-      data: {workflow_state: 'importing', user: {id: userId}, id: '1', processing_errors: []},
+      json: {workflow_state: 'importing', user: {id: userId}, id: '1', processing_errors: []},
     })
 
     await act(async () => {

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import pluralize from '@canvas/util/stringPluralize'
 import {gql} from '@canvas/apollo-v3'
 
@@ -70,9 +70,11 @@ export const COURSE_OUTCOME_PROFICIENCY_QUERY = gql`
   }
 `
 
-export const saveProficiency = (contextType, contextId, config) => {
-  return axios.post(
-    `/api/v1/${pluralize(contextType).toLowerCase()}/${contextId}/outcome_proficiency`,
-    config,
-  )
+export const saveProficiency = async (contextType, contextId, config) => {
+  const {response} = await doFetchApi({
+    path: `/api/v1/${pluralize(contextType).toLowerCase()}/${contextId}/outcome_proficiency`,
+    method: 'POST',
+    body: config,
+  })
+  return {status: response.status}
 }

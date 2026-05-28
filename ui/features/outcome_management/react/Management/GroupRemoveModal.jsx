@@ -36,33 +36,23 @@ const GroupRemoveModal = ({groupId, groupTitle, isOpen, onCloseHandler, onSucces
   const onRemoveGroupHandler = async () => {
     onCloseHandler()
     try {
-      const result = await removeOutcomeGroup(contextType, contextId, groupId)
-      if (result?.status === 200) {
-        onSuccess()
-        showFlashAlert({
-          message: I18n.t('This group was successfully removed.'),
-          type: 'success',
-        })
-      } else {
-        throw Error()
-      }
+      await removeOutcomeGroup(contextType, contextId, groupId)
+      onSuccess()
+      showFlashAlert({
+        message: I18n.t('This group was successfully removed.'),
+        type: 'success',
+      })
     } catch (err) {
-      const message = err?.response?.data?.match(
-        /cannot be deleted because it is aligned to content/,
-      )
+      const body = err?.response ? await err.response.text() : ''
+      const message = body.match(/cannot be deleted because it is aligned to content/)
         ? I18n.t(
             'An error occurred while removing this group: "%{groupTitle}" contains one or ' +
               'more Outcomes that are currently aligned to content.',
-            {
-              groupTitle,
-            },
+            {groupTitle},
           )
         : I18n.t('An error occurred while removing this group. Please try again.')
 
-      showFlashAlert({
-        message,
-        type: 'error',
-      })
+      showFlashAlert({message, type: 'error'})
     }
   }
 

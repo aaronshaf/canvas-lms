@@ -37,7 +37,7 @@ import {
 } from '../utils/constants'
 import {SortOrder} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
 import {Sorting} from '../types/shapes'
-import axios from '@canvas/axios'
+import {FetchApiError} from '@canvas/do-fetch-api-effect'
 import {mapSettingsToFilters} from '../utils/filter'
 import {findRating} from '../utils/ratings'
 
@@ -158,7 +158,7 @@ export default function useRollups({
     ;(async () => {
       try {
         setIsLoading(true)
-        const {data} = (await loadRollups(
+        const {json} = await loadRollups(
           courseId,
           settings ? mapSettingsToFilters(settings) : [],
           needMasteryAndColorDefaults,
@@ -170,7 +170,9 @@ export default function useRollups({
           selectedUserIds,
           selectedOutcomeIds,
           sortAlignmentId || undefined,
-        )) as RollupsResponse
+        )
+        const data = json as RollupsResponse
+        if (!data) throw new Error(I18n.t('Error loading rollups'))
         const {users: fetchedUsers, outcomes: fetchedOutcomes} = data.linked
         const students = getStudents(data.rollups, fetchedUsers)
         const rollups = rollupsByUser(data.rollups, fetchedOutcomes)
@@ -186,8 +188,8 @@ export default function useRollups({
           },
         })
       } catch (e) {
-        if (e instanceof axios.AxiosError) {
-          setError((e as any)?.message || I18n.t('Error loading rollups'))
+        if (e instanceof FetchApiError) {
+          setError(e.message || I18n.t('Error loading rollups'))
         } else {
           setError(I18n.t('Error loading rollups'))
         }

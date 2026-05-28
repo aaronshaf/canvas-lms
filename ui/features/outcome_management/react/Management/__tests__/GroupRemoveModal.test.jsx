@@ -37,7 +37,7 @@ class CustomError extends Error {
   constructor(message) {
     super()
     this.response = {
-      data: message,
+      text: () => Promise.resolve(message),
     }
   }
 }
@@ -121,9 +121,7 @@ describe('GroupRemoveModal', () => {
   })
 
   it('displays flash confirmation with proper message and calls onSuccess if delete request succeeds', async () => {
-    removeOutcomeGroup.mockReturnValue(
-      Promise.resolve({status: 200, data: {id: 2, parent_outcome_group: {id: 1}}}),
-    )
+    removeOutcomeGroup.mockResolvedValue(undefined)
     const {getByText} = render(<GroupRemoveModal {...defaultProps()} />)
     fireEvent.click(getByText('Remove Group'))
     expect(removeOutcomeGroup).toHaveBeenCalledWith('Account', '1', '123')

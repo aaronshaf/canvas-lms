@@ -16,15 +16,16 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react'
-import axios from '@canvas/axios'
+import {renderHook, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import useRollups from '@canvas/outcomes/react/hooks/useRollups'
 import {DEFAULT_STUDENTS_PER_PAGE} from '@canvas/outcomes/react/utils/constants'
 import {SortOrder} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
 import {Outcome, Rating, Student} from '@canvas/outcomes/react/types/rollup'
 import {MOCK_OUTCOMES, MOCK_RATINGS, MOCK_STUDENTS} from '../../__fixtures__/rollups'
 
-vi.mock('@canvas/axios')
+const server = setupServer()
 
 describe('useRollups', () => {
   const mockedStudents: Student[] = MOCK_STUDENTS
@@ -76,32 +77,32 @@ describe('useRollups', () => {
     },
   ]
 
-  beforeEach(() => {
-    vi.useFakeTimers()
-    vi.clearAllMocks()
-    const promise = Promise.resolve({
-      status: 200,
-      data: {
-        linked: {
-          users: mockedStudents,
-          outcomes: mockedOutcomes,
-        },
-        rollups: mockedRollups,
-        meta: {
-          pagination: {
-            page: 1,
-            per_page: 20,
-            page_count: 1,
-          },
-        },
+  const successResponse = {
+    linked: {
+      users: mockedStudents,
+      outcomes: mockedOutcomes,
+    },
+    rollups: mockedRollups,
+    meta: {
+      pagination: {
+        page: 1,
+        per_page: 20,
+        page_count: 1,
       },
-    })
-    vi.mocked(axios.get).mockResolvedValue(promise)
+    },
+  }
+
+  beforeAll(() => server.listen())
+  afterAll(() => server.close())
+
+  beforeEach(() => {
+    server.use(
+      http.get('/api/v1/courses/1/outcome_rollups', () => HttpResponse.json(successResponse)),
+    )
   })
 
   afterEach(() => {
-    vi.runOnlyPendingTimers()
-    vi.useRealTimers()
+    server.resetHandlers()
   })
 
   describe('useRollups hook with selectedUserIds', () => {
@@ -110,6 +111,13 @@ describe('useRollups', () => {
     const multipleUserIds: number[] = [97, 42, 101]
 
     it('passes selectedUserIds to the API call when provided', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() =>
         useRollups({
           courseId: '1',
@@ -117,23 +125,19 @@ describe('useRollups', () => {
           selectedUserIds: multipleUserIds,
         }),
       )
-      await act(async () => vi.runOnlyPendingTimers())
-      const params = {
-        params: {
-          per_page: DEFAULT_STUDENTS_PER_PAGE,
-          exclude: [],
-          include: ['outcomes', 'users'],
-          sort_by: 'student',
-          add_defaults: true,
-          sort_order: SortOrder.ASC,
-          page: 1,
-          user_ids: [97, 42, 101],
-        },
-      }
-      expect(axios.get).toHaveBeenCalledWith('/api/v1/courses/1/outcome_rollups', params)
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.getAll('user_ids[]')).toEqual(['97', '42', '101'])
     })
 
     it('does not include user_ids in API call when selectedUserIds is empty array', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() =>
         useRollups({
           courseId: '1',
@@ -141,24 +145,38 @@ describe('useRollups', () => {
           selectedUserIds: emptyUserIds,
         }),
       )
-      await act(async () => vi.runOnlyPendingTimers())
-      const callArgs = (axios.get as any).mock.calls[0][1]
-      expect(callArgs.params).not.toHaveProperty('user_ids')
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.has('user_ids[]')).toBe(false)
     })
 
     it('does not include user_ids in API call when selectedUserIds is undefined', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() =>
         useRollups({
           courseId: '1',
           accountMasteryScalesEnabled: false,
         }),
       )
-      await act(async () => vi.runOnlyPendingTimers())
-      const callArgs = (axios.get as any).mock.calls[0][1]
-      expect(callArgs.params).not.toHaveProperty('user_ids')
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.has('user_ids[]')).toBe(false)
     })
 
     it('passes user_ids in params for single selectedUserId', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() =>
         useRollups({
           courseId: '1',
@@ -166,12 +184,19 @@ describe('useRollups', () => {
           selectedUserIds: singleUserId,
         }),
       )
-      await act(async () => vi.runOnlyPendingTimers())
-      const callParams = (axios.get as any).mock.calls[0][1]
-      expect(callParams.params.user_ids).toEqual([97])
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.getAll('user_ids[]')).toEqual(['97'])
     })
 
     it('passes user_ids in params for multiple selectedUserIds', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() =>
         useRollups({
           courseId: '1',
@@ -179,9 +204,9 @@ describe('useRollups', () => {
           selectedUserIds: multipleUserIds,
         }),
       )
-      await act(async () => vi.runOnlyPendingTimers())
-      const callParams = (axios.get as any).mock.calls[0][1]
-      expect(callParams.params.user_ids).toEqual([97, 42, 101])
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.getAll('user_ids[]')).toEqual(['97', '42', '101'])
     })
   })
 
@@ -195,19 +220,17 @@ describe('useRollups', () => {
       expect(students).toEqual([])
       expect(outcomes).toEqual([])
       expect(rollups).toEqual([])
-      await act(async () => vi.runOnlyPendingTimers())
-      expect(result.current.isLoading).toEqual(false)
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
     })
 
     it('returns the response after the request finishes', async () => {
       const {result} = renderHook(() =>
         useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
       )
-      await act(async () => vi.runOnlyPendingTimers())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
       const {isLoading, error, students, outcomes, rollups} = result.current
       expect(isLoading).toEqual(false)
       expect(error).toEqual(null)
-      expect(axios.get).toHaveBeenCalled()
       expect(students).toEqual(mockedStudents)
       expect(outcomes).toEqual(mockedOutcomes)
 
@@ -253,60 +276,48 @@ describe('useRollups', () => {
       const {result} = renderHook(() =>
         useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
       )
-      await act(async () => vi.runOnlyPendingTimers())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
       const {students} = result.current
-      expect(axios.get).toHaveBeenCalled()
       expect(students[2].status).toEqual('concluded')
     })
 
     it('calls the /rollups URL with the right parameters', async () => {
+      let capturedRequest: Request | null = null
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json(successResponse)
+        }),
+      )
       renderHook(() => useRollups({courseId: '1', accountMasteryScalesEnabled: false}))
-      await act(async () => vi.runOnlyPendingTimers())
-      const params = {
-        params: {
-          per_page: DEFAULT_STUDENTS_PER_PAGE,
-          exclude: [],
-          include: ['outcomes', 'users'],
-          sort_by: 'student',
-          add_defaults: true,
-          sort_order: SortOrder.ASC,
-          page: 1,
-        },
-      }
-      expect(axios.get).toHaveBeenCalledWith('/api/v1/courses/1/outcome_rollups', params)
+      await waitFor(() => expect(capturedRequest).not.toBeNull())
+      const searchParams = new URL(capturedRequest!.url).searchParams
+      expect(searchParams.get('per_page')).toBe(String(DEFAULT_STUDENTS_PER_PAGE))
+      expect(searchParams.getAll('include[]')).toEqual(['outcomes', 'users'])
+      expect(searchParams.get('sort_by')).toBe('student')
+      expect(searchParams.get('add_defaults')).toBe('true')
+      expect(searchParams.get('sort_order')).toBe(SortOrder.ASC)
+      expect(searchParams.get('page')).toBe('1')
     })
 
-    const ERROR_MESSAGE_TEST_CASES = [
-      {
-        description: 'empty error response',
-        errorResponse: {},
-        expectedErrorMessage: 'Error loading rollups',
-      },
-      {
-        description: 'Axios error response',
-        errorResponse: (() => {
-          const error = new axios.AxiosError()
-          error.message = 'Error loading rollups Axios'
-          return error
-        })(),
-        expectedErrorMessage: 'Error loading rollups Axios',
-      },
-    ]
+    it('returns error message on failed request of empty error response', async () => {
+      server.use(http.get('/api/v1/courses/1/outcome_rollups', () => HttpResponse.error()))
+      const {result} = renderHook(() =>
+        useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
+      )
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.error).toEqual('Error loading rollups')
+    })
 
-    ERROR_MESSAGE_TEST_CASES.forEach(testCase => {
-      it(`returns error message on failed request of ${testCase.description}`, async () => {
-        const axiosError = new axios.AxiosError()
-        axiosError.message = 'Network Error'
-        ;(axios.get as any).mockRejectedValue(testCase.errorResponse)
-        const {result} = renderHook(() =>
-          useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
-        )
-        await act(async () => vi.runOnlyPendingTimers())
-        const {isLoading, error} = result.current
-        expect(axios.get).toHaveBeenCalled()
-        expect(error).toEqual(testCase.expectedErrorMessage)
-        expect(isLoading).toEqual(false)
-      })
+    it('returns error message on failed request of a 500 server response', async () => {
+      server.use(
+        http.get('/api/v1/courses/1/outcome_rollups', () => new HttpResponse(null, {status: 500})),
+      )
+      const {result} = renderHook(() =>
+        useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
+      )
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.error).toMatch(/doFetchApi received a bad response/)
     })
   })
 })
