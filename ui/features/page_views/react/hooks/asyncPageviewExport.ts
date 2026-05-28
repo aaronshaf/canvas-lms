@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useState, useCallback, useEffect, useRef} from 'react'
+import {useCallback, useMemo} from 'react'
+import {useLatest, useLocalStorage} from 'react-use'
 import {useScope as i18nScope} from '@canvas/i18n'
 import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
 const I18n = i18nScope('page_views')
@@ -44,18 +45,6 @@ export interface AsyncPageviewJobResult {
   poll_url: string
 }
 
-function getLocalJSONArray(key: string): AsyncPageviewJob[] {
-  const item = window.localStorage.getItem(key)
-  if (!item) return []
-  try {
-    const arr = JSON.parse(item)
-    if (!Array.isArray(arr)) return []
-    return arr
-  } catch (_error) {
-    return []
-  }
-}
-
 export function useAsyncPageviewJobs(
   key: string,
   userid: string,
@@ -66,29 +55,24 @@ export function useAsyncPageviewJobs(
   (user: string, jobName: string, startDate: string, endDate: string) => Promise<void>,
   (record: AsyncPageviewJob) => Promise<string>,
 ] {
-  const arr = getLocalJSONArray(key)
-  const [jobs, _setJobs] = useState(arr.filter(notExpired))
+  const [storedJobs, _setJobs] = useLocalStorage<AsyncPageviewJob[]>(key, [])
+  const jobs = useMemo(
+    () => (Array.isArray(storedJobs) ? storedJobs.filter(notExpired) : []),
+    [storedJobs],
+  )
   const BASE_URL = `/api/v1/users/${userid}/page_views`
-  //const BASE_URL = 'http://localhost:8082/api/v5/pageviews' // for local pv5 mock
 
-  const jobsRef = useRef(jobs)
-  useEffect(() => {
-    jobsRef.current = jobs
-  }, [jobs])
+  const jobsRef = useLatest(jobs)
 
   const setJobs = useCallback(
-    (value: AsyncPageviewJob[]) => {
-      const filtered = value.filter(notExpired)
-      _setJobs(filtered)
-      window.localStorage.setItem(key, JSON.stringify(filtered))
-    },
-    [key],
+    (value: AsyncPageviewJob[]) => _setJobs(value.filter(notExpired)),
+    [_setJobs],
   )
 
   /**
-   * Poll the status of async jobs. Returns true if the state did not change
-   * and jobs are still in progress. This allows the caller to decide whether to
-   * continue polling or not.
+   * Poll the status of async jobs. Returns true if polling should continue
+   * (in-progress jobs remain, or an intermittent error suggests retrying).
+   * Returns false when polling can stop (no in-progress jobs remain).
    */
   const pollJobs = useCallback(async () => {
     const currentJobs = jobsRef.current
@@ -113,24 +97,22 @@ export function useAsyncPageviewJobs(
         method: 'GET',
       })
       if (json?.status) {
-        // Update the status and the timestamp of the record
         const updatedJobs = currentJobs.map(record =>
           record.query_id === job.query_id
             ? {...record, status: json.status, updatedAt: new Date(), error_code: json.error_code}
             : record,
         )
         setJobs(updatedJobs)
-        // state will change, polling can stop in this lifecycle
-        return false
+        return updatedJobs.some(isInProgress)
       }
-      return currentJobs.filter(isInProgress).length > 0
+      return currentJobs.some(isInProgress)
     } catch (error) {
       // remove the job if status is 410 or 404
       if (error instanceof FetchApiError) {
         if (error.response.status === 404 || error.response.status === 410) {
           const updatedJobs = currentJobs.filter(record => record.query_id !== job.query_id)
           setJobs(updatedJobs)
-          return false
+          return updatedJobs.some(isInProgress)
         }
       }
       // Other errors are considered intermittent, so we keep polling

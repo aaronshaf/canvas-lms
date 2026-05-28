@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -355,6 +355,48 @@ describe('PageViewsDownload', () => {
         expect(screen.getByText('Failed')).toBeInTheDocument()
       })
     })
+
+    it('continues polling across intermediate status updates until terminal status', async () => {
+      // Stateful handler: first call -> "running" (intermediate),
+      // subsequent calls -> "finished" (terminal). A working polling loop
+      // must bridge the two; a broken loop stops after the first call.
+      const queuedJob = createMockJob({
+        query_id: 'multi-stage-job',
+        name: 'Multi-stage Export',
+        status: AsyncPageViewJobStatus.Queued,
+        // Older than POLL_FRESHNESS (5s) so the freshness guard doesn't
+        // short-circuit the first poll.
+        updatedAt: new Date(Date.now() - 10000).toISOString(),
+      })
+      localStorage.setItem(`pv-export-${defaultProps.userId}`, JSON.stringify([queuedJob]))
+
+      let callCount = 0
+      server.use(
+        http.get(`/api/v1/users/${defaultProps.userId}/page_views/query/multi-stage-job`, () => {
+          callCount += 1
+          return HttpResponse.json({
+            query_id: 'multi-stage-job',
+            status: callCount === 1 ? 'running' : 'finished',
+            error_code: null,
+          })
+        }),
+      )
+
+      render(<Subject {...defaultProps} />)
+
+      // First poll fires on mount and updates state to "running".
+      // UI still reads "In progress" (queued and running share the label).
+      await waitFor(() => expect(callCount).toBe(1))
+
+      // Regression contract: after the intermediate state update, the
+      // polling loop must continue until the job reaches a terminal state.
+      // The freshness guard (5s) + the consumer's 5s setTimeout mean we
+      // expect a second poll within ~10s of real time.
+      await waitFor(() => expect(screen.getByText('Completed')).toBeInTheDocument(), {
+        timeout: 12000,
+      })
+      expect(callCount).toBeGreaterThanOrEqual(2)
+    }, 20000)
   })
 
   describe('Download functionality', () => {

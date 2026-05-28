@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
+import {useInterval} from 'react-use'
 import {useScope as i18nScope} from '@canvas/i18n'
 import {Flex} from '@instructure/ui-flex'
 import {Button} from '@instructure/ui-buttons'
@@ -119,29 +120,17 @@ export function PageViewsDownload({userId}: PageViewsDownloadProps): React.JSX.E
 
   const jobsInProgress = asyncJobs.some(isInProgress)
 
-  // Polling mechanism for asyncJobs in progress
-  React.useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    let isCancelled = false
+  // Poll every 5s while any job is in progress. Passing null pauses the interval
+  useInterval(
+    () => {
+      pollAsyncJobs().catch(() => {})
+    },
+    jobsInProgress ? 5000 : null,
+  )
 
-    pollAsyncJobs()
-      .then(stateUpdateNeeded => {
-        if (stateUpdateNeeded && !isCancelled) {
-          timeoutId = setTimeout(pollAsyncJobs, 5000)
-        }
-      })
-      .catch(_e => {
-        // A failing poll is considered an intermittent error, so we keep polling
-        if (!isCancelled) {
-          if (timeoutId) clearTimeout(timeoutId)
-          timeoutId = setTimeout(pollAsyncJobs, 5000)
-        }
-      })
-    return () => {
-      isCancelled = true
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [pollAsyncJobs])
+  useEffect(() => {
+    if (jobsInProgress) pollAsyncJobs().catch(() => {})
+  }, [jobsInProgress, pollAsyncJobs])
 
   const postAsyncJobHandler = () => {
     if (compareYearMonth(startMonth, endMonth) > 0) {
