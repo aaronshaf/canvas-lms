@@ -1452,4 +1452,21 @@ describe GradebookExporter do
       expect(@student_row[@reply_to_entry.title_with_id]).to eq("3.00")
     end
   end
+
+  it "exports 'EX' in the score column for an excused assignment" do
+    # Arrange
+    course = course_model(grading_standard_id: 0)
+    teacher = course_with_teacher(course:, active_all: true).user
+    student = student_in_course(course:, active_all: true).user
+    assignment = course.assignments.create!(title: "Excuse Me", points_possible: 20)
+    assignment.grade_student(student, excuse: true, grader: teacher)
+
+    # Act
+    csv = CSV.parse(GradebookExporter.new(course, teacher).to_csv, headers: true)
+    student_row = csv[1]
+    score = student_row[assignment.title_with_id]
+
+    # Assert
+    expect(score).to eq "EX"
+  end
 end
