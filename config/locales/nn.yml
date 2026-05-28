@@ -16779,6 +16779,11 @@ nn:
             
             Canvas Network
         course_starts_next_week: "Emnet ditt startar neste veke"
+    default_email_address_changed: 
+      email: 
+        details_header: "Detaljar:"
+        html: 
+          details_header: "Detaljar:"
     dialog: 
       title: "Send eit svar"
     discussion_mention: 
@@ -16797,6 +16802,11 @@ nn:
       footer: |-
           Du får denne e-postmeldinga fordi du deltek i ein eller fleire seksjonar som brukar Canvas.  Dersom du vil endre eller slå av e-postvarsla, kan du gå til :
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "Detaljar:"
+        html: 
+          details_header: "Detaljar:"
     enrollment_accepted: 
       email: 
         details: "Sjå lista over påmeldingar her:"
@@ -17211,6 +17221,11 @@ nn:
         subject: "Ny diskusjon – %{discussion_topic}: %{course}"
       twitter: 
         subject: "Canvas-varsel – emne: %{discussion_topic}, %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: "Detaljar:"
+        html: 
+          details_header: "Detaljar:"
     new_event_created: 
       email: 
         body: "Ei ny hending er planlagd for %{course_name}, som kan vere interessant for deg:"
