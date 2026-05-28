@@ -4,6 +4,7 @@
 - **Also known as:** MasteryConnect, MC
 - **Integration type:** LTI 1.1 + LTI 1.3 + Canvas REST API (grade submission, assignment CRUD) + Outcomes Service (mastery result passback) + Canvas Live Events (bidirectional grade sync)
 - **Grading interaction:** grade passback to Canvas (percentage-based, async); assignment auto-creation (adding assessment to tracker creates unpublished Canvas assignment); outcome/mastery result passback (independent from grades); bidirectional grade sync (Canvas grade changes flow back to MC via Live Events); due date enforcement (post-due-date scores don't sync)
+- **Boundary categories:** Grade passback, Object creation/recovery, Passback constraint, Outcome/mastery result passback, Identity/enrollment validation, Availability enforcement
 - **Feature flag:** none
 - **Exclusion siblings:** none
 - **ID prefix:** `MC`

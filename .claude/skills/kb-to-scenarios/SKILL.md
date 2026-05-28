@@ -1,5 +1,5 @@
 ---
-name: canvas-kb-grading-scenarios
+name: kb-to-scenarios
 description: Browse a Canvas Instructure Community KB (Knowledge Base) index, identify grading workflows that span Canvas and one or more caller-specified external services and are expressible through Canvas REST API calls, and produce Given-When-Then scenario files with a README. Use when the user asks to create an API-expressible grading scenario inventory from a Canvas KB feature area.
 argument-hint: "<services-or-profile-file> <output-dir> [kb-index-url]"
 disable-model-invocation: true
@@ -35,7 +35,7 @@ Each service in `$services` needs the following context for the agent to apply G
 
 ### Built-in profiles
 
-Built-in profiles are stored as individual files in `service-profiles/` relative to this skill, named `{kebab-case-service-name}.md`.
+Built-in profiles are stored as individual files in `.claude/skills/shared/integration-scenarios/service-profiles/`, named `{kebab-case-service-name}.md`.
 
 For each service in `$services`:
 1. Normalize the name to kebab-case (e.g., "New Quizzes" → `new-quizzes`, "Rollcall (Attendance)" → `rollcall`)
@@ -75,57 +75,9 @@ For each article, produce a list of **integration-specific behaviors**: individu
 
 For each article, decide: **does this workflow pass all three gates?**
 
-#### Gate 1 — Grading-related
+Read and apply the gate definitions from `.claude/skills/shared/integration-scenarios/gates.md`.
 
-The workflow must involve grading, scoring, grade passback, rubric evaluation, attendance marking that flows to grades, or gradebook interaction.
-
-Examples of grading-related workflows:
-- Submitting a quiz and receiving a grade
-- Marking attendance that flows to the gradebook
-- Viewing or exporting grades originating from quizzes or attendance
-- Applying rubrics to graded assignments backed by an external service
-- Grade posting and muting for assignments backed by an external service
-
-#### Gate 2 — Active boundary crossing
-
-The external service (any service in `$services`) must be **actively participating** in the `When` or `Then` — not merely providing a precondition in the `Given`.
-
-**Active participation test:** If you replaced the external_tool assignment with an ordinary Canvas assignment and seeded the same precondition data via Canvas API, would the `When` fail or the `Then` be different? If the scenario would play out identically, the external service is only a precondition — it fails Gate 2.
-
-These categories are derived from common LTI grade-passback patterns. Not all categories apply to all services — use the service profile's "Grading interaction" field to determine which are relevant.
-
-A workflow passes Gate 2 if the `When` or `Then` falls into one of these categories:
-
-| Category | What it looks like |
-|----------|---|
-| **Grade passback** | External service sends a score to Canvas (auto-graded, manually graded, fudge points, re-attempt, bulk regrade) |
-| **Object creation / recovery** | External service creates or recreates a Canvas assignment |
-| **Settings propagation** | A setting change in one system flows to the other (e.g., anonymous flag removed on grade post, exclude-from-grade flag set by the external service) |
-| **Availability enforcement** | Canvas constraints (due dates, availability windows) are honored by the external service (e.g., auto-submit on Until date expiry) |
-| **Passback constraint** | Canvas state prevents or modifies what the passback does (manual posting policy blocks auto-post; excused status, manual grade, or concluded enrollment rejects passback) |
-| **Outcome / mastery result passback** | External service sends learning outcome results to Canvas |
-| **Identity / enrollment validation** | LTI launch or passback is affected by Canvas's anonymous grading or enrollment state |
-
-**These fail Gate 2** — the external service is idle in the When/Then:
-- Canvas gradebook operations (post, hide, default grade, export, status change) applied to an assignment backed by any in-scope service
-- Canvas grade calculations (weighted groups, final grade override) that apply regardless of assignment type
-- Canvas submission status changes (excused, late, missing) where Canvas acts unilaterally with no passback involved
-- Any operation that would produce the same result with a regular Canvas assignment
-- Workflows involving an exclusion sibling of an in-scope service — unless the workflow also involves grade passback from the in-scope service itself
-
-#### Gate 3 — API-expressible
-
-The entire workflow — preconditions, action, and verification — must be achievable through Canvas REST API calls without requiring browser interaction.
-
-- **Preconditions** can be set up via API (create course, enroll users, create assignment, create quiz, configure attendance tool, etc.)
-- **Action** can be performed via API (submit quiz, mark attendance, post grades, etc.)
-- **Outcome** can be verified via API (read grade from gradebook endpoint, check submission state, read enrollment scores, etc.)
-
-If any step *requires* clicking through a UI with no API equivalent (e.g., a drag-and-drop quiz builder interaction that has no API counterpart), the scenario is **out of scope**.
-
-**Lean toward inclusion for Gates 1 and 3** — a borderline grading-related or API-expressible scenario costs little.
-
-**Lean toward exclusion for Gate 2** — a Canvas-only scenario disguised as an integration test gives false coverage confidence. Apply the Active Participation Test before including.
+Not all Gate 2 categories apply to all services — use the service profile's **Boundary categories** field to determine which categories are relevant. Only categories listed in the profile are valid matches for that service; a match against an unlisted category is suspect and should be flagged as borderline.
 
 ### 3. Plan file organization
 
