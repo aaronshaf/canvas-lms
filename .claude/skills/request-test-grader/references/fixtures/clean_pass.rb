@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 # rubocop:disable all
 
-# Rubric spot-check fixture: expected grade A.
-# All applicable rules ✓ or N/A; zero ✗.
+# Grader spot-check fixture: expected result=pass.
+# All applicable rules `pass` or `na`; zero `fail` verdicts.
 
 RSpec.describe "GET /api/v1/grader_fixture/clean", type: :request do
   it "returns the fixture body for the requesting user" do

@@ -1,7 +1,7 @@
 ---
 name: request-test-grader
-description: Grade a single Canvas request test (`it` block) against the Canvas request-test rules. Returns a letter grade, per-rule verdict, and prioritized fixes. Report-only — no edits made.
-when_to_use: Invoke when the user asks to "grade", "review", "assess", or "validate" a Canvas request test, or wants to check whether a request test follows the Canvas request-test rules. Also useful for auditing existing request specs in this repo.
+description: Grade a single Canvas request test (`it` block) against the Canvas request-test rules. Returns a pass/fail grade and the list of failing rules with fixes. Report-only — no edits made.
+when_to_use: Invoke when the user asks to "grade", "lint", "review", "assess", or "validate" a Canvas request test, or wants to check whether a request test follows the Canvas request-test rules. Also useful for auditing existing request specs in this repo.
 argument-hint: "[<path>:<line> | <path> \"<it description>\"]"
 arguments:
   - name: target
@@ -24,6 +24,10 @@ allowed_tools:
 Grade exactly one Canvas request test (`it` block) against the rules in `.claude/skills/request-test-grader/references/request-test-rules.md`. Make no changes.
 
 This skill is a thin entry point. The `request-test-grader` subagent does the grading; the skill parses input, resolves any description-style target down to `path:line`, invokes the agent, and relays the report. **Do not** grade the test in this skill's context — that defeats the agent isolation the architecture is built around (see `references/design.md`).
+
+The grader is one-tier: every rule is binary (`pass` / `fail` / `na`) and the test's grade is `pass` (zero `fail` verdicts) or `fail` (one or more `fail` verdicts). There is no severity gradient, no letter grade — pass/fail is the grade scale. See `references/request-test-rules.md` for the rules themselves.
+
+**Scope.** This grader checks rules that RuboCop and similar static linters *cannot* enforce — rules that require reading the test's intent, the route under test, and the controller context together. RuboCop-enforceable rules belong in `.rubocop.yml`, not here; this skill is the complement to RuboCop, not a replacement.
 
 ## Workflow
 
@@ -86,15 +90,23 @@ The agent owns its own input contract, workflow, and output schema. Do not resta
 
 ### 5. Relay the agent's output
 
-The agent emits one of two output shapes; relay either verbatim — do not reformat, summarize, add a preamble, or append a postscript.
+The agent emits one of two output shapes; relay either verbatim — do not reformat, summarize, add a preamble, or modify any line inside the report content.
 
-**Grading report (the normal case).** On a valid target, the agent wraps its report in `<report>...</report>` tags. Inside those tags the report has two parts: the human-readable markdown body, followed by a `=== machine-readable === ... === end ===` trailer (the parser contract) just before the closing tag. Print everything from the opening `<report>` through the closing `</report>`, inclusive — tags, markdown body, and trailer. The trailer block is not footer noise; it is the machine-parseable contract for downstream tools and must be preserved exactly as emitted. Before ending your turn, confirm your relay contains both `<report>` and `</report>`. If either is missing, your relay is incomplete — re-emit the full block from the agent's tool result.
+**Grader report (the normal case).** On a valid target, the agent wraps its report in `<report>...</report>` tags. Inside those tags the report has two parts: the human-readable markdown body, followed by a `=== machine-readable === ... === end ===` trailer (the parser contract) just before the closing tag. Print everything from the opening `<report>` through the closing `</report>`, inclusive — tags, markdown body, and trailer. The trailer block is not footer noise; it is the machine-parseable contract for downstream tools and must be preserved exactly as emitted. Before ending your turn, confirm your relay contains both `<report>` and `</report>`. If either is missing, your relay is incomplete — re-emit the full block from the agent's tool result.
 
-**Caller-misuse diagnostic.** On a malformed input or a target that doesn't resolve to an `it` block (file missing, line past EOF, line outside any `it`), the agent emits a single diagnostic line with no `<report>` tags and stops. Relay that line as-is. Do not wrap it in `<report>` tags, do not re-invoke the agent, and do not run the tag-presence check — it does not apply to this shape.
+Then, on a new line *after* the closing `</report>` tag, append exactly this one-line invitation (verbatim):
+
+```
+If you have questions about these results, ask me!
+```
+
+That line is outside the `<report>...</report>` block, so it does not interfere with the parser contract; it's a user-facing nudge that the model is still in context and can answer follow-up questions about any failure. Do not append any other postscript, summary, or commentary.
+
+**Caller-misuse diagnostic.** On a malformed input or a target that doesn't resolve to an `it` block (file missing, line past EOF, line outside any `it`), the agent emits a single diagnostic line with no `<report>` tags and stops. Relay that line as-is. Do not wrap it in `<report>` tags, do not re-invoke the agent, do not run the tag-presence check, and do not append the questions-invitation line — none of those apply to this shape.
 
 ## Boundaries
 
-- **Report-only.** This skill does not edit any file. To act on violations, re-invoke `request-test-writer` or apply `Top fixes` manually.
+- **Report-only.** This skill does not edit any file. To act on violations, re-invoke `request-test-writer` or apply the `Failures` fixes manually.
 - **One `it` per invocation.** Matches the agent's contract. Grade a whole file by invoking once per `it`.
 
 If the user asks what rules the grader applies, `Read` `.claude/skills/request-test-grader/references/request-test-rules.md` and relay the relevant section — that is the authoritative source.

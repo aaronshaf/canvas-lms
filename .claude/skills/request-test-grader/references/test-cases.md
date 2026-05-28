@@ -1,6 +1,6 @@
 # request-test-grader — Test Cases
 
-Behavioral contract for `/request-test-grader`. Run these whenever the skill or its grading agent is modified. All cases are framed as skill invocations and their observable outputs.
+Behavioral contract for `/request-test-grader`. Run these whenever the skill or its grader agent is modified. All cases are framed as skill invocations and their observable outputs.
 
 ## Running the suite
 
@@ -26,23 +26,18 @@ and report PASS / FAIL / UNTESTED for each.
 
        grep -nE '^  it ' .claude/skills/request-test-grader/references/fixtures/*.rb
 
-   Use the lowest `it` per fixture (some have a second `it` to trip
-   the `one-it` rule — not the target).
+   Use the lowest `it` per fixture.
 
-2. Spawn all 6 `request-test-grader` agents in **one message**
+2. Spawn all 5 `request-test-grader` agents in **one message**
    (multiple Agent tool calls in a single turn). Prompt for each:
-   `Target: <fixture-path>:<line>`.
+   `<fixture-path>:<line>`
 
 3. Verify each returned report against:
 
-   - §8.2 — `grade=` matches the expected row.
+   - §8.2 — `result=` and `failures=` match the expected row.
    - §4 — `<report>` framing and machine-readable trailer shape & consistency.
-   - §5 — per-rule table slug set equals the slugs declared in
-     `references/request-test-rules.md` (grep `^### ` for the list).
-   - §6 — Top fixes rows sorted by **source line**, not rules-file
-     order, within each sub-section.
-   - §7 — each RITE verdict traced to its contributing-rules set in
-     the rules file, not eyeballed.
+   - §5 — per-rule slug set in `failures=` and `na=` together (plus the silent `pass` rules) equals the slug set declared in `references/request-test-rules.md` (grep `^### ` for the list).
+   - §6 — Failures rows sorted by **source line**, not rules-file order.
 
 4. For §1.1, §1.2, §1.3, §1.4, §1.5, §2.1–§2.4, §3.1, §3.2, and §9.\*,
    verify each case is encoded in SKILL.md or agent.md and cite the
@@ -161,7 +156,7 @@ Then the skill prints a single diagnostic line stating that the grader applies o
 ### 3.2 Acceptance gate is path OR `type: :request`
 
 Given a `path:line` whose file is under `spec/requests/`, `spec/integration/`, or `spec/apis/`, OR declares `type: :request`
-Then the skill spawns the agent and produces a report — even if the path doesn't resolve to a Canvas route, and even if the `it` body issues no HTTP call (in which case `one-request` ✗ blockers against the missing call). The skill does not second-guess the file's contents beyond the gate above.
+Then the skill spawns the agent and produces a report — even if the path doesn't resolve to a Canvas route, and even if the `it` body issues no HTTP call. The skill does not second-guess the file's contents beyond the gate above.
 
 ---
 
@@ -172,48 +167,47 @@ The `<report>...</report>` framing and the machine-readable trailer together for
 **Framing.**
 
 - [ ] The report opens with a literal `<report>` on its own line and closes with a literal `</report>` on its own line. Both tags appear exactly once per emitted report.
-- [ ] The machine-readable trailer appears as the last block inside `<report>`, immediately before the closing `</report>` tag and after `## Top fixes`.
+- [ ] The machine-readable trailer appears as the last block inside `<report>`, immediately before the closing `</report>` tag and after `## Rules N/A`.
 
 **Trailer fields.**
 
-- [ ] All seven fields present and in order: `grade`, `blockers`, `majors`, `minors`, `fail`, `na`, `rite`.
+- [ ] All three fields present and in order: `result`, `failures`, `na`.
 - [ ] Each field appears exactly once.
-- [ ] `grade` matches the bold `**Grade: <X>**` in the Executive Summary and uses ASCII hyphen (`A-`, never `A−`).
-- [ ] `blockers` / `majors` / `minors` match the Executive Summary count tally and count distinct rule slugs (not Top fixes rows).
-- [ ] `fail` set equals the set of ✗ rules; `na` set equals the set of N/A rules; no slug appears in both.
-- [ ] `rite` has four pairs in the order `readable`, `isolated`, `thorough`, `explicit`, with lowercase verdicts matching the `## RITE Evaluation` table.
-- [ ] Empty list fields render as `fail=` / `na=` — never `none` or `[]`.
+- [ ] `result` is `pass` or `fail` (lowercase) and matches the bold `**PASS**` / `**FAIL**` in the `## Result` heading.
+- [ ] `failures` set equals the set of `fail`-verdict rules; `na` set equals the set of `na`-verdict rules; no slug appears in both.
+- [ ] Empty list fields render as `failures=` / `na=` — never `none` or `[]`.
+- [ ] When `result=pass`, `failures=` is empty; when `failures=` is empty, `result=pass`.
 
 ---
 
-## 5. Per-rule verdict table
+## 5. Per-rule coverage
 
-- [ ] The set of slugs in the Rule column equals the set of rule slugs declared in `request-test-rules.md` (Composition rules + Canvas-specific gradable rules). Every applicable rule appears exactly once. No invented slugs (e.g., `adequate-coverage`); no omissions. This is the integrity check against the model fabricating or skipping rules.
-- [ ] N/A is explicit, with a reason in the Note cell. Silence never implies ✓.
+- [ ] The union of `failures=`, `na=`, and the silent `pass` rules (computed by subtracting the first two from the full rule set in `references/request-test-rules.md`) equals the full rule set. No invented slugs; no omissions.
+- [ ] `na` is explicit, listed in the `## Rules N/A` section with a brief reason per rule. Silence never implies `pass` for an `na` rule.
 
 ---
 
-## 6. Top fixes
+## 6. Failures
 
-### 6.1 Zero ✗ rules → "No fixes required."
+### 6.1 Zero `fail` verdicts → "No failures."
 
-Given a graded `it` with no ✗ rules
-Then the `## Top fixes` body is exactly `No fixes required.` — no sub-section headings, no `(none)` markers.
+Given a graded `it` with no `fail` verdicts
+Then the `## Failures` body is exactly `No failures.` — no table, no row markers.
 
-### 6.2 Any ✗ rules → all three sub-section headers
+### 6.2 Any `fail` verdicts → Failures table
 
-Given a graded `it` with at least one ✗ rule
-Then `### Blockers`, `### Majors`, `### Minors` all appear in that order. Empty sub-sections render `(none)` (no table). Populated sub-sections render the standard table.
+Given a graded `it` with at least one `fail`-verdict rule
+Then the `## Failures` section is a single table with columns `# | Location | Rule | Excerpt | Fix`, one row per `fail`-verdict rule. There are no severity sub-sections — every failure is equally a failure.
 
-### 6.3 One row per ✗ rule
+### 6.3 One row per `fail`-verdict rule
 
 Given a rule violated at multiple locations within one `it`
 Then the rule contributes a single row whose Location cites the lowest violating line; the Fix may mention secondary locations inline.
 
-### 6.4 Continuous numbering, source-order within sub-sections
+### 6.4 Source-line order
 
-Given a report with rows across multiple severity sub-sections
-Then the `#` column counts continuously across sub-sections, and rows within each sub-section appear in source line order.
+Given a report with multiple `fail`-verdict rules
+Then rows appear in source line order (ascending). Row numbers are assigned continuously *after* sorting.
 
 ### 6.5 Locations use the caller's path form
 
@@ -222,36 +216,35 @@ Then every Location in the report is relative — never rewritten to an absolute
 
 ---
 
-## 7. RITE evaluation
+## 7. (reserved)
 
-- [ ] All contributing rules `✓` or `N/A` → `Good`; Notes cell is `—` (em dash).
-- [ ] Any non-blocker `✗` → `Mixed`; Notes cell lists contributing ✗ rules.
-- [ ] Any blocker `✗` → `Poor`; Notes cell lists contributing ✗ rules.
-- [ ] Dimension verdicts derive from rules only — never from overall "feel" of the test.
+The previous RITE Evaluation section has been removed along with the rest of the rubric.
+This section number is reserved so existing references to §8 keep their meaning.
 
 ---
 
-## 8. Letter grade rubric
+## 8. Pass/fail verdict
 
-### 8.1 Grade derives mechanically from counts
+### 8.1 Verdict derives mechanically from counts
 
-Given the per-rule verdict counts
-Then the grade is the first row in the rubric (in `request-test-rules.md`) whose condition matches.
+Given the per-rule verdict
+Then `result=pass` iff zero rules are marked `fail`; otherwise `result=fail`. There is no gradient, no severity, no curve.
 
-### 8.2 Spot-check rubric rows
+### 8.2 Spot-check fixtures
 
-Hand-crafted `it` blocks under `fixtures/` produce a specific per-rule count signature when graded. They are not real tests — they live outside `spec/` so Canvas's suite never picks them up. Each fixture declares `type: :request` (so the skill's request-test guard accepts it) and uses an intentionally unresolvable path (`/api/v1/grader_fixture/...`) so controller-context rules deterministically grade `N/A — controller not resolved`, keeping the grade signal independent of Canvas's routing table.
+Hand-crafted `it` blocks under `fixtures/` produce a specific per-rule signature when graded. They are not real tests — they live outside `spec/` so Canvas's suite never picks them up. Each fixture declares `type: :request` (so the skill's request-test guard accepts it) and uses an intentionally unresolvable path (`/api/v1/grader_fixture/...`) so controller-context rules deterministically grade `na — controller not resolved`, keeping the verdict independent of Canvas's routing table.
 
-To verify: invoke the grader agent on each fixture (target the first `it` line) and confirm the returned trailer's `grade=` matches the table below.
+To verify: invoke the grader agent on each fixture (target the first `it` line) and confirm the returned trailer matches the table below.
 
-| Fixture | Expected `grade=` | Failing rules → boundary verified |
-|---------|-------------------|-----------------------------------|
-| `fixtures/rubric_a.rb` | `A` | (none) — A floor. |
-| `fixtures/rubric_a_minus_one_minor.rb` | `A-` | `precise-matchers` — A- lower bound (not A). |
-| `fixtures/rubric_b.rb` | `B` | `literal-path` — B via the majors arm. |
-| `fixtures/rubric_c.rb` | `C` | `reload-assertions` — C (not F). |
-| `fixtures/rubric_d.rb` | `D` | `shape-and-value`, `reload-assertions`, `precise-matchers` — D via the 2-blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
-| `fixtures/rubric_f.rb` | `F` | `setup-in-it`, `shape-and-value`, `reload-assertions`, `precise-matchers` — F via the 3+ blockers arm; `have_key` co-fires `precise-matchers` per its independence clause. |
+| Fixture | Expected `result=` | Expected `failures=` (slug set) | Notes |
+|---------|---------|-----------|----------|
+| `fixtures/clean_pass.rb` | `pass` | (empty) | Pass-floor: every applicable rule `pass` or `na`. |
+| `fixtures/one_failure.rb` | `fail` | `reload-assertions` | Single `fail`. Verifies the pass→fail transition at one failure. |
+| `fixtures/multi_failures.rb` | `fail` | `setup-in-it,shape-and-value,reload-assertions,precise-matchers` | Multi-`fail`. `precise-matchers` co-fires with `shape-and-value` per its independence clause. |
+| `fixtures/auth_mismatch.rb` | `fail` | `auth-matches-initiator` | Single `fail`. Description names an external-API-client-bearer initiator but setup uses `user_session`. |
+| `fixtures/magic_values.rb` | `fail` | `no-magic-values` | Single `fail`. Assertion checks `"Unnamed Course"`, which is never set explicitly in setup. |
+
+The `failures=` and `na=` trailer fields are **unordered sets**. Any permutation of the expected slugs is correct — do not compare the comma lists as strings.
 
 ---
 

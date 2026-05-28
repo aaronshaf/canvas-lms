@@ -8,7 +8,7 @@ Not referenced by the skill or agent files at runtime. This document exists to e
 
 Two needs:
 
-1. The `request-test-writer` skill needs a validation step that confirms a freshly-written request test obeys the writer's own composition rules (one-it, aaa-headers, verify-stubs, reload-assertions, etc.). The writer's prior Self-review step was a hand-rolled checklist inside the writer's SKILL.md — easy to drift from the rules above it, easy for the model to "tick" without actually verifying.
+1. The `request-test-writer` skill needs a validation step that confirms a freshly-written request test obeys the writer's own composition rules (verify-stubs, reload-assertions, setup-in-it, etc.). The writer's prior Self-review step was a hand-rolled checklist inside the writer's SKILL.md — easy to drift from the rules above it, easy for the model to "tick" without actually verifying.
 2. Existing request specs in this repo predate the shared request-test rules. We want to audit them and surface specific, prioritized improvements without rewriting the suite blind.
 
 Both needs reduce to the same primitive: **given one `it` block, apply the shared request-test rules and emit a verdict.** The grader is that primitive.
@@ -129,9 +129,40 @@ The two-mode `request-test-grader` agent shipped briefly and was reverted as par
 
 QE on the branch that narrowed the grader's input contract surfaced two failures the existing emission rules didn't reliably prevent:
 
-- **Inconsistent counts across sites.** Executive Summary count line, Top fixes severity tally, and trailer `blockers=` / `majors=` / `minors=` counts disagreed in the same report. One observed run emitted Executive Summary `3 blocker(s), 5 major(s), 3 minor(s)` and trailer `blockers=3, majors=3, minors=2` for a per-rule table that contained 2 blocker ✗, 3 major ✗, 2 minor ✗ rows — three different counts for the same quantity in one report.
-- **Severity drift in Top fixes.** A major rule was listed once as a blocker and once as a major in the same report. RITE verdicts also drifted (`Readable` emitted as `Poor` with no blocker ✗ in its contributing rules).
+- **Inconsistent counts across sites.** Executive Summary count line, Top fixes severity tally, and trailer `blockers=` / `majors=` / `minors=` counts disagreed in the same report. One observed run emitted Executive Summary `3 blocker(s), 5 major(s), 3 minor(s)` and trailer `blockers=3, majors=3, minors=2` for a per-rule table that contained 2 blocker fails, 3 major fails, 2 minor fails — three different counts for the same quantity in one report.
+- **Severity drift in Top fixes.** A major rule was listed once as a blocker and once as a major in the same report. RITE verdicts also drifted (`Readable` emitted as `Poor` with no blocker fail in its contributing rules).
 
 Root cause: the template treated the Executive Summary, Top fixes, RITE verdicts, and trailer as independently-emitted views of the grading state. Each section re-derived severities and counts from working memory. By the time the trailer was emitted, working memory had drifted from the per-rule table. The "re-emit until consistent" rule was a post-hoc check the model applied to text it had already committed; models do not reliably self-audit emitted text mid-stream.
 
 **Anchor decision:** the per-rule verdict table is the single source of truth for which rules failed and at what severity. Every other section is a mechanical projection of that table, computed once before any section is emitted. This is codified in the agent file's output schema as the "Projections are mechanical from the per-rule table" invariant, paired with an explicit grade-each-rule workflow step that commits the verdicts before emission begins.
+
+## Decision: collapse the grade scale to pass/fail
+
+The grader previously produced a letter grade (A, A-, B, C, D, F) computed via a waterfall over per-severity counts (blocker / major / minor), plus a RITE dimension verdict (Readable / Isolated / Thorough / Explicit, each Good / Mixed / Poor). The rules file declared each rule's severity; the grade rubric mapped the counts to a letter; RITE projected the same per-rule table along four orthogonal axes.
+
+We collapsed the grade scale to binary: every rule is checked binary (`pass` / `fail` / `na`) and the test's grade is `pass` (zero `fail` verdicts) or `fail` (one or more `fail` verdicts). No severity gradient. No letter grade. No RITE. The `Failures` table is the report. The tool is still a grader — its grade scale is just simpler now, and structurally linter-shaped (rule-by-rule pass/fail with failures, no curve).
+
+The motivation, in increasing weight:
+
+1. **Bespoke ceremony with no clear action.** "Raise this from C to B" is not a meaningfully different directive than "fix the violations." Writers and auditors triage on the rule slug, not the letter. The A-/B/C/D gradations communicated severity *of the test as a whole* without changing what the user had to do about any individual finding.
+
+2. **Projection drift is the dominant emission bug.** The "per-rule table as projection anchor" decision above existed because Executive-Summary counts, Top-Fixes severity tally, RITE verdicts, and trailer counts kept drifting from each other within a single report. Each projection is a place the model has to re-derive consistent values from the same underlying state, mid-emission. Removing the rubric and RITE removed three of the four projection sites. Only the `Failures` table remains, and it's not a projection — it *is* the per-rule verdict, restricted to `fail`-verdict rules.
+
+3. **Pass/fail is a universal grade scale; the rubric was learned.** Engineers know pass/fail from every CI check they've ever read; error/warning/info from ESLint; severity-by-cop from RuboCop. The letter grade was a vocabulary the user had to internalize from this skill alone. Even the two-tier (error/warning) alternative we considered added a learned distinction over no good reason — the underlying rules are uniformly "fix this or your test is lying / brittle / flaky."
+
+4. **CI / automation composability.** A pass/fail signal composes with standard gating logic trivially (`result=fail` ⇒ block). A letter-grade signal requires bespoke encoding of "which grades count as fail" at every gate.
+
+What we kept from the prior design:
+
+- The per-rule verdict as the single source of truth, computed in working memory before any section is emitted. The "Projections are mechanical from the per-rule table" invariant in the agent prompt still applies — the surface area is just smaller.
+- The `<report>...</report>` framing and the machine-readable trailer as the parser contract. Trailer fields shrank from seven to three (`result`, `failures`, `na`) but the framing and emission discipline are identical. The two redundant fields (`findings=` count, derivable from `failures=` cardinality; original `fail=` renamed to `failures=` to read more clearly as a list rather than a boolean) were dropped as part of the same simplification — every remaining field carries signal that isn't trivially derivable. `result=` is kept despite being derivable because the consuming agent is itself an LLM and literal-field lookup is more reliable than computing "is `failures=` non-empty" mid-stream; `na=` is kept because the grader is non-deterministic (unlike RuboCop) and the integrity check ("did the agent consider every rule?") needs explicit listing of considered-but-N/A rules.
+- The N/A handling. Rules whose trigger condition is absent still emit explicitly to `na=` so the integrity check ("every rule was considered") still works.
+
+What we removed:
+
+- Severity classifications (blocker / major / minor) and the per-severity counts they drove.
+- The letter-grade rubric (the A/A-/B/C/D/F waterfall).
+- The RITE dimensions framework (Readable / Isolated / Thorough / Explicit verdicts; their contributing-rules tables).
+- The `one-it` composition rule, which existed to enforce clean failure attribution under the multi-`it` regrade loop. The writer scopes each generated test to one scenario already; making `one-it` a graded rule duplicated that responsibility without adding signal.
+
+The fixture set shrank correspondingly: six rubric-grade fixtures (`rubric_a.rb` through `rubric_f.rb`) collapsed to three signature fixtures — `clean_pass.rb` (zero failures), `one_failure.rb` (single `fail` verdict to verify the pass→fail transition), and `multi_failures.rb` (multiple `fail` verdicts to verify accumulation and source-order sorting). The intermediate grades (A-, B, D) tested rubric boundaries that no longer exist.

@@ -1,6 +1,6 @@
 # Request Test Rules
 
-This file is the canonical source of truth for the rules that define a well-formed Canvas request test, the reasoning behind each rule, and the rubric the grader uses to compute a letter grade.
+This file is the canonical source of truth for the rules that define a well-formed Canvas request test and the reasoning behind each rule.
 
 It is `@include`d by:
 
@@ -39,79 +39,82 @@ What a request test is and is not allowed to do:
 
 This contract is the source of truth. If a rule below conflicts with it, the contract wins.
 
+## How the grader uses these rules
+
+The grader checks each rule binary (`pass` / `fail` / `na`) and the test's grade is `pass` (zero `fail` verdicts) or `fail` (one or more `fail` verdicts). There is no severity gradient, no letter grade, no curve — just the list of failing rules with their fixes. Rules whose trigger condition is absent from the test are `na` (see **Trigger conditions and N/A** below); `na` does not count as a failure.
+
+The rules below are the residual that RuboCop and similar static linters cannot enforce — they require reading the test's intent, the route, and the controller context together. The grader is the complement to RuboCop, not a replacement: RuboCop-enforceable concerns belong in `.rubocop.yml`, not here.
+
 ## Composition rules
 
 Each rule below states **what** to do, then *why*. The "why" matters for judgment calls in edge cases — don't follow the rule blindly; understand the failure mode it prevents. Rules are referenced by slug throughout this document and by the grader's report.
 
-Each rule has a **severity** indicating its impact when violated:
-
-- **blocker** — silent-pass risk. The test could be lying: passing while not actually verifying the behavior it claims.
-- **major** — correctness or attribution risk. The test is reliable but fragile, brittle, or ambiguous.
-- **minor** — style or readability. The test works correctly but is harder to read, fail-diagnose, or maintain.
-
-### one-it (major)
-
-**Exactly one `it`** per scenario. The Given/When/Then collapses into a single example. Nest inside an appropriate `describe` block: when creating a new spec file, use `describe "<VERB> <path>"`; when appending to an existing file, follow that file's existing convention (Canvas request specs commonly use `describe "<Resource Name>"` + nested `describe "<action>"`). Don't fight the file's style.
-
-*Why:* One scenario → one test gives clean failure attribution. When the test breaks, the broken behavior is unambiguous. Splitting into multiple `it`s fragments the signal and creates pressure to share setup — which **setup-in-it** forbids. Matching the surrounding file's `describe` convention keeps grep, suite listings, and code review unsurprising; deviating only at the seam where this skill's test lands is more cost than signal.
-
-### no-internal-mocks (blocker)
+### no-internal-mocks
 
 **No mocks of Canvas's own code.** No `allow(SomeService).to receive(...)`, no `expect(SomeClass).to have_received(...)` against Canvas internals. The only allowed mocks are boundary mocks: WebMock (outbound HTTP), Timecop (time), filesystem stubs, ENV stubs, randomness stubs.
 
-*Why:* Mocking internals couples the test to *how* Canvas implements behavior, not *what* it does. An internal refactor then breaks tests that never observed a behavior change. The test contract requires Canvas itself to run; mocking its code violates that.
+*Why:* Mocking internals couples the test to *how* Canvas implements behavior, not *what* it does. An internal refactor then breaks tests that never observed a behavior change. Worse, a mock that returns a "happy" value can silently mask a real bug — the test verifies the mock, not Canvas. The test contract requires Canvas itself to run; mocking its code violates that.
 
-### verify-stubs (blocker)
+### verify-stubs
 
 **WebMock stubs are verified.** Every `stub_request` must be paired with `expect(WebMock).to have_requested(...).with(...)`.
 
 *Why:* A stub that never fires is a silent test gap — the production code may have skipped the call entirely (wrong branch, early return, feature-flag off) and the test still passes. Verifying the stub was hit proves the path under test actually ran.
 
-### shape-and-value (blocker)
+### shape-and-value
 
 **Body assertions check shape AND value.** `expect(response.parsed_body["id"]).to eq(course.id)`, never just `have_key("id")`.
 
 *Why:* Shape-only assertions pass when the response is wrong but well-formed (e.g. the endpoint returned the wrong record with the right keys, or an empty array where data was expected). Value assertions catch correctness regressions; shape catches structural regressions; both matter.
 
-### reload-assertions (blocker)
+### reload-assertions
 
 **DB-state assertions always `.reload`.** `expect(course.reload.workflow_state).to eq("available")`.
 
 *Why:* ActiveRecord caches attributes on the in-memory object. Without `.reload` you may assert against the *pre-request* state — passing when the DB actually changed (false positive) or failing when the request correctly persisted a different value (false negative). `.reload` guarantees you're checking what was actually saved.
 
-### literal-path (major)
+### literal-path
 
-**Explicit verb + literal path + params/headers.** `get "/api/v1/courses/#{course.id}", params: {...}, headers: {...}`. No route helpers, no `process`.
+**The path argument to the HTTP call is a string literal, not a Rails route helper or `process`.**
 
-*Why:* The path the user actually hits is part of the contract under test. Hiding it behind `api_v1_course_url(course)` means a renamed route silently still passes — and the test no longer documents the URL. Literal paths also make grep-by-route trivial during route audits and incident triage.
+This rule grades exactly one thing: the *expression form* of the path argument at the call site. Fail the rule only when one of these two forms appears:
 
-### setup-in-it (blocker)
+- **Route helper call** as the path argument: `*_path(...)` or `*_url(...)` (e.g. `api_v1_course_url(course)`, `course_assignments_path(course)`).
+- **`process(action, ...)`** in place of a verb + path call.
+
+A string literal (with or without `#{...}` interpolation) passes. Any other expression form — a local variable, a method call returning a string, an instance variable — is **out of scope for this rule** and graded only by whatever rule governs the variable's origin (typically `setup-in-it`). Do not flag `literal-path` based on whether the path is "visible in the `it` body"; visibility is `setup-in-it`'s concern.
+
+*Why:* The path the user actually hits is part of the contract under test. A renamed route silently still passes when the test calls it via a Rails route helper — and the test no longer documents the URL. Literal paths also make grep-by-route trivial during route audits and incident triage. The two failure forms above are the ones that destroy that property; nothing else does.
+
+*Canvas `api_call` helper:* `api_call(:verb, path, params, body, headers, opts)` is graded the same way — the `path` argument (second positional) is the target. A literal string passes; a route helper there fails.
+
+### setup-in-it
 
 **All setup lives inside the `it` body.** No `before` hooks of any flavor (`before`, `before(:each)`, `before(:example)`, `before(:all)`, `before(:context)`, `before(:once)`, `before(:suite)`), no `let`, no `subject`, no `@instance_vars` inherited from enclosing scope. Every record, stub, and bit of state the assertions depend on is created in the `it`, in source order.
 
-*Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling. Every forbidden mechanism violates that invariant: `before` hooks move setup outside the test and compose across nested contexts in a sequence the reader has to mentally simulate; once-per-group variants (`before(:all)` / `before(:context)` / `before(:once)`) additionally share the same record graph across examples, so any in-example mutation leaks to siblings and produces order-dependent failures (Canvas's `before(:once)` wraps in a savepoint but still shares record identities, so the leakage mode is the same); `let` and `subject` are lazily evaluated, which makes execution order non-obvious; `@instance_vars` from enclosing scope force the reader to scroll up and reconstruct the setup graph. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY these mechanisms provide.
+*Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling. Every forbidden mechanism violates that invariant: `before` hooks move setup outside the test and compose across nested contexts in a sequence the reader has to mentally simulate; once-per-group variants (`before(:all)` / `before(:context)` / `before(:once)`) additionally share the same record graph across examples, so any in-example mutation leaks to siblings and produces order-dependent failures (Canvas's `before(:once)` wraps in a savepoint but still shares record identities, so the leakage mode is the same); `let` and `subject` are lazily evaluated, which makes execution order non-obvious and lets setup silently skip when the reference path is missed. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY these mechanisms provide.
 
-### stub-outbound (blocker)
+### stub-outbound
 
 **Every outbound HTTP call the production code makes must be stubbed with WebMock** and verified with `have_requested` (per **verify-stubs**). The suite-wide WebMock posture (whether unstubbed non-localhost calls raise or pass through) is configured centrally in `spec/spec_helper.rb`; do not flip it from inside the `it` block.
 
-*Why:* Real outbound calls make the test slow, flaky, and dependent on services outside the system under test — directly violating the test contract's "single service" guarantee. Stubs at the boundary keep the test deterministic while still proving Canvas's contract with each collaborator. Flipping the global net-connect flag inside one `it` leaks the change to every subsequent example in the process — that's a suite-wide setting, not a per-test one.
+*Why:* Real outbound calls make the test slow, flaky, and dependent on services outside the system under test — directly violating the test contract's "single service" guarantee. They can also reach real environments. Stubs at the boundary keep the test deterministic while still proving Canvas's contract with each collaborator. Flipping the global net-connect flag inside one `it` leaks the change to every subsequent example in the process — that's a suite-wide setting, not a per-test one.
 
-### no-magic-values (blocker)
+### no-magic-values
 
 **No magic values.** Every value an assertion checks must appear explicitly in setup. If the test asserts `name == "Algebra 101"`, the course was created with `name: "Algebra 101"` — never relying on a helper's default.
 
 *Why:* When an assertion's expected value silently comes from a factory default, the reader can't tell whether the assertion is meaningful (verifying a real behavior) or vacuous (verifying that the default echoes itself). Explicit setup makes the cause-effect link auditable and survives helper-default changes.
 
-### precise-matchers (minor)
+### precise-matchers
 
 **Assertions must produce informative failure messages.** Pick the most precise matcher and target available so a failure shows exactly what differed — never just "true/false" or a wall of HTML. Prefer `eq` on a specific field over `include` on a whole body. Prefer `have_http_status(:ok)` over `response.successful?`. Prefer `expect(course.reload.workflow_state).to eq("available")` over `expect(course.reload).to be_available`.
 
-*Why:* A reader of the rspec failure output should be able to identify the bug without re-running the test or reading the test code. Generic matchers like `be_truthy` or `include` produce failure messages that hide the difference between expected and actual; precise matchers surface it.
+*Why:* A reader of the rspec failure output should be able to identify the bug without re-running the test or reading the test code. Generic matchers like `be_truthy` or whole-body `include` produce failure messages that hide the difference between expected and actual; precise matchers surface it.
 
-*Independence from `shape-and-value`:* These two rules cover distinct concerns — assertion *completeness* (does it check the value?) and assertion *precision* (does the matcher produce an informative failure message?) — and fire independently. A shape-only body matcher like `have_key("id")` violates both: `shape-and-value ✗ blocker` for skipping the value check, `precise-matchers ✗ minor` for the uninformative true/false failure message. The grader emits both verdicts deliberately; do not suppress one in favor of the other. A single fix (e.g. switching to `expect(body["id"]).to eq(course.id)`) typically resolves both, but the two signals train the reader to think about both concerns.
+*Independence from `shape-and-value`:* These two rules cover distinct concerns — assertion *completeness* (does it check the value?) and assertion *precision* (does the matcher produce an informative failure message?) — and fire independently. A shape-only body matcher like `have_key("id")` violates both: `shape-and-value fail` for skipping the value check, `precise-matchers fail` for the uninformative true/false failure message. A single fix (e.g. switching to `expect(body["id"]).to eq(course.id)`) typically resolves both.
 
-### eql-for-numerics (blocker)
+### eql-for-numerics
 
 **Use `eql` for numeric assertions where Integer-vs-Float matters; `eq` everywhere else; `be` only for `true` / `false` / `nil` / object-identity.** `eq` uses `==`, which treats `5` and `5.0` as equal — fine for strings, IDs, arrays, hashes, and custom objects. For numeric fields whose type is part of the response contract (scores, points_possible, percentages), use `eql` — it uses `.eql?` and refuses to call `5` and `5.0` equal. Example: `expect(response.parsed_body["points_possible"]).to eql(10)` catches a serializer regression that flips the value to `10.0`; `eq(10)` would silently pass.
 
@@ -119,7 +122,7 @@ Each rule has a **severity** indicating its impact when violated:
 
 **Linter conflict.** If a cop (e.g., `RSpec/BeEql`) autocorrects `eql(...)` to `be(...)`, do not accept the autocorrect on these assertions — override with a single-line disable: `expect(body["score"]).to eql(8.0) # rubocop:disable RSpec/BeEql`. The comparison rule wins; the linter is silenced narrowly where it conflicts.
 
-### auth-matches-initiator (major)
+### auth-matches-initiator
 
 **The auth pattern matches the request initiator.** Same Canvas endpoint (e.g. `/api/v1/conversations/unread_count`) is exercised by both the Canvas web UI (cookie/session) and external API clients (Bearer token), so route prefix alone is not enough.
 
@@ -131,6 +134,23 @@ Each rule has a **severity** indicating its impact when violated:
 | `anonymous` | No session setup. HTML routes redirect (302) to `login_url`; `/api/v1/...` routes return `:unauthorized` (401). Picking the wrong half is a common silent-pass. |
 
 *Why:* The same route can have entirely different auth semantics depending on who's calling. A teacher in the UI hitting `/api/v1/courses` uses session cookies; a script with a Bearer token hitting the same path is auth'd differently and may exercise different controller paths (e.g., masquerading-as-user logic). Picking the wrong pattern produces tests that either silently pass against the wrong code path or fail for reasons unrelated to the behavior under test.
+
+## Trigger conditions and N/A
+
+Many rules have a *trigger condition* — circumstances under which the rule has something concrete to check. When a rule's trigger is absent from the test, mark it `na` rather than `pass`. The distinction matters: `pass` means "the rule applied and the test passed it"; `na` means "the rule never had a chance to fire here." Both are valid outcomes but carry different signal — a `pass` on `reload-assertions` reflects a real check on a real DB assertion, while `na` means the test simply didn't touch DB state.
+
+`na` does not count as a failure. The test's pass/fail verdict is computed only from `fail`-verdict counts.
+
+Rules with trigger conditions:
+
+| Rule | Trigger condition | `na` when |
+|------|-------------------|------------|
+| `verify-stubs` | Test contains `stub_request(...)` calls | Test has zero WebMock stubs |
+| `reload-assertions` | Test asserts on DB state after the request | Test makes no DB-state assertions |
+| `stub-outbound` | Controller action makes outbound HTTP calls | Controller (and its directly-called helpers) make no outbound HTTP |
+| `eql-for-numerics` | Test makes numeric assertions on response or DB values | Test makes no numeric assertions |
+
+All other rules (`no-internal-mocks`, `shape-and-value`, `setup-in-it`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `na`.
 
 ## Canvas-specific defaults (guidance, not graded)
 
@@ -160,91 +180,13 @@ These inform write-time judgment but the grader does not produce report violatio
 
   *Why:* Defaulting to the plain-hash form keeps tests indistinguishable from the surrounding Canvas suite. The JSON-headers form is correct but heavier, and reserving it for endpoints that actually require it concentrates the ceremony where it matters.
 
-- **File size — soft cap at 500 lines per spec file.** When a request-spec file at the writer's chosen target path is already at or above 500 lines, surface a warning before adding the next `it` and recommend splitting. Suggested split axes, in preference order: by sub-resource (e.g., peel `_enrollments_spec.rb` off `_courses_spec.rb`), by HTTP verb (`_courses_index_spec.rb` vs. `_courses_update_spec.rb`), or by initiator (UI vs. API-client specs as sibling files). The cap is a soft signal, not a refusal — adding the 28th `it` is allowed when the user accepts the warning. The "encourage breadth" stance the writer holds still applies; this cap addresses *file scannability and context cost*, not test count.
+- **File size — soft cap at 500 lines per spec file.** When a request-spec file at the writer's chosen target path is already at or above 500 lines, surface a warning before adding the next `it` and recommend splitting. Suggested split axes, in preference order: by sub-resource (e.g., peel `_enrollments_spec.rb` off `_courses_spec.rb`), by HTTP verb (`_courses_index_spec.rb` vs. `_courses_update_spec.rb`), or by initiator (UI vs. API-client specs as sibling files). The cap is a soft signal, not a refusal — adding the 28th `it` is allowed when the user accepts the warning.
 
   *Why:* request-spec files grow naturally as scenarios accumulate. Past ~500 lines a file becomes hard to scan during review, expensive to load into context when grading or refactoring, and a magnet for cross-`it` coupling pressure — even though **setup-in-it** forbids the `let`/`before` shortcuts that pressure would normally take, the temptation to refactor toward shared helpers grows with file size. Splitting at sub-resource / verb / initiator seams keeps each file purpose-coherent and each `it` independently scannable.
 
-## Severity classification (summary)
-
-**Blocker** (silent-pass risks — the test could be lying):
-
-- `no-internal-mocks`
-- `verify-stubs`
-- `shape-and-value`
-- `reload-assertions`
-- `setup-in-it`
-- `stub-outbound`
-- `no-magic-values`
-- `eql-for-numerics`
-
-**Major** (correctness or attribution risk):
-
-- `one-it`
-- `literal-path`
-- `auth-matches-initiator`
-
-**Minor** (style / readability):
-
-- `precise-matchers`
-
-## Letter grade rubric
-
-The grader computes one letter grade per `it` it grades. The grade is determined by the **worst-fitting condition** that applies — i.e., evaluate top to bottom and stop at the first match.
-
-| Grade | Condition |
-|---|---|
-| **A** | Zero ✗ across all applicable rules. |
-| **A-** | 1 minor ✗, no major or blocker ✗. |
-| **B** | 1 major ✗ and no blockers. |
-| **C** | 2–3 major ✗ and no blockers, OR exactly 1 blocker ✗. |
-| **D** | Exactly 2 blocker ✗. |
-| **F** | 3+ blocker ✗. |
-
-**N/A handling.** Many rules have a *trigger condition* — circumstances under which the rule has something concrete to check. When a rule's trigger is absent from the test, mark it `N/A` rather than `✓`. The distinction matters: `✓` means "the rule applied and the test passed it"; `N/A` means "the rule never had a chance to fire here." Both are valid outcomes but carry different signal — a `✓` on `reload-assertions` reflects a real check on a real DB assertion, while `N/A` means the test simply didn't touch DB state. An eval harness reading the trailer's `na=` field can also assert which rules were *expected* to be out of scope for a fixture.
-
-Rules with trigger conditions, and when each is `N/A`:
-
-| Rule | Trigger condition | `N/A` when |
-|------|-------------------|------------|
-| `verify-stubs` | Test contains `stub_request(...)` calls | Test has zero WebMock stubs |
-| `reload-assertions` | Test asserts on DB state after the request | Test makes no DB-state assertions |
-| `stub-outbound` | Controller action makes outbound HTTP calls | Controller (and its directly-called helpers) make no outbound HTTP |
-| `eql-for-numerics` | Test makes numeric assertions on response or DB values | Test makes no numeric assertions |
-
-All other rules (`one-it`, `no-internal-mocks`, `shape-and-value`, `setup-in-it`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `N/A`.
-
-**`N/A` does not count toward the letter grade in either direction.** The letter grade is computed only from `✗` counts. **`N/A` also does not push RITE dimension verdicts toward Mixed or Poor** — a dimension whose only non-✓ rules are `N/A` is graded `Good`.
-
-**Why this curve, not a smoother numeric one:** Blockers represent silent-pass failures — the test claims to verify behavior it does not actually verify. A test that lies should never receive an A or B no matter how many other rules it follows. The strict cap encodes that judgment directly into the grade.
-
-## RITE dimensions
-
-Beyond the per-rule verdict and the letter grade, every request test is assessed along four orthogonal quality dimensions: **Readable**, **Isolated**, **Thorough**, **Explicit**. The dimensions are an *additional lens* — they do not change the letter grade. They surface clusters of trouble that the per-rule list can hide. (A test with three minor ✗s scattered across all four dimensions tells a different story than a test with three minor ✗s all in the *Explicit* dimension; the second one has a coherent problem worth a refactor, the first reads as "small inconsistencies.")
-
-Each rule contributes to one or more dimensions. Some rules contribute to multiple — that's expected; the dimensions describe what the *test as a whole* delivers, not what each rule individually proves.
-
-| Dimension | What it means for a request test | Contributing rules |
-|-----------|----------------------------------|-------------------|
-| **Readable** | A reader can follow the `it` top-to-bottom without scrolling and knows what the test does from its description. | `literal-path`, `setup-in-it`, `one-it` |
-| **Isolated** | The test stands alone — no order dependencies, no cross-`it` state leakage, no hidden setup that varies between runs. | `one-it`, `setup-in-it`, `stub-outbound` |
-| **Thorough** | The test proves behavior, not coincidence — full-shape assertions, every collaborator verified, DB state reloaded, deterministic numeric types. | `shape-and-value`, `verify-stubs`, `reload-assertions`, `eql-for-numerics`, `no-internal-mocks` |
-| **Explicit** | Every value the assertions depend on appears in setup; matchers carry intent; auth pattern matches initiator; nothing inferred from defaults. | `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`, `eql-for-numerics`, `no-internal-mocks` |
-
-### Dimension verdict
-
-For each dimension, the grader emits one of three verdicts based on the contributing rules' results in *this* test:
-
-| Verdict | Condition |
-|---------|-----------|
-| **Good** | All contributing rules are ✓ or N/A. |
-| **Mixed** | At least one ✗ among contributing rules, but no blocker ✗. |
-| **Poor** | At least one blocker ✗ among contributing rules. |
-
-The verdict is mechanical from the per-rule result, not a separate judgment call. A rule marked N/A counts as "no signal in either direction" — it does not push the dimension toward Mixed or Poor.
-
 ## Common anti-patterns
 
-Patterns the grader catches via existing rules. This table is for users coming from other testing cultures who want to map their vocabulary onto this skill's rules. The grader does not emit findings against these names directly — it emits findings against the rule slug.
+Patterns the grader catches via existing rules. This table is for users coming from other testing cultures who want to map their vocabulary onto this skill's rules. The grader does not emit failures against these names directly — it emits failures against the rule slug.
 
 | Anti-pattern | Why it's bad | Rule that catches it |
 |--------------|--------------|----------------------|

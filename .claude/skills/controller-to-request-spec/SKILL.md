@@ -81,7 +81,7 @@ Request specs don't expose the controller instance, so these controller-spec idi
 
 ## Grading mode
 
-Grading mode brings every converted `it` block to grade `A` or `A-` per the rubric in `.claude/skills/request-test-grader/references/request-test-rules.md` (0 blockers, 0 majors, ≤ 2 minors). It runs by default after step 7. `--no-grading` skips it entirely.
+Grading mode brings every converted `it` block to `result=pass` per the grader rules in `.claude/skills/request-test-grader/references/request-test-rules.md` (zero failures). It runs by default after step 7. `--no-grading` skips it entirely.
 
 **Precondition.** Step 7 reported all converted `it`s green. If any spec is still failing, do not enter Grading mode — surface the failures and stop. Grading a broken conversion produces noise.
 
@@ -93,15 +93,15 @@ Grading mode brings every converted `it` block to grade `A` or `A-` per the rubr
    - **subagent_type:** `request-test-grader`
    - **description:** `Grade <basename>:<line>`
    - **prompt:** `<path>:<line>`
-4. **Parse the trailers.** Each report ends with a machine-readable trailer (`grade=`, `blockers=`, `majors=`, `minors=`, `fail=`, `na=`, `rite=`). Read these — not the prose — to drive the fix loop.
-5. **File-wide ✗ rules.** If any `it` reports `no-shared-setup` or `no-before-all` as ✗, batch them into a single `AskUserQuestion` *per file* with three options:
+4. **Parse the trailers.** Each report ends with a machine-readable trailer (`result=`, `failures=`, `na=`). Read these — not the prose — to drive the fix loop.
+5. **File-wide failure rules.** If any `it` reports `setup-in-it` as `fail` because of file-wide `let` / `before` blocks, batch them into a single `AskUserQuestion` *per file* with two options:
    - *Refactor file-wide* — inline the `let`/`before` setup into every converted `it`. May also touch sibling unconverted `it`s in the same file; warn the user inline.
-   - *Leave + TODO comment* — preserve the structure and add `# TODO: grader violation — <rule>` to each affected `it`.
-6. **Serial fix pass.** For each `it` with ✗ blockers or majors, apply the `Top fixes` block from its grader report. Fix in source order to keep diffs reviewable.
+   - *Leave + TODO comment* — preserve the structure and add `# TODO: grader violation — setup-in-it` to each affected `it`.
+6. **Serial fix pass.** For each `it` with `result=fail`, apply the `Failures` fixes from its grader report. Fix in source order to keep diffs reviewable.
 7. **Parallel re-grade.** Re-spawn the grader subagent for each fixed `it`. Parse the new trailers.
 8. **Cap at 2 fix-and-regrade cycles per `it`.** After two cycles, accept the current state and move to escalation.
-9. **Pass condition.** Every converted `it` reaches grade `A` or `A-`. If yes, Grading mode is done.
-10. **Escalation.** For any `it` still below `A-`, print its grader report verbatim and end with a summary list of escalated `it`s. Do not silently mark these as done.
+9. **Pass condition.** Every converted `it` reaches `result=pass`. If yes, Grading mode is done.
+10. **Escalation.** For any `it` still at `result=fail`, print its grader report verbatim and end with a summary list of escalated `it`s. Do not silently mark these as done.
 
 ### `--no-grading`
 

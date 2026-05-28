@@ -178,7 +178,7 @@ Pick the spec file by following precedent:
 
 - `human-via-canvas-ui` and `external-api-client-bearer` → `spec/requests/<resource>_spec.rb`.
 - `sibling-service-as-client(<service>)` → the precedent spec's directory (typically `spec/apis/lti/ims/` for LTI Advantage; the collaborating directory for other services).
-- If the file exists, plan to append a new `it` inside the existing `describe` block whose convention best fits the new test — see **one-it**.
+- If the file exists, plan to append a new `it` inside the existing `describe` block whose convention best fits the new test. When creating a new file, use `describe "<VERB> <path>"`; when appending, follow that file's existing convention (Canvas request specs commonly use `describe "<Resource Name>"` + nested `describe "<action>"`). Don't fight the file's style.
 - If the route maps to multiple plausible spec files (e.g., the controller spans several specs), use `AskUserQuestion`.
 
 When the chosen target file already exists and is at or above the **500-line soft cap** defined in `@../request-test-grader/references/request-test-rules.md`, surface a `File size:` row in the **Pre-flight summary** with a split recommendation. Do not refuse the write.
@@ -240,24 +240,26 @@ This skill verifies the test runs green. It does **not** verify the test catches
 
 ### Self-review (delegated to the request-test-grader agent)
 
+Before invoking the grader, confirm the Given/When/Then scenario produced exactly one `it` block. When creating a new spec file, use `describe "<VERB> <path>"`; when appending to an existing file, follow that file's existing convention (Canvas request specs commonly use `describe "<Resource Name>"` + nested `describe "<action>"`). Don't fight the file's style. *Why:* one scenario → one test gives clean failure attribution (when it breaks, the broken behavior is unambiguous). The grader sees one `it` at a time and structurally can't enforce this; it's the writer's check.
+
 Invoke the `request-test-grader` subagent via the Agent tool to grade the new `it` block. The grader is the canonical enforcer of every rule defined in `@../request-test-grader/references/request-test-rules.md`; this skill does not re-implement the checklist.
 
 Invocation:
 
 - **subagent_type:** `request-test-grader`
 - **description:** `Grade <basename>:<line>`
-- **prompt:** `Target: <path>:<line>`
+- **prompt:** `<path>:<line>`
 
 The agent owns its own input contract, workflow, and output schema — do not restate them in the prompt. If you find yourself tempted to add instructions, edit the agent file instead.
 
-Relay the agent's report to the user verbatim. The report includes a letter grade, a per-rule verdict, and a prioritized `Top fixes` list.
+Relay the agent's report to the user verbatim. The report contains a pass/fail result, the list of failing rules with fixes, and the list of N/A rules.
 
-**Acting on the grade:**
+**Acting on the verdict:**
 
-- **A or A-** (no blockers, no majors): proceed to **Final summary**.
-- **B or worse:** every ✗ is a required rewrite. Apply the `Top fixes` in order, then **re-invoke the grader** on the same `it`. Repeat until the grade is at least A- or **3 rewrite iterations** have been attempted.
+- **`result=pass`** (zero failures): proceed to **Final summary**.
+- **`result=fail`** (one or more failures): every failure is a required rewrite. Apply the `Failures` fixes in order, then **re-invoke the grader** on the same `it`. Repeat until `result=pass` or **3 rewrite iterations** have been attempted.
 
-The grade is read from the agent's machine-readable trailer — the `grade=` field inside the `=== machine-readable === ... === end ===` block at the bottom of every report. Possible values: `A`, `A-`, `B`, `C`, `D`, `F`, `N/A`. ASCII hyphen-minus in `A-`, never Unicode minus. The Executive Summary's bold `**Grade: <X>**` is the human-readable redundant copy; the trailer is canonical for the rewrite loop. If the trailer is missing or malformed, that is a bug in the agent file, not something to paper over here.
+The result is read from the agent's machine-readable trailer — the `result=` field inside the `=== machine-readable === ... === end ===` block at the bottom of every report. Possible values: `pass`, `fail`. The `## Result` heading's bold `**PASS**` / `**FAIL**` is the human-readable redundant copy; the trailer is canonical for the rewrite loop. If the trailer is missing or malformed, that is a bug in the agent file, not something to paper over here.
 - If still failing after 3 iterations: stop, surface the latest grader report in the Final summary, and let the user decide.
 
 Emit the grader's report at each iteration, the diff applied between reports, and the next report. Do not narrate transitions between iterations beyond what the reports themselves convey.
@@ -270,7 +272,7 @@ Print:
 File:              <path>
 Test description:  <the it string>
 Status:            green / failed (after N attempts)
-Grader verdict:    <letter grade> (after <N> rewrite iteration(s))
+Grader verdict:    <pass / fail> (after <N> rewrite iteration(s))
 ```
 
 When `Status: green`, append a nudge that explains *why* the user should follow up:
