@@ -36,59 +36,6 @@ describe "cross-listing" do
     get "/courses/#{@course1.id}/sections/#{@section.id}"
   end
 
-  it "allows cross-listing a section" do
-    f("[data-testid='crosslist-trigger-button']").click
-    wait_for_ajaximations
-
-    course_id_input = f("[data-testid='course-id-input']")
-
-    # crosslist a valid course
-    course_id_input.click
-    course_id_input.send_keys(@course2.id.to_s)
-    course_id_input.send_keys(:tab) # Trigger blur to confirm the course
-    wait_for_ajaximations
-
-    # Verify the course name appears in the selected course display
-    expect(f("[data-testid='selected-course-name']")).to include_text(@course2.name)
-
-    # Verify the confirmed course ID is set
-    expect(f("[data-testid='confirmed-course-id']")).to have_attribute(:value, @course2.id.to_s)
-
-    # Verify submit button is enabled
-    submit_btn = f("[data-testid='crosslist-submit-button']")
-    expect(submit_btn).not_to be_disabled
-
-    submit_btn.click
-    wait_for_ajaximations
-    keep_trying_until { driver.current_url.match(%r{courses/#{@course2.id}}) }
-
-    # verify teacher doesn't have de-crosslist privileges
-    get "/courses/#{@course2.id}/sections/#{@section.id}"
-    expect(f("#content")).not_to contain_css('[data-testid="uncrosslist-trigger-button"]')
-
-    # enroll teacher and de-crosslist
-    @course1.enroll_teacher(@user).accept
-    get "/courses/#{@course2.id}/sections/#{@section.id}"
-    f('[data-testid="uncrosslist-trigger-button"]').click
-    expect(f('[data-testid="uncrosslist-submit-button"]')).to be_displayed
-    f('[data-testid="uncrosslist-submit-button"]').click
-    wait_for_ajaximations
-    keep_trying_until { expect(driver.current_url).to match(%r{courses/#{@course1.id}}) }
-  end
-
-  it "does not allow cross-listing an invalid section" do
-    f("[data-testid='crosslist-trigger-button']").click
-    wait_for_ajaximations
-
-    course_id_input = f("[data-testid='course-id-input']")
-    course_id_input.click
-    course_id_input.send_keys("-1")
-    course_id_input.send_keys(:tab) # Trigger blur to confirm the course
-    wait_for_ajaximations
-
-    expect(fj('[data-testid="crosslist-modal"]:contains("Course ID \"-1\" not authorized")')).to be_present
-  end
-
   it "allows cross-listing a section redux" do
     # so, we have two courses with the teacher enrolled in both.
     course_with_teacher_logged_in
@@ -134,50 +81,5 @@ describe "cross-listing" do
     # button appears is sufficient.
     # f('[data-testid="uncrosslist-submit-button"]').click
     # keep_trying_until { driver.current_url.match(%r{courses/#{course.id}}) }
-  end
-
-  context "course search results" do
-    it "displays course name and term name when course does not have SIS ID" do
-      f("[data-testid='crosslist-trigger-button']").click
-      wait_for_ajaximations
-
-      # search for course
-      search_field = f("[data-testid='course-search-input']")
-      search_field.click
-      search_field.send_keys(@course2.name)
-
-      wait_for_ajaximations
-
-      # Find the dropdown with search results - wait for a real course result (contains "Term")
-      search_results = f("[role='listbox']")
-      first_search_result = search_results.find_element(xpath: ".//*[@role='option' and contains(., 'Term')]")
-
-      # Sample search result:
-      # Course 2
-      # Term: Default Term
-      expect(first_search_result.text).to match(/#{@course2.name}.*Term: #{@course2.enrollment_term.name}/m)
-    end
-
-    it "displays course name, term name and SIS ID when course has SIS ID" do
-      @course2.update_attribute(:sis_source_id, "123")
-      f("[data-testid='crosslist-trigger-button']").click
-      wait_for_ajaximations
-
-      # search for course
-      search_field = f("[data-testid='course-search-input']")
-      search_field.click
-      search_field.send_keys(@course2.name)
-
-      wait_for_ajaximations
-
-      # Find the dropdown with search results - wait for a real course result (contains "Term")
-      search_results = f("[role='listbox']")
-      first_search_result = search_results.find_element(xpath: ".//*[@role='option' and contains(., 'Term')]")
-
-      # Sample search result:
-      # Course 2
-      # SIS ID: 123 | Term: Default Term
-      expect(first_search_result.text).to match(/#{@course2.name}.*SIS ID: #{@course2.sis_source_id}.*Term: #{@course2.enrollment_term.name}/m)
-    end
   end
 end

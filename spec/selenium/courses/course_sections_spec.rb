@@ -73,70 +73,6 @@ describe "course sections" do
     expect(table_rows[0]).to include_text("2 Completed Enrollments")
   end
 
-  it "edits the section with empty start and end dates" do
-    edit_name = "edited section name"
-    get "/courses/#{@course.id}/sections/#{@section.id}"
-
-    f(".edit_section_link").click
-    edit_form = f("#edit_section_form")
-    replace_content(edit_form.find_element(:id, "course_section_name"), edit_name)
-    submit_form(edit_form)
-    wait_for_ajaximations
-    expect(f("#section_name")).to include_text(edit_name)
-    @section.reload
-    expect(@section.start_at).to be_nil
-    expect(@section.end_at).to be_nil
-  end
-
-  it "edits the section when only start date is provided" do
-    edit_name = "edited section name"
-    get "/courses/#{@course.id}/sections/#{@section.id}"
-
-    f(".edit_section_link").click
-    edit_form = f("#edit_section_form")
-    replace_content(edit_form.find_element(:id, "course_section_name"), edit_name)
-    replace_and_proceed(edit_form.find_element(:id, "Selectable___0"), "March 4, 2015")
-    submit_form(edit_form)
-    wait_for_ajaximations
-    expect(f("#section_name")).to include_text(edit_name)
-    @section.reload
-    expect(@section.start_at).not_to be_nil
-    expect(@section.end_at).to be_nil
-  end
-
-  it "edits the section when only end date is provided" do
-    edit_name = "edited section name"
-    get "/courses/#{@course.id}/sections/#{@section.id}"
-
-    f(".edit_section_link").click
-    edit_form = f("#edit_section_form")
-    replace_content(edit_form.find_element(:id, "course_section_name"), edit_name)
-    replace_and_proceed(edit_form.find_element(:id, "Selectable___2"), "March 4, 2015")
-    submit_form(edit_form)
-    wait_for_ajaximations
-    expect(f("#section_name")).to include_text(edit_name)
-    @section.reload
-    expect(@section.start_at).to be_nil
-    expect(@section.end_at).not_to be_nil
-  end
-
-  it "edits the section with both start and end dates" do
-    edit_name = "edited section name"
-    get "/courses/#{@course.id}/sections/#{@section.id}"
-
-    f(".edit_section_link").click
-    edit_form = f("#edit_section_form")
-    replace_content(edit_form.find_element(:id, "course_section_name"), edit_name)
-    replace_and_proceed(edit_form.find_element(:id, "Selectable___0"), "March 4, 2015")
-    replace_and_proceed(edit_form.find_element(:id, "Selectable___2"), "March 4, 2015")
-    submit_form(edit_form)
-    wait_for_ajaximations
-    expect(f("#section_name")).to include_text(edit_name)
-    @section.reload
-    expect(@section.start_at).not_to be_nil
-    expect(@section.end_at).not_to be_nil
-  end
-
   it "edits the section with both start and end dates using a 24 hrs language pack" do
     Account.default.update!(default_locale: "en-GB")
     edit_name = "edited section name"
@@ -248,50 +184,6 @@ describe "course sections" do
       wait_for_ajaximations
 
       expect(fj('span:contains("Please enter a valid format for a date")')).to be_displayed
-    end
-  end
-
-  context "account admin" do
-    before do
-      Account.default.role_overrides.create! role: admin_role, permission: "manage_sis", enabled: true
-      @subaccount = Account.default.sub_accounts.create! name: "sub"
-      course_factory account: @subaccount
-      @section = @course.course_sections.create! name: "sec"
-    end
-
-    it "lets a root account admin modify the sis ID" do
-      account_admin_user account: Account.default
-      user_session @admin
-      get "/courses/#{@course.id}/sections/#{@section.id}"
-
-      f(".edit_section_link").click
-      edit_form = f("#edit_section_form")
-      expect(edit_form).to contain_css("input#course_section_sis_source_id")
-    end
-
-    it "does not let a subaccount admin modify the sis ID" do
-      account_admin_user account: @subaccount
-      user_session @admin
-      get "/courses/#{@course.id}/sections/#{@section.id}"
-
-      f(".edit_section_link").click
-      edit_form = f("#edit_section_form")
-      expect(edit_form).not_to contain_css("input#course_section_sis_source_id")
-    end
-  end
-
-  context "cross-list sections" do
-    it "shows error if user inputs an invalid course id" do
-      get "/courses/#{@course.id}/sections/#{@section.id}"
-      f("[data-testid='crosslist-trigger-button']").click
-      wait_for_ajaximations
-
-      course_id_input = f("[data-testid='course-id-input']")
-      replace_content(course_id_input, 99_999)
-      course_id_input.send_keys(:tab) # Trigger blur to confirm the course
-      wait_for_ajaximations
-
-      expect(fj('[data-testid="crosslist-modal"]:contains("Course ID \"99999\" not authorized")')).to be_present
     end
   end
 

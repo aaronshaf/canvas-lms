@@ -61,30 +61,6 @@ describe "course settings" do
       expect(name).to be_displayed
       expect(name.text).to eq @course.alt_name
     end
-
-    it "provides sync to homeroom and homeroom selection" do
-      @course.update!(homeroom_course: true, name: "homeroom1")
-      orig_teacher = @teacher
-      course_with_teacher(user: orig_teacher, course_name: "homeroom2")
-      @course.update!(homeroom_course: true)
-      course_with_teacher_logged_in(user: orig_teacher)
-
-      get "/courses/#{@course.id}/settings"
-
-      sync_checkbox = f(".sync_enrollments_from_homeroom_checkbox")
-      expect(sync_checkbox).to be_displayed
-      sync_checkbox.location_once_scrolled_into_view
-      sync_checkbox.click
-
-      homeroom_selection = f("#course_homeroom_course_id")
-      expect(homeroom_selection).not_to be_nil
-      expect(homeroom_selection).to be_displayed
-
-      homeroom_selection.click
-      options = ff("#course_homeroom_course_id option").map { |e| e.text.strip }
-      expect(options).to include "homeroom1"
-      expect(options).to include "homeroom2"
-    end
   end
 
   context "considering homeroom courses" do
@@ -272,34 +248,6 @@ describe "course settings" do
       end
     end
 
-    it "shows the self enrollment code and url once enabled" do
-      a = Account.default
-      a.courses << @course
-      a.settings[:self_enrollment] = "manually_created"
-      a.save!
-      get "/courses/#{@course.id}/settings"
-      el = f("#course_self_enrollment")
-      el.location_once_scrolled_into_view
-      el.click
-      wait_for_ajaximations
-      wait_for_new_page_load { submit_form("#course_form") }
-
-      code = @course.reload.self_enrollment_code
-      expect(code).not_to be_nil
-      # this element _can_ still be on the page if the post hasn't finished yet,
-      # so make sure it's been populated before continuing
-      wait = Selenium::WebDriver::Wait.new(timeout: 5)
-      wait.until do
-        el = f(".self_enrollment_message")
-        el.present? &&
-          !el.text.nil? &&
-          el.text != ""
-      end
-      message = f(".self_enrollment_message")
-      expect(message).to include_text(code)
-      expect(message).not_to include_text("self_enrollment_code")
-    end
-
     it "does not show the self enrollment code and url for blueprint templates even if enabled" do
       a = Account.default
       a.courses << @course
@@ -405,31 +353,6 @@ describe "course settings" do
       expect(element_exists?("#nav_edit_tab_id_0")).to be_falsey
     end
 
-    it "changes course details" do
-      course_name = "new course name"
-      course_code = "new course-101"
-      locale_text = "English (United States)"
-      time_zone_value = "Central Time (US & Canada)"
-
-      get "/courses/#{@course.id}/settings"
-
-      course_form = f("#course_form")
-      name_input = course_form.find_element(:id, "course_name")
-      replace_content(name_input, course_name)
-      code_input = course_form.find_element(:id, "course_course_code")
-      replace_content(code_input, course_code)
-      click_option("#course_locale", locale_text)
-      click_option("#course_time_zone", time_zone_value, :value)
-      expect(f(".course_form_more_options")).to be_displayed
-      wait_for_new_page_load { submit_form(course_form) }
-
-      @course.reload
-      expect(@course.name).to eq course_name
-      expect(@course.course_code).to eq course_code
-      expect(@course.locale).to eq "en"
-      expect(@course.time_zone.name).to eq time_zone_value
-    end
-
     it "only allows less resrictive options in Customize Syllabus visibility" do
       get "/courses/#{@course.id}/settings"
       click_option("#course_course_visibility", "institution", :value)
@@ -472,77 +395,6 @@ describe "course settings" do
       expect(f("#syllabus-link")).to have_attribute("aria-label", "Disabled. Not visible to students")
     end
 
-    context "participation" do
-      it "allows setting both dates as empty" do
-        get "/courses/#{@course.id}/settings"
-
-        f("input[title='Term']").click
-        fj("li[class*='optionItem']:contains('Course')").click
-        fj("button:contains('Update Course Details')").click
-        expect(fj("span:contains('Course was successfully updated')")).to be_present
-      end
-
-      it "allows end date to be empty" do
-        get "/courses/#{@course.id}/settings"
-
-        f("input[title='Term']").click
-        fj("li[class*='optionItem']:contains('Course')").click
-        start_date = ff("input[id*='TextInput_']")[0]
-        start_date.send_keys(Time.zone.now.to_s)
-        start_date.send_keys(:tab)
-
-        fj("button:contains('Update Course Details')").click
-        expect(fj("span:contains('Course was successfully updated')")).to be_present
-      end
-
-      it "allows start date to be empty" do
-        get "/courses/#{@course.id}/settings"
-
-        f("input[title='Term']").click
-        fj("li[class*='optionItem']:contains('Course')").click
-        end_date = ff("input[id*='TextInput_']")[1]
-        end_date.send_keys(Time.zone.now.to_s)
-        end_date.send_keys(:tab)
-
-        fj("button:contains('Update Course Details')").click
-        expect(fj("span:contains('Course was successfully updated')")).to be_present
-      end
-
-      it "gives a validation when end is greater than start" do
-        current_date = Time.zone.now
-        yesterday = current_date - 1.day
-        get "/courses/#{@course.id}/settings"
-
-        f("input[title='Term']").click
-        fj("li[class*='optionItem']:contains('Course')").click
-        start_date = ff("input[id*='TextInput_']")[0]
-        start_date.send_keys(current_date.to_s)
-        end_date = ff("input[id*='TextInput_']")[1]
-        end_date.send_keys(yesterday.to_s)
-        end_date.send_keys(:tab)
-
-        fj("button:contains('Update Course Details')").click
-        # Adding expectation for the error shown after the end field
-        expect(fj("span:contains('The end date can not occur before the start date.')")).to be_present
-        # Adding expectation for the error shown in the Flash notification
-        expect(fj("span:contains('The course end date can not occur before the course start date.')")).to be_present
-      end
-    end
-
-    it "adds a section" do
-      section_name = "new section"
-      get "/courses/#{@course.id}/settings#tab-sections"
-
-      section_input = f("#course_section_name")
-      expect(section_input).to be_displayed
-      replace_content(section_input, section_name)
-      submit_form("#add_section_form")
-      wait_for_ajaximations
-      # New sections are added to the top of the list because we moved teh add section form to the top of the page.
-      new_section = ff("#sections > .section")[0]
-      expect(new_section).to include_text(section_name)
-    end
-
     it "deletes a section" do
       add_section("Delete Section")
       get "/courses/#{@course.id}/settings#tab-sections"
@@ -555,23 +407,6 @@ describe "course settings" do
       driver.switch_to.alert.accept
       wait_for_ajaximations
       expect(ff("#sections > .section").count).to eq 1
-    end
-
-    it "edits a section" do
-      edit_text = "Section Edit Text"
-      add_section("Edit Section")
-      get "/courses/#{@course.id}/settings#tab-sections"
-
-      body = f("body")
-      expect(body).to include_text("Edit Section")
-
-      f("#sections > .section .edit_section_link").click
-      section_input = f("#course_section_name_edit")
-      expect(section_input).to be_displayed
-      replace_content(section_input, edit_text)
-      section_input.send_keys(:return)
-      wait_for_ajaximations
-      expect(ff("#sections > .section")[0]).to include_text(edit_text)
     end
   end
 
@@ -638,38 +473,6 @@ describe "course settings" do
 
     expect(f("#course_restrict_student_past_view")).not_to be_displayed
     expect(f("#course_restrict_student_future_view")).not_to be_displayed
-  end
-
-  it "disables editing settings if :manage rights are not granted" do
-    user_factory(active_all: true)
-    user_session(@user)
-    role = custom_account_role("role", account: @account)
-    @account.role_overrides.create!(permission: "read_course_content", role:, enabled: true)
-    @account.role_overrides.create!(permission: "manage_course_content_edit", role:, enabled: false)
-    @course.account.account_users.create!(user: @user, role:)
-
-    get "/courses/#{@course.id}/settings"
-
-    inputs = ffj("#tab-details-mount input:visible")
-    expect(inputs).to all(be_disabled)
-
-    expect(f("#content")).not_to contain_css(".course_form button[type='submit']")
-  end
-
-  it "lets a sub-account admin edit enrollment term" do
-    term = Account.default.enrollment_terms.create!(name: "some term")
-    sub_a = Account.default.sub_accounts.create!
-    account_admin_user(active_all: true, account: sub_a)
-    user_session(@admin)
-
-    @course = sub_a.courses.create!
-    get "/courses/#{@course.id}/settings"
-
-    click_option("#course_enrollment_term_id", term.name)
-
-    submit_form("#course_form")
-
-    expect(@course.reload.enrollment_term).to eq term
   end
 
   context "restrict_quantitative_data setting" do

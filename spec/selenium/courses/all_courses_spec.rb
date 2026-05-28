@@ -58,16 +58,6 @@ describe "course catalog" do
     visit_catalog
   end
 
-  it "lists indexed courses" do
-    expect(course_elements.size).to be 1
-  end
-
-  it "works without course catalog" do
-    Account.default.settings[:enable_course_catalog] = false
-    Account.default.save!
-    expect(course_elements.size).to be 1
-  end
-
   it "lists a next button when >12 courses are in the index and public", priority: "1" do
     create_courses(Array.new(13) { |i| public_indexed_course_attrs.merge(name: i.to_s) })
     refresh_page

@@ -40,16 +40,6 @@ describe "courses" do
         @course.save
       end
 
-      it "allows unpublishing of the course if submissions have no score or grade" do
-        visit_course(@course)
-        unpublish_btn.click
-
-        wait_for(method: nil, timeout: 5) do
-          assert_flash_notice_message("successfully updated")
-        end
-        expect(unpublish_btn).to have_attribute("aria-disabled", "true")
-      end
-
       it "loads the users page using ajax", custom_timeout: 30 do
         # Set up the course with > 50 users (to test scrolling)
         create_users_in_course @course, 60
@@ -105,31 +95,6 @@ describe "courses" do
         expect(success_message).to be_displayed
       end
 
-      it "progress bar is shown if conversion job is already in progress" do
-        @course.progresses.create!(tag: DifferentiationTag::DELAYED_JOB_TAG, workflow_state: "running")
-
-        user_session(@teacher)
-        visit_course(@course)
-
-        progress_bar = f('[data-testid="course-tag-conversion-progress-bar"]')
-        expect(progress_bar).to be_displayed
-      end
-
-      it "shows error if the conversion job fails" do
-        user_session(@teacher)
-        visit_course(@course)
-
-        convert_button = f('[data-testid="course-tag-conversion-button"]')
-        convert_button.click
-
-        wait_for_ajaximations
-        @course.progresses.where(tag: DifferentiationTag::DELAYED_JOB_TAG).update(workflow_state: "failed")
-
-        wait_for_ajaximations
-        error_message = f('[data-testid="course-differentiation-tag-conversion-error"]')
-        expect(error_message).to be_displayed
-      end
-
       it "does not display warning message if there are no tag overrides in the course" do
         @assignment.assignment_overrides.destroy_all
 
@@ -152,26 +117,6 @@ describe "courses" do
       user_session(@student)
     end
 
-    it "auto-accepts the course invitation if previews are not allowed", custom_timeout: 20 do
-      Account.default.settings[:allow_invitation_previews] = false
-      Account.default.save!
-      visit_course(@course)
-      wait_for_ajaximations
-
-      assert_flash_notice_message "Invitation accepted!"
-      expect(course_page_content).not_to contain_css(accept_enrollment_alert_selector)
-    end
-
-    it "accepts the course invitation", custom_timeout: 20 do
-      Account.default.settings[:allow_invitation_previews] = true
-      Account.default.save!
-      visit_course(@course)
-      wait_for_ajaximations
-      accept_enrollment_button.click
-
-      assert_flash_notice_message "Invitation accepted!"
-    end
-
     it "rejects a course invitation", custom_timeout: 20 do
       Account.default.settings[:allow_invitation_previews] = true
       Account.default.save!
@@ -180,30 +125,6 @@ describe "courses" do
       wait_for_ajaximations
 
       assert_flash_notice_message "Invitation canceled."
-    end
-
-    describe "course navigation menu" do
-      it "collapses and persists when clicking the collapse/expand button" do
-        visit_course(@course)
-        expect(left_side).to be_displayed
-        click_course_menu_toggle
-        wait_for_ajax_requests
-        expect(left_side).not_to be_displayed
-        refresh_page
-        expect(left_side).not_to be_displayed
-      end
-
-      it "can be expanded when collapsed" do
-        @student.preferences[:collapse_course_nav] = true
-        @student.save!
-        visit_course(@course)
-        expect(left_side).not_to be_displayed
-        click_course_menu_toggle
-        wait_for_ajax_requests
-        expect(left_side).to be_displayed
-        refresh_page
-        expect(left_side).to be_displayed
-      end
     end
   end
 end

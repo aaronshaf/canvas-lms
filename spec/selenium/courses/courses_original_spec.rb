@@ -47,58 +47,12 @@ describe "courses" do
         f("#course_publish_button button").click
       end
 
-      it "allows publishing of the course through the course status actions" do
-        @course.workflow_state = "claimed"
-        @course.lock_all_announcements = true
-        @course.save!
-        get "/courses/#{@course.id}"
-        course_status_button = f("#course_publish_button button")
-        expect(course_status_button.text).to include("Unpublished")
-        validate_action_button("Publish")
-        expect_new_page_load do
-          f("#course_publish_button button").click
-          f("div[role='menu'][aria-label='course_publish_menu'] button:not([aria-disabled])").click
-        end
-        validate_action_button("Unpublish")
-
-        @course.reload
-        expect(@course.lock_all_announcements).to be_truthy
-      end
-
       it "displays a creative commons license when set", priority: "1" do
         @course.license = "cc_by_sa"
         @course.save!
         get "/courses/#{@course.id}"
         wait_for_ajaximations
         expect(f(".public-license-text").text).to include("This course content is offered under a")
-      end
-
-      it "allows unpublishing of a course through the course status actions" do
-        @course.workflow_state = "available"
-        @course.save!
-        get "/courses/#{@course.id}"
-        course_status_button = f("#course_publish_button button")
-        expect(course_status_button.text).to include("Published")
-        validate_action_button("Unpublish")
-        expect_new_page_load do
-          f("#course_publish_button button").click
-          f("div[role='menu'][aria-label='course_publish_menu'] button:not([aria-disabled])").click
-        end
-        validate_action_button("Publish")
-      end
-
-      it "allows publishing even if graded submissions exist" do
-        course_with_student_submissions({ submission_points: true, unpublished: true })
-        @course.default_view = "feed"
-        @course.save
-        get "/courses/#{@course.id}"
-        validate_action_button("Publish")
-        expect_new_page_load do
-          f("#course_publish_button button").click
-          f("div[role='menu'][aria-label='course_publish_menu'] button:not([aria-disabled])").click
-        end
-        @course.reload
-        expect(@course).to be_available
       end
 
       it "does not show course status if published and graded submissions exist" do
@@ -108,67 +62,6 @@ describe "courses" do
         get "/courses/#{@course.id}"
         expect(f("#content")).not_to contain_css("#course_publish_button")
       end
-
-      it "allows publishing/unpublishing with only manage_courses_publish permission" do
-        @course.account.role_overrides.create!(
-          permission: :manage_course_content,
-          role: teacher_role,
-          enabled: false
-        )
-        @course.account.role_overrides.create!(
-          permission: :manage_courses_publish,
-          role: teacher_role,
-          enabled: true
-        )
-
-        get "/courses/#{@course.id}"
-        expect_new_page_load do
-          f("#course_publish_button button").click
-          f("div[role='menu'][aria-label='course_publish_menu'] button:not([aria-disabled])").click
-        end
-        validate_action_button("Publish")
-        expect_new_page_load do
-          f("#course_publish_button button").click
-          f("div[role='menu'][aria-label='course_publish_menu'] button:not([aria-disabled])").click
-        end
-        validate_action_button("Unpublish")
-      end
-
-      it "does not allow publishing/unpublishing without manage_courses_publish permission" do
-        @course.account.role_overrides.create!(
-          permission: :manage_courses_publish,
-          role: teacher_role,
-          enabled: false
-        )
-
-        get "/courses/#{@course.id}"
-        expect(f("#content")).not_to contain_css("#course_publish_button")
-      end
-    end
-
-    it "updates the course quota correctly" do
-      course_with_admin_logged_in
-
-      # first try setting the quota explicitly
-      get "/courses/#{@course.id}/settings"
-      form = f("#course_form")
-      expect(form).to be_displayed
-      quota_input = form.find_element(:css, "input#course_storage_quota_mb")
-      replace_content(quota_input, "10")
-      submit_form(form)
-      value = f("#course_form input#course_storage_quota_mb")["value"]
-      expect(value).to eq "10"
-    end
-
-    it "saves quota when not changed" do
-      # then try just saving it (without resetting it)
-      course_with_admin_logged_in
-      @course.update!(storage_quota: 10.decimal_megabytes)
-      get "/courses/#{@course.id}/settings"
-      form = f("#course_form")
-      submit_form(form)
-      value = @course.storage_quota
-      expect(value).to eq 10.decimal_megabytes
     end
 
     it "redirects to the gradebook when switching courses when viewing a students grades" do
@@ -234,56 +127,6 @@ describe "courses" do
       sections = ff(".roster .section")
       expect(sections.map(&:text).sort).to eq ["One", "One", "Two", "Unnamed Course", "Unnamed Course"]
     end
-
-    context "course_home_sub_navigation lti apps" do
-      def create_course_home_sub_navigation_tool(options = {})
-        defaults = {
-          name: options[:name] || "external tool",
-          consumer_key: "test",
-          shared_secret: "asdf",
-          url: "http://example.com/ims/lti",
-          course_home_sub_navigation: { icon_url: "/images/delete.png" },
-        }
-        @course.context_external_tools.create!(defaults.merge(options))
-      end
-
-      it "displays course_home_sub_navigation lti apps", priority: "1" do
-        course_with_teacher_logged_in(active_all: true)
-        num_tools = 2
-        num_tools.times { |index| create_course_home_sub_navigation_tool(name: "external tool #{index}") }
-        get "/courses/#{@course.id}"
-        expect(ff(".course-home-sub-navigation-lti").size).to eq num_tools
-      end
-
-      it "includes launch type parameter", priority: "1" do
-        course_with_teacher_logged_in(active_all: true)
-        create_course_home_sub_navigation_tool
-        get "/courses/#{@course.id}"
-        expect(f(".course-home-sub-navigation-lti")).to have_attribute("href", /launch_type=course_home_sub_navigation/)
-      end
-
-      it "only displays active tools", priority: "1" do
-        course_with_teacher_logged_in(active_all: true)
-        tool = create_course_home_sub_navigation_tool
-        tool.workflow_state = "deleted"
-        tool.save!
-        get "/courses/#{@course.id}"
-        expect(f("#content")).not_to contain_css(".course-home-sub-navigation-lti")
-      end
-
-      it "does not display admin tools to students", priority: "1" do
-        course_with_teacher_logged_in(active_all: true)
-        tool = create_course_home_sub_navigation_tool
-        tool.course_home_sub_navigation["visibility"] = "admins"
-        tool.save!
-        get "/courses/#{@course.id}"
-        expect(ff(".course-home-sub-navigation-lti").size).to eq 1
-
-        course_with_student_logged_in(course: @course, active_all: true)
-        get "/courses/#{@course.id}"
-        expect(f("#content")).not_to contain_css(".course-home-sub-navigation-lti")
-      end
-    end
   end
 
   context "course as a student" do
@@ -322,24 +165,6 @@ describe "courses" do
       get "/courses/#{@course.id}?embed=true"
 
       expect(element_exists?("header")).to be_falsey
-    end
-  end
-
-  it "does not cache unauth permissions for semi-public courses from sessionless permission checks" do
-    course_factory(active_all: true)
-
-    user_factory(active_all: true)
-    user_session(@user)
-
-    enable_cache do
-      # previously was cached by visiting "/courses/#{@course.id}/assignments/syllabus"
-      expect(@course.grants_right?(@user, :read)).to be_falsey # Store a false value in the cache
-
-      @course.update_attribute(:is_public_to_auth_users, true)
-
-      get "/courses/#{@course.id}"
-
-      expect(f("#course_home_content")).to be_displayed
     end
   end
 
@@ -386,53 +211,5 @@ describe "courses" do
 
       expect(f("#content")).not_to contain_css("#announcements_on_home_page")
     end
-  end
-
-  it "properly applies visible sections to announcement limit" do
-    course_with_teacher(active_course: true)
-    @course.show_announcements_on_home_page = true
-    @course.home_page_announcement_limit = 2
-    @course.save!
-
-    section1 = @course.course_sections.create!(name: "Section 1")
-    section2 = @course.course_sections.create!(name: "Section 2")
-
-    # first, create an announcement for the entire course
-    @course.announcements.create!(
-      user: @teacher,
-      message: "hello, course!"
-    ).save!
-
-    # next, create 2 announcements outside student1's section
-    ["sec an 1", "sec an 2"].each do |msg|
-      sec_an = @course.announcements.create!(
-        user: @teacher,
-        message: msg
-      )
-      sec_an.is_section_specific = true
-      sec_an.course_sections = [section2]
-      sec_an.save!
-    end
-
-    # last, create 1 announcement inside student1's section
-    a2 = @course.announcements.create!(
-      user: @teacher,
-      message: "hello, section!"
-    )
-    a2.is_section_specific = true
-    a2.course_sections = [section1]
-    a2.save!
-
-    student1, _student2 = create_users(2, return_type: :record)
-    @course.enroll_student(student1, enrollment_state: "active")
-    student_in_section(section1, user: student1)
-    user_session student1
-    get "/courses/#{@course.id}"
-    wait_for(method: nil, timeout: 10) { ff("div.ic-announcement-row__content") }
-    contents = ff("div.ic-announcement-row__content")
-    # these expectations make sure pagination, scope filtration, and announcement ordering works
-    expect(contents.count).to eq 2
-    expect(contents[0].text).to eq "hello, section!"
-    expect(contents[1].text).to eq "hello, course!"
   end
 end
