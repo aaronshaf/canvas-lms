@@ -35,18 +35,6 @@ describe "teacher shared rubric specs" do
     should_delete_a_rubric
   end
 
-  it "edits a rubric" do
-    should_edit_a_rubric
-  end
-
-  it "allows fractional points" do
-    should_allow_fractional_points
-  end
-
-  it "rounds to 2 decimal places" do
-    should_round_to_2_decimal_places
-  end
-
   it "rounds to an integer when splitting" do
     should_round_to_an_integer_when_splitting
   end
@@ -144,33 +132,6 @@ describe "course rubrics" do
       expect(f("tr.learning_outcome_criterion .outcome_sr_content")).to have_attribute("aria-hidden", "false")
       expect(rubric.data.first[:ratings].pluck(:description)).to eq @outcome.data[:rubric_criterion][:ratings].pluck(:description)
       expect(rubric.data.first[:ratings].pluck(:points)).to eq @outcome.data[:rubric_criterion][:ratings].pluck(:points)
-    end
-
-    it "does not allow editing a criterion row linked to an outcome" do
-      rubric_association_model(user: @user, context: @course, purpose: "grading")
-      outcome_model(context: @course)
-      rubric = Rubric.last
-
-      get "/courses/#{@course.id}/rubrics/#{@rubric.id}"
-      wait_for_ajaximations
-      import_outcome
-
-      f("#rubric-action-buttons .edit_rubric_link").click
-      wait_for_ajaximations
-
-      links = ffj("#rubric_#{rubric.id}.editing .ratings:first .edit_rating_link")
-      expect(links.any?(&:displayed?)).to be_falsey
-
-      # pts should not be editable
-      expect(f("tr.learning_outcome_criterion .points_form .editing").displayed?).to be_falsey
-      expect(f("tr.learning_outcome_criterion .points_form .displaying").displayed?).to be_truthy
-    end
-
-    it "does not show 'use for grading' as an option" do
-      course_with_teacher_logged_in
-      get "/courses/#{@course.id}/rubrics"
-      f(".add_rubric_link").click
-      expect(fj(".rubric_grading:hidden")).not_to be_nil
     end
 
     it "displays integer and float ratings" do

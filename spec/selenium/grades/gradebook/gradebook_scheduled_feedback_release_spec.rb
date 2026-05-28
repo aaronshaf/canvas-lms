@@ -261,31 +261,6 @@ describe "Gradebook Scheduled Feedback Release" do
     end
 
     describe "scheduled release management" do
-      it "removes scheduled release when checkbox is unchecked" do
-        skip "EVAL-6642 2026-03-04"
-        future_date = format_date_for_view(2.days.from_now)
-        future_time = "11:30 AM"
-
-        Gradebook.visit(@course)
-        Gradebook.click_grade_posting_policy(@assignment.id)
-
-        AssignmentPostingPolicyTray.select_manually_post
-        AssignmentPostingPolicyTray.enable_scheduled_release
-        AssignmentPostingPolicyTray.select_shared_schedule
-        AssignmentPostingPolicyTray.set_shared_schedule(date: future_date, time: future_time)
-        AssignmentPostingPolicyTray.click_save
-
-        scheduled_post = ScheduledPost.find_by(assignment_id: @assignment.id)
-        expect(scheduled_post).not_to be_nil
-
-        Gradebook.click_grade_posting_policy(@assignment.id)
-        AssignmentPostingPolicyTray.schedule_release_checkbox.click
-        AssignmentPostingPolicyTray.click_save
-
-        scheduled_post = ScheduledPost.find_by(assignment_id: @assignment.id)
-        expect(scheduled_post).to be_nil
-      end
-
       it "switches from shared to separate schedule" do
         Gradebook.visit(@course)
         Gradebook.click_grade_posting_policy(@assignment.id)

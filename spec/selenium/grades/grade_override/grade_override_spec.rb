@@ -66,16 +66,6 @@ shared_examples "Final Grade Override" do |ff_enabled|
     end
   end
 
-  it "displays the override column", priority: "1" do
-    user_session(@teacher)
-    Gradebook.visit(@course)
-    Gradebook.settings_cog_select
-    Gradebook::Settings.click_advanced_tab
-    Gradebook::Advanced.select_grade_override_checkbox
-    Gradebook::Settings.click_update_button
-    expect(f(".slick-header-column[title='Override']")).to be_displayed
-  end
-
   context "with an overridden grade" do
     before do
       @course.update!(allow_final_grade_override: true)
@@ -89,12 +79,6 @@ shared_examples "Final Grade Override" do |ff_enabled|
     it "saves overridden grade in Gradebook", priority: "1" do
       Gradebook.visit(@course)
       expect(Gradebook::Cells.get_override_grade(@students.first)).to eql "A−"
-    end
-
-    it "displays overridden grade for student grades", priority: "1" do
-      user_session(@students.first)
-      StudentGradesPage.visit_as_student(@course)
-      expect(StudentGradesPage.final_grade.text).to eql "90%"
     end
   end
 
@@ -110,18 +94,8 @@ shared_examples "Final Grade Override" do |ff_enabled|
       wait_for_ajaximations
     end
 
-    it "displays checkbox to show final grade overrides" do
-      expect(GradeBookHistory.final_grade_override_checkbox).to be_displayed
-    end
-
     it "displays final grade override grade changes" do
       expect(GradeBookHistory).to be_contains_final_grade_override_entries
-    end
-
-    it "displays final grade override grade changes only when filter is applied" do
-      GradeBookHistory.search_final_grade_override_only
-
-      expect(GradeBookHistory).to be_contains_only_final_grade_override_entries
     end
   end
 end

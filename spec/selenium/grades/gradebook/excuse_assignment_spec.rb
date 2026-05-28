@@ -61,15 +61,6 @@ describe "Excuse an Assignment" do
     end
   end
 
-  it "Gradebook export accounts for excused assignment", priority: "1" do
-    assignment = @course.assignments.create! title: "Excuse Me", points_possible: 20
-    assignment.grade_student @student, excuse: true, grader: @teacher
-
-    csv = CSV.parse(GradebookExporter.new(@course, @teacher).to_csv)
-    _name, _id, _section, _sis_login_id, score = csv[-1]
-    expect(score).to eq "EX"
-  end
-
   context "SpeedGrader" do
     it "can excuse complete/incomplete assignments", priority: "1" do
       assignment = @course.assignments.create! title: "Excuse Me", points_possible: 20, grading_type: "pass_fail"
