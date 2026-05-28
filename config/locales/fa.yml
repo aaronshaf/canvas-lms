@@ -15000,6 +15000,11 @@ fa:
             
             شبکه کانواس
         course_starts_next_week: "درس شما در هفته آینده آغاز می شود"
+    default_email_address_changed: 
+      email: 
+        details_header: "اطلاعات بیشتر:"
+        html: 
+          details_header: "اطلاعات بیشتر:"
     dialog: 
       title: "ارسال پیام پاسخ"
     discussion_mention: 
@@ -15016,6 +15021,11 @@ fa:
       footer: |-
           به این دلیل این نامه الکترونیکی را دریافت کرده اید که با استفاده از کانواس در یک یا چند کلاس شرکت دارید. برای تغییر دادن یا غیر فعال کردن اطلاعیه های پست الکترونیکی، از نشانی زیر بازدید نمایید:
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "اطلاعات بیشتر:"
+        html: 
+          details_header: "اطلاعات بیشتر:"
     enrollment_accepted: 
       email: 
         body_designer: "%{user} دعوت آنها برای شرکت در درس %{course} را به عنوان طراح پذیرفت."
@@ -15526,6 +15536,11 @@ fa:
         subject: "بحث جدید - %{discussion_topic}: %{course}"
       twitter: 
         subject: "هشدار کانواس - موضوع: %{discussion_topic}، %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: "اطلاعات بیشتر:"
+        html: 
+          details_header: "اطلاعات بیشتر:"
     new_event_created: 
       email: 
         body: "یک رویداد جدید برای %{course_name} زمان بندی شده است که باید از آن آگاه باشید:"
