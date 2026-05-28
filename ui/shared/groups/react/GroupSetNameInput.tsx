@@ -17,7 +17,7 @@
  */
 
 import React, {useState} from 'react'
-import {FormMessage} from '@instructure/ui-form-field/types/FormPropTypes'
+import {FormMessage} from '@instructure/ui-form-field/types/utils/v1/FormPropTypes' // TODO CFA-832: revert to types/FormPropTypes when instui fixes the utils/v1 path bug
 import {TextInput} from '@instructure/ui-text-input'
 import {View} from '@instructure/ui-view'
 import {useScope as createI18nScope} from '@canvas/i18n'

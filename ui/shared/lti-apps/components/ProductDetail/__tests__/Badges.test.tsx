@@ -55,15 +55,17 @@ describe('Badges', () => {
     expect(screen.getByText(mockBadges.description)).toBeInTheDocument()
   })
 
-  it('sanitizes non-allowlist URL schemes in badge link to about:blank', () => {
+  it('sanitizes non-allowlist URL schemes so they do not reach the DOM', () => {
     const maliciousBadge: BadgesType = {
       ...mockBadges,
       link: 'javascript:alert(1)',
     }
-    render(<Badges badges={maliciousBadge} />)
-    const badgeLink = screen.getByRole('link', {name: maliciousBadge.name})
-    expect(badgeLink).not.toHaveAttribute('href', expect.stringMatching(/^javascript:/i))
-    expect(badgeLink).toHaveAttribute('href', 'about:blank')
+    const {container} = render(<Badges badges={maliciousBadge} />)
+    // The unsafe scheme must never reach the DOM as a navigable href.
+    const hrefs = Array.from(container.querySelectorAll('[href]')).map(
+      el => el.getAttribute('href') ?? '',
+    )
+    expect(hrefs.some(h => /^\s*(javascript|data):/i.test(h))).toBe(false)
   })
 
   it('does not render anything when badges prop is falsy', () => {

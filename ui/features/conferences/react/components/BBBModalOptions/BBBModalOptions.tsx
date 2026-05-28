@@ -282,6 +282,7 @@ const BBBModalOptions = ({addToCalendar, setAddToCalendar, ...props}) => {
             >
               {[
                 <Checkbox
+                  key="invite_all"
                   label={inviteAllMembersText}
                   value="invite_all"
                   disabled={addToCalendar}
@@ -289,6 +290,7 @@ const BBBModalOptions = ({addToCalendar, setAddToCalendar, ...props}) => {
                 ...(!contextIsGroup
                   ? [
                       <Checkbox
+                        key="remove_observers"
                         label={I18n.t('Remove all course observer members')}
                         value="remove_observers"
                         disabled={addToCalendar || !props.invitationOptions.includes('invite_all')}

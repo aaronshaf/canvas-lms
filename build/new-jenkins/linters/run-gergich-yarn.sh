@@ -7,6 +7,22 @@ if [ -z "$SKIP_YARN" ]; then
   rm -rf $(printf 'gems/plugins/%s ' "${PLUGINS_LIST_ARR[@]}")
 
   export DISABLE_POSTINSTALL=1
+
+  # The linters container runs as USER docker, where yarn does not read the project
+  # ./.npmrc, so Artifactory auth must go in $HOME/.npmrc. The EXIT trap strips it on
+  # any exit (including install failure) so the credential never persists.
+  npmrc="$HOME/.npmrc"
+  if [ -n "${ARTIFACTORY_READONLY_API_KEY:-}" ]; then
+    reg='//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/'
+    trap '{ set +x; } 2>/dev/null; sed -i "/virtual-npm-internal/d" "$npmrc" 2>/dev/null || true' EXIT
+    { set +x; } 2>/dev/null
+    printf '%s\n' \
+      "@instructure:registry=https:${reg}" \
+      "${reg}:_authToken=${ARTIFACTORY_READONLY_API_KEY}" \
+      "${reg}:always-auth=true" >> "$npmrc"
+    set -x
+  fi
+
   yarn install || yarn install --network-concurrency 1
 fi
 

@@ -13,7 +13,7 @@ RUN --mount=type=bind,from=local/cache-helper,source=/tmp/dst,target=/cache-help
 # token line is always stripped from .npmrc (even on install failure) before
 # the layer is finalized. A failed strip aborts the build rather than risk
 # baking the credential.
-RUN --mount=type=secret,id=artifactory_token \
+RUN --mount=type=secret,id=artifactory_token,mode=0444 \
   set -u; \
   npmrc="${APP_HOME}/.npmrc"; \
   if [ -s /run/secrets/artifactory_token ]; then \

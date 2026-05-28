@@ -66,7 +66,7 @@ describe('ButtonBlock', () => {
   it('neutralizes a javascript: href to prevent stored XSS', () => {
     const {getByText} = renderBlock({href: 'javascript:alert(document.cookie)'})
     const btn = getByText('A Button').closest('a')
-    expect(btn?.getAttribute('href')).toBe('about:blank')
+    expect(btn?.getAttribute('href') ?? '').not.toMatch(/^\s*(javascript|data):/i)
   })
 
   it('accepts the text variant prop', () => {

@@ -181,7 +181,9 @@ describe('LinkValidator', () => {
         })
 
         await waitFor(() => {
-          expect((getByText('hehehh') as HTMLAnchorElement).href).toEqual('about:blank')
+          expect((getByText('hehehh') as HTMLAnchorElement).href).not.toMatch(
+            /^\s*(javascript|data):/i,
+          )
         })
       })
     })

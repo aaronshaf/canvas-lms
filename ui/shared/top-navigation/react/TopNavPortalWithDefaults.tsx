@@ -24,7 +24,7 @@ import {TopNavBar} from '@instructure/ui-top-nav-bar'
 import {handleStudentViewClick} from './studentViewUtils'
 import {render} from '@canvas/react'
 import {TopNavPortalBase, type WithProps, type Crumb, getMountPoint} from './TopNavPortalBase'
-import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/props'
+import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/v1/props' // TODO CFA-832: revert to types/TopNavBar/props when instui fixes the v1 path bug
 
 const I18n = createI18nScope('discussions_v2')
 const STUDENT_VIEW_URL_TEMPLATE = '/courses/{courseId}/student_view?redirect_to_referer=1'

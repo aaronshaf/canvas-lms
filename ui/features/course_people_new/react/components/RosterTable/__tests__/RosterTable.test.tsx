@@ -89,7 +89,7 @@ describe('RosterTable', () => {
 
   it('renders the table with correct caption', () => {
     expect(screen.getByTestId('roster-table')).toBeInTheDocument()
-    expect(screen.getByText('Course Roster')).toBeInTheDocument()
+    expect(screen.getByText(/Course Roster/)).toBeInTheDocument()
   })
 
   it('renders the table with correct headers', () => {

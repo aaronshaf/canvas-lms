@@ -18,7 +18,7 @@
 
 import React, {LegacyRef, useState, useEffect} from 'react'
 import {Checkbox} from '@instructure/ui-checkbox'
-import {FormMessage} from '@instructure/ui-form-field/types/FormPropTypes'
+import {FormMessage} from '@instructure/ui-form-field/types/utils/v1/FormPropTypes' // TODO CFA-832: revert to types/FormPropTypes when instui fixes the utils/v1 path bug
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {useScope as createI18nScope} from '@canvas/i18n'

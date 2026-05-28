@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Collection} from '@instructure/ui-tree-browser/types/TreeBrowser/props'
+import {Collection} from '@instructure/ui-tree-browser/types/TreeBrowser/v1/props' // TODO CFA-832: revert to types/TreeBrowser/props when instui fixes the v1 path bug
 import {ApiFolderItem, MultiPageResponse} from '../../../queries/folders'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import FileOptionsCollection from '@canvas/files/react/modules/FileOptionsCollection'

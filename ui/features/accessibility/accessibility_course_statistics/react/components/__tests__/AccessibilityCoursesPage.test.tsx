@@ -90,7 +90,7 @@ describe('AccessibilityCoursesPage', () => {
     server.use(http.get('/api/v1/accounts/123/courses', () => HttpResponse.json(mockCourses)))
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText('Course Accessibility Report')).toBeInTheDocument()
+      expect(screen.getByText(/Course Accessibility Report/)).toBeInTheDocument()
     })
   })
 

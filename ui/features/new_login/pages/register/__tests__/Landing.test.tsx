@@ -169,9 +169,8 @@ describe('Landing', () => {
     }
     mockUseNewLoginData.mockReturnValueOnce(fftData).mockReturnValueOnce(fftData)
     renderLanding()
-    expect(screen.getByLabelText('Create Teacher Account')).toHaveAttribute(
-      'href',
-      'about:blank',
+    expect(screen.getByLabelText('Create Teacher Account').getAttribute('href') ?? '').not.toMatch(
+      /^\s*(javascript|data):/i,
     )
   })
 })

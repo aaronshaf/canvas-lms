@@ -21,7 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {Alert} from '@instructure/ui-alerts'
 import {TreeBrowser} from '@instructure/ui-tree-browser'
 import {FormFieldMessage} from '@instructure/ui-form-field'
-import {Collection, CollectionData} from '@instructure/ui-tree-browser/types/TreeBrowser/props'
+import {Collection, CollectionData} from '@instructure/ui-tree-browser/types/TreeBrowser/v1/props' // TODO CFA-832: revert to types/TreeBrowser/props when instui fixes the v1 path bug
 import {View} from '@instructure/ui-view'
 import {useFoldersQuery} from './hooks'
 import {FolderCollection, addNewFoldersToCollection} from './utils'

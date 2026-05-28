@@ -258,10 +258,7 @@ function DiscussionTopicForm({
       sanitizeHTML(currentDiscussionTopic?.message || ''),
       'text/html',
     ).body.innerHTML
-    const newContent = parser.parseFromString(
-      sanitizeHTML(rceContent),
-      'text/html',
-    ).body.innerHTML
+    const newContent = parser.parseFromString(sanitizeHTML(rceContent), 'text/html').body.innerHTML
 
     return originalContent !== newContent
   }

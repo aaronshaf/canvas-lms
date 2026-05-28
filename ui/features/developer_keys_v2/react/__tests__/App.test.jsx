@@ -143,6 +143,7 @@ describe('DeveloperKeys App', () => {
   let queryByText
   let getAllByRole
   let queryByTestId
+  let queryByRole
 
   const setup = inheritedList => {
     const wrapper = renderApp({inheritedList}).wrapper
@@ -150,6 +151,7 @@ describe('DeveloperKeys App', () => {
     queryByText = wrapper.queryByText
     getAllByRole = wrapper.getAllByRole
     queryByTestId = wrapper.queryByTestId
+    queryByRole = wrapper.queryByRole
     // switch to inherited tab
     act(() => {
       fireEvent.click(getByText('Inherited'))
@@ -239,7 +241,7 @@ describe('DeveloperKeys App', () => {
       })
 
       it('renders parent keys table', () => {
-        expect(getByText('Parent Inherited Developer Keys')).toBeInTheDocument()
+        expect(queryByText(/Parent Inherited Developer Keys/)).toBeInTheDocument()
       })
 
       it('renders Global Keys heading', () => {
@@ -268,7 +270,7 @@ describe('DeveloperKeys App', () => {
       })
 
       it('does not render parent keys table', () => {
-        expect(queryByText('Parent Inherited Developer Keys')).not.toBeInTheDocument()
+        expect(queryByText(/Parent Inherited Developer Keys/)).not.toBeInTheDocument()
       })
 
       it('does not render Global Keys heading', () => {

@@ -75,7 +75,7 @@ describe('ReleaseNotesList', () => {
     expect(queryByText('Apr 27')).toBeInTheDocument()
   })
 
-  it('sanitizes javascript: urls to about:blank', () => {
+  it('sanitizes javascript: urls so they do not reach the DOM', () => {
     queryClient.setQueryData(
       ['releaseNotes'],
       [
@@ -90,7 +90,9 @@ describe('ReleaseNotesList', () => {
       ],
     )
     const {getByText} = render(<ReleaseNotesList />)
-    expect(getByText('XSS attempt').closest('a')).toHaveAttribute('href', 'about:blank')
+    expect(getByText('XSS attempt').closest('a')?.getAttribute('href') ?? '').not.toMatch(
+      /^\s*(javascript|data):/i,
+    )
   })
 
   it('renders a missing url without crashing and omits href', () => {

@@ -266,7 +266,7 @@ class AdminTable extends React.Component {
         <Table
           data-testid={this.props.inherited ? 'inherited-table' : 'account-table'}
           data-automation="devKeyAdminTable"
-          caption={<ScreenReaderContent>{srcontent}</ScreenReaderContent>}
+          caption={srcontent}
           size="medium"
         >
           <Table.Head renderSortLabel={I18n.t('Sort by')}>{this.renderHeader()}</Table.Head>

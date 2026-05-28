@@ -74,7 +74,7 @@ describe('StudentOutcomesTable', () => {
 
   it('renders the component', () => {
     render(<StudentOutcomesTable outcomes={testOutcomes} studentId="1" />)
-    expect(screen.getByText('Student Outcomes')).toBeInTheDocument()
+    expect(screen.getByText(/Student Outcomes/)).toBeInTheDocument()
   })
 
   it('renders without errors', () => {

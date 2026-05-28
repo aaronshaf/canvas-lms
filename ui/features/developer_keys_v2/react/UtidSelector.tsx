@@ -21,7 +21,10 @@ import {SimpleSelect} from '@instructure/ui-simple-select'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Spinner} from '@instructure/ui-spinner'
 import {useUtidMatching, type ApiRegistration} from '../hooks/useUtidMatching'
-import type {FormMessageChild, FormMessageType} from '@instructure/ui-form-field/src/FormPropTypes'
+import type {
+  FormMessageChild,
+  FormMessageType,
+} from '@instructure/ui-form-field/src/utils/v1/FormPropTypes' // TODO CFA-832: revert to src/FormPropTypes when instui fixes the utils/v1 path bug
 import {Tooltip} from '@instructure/ui-tooltip'
 import {IconInfoLine} from '@instructure/ui-icons'
 import {IconButton} from '@instructure/ui-buttons'

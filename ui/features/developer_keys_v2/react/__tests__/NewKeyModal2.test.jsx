@@ -450,7 +450,8 @@ describe('NewKeyModal', () => {
     const {ref} = renderDeveloperKeyModal({
       createOrEditDeveloperKeyState: {
         ...createDeveloperKeyState,
-        ...{developerKey: {...developerKey}, isLtiKey: true},
+        developerKey: {...developerKey},
+        isLtiKey: true,
       },
       createLtiKeyState,
       actions: fakeActions,
@@ -474,7 +475,8 @@ describe('NewKeyModal', () => {
       const {ref: reference} = renderDeveloperKeyModal({
         createOrEditDeveloperKeyState: {
           ...createDeveloperKeyState,
-          ...{developerKey: {...developerKey}, isLtiKey: true},
+          developerKey: {...developerKey},
+          isLtiKey: true,
         },
         createLtiKeyState,
         actions: fakeActions,

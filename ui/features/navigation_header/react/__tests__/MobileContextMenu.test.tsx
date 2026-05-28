@@ -174,9 +174,11 @@ describe('MobileContextMenu', () => {
         ]),
       ),
     )
-    const {getAllByRole, getByText} = render(<MobileContextMenu {...props} />)
-    await waitFor(() => getAllByRole('link'))
+    const {getByText} = render(<MobileContextMenu {...props} />)
+    // The sanitized tab must not render as a javascript:-href link; wait for the
+    // tab label rather than a link role, since the unsafe href is dropped.
+    await waitFor(() => expect(getByText('Evil Tab')).toBeInTheDocument())
     const link = getByText('Evil Tab').closest('a')
-    expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^\s*(javascript|data):/i)
   })
 })

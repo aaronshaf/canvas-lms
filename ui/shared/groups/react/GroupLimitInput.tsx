@@ -18,7 +18,7 @@
 
 import React, {useState} from 'react'
 import numberHelper from '@canvas/i18n/numberHelper'
-import {FormMessage} from '@instructure/ui-form-field/types/FormPropTypes'
+import {FormMessage} from '@instructure/ui-form-field/types/utils/v1/FormPropTypes' // TODO CFA-832: revert to types/FormPropTypes when instui fixes the utils/v1 path bug
 import {NumberInput} from '@instructure/ui-number-input'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'

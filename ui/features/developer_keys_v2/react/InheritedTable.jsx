@@ -194,11 +194,7 @@ class InheritedTable extends React.Component {
           searchPlaceholder={I18n.t('Search by name or ID')}
           searchScreenReaderLabel={I18n.t('Search Developer Keys')}
         />
-        <Table
-          data-automation="devKeyInheritedTable"
-          caption={<ScreenReaderContent>{label}</ScreenReaderContent>}
-          size="medium"
-        >
+        <Table data-automation="devKeyInheritedTable" caption={label} size="medium">
           <Table.Head renderSortLabel={I18n.t('Sort by')}>{this.renderHeader()}</Table.Head>
           <Table.Body>
             {developerKeys.map(developerKey => (

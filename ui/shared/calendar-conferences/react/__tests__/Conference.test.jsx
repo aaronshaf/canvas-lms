@@ -33,17 +33,17 @@ describe('Conference', () => {
     id: 1,
     title: 'Plugin Conference',
     conference_type: 'PluginConference',
-    url: 'invalid://foo',
+    url: 'https://foo.test',
   }
 
   const ltiConference = {
     id: 1,
     title: 'LTI Conference',
     conference_type: 'LtiConference',
-    url: 'invalid://foo',
+    url: 'https://foo.test',
     lti_settings: {
       type: 'link',
-      url: 'invalid://bar',
+      url: 'https://bar.test/launch',
     },
   }
 
@@ -64,7 +64,7 @@ describe('Conference', () => {
       )
       const link = getByRole('button')
       expect(link.textContent).toEqual('BigBlueButton Conference')
-      expect(link.href).toEqual('invalid://foo/join')
+      expect(link.href).toEqual('https://foo.test/join')
     })
 
     it('shows lti link conferences as links', () => {
@@ -73,7 +73,7 @@ describe('Conference', () => {
       )
       const link = getByRole('button')
       expect(link.textContent).toEqual('LTI Conference')
-      expect(link.href).toEqual('invalid://bar')
+      expect(link.href).toEqual('https://bar.test/launch')
     })
 
     it('shows icons if present in LTI conference', () => {

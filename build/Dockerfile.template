@@ -98,7 +98,7 @@ RUN unset RUBY && bundle config --global build.nokogiri --use-system-libraries &
 # history`; the .npmrc auth line is written and removed within this single RUN
 # so it never lands in a layer either. A failed strip aborts the build rather
 # than risk baking the credential.
-RUN --mount=type=secret,id=artifactory_token \
+RUN --mount=type=secret,id=artifactory_token,mode=0444 \
   set -u; \
   npmrc=.npmrc; \
   if [ -s /run/secrets/artifactory_token ]; then \

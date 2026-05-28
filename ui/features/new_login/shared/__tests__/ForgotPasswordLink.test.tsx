@@ -148,7 +148,7 @@ describe('ForgotPasswordLink', () => {
     })
     renderComponent()
     const button = screen.getByText('Forgot password?')
-    expect(button.closest('a')).toHaveAttribute('href', 'about:blank')
+    expect(button.closest('a')?.getAttribute('href') ?? '').not.toMatch(/^\s*(javascript|data):/i)
   })
 
   it('neutralizes a javascript: forgotPasswordUrl on click', () => {

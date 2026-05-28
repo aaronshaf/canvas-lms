@@ -19,7 +19,7 @@
 import React from 'react'
 import {Portal} from '@instructure/ui-portal'
 import TopNav, {type ITopNavProps} from './TopNav'
-import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/props'
+import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/v1/props' // TODO CFA-832: revert to types/TopNavBar/props when instui fixes the v1 path bug
 import type {EnvCommon} from '@canvas/global/env/EnvCommon'
 import {queryClient} from '@instructure/platform-query'
 import {QueryClientProvider} from '@tanstack/react-query'

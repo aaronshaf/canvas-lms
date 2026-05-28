@@ -189,7 +189,7 @@ describe('ToolHistory', () => {
       render(renderWithRouter({child: <ToolHistory accountId={accountId} />, registration}))
 
       await waitFor(() => {
-        expect(screen.getByText('Configuration Update History')).toBeInTheDocument()
+        expect(screen.getByText(/Configuration Update History/)).toBeInTheDocument()
       })
 
       const tableRows = screen.getAllByRole('row')

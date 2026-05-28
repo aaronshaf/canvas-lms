@@ -129,8 +129,13 @@ describe('ActionButton', () => {
 
       renderComponent()
       await userEvent.click(screen.getByRole('button', {name: 'View Issues'}))
-      const link = await screen.findByRole('link', {name: 'XSS'})
-      expect(link.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+      // The issue renders, but its unsafe fix-issue href must be dropped (no
+      // javascript: link reaches the DOM).
+      await screen.findAllByText('XSS')
+      const malicious = Array.from(document.body.querySelectorAll('[href]')).filter(el =>
+        /^\s*(javascript|data):/i.test(el.getAttribute('href') ?? ''),
+      )
+      expect(malicious).toHaveLength(0)
     })
 
     describe('has more issues', () => {

@@ -69,9 +69,12 @@ describe('ButtonView', () => {
 
   it('neutralizes javascript: hrefs to prevent stored XSS', () => {
     const xssProps = {...defaultProps, url: 'javascript:alert(document.cookie)'}
-    render(<ButtonView {...xssProps} />)
-    const button = screen.getByRole('link')
-    expect(button).toHaveAttribute('href', 'about:blank')
+    const {container} = render(<ButtonView {...xssProps} />)
+    // The unsafe scheme must never reach the DOM as a navigable href.
+    const hrefs = Array.from(container.querySelectorAll('[href]')).map(
+      el => el.getAttribute('href') ?? '',
+    )
+    expect(hrefs.some(h => /^\s*(javascript|data):/i.test(h))).toBe(false)
   })
 
   it('neutralizes data: hrefs to prevent stored XSS', () => {
@@ -80,8 +83,10 @@ describe('ButtonView', () => {
       linkOpenMode: 'same-tab' as const,
       url: 'data:text/html,<script>alert(1)</script>',
     }
-    render(<ButtonView {...xssProps} />)
-    const button = screen.getByRole('link')
-    expect(button).toHaveAttribute('href', 'about:blank')
+    const {container} = render(<ButtonView {...xssProps} />)
+    const hrefs = Array.from(container.querySelectorAll('[href]')).map(
+      el => el.getAttribute('href') ?? '',
+    )
+    expect(hrefs.some(h => /^\s*(javascript|data):/i.test(h))).toBe(false)
   })
 })

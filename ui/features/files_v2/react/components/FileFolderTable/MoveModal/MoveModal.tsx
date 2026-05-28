@@ -21,7 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {queryClient} from '@instructure/platform-query'
 import {Modal} from '@instructure/ui-modal'
-import {Collection} from '@instructure/ui-tree-browser/types/TreeBrowser/props'
+import {Collection} from '@instructure/ui-tree-browser/types/TreeBrowser/v1/props' // TODO CFA-832: revert to types/TreeBrowser/props when instui fixes the v1 path bug
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'

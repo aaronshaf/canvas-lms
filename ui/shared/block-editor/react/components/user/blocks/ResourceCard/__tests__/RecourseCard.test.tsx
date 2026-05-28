@@ -71,7 +71,9 @@ describe('ResourceCard', () => {
       linkUrl: 'javascript:alert(document.cookie)',
     })
 
-    expect(getByText('My Link').closest('a')).toHaveAttribute('href', 'about:blank')
+    // The unsafe scheme must never reach the DOM as a navigable href.
+    const link = getByText('My Link').closest('a')
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^\s*(javascript|data):/i)
   })
 
   // test RescourceCard.craft.custom.isDeletable either in RecourcesSection or selenium

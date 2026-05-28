@@ -27,7 +27,10 @@ import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Grid} from '@instructure/ui-grid'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-import type {FormMessageChild, FormMessageType} from '@instructure/ui-form-field/src/FormPropTypes'
+import type {
+  FormMessageChild,
+  FormMessageType,
+} from '@instructure/ui-form-field/src/utils/v1/FormPropTypes' // TODO CFA-832: revert to src/FormPropTypes when instui fixes the utils/v1 path bug
 
 import React, {createRef} from 'react'
 

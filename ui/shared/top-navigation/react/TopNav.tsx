@@ -24,7 +24,7 @@ import {canvas} from '@instructure/ui-themes'
 import useToggleCourseNav from './hooks/useToggleCourseNav'
 import {useMutation, useQueryClient} from '@tanstack/react-query'
 import {setSetting} from '@canvas/settings-query/react/settingsQuery'
-import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/props'
+import type {ItemChild} from '@instructure/ui-top-nav-bar/types/TopNavBar/v1/props' // TODO CFA-832: revert to types/TopNavBar/props when instui fixes the v1 path bug
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {EnvCommon} from '@canvas/global/env/EnvCommon'
 
