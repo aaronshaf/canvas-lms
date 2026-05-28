@@ -1302,9 +1302,7 @@ class ApplicationController < ActionController::Base
   end
 
   def check_mfa_ips_and_user_agents
-    return unless logged_in_user
-    return if @access_token
-    return unless logged_in_user.canvas_mfa?
+    return unless logged_in_user&.canvas_mfa? && in_app?
 
     verified_ips = session[:mfa_verified_ips]
     ip_match = verified_ips&.include?(request.remote_ip)
