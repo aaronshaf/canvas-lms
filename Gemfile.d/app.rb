@@ -83,7 +83,7 @@ gem "oauth", "~> 1.1", require: false
 gem "oauth2", "~> 2.0", require: false
 gem "oj", "~> 3.16"
 gem "outrigger", "~> 3.0"
-gem "parallel", "~> 1.23", require: false
+gem "parallel", "~> 2.1", require: false
 gem "pdf-reader", "~> 2.11"
 gem "pg_query", "~> 6.0", require: false
 gem "prawn-emoji", "~> 6.0", require: false

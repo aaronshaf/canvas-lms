@@ -896,7 +896,7 @@ GEM
       railties (>= 6.0, < 8.2)
     packs-specification (0.0.11)
       sorbet-runtime
-    parallel (1.27.0)
+    parallel (2.1.0)
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
@@ -1416,7 +1416,7 @@ DEPENDENCIES
   once-ler (~> 2.0)
   outrigger (~> 3.0)
   paginated_collection!
-  parallel (~> 1.23)
+  parallel (~> 2.1)
   pdf-reader (~> 2.11)
   pg (~> 1.6)
   pg_query (~> 6.0)
