@@ -150,7 +150,7 @@ describe('BlackoutDatesModal', () => {
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
-  it('enables Add when data is provided', () => {
+  it('submits with end_date defaulted to start_date when only start is entered', () => {
     const {getByRole, getByTestId} = render(
       <NewBlackoutDatesForm addBlackoutDate={addBlackoutDate} />,
     )
@@ -169,6 +169,42 @@ describe('BlackoutDatesModal', () => {
     act(() => {
       fireEvent.click(addBtn)
     })
-    expect(addBlackoutDate).toHaveBeenCalled() // yay!
+    expect(addBlackoutDate).toHaveBeenCalledTimes(1)
+    const submitted = addBlackoutDate.mock.calls[0][0]
+    expect(moment.isMoment(submitted.start_date)).toBe(true)
+    expect(moment.isMoment(submitted.end_date)).toBe(true)
+    expect(submitted.start_date.isValid()).toBe(true)
+    expect(submitted.end_date.isValid()).toBe(true)
+    expect(submitted.end_date.isSame(submitted.start_date)).toBe(true)
+    expect(submitted.start_date.utc().format('YYYY-MM-DD')).toBe('2022-04-15')
+  })
+
+  it('submits with start_date defaulted to end_date when only end is entered', () => {
+    const {getByRole, getByTestId} = render(
+      <NewBlackoutDatesForm addBlackoutDate={addBlackoutDate} />,
+    )
+    const titleInput = getByRole('textbox', {name: 'Event Title'})
+    const endDateInput = getByTestId('new-blackout-dates-end')
+    const addBtn = getByRole('button', {name: 'Add'})
+    act(() => titleInput.focus())
+    act(() => {
+      fireEvent.change(titleInput, {target: {value: 'blackout title'}})
+    })
+    act(() => endDateInput.focus())
+    act(() => {
+      fireEvent.change(endDateInput, {target: {value: 'April 15, 2022'}})
+    })
+    act(() => addBtn.focus())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
+    expect(addBlackoutDate).toHaveBeenCalledTimes(1)
+    const submitted = addBlackoutDate.mock.calls[0][0]
+    expect(moment.isMoment(submitted.start_date)).toBe(true)
+    expect(moment.isMoment(submitted.end_date)).toBe(true)
+    expect(submitted.start_date.isValid()).toBe(true)
+    expect(submitted.end_date.isValid()).toBe(true)
+    expect(submitted.start_date.isSame(submitted.end_date)).toBe(true)
+    expect(submitted.end_date.utc().format('YYYY-MM-DD')).toBe('2022-04-15')
   })
 })
