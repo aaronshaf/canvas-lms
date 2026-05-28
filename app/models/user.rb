@@ -1638,8 +1638,18 @@ class User < ApplicationRecord
 
   def can_masquerade?(masquerader, account)
     return true if self == masquerader
-    # student view should only ever have enrollments in a single course
-    return true if fake_student?
+
+    if fake_student?
+      # student view should only ever have enrollments in a single course
+      course_ids = enrollments.where(type: "StudentViewEnrollment")
+                              .where.not(workflow_state: "deleted")
+                              .distinct.pluck(:course_id)
+
+      return Course.where(id: course_ids).find_each.any? do |course|
+        course.grants_right?(masquerader, :use_student_view)
+      end
+    end
+
     return false unless
         account.grants_right?(masquerader, nil, :become_user) && SisPseudonym.for(self, account, type: :implicit, require_sis: false)
 

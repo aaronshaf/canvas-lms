@@ -1525,19 +1525,70 @@ describe User do
       expect(@admin.can_masquerade?(@site_admin, Account.default)).to be_truthy
     end
 
-    it "allows teacher to become student view student" do
+    it "allows a teacher to become their course's student view student" do
       course_with_teacher(active_all: true)
       @fake_student = @course.student_view_student
       expect(@fake_student.can_masquerade?(@teacher, Account.default)).to be_truthy
     end
 
-    it "doesn't allow teacher to become student view of random student" do
+    it "allows a teacher to become their course's student view student across multiple sections" do
+      course_with_teacher(active_all: true)
+      @course.course_sections.create!(name: "Section 2")
+      @course.course_sections.create!(name: "Section 3")
+      @fake_student = @course.student_view_student
+      expect(@fake_student.enrollments.where(type: "StudentViewEnrollment").count).to be > 1
+      expect(@fake_student.can_masquerade?(@teacher, Account.default)).to be_truthy
+    end
+
+    it "allows a teacher of a concluded course to become its student view student" do
+      course_with_teacher(active_all: true)
+      @fake_student = @course.student_view_student
+      @course.complete!
+      expect(@fake_student.can_masquerade?(@teacher, Account.default)).to be_truthy
+    end
+
+    it "allows a site admin to become a course's student view student" do
+      course = course_factory(active_all: true)
+      @fake_student = course.student_view_student
+      expect(@fake_student.can_masquerade?(site_admin_user, Account.default)).to be_truthy
+    end
+
+    it "does not allow an unrelated user to become a course's student view student" do
+      course_with_teacher(active_all: true)
+      @fake_student = @course.student_view_student
+      other_user = user_with_pseudonym(username: "outsider@example.com")
+      expect(@fake_student.can_masquerade?(other_user, Account.default)).to be_falsey
+    end
+
+    it "does not allow a teacher of a different course to become this course's student view student" do
+      course_with_teacher(active_all: true)
+      @fake_student = @course.student_view_student
+      other_course = course_factory(active_all: true)
+      other_teacher = user_with_pseudonym(username: "otherteacher@example.com")
+      other_course.enroll_teacher(other_teacher).accept!
+      expect(@fake_student.can_masquerade?(other_teacher, Account.default)).to be_falsey
+    end
+
+    it "does not allow an account admin with :become_user but not :manage_courses_admin to become a student view student" do
+      course = course_factory(active_all: true)
+      @fake_student = course.student_view_student
+      restricted_admin = user_with_pseudonym(username: "restricted@example.com")
+      role = custom_account_role("Restricted", account: Account.default)
+      account_admin_user_with_role_changes(
+        user: restricted_admin,
+        role:,
+        role_changes: { become_user: true, manage_courses_admin: false }
+      )
+      expect(@fake_student.can_masquerade?(restricted_admin, Account.default)).to be_falsey
+    end
+
+    it "does not allow a teacher to become an arbitrary unrelated user" do
       course_with_teacher(active_all: true)
       @fake_student = user_factory
       expect(@fake_student.can_masquerade?(@teacher, Account.default)).to be_falsey
     end
 
-    it "doesn't allow fake student to become teacher" do
+    it "does not allow a student view student to masquerade as their teacher" do
       course_with_teacher(active_all: true)
       @fake_student = @course.student_view_student
       expect(@teacher.can_masquerade?(@fake_student, Account.default)).to be_falsey
