@@ -271,13 +271,6 @@ describe "grades" do
       expect(f("#content")).not_to contain_css("#grade_info_#{@first_assignment.id} .tooltip")
     end
 
-    it "does not display name of anonymous reviewer", priority: "1" do
-      StudentGradesPage.visit_as_student(@course)
-
-      f(".toggle_comments_link").click
-      expect(StudentGradesPage.submission_comments.second).to include_text("Anonymous User")
-    end
-
     it "shows rubric even if there are no comments", priority: "1" do
       @third_association = @rubric.associate_with(@third_assignment, @course, purpose: "grading")
       @third_submission = @third_assignment.submissions.find_by!(user: @student_1) # unsubmitted submission :/

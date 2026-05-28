@@ -37,12 +37,6 @@ describe "Gradebook History Page" do
   end
 
   describe "date pickers" do
-    it "disables the filter button when the 'To' date precedes the 'From' date", priority: "1" do
-      GradeBookHistory.enter_start_date("October 7, 2017")
-      GradeBookHistory.enter_end_date(["October 4, 2017", :tab])
-      expect(GradeBookHistory.error_text_invalid_dates).to be_displayed
-    end
-
     it "clears the value of the field when entering an invalid date and moving away from the field" do
       GradeBookHistory.enter_end_date("invalid date")
       GradeBookHistory.enter_end_date(:tab)

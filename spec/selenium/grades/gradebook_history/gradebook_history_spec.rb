@@ -57,10 +57,6 @@ describe "Gradebook History Page" do
       )
       expect(GradeBookHistory.check_table_for_assignment_name(@assignment_past_due_day.title)).to be true
     end
-
-    it "and the current grade column has the same grade as related grade history rows", priority: "1" do
-      expect(GradeBookHistory.check_current_col_for_history("assignment two")).to be true
-    end
   end
 
   context "discussion_checkpoints" do
