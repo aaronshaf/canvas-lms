@@ -12204,6 +12204,11 @@ he:
             
             רשת קנבס
         course_starts_next_week: "הקורס שלך מתחיל בשבוע הבא"
+    default_email_address_changed: 
+      email: 
+        details_header: "פרטים:"
+        html: 
+          details_header: "פרטים:"
     dialog: 
       title: "שיגור הודעת תגובה"
     discussion_mention: 
@@ -12214,6 +12219,11 @@ he:
       footer: |-
           קיבלת הודעת דוא"ל זו עקב השתתפות באחת או יותר כיתות שמשתמשות בקנבס. ניתן לשנות הגדרות או להפסיק קבלת התראות דוא"ל בקישור:
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "פרטים:"
+        html: 
+          details_header: "פרטים:"
     enrollment_accepted: 
       email: 
         details: "ניתן לעיין ברשימת הנרשמים כאן:"
@@ -12628,6 +12638,11 @@ he:
         subject: "דיון חדש -  %{discussion_topic}: %{course} "
       twitter: 
         subject: "התראות קנבס - נושא: %{discussion_topic}, %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: "פרטים:"
+        html: 
+          details_header: "פרטים:"
     new_event_created: 
       email: 
         body: "אירוע חדש תוזמן עבור %{course_name}  שכדאי להיות מודע לו"
