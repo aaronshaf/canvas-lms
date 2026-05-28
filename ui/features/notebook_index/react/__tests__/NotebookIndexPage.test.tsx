@@ -170,7 +170,7 @@ describe('NotebookIndexPage', () => {
     })
     render(<NotebookIndexPage />)
     const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/courses/42/pages/page-1?noteId=1')
+    expect(link).toHaveAttribute('href', '/courses/42/pages/page-1?note_id=1')
   })
 
   it('renders the loading state', () => {

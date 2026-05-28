@@ -55,10 +55,10 @@ describe "notebook index page" do
     visit_notebook_index(@course)
     expect(notes_grid).to be_displayed
     expect(note_card_link(@studynote_b.id).attribute("href")).to end_with(
-      "/courses/#{@course.id}/pages/#{@page_b.id}?noteId=#{@studynote_b.id}"
+      "/courses/#{@course.id}/pages/#{@page_b.id}?note_id=#{@studynote_b.id}"
     )
     note_card_link(@studynote_b.id).click
     expect(wiki_page_content).to be_displayed
-    expect(driver.current_url).to end_with("/courses/#{@course.id}/pages/#{@page_b.url}")
+    expect(driver.current_url).to end_with("/courses/#{@course.id}/pages/#{@page_b.url}?note_id=#{@studynote_b.id}")
   end
 end

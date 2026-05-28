@@ -62,7 +62,7 @@ function NotebookIndexBody() {
 
   const noteHref = useCallback(
     (noteId: string, note: NoteType) =>
-      `/courses/${note.courseId}/pages/${note.objectId}?noteId=${noteId}`,
+      `/courses/${note.courseId}/pages/${note.objectId}?note_id=${noteId}`,
     [],
   )
 

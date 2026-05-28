@@ -42,9 +42,9 @@ module NotebookPage
   end
 
   def note_card_link_selector(note_id)
-    # Anchor with $= (ends-with), not *= (contains) — noteId=2 would otherwise
-    # match noteId=20, noteId=215, etc., and f() returns the first hit.
-    %(a[href$="noteId=#{note_id}"])
+    # Anchor with $= (ends-with), not *= (contains) — note_id=2 would otherwise
+    # match note_id=20, note_id=215, etc., and f() returns the first hit.
+    %(a[href$="note_id=#{note_id}"])
   end
 
   #------------------------------ Elements ------------------------------

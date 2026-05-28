@@ -340,4 +340,37 @@ describe('StudentStudyDrawer', () => {
 
     expect(screen.getByTestId('notebook-provider')).toBeInTheDocument()
   })
+
+  it('opens the notebook panel on mount when ?note_id= is in the URL', () => {
+    const pageContent = makePageContent()
+    window.history.replaceState(null, '', '/courses/42/pages/p?note_id=note-abc')
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    expect(screen.getByTestId('notebook-panel')).toBeInTheDocument()
+  })
+
+  it('does not open the notebook panel when ?note_id= is absent', () => {
+    const pageContent = makePageContent()
+    window.history.replaceState(null, '', '/courses/42/pages/p')
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    expect(screen.queryByTestId('notebook-panel')).not.toBeInTheDocument()
+  })
+
+  it('ignores ?note_id= when showNotebook is false', () => {
+    const pageContent = makePageContent()
+    window.history.replaceState(null, '', '/courses/42/pages/p?note_id=note-abc')
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={false} />,
+    )
+
+    expect(screen.queryByTestId('notebook-panel')).not.toBeInTheDocument()
+  })
 })

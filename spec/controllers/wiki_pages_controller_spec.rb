@@ -393,6 +393,11 @@ describe WikiPagesController do
           get "show", params: { course_id: @course.id, id: @page.url }
           expect(InstStatsd::Statsd).not_to have_received(:distributed_increment).with("wikipage.show.page_url_resolved")
         end
+
+        it "preserves note_id query param when redirecting to current page url" do
+          get "show", params: { course_id: @course.id, id: "an-old-url", note_id: "note-abc" }
+          expect(response).to redirect_to(course_wiki_page_url(@course, "ponies5ever", note_id: "note-abc"))
+        end
       end
     end
 

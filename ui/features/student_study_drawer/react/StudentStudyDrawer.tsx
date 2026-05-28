@@ -66,7 +66,11 @@ function StudentStudyDrawerInner({
   showNotebook,
   notebookApi,
 }: StudentStudyDrawerInnerProps) {
-  const [activePanel, setActivePanel] = useState<ActivePanel>(null)
+  const initialNoteId = useMemo(() => {
+    if (!showNotebook) return undefined
+    return new URLSearchParams(window.location.search).get('note_id') ?? undefined
+  }, [showNotebook])
+  const [activePanel, setActivePanel] = useState<ActivePanel>(initialNoteId ? 'notebook' : null)
   const [containerReady, setContainerReady] = useState(false)
   const containerRef = useRef<HTMLElement | null>(null)
   const closeButtonRef = useRef<Element | null>(null)
@@ -192,6 +196,7 @@ function StudentStudyDrawerInner({
         translations={notebookTranslations}
         translate={notebookTranslate}
         onOpen={handleOpenNotebook}
+        initialNoteId={initialNoteId}
       >
         {content}
       </NotebookProvider>
