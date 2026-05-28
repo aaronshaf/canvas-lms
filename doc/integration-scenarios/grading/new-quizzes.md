@@ -129,3 +129,27 @@ When New Quizzes sends a grade passback for that student's submission
 Then Canvas does not update or create a submission score for the concluded student
 And the student's enrollment record remains unchanged
 ```
+
+**Scenario NQ-1.11 — NQ anonymous graded survey preserves student anonymity in submission records**
+- **GUID:** `5a9c3e72`
+- **Reason:** Students' identities are exposed to graders during anonymous survey grading if NQ submission ordering leaks identifying data through the Canvas submissions API.
+```
+Given a New Quizzes anonymous graded survey is published in a course
+And multiple students have submitted the survey
+When a teacher retrieves the submissions for the survey assignment
+Then each submission is identified only by an anonymous ID
+And the submission list order does not correlate with student identity
+And no student name or user ID is present in the submission records
+```
+
+**Scenario NQ-1.12 — Canvas enforces "Available From" date for NQ quiz access**
+- **GUID:** `8d4f1b63`
+- **Reason:** Students complete quizzes and receive grades before the teacher's intended availability window if Canvas does not enforce the "Available From" constraint on NQ quiz access.
+```
+Given a New Quizzes quiz with a future "Available From" date set in Canvas
+And the quiz is published
+And a student is enrolled in the course
+When the student attempts to access the quiz before the "Available From" date
+Then Canvas reports the assignment as locked for the student
+And no submission can be created for the student on that assignment
+```
