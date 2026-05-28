@@ -10171,6 +10171,11 @@ hy:
             Շարունակեք սովորել,
             Canvas հեռավար ուսուցման համակարգ
         course_starts_next_week: "Ձեր դասընթացը սկսվում է հաջորդ շաբաթ"
+    default_email_address_changed: 
+      email: 
+        details_header: Մանրամասներ
+        html: 
+          details_header: Մանրամասներ
     dialog: 
       title: "Ուղարկել պատասխան հաղորդագրություն"
     discussion_mention: 
@@ -10181,6 +10186,11 @@ hy:
       footer: |-
           Դուք ստացել եք այս էլեկտրոնային հաղորդագրությունը, քանի որ դուք մասնակցում եք Canvas-ի միջոցով անցկացվող մեկ կամ մի քանի դասընթացների: Էլեկտրոնային ծանուցումները փոխելու կամ անջատելու համար այցելեք՝
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: Մանրամասներ
+        html: 
+          details_header: Մանրամասներ
     enrollment_accepted: 
       email: 
         body_designer: "%{user} հենց նոր ընդունել է %{course} դասընթացին որպես դիզայներ մասնակցելու հրավերը:"
@@ -10686,6 +10696,11 @@ hy:
         subject: "Նոր քննարկում. %{discussion_topic}: %{course}"
       twitter: 
         subject: "Canvas ծանուցում. թեմա՝ %{discussion_topic}: %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: Մանրամասներ
+        html: 
+          details_header: Մանրամասներ
     new_event_created: 
       email: 
         body: "%{course_name}-ի համար նոր միջոցառում է պլանավորված, որի մասին դուք պետք է իմանաք՝ "
