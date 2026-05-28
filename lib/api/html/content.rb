@@ -281,7 +281,7 @@ module Api
       #   - External URLs: https://external.com/files/123
       def canvas_url?(url)
         uri = begin
-          URI.parse(url)
+          Addressable::URI.parse(url)
         rescue URI::InvalidURIError
           nil
         end

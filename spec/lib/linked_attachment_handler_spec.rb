@@ -118,6 +118,14 @@ describe LinkedAttachmentHandler do
       expect(fetch_list_with_field_name("syllabus_body")).to match_array([course_attachment3.id])
     end
 
+    it "does not error with weird mailto links" do
+      html = <<~HTML
+        <p><a href="/courses/#{course.id}/files/#{course_attachment3.id}/download">file 2</a></p>
+        <p><a href="mailto:example@," target="_blank" rel="noopener">example@,</a></p>
+      HTML
+      expect { course.associate_attachments_to_rce_object(html, teacher) }.not_to raise_error
+    end
+
     context "deleting associations" do
       it "removes all associations" do
         html = <<~HTML
