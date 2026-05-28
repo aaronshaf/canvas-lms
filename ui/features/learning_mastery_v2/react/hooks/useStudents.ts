@@ -39,11 +39,8 @@ export const useStudents = (courseId: string, searchTerm?: string): UseStudentsR
       try {
         setIsLoading(true)
         setError(null)
-        const response = await loadCourseUsers(courseId, searchTerm)
-
-        if (response.status === 200 && response.data) {
-          setStudents(response.data)
-        }
+        const {json} = await loadCourseUsers(courseId, searchTerm)
+        setStudents(json ?? [])
       } catch (_) {
         setError(I18n.t('Failed to load students'))
         setStudents([])

@@ -141,11 +141,7 @@ const LearningMasteryContent: React.FC<LearningMasteryContentProps> = ({
       let error = null
 
       try {
-        const response = await saveLearningMasteryGradebookSettings(courseId, settings)
-
-        if (response.status !== 200) {
-          throw new Error('Failed to save settings')
-        }
+        await saveLearningMasteryGradebookSettings(courseId, settings)
 
         updateSettings(settings)
 

@@ -36,9 +36,12 @@ import {Heading} from '@instructure/ui-heading'
 
 const I18n = createI18nScope('LearningMasteryGradebook')
 
+// outcomes-ui's ExportCSVButton types csvExportHandler as `() => Promise<object[]>`,
+// but at runtime the value is forwarded straight to react-csv's CSVLink data prop,
+// which accepts a CSV string. The endpoint returns text/csv, so we forward `r.text`.
 export const buildCsvExportHandler =
   (courseId: string, gradebookFilters: string[]) => (): Promise<object[]> =>
-    exportCSV(courseId, gradebookFilters).then(r => r.data)
+    exportCSV(courseId, gradebookFilters).then(r => r.text as unknown as object[])
 
 const componentOverrides = {
   Link: {

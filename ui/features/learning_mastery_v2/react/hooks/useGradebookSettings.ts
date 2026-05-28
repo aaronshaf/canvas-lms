@@ -79,10 +79,10 @@ export const useGradebookSettings = (courseId: string): UseGradebookSettingsRetu
       try {
         setIsLoading(true)
         setError(null)
-        const response = await loadLearningMasteryGradebookSettings(courseId)
+        const {json} = await loadLearningMasteryGradebookSettings(courseId)
 
-        if (response.status === 200 && response.data?.learning_mastery_gradebook_settings) {
-          const apiSettings = response.data.learning_mastery_gradebook_settings
+        if (json?.learning_mastery_gradebook_settings) {
+          const apiSettings = json.learning_mastery_gradebook_settings
 
           const loadedSettings: GradebookSettings = {
             secondaryInfoDisplay:

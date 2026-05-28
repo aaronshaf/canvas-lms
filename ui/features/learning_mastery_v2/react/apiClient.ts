@@ -15,59 +15,41 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import axios from '@canvas/axios'
-import {AxiosResponse} from 'axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {GradebookSettings} from '@canvas/outcomes/react/utils/constants'
 import {Student, Outcome} from '@canvas/outcomes/react/types/rollup'
 import {DisplayFilter} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
 
 /**
- * Parameters for CSV export
+ * Export outcome rollups as CSV. The endpoint returns text/csv, so callers
+ * should read the raw body via the response's `text` field, not `json`.
  */
-interface ExportCSVParams {
-  exclude: string[]
-}
+export const exportCSV = (courseId: string | number, gradebookFilters: string[]) =>
+  doFetchApi({
+    path: `/courses/${courseId}/outcome_rollups.csv`,
+    params: {exclude: gradebookFilters},
+  })
 
-/**
- * Export outcome rollups as CSV
- * @param courseId - The ID of the course
- * @param gradebookFilters - Filters to exclude from the results
- * @returns A promise that resolves to the API response
- */
-export const exportCSV = (
-  courseId: string | number,
-  gradebookFilters: string[],
-): Promise<AxiosResponse> => {
-  const params: {params: ExportCSVParams} = {
-    params: {
-      exclude: gradebookFilters,
-    },
-  }
-
-  return axios.get(`/courses/${courseId}/outcome_rollups.csv`, params)
+export type LearningMasterySettingsResponse = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  learning_mastery_gradebook_settings?: Record<string, any>
 }
 
 /**
  * Load learning mastery gradebook settings
- * @param courseId - The ID of the course
- * @returns A promise that resolves to the API response
  */
-export const loadLearningMasteryGradebookSettings = (
-  courseId: string | number,
-): Promise<AxiosResponse> => {
-  return axios.get(`/api/v1/courses/${courseId}/learning_mastery_gradebook_settings`)
-}
+export const loadLearningMasteryGradebookSettings = (courseId: string | number) =>
+  doFetchApi<LearningMasterySettingsResponse>({
+    path: `/api/v1/courses/${courseId}/learning_mastery_gradebook_settings`,
+  })
 
 /**
  * Save learning mastery gradebook settings
- * @param courseId - The ID of the course
- * @param settings - The gradebook settings to save
- * @returns A promise that resolves to the API response
  */
 export const saveLearningMasteryGradebookSettings = (
   courseId: string | number,
   settings: GradebookSettings,
-): Promise<AxiosResponse> => {
+) => {
   const body = {
     learning_mastery_gradebook_settings: {
       secondary_info_display: settings.secondaryInfoDisplay,
@@ -88,52 +70,38 @@ export const saveLearningMasteryGradebookSettings = (
     },
   }
 
-  return axios.put(`/api/v1/courses/${courseId}/learning_mastery_gradebook_settings`, body)
-}
-
-/**
- * Parameters for course users API
- */
-interface CourseUsersParams {
-  enrollment_type?: string[]
-  per_page?: number
-  search_term?: string
+  return doFetchApi({
+    path: `/api/v1/courses/${courseId}/learning_mastery_gradebook_settings`,
+    method: 'PUT',
+    body,
+  })
 }
 
 /**
  * Load users enrolled in a course
- * @param courseId - The ID of the course
- * @returns A promise that resolves to the API response with Student array
  */
-export const loadCourseUsers = (
-  courseId: string | number,
-  searchTerm?: string,
-): Promise<AxiosResponse<Student[]>> => {
-  const params: {params: CourseUsersParams} = {
+export const loadCourseUsers = (courseId: string | number, searchTerm?: string) =>
+  doFetchApi<Student[]>({
+    path: `/api/v1/courses/${courseId}/users`,
     params: {
       enrollment_type: ['student', 'student_view'],
       per_page: 100,
       ...(searchTerm ? {search_term: searchTerm} : {}),
     },
-  }
-
-  return axios.get(`/api/v1/courses/${courseId}/users`, params)
-}
+  })
 
 /**
  * Save learning mastery gradebook outcome order
- * @param courseId - The ID of the course
- * @param outcomes - Array of outcomes in the desired order
- * @returns A promise that resolves to the API response
  */
-export const saveOutcomeOrder = (
-  courseId: string | number,
-  outcomes: Outcome[],
-): Promise<AxiosResponse> => {
+export const saveOutcomeOrder = (courseId: string | number, outcomes: Outcome[]) => {
   const outcomeOrder = outcomes.map((outcome, index) => ({
     outcome_id: Number(outcome.id),
     position: index,
   }))
 
-  return axios.post(`/api/v1/courses/${courseId}/assign_outcome_order`, outcomeOrder)
+  return doFetchApi({
+    path: `/api/v1/courses/${courseId}/assign_outcome_order`,
+    method: 'POST',
+    body: outcomeOrder,
+  })
 }

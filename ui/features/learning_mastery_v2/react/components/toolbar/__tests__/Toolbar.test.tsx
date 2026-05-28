@@ -17,13 +17,13 @@
  */
 import {cleanup, render, screen, waitFor, fireEvent} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {Toolbar, ToolbarProps} from '../Toolbar'
+import {Toolbar, ToolbarProps, buildCsvExportHandler} from '../Toolbar'
 import {DEFAULT_GRADEBOOK_SETTINGS} from '@canvas/outcomes/react/utils/constants'
 import {mapSettingsToFilters} from '@canvas/outcomes/react/utils/filter'
 import * as apiClient from '../../../apiClient'
 
 vi.mock('../../../apiClient', () => ({
-  exportCSV: vi.fn().mockResolvedValue({data: []}),
+  exportCSV: vi.fn().mockResolvedValue({text: 'student,score\nAlice,4'}),
 }))
 
 const makeProps = (props = {}): ToolbarProps => ({
@@ -75,6 +75,12 @@ describe('Toolbar', () => {
         mapSettingsToFilters(DEFAULT_GRADEBOOK_SETTINGS),
       ),
     )
+  })
+
+  it('buildCsvExportHandler resolves to the CSV text returned by exportCSV', async () => {
+    const handler = buildCsvExportHandler('123', ['filter1'])
+    const result = await handler()
+    expect(result).toBe('student,score\nAlice,4')
   })
 
   it('hides data-dependent controls when showDataDependentControls is false', () => {

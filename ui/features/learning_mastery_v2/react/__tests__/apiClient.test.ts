@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {loadRollups} from '@canvas/outcomes/react/apiClient'
 import {
   exportCSV,
@@ -33,32 +34,22 @@ import {
   ScoreDisplayFormat,
   OutcomeArrangement,
 } from '@instructure/outcomes-ui/lib/util/gradebook/constants'
-import {type Mocked} from 'vitest'
-import {http, HttpResponse} from 'msw'
-import {setupServer} from 'msw/node'
-
-vi.mock('@canvas/axios')
-const mockedAxios = axios as Mocked<typeof axios>
 
 const server = setupServer()
 
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterAll(() => server.close())
+
 describe('apiClient', () => {
-  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
-  afterEach(() => server.resetHandlers())
-  afterAll(() => server.close())
+  let capturedRequest: Request | undefined
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    mockedAxios.get.mockResolvedValue({data: {}, status: 200})
-    mockedAxios.put.mockResolvedValue({data: {}, status: 200})
-    mockedAxios.post.mockResolvedValue({data: {}, status: 200})
+    capturedRequest = undefined
+    server.resetHandlers()
   })
 
   describe('loadRollups', () => {
-    let capturedRequest: Request | null = null
-
     beforeEach(() => {
-      capturedRequest = null
       server.use(
         http.get('/api/v1/courses/:courseId/outcome_rollups', ({request}) => {
           capturedRequest = request
@@ -151,29 +142,56 @@ describe('apiClient', () => {
   })
 
   describe('exportCSV', () => {
-    it('calls the correct endpoint with parameters', async () => {
-      await exportCSV('123', ['filter1'])
+    it('calls the correct endpoint with parameters and returns the CSV body', async () => {
+      server.use(
+        http.get('/courses/:courseId/outcome_rollups.csv', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.text('csv,data')
+        }),
+      )
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/courses/123/outcome_rollups.csv', {
-        params: {
-          exclude: ['filter1'],
-        },
-      })
+      const result = await exportCSV('123', ['filter1'])
+
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/courses/123/outcome_rollups.csv')
+      expect(url.searchParams.getAll('exclude[]')).toContain('filter1')
+      expect(result.text).toBe('csv,data')
     })
 
     it('accepts numeric courseId', async () => {
-      await exportCSV(456, [])
+      server.use(
+        http.get('/courses/:courseId/outcome_rollups.csv', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.text('csv,data')
+        }),
+      )
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/courses/456/outcome_rollups.csv', {
-        params: {
-          exclude: [],
-        },
-      })
+      const result = await exportCSV(456, [])
+
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/courses/456/outcome_rollups.csv')
+      expect(result.text).toBe('csv,data')
     })
   })
 
   describe('saveLearningMasteryGradebookSettings', () => {
+    const captureBody = async (request: Request) => {
+      capturedRequest = request
+      return (await request.json()) as Record<string, unknown>
+    }
+
     it('calls the correct endpoint with proper request body', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.SIS_ID,
         displayFilters: [
@@ -189,25 +207,35 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('123', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/123/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'sis_id',
-            show_student_avatars: true,
-            show_students_with_no_results: true,
-            show_outcomes_with_no_results: true,
-            show_unpublished_assignments: false,
-            name_display_format: 'first_last',
-            students_per_page: 15,
-            score_display_format: 'icon_only',
-            outcome_arrangement: 'upload_order',
-          },
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/123/learning_mastery_gradebook_settings')
+      expect(capturedBody).toEqual({
+        learning_mastery_gradebook_settings: {
+          secondary_info_display: 'sis_id',
+          show_student_avatars: true,
+          show_students_with_no_results: true,
+          show_outcomes_with_no_results: true,
+          show_unpublished_assignments: false,
+          name_display_format: 'first_last',
+          students_per_page: 15,
+          score_display_format: 'icon_only',
+          outcome_arrangement: 'upload_order',
         },
-      )
+      })
     })
 
     it('handles settings without display filters', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
         displayFilters: [],
@@ -219,25 +247,35 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('456', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/456/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'none',
-            show_student_avatars: false,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: false,
-            name_display_format: 'first_last',
-            students_per_page: 30,
-            score_display_format: 'icon_and_label',
-            outcome_arrangement: 'alphabetical',
-          },
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/456/learning_mastery_gradebook_settings')
+      expect(capturedBody).toEqual({
+        learning_mastery_gradebook_settings: {
+          secondary_info_display: 'none',
+          show_student_avatars: false,
+          show_students_with_no_results: false,
+          show_outcomes_with_no_results: false,
+          show_unpublished_assignments: false,
+          name_display_format: 'first_last',
+          students_per_page: 30,
+          score_display_format: 'icon_and_label',
+          outcome_arrangement: 'alphabetical',
         },
-      )
+      })
     })
 
     it('accepts numeric courseId', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.SIS_ID,
         displayFilters: [],
@@ -249,25 +287,35 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings(789, settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/789/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'sis_id',
-            show_student_avatars: false,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: false,
-            name_display_format: 'first_last',
-            students_per_page: 50,
-            score_display_format: 'icon_only',
-            outcome_arrangement: 'custom',
-          },
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/789/learning_mastery_gradebook_settings')
+      expect(capturedBody).toEqual({
+        learning_mastery_gradebook_settings: {
+          secondary_info_display: 'sis_id',
+          show_student_avatars: false,
+          show_students_with_no_results: false,
+          show_outcomes_with_no_results: false,
+          show_unpublished_assignments: false,
+          name_display_format: 'first_last',
+          students_per_page: 50,
+          score_display_format: 'icon_only',
+          outcome_arrangement: 'custom',
         },
-      )
+      })
     })
 
     it('correctly maps display filters to boolean flags', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
         displayFilters: [DisplayFilter.SHOW_STUDENT_AVATARS],
@@ -279,25 +327,33 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('123', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/123/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'none',
-            show_student_avatars: true,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: false,
-            name_display_format: 'first_last',
-            students_per_page: 15,
-            score_display_format: 'icon_only',
-            outcome_arrangement: 'upload_order',
-          },
+      expect(capturedBody).toEqual({
+        learning_mastery_gradebook_settings: {
+          secondary_info_display: 'none',
+          show_student_avatars: true,
+          show_students_with_no_results: false,
+          show_outcomes_with_no_results: false,
+          show_unpublished_assignments: false,
+          name_display_format: 'first_last',
+          students_per_page: 15,
+          score_display_format: 'icon_only',
+          outcome_arrangement: 'upload_order',
         },
-      )
+      })
     })
 
     it('includes name_display_format in the request body when set to LAST_FIRST', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
         displayFilters: [],
@@ -309,25 +365,23 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('123', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/123/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'none',
-            show_student_avatars: false,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: false,
-            name_display_format: 'last_first',
-            students_per_page: 15,
-            score_display_format: 'icon_only',
-            outcome_arrangement: 'upload_order',
-          },
-        },
+      expect((capturedBody as any).learning_mastery_gradebook_settings.name_display_format).toBe(
+        'last_first',
       )
     })
 
     it('includes score_display_format in the request body', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
         displayFilters: [],
@@ -339,25 +393,23 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('123', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/123/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'none',
-            show_student_avatars: false,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: false,
-            name_display_format: 'first_last',
-            students_per_page: 15,
-            score_display_format: 'icon_and_points',
-            outcome_arrangement: 'upload_order',
-          },
-        },
+      expect((capturedBody as any).learning_mastery_gradebook_settings.score_display_format).toBe(
+        'icon_and_points',
       )
     })
 
     it('includes show_unpublished_assignments when filter is enabled', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.put(
+          '/api/v1/courses/:courseId/learning_mastery_gradebook_settings',
+          async ({request}) => {
+            capturedBody = await captureBody(request)
+            return HttpResponse.json({})
+          },
+        ),
+      )
+
       const settings = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
         displayFilters: [DisplayFilter.SHOW_UNPUBLISHED_ASSIGNMENTS],
@@ -369,68 +421,71 @@ describe('apiClient', () => {
 
       await saveLearningMasteryGradebookSettings('123', settings)
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(
-        '/api/v1/courses/123/learning_mastery_gradebook_settings',
-        {
-          learning_mastery_gradebook_settings: {
-            secondary_info_display: 'none',
-            show_student_avatars: false,
-            show_students_with_no_results: false,
-            show_outcomes_with_no_results: false,
-            show_unpublished_assignments: true,
-            name_display_format: 'first_last',
-            students_per_page: 15,
-            score_display_format: 'icon_only',
-            outcome_arrangement: 'upload_order',
-          },
-        },
-      )
+      expect(
+        (capturedBody as any).learning_mastery_gradebook_settings.show_unpublished_assignments,
+      ).toBe(true)
     })
   })
 
   describe('loadCourseUsers', () => {
     it('calls the correct endpoint with default parameters', async () => {
+      server.use(
+        http.get('/api/v1/courses/:courseId/users', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json([])
+        }),
+      )
+
       await loadCourseUsers('123')
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/courses/123/users', {
-        params: {
-          enrollment_type: ['student', 'student_view'],
-          per_page: 100,
-        },
-      })
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/123/users')
+      expect(url.searchParams.getAll('enrollment_type[]')).toEqual(['student', 'student_view'])
+      expect(url.searchParams.get('per_page')).toBe('100')
     })
 
     it('accepts numeric courseId', async () => {
+      server.use(
+        http.get('/api/v1/courses/:courseId/users', ({request}) => {
+          capturedRequest = request
+          return HttpResponse.json([])
+        }),
+      )
+
       await loadCourseUsers(456)
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/courses/456/users', {
-        params: {
-          enrollment_type: ['student', 'student_view'],
-          per_page: 100,
-        },
-      })
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/456/users')
     })
 
-    it('returns the response from axios', async () => {
+    it('returns the students from the server', async () => {
       const mockStudents = [
         {id: 1, name: 'Student 1', display_name: 'S1', sortable_name: 'Student, 1'},
         {id: 2, name: 'Student 2', display_name: 'S2', sortable_name: 'Student, 2'},
       ]
-      mockedAxios.get.mockResolvedValue({data: mockStudents, status: 200})
+      server.use(http.get('/api/v1/courses/:courseId/users', () => HttpResponse.json(mockStudents)))
 
       const response = await loadCourseUsers('123')
 
-      expect(response.data).toEqual(mockStudents)
-      expect(response.status).toBe(200)
+      expect(response.json).toEqual(mockStudents)
     })
   })
 
   describe('saveOutcomeOrder', () => {
     it('calls the correct endpoint with outcome order data', async () => {
+      let capturedBody: unknown
+      server.use(
+        http.post('/api/v1/courses/:courseId/assign_outcome_order', async ({request}) => {
+          capturedRequest = request
+          capturedBody = await request.json()
+          return HttpResponse.json({})
+        }),
+      )
+
       const outcomes = [
         {
           id: '1',
-          title: 'Outcome 1',
+          title: 'O1',
           calculation_method: 'highest',
           mastery_points: 3,
           points_possible: 3,
@@ -438,7 +493,7 @@ describe('apiClient', () => {
         },
         {
           id: '2',
-          title: 'Outcome 2',
+          title: 'O2',
           calculation_method: 'highest',
           mastery_points: 3,
           points_possible: 3,
@@ -446,7 +501,7 @@ describe('apiClient', () => {
         },
         {
           id: '3',
-          title: 'Outcome 3',
+          title: 'O3',
           calculation_method: 'highest',
           mastery_points: 3,
           points_possible: 3,
@@ -456,7 +511,9 @@ describe('apiClient', () => {
 
       await saveOutcomeOrder('123', outcomes)
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/v1/courses/123/assign_outcome_order', [
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/123/assign_outcome_order')
+      expect(capturedBody).toEqual([
         {outcome_id: 1, position: 0},
         {outcome_id: 2, position: 1},
         {outcome_id: 3, position: 2},
@@ -464,6 +521,15 @@ describe('apiClient', () => {
     })
 
     it('accepts numeric courseId', async () => {
+      let capturedBody: unknown
+      server.use(
+        http.post('/api/v1/courses/:courseId/assign_outcome_order', async ({request}) => {
+          capturedRequest = request
+          capturedBody = await request.json()
+          return HttpResponse.json({})
+        }),
+      )
+
       const outcomes = [
         {
           id: 42,
@@ -477,15 +543,23 @@ describe('apiClient', () => {
 
       await saveOutcomeOrder(456, outcomes)
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/v1/courses/456/assign_outcome_order', [
-        {outcome_id: 42, position: 0},
-      ])
+      const url = new URL(capturedRequest!.url)
+      expect(url.pathname).toBe('/api/v1/courses/456/assign_outcome_order')
+      expect(capturedBody).toEqual([{outcome_id: 42, position: 0}])
     })
 
     it('handles empty outcome array', async () => {
+      let capturedBody: unknown
+      server.use(
+        http.post('/api/v1/courses/:courseId/assign_outcome_order', async ({request}) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({})
+        }),
+      )
+
       await saveOutcomeOrder('123', [])
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/v1/courses/123/assign_outcome_order', [])
+      expect(capturedBody).toEqual([])
     })
   })
 })

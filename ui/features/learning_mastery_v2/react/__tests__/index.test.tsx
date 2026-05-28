@@ -303,7 +303,7 @@ describe('LearningMastery', () => {
           setCurrentPage: mockSetCurrentPage,
         }),
       )
-      mockSaveLearningMasteryGradebookSettings.mockResolvedValue({status: 200} as any)
+      mockSaveLearningMasteryGradebookSettings.mockResolvedValue(undefined as any)
 
       render(<LearningMastery {...defaultProps()} />)
 
@@ -341,7 +341,7 @@ describe('LearningMastery', () => {
         error: null,
         updateSettings: vi.fn(),
       })
-      mockSaveLearningMasteryGradebookSettings.mockResolvedValue({status: 200} as any)
+      mockSaveLearningMasteryGradebookSettings.mockResolvedValue(undefined as any)
 
       render(<LearningMastery {...defaultProps()} />)
 
@@ -378,7 +378,7 @@ describe('LearningMastery', () => {
         setCurrentPage: mockSetCurrentPage,
       }),
     )
-    mockSaveLearningMasteryGradebookSettings.mockResolvedValue({status: 200} as any)
+    mockSaveLearningMasteryGradebookSettings.mockResolvedValue(undefined as any)
 
     render(<LearningMastery {...defaultProps()} />)
 

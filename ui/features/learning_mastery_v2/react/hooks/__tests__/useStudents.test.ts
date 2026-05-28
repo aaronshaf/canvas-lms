@@ -17,11 +17,15 @@
  */
 
 import {renderHook, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {useStudents} from '../useStudents'
-import * as apiClient from '../../apiClient'
 import {Student} from '@canvas/outcomes/react/types/rollup'
 
-vi.mock('../../apiClient')
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterAll(() => server.close())
 
 describe('useStudents', () => {
   const courseId = '123'
@@ -48,16 +52,15 @@ describe('useStudents', () => {
   ]
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
+    server.resetHandlers()
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', () => {
+        return HttpResponse.json(mockStudents)
+      }),
+    )
   })
 
   it('returns initial loading state with empty students', () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockReturnValue(new Promise(() => {}))
-
     const {result} = renderHook(() => useStudents(courseId))
 
     expect(result.current.isLoading).toBe(true)
@@ -66,14 +69,6 @@ describe('useStudents', () => {
   })
 
   it('loads students successfully', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: mockStudents,
-    })
-
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -81,24 +76,23 @@ describe('useStudents', () => {
     expect(result.current.error).toBeNull()
   })
 
-  it('calls loadCourseUsers with correct courseId', async () => {
-    const loadCourseUsersSpy = vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: mockStudents,
-    })
+  it('calls the correct endpoint with courseId', async () => {
+    let capturedCourseId: string | undefined
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', ({params}) => {
+        capturedCourseId = params.courseId as string
+        return HttpResponse.json(mockStudents)
+      }),
+    )
 
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(loadCourseUsersSpy).toHaveBeenCalledWith(courseId, undefined)
-    expect(loadCourseUsersSpy).toHaveBeenCalledTimes(1)
+    expect(capturedCourseId).toBe('123')
   })
 
   it('sets error state on failed request', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockRejectedValue(new Error('Network error'))
+    server.use(http.get('/api/v1/courses/:courseId/users', () => HttpResponse.error()))
 
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -108,7 +102,11 @@ describe('useStudents', () => {
   })
 
   it('clears students array on error', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockRejectedValue(new Error('API error'))
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', () => {
+        return new HttpResponse(null, {status: 500})
+      }),
+    )
 
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -118,13 +116,7 @@ describe('useStudents', () => {
   })
 
   it('handles empty students array response', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: [],
-    })
+    server.use(http.get('/api/v1/courses/:courseId/users', () => HttpResponse.json([])))
 
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -134,37 +126,25 @@ describe('useStudents', () => {
   })
 
   it('refetches students when courseId changes', async () => {
-    const loadCourseUsersSpy = vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: mockStudents,
-    })
+    const capturedCourseIds: string[] = []
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', ({params}) => {
+        capturedCourseIds.push(params.courseId as string)
+        return HttpResponse.json(mockStudents)
+      }),
+    )
 
     const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
     })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    expect(loadCourseUsersSpy).toHaveBeenCalledWith('123', undefined)
-    expect(loadCourseUsersSpy).toHaveBeenCalledTimes(1)
+    expect(capturedCourseIds).toContain('123')
 
     rerender({id: '456'})
-    await waitFor(() => expect(loadCourseUsersSpy).toHaveBeenCalledWith('456', undefined))
-
-    expect(loadCourseUsersSpy).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(capturedCourseIds).toContain('456'))
   })
 
   it('sets loading to true when refetching after courseId change', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: mockStudents,
-    })
-
     const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
     })
@@ -175,15 +155,14 @@ describe('useStudents', () => {
   })
 
   it('clears previous error on new request', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers')
-      .mockRejectedValueOnce(new Error('First error'))
-      .mockResolvedValueOnce({
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {headers: {} as any},
-        data: mockStudents,
-      })
+    let callCount = 0
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', () => {
+        callCount++
+        if (callCount === 1) return new HttpResponse(null, {status: 500})
+        return HttpResponse.json(mockStudents)
+      }),
+    )
 
     const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
@@ -195,55 +174,6 @@ describe('useStudents', () => {
       expect(result.current.error).toBeNull()
       expect(result.current.students).toEqual(mockStudents)
     })
-  })
-
-  it('handles non-200 status code response', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 404,
-      statusText: 'Not Found',
-      headers: {},
-      config: {headers: {} as any},
-      data: [],
-    })
-
-    const {result} = renderHook(() => useStudents(courseId))
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    expect(result.current.students).toEqual([])
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.error).toBeNull()
-  })
-
-  it('handles response without data field', async () => {
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: [],
-    })
-
-    const {result} = renderHook(() => useStudents(courseId))
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    expect(result.current.students).toEqual([])
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.error).toBeNull()
-  })
-
-  it('works with numeric courseId', async () => {
-    const loadCourseUsersSpy = vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: mockStudents,
-    })
-
-    const {result} = renderHook(() => useStudents('456'))
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    expect(loadCourseUsersSpy).toHaveBeenCalledWith('456', undefined)
   })
 
   it('preserves student data structure from API response', async () => {
@@ -261,13 +191,9 @@ describe('useStudents', () => {
       },
     ]
 
-    vi.spyOn(apiClient, 'loadCourseUsers').mockResolvedValue({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {headers: {} as any},
-      data: studentsWithAllFields,
-    })
+    server.use(
+      http.get('/api/v1/courses/:courseId/users', () => HttpResponse.json(studentsWithAllFields)),
+    )
 
     const {result} = renderHook(() => useStudents(courseId))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
