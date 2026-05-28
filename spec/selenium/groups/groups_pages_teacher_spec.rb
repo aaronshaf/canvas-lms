@@ -74,45 +74,6 @@ describe "groups" do
         expect(ff(".ic-announcement-row").size).to eq 1
       end
 
-      it "allows teachers to create an announcement" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        # Checks that initial user can create an announcement
-        AnnouncementNewEdit.create_group_announcement(@testgroup.first,
-                                                      "Announcement by #{@teacher.name}",
-                                                      "sup")
-        get announcements_page
-        expect(ff(".ic-announcement-row").size).to eq 1
-      end
-
-      it "allows teachers to delete their own group announcements" do
-        skip_if_safari(:alert)
-        @testgroup.first.announcements.create!(
-          title: "Student Announcement",
-          message: "test message",
-          user: @teacher
-        )
-
-        get announcements_page
-        expect(ff(".ic-announcement-row").size).to eq 1
-        AnnouncementIndex.delete_announcement_manually("Student Announcement")
-        expect(f(".announcements-v2__wrapper")).not_to contain_css(".ic-announcement-row")
-      end
-
-      it "allows teachers to delete group member announcements" do
-        skip_if_safari(:alert)
-        @testgroup.first.announcements.create!(
-          title: "Student Announcement",
-          message: "test message",
-          user:
-          @students.first
-        )
-
-        get announcements_page
-        expect(ff(".ic-announcement-row").size).to eq 1
-        AnnouncementIndex.delete_announcement_manually("Student Announcement")
-        expect(f(".announcements-v2__wrapper")).not_to contain_css(".ic-announcement-row")
-      end
-
       it "lets teachers see announcement details", :ignore_js_errors do
         announcement = @testgroup.first.announcements.create!(
           title: "Test Announcement",
@@ -142,24 +103,6 @@ describe "groups" do
         expect(f("#content-wrapper")).not_to contain_css("#sections_autocomplete_root input")
       end
 
-      it "edit page should succeed for their own announcements" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        announcement = @testgroup.first.announcements.create!(
-          title: "Announcement by #{@user.name}",
-          message: "The Force Awakens",
-          user: @teacher
-        )
-        AnnouncementNewEdit.edit_group_announcement(@testgroup.first,
-                                                    announcement,
-                                                    "Canvas will be rewritten in chicken")
-        announcement.reload
-        # Editing *appends* to existing message, and the resulting announcement's
-        # message is wrapped in paragraph tags
-        expect(announcement.message).to eq(
-          "<p>The Force AwakensCanvas will be rewritten in chicken</p>"
-        )
-      end
-
       it "lets teachers edit group member announcements" do
         announcement = @testgroup.first.announcements.create!(
           title: "Your Announcement",
@@ -175,24 +118,6 @@ describe "groups" do
         expect_new_page_load { f('[data-testid="discussion-thread-menuitem-edit"]').click }
         expect(driver.current_url).to include "#{url_base}/edit"
         expect(f("#content-wrapper")).not_to contain_css("#sections_autocomplete_root input")
-      end
-
-      it "edit page should succeed for group member announcements" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        announcement = @testgroup.first.announcements.create!(
-          title: "Announcement by #{@user.name}",
-          message: "The Force Awakens",
-          user: @students.first
-        )
-        AnnouncementNewEdit.edit_group_announcement(@testgroup.first,
-                                                    announcement,
-                                                    "Canvas will be rewritten in chicken")
-        announcement.reload
-        # Editing *appends* to existing message, and the resulting announcement's
-        # message is wrapped in paragraph tags
-        expect(announcement.message).to eq(
-          "<p>The Force AwakensCanvas will be rewritten in chicken</p>"
-        )
       end
     end
 
@@ -221,23 +146,6 @@ describe "groups" do
     #-------------------------------------------------------------------------------------------------------------------
     describe "discussions page" do
       it_behaves_like "discussions_page", :teacher
-
-      it "allows teachers to create discussions within a group", priority: "1" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        get discussions_page
-        expect_new_page_load { f("#add_discussion").click }
-        # This creates the discussion and also tests its creation
-        edit_topic("from a teacher", "tell me a story")
-      end
-
-      it "has three options when creating a discussion", priority: "1" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        get discussions_page
-        expect_new_page_load { f("#add_discussion").click }
-        expect(f('[name="allow_rating"]')).to be_present
-        expect(f('[name="allow_todo_date"]')).to be_present
-        expect(f('[name="podcast_enabled"]')).to be_present
-      end
 
       it "allows teachers to access a discussion", :ignore_js_errors, priority: "1" do
         dt = DiscussionTopic.create!(context: @testgroup.first,

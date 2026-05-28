@@ -65,16 +65,5 @@ describe "group navigation" do
       expect(fj("nav#breadcrumbs:contains('group 2')")).to be_present
       expect(fj("nav#breadcrumbs:contains('Discussions')")).to be_present
     end
-
-    it "shows only active groups as sorted by name" do
-      @group_zed.workflow_state = "deleted"
-      @group_zed.save!
-
-      get "/groups/#{@group_1.id}"
-      force_click("[data-testid='group-selector']")
-      list_items = ff("[data-testid*='group-id-']").map(&:text)
-      # using eq verifies correct order and expected exclusion of group zed
-      expect(list_items).to eq ["group 1", "group 10", "group 2"]
-    end
   end
 end

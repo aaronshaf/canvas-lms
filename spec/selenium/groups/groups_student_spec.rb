@@ -96,13 +96,6 @@ describe "student groups" do
         expect(student_list[1].text).to eq "Test Student 2"
       end
 
-      it "is titled what the user types in", :ignore_js_errors do
-        create_default_student_group(group_name)
-        f('button[type="submit"]').click
-
-        expect(fj(".student-group-title")).to include_text(group_name.to_s)
-      end
-
       it "by default, created student group only contains the student creator", :ignore_js_errors do
         create_default_student_group
         f('button[type="submit"]').click

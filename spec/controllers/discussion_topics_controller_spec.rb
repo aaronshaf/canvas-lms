@@ -1998,7 +1998,7 @@ describe DiscussionTopicsController do
     include_context "grading periods within controller" do
       let(:course) { @course }
       let(:teacher) { @teacher }
-      let(:request_params) { [:edit, params: { course_id: course, id: @topic }] }
+      let(:request_params) { [:edit, { params: { course_id: course, id: @topic } }] }
     end
 
     it "does not explode with mgp and group context" do
@@ -3755,7 +3755,7 @@ describe DiscussionTopicsController do
 
       topics = Array.new(3) { course_topic(pinned: true) }
       expect(topics.map(&:position)).to eq [1, 2, 3]
-      t1, t2, _ = topics
+      t1, t2, = topics
       post "reorder", params: { course_id: @course.id, order: "#{t2.id},#{t1.id}" }, format: "json"
       expect(response).to be_successful
       topics.each(&:reload)

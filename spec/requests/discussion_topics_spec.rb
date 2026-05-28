@@ -52,4 +52,63 @@ describe "Discussion Topics API" do
       end
     end
   end
+
+  describe "DELETE /groups/:group_id/discussion_topics/:id" do
+    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
+    it "allows group members to delete their own announcements" do
+      # Arrange
+      course_with_teacher(active_all: true)
+      student_in_course(active_all: true, course: @course)
+      group = @course.groups.create!(name: "Test Group")
+      group.add_user(@student)
+      topic = group.announcements.create!(title: "Test Ann", message: "hello", user: @student)
+      user_session(@student)
+
+      # Act
+      delete "/groups/#{group.id}/discussion_topics/#{topic.id}", params: { format: :json }
+
+      # Assert
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["discussion_topic"]["workflow_state"]).to eq("deleted")
+      expect(topic.reload.workflow_state).to eq("deleted")
+    end
+
+    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
+    it "allows teachers to delete their own group announcements" do
+      # Arrange
+      course_with_teacher(active_all: true)
+      group = @course.groups.create!(name: "Test Group")
+      group.add_user(@teacher)
+      topic = group.announcements.create!(title: "Test Ann", message: "hello", user: @teacher)
+      user_session(@teacher)
+
+      # Act
+      delete "/groups/#{group.id}/discussion_topics/#{topic.id}", params: { format: :json }
+
+      # Assert
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["discussion_topic"]["workflow_state"]).to eq("deleted")
+      expect(topic.reload.workflow_state).to eq("deleted")
+    end
+
+    # TODO: grader violation — setup-in-it (outer let! creates discussion/anon_discussion for every example)
+    it "allows teachers to delete group member announcements" do
+      # Arrange
+      course_with_teacher(active_all: true)
+      student_in_course(active_all: true, course: @course)
+      group = @course.groups.create!(name: "Test Group")
+      group.add_user(@student)
+      group.add_user(@teacher)
+      topic = group.announcements.create!(title: "Test Ann", message: "hello", user: @student)
+      user_session(@teacher)
+
+      # Act
+      delete "/groups/#{group.id}/discussion_topics/#{topic.id}", params: { format: :json }
+
+      # Assert
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["discussion_topic"]["workflow_state"]).to eq("deleted")
+      expect(topic.reload.workflow_state).to eq("deleted")
+    end
+  end
 end

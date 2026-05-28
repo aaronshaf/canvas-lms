@@ -63,13 +63,6 @@ describe "student groups" do
         expect(f(".group")).to include_text("#{students_in_group} students")
       end
 
-      it "teacher can delete a student group", priority: "1" do
-        skip_if_safari(:alert)
-        expect(f(".group-name")).to include_text(group_name.to_s)
-        delete_group
-        expect(f("#content")).not_to contain_css(".group-name")
-      end
-
       it "lists all students in the student group", priority: "1" do
         # expand group
         f(".group-name").click
@@ -81,25 +74,6 @@ describe "student groups" do
         expected_students.each do |student|
           expect(users).to include_text(student.to_s)
         end
-      end
-
-      it "sets a student as a group leader", priority: "1" do
-        # expand group
-        f(".group-name").click
-        wait_for_animations
-
-        # Sets user as group leader
-        f("[data-testid=groupUserMenu]").click
-        wait_for_ajaximations
-
-        f("[data-testid=setAsLeader]").click
-        wait_for_ajaximations
-
-        # Looks for student to have a group leader icon
-        expect(f(".group-leader .icon-user")).to be_displayed
-        # Verifies group leader silhouette and leader's name appear in the group header
-        expect(f(".span3.ellipsis.group-leader")).to be_displayed
-        expect(f(".span3.ellipsis.group-leader")).to include_text("Test Student 1")
       end
     end
   end

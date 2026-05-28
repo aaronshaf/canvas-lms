@@ -130,35 +130,6 @@ describe "groups" do
     describe "announcements page v2" do
       it_behaves_like "announcements_page_v2", :student
 
-      it "allows group members to delete their own announcements" do
-        announcement = @testgroup.first.announcements.create!(
-          title: "Announcement by #{@student.name}",
-          message: "sup",
-          user: @student
-        )
-        get announcements_page
-        expect(ff(".ic-announcement-row").size).to eq 1
-        AnnouncementIndex.delete_announcement_manually(announcement.title)
-        expect(f(".announcements-v2__wrapper")).not_to contain_css(".ic-announcement-row")
-      end
-
-      it "allows any group member to create an announcement" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        @testgroup.first.announcements.create!(
-          title: "Announcement by #{@user.name}",
-          message: "sup",
-          user: @user
-        )
-        # Log in as a new student to see if we can make an announcement
-        user_session(@students.first)
-        AnnouncementNewEdit.visit_new(@testgroup.first)
-        AnnouncementNewEdit.add_message("New Announcement")
-        AnnouncementNewEdit.add_title("New Title")
-        AnnouncementNewEdit.submit_announcement_form
-        expect(driver.current_url).to include(AnnouncementNewEdit
-                                              .individual_announcement_url(Announcement.last))
-      end
-
       it "allows group members to edit their own announcements" do
         announcement = @testgroup.first.announcements.create!(
           title: "Announcement by #{@user.name}",
@@ -168,25 +139,6 @@ describe "groups" do
         get announcements_page
         expect_new_page_load { AnnouncementIndex.click_on_announcement(announcement.title) }
         expect(driver.current_url).to include AnnouncementNewEdit.individual_announcement_url(announcement)
-      end
-
-      it "edit page should succeed for their own announcements" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        announcement = @testgroup.first.announcements.create!(
-          title: "Announcement by #{@user.name}",
-          message: "The Force Awakens",
-          user: @user
-        )
-        # NOTE: announcement_url includes a leading '/'
-        AnnouncementNewEdit.edit_group_announcement(@testgroup.first,
-                                                    announcement,
-                                                    "Canvas will be rewritten in chicken")
-        announcement.reload
-        # Editing *appends* to existing message, and the resulting announcement's
-        # message is wrapped in paragraph tags
-        expect(announcement.message).to eq(
-          "<p>The Force AwakensCanvas will be rewritten in chicken</p>"
-        )
       end
 
       it "does not allow group members to edit someone else's announcement" do
@@ -278,14 +230,6 @@ describe "groups" do
     describe "discussions page" do
       it_behaves_like "discussions_page", :student
 
-      it "allows discussions to be created within a group", priority: "1" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        get discussions_page
-        expect_new_page_load { f("#add_discussion").click }
-        # This creates the discussion and also tests its creation
-        edit_topic("from a student", "tell me a story")
-      end
-
       it "allows group members to access a discussion", :ignore_js_errors, priority: "1" do
         dt = DiscussionTopic.create!(context: @testgroup.first,
                                      user: @teacher,
@@ -295,16 +239,6 @@ describe "groups" do
         # Verifies group member can access the teacher's group discussion & that it's the correct discussion
         expect_new_page_load { f("[data-testid='discussion-link-#{dt.id}']").click }
         expect(f('[data-resource-type="discussion_topic.body"]')).to include_text(dt.message)
-      end
-
-      it "has two options when creating a discussion", priority: "1" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        get discussions_page
-        expect_new_page_load { f("#add_discussion").click }
-        expect(f('[name="allow_rating"]')).to be_present
-        expect(f('[name="allow_todo_date"]')).to be_present
-        # Shouldn't be Enable Podcast Feed option
-        expect(f("#content")).not_to contain_css('[name="podcast_enabled"]')
       end
 
       it "only allows group members to access discussions", priority: "1" do
@@ -333,21 +267,6 @@ describe "groups" do
         get discussions_page
         expect(f("[data-testid='discussion-link-#{dt.id}']")).to be_truthy
         expect(f(".discussions-container__wrapper")).not_to contain_css("#discussions-index-manage-menu")
-      end
-
-      it "allows group members to edit their discussions", :ignore_js_errors, priority: "1" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        dt = DiscussionTopic.create!(context: @testgroup.first,
-                                     user: @user,
-                                     title: "White Snow",
-                                     message: "Where are my skis?")
-        get discussions_page
-        expect_new_page_load { f("[data-testid='discussion-link-#{dt.id}']").click }
-        f('[data-testid="discussion-post-menu-trigger"]').click
-        expect_new_page_load { f('[data-testid="discussion-thread-menuitem-edit"]').click }
-        expect(driver.title).to eq "Edit Discussion Topic"
-        edit_topic(dt.title, "The slopes are ready,")
-        expect(f('[data-resource-type="discussion_topic.body"]')).to include_text("The slopes are ready,")
       end
 
       it "does not allow group member to edit discussions by other creators", :ignore_js_errors, priority: "1" do

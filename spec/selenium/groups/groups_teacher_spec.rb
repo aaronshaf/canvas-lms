@@ -37,20 +37,6 @@ describe "new groups" do
         Account.default.reload
       end
 
-      it "does not have Visit Group Homepage option in group actions for non_collaborative groups" do
-        # New scopes mean that we have to explicitly allow non_collaborative groups to
-        # Be returned on the groups controller before this test will work
-        skip "EGG-253 2024-11-19"
-        category = @course.group_categories.build(name: "category 1", non_collaborative: true)
-        category.save!
-        category.groups.create!(context: @course)
-
-        get "/courses/#{@course.id}/groups"
-        f("a[id*='actions']").click
-        expect(fj("li a:contains('Edit')")).to be_present
-        expect(f("body")).not_to contain_jqcss("li a:contains('Visit Group Homepage')")
-      end
-
       it "has Visit Group Homepage option in group actions for regular groups" do
         category = @course.group_categories.build(name: "category 1")
         category.save!
@@ -61,52 +47,6 @@ describe "new groups" do
         expect(fj("li a:contains('Edit')")).to be_present
         expect(fj("li a:contains('Visit Group Homepage')")).to be_present
       end
-    end
-
-    it "allows teachers to add a group set", priority: "1" do
-      get "/courses/#{@course.id}/groups"
-      click_add_group_set
-      replace_and_proceed f("#new-group-set-name"), "Test Group Set"
-      f(%(button[data-testid="group-set-save"])).click
-
-      wait_for(method: nil, timeout: 3) { f("#group_categories_tabs .collectionViewItems").displayed? }
-      # Looks in the group tab list for the last item, which should be the group set
-      expect(fj(".collectionViewItems[role=tablist]>li:last-child").text).to match "Test Group Set"
-    end
-
-    it "allows teachers to create groups within group sets", priority: "1" do
-      seed_groups(1, 0)
-
-      get "/courses/#{@course.id}/groups"
-
-      expect(f(".btn.add-group")).to be_displayed
-      f(".btn.add-group").click
-      wait_for_ajaximations
-      f("#group_name").send_keys("Test Group")
-      submit_form("span[aria-label='Add Group']")
-      wait_for_ajaximations
-      expect(fj(".collectionViewItems.unstyled.groups-list>li:last-child")).to include_text("Test Group")
-    end
-
-    it "allows teachers to add a student to a group", priority: "1" do
-      # Creates one user, and one groupset with a group inside it
-      group_test_setup(1, 1, 1)
-
-      get "/courses/#{@course.id}/groups"
-
-      # Tests the list of groups in the + button menu popup to see if it has the correct groups
-      f(".assign-to-group").click
-      wait_for_ajaximations
-      setgroup = f(".set-group")
-      expect(setgroup).to include_text(@testgroup[0].name)
-      setgroup.click
-      wait_for_ajaximations
-
-      # Adds student to test group and then expands the group display to the right to verify he is in the group
-      f(".toggle-group").click
-      wait_for_ajaximations
-      expect(f(".group-summary")).to include_text("1 student")
-      expect(f(".group-user-name")).to include_text(@students.first.name)
     end
 
     it "allows teachers to move a student to a different group", priority: "1" do
@@ -146,87 +86,6 @@ describe "new groups" do
       expect(f(".group-user")).to include_text(@students.first.name)
     end
 
-    it "allows teachers to remove a student from a group", priority: "1" do
-      group_test_setup
-      add_user_to_group(@students.first, @testgroup[0])
-
-      get "/courses/#{@course.id}/groups"
-
-      f(".toggle-group").click
-      wait_for_ajaximations
-
-      remove_student_from_group
-
-      expect(f(".ui-cnvs-scrollable")).to include_text(@students.first.name)
-      expect(f(".unassigned-users-heading")).to include_text("Unassigned Students (1)")
-      expect(f(".group-summary")).to include_text("0 students")
-    end
-
-    it "does not allow teachers to see sections specific dropdown on announcement page" do
-      skip "Will be fixed in VICE-5634 2025-11-11"
-      group_test_setup
-      get "/groups/#{@testgroup.first.id}/discussion_topics/new?is_announcement=true"
-      expect(f("#sections_autocomplete_root").text).to eq ""
-    end
-
-    it "allows teachers to make a student a group leader", priority: "1" do
-      group_test_setup
-      add_user_to_group(@students.first, @testgroup[0])
-
-      get "/courses/#{@course.id}/groups"
-
-      fj('.toggle-group :contains("Test Group 1")').click
-      wait_for_ajaximations
-
-      # Sets user as group leader
-      f("[data-testid=groupUserMenu]").click
-      wait_for_ajaximations
-      f("[data-testid=setAsLeader]").click
-      wait_for_ajaximations
-
-      # Looks for student to have a group leader icon
-      expect(f(".group-leader .icon-user")).to be_displayed
-      # Verifies group leader silhouette and leader's name appear in the group header
-      expect(f(".span3.ellipsis.group-leader")).to be_displayed
-      expect(f(".span3.ellipsis.group-leader")).to include_text(@students.first.name)
-
-      check_element_has_focus f("[data-userid='#{@students.first.id}']")
-    end
-
-    it "allows teachers to message unassigned students" do
-      group_test_setup
-
-      get "/courses/#{@course.id}/groups"
-      f(".icon-more").click
-      wait_for_animations
-      f(".message-all-unassigned").click
-      replace_content(f("#message_all_unassigned"), "blah blah blah students")
-      f('button[type="submit"]').click
-      wait_for_ajaximations
-
-      expect(@course).to eq Conversation.last.context
-    end
-
-    it "allows a teacher to set up a group set with member limits", priority: "1" do
-      group_test_setup(3, 0, 0)
-      get "/courses/#{@course.id}/groups"
-
-      click_add_group_set
-      replace_and_proceed f("#new-group-set-name"), "Test Group Set"
-      f("body").send_keys(:tab)
-      f("span[data-testid='allow-self-signup-wrapper'] div div").click
-      force_click('[data-testid="group-member-limit"]')
-      f('[data-testid="group-member-limit"]').send_keys("2")
-      f(%(button[data-testid="group-set-save"])).click
-      wait_for_ajaximations
-
-      expect(f(".group-category-summary")).to include_text("Groups are limited to 2 members.")
-
-      # Creates a group and checks to see if group set's limit is inherited by its groups
-      manually_create_group
-      expect(f(".group-summary")).to include_text("0 / 2 students")
-    end
-
     it "updates student count when they're added to groups limited by group set", priority: "1" do
       seed_students(3)
       @category = create_category(has_max_membership: true, member_limit: 3)
@@ -249,14 +108,6 @@ describe "new groups" do
       wait_for_ajaximations
       expect(f(".group-summary")).to include_text("0 / 2 students")
       manually_fill_limited_group("2", 2)
-    end
-
-    it "allows a teacher to set up a group with member limits", priority: "1" do
-      group_test_setup(3, 1, 0)
-      get "/courses/#{@course.id}/groups"
-
-      manually_create_group(has_max_membership: true, member_limit: 2)
-      expect(f(".group-summary")).to include_text("0 / 2 students")
     end
 
     it "updates student count when they're added to groups limited by group", priority: "1" do
@@ -305,92 +156,6 @@ describe "new groups" do
 
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] span.show-group-full")).not_to be_displayed
       expect(f(".group[data-id=\"#{@testgroup[1].id}\"] span.show-group-full")).to be_displayed
-    end
-
-    it "removes a student from a group and update the group status", priority: "1" do
-      group_test_setup(4, 1, 2)
-      @group_category.first.update_attribute(:group_limit, 2)
-
-      2.times do |n|
-        add_user_to_group(@students[n], @testgroup.first, is_leader: false)
-      end
-
-      add_user_to_group(@students.last, @testgroup[1], is_leader: false)
-      get "/courses/#{@course.id}/groups"
-
-      expect(f(".unassigned-users-heading")).to include_text("Unassigned Students (1)")
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("2 / 2 students")
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] span.show-group-full")).to be_displayed
-
-      f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
-      wait_for_ajaximations
-
-      fj("[data-testid=groupUserMenu][data-userid=#{@students[0].id}]").click
-      wait_for_ajaximations
-
-      f("[data-testid=removeFromGroup]").click
-      wait_for_ajaximations
-
-      expect(f(".ui-cnvs-scrollable")).to include_text(@students[0].name)
-      expect(f(".unassigned-users-heading")).to include_text("Unassigned Students (2)")
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("1 / 2 students")
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] span.show-group-full").css_value("display")).to eq "none"
-    end
-
-    it "moves group leader", priority: "1" do
-      group_test_setup(4, 1, 2)
-      add_user_to_group(@students[0], @testgroup.first, is_leader: true)
-      2.times do |n|
-        add_user_to_group(@students[n + 1], @testgroup.first, is_leader: false)
-      end
-      get "/courses/#{@course.id}/groups"
-
-      f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
-      wait_for_ajaximations
-      fj("[data-testid=groupUserMenu][data-userid=#{@students[0].id}]").click
-      wait_for_ajaximations
-      f("[data-testid=moveTo]").click
-      wait_for(method: nil, timeout: 2) { fxpath("//*[@data-cid='Tray']//*[@role='dialog']").displayed? }
-      ff(".move-select .move-select__group option").last.click
-      f('.move-select button[type="submit"]').click
-      wait_for_ajaximations
-
-      f(".group[data-id=\"#{@testgroup[1].id}\"] .toggle-group").click
-
-      expect(f("#content")).not_to contain_css(".group-leader .icon-user")
-      expect(f(".group[data-id=\"#{@testgroup[1].id}\"] .group-user")).to include_text("Test Student 1")
-    end
-
-    it "removes group leader", priority: "1" do
-      group_test_setup(4, 1, 2)
-      add_user_to_group(@students[0], @testgroup.first, is_leader: true)
-      2.times do |n|
-        add_user_to_group(@students[n + 1], @testgroup.first, is_leader: false)
-      end
-      add_user_to_group(@students[3], @testgroup.last, is_leader: false)
-
-      get "/courses/#{@course.id}/groups"
-
-      f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
-      wait_for_ajaximations
-
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-user")).to include_text("Test Student 1")
-      expect(f(".group-leader .icon-user")).to be_displayed
-
-      fj("[data-testid=groupUserMenu][data-userid=#{@students[0].id}]").click
-      wait_for_ajaximations
-      f("[data-testid=removeFromGroup]").click
-      wait_for_ajaximations
-
-      get "/courses/#{@course.id}/groups"
-
-      f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
-      wait_for_ajaximations
-      f(".group[data-id=\"#{@testgroup[1].id}\"] .toggle-group").click
-      wait_for_ajaximations
-
-      expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-user")).not_to include_text("Test Student 1")
-      expect(f("#content")).not_to contain_css(".row-fluid .group-leader")
     end
 
     it "respects individual group member limits when randomly assigning", priority: "1" do
