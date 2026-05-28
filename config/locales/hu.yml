@@ -15495,6 +15495,11 @@ hu:
             
             Canvas Hálózat
         course_starts_next_week: "Az Ön kurzusa jövő héten kezdődik"
+    default_email_address_changed: 
+      email: 
+        details_header: "Részletek:"
+        html: 
+          details_header: "Részletek:"
     dialog: 
       title: "Válasz küldése"
     discussion_mention: 
@@ -15513,6 +15518,11 @@ hu:
       footer: |-
           Ön azért kapta ezt az e-mailt, mert egy vagy több csoportnak is a tagja a Canvasban. Az e-mail értesítések beállításainak módosításához vagy leállításához látogasson el az alábbi oldalra:
           %{url}
+    email_address_removed: 
+      email: 
+        details_header: "Részletek:"
+        html: 
+          details_header: "Részletek:"
     enrollment_accepted: 
       email: 
         details: "Az aktuális beiratkozások listájának megtekintése:"
@@ -15929,6 +15939,11 @@ hu:
         subject: "Új fórum - %{discussion_topic}: %{course}"
       twitter: 
         subject: "Canvas-figyelmeztetés - Téma: %{discussion_topic}, %{course}"
+    new_email_address_added: 
+      email: 
+        details_header: "Részletek:"
+        html: 
+          details_header: "Részletek:"
     new_event_created: 
       email: 
         body: "Van egy új ütemezett esemény a/az %{course_name} kurzusban, amiről tudnia kell:"
