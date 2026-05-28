@@ -324,6 +324,61 @@ describe('saveMediaRecording', () => {
       },
     )
   })
+
+  it('omits X-CSRF-Token / X-Requested-With on cross-origin RCS requests', async () => {
+    rcsConfig.origin = 'https://rcs.example.com'
+    let kalturaHeaders, mediaObjectHeaders
+    server.use(
+      http.post('https://rcs.example.com/api/v1/services/kaltura_session', ({request}) => {
+        kalturaHeaders = request.headers
+        return HttpResponse.json(mediaServerSession())
+      }),
+      http.post('https://rcs.example.com/api/media_objects', ({request}) => {
+        mediaObjectHeaders = request.headers
+        return HttpResponse.json({data: 'media object data'})
+      }),
+    )
+    return saveMediaRecording(
+      {file: 'thing'},
+      rcsConfig,
+      () => {},
+      () => {},
+    ).then(async uploader => {
+      uploader.dispatchEvent('K5.complete', {}, uploader)
+      await waitFor(() => expect(mediaObjectHeaders).toBeDefined())
+      expect(kalturaHeaders.get('X-CSRF-Token')).toBeNull()
+      expect(kalturaHeaders.get('X-Requested-With')).toBeNull()
+      expect(mediaObjectHeaders.get('X-CSRF-Token')).toBeNull()
+      expect(mediaObjectHeaders.get('X-Requested-With')).toBeNull()
+    })
+  })
+
+  it('sends X-CSRF-Token / X-Requested-With on same-origin Canvas requests', async () => {
+    delete rcsConfig.origin
+    delete rcsConfig.headers
+    let kalturaHeaders, mediaObjectHeaders
+    server.use(
+      http.post('/api/v1/services/kaltura_session', ({request}) => {
+        kalturaHeaders = request.headers
+        return HttpResponse.json(mediaServerSession())
+      }),
+      http.post('/api/v1/media_objects', ({request}) => {
+        mediaObjectHeaders = request.headers
+        return HttpResponse.json({data: 'media object data'})
+      }),
+    )
+    return saveMediaRecording(
+      {file: 'thing'},
+      rcsConfig,
+      () => {},
+      () => {},
+    ).then(async uploader => {
+      uploader.dispatchEvent('K5.complete', {}, uploader)
+      await waitFor(() => expect(mediaObjectHeaders).toBeDefined())
+      expect(kalturaHeaders.get('X-Requested-With')).toBe('XMLHttpRequest')
+      expect(mediaObjectHeaders.get('X-Requested-With')).toBe('XMLHttpRequest')
+    })
+  })
 })
 
 describe('saveClosedCaptions', () => {

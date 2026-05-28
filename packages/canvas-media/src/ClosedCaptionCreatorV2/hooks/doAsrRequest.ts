@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from 'axios'
+import {getCsrfToken} from '../../shared/getCsrfToken'
 import type {CaptionUploadConfig} from '../types'
 
 export async function doAsrRequest(
@@ -34,5 +34,18 @@ export async function doAsrRequest(
     throw new Error('Either mediaObjectId or attachmentId must be provided')
   }
 
-  await axios.post(url, {locale})
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify({locale}),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status code ${response.status}`)
+  }
 }

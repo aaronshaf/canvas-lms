@@ -17,8 +17,66 @@
  */
 
 import {K5Uploader} from '@instructure/k5uploader'
-import axios from 'axios'
 import FileSizeError from './shared/FileSizeError'
+import {getCsrfToken} from './shared/getCsrfToken'
+import {isSameOrigin} from './shared/isSameOrigin'
+
+function xhrPostWithProgress(url, body, headers, onUploadProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url, true)
+    xhr.setRequestHeader('Content-Type', 'application/json')
+    if (isSameOrigin(url)) {
+      xhr.setRequestHeader('X-CSRF-Token', getCsrfToken())
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+    }
+    if (headers) {
+      Object.entries(headers).forEach(([key, val]) => xhr.setRequestHeader(key, val))
+    }
+    if (onUploadProgress) {
+      xhr.upload.addEventListener('progress', e =>
+        onUploadProgress({loaded: e.loaded, total: e.total}),
+      )
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null)
+        } catch (e) {
+          reject(e)
+        }
+      } else {
+        const error = new Error(`Request failed with status code ${xhr.status}`)
+        error.response = {status: xhr.status}
+        reject(error)
+      }
+    }
+    xhr.onerror = () => reject(new Error('Network error'))
+    xhr.send(JSON.stringify(body))
+  })
+}
+
+async function fetchJson(url, options) {
+  const sameOriginHeaders = isSameOrigin(url)
+    ? {'X-CSRF-Token': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest'}
+    : {}
+  const response = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      ...sameOriginHeaders,
+      ...options?.headers,
+    },
+  })
+  if (!response.ok) {
+    const error = new Error(`Request failed with status code ${response.status}`)
+    error.response = {status: response.status}
+    throw error
+  }
+  const text = await response.text()
+  const data = text ? JSON.parse(text) : null
+  return {data}
+}
 
 export const VIDEO_SIZE_OPTIONS = {height: '432px', width: '768px'}
 const STARTING_PROGRESS_VALUE = 33
@@ -92,21 +150,27 @@ function addUploaderFileCompleteEventListeners(uploader, rcsConfig, file, done, 
     }
 
     try {
-      const config = {
-        onUploadProgress: progressEvent => {
-          const startingValue = 2 * STARTING_PROGRESS_VALUE
-          const percentUploaded =
-            Math.round(progressEvent.loaded / progressEvent.total) * (STARTING_PROGRESS_VALUE + 1)
-          if (onProgress) {
+      const onUploadProgress = onProgress
+        ? progressEvent => {
+            const startingValue = 2 * STARTING_PROGRESS_VALUE
+            const percentUploaded =
+              progressEvent.total > 0
+                ? Math.round(
+                    (progressEvent.loaded / progressEvent.total) * (STARTING_PROGRESS_VALUE + 1),
+                  )
+                : 0
             onProgress(startingValue + percentUploaded)
           }
-        },
-        headers: rcsConfig.headers,
-      }
+        : null
 
-      const canvasMediaObject = await axios.post(mediaObjectsUrl(rcsConfig), body, config)
+      const mediaObjectJson = await xhrPostWithProgress(
+        mediaObjectsUrl(rcsConfig),
+        body,
+        rcsConfig.headers,
+        onUploadProgress,
+      )
       uploader.destroy()
-      doDone(done, null, {mediaObject: canvasMediaObject.data, uploadedFile: file})
+      doDone(done, null, {mediaObject: mediaObjectJson, uploadedFile: file})
     } catch (ex) {
       uploader.destroy()
       doDone(done, ex, {uploadedFile: file})
@@ -122,11 +186,10 @@ export default async function saveMediaRecording(file, rcsConfig, done, onProgre
     // is the same for the RCS as Canvas. Doing it this way means
     // saveMediaRecording can be called w/o having to import anything
     // from @instructure/canvas-rce
-    const mediaServerSession = await axios({
-      method: 'POST',
-      url: `${rcsConfig.origin || ''}/api/v1/services/kaltura_session?include_upload_config=1`,
-      headers: rcsConfig.headers,
-    })
+    const mediaServerSession = await fetchJson(
+      `${rcsConfig.origin || ''}/api/v1/services/kaltura_session?include_upload_config=1`,
+      {method: 'POST', headers: rcsConfig.headers},
+    )
     if (onProgress) {
       onProgress(STARTING_PROGRESS_VALUE)
     }
@@ -214,18 +277,15 @@ function executeSubtitlesRequests({url, subtitles, rcsConfig, maxBytes}) {
   const subtitlesPromises = subtitles.map(st => subtitleToPromise(st, maxBytes))
   return new Promise((resolve, reject) => {
     Promise.all(subtitlesPromises)
-      .then(closed_captions => {
-        axios({
+      .then(closed_captions =>
+        fetchJson(url, {
           method: rcsConfig.method || 'PUT',
-          url,
-          headers: rcsConfig.headers,
-          data: closed_captions,
+          headers: {'Content-Type': 'application/json', ...rcsConfig.headers},
+          body: JSON.stringify(closed_captions),
         })
           .then(resolve)
-          .catch(e => {
-            reject(e)
-          })
-      })
+          .catch(reject),
+      )
       .catch(e => reject(e))
   })
 }
