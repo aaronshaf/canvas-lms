@@ -17,8 +17,7 @@
  */
 
 import {createActions, createAction} from 'redux-actions'
-import axios from 'axios'
-import {asAxios, getPrefetchedXHR} from '@canvas/util/xhr'
+import {asAxios, getPrefetchedXHR, defaultFetchOptions} from '@canvas/util/xhr'
 import {
   getContextCodesFromState,
   transformApiToInternalItem,
@@ -139,7 +138,7 @@ export function getFirstNewActivityDate(fromMoment) {
       observed_user_id,
     })
 
-    const request = asAxios(getPrefetchedXHR(url)) || axios.get(url)
+    const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
 
     return request
       .then(response => {
@@ -207,7 +206,7 @@ export function getCourseList() {
       }
     }
     const url = `/api/v1/dashboard/dashboard_cards${observeeParam}`
-    const request = asAxios(getPrefetchedXHR(url)) || axios.get(url)
+    const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
     return request
   }
 }
@@ -385,7 +384,7 @@ function getWayFutureItem(fromMoment) {
       order: 'desc',
       per_page: 1,
     })
-    const request = asAxios(getPrefetchedXHR(url)) || axios.get(url)
+    const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
 
     return request
       .then(response => {
@@ -425,7 +424,7 @@ function getWayPastItem(fromMoment) {
       order: 'asc',
       per_page: 1,
     })
-    const request = asAxios(getPrefetchedXHR(url)) || axios.get(url)
+    const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
 
     return request
       .then(response => {
@@ -443,13 +442,13 @@ function getWayPastItem(fromMoment) {
 // --------------------------------------------
 export function sendBasicFetchRequest(baseUrl, params = {}) {
   const url = buildURL(baseUrl, params)
-  return asAxios(getPrefetchedXHR(url)) || axios.get(url)
+  return asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
 }
 
 export function sendFetchRequest(loadingOptions) {
   const [urlPrefix, {params}] = fetchParams(loadingOptions)
   const url = buildURL(urlPrefix, params)
-  const request = asAxios(getPrefetchedXHR(url)) || axios.get(url)
+  const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
   return request.then(response => handleFetchResponse(loadingOptions, response))
   // no .catch: it's up to the sagas to handle errors
 }

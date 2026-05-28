@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from 'axios'
 import parseLinkHeader from '@canvas/parse-link-header'
 import {put, select, call, all, takeEvery} from 'redux-saga/effects'
 import {getFirstLoadedMoment, getLastLoadedMoment} from '../utilities/dateUtils'
@@ -88,7 +87,7 @@ function* loadingLoop(fromMomentFunction, actionCreator, opts = {}) {
       if (currentState.singleCourse) {
         const context_codes = getContextCodesFromState(currentState)
         if (context_codes) {
-          opts.extraParams = {...(opts.extraParams || {}), context_codes}
+          opts.extraParams = {...opts.extraParams, context_codes}
         }
       }
       const fromMoment = fromMomentFunction(currentState)
@@ -144,7 +143,7 @@ export function* loadGradesSaga(action) {
     let loadingUrl = '/api/v1/users/self/courses'
     const gradesData = {}
     while (loadingUrl != null) {
-      const response = yield call(axios.get, loadingUrl, loadingOptions)
+      const response = yield call(sendBasicFetchRequest, loadingUrl, loadingOptions.params)
       response.data.forEach(apiData => {
         const internalGrade = transformApiToInternalGrade(apiData)
         gradesData[internalGrade.courseId] = internalGrade

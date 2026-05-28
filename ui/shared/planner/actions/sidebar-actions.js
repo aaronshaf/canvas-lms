@@ -17,8 +17,7 @@
  */
 
 import {createActions} from 'redux-actions'
-import axios from 'axios'
-import {asAxios, getPrefetchedXHR} from '@canvas/util/xhr'
+import {asAxios, getPrefetchedXHR, defaultFetchOptions} from '@canvas/util/xhr'
 import {transformApiToInternalItem, findNextLink, buildURL} from '../utilities/apiUtils'
 import {identifiableThunk} from '../utilities/redux-identifiable-thunk'
 import {getCourseList, gotCourseList} from './loading-actions'
@@ -65,8 +64,7 @@ export const sidebarLoadNextItems = identifiableThunk(() => (dispatch, getState)
         `user_${ENV.current_user_id}`,
       ]
     }
-    return axios
-      .get(getState().sidebar.nextUrl, {params})
+    return asAxios(fetch(buildURL(getState().sidebar.nextUrl, params), defaultFetchOptions()))
       .then(response => {
         return handleSidebarLoadingResponse(response, dispatch, getState)
       })
@@ -100,7 +98,7 @@ export const sidebarLoadInitialItems = (currentMoment, course_id) => (dispatch, 
         }
       }
       const url = buildURL('/api/v1/planner/items', params)
-      return (asAxios(getPrefetchedXHR(url)) || axios(url)).then(response => {
+      return asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions())).then(response => {
         return handleSidebarLoadingResponse(response, dispatch, getState)
       })
     })

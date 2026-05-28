@@ -16,10 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {createActions, createAction} from 'redux-actions'
-import axios from 'axios'
-import {asAxios, getPrefetchedXHR} from '@canvas/util/xhr'
+import doFetchApi from '@canvas/do-fetch-api-effect'
+import {asAxios, getPrefetchedXHR, defaultFetchOptions} from '@canvas/util/xhr'
 import parseLinkHeader from '@canvas/parse-link-header'
-import configureAxios from '../utilities/configureAxios'
 import {alert} from '../utilities/alertUtils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {
@@ -37,8 +36,6 @@ import {
 } from '../utilities/apiUtils'
 
 const I18n = createI18nScope('planner')
-
-configureAxios(axios)
 
 export const {
   initialOptions,
@@ -98,19 +95,11 @@ export * from './loading-actions'
 export * from './sidebar-actions'
 
 function saveExistingPlannerItem(apiItem) {
-  return axios({
-    method: 'put',
-    url: `/api/v1/planner_notes/${apiItem.id}`,
-    data: apiItem,
-  })
+  return doFetchApi({path: `/api/v1/planner_notes/${apiItem.id}`, method: 'PUT', body: apiItem})
 }
 
 function saveNewPlannerItem(apiItem) {
-  return axios({
-    method: 'post',
-    url: '/api/v1/planner_notes',
-    data: apiItem,
-  })
+  return doFetchApi({path: '/api/v1/planner_notes', method: 'POST', body: apiItem})
 }
 
 export const getNextOpportunities = () => {
@@ -123,10 +112,8 @@ export const getNextOpportunities = () => {
     }
     dispatch(startLoadingOpportunities())
     if (state.opportunities.nextUrl) {
-      return axios({
-        method: 'get',
-        url: state.opportunities.nextUrl,
-      })
+      const nextUrl = state.opportunities.nextUrl
+      return asAxios(getPrefetchedXHR(nextUrl) ?? fetch(nextUrl, defaultFetchOptions()))
         .then(response => {
           if (parseLinkHeader(getResponseHeader(response, 'link')).next) {
             dispatch(
@@ -163,7 +150,7 @@ export const getInitialOpportunities = () => {
           ? courses.map(c => c.id).sort((a, b) => a.localeCompare(b, 'en', {numeric: true}))
           : undefined,
       })
-    const request = asAxios(getPrefetchedXHR(url)) || axios({method: 'get', url})
+    const request = asAxios(getPrefetchedXHR(url) ?? fetch(url, defaultFetchOptions()))
 
     return request
       .then(response => {
@@ -192,7 +179,7 @@ export const dismissOpportunity = (id, plannerOverride) => {
       : saveNewPlannerOverride(apiOverride)
     promise = promise
       .then(response => {
-        dispatch(dismissedOpportunity(response.data))
+        dispatch(dismissedOpportunity(response.json))
       })
       .catch(() => {
         alert(I18n.t('An error occurred attempting to dismiss the opportunity.'), true)
@@ -211,7 +198,7 @@ export const savePlannerItem = plannerItem => {
     promise = promise
       .then(response => {
         apiItem = transformPlannerNoteApiToInternalItem(
-          response.data,
+          response.json,
           getState().courses,
           getState().timeZone,
         )
@@ -230,13 +217,10 @@ export const savePlannerItem = plannerItem => {
 export const deletePlannerItem = plannerItem => {
   return (dispatch, getState) => {
     dispatch(deletingPlannerItem(plannerItem))
-    const promise = axios({
-      method: 'delete',
-      url: `/api/v1/planner_notes/${plannerItem.id}`,
-    })
+    const promise = doFetchApi({path: `/api/v1/planner_notes/${plannerItem.id}`, method: 'DELETE'})
       .then(response =>
         transformPlannerNoteApiToInternalItem(
-          response.data,
+          response.json,
           getState().courses,
           getState().timeZone,
         ),
@@ -258,19 +242,15 @@ export const cancelEditingPlannerItem = () => {
 }
 
 function saveExistingPlannerOverride(apiOverride) {
-  return axios({
-    method: 'put',
-    url: `/api/v1/planner/overrides/${apiOverride.id}`,
-    data: apiOverride,
+  return doFetchApi({
+    path: `/api/v1/planner/overrides/${apiOverride.id}`,
+    method: 'PUT',
+    body: apiOverride,
   })
 }
 
 function saveNewPlannerOverride(apiOverride) {
-  return axios({
-    method: 'post',
-    url: '/api/v1/planner/overrides',
-    data: apiOverride,
-  })
+  return doFetchApi({path: '/api/v1/planner/overrides', method: 'POST', body: apiOverride})
 }
 
 export const togglePlannerItemCompletion = plannerItem => {
@@ -288,7 +268,7 @@ export const togglePlannerItemCompletion = plannerItem => {
       : saveNewPlannerOverride(apiOverride)
     promise = promise
       .then(response => ({
-        item: updateOverrideDataOnItem(plannerItem, response.data),
+        item: updateOverrideDataOnItem(plannerItem, response.json),
         isNewItem: false,
         wasToggled: true,
       }))

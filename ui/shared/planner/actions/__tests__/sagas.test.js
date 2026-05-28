@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from 'axios'
 import moment from 'moment-timezone'
 import {select, call, put} from 'redux-saga/effects'
 import {
@@ -191,30 +190,26 @@ describe('loadGradesSaga', () => {
   it('passes correct parameters to the api', () => {
     const generator = loadGradesSaga({payload: null})
     expect(generator.next().value).toEqual(
-      call(axios.get, '/api/v1/users/self/courses', {
-        params: {
-          include: ['total_scores', 'current_grading_period_scores', 'restrict_quantitative_data'],
-          enrollment_type: 'student',
-          enrollment_state: 'active',
-        },
+      call(sendBasicFetchRequest, '/api/v1/users/self/courses', {
+        include: ['total_scores', 'current_grading_period_scores', 'restrict_quantitative_data'],
+        enrollment_type: 'student',
+        enrollment_state: 'active',
       }),
     )
   })
   it('passes correct observee parameters to the api', () => {
     const generator = loadGradesSaga({payload: '17'})
     expect(generator.next().value).toEqual(
-      call(axios.get, '/api/v1/users/self/courses', {
-        params: {
-          include: [
-            'total_scores',
-            'current_grading_period_scores',
-            'restrict_quantitative_data',
-            'observed_users',
-          ],
-          enrollment_type: 'student',
-          enrollment_state: 'active',
-          observed_user_id: '17',
-        },
+      call(sendBasicFetchRequest, '/api/v1/users/self/courses', {
+        include: [
+          'total_scores',
+          'current_grading_period_scores',
+          'restrict_quantitative_data',
+          'observed_users',
+        ],
+        enrollment_type: 'student',
+        enrollment_state: 'active',
+        observed_user_id: '17',
       }),
     )
   })
@@ -227,7 +222,7 @@ describe('loadGradesSaga', () => {
         headers: {link: '<some-url>; rel="next"'},
         data: [],
       }).value,
-    ).toEqual(call(axios.get, expect.anything(), expect.anything()))
+    ).toEqual(call(sendBasicFetchRequest, expect.anything(), expect.anything()))
     generator.next({headers: {}, data: []}) // put
     expect(generator.next().done).toBe(true)
   })
