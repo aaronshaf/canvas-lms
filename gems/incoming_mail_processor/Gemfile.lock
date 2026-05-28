@@ -285,7 +285,7 @@ GEM
     uri (1.1.1)
     useragent (0.16.11)
     webrick (1.9.2)
-    zeitwerk (2.7.5)
+    zeitwerk (2.8.2)
 
 PLATFORMS
   aarch64-linux

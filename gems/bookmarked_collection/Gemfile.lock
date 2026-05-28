@@ -167,7 +167,7 @@ GEM
     uri (1.1.1)
     useragent (0.16.11)
     will_paginate (4.0.1)
-    zeitwerk (2.7.5)
+    zeitwerk (2.8.2)
 
 PLATFORMS
   aarch64-linux
