@@ -379,6 +379,14 @@ describe AuthenticationMethods do
         expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
       end
 
+      it "raises AccessTokenError when the real_user has no pseudonym in the target account" do
+        @real_user.pseudonyms.destroy_all
+        token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Test Access Token")
+        controller = setup_with_token(token)
+
+        expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+      end
+
       it "accepts as_user_id on a masquerading token if masquerade matches" do
         token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Test Access Token")
         controller = setup_with_token(token)
