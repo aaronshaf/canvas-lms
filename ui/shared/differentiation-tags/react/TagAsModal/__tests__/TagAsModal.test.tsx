@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor, fireEvent, act} from '@testing-library/react'
+import {render, screen, waitFor, fireEvent, act, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -176,10 +176,15 @@ describe('TagAsModal', () => {
     it('renders multi-variant categories as grouped options', async () => {
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      // SimpleSelect renders options asynchronously after click
-      expect(await screen.findByText(/Reading Groups/i)).toBeInTheDocument()
-      expect(await screen.findByText('Variant A')).toBeInTheDocument()
-      expect(await screen.findByText('Variant B')).toBeInTheDocument()
+      // findByRole retries until the portal and its children finish rendering.
+      // SimpleSelect.Group renders its label as aria-label on the group element,
+      // not as visible text, so getByRole('group') is required over findByText.
+      const listbox = await screen.findByRole('listbox')
+      expect(
+        await within(listbox).findByRole('group', {name: /Reading Groups/i}),
+      ).toBeInTheDocument()
+      expect(await within(listbox).findByRole('option', {name: 'Variant A'})).toBeInTheDocument()
+      expect(await within(listbox).findByRole('option', {name: 'Variant B'})).toBeInTheDocument()
       await user.keyboard('{Escape}')
     })
 
@@ -194,7 +199,8 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [singleTagCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      fireEvent.click(await screen.findByText('Honors'))
+      const listbox1 = await screen.findByRole('listbox')
+      fireEvent.click(within(listbox1).getByRole('option', {name: 'Honors'}))
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
@@ -215,7 +221,8 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      fireEvent.click(await screen.findByText('Variant A'))
+      const listbox2 = await screen.findByRole('listbox')
+      fireEvent.click(within(listbox2).getByRole('option', {name: 'Variant A'}))
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
