@@ -426,4 +426,12 @@ describe AttachmentHelper do
       end
     end
   end
+
+  describe "#sanitized_verifier" do
+    it "rejects a verifier containing characters outside the slug charset" do
+      params[:verifier] = "<script>alert(1)</script>"
+
+      expect(sanitized_verifier).to be_nil
+    end
+  end
 end

@@ -19,6 +19,19 @@
 #
 
 module AttachmentHelper
+  # Attachment verifiers are CanvasSlug.generate_securish_uuid values
+  # (SecureRandom.alphanumeric(40)). Reject anything that doesn't match that
+  # shape so the value is safe to render regardless of how a downstream
+  # caller consumes it. Returns nil when params[:verifier] is missing or
+  # malformed.
+  VALID_VERIFIER_FORMAT = /\A[A-Za-z0-9]{1,64}\z/
+  private_constant :VALID_VERIFIER_FORMAT
+
+  def sanitized_verifier
+    value = params[:verifier].to_s
+    VALID_VERIFIER_FORMAT.match?(value) ? value : nil
+  end
+
   # returns a string of html attributes suitable for use with $.loadDocPreview
   def doc_preview_attributes(attachment, attrs = {})
     url_opts = {
@@ -43,7 +56,7 @@ module AttachmentHelper
         attachment.id,
         {
           access_token: params[:access_token],
-          verifier: params[:verifier],
+          verifier: sanitized_verifier,
           location: params[:location]
         }
       )
