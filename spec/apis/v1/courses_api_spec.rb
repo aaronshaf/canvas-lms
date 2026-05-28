@@ -1724,6 +1724,29 @@ describe CoursesController, type: :request do
           expect(@course.time_zone.tzinfo.name).to eq "Pacific/Honolulu"
         end
 
+        # Gap fill for spec/selenium/courses/course_settings_spec.rb:275
+        # ("renders a self_enrollment_code when self_enrollment is enabled")
+        it "generates a self_enrollment_code on the course when self_enrollment is enabled" do
+          # Arrange
+          @course.root_account.allow_self_enrollment!
+          expect(@course.self_enrollment_code).to be_nil
+
+          # Act
+          api_call(
+            :put,
+            @path,
+            @params,
+            { "course" => { "self_enrollment" => true } }
+          )
+          @course.reload
+
+          # Assert
+          expect(@course.self_enrollment).to be_truthy
+          expect(@course.self_enrollment_code).not_to be_nil
+          expect(@course.self_enrollment_code).to match(/\A[ABCDEFGHJKLMNPRTWXY346789]{6}\z/)
+          expect(@course.self_enrollment_code).not_to eq "self_enrollment_code"
+        end
+
         it "is not able to update default_view to arbitrary values" do
           json = api_call(:put, @path, @params, { "course" => { "default_view" => "somethingsilly" } }, {}, { expected_status: 400 })
           expect(json["errors"]["default_view"].first["message"]).to eq "Home page is not valid"
