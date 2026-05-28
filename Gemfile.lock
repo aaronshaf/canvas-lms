@@ -374,7 +374,7 @@ GEM
       activerecord (>= 5.2)
       activesupport (>= 5.2)
     ast (2.4.3)
-    auth-sanitizer (0.1.2)
+    auth-sanitizer (0.1.4)
       version_gem (~> 1.1, >= 1.1.9)
     aws-eventstream (1.4.0)
     aws-partitions (1.1253.0)
