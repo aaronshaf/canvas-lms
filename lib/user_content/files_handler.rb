@@ -89,8 +89,8 @@ module UserContent
                         end
         return uri unless @attachment
 
-        if match.obj_id != @attachment.id.to_s
-          uri.path = uri.path.gsub(%r{/(files|media_attachments_iframe)/#{match.obj_id}/}, "/\\1/#{@attachment.id}/")
+        if match.obj_id.to_s != @attachment.id.to_s
+          uri.path = uri.path.gsub(%r{/(files|media_attachments_iframe)/#{match.obj_id}}, "/\\1/#{@attachment.id}")
         end
       end
       uri

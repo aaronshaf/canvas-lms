@@ -60,8 +60,55 @@ describe UserContent::FilesHandler do
     let(:preloaded_attachments) { {} }
 
     describe "#processed_url" do
-      it "delegates to ProcessedUrl" do
-        expect(processed_url).to match(/#{attachment.context_type.tableize}/)
+      it "includes wrap=1" do
+        query_string = processed_url.split("?")[1]
+        expect(Rack::Utils.parse_nested_query(query_string)["wrap"]).to eq "1"
+      end
+
+      it "includes verifier query param" do
+        attachment.root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+        query_string = processed_url.split("?")[1]
+        expect(Rack::Utils.parse_nested_query(query_string)).to have_key("verifier")
+      end
+
+      it "excludes verifiers in returned URL when disable_adding_uuid_verifier_in_api is enabled" do
+        processed_url_with_no_verifiers = UserContent::FilesHandler.new(
+          match: uri_match, context: attachment.context, user: current_user, is_public:, in_app:
+        ).processed_url
+
+        query_string = processed_url_with_no_verifiers.split("?")[1]
+        expect(Rack::Utils.parse_nested_query(query_string)).not_to have_key("verifier")
+      end
+
+      context "is in_app" do
+        let(:in_app) { true }
+
+        it "does not include verifier" do
+          query_string = processed_url.split("?")[1]
+          expect(Rack::Utils.parse_nested_query(query_string)).not_to have_key("verifier")
+        end
+      end
+
+      context "and match is a preview" do
+        let(:match_part) { "preview" }
+
+        it "is a preview url" do
+          expect(processed_url).to match(%r{files/(\d)+/preview})
+        end
+
+        it "does not include wrap param" do
+          query_string = processed_url.split("?")[1]
+          expect(Rack::Utils.parse_nested_query(query_string)).not_to have_key("wrap")
+        end
+      end
+
+      context "when no_verifiers is true" do
+        let(:no_verifiers) { true }
+
+        it "does not include verifier" do
+          query_string = processed_url.split("?")[1]
+          expect(Rack::Utils.parse_nested_query(query_string)).not_to have_key("verifier")
+        end
       end
 
       context "assessment question attachments linked from deleted assessment question" do
@@ -154,23 +201,44 @@ describe UserContent::FilesHandler do
           expect(processed_url).to include "/courses/#{course.id}/files/#{attachment.id}/"
         end
 
-        it "when replaced the replacement attachment url will be returned" do
-          current_user = user_factory
-          replacement_attachment = attachment_with_context(course, { filename: "hello" })
-          attachment.update!(replacement_attachment_id: replacement_attachment.id, file_state: "deleted", deleted_at: Time.zone.now)
-          preloaded_attachments = {}
-          preloaded_attachments[attachment.id] = attachment
+        context "with replaced attachments" do
+          before do
+            @current_user = user_factory
+            @replacement_attachment = attachment_with_context(course, { filename: "hello" })
+            attachment.update!(replacement_attachment_id: @replacement_attachment.id, file_state: "deleted", deleted_at: Time.zone.now)
+            preloaded_attachments = {}
+            preloaded_attachments[attachment.id] = attachment
+          end
 
-          processed_url = UserContent::FilesHandler.new(
-            match: uri_match,
-            context: course,
-            user: current_user,
-            preloaded_attachments:,
-            is_public:,
-            in_app:
-          ).processed_url
+          it "the correct attachment will be returned" do
+            processed_url = UserContent::FilesHandler.new(
+              match: uri_match,
+              context: course,
+              user: @current_user,
+              preloaded_attachments:,
+              is_public:,
+              in_app:
+            ).processed_url
 
-          expect(processed_url).to include "/courses/#{course.id}/files/#{replacement_attachment.id}/"
+            expect(processed_url).to include "/courses/#{course.id}/files/#{@replacement_attachment.id}/"
+          end
+
+          context "when the url doesn't have a slash at the end" do
+            let(:match_url) { "/courses/#{attachment.context_id}/files/#{attachment.id}?wrap=1" }
+
+            it "replaces the attachment correctly" do
+              processed_url = UserContent::FilesHandler.new(
+                match: uri_match,
+                context: course,
+                user: @current_user,
+                preloaded_attachments:,
+                is_public:,
+                in_app:
+              ).processed_url
+
+              expect(processed_url).to include "/courses/#{course.id}/files/#{@replacement_attachment.id}"
+            end
+          end
         end
       end
 
