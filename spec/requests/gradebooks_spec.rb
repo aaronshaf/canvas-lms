@@ -155,4 +155,85 @@ describe "Access Different Gradebooks Environments" do
       end
     end
   end
+
+  describe "GET #show (default gradebook)" do
+    describe "js_env GRADEBOOK_OPTIONS" do
+      describe "course_settings.allow_final_grade_override" do
+        it "is true when final_grades_override FF is enabled and course setting is on" do
+          # Arrange
+          course = course_factory(active_all: true)
+          teacher = course_with_teacher(course:, active_all: true).user
+          Account.site_admin.disable_feature!(:performance_improvements_for_gradebook)
+          course.enable_feature!(:final_grades_override)
+          course.update!(allow_final_grade_override: true)
+          user_session(teacher)
+
+          # Act
+          get "/courses/#{course.id}/gradebook"
+          js_env = js_env_from_response(response)
+
+          # Assert
+          gradebook_options = js_env.fetch("GRADEBOOK_OPTIONS")
+          course_settings = gradebook_options.fetch("course_settings")
+          expect(course_settings.fetch("allow_final_grade_override")).to be true
+        end
+
+        it "is false when final_grades_override FF is enabled but course setting is off" do
+          # Arrange
+          course = course_factory(active_all: true)
+          teacher = course_with_teacher(course:, active_all: true).user
+          Account.site_admin.disable_feature!(:performance_improvements_for_gradebook)
+          course.enable_feature!(:final_grades_override)
+          course.update!(allow_final_grade_override: false)
+          user_session(teacher)
+
+          # Act
+          get "/courses/#{course.id}/gradebook"
+          js_env = js_env_from_response(response)
+
+          # Assert
+          gradebook_options = js_env.fetch("GRADEBOOK_OPTIONS")
+          course_settings = gradebook_options.fetch("course_settings")
+          expect(course_settings.fetch("allow_final_grade_override")).to be false
+        end
+      end
+    end
+  end
+
+  describe "GET #history (gradebook history)" do
+    describe "js_env OVERRIDE_GRADES_ENABLED" do
+      it "is true when final_grades_override FF is enabled and course allow_final_grade_override is on" do
+        # Arrange
+        course = course_factory(active_all: true)
+        teacher = course_with_teacher(course:, active_all: true).user
+        Account.site_admin.disable_feature!(:performance_improvements_for_gradebook)
+        course.enable_feature!(:final_grades_override)
+        course.update!(allow_final_grade_override: true)
+        user_session(teacher)
+
+        # Act
+        get "/courses/#{course.id}/gradebook/history"
+        js_env = js_env_from_response(response)
+
+        # Assert
+        expect(js_env.fetch("OVERRIDE_GRADES_ENABLED")).to be true
+      end
+
+      it "is false when final_grades_override FF is disabled" do
+        # Arrange
+        course = course_factory(active_all: true)
+        teacher = course_with_teacher(course:, active_all: true).user
+        Account.site_admin.disable_feature!(:performance_improvements_for_gradebook)
+        course.update!(allow_final_grade_override: true)
+        user_session(teacher)
+
+        # Act
+        get "/courses/#{course.id}/gradebook/history"
+        js_env = js_env_from_response(response)
+
+        # Assert
+        expect(js_env.fetch("OVERRIDE_GRADES_ENABLED")).to be false
+      end
+    end
+  end
 end
