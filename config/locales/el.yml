@@ -9560,6 +9560,9 @@ el:
         subject: "<mrk mid=\"6603\" mtype=\"seg\">Νέα Συζήτηση - %{discussion_topic}:</mrk> <mrk mid=\"6604\" mtype=\"seg\">%{course}</mrk>"
       twitter: 
         subject: "<mrk mid=\"6148\" mtype=\"seg\">Ειδοποίηση Canvas - Θέμα:</mrk> <mrk mid=\"6149\" mtype=\"seg\">%{discussion_topic}, %{course}</mrk>"
+    new_email_address_added: 
+      email: 
+        details_header: "Λεπτομέρειες:"
     new_event_created: 
       email: 
         body: "Έχει προγραμματιστεί ένα νέο γεγονός που πρέπει να γνωρίζετε για το μάθημα %{course_name}:"
