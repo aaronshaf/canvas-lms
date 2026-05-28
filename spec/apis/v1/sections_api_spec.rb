@@ -609,6 +609,97 @@ describe SectionsController, type: :request do
         expect(json["message"]).to eq "You must have manage_sis permission to update sis attributes"
         expect(@section.reload.sis_source_id).to eq "SISsy"
       end
+
+      # ----- BEGIN: appended from selenium gap fill (sections_api) -----
+
+      # Gap fill for spec/selenium/courses/course_sections_spec.rb:76
+      # ("edits the section with empty start and end dates")
+      it "returns updated name in JSON and leaves start_at/end_at nil when only name changes" do
+        # Arrange
+        edit_name = "edited section name"
+
+        # Act
+        json = api_call(:put,
+                        "#{@path_prefix}/#{@section.id}",
+                        @path_params.merge(id: @section.to_param),
+                        { course_section: { name: edit_name } })
+
+        # Assert
+        expect(json["id"]).to eq @section.id
+        expect(json["name"]).to eq edit_name
+        @section.reload
+        expect(@section.name).to eq edit_name
+        expect(@section.start_at).to be_nil
+        expect(@section.end_at).to be_nil
+      end
+
+      # Gap fill for spec/selenium/courses/course_sections_spec.rb:91
+      # ("edits the section when only start date is provided")
+      it "returns updated name in JSON and sets only start_at when only start date is provided" do
+        # Arrange
+        edit_name = "edited section name"
+        start_at = "2015-03-04T00:00:00Z"
+
+        # Act
+        json = api_call(:put,
+                        "#{@path_prefix}/#{@section.id}",
+                        @path_params.merge(id: @section.to_param),
+                        { course_section: { name: edit_name, start_at: } })
+
+        # Assert
+        expect(json["id"]).to eq @section.id
+        expect(json["name"]).to eq edit_name
+        expect(json["start_at"]).to eq start_at
+        expect(json["end_at"]).to be_nil
+        @section.reload
+        expect(@section.name).to eq edit_name
+        expect(@section.start_at).to eq Time.zone.parse(start_at)
+        expect(@section.end_at).to be_nil
+      end
+
+      # Gap fill for spec/selenium/courses/course_sections_spec.rb:107
+      # ("edits the section when only end date is provided")
+      it "returns updated name in JSON and sets only end_at when only end date is provided" do
+        # Arrange
+        edit_name = "edited section name"
+        end_at = "2015-03-04T00:00:00Z"
+
+        # Act
+        json = api_call(:put,
+                        "#{@path_prefix}/#{@section.id}",
+                        @path_params.merge(id: @section.to_param),
+                        { course_section: { name: edit_name, end_at: } })
+
+        # Assert
+        expect(json["id"]).to eq @section.id
+        expect(json["name"]).to eq edit_name
+        expect(json["start_at"]).to be_nil
+        expect(json["end_at"]).to eq end_at
+        @section.reload
+        expect(@section.name).to eq edit_name
+        expect(@section.start_at).to be_nil
+        expect(@section.end_at).to eq Time.zone.parse(end_at)
+      end
+
+      # Gap fill for spec/selenium/courses/course_settings_spec.rb:560
+      # ("edits a section")
+      it "returns the edited name in the JSON response" do
+        # Arrange
+        edit_text = "Section Edit Text"
+
+        # Act
+        json = api_call(:put,
+                        "#{@path_prefix}/#{@section.id}",
+                        @path_params.merge(id: @section.to_param),
+                        { course_section: { name: edit_text } })
+
+        # Assert
+        expect(json["id"]).to eq @section.id
+        expect(json["name"]).to eq edit_text
+        expect(@section.reload.name).to eq edit_text
+      end
+
+      # ----- END: appended from selenium gap fill (sections_api) -----
     end
 
     context "as student" do
