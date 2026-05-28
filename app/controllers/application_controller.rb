@@ -1322,7 +1322,14 @@ class ApplicationController < ActionController::Base
                 end
 
     if Account.site_admin.feature_enabled?(:mfa_event_collection)
-      event_tags = { user_type:, account_domain: request.host, account_global_id: @domain_root_account&.global_id&.to_s }
+      event_tags = {
+        user_type:,
+        account_domain: request.host,
+        account_global_id: @domain_root_account&.global_id&.to_s,
+        user_global_id: logged_in_user&.global_id&.to_s
+      }.merge(
+        Canvas::ExecutionContext.to_h
+      )
 
       InstStatsd::Statsd.event("MFA Request", "canvas.mfa_request", type: :mfa_request, alert_type: :info, tags: event_tags)
 
