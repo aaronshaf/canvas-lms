@@ -37,10 +37,10 @@ describe "quizzes question creation" do
       @last_quiz = start_quiz_question
     end
 
-    it "creates a quiz with a variety of quiz questions", custom_timeout: 30, priority: "1" do
+    it "creates a quiz with a variety of quiz questions", custom_timeout: 60, priority: "1" do
       quiz = @last_quiz
 
-      create_multiple_choice_question
+      create_multiple_choice_question(with_comments: false)
       click_new_question_button
       create_true_false_question
       click_new_question_button

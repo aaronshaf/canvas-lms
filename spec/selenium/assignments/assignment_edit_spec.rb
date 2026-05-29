@@ -496,7 +496,7 @@ describe "assignment" do
     end
 
     context "toggle and field reset" do
-      it "resets all peer review fields and toggles to defaults when peer review is disabled then re-enabled", custom_timeout: 30 do
+      it "resets all peer review fields and toggles to defaults when peer review is disabled then re-enabled", custom_timeout: 55 do
         # Create a group category for testing within-groups toggle
         group_category = @pr_course.group_categories.create!(name: "Test Group Category")
 

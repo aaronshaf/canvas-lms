@@ -64,15 +64,17 @@ module QuizzesCommon
     answers = question.find_elements(:css, ".form_answers > .answer")
     expect(answers.length).to eq 4
     replace_content(answers[0].find_element(:css, ".select_answer input"), "Correct Answer")
-    set_answer_comment(0, "Good job!")
     replace_content(answers[1].find_element(:css, ".select_answer input"), "Wrong Answer #1")
-    set_answer_comment(1, "Bad job :(")
     replace_content(answers[2].find_element(:css, ".select_answer input"), "Second Wrong Answer")
     replace_content(answers[3].find_element(:css, ".select_answer input"), "Wrongest Answer")
 
-    set_question_comment(".question_correct_comment", "Good job on the question!")
-    set_question_comment(".question_incorrect_comment", "You know what they say - study long study wrong.")
-    set_question_comment(".question_neutral_comment", "Pass or fail you are a winner!")
+    if opts.fetch(:with_comments, true)
+      set_answer_comment(0, "Good job!")
+      set_answer_comment(1, "Bad job :(")
+      set_question_comment(".question_correct_comment", "Good job on the question!")
+      set_question_comment(".question_incorrect_comment", "You know what they say - study long study wrong.")
+      set_question_comment(".question_neutral_comment", "Pass or fail you are a winner!")
+    end
 
     button_locator = "//button[contains(.,'Update Question') and not(contains(.,'Create'))]"
     update_question_button = driver.find_element(:xpath, button_locator)

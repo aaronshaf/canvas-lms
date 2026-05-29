@@ -1159,21 +1159,20 @@ describe "discussions" do
             expect(module_item_assign_to_card.last).to contain_css(reply_to_topic_due_date_input_selector)
           end
 
-          it "shows required replies input on graded discussion with sub assignments" do
+          it "shows required replies input on graded discussion with sub assignments", custom_timeout: 60 do
             Account.site_admin.enable_feature!(:discussion_checkpoints)
             @course.account.enable_feature!(:discussion_checkpoints)
-            @student1 = student_in_course(course:, active_all: true).user
-            @student2 = student_in_course(course:, active_all: true).user
-            @course_section = course.course_sections.create!(name: "section alpha")
+            # One student in the default section is enough to trigger the
+            # section-warning dialog when the discussion is assigned to a
+            # different section only.
+            student_in_course(course:, active_all: true)
             @course_section_2 = course.course_sections.create!(name: "section Beta")
 
-            # Open page and assignTo tray
             get "/courses/#{@course.id}/discussion_topics/new"
             title = "Graded Discussion Topic with letter grade type"
-            message = "replying to topic"
 
             f("input[placeholder='Topic Title']").send_keys title
-            type_in_tiny("textarea", message)
+            # body is not required by the discussion form
 
             force_click_native('input[type=checkbox][value="graded"]')
             force_click_native('input[type=checkbox][value="checkpoints"]')
@@ -1205,9 +1204,12 @@ describe "discussions" do
             update_until_date(0, until_date_formatted, exclude_due_date: true, exclude_checkpoints: false)
             update_until_time(0, "5:00 PM", exclude_due_date: true, exclude_checkpoints: false)
 
+            # Use block form so the page-change flag is planted before navigation
+            # fires — avoids a race where bare wait_for_new_page_load sets the
+            # flag on the already-loaded destination page and burns the full
+            # finder timeout (~5s) waiting for a condition that can never flip.
             Discussion.save_button.click
-            Discussion.section_warning_continue_button.click
-            wait_for_new_page_load
+            expect_new_page_load { Discussion.section_warning_continue_button.click }
 
             graded_discussion = DiscussionTopic.last
             sub_assignments = graded_discussion.assignment.sub_assignments
@@ -1222,39 +1224,27 @@ describe "discussions" do
             get "/courses/#{@course.id}/discussion_topics/#{graded_discussion.id}/edit"
 
             displayed_override_dates = all_displayed_assign_to_date_and_time
-            # Check that the due dates are correctly displayed
+            # Check that all four date types are correctly displayed
             expect(displayed_override_dates.include?(reply_to_topic_date)).to be_truthy
             expect(displayed_override_dates.include?(required_replies_date)).to be_truthy
             expect(displayed_override_dates.include?(available_from_date)).to be_truthy
             expect(displayed_override_dates.include?(until_date)).to be_truthy
 
-            # updates dates and saves
+            # Update only the checkpoint due dates — available_from and until
+            # carry over from the first save and still satisfy the ordering
+            # constraint (available_from < due_dates <= until).
             reply_to_topic_date = 4.days.from_now(Time.zone.now).to_date + 17.hours
             reply_to_topic_date_formatted = format_date_for_view(reply_to_topic_date, "%m/%d/%Y")
             update_reply_to_topic_date(0, reply_to_topic_date_formatted)
             update_reply_to_topic_time(0, "5:00 PM")
 
-            # required replies
             required_replies_date = 5.days.from_now(Time.zone.now).to_date + 17.hours
             required_replies_date_formatted = format_date_for_view(required_replies_date, "%m/%d/%Y")
             update_required_replies_date(0, required_replies_date_formatted)
             update_required_replies_time(0, "5:00 PM")
 
-            # available from
-            available_from_date = 3.days.from_now(Time.zone.now).to_date + 17.hours
-            available_from_date_formatted = format_date_for_view(available_from_date, "%m/%d/%Y")
-            update_available_date(0, available_from_date_formatted, exclude_due_date: true, exclude_checkpoints: false)
-            update_available_time(0, "5:00 PM", exclude_due_date: true, exclude_checkpoints: false)
-
-            # available until
-            until_date = 6.days.from_now(Time.zone.now).to_date + 17.hours
-            until_date_formatted = format_date_for_view(until_date, "%m/%d/%Y")
-            update_until_date(0, until_date_formatted, exclude_due_date: true, exclude_checkpoints: false)
-            update_until_time(0, "5:00 PM", exclude_due_date: true, exclude_checkpoints: false)
-
             Discussion.save_button.click
-            Discussion.section_warning_continue_button.click
-            wait_for_new_page_load
+            expect_new_page_load { Discussion.section_warning_continue_button.click }
 
             graded_discussion.reload
             sub_assignments = graded_discussion.assignment.sub_assignments

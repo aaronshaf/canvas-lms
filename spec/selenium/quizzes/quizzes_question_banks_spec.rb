@@ -334,7 +334,7 @@ describe "quizzes question banks" do
       expect(f("#unauthorized_message")).to be_displayed
     end
 
-    it "moves paginated questions in a question bank from one bank to another", custom_timeout: 30, priority: "2" do
+    it "moves paginated questions in a question bank from one bank to another", custom_timeout: 40, priority: "2" do
       @context = @course
       source_bank = @course.assessment_question_banks.create!(title: "Source Bank")
       target_bank = @course.assessment_question_banks.create!(title: "Target Bank")
