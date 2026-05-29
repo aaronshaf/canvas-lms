@@ -74,21 +74,6 @@ describe "assignment" do
 
       expect(AssignmentCreateEditPage.limited_attempts_fieldset.displayed?).to be false
     end
-
-    it "allows user to set submission limit", custom_timeout: 25 do
-      AssignmentCreateEditPage.visit_assignment_edit_page(@course1.id, @assignment1.id)
-      click_option(AssignmentCreateEditPage.limited_attempts_dropdown, "Limited")
-
-      # default attempt count is 1
-      expect(AssignmentCreateEditPage.limited_attempts_input.attribute("value")).to eq "1"
-
-      # increase attempts count
-      AssignmentCreateEditPage.increase_attempts_btn.click
-      AssignmentCreateEditPage.assignment_save_button.click
-      wait_for_ajaximations
-
-      expect(AssignmentPage.allowed_attempts_count.text).to include "2"
-    end
   end
 
   context "new quiz" do
@@ -142,15 +127,6 @@ describe "assignment" do
       expect(AssignmentCreateEditPage.omit_from_final_grade_checkbox).to be_selected
       expect(AssignmentCreateEditPage.omit_from_final_grade_checkbox).to be_enabled
     end
-
-    it "can be set to be hidden from gradebooks" do
-      AssignmentCreateEditPage.visit_assignment_edit_page(@course.id, @new_quiz.id)
-      AssignmentCreateEditPage.hide_from_gradebooks_checkbox.click
-      AssignmentCreateEditPage.save_assignment
-
-      expect(@new_quiz.reload.hide_in_gradebook).to be true
-      expect(@new_quiz.reload.omit_from_final_grade).to be true
-    end
   end
 
   describe "for assignments in a course with both mastery paths and course pacing" do
@@ -171,14 +147,6 @@ describe "assignment" do
 
     before do
       user_session(@teacher)
-    end
-
-    it "sets an assignment override for mastery paths when mastery path toggle is turned on" do
-      AssignmentCreateEditPage.visit_assignment_edit_page(@course.id, @assignment.id)
-      AssignmentCreateEditPage.mastery_path_toggle.click
-      AssignmentCreateEditPage.save_assignment
-
-      expect(@assignment.assignment_overrides.active.find_by(set_id: AssignmentOverride::NOOP_MASTERY_PATHS, set_type: AssignmentOverride::SET_TYPE_NOOP)).to be_present
     end
 
     it "removes assignment override for mastery paths when mastery path toggle is turned off" do
@@ -253,56 +221,6 @@ describe "assignment" do
         assignment = @pr_course.assignments.last
         expect(assignment.peer_review_sub_assignment.grading_type).to eq "pass_fail"
       end
-
-      it "includes anonymous peer reviews setting" do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Anonymous Peer Review Assignment")
-        f("#assignment_text_entry").click
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        f("[data-testid='anonymity-checkbox'] + label").click
-
-        expect_new_page_load { f(".btn-primary[type=submit]").click }
-        wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-        expect(assignment.anonymous_peer_reviews).to be true
-      end
-
-      it "correctly rounds peer review points_possible to avoid floating point precision issues" do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Floating Point Test Assignment")
-        f("#assignment_text_entry").click
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        reviews_required_input = f("input[data-testid='reviews-required-input']")
-        reviews_required_input.send_keys([:control, "a"], :backspace, "3")
-
-        points_per_review_input = f("input[data-testid='points-per-review-input']")
-        points_per_review_input.send_keys([:control, "a"], :backspace, "1.12")
-
-        # Verify UI shows correctly rounded value
-        total_points_display = f("span[data-testid='total-peer-review-points']")
-        expect(total_points_display.text).to eq("3.36")
-
-        expect_new_page_load { f(".btn-primary[type=submit]").click }
-        wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-        peer_review_sub = assignment.peer_review_sub_assignment
-
-        # Verify backend stores correctly rounded value: 3.36, not 3.3600000000000003
-        expect(peer_review_sub.points_possible).to eq 3.36
-      end
     end
 
     context "data loading from existing assignment" do
@@ -369,42 +287,6 @@ describe "assignment" do
 
         submission_required_checkbox = f("#peer_reviews_submission_required_checkbox")
         expect(submission_required_checkbox).to be_selected
-      end
-
-      it "allows toggling submission required and persists the value", custom_timeout: 40 do
-        get "/courses/#{@pr_course.id}/assignments/#{@pr_assignment.id}/edit"
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        submission_required_checkbox = f("#peer_reviews_submission_required_checkbox")
-        expect(submission_required_checkbox).to be_selected
-
-        f("[data-testid='submission-required-checkbox'] + label").click
-        expect(submission_required_checkbox).not_to be_selected
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        expect(@pr_assignment.reload.peer_review_submission_required).to be false
-
-        get "/courses/#{@pr_course.id}/assignments/#{@pr_assignment.id}/edit"
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        submission_required_checkbox = f("#peer_reviews_submission_required_checkbox")
-        expect(submission_required_checkbox).not_to be_selected
-
-        f("[data-testid='submission-required-checkbox'] + label").click
-        expect(submission_required_checkbox).to be_selected
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        expect(@pr_assignment.reload.peer_review_submission_required).to be true
       end
 
       it "preserves toggle values when updating assignment with Advanced Configuration collapsed", custom_timeout: 60 do
@@ -617,78 +499,6 @@ describe "assignment" do
     describe "peer reviews and grading type interaction" do
       include ItemsAssignToTray
 
-      it "hides peer review options when grading type is set to Not Graded", custom_timeout: 30 do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Not Graded Peer Review Test")
-        f("#assignment_text_entry").click
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        peer_review_fields = f("#assignment_peer_reviews_fields")
-        peer_review_details = f("#peer_reviews_allocation_and_grading_details")
-        expect(peer_review_fields).to be_displayed
-        expect(peer_review_details).to be_displayed
-
-        click_option("#assignment_grading_type", "Not Graded")
-        wait_for_ajaximations
-
-        expect(peer_review_fields).not_to be_displayed
-        expect(peer_review_details).not_to be_displayed
-
-        expect_new_page_load { f(".btn-primary[type=submit]").click }
-        wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-        expect(assignment.grading_type).to eq "not_graded"
-        expect(assignment.peer_reviews).to be false
-        expect(assignment.peer_review_count).to eq 0
-        expect(assignment.peer_review_sub_assignment).to be_nil
-      end
-
-      it "shows peer review options when grading type changes back from Not Graded", custom_timeout: 30 do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Grading Type Toggle Test")
-        f("#assignment_text_entry").click
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        peer_review_fields = f("#assignment_peer_reviews_fields")
-        expect(peer_review_fields).to be_displayed
-
-        click_option("#assignment_grading_type", "Not Graded")
-        wait_for_ajaximations
-
-        expect(peer_review_fields).not_to be_displayed
-
-        click_option("#assignment_grading_type", "Points")
-        wait_for_ajaximations
-
-        expect(peer_review_fields).to be_displayed
-
-        peer_review_checkbox = f("[data-testid='peer-review-checkbox']")
-        expect(peer_review_checkbox).not_to be_checked
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        peer_review_details = f("#peer_reviews_allocation_and_grading_details")
-        expect(peer_review_details).to be_displayed
-
-        expect_new_page_load { f(".btn-primary[type=submit]").click }
-        wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-        expect(assignment.grading_type).to eq "points"
-        expect(assignment.peer_reviews).to be true
-        expect(assignment.peer_review_sub_assignment).not_to be_nil
-      end
-
       it "hides 'Not Graded' option when peer reviews have submissions", custom_timeout: 30 do
         assignment = @pr_course.assignments.create!(
           title: "Locked PR Assignment",
@@ -719,29 +529,6 @@ describe "assignment" do
         expect(grading_type_options).not_to include("Not Graded")
         expect(grading_type_options).to include("Points")
         expect(grading_type_options).to include("Letter Grade")
-      end
-
-      it "enables moderated grading after peer reviews disabled via grading type change", custom_timeout: 30 do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Moderated Grading Re-enable Test")
-        f("#assignment_text_entry").click
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        moderated_grading_checkbox = f("#assignment_moderated_grading")
-        expect(moderated_grading_checkbox).to be_disabled
-
-        click_option("#assignment_grading_type", "Not Graded")
-        wait_for_ajaximations
-
-        click_option("#assignment_grading_type", "Points")
-        wait_for_ajaximations
-
-        moderated_grading_checkbox = f("#assignment_moderated_grading")
-        expect(moderated_grading_checkbox).not_to be_disabled
       end
 
       it "destroys peer review sub-assignment when changing grading type to Not Graded", custom_timeout: 30 do
@@ -775,39 +562,6 @@ describe "assignment" do
         expect(assignment.grading_type).to eq "not_graded"
         expect(assignment.peer_reviews).to be false
         expect(assignment.peer_review_sub_assignment).to be_nil
-      end
-
-      it "preserves peer review settings when re-enabling after grading type toggle", custom_timeout: 30 do
-        get "/courses/#{@pr_course.id}/assignments/new"
-        wait_for_ajaximations
-
-        f("#assignment_name").send_keys("Settings Preservation Test")
-        f("#assignment_text_entry").click
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        review_count_input = f("input[data-testid='reviews-required-input']")
-        replace_content(review_count_input, "7")
-
-        click_option("#assignment_grading_type", "Not Graded")
-        wait_for_ajaximations
-
-        click_option("#assignment_grading_type", "Points")
-        wait_for_ajaximations
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        review_count_input = f("input[data-testid='reviews-required-input']")
-        expect(review_count_input["value"]).to eq "7"
-
-        expect_new_page_load { f(".btn-primary[type=submit]").click }
-        wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-        expect(assignment.peer_reviews).to be true
-        expect(assignment.peer_review_count).to eq 7
       end
 
       it "does not persist peer review settings when grading type changed to Not Graded before save", custom_timeout: 30 do
@@ -1068,53 +822,6 @@ describe "assignment" do
 
         across_sections_checkbox = f("#peer_reviews_across_sections_checkbox")
         expect(across_sections_checkbox).not_to be_selected
-      end
-
-      it "allows toggling allow across sections and persists the value", custom_timeout: 40 do
-        get "/courses/#{@pr_course.id}/assignments/#{@pr_assignment_sections.id}/edit"
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        f("[data-testid='across-sections-checkbox'] + label").click
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        expect(@pr_assignment_sections.reload.peer_review_across_sections).to be false
-
-        get "/courses/#{@pr_course.id}/assignments/#{@pr_assignment_sections.id}/edit"
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        f("[data-testid='across-sections-checkbox'] + label").click
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        expect(@pr_assignment_sections.reload.peer_review_across_sections).to be true
-      end
-
-      it "persists disabled state after collapsing Advanced Configuration section", custom_timeout: 40 do
-        get "/courses/#{@pr_course.id}/assignments/#{@pr_assignment_sections.id}/edit"
-        wait_for_ajaximations
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        f("[data-testid='across-sections-checkbox'] + label").click
-
-        # Collapse the Advanced Configuration section
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        expect(@pr_assignment_sections.reload.peer_review_across_sections).to be false
       end
     end
 

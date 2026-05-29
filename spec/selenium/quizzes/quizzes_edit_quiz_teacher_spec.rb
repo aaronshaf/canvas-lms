@@ -80,7 +80,7 @@ describe "editing a quiz" do
                  "changes will not appear for students until you save the quiz."
 
         # verify button
-        save_it_now_button = fj(".btn.btn-primary", ".edit_quizzes_quiz")
+        save_it_now_button = fj(".btn.btn-primary", ".edit_quizzes_quiz") # rubocop:disable Specs/PreferFOverFj
         expect(save_it_now_button).to be_displayed
 
         # verify the alert disappears after clicking the button

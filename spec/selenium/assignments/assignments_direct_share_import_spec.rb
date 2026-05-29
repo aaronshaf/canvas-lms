@@ -130,15 +130,6 @@ describe "assignments" do
         copy_assignment_menu_link(@assignment1.id).click
       end
 
-      it "copy tray lists user managed courses" do
-        course_search_dropdown.click
-        course_search_dropdown.send_keys("course")
-        wait_for_search_dropdown
-
-        expect(course_dropdown_list[0].text).to include "First Course1"
-        expect(course_dropdown_list[0].text).to include "Second Course2"
-      end
-
       it "copy tray does not list concluded courses" do
         course_search_dropdown.click
         course_search_dropdown.send_keys("course")

@@ -873,7 +873,7 @@ describe "RCE next tests", :ignore_js_errors do
         switch_to_editor_view
 
         expect(
-          wait_for_no_such_element(method: nil, timeout: 5) do
+          wait_for_no_such_element(method: nil, timeout: 5) do # rubocop:disable Specs/NoWaitForNoSuchElement
             fxpath('//button[@data-btn-id="rce-a11y-btn"]/following-sibling::span')
           end
         ).to be_truthy

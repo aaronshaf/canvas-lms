@@ -53,7 +53,7 @@ describe "student k5 dashboard" do
       get "/"
       wait_for_ajaximations
 
-      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)") # rubocop:disable Specs/NoExecuteScript
       wait_for_ajaximations
 
       expect(welcome_title).to be_present
@@ -150,7 +150,7 @@ describe "student k5 dashboard" do
       select_schedule_tab
       wait_for_ajaximations
 
-      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight)") # rubocop:disable Specs/NoExecuteScript
       wait_for_ajaximations
 
       expect(welcome_title).to be_present

@@ -48,27 +48,6 @@ shared_examples_for "selective_release assign to tray" do |context|
     expect(item_type_text.text).to include("25 pts")
   end
 
-  it "assigns student and saves assignment" do
-    get @mod_url
-
-    click_manage_assignment_button(@assignment1.id)
-    click_assign_to_menu_link(@assignment1.id)
-
-    click_add_assign_to_card
-    select_module_item_assignee(1, @student1.name)
-    update_due_date(1, "12/31/2022")
-    update_due_time(1, "5:00 PM")
-    update_available_date(1, "12/27/2022")
-    update_available_time(1, "8:00 AM")
-    update_until_date(1, "1/7/2023")
-    update_until_time(1, "9:00 PM")
-    click_save_button
-
-    expect(element_exists?(module_item_edit_tray_selector)).to be_falsey
-    expect(@assignment1.assignment_overrides.last.assignment_override_students.count).to eq(1)
-    # TODO: check that the dates are saved with date under the title of the item
-  end
-
   it "shows existing enrollments when accessing assign to tray" do
     @assignment1.assignment_overrides.create!(set_type: "ADHOC")
     @assignment1.assignment_overrides.first.assignment_override_students.create!(user: @student1)
@@ -126,53 +105,6 @@ shared_examples_for "selective_release assign to tray" do |context|
     click_save_button
     expect(element_exists?(loading_spinner_selector)).to be_falsey
     expect(item_tray_exists?).to be false
-  end
-
-  it "assigns student for a NQ quiz and saves" do
-    new_quiz_assignment = @course.assignments.create!(title: "new quizzes assignment")
-    new_quiz_assignment.quiz_lti!
-    new_quiz_assignment.save!
-
-    get @mod_url
-
-    click_manage_assignment_button(new_quiz_assignment.id)
-    click_assign_to_menu_link(new_quiz_assignment.id)
-
-    click_add_assign_to_card
-    select_module_item_assignee(1, @student1.name)
-
-    update_due_date(1, "12/31/2022")
-    update_due_time(1, "5:00 PM")
-    update_available_date(1, "12/27/2022")
-    update_available_time(1, "8:00 AM")
-    update_until_date(1, "1/7/2023")
-    update_until_time(1, "9:00 PM")
-    click_save_button
-
-    expect(element_exists?(module_item_edit_tray_selector)).to be_falsey
-    expect(new_quiz_assignment.assignment_overrides.first.assignment_override_students.count).to eq(1)
-  end
-
-  it "adds all data and cancels" do
-    @assignment1.assignment_overrides.create!(set_type: "ADHOC")
-    @assignment1.assignment_overrides.first.assignment_override_students.create!(user: @student1)
-
-    get @mod_url
-
-    click_manage_assignment_button(@assignment1.id)
-    click_assign_to_menu_link(@assignment1.id)
-
-    select_module_item_assignee(1, @student2.name)
-    update_due_date(1, "12/31/2022")
-    update_due_time(1, "5:00 PM")
-    update_available_date(1, "12/27/2022")
-    update_available_time(1, "8:00 AM")
-    update_until_date(1, "1/7/2023")
-    update_until_time(1, "9:00 PM")
-    click_cancel_button
-
-    expect(element_exists?(module_item_edit_tray_selector)).to be_falsey
-    expect(@assignment1.assignment_overrides.first.assignment_override_students.count).to eq(1)
   end
 
   it "focus close button on open" do

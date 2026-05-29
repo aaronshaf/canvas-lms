@@ -447,7 +447,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
         @course.wiki_pages.create!(title: "title", body:)
         visit_existing_wiki_edit(@course, "title")
 
-        driver.execute_script(<<~JS)
+        driver.execute_script(<<~JS) # rubocop:disable Specs/NoExecuteScript
           window.selectNodeById = function(nid) {
             const win = document.querySelector('iframe.tox-edit-area__iframe').contentWindow
             const rng = win.document.createRange()
@@ -468,22 +468,22 @@ describe "RCE Next toolbar features", :ignore_js_errors do
         # nothing selected, insert buttons are enabled
         assert_insert_buttons_enabled(true)
 
-        driver.execute_script('window.selectNodeById("ok")')
+        driver.execute_script('window.selectNodeById("ok")') # rubocop:disable Specs/NoExecuteScript
         assert_insert_buttons_enabled(true)
 
-        driver.execute_script('window.selectNodeById("ifr")')
+        driver.execute_script('window.selectNodeById("ifr")') # rubocop:disable Specs/NoExecuteScript
         assert_insert_buttons_enabled(false)
 
-        driver.execute_script('window.selectNodeById("vid")')
+        driver.execute_script('window.selectNodeById("vid")') # rubocop:disable Specs/NoExecuteScript
         assert_insert_buttons_enabled(false)
       end
 
       it "is disabled in floating toolbar if linking is invalid" do
-        driver.execute_script('window.selectNodeById("ifr")')
+        driver.execute_script('window.selectNodeById("ifr")') # rubocop:disable Specs/NoExecuteScript
         driver.manage.window.resize_to(800, 800) # small enough that the insert buttons are hidden in the overflow
         assert_insert_buttons_enabled(false) # buttons should still be disabled without selecting anything else
 
-        driver.execute_script('window.selectNodeById("ok")')
+        driver.execute_script('window.selectNodeById("ok")') # rubocop:disable Specs/NoExecuteScript
         assert_insert_buttons_enabled(true)
       end
     end

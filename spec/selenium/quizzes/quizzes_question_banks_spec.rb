@@ -190,14 +190,14 @@ describe "quizzes question banks" do
 
       # select a question bank
       hover_and_click("li.bank:nth-child(2)")
-      fj("div.button-container:nth-child(2) > button:nth-child(1)").click
+      f("div.button-container:nth-child(2) > button:nth-child(1)").click
 
       message = "Questions will be pulled from the bank: #{bank.title}"
-      expect(fj(".assessment_question_bank")).to include_text message
+      expect(f(".assessment_question_bank")).to include_text message
       submit_form(group_form)
 
       expect(f("#questions .group_top .group_display.name")).to include_text question_group_title
-      expect(fj(".assessment_question_bank")).to include_text message
+      expect(f(".assessment_question_bank")).to include_text message
     end
 
     it "creates a question group from a question bank from within the Find Quiz Question modal", custom_timeout: 30, priority: "1" do
@@ -219,9 +219,9 @@ describe "quizzes question banks" do
       # create new quiz question group from selected questions
       question_group_name = "Quiz Question Group A"
       click_option(ff(".quiz_group_select"), "[ Create Group ]")
-      fj("#found_question_group_name").send_keys question_group_name
-      fj("#found_question_group_pick").send_keys "1"
-      fj("#found_question_group_points").send_keys "1"
+      f("#found_question_group_name").send_keys question_group_name
+      f("#found_question_group_pick").send_keys "1"
+      f("#found_question_group_points").send_keys "1"
       submit_dialog(f("#add_question_group_dialog"), ".submit_button")
       wait_for_ajaximations
 

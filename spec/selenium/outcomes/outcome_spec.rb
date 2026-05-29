@@ -161,7 +161,7 @@ describe "outcomes" do
           # make sure the outcome group 'groupage2' and outcome 'o1' are on different frames
           expect(ffj(".outcome-level:first .outcome-group .ellipsis")[0]).to have_attribute("title", "groupage2")
           expect(ffj(".outcome-level:last .outcome-link .ellipsis")[0]).to have_attribute("title", "o1")
-          drag_and_drop_element(ffj(".outcome-level:last .outcome-link .ellipsis")[0], ffj(" .outcome-level")[0])
+          drag_and_drop_element(ffj(".outcome-level:last .outcome-link .ellipsis")[0], ff(".outcome-level")[0])
           wait_for_ajaximations
 
           # after the drag and drop, the outcome and the group are on a same screen

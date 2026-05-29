@@ -79,7 +79,7 @@ describe "dashboard" do
 
     # so we can click the link w/o a page load
     def disable_recent_activity_header_course_link
-      driver.execute_script <<~JS
+      driver.execute_script <<~JS # rubocop:disable Specs/NoExecuteScript
         $('.stream-announcement .links a').attr('href', '#');
       JS
     end
@@ -161,7 +161,7 @@ describe "dashboard" do
                                                            end_at: Time.zone.today + 1.day)
 
       get "/"
-      expect(fj("#dashboard .account_notification .notification_message").text).to eq announcement.message.gsub("{{ACCOUNT_DOMAIN}}", @course.account.domain)
+      expect(f("#dashboard .account_notification .notification_message").text).to eq announcement.message.gsub("{{ACCOUNT_DOMAIN}}", @course.account.domain)
     end
 
     it "interpolates the user's id in global notifications" do
@@ -171,7 +171,7 @@ describe "dashboard" do
                                                            start_at: Time.zone.today,
                                                            end_at: Time.zone.today + 1.day)
       get "/"
-      expect(fj("#dashboard .account_notification .notification_message").text).to eq announcement.message.gsub("{{CANVAS_USER_ID}}", @user.global_id.to_s)
+      expect(f("#dashboard .account_notification .notification_message").text).to eq announcement.message.gsub("{{CANVAS_USER_ID}}", @user.global_id.to_s)
     end
 
     describe "course menu" do
@@ -203,7 +203,7 @@ describe "dashboard" do
         expect(fj("[aria-label='Groups tray'] h2:contains('Groups')")).to be_displayed
         wait_for_ajax_requests
 
-        list = fj("[aria-label='Groups tray']")
+        list = f("[aria-label='Groups tray']")
         expect(list).to include_text(group.name)
         expect(list).not_to include_text(other_group.name)
       end

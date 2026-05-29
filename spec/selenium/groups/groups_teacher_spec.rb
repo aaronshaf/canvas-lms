@@ -243,17 +243,17 @@ describe "new groups" do
       get "/courses/#{@course.id}/groups"
 
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("1 student")
-      expect(fj(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (0)")
+      expect(f(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (0)")
 
       f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
       wait_for_ajaximations
 
-      drag_and_drop_element(fj(drag_item1), fj(drop_target1))
+      drag_and_drop_element(fj(drag_item1), f(drop_target1))
       wait_for_ajaximations
 
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("0 students")
-      expect(fj(drop_target1)).to include_text("Test Student 1")
-      expect(fj(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (1)")
+      expect(f(drop_target1)).to include_text("Test Student 1")
+      expect(f(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (1)")
     end
 
     it "changes group limit status with student drag and drop", priority: "1" do
@@ -270,18 +270,18 @@ describe "new groups" do
 
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("5 / 5 students")
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] span.show-group-full")).to be_displayed
-      expect(fj(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (0)")
+      expect(f(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (0)")
 
       f(".group[data-id=\"#{@testgroup[0].id}\"] .toggle-group").click
       wait_for_ajaximations
 
-      drag_and_drop_element(fj(drag_item1), fj(drop_target1))
+      drag_and_drop_element(fj(drag_item1), f(drop_target1))
       wait_for_ajaximations
 
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] span.show-group-full").css_value("display")).to eq "none"
       expect(f(".group[data-id=\"#{@testgroup[0].id}\"] .group-summary")).to include_text("4 / 5 students")
-      expect(fj(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (1)")
-      expect(fj(drop_target1)).to include_text("Test Student 3")
+      expect(f(".unassigned-users-heading.group-heading")).to include_text("Unassigned Students (1)")
+      expect(f(drop_target1)).to include_text("Test Student 3")
     end
 
     it "shows the users within a group one per line in 320px" do
@@ -626,7 +626,7 @@ describe "new groups" do
           wait_for(method: nil, timeout: 2) { fxpath("//*[@data-cid='Tray']//*[@role='dialog']").displayed? }
           click_option(".move-select .move-select__group select", @testgroup.first.name.to_s)
 
-          sleep 0.3 # have to wait for instUI animations
+          sleep 0.3 # rubocop:disable Lint/NoSleep
           ff('.move-select button[type="submit"]').last.click
 
           wait_for_ajaximations

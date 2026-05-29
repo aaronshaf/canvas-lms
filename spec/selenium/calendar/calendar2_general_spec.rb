@@ -73,10 +73,10 @@ describe "calendar2" do
       app2.reserve_for(student2, student2)
 
       get "/calendar2"
-      fj(".fc-event").click
+      f(".fc-event").click
       wait_for_ajaximations
 
-      driver.execute_script("$('.message_students').hover().click()")
+      driver.execute_script("$('.message_students').hover().click()") # rubocop:disable Specs/NoExecuteScript
 
       wait_for_ajaximations
       expect(ff(".participant_list input").size).to eq 1
@@ -105,7 +105,7 @@ describe "calendar2" do
 
         event1.click
         wait_for_ajaximations
-        driver.execute_script("$('.edit_event_link').hover().click()")
+        driver.execute_script("$('.edit_event_link').hover().click()") # rubocop:disable Specs/NoExecuteScript
         wait_for_ajaximations
 
         select = f("#edit_assignment_form .assignment_group")
@@ -115,7 +115,7 @@ describe "calendar2" do
         event2.click
         wait_for_ajaximations
 
-        driver.execute_script("$('.edit_event_link').hover().click()")
+        driver.execute_script("$('.edit_event_link').hover().click()") # rubocop:disable Specs/NoExecuteScript
         wait_for_ajaximations
         select = f("#edit_assignment_form .assignment_group")
         expect(first_selected_option(select).attribute(:value).to_i).to eq group2.id
@@ -204,7 +204,7 @@ describe "calendar2" do
         make_event(start: event_start)
         get "/calendar2"
         f(".fc-event").click
-        expect(f(".event-details-timestring").text).to include event_start.strftime("%b %e")
+        expect(f(".event-details-timestring").text).to include event_start.strftime("%b %e") # rubocop:disable Specs/NoStrftime
       end
 
       it "displays popup with correct day on an assignment" do
@@ -216,7 +216,7 @@ describe "calendar2" do
         )
         get "/calendar2"
         f(".fc-event").click
-        expect(f(".event-details-timestring").text).to include event_start.strftime("%b %e")
+        expect(f(".event-details-timestring").text).to include event_start.strftime("%b %e") # rubocop:disable Specs/NoStrftime
       end
 
       it "displays popup with correct day on an assignment override" do
@@ -242,7 +242,7 @@ describe "calendar2" do
 
         get "/calendar2"
         f(".fc-event").click
-        expect(f(".event-details-timestring").text).to include override_start.strftime("%b %e")
+        expect(f(".event-details-timestring").text).to include override_start.strftime("%b %e") # rubocop:disable Specs/NoStrftime
       end
 
       it "handles events created on daylight savings time days" do

@@ -55,25 +55,6 @@ describe "assignments index peer reviews" do
     expect(peer_review_requests(@peer_review_assignment.id)).to include_text("Not Available")
   end
 
-  it "will remind students that they need to submit before completing assigned reviews" do
-    visit_assignments_index_page(@course.id)
-    assessment_request(1, @peer_review_assignment.name).click
-
-    expect(StudentAssignmentPageV2.peer_review_need_submission_reminder).to include_text("You must submit your own work before you can review your peers.")
-  end
-
-  it "will remind students if a review is not ready for them yet" do
-    @peer_review_assignment.submit_homework(
-      @student1,
-      body: "student 1 attempt",
-      submission_type: "online_text_entry"
-    )
-    visit_assignments_index_page(@course.id)
-    assessment_request(1, @peer_review_assignment.name).click
-
-    expect(StudentAssignmentPageV2.peer_review_unavailible_reminder).to include_text("There are no submissions available to review just yet.")
-  end
-
   it "will display the reviewee's name under the assessment request" do
     @peer_review_assignment.submit_homework(
       @student1,

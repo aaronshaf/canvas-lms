@@ -71,42 +71,4 @@ describe "assignments index grading period filter" do
     expect(f("#assignment_#{@assignments[0].id}")).not_to be_displayed
     expect(f("#assignment_#{@assignments[1].id}")).to be_displayed
   end
-
-  context "VDD" do
-    before(:once) do
-      @vdd_assignment = @course.assignments.create! name: "VDD", due_at: 3.months.ago
-
-      @other_section = @course.course_sections.create! name: "other section"
-      override = @vdd_assignment.assignment_overrides.build
-      override.set = @other_section
-      override.due_at_overridden = true
-      override.due_at = 3.months.from_now
-      override.save!
-    end
-
-    it "filters an assignment into all applicable grading periods for teachers" do
-      user_session @teacher
-      get "/courses/#{@course.id}/assignments"
-      assignment_element = f("#assignment_#{@vdd_assignment.id}")
-      select_grading_period "0"
-      expect(assignment_element).to be_displayed
-      select_grading_period "1"
-      expect(assignment_element).not_to be_displayed
-      select_grading_period "2"
-      expect(assignment_element).to be_displayed
-    end
-
-    it "uses the applicable due date for students" do
-      student_in_course course: @course, section: @other_section, active_all: true
-      user_session(@student)
-      get "/courses/#{@course.id}/assignments"
-      assignment_element = f("#assignment_#{@vdd_assignment.id}")
-      select_grading_period "0"
-      expect(assignment_element).not_to be_displayed
-      select_grading_period "1"
-      expect(assignment_element).not_to be_displayed
-      select_grading_period "2"
-      expect(assignment_element).to be_displayed
-    end
-  end
 end

@@ -27,7 +27,7 @@ describe "quiz restrictions as a student" do
   def begin_taking_quiz
     get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
     expect_new_page_load { f("#take_quiz_link").click }
-    sleep 1 # In this case the UI updates on a timer, not an ajax callback
+    sleep 1 # rubocop:disable Lint/NoSleep
   end
 
   context "restrict access code" do
@@ -42,7 +42,7 @@ describe "quiz restrictions as a student" do
 
     it "requires an access code", priority: "1" do
       begin_taking_quiz
-      expect(fj("input[type=password][name= 'access_code']")).to be_present
+      expect(f("input[type=password][name= 'access_code']")).to be_present
     end
   end
 end

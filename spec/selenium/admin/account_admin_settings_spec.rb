@@ -338,7 +338,7 @@ describe "root account basic settings" do
 
       # ensure the new value is reflected after a refresh
       get account_settings_url
-      expect(fj('[name="default_user_storage_quota_mb"]')).to have_value(user_quota.to_s) # fj to avoid selenium caching
+      expect(f('[name="default_user_storage_quota_mb"]')).to have_value(user_quota.to_s) # fj to avoid selenium caching
     end
 
     it "is able to remove account quiz ip filters" do

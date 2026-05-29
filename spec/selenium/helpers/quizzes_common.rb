@@ -409,7 +409,7 @@ module QuizzesCommon
       wait_for_new_page_load { f("#take_quiz_link").click }
     else
       f("#quiz_access_code").send_keys(access_code)
-      wait_for_new_page_load { fj(".btn", "#main").click }
+      wait_for_new_page_load { fj(".btn", "#main").click } # rubocop:disable Specs/PreferFOverFj
     end or raise "unable to start quiz"
   end
 
@@ -468,32 +468,32 @@ module QuizzesCommon
   end
 
   def set_answer_comment(answer_num, text)
-    driver.execute_script("$('.question_form:visible .form_answers .answer:eq(#{answer_num}) .answer_comments').click()")
+    driver.execute_script("$('.question_form:visible .form_answers .answer:eq(#{answer_num}) .answer_comments').click()") # rubocop:disable Specs/NoExecuteScript
     wait_for_ajaximations
     type_in_tiny(".question_form:visible .form_answers .answer:eq(#{answer_num}) .answer_comments textarea", text)
   end
 
   def set_question_comment(selector, text)
-    driver.execute_script("$('.question_form:visible #{selector} .comment_focus').click()")
+    driver.execute_script("$('.question_form:visible #{selector} .comment_focus').click()") # rubocop:disable Specs/NoExecuteScript
     wait_for_ajaximations
     type_in_tiny(".question_form:visible #{selector} textarea", text)
   end
 
   def question_answers
-    ffj(".answer", ".form_answers")
+    ffj(".answer", ".form_answers") # rubocop:disable Specs/PreferFOverFj
   end
 
   def delete_possible_answer(question_answer_index)
     question_answer = question_answers[question_answer_index]
     hover(question_answer)
 
-    delete_question_link = fj(".delete_answer_link", question_answer)
+    delete_question_link = f(".delete_answer_link", question_answer)
     hover(delete_question_link)
     delete_question_link.click
   end
 
   def select_different_correct_answer(index_of_new_correct_answer)
-    new_correct_answer = fj(".select_answer_link", question_answers[index_of_new_correct_answer])
+    new_correct_answer = f(".select_answer_link", question_answers[index_of_new_correct_answer])
     hover(new_correct_answer)
     new_correct_answer.click
     wait_for_ajaximations
@@ -516,7 +516,7 @@ module QuizzesCommon
   # clicks |Okay, fine|
   def close_times_up_dialog
     times_up_dialog = fj("div#times_up_dialog:visible")
-    fj("button.submit_quiz_button", times_up_dialog).click unless times_up_dialog.nil?
+    f("button.submit_quiz_button", times_up_dialog).click unless times_up_dialog.nil?
   end
 
   def edit_first_question
@@ -554,7 +554,7 @@ module QuizzesCommon
   end
 
   def cancel_quiz_edit
-    expect_new_page_load { fj("#cancel_button", "div#quiz_edit_actions").click }
+    expect_new_page_load { fj("#cancel_button", "div#quiz_edit_actions").click } # rubocop:disable Specs/PreferFOverFj
   end
 
   def edit_first_multiple_choice_answer(text)
@@ -570,7 +570,7 @@ module QuizzesCommon
   end
 
   def delete_first_multiple_choice_answer
-    driver.execute_script "$('.answer').addClass('hover');"
+    driver.execute_script "$('.answer').addClass('hover');" # rubocop:disable Specs/NoExecuteScript
     fj(".delete_answer_link:visible").click
   end
 
@@ -596,7 +596,7 @@ module QuizzesCommon
   #   {:id => 2, :el => <#SeleniumElement>, :type => 'group', :questions => []}
   #
   # where :questions is an array of questions in the group
-  def get_question_data
+  def get_question_data # rubocop:disable Naming/AccessorMethodName
     els = ff "#questions > *"
     last_group_id = nil
     data = []
@@ -804,12 +804,12 @@ module QuizzesCommon
 
   def verify_quiz_is_locked
     open_quiz_show_page unless driver.current_url == quiz_show_page_url
-    expect(fj(".lock_explanation")).to include_text "This quiz was locked"
+    expect(f(".lock_explanation")).to include_text "This quiz was locked"
   end
 
   def verify_quiz_is_submitted
     open_quiz_show_page unless driver.current_url == quiz_show_page_url
-    expect(fj(".quiz-submission")).to include_text "Submitted"
+    expect(f(".quiz-submission")).to include_text "Submitted"
   end
 
   def verify_quiz_submission_is_late

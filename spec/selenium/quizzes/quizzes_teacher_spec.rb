@@ -95,7 +95,7 @@ describe "quizzes" do
       group_form = f("#questions .quiz_group_form")
       pick_count_field = group_form.find_element(:name, "quiz_group[pick_count]")
       pick_count = lambda do |count|
-        driver.execute_script <<~JS
+        driver.execute_script <<~JS # rubocop:disable Specs/NoExecuteScript
           var $pickCount = $('#questions .group_top input[name="quiz_group[pick_count]"]');
           $pickCount.focus();
           $pickCount[0].value = #{count.to_s.inspect};
@@ -213,7 +213,7 @@ describe "quizzes" do
         input.send_keys("asdf")
         wait_for_ajaximations
         expect(error_displayed?).to be_truthy
-        driver.execute_script('$(".numerical_question_input").change()')
+        driver.execute_script('$(".numerical_question_input").change()') # rubocop:disable Specs/NoExecuteScript
         wait_for_ajaximations
         expect(input[:value]).to be_blank
 
@@ -221,7 +221,7 @@ describe "quizzes" do
         input.send_keys("1")
         wait_for_ajaximations
         expect(error_displayed?).to be_falsey
-        driver.execute_script('$(".numerical_question_input").change()')
+        driver.execute_script('$(".numerical_question_input").change()') # rubocop:disable Specs/NoExecuteScript
         wait_for_ajaximations
         expect(input).to have_attribute(:value, "1")
       end

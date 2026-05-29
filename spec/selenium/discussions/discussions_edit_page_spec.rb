@@ -387,9 +387,9 @@ describe "discussions" do
           expect(assign_to_due_date(1).attribute("value")).to eq("")
           expect(assign_to_due_time(1).attribute("value")).to eq("")
           expect(assign_to_available_from_date(1).attribute("value")).to eq(format_date_for_view(available_from, "%b %-e, %Y"))
-          expect(assign_to_available_from_time(1).attribute("value")).to eq(available_from.strftime("%-l:%M %p"))
+          expect(assign_to_available_from_time(1).attribute("value")).to eq(available_from.strftime("%-l:%M %p")) # rubocop:disable Specs/NoStrftime
           expect(assign_to_until_date(1).attribute("value")).to eq(format_date_for_view(available_until, "%b %-e, %Y"))
-          expect(assign_to_until_time(1).attribute("value")).to eq(available_until.strftime("%-l:%M %p"))
+          expect(assign_to_until_time(1).attribute("value")).to eq(available_until.strftime("%-l:%M %p")) # rubocop:disable Specs/NoStrftime
         end
 
         it "transitions from graded to ungraded and overrides are ok", :ignore_js_errors do
@@ -424,9 +424,9 @@ describe "discussions" do
 
           expect(assign_to_date_and_time[1].text).not_to include("Due Date")
           expect(assign_to_available_from_date(1, exclude_due_date: true).attribute("value")).to eq(format_date_for_view(available_from, "%b %-e, %Y"))
-          expect(assign_to_available_from_time(1, exclude_due_date: true).attribute("value")).to eq(available_from.strftime("%-l:%M %p"))
+          expect(assign_to_available_from_time(1, exclude_due_date: true).attribute("value")).to eq(available_from.strftime("%-l:%M %p")) # rubocop:disable Specs/NoStrftime
           expect(assign_to_until_date(1, exclude_due_date: true).attribute("value")).to eq(format_date_for_view(available_until, "%b %-e, %Y"))
-          expect(assign_to_until_time(1, exclude_due_date: true).attribute("value")).to eq(available_until.strftime("%-l:%M %p"))
+          expect(assign_to_until_time(1, exclude_due_date: true).attribute("value")).to eq(available_until.strftime("%-l:%M %p")) # rubocop:disable Specs/NoStrftime
         end
 
         it "does not recover a deleted card when adding an assignee", :ignore_js_errors do

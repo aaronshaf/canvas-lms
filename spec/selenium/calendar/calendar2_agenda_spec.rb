@@ -94,7 +94,7 @@ describe "calendar2" do
         make_event(start: yesterday)
         load_agenda_view
         expect(f("#content")).not_to contain_css(".agenda-event__item-container")
-        quick_jump_to_date(yesterday.strftime("%b %-d %Y"))
+        quick_jump_to_date(yesterday.strftime("%b %-d %Y")) # rubocop:disable Specs/NoStrftime
         wait_for_ajaximations
         expect(all_agenda_items.length).to eq 1
       end
@@ -111,7 +111,7 @@ describe "calendar2" do
 
       it "persists the start date across reloads" do
         load_agenda_view
-        next_year = 1.year.from_now.strftime("%Y")
+        next_year = 1.year.from_now.strftime("%Y") # rubocop:disable Specs/NoStrftime
         quick_jump_to_date(next_year)
         refresh_page
         wait_for_ajaximations
@@ -122,8 +122,8 @@ describe "calendar2" do
         get "/calendar2"
         f(".navigate_next").click
         f("#agenda").click
-        expect(agenda_view_header).to include_text(1.month.from_now.strftime("%b"))
-        next_year = 1.year.from_now.strftime("%Y")
+        expect(agenda_view_header).to include_text(1.month.from_now.strftime("%b")) # rubocop:disable Specs/NoStrftime
+        next_year = 1.year.from_now.strftime("%Y") # rubocop:disable Specs/NoStrftime
         quick_jump_to_date(next_year)
         f("#month").click
         expect(agenda_view_header).to include_text(next_year)
@@ -236,7 +236,7 @@ describe "calendar2" do
 
         # Expect that a the event picker is present
         # Check various elements to verify that the calendar looks good
-        expect(f(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B"))
+        expect(f(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B")) # rubocop:disable Specs/NoStrftime
         expect(f(".ui-datepicker-calendar")).to include_text("Mo")
       end
 
@@ -317,7 +317,7 @@ describe "calendar2" do
         create_appointment_group(contexts: [@course])
         create_appointment_group(contexts: [@course])
 
-        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}"
+        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}" # rubocop:disable Specs/NoStrftime
         wait_for_ajaximations
         expect(all_agenda_items.count).to equal(2)
       end
@@ -346,7 +346,7 @@ describe "calendar2" do
       end
 
       it "shows all options when in find appointment mode" do
-        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}"
+        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}" # rubocop:disable Specs/NoStrftime
         wait_for_ajaximations
         expect(f("#content")).not_to contain_css(".agenda-event__item")
         find_appointment_button.click
@@ -355,7 +355,7 @@ describe "calendar2" do
       end
 
       it "shows only the reserved option when not in find appointment mode" do
-        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}"
+        get "/calendar2#view_name=agenda&view_start=#{(Time.zone.today + 1.day).strftime}" # rubocop:disable Specs/NoStrftime
         wait_for_ajaximations
         find_appointment_button.click
         f('[role="dialog"][aria-label="Select Course"] button[type="submit"]').click

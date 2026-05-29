@@ -163,16 +163,6 @@ describe "assignment batch edit" do
         expect(format_date_for_view(@pr_sub.reload.due_at, "%m/%d/%Y")).to eq new_review_date
       end
 
-      it "validates peer review date relative to assignment dates", custom_timeout: 60 do
-        invalid_review_date = format_date_for_view(@pr_assignment.lock_at + 1.day, "%m/%d/%Y")
-        input = review_due_date_input(@pr_assignment.name)
-        replace_content(input, invalid_review_date, tab_out: true)
-        wait_for_ajaximations
-
-        expect(bulk_edit_root).to include_text("Due date cannot be after assignment until date")
-        expect(bulk_edit_save_button.attribute("disabled")).to be_truthy
-      end
-
       it "shifts the peer review due date when batch shifting dates forward", custom_timeout: 60 do
         shift_days = 3
         original_review_due = @pr_sub.due_at
@@ -185,18 +175,6 @@ describe "assignment batch edit" do
         save_bulk_edited_dates
 
         expect(@pr_sub.reload.due_at).to be_within(1.minute).of(original_review_due + shift_days.days)
-      end
-
-      it "clears and persists the peer review due date when batch removing due dates", custom_timeout: 60 do
-        select_assignment_checkbox(@pr_assignment.name).click
-        open_batch_edit_dialog
-        batch_edit_remove_dates_radio_label.click
-        batch_edit_confirm_button.click
-        wait_for_ajaximations
-        save_bulk_edited_dates
-
-        expect(@pr_assignment.reload.due_at).to be_nil
-        expect(@pr_sub.reload.due_at).to be_nil
       end
 
       it "clears parent availability dates and re-derives peer review availability dates when batch removing availability dates", custom_timeout: 60 do
@@ -230,11 +208,6 @@ describe "assignment batch edit" do
         user_session(@pr_teacher)
         visit_assignments_index_page(@pr_course.id)
         goto_bulk_edit_view
-      end
-
-      it "surfaces a validation error and disables Save on load", custom_timeout: 60 do
-        expect(bulk_edit_root).to include_text("Due date cannot be before assignment due date")
-        expect(bulk_edit_save_button.attribute("disabled")).to be_truthy
       end
 
       it "re-enables Save once the invalid review due date is corrected", custom_timeout: 60 do

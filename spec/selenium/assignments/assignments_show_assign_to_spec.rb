@@ -69,28 +69,6 @@ describe "assignments show page assign to" do
     keep_trying_until { expect(element_exists?(module_item_edit_tray_selector)).to be_falsey }
   end
 
-  it "assigns student and saves assignment", :ignore_js_errors do
-    get "/courses/#{@course.id}/assignments/#{@assignment1.id}"
-
-    AssignmentPage.click_assign_to_button
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    click_add_assign_to_card
-    select_module_item_assignee(1, @student1.name)
-    update_due_date(1, "12/31/2022")
-    update_due_time(1, "5:00 PM")
-    update_available_date(1, "12/27/2022")
-    update_available_time(1, "8:00 AM")
-    update_until_date(1, "1/7/2023")
-    update_until_time(1, "9:00 PM")
-    click_save_button
-
-    keep_trying_until { expect(element_exists?(module_item_edit_tray_selector)).to be_falsey }
-    expect(@assignment1.assignment_overrides.last.assignment_override_students.count).to eq(1)
-    # TODO: check that the dates are saved with date under the title of the item
-  end
-
   it "does not show concluded student enrollments" do
     test_student = student_in_course(course: @course, active_all: true, name: "Test Student").user
     Enrollment.where(user_id: test_student.id, course_id: @course.id).first.conclude

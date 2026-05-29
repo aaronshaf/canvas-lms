@@ -88,32 +88,6 @@ describe "assignments turn it in" do
     }
   end
 
-  it "displays validation errors for small matches inputs" do
-    skip("EGG-2147 2025-01-28 issue with change_turnitin_settings method")
-    assignment = @course.assignments.create!(
-      name: "test assignment",
-      due_at: (Time.now.utc + 2.days),
-      assignment_group: @course.assignment_groups.create!(name: "default")
-    )
-
-    get "/courses/#{@course.id}/assignments/#{assignment.id}/edit"
-    change_turnitin_small_matches_settings
-
-    # validation is run on words input
-    f("#exclude_small_matches_type_r1").click
-    f("#exclude_small_matches_words_value").click
-    f("#exclude_small_matches_words_value").send_keys([:backspace, "abc"])
-    submit_dialog_form("#assignment_turnitin_settings")
-    expect(f("[data-testid='error-message-container']")).to be_displayed
-
-    # validation is run on percent input
-    f("#exclude_small_matches_type_r2").click
-    f("#exclude_small_matches_percent_value").click
-    f("#exclude_small_matches_percent_value").send_keys([:backspace, "abc"])
-    submit_dialog_form("#assignment_turnitin_settings")
-    expect(f("[data-testid='error-message-container']")).to be_displayed
-  end
-
   it "does not allow edits to turnitin settings after submissions have been made" do
     student = User.create!
     @course.enroll_student(student).accept

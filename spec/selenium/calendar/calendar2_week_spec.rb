@@ -200,7 +200,7 @@ describe "calendar2" do
 
       # Expect that a the event picker is present
       # Check various elements to verify that the calendar looks good
-      expect(f(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B"))
+      expect(f(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B")) # rubocop:disable Specs/NoStrftime
       expect(f(".ui-datepicker-calendar")).to include_text("Mo")
     end
 
@@ -208,7 +208,7 @@ describe "calendar2" do
       before do
         @saturday = 8
         @initial_time = Time.zone.parse("2015-1-1").beginning_of_day + 9.hours
-        @initial_time_str = @initial_time.strftime("%Y-%m-%d")
+        @initial_time_str = @initial_time.strftime("%Y-%m-%d") # rubocop:disable Specs/NoStrftime
         @two_days_later = @initial_time + 48.hours
       end
 

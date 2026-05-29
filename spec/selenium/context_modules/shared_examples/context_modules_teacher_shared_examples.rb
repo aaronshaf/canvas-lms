@@ -327,7 +327,7 @@ shared_examples_for "context modules for teachers" do
     uncollapse_all_modules(@course, @user)
 
     get "/courses/#{@course.id}/modules"
-    sleep 2 # not sure what we are waiting on but drag and drop will not work, unless we wait
+    sleep 2 # rubocop:disable Lint/NoSleep
     wait_for_ajax_requests
 
     m1_handle = fj("#context_modules .context_module:first-child .reorder_module_link .icon-drag-handle")

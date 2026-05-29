@@ -85,7 +85,7 @@ describe "new account user search" do
       user_search_box.send_keys("Test")
       wait_for_ajaximations
       wait_for(method: nil, timeout: 0.5) { fj("title:contains('Loading')").displayed? }
-      wait_for_no_such_element { fj("title:contains('Loading')") }
+      wait_for_no_such_element { fj("title:contains('Loading')") } # rubocop:disable Specs/NoWaitForNoSuchElement
       expect(results_rows.count).to eq 1
       expect(results_rows.first).to include_text("Test")
     end
@@ -141,7 +141,7 @@ describe "new account user search" do
     it "sorts by email and retains focus" do
       column_sort_button("Email").click
       wait_for(method: nil, timeout: 0.5) { fj("title:contains('Loading')").displayed? }
-      wait_for_no_such_element { fj("title:contains('Loading')") }
+      wait_for_no_such_element { fj("title:contains('Loading')") } # rubocop:disable Specs/NoWaitForNoSuchElement
       check_element_has_focus f("#email-sort")
       users_list = ff("[data-automation='users list'] tr")
       expect(users_list.count).to eq 2

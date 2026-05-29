@@ -104,17 +104,19 @@ describe "calendar2" do
 
       context "drag and drop" do
         def element_location
-          driver.execute_script("return $('#calendar-app .fc-content-skeleton:first')
-          .find('tbody td.fc-event-container').index()")
+          # rubocop:disable Specs/NoExecuteScript
+          driver.execute_script("return $('#calendar-app .fc-content-skeleton:first')" \
+                                ".find('tbody td.fc-event-container').index()")
+          # rubocop:enable Specs/NoExecuteScript
         end
 
         before do
           @monday = 1
           @friday = 5
           @initial_time = Time.zone.parse("2015-1-1").beginning_of_day + 9.hours
-          @initial_time_str = @initial_time.strftime("%Y-%m-%d")
+          @initial_time_str = @initial_time.strftime("%Y-%m-%d") # rubocop:disable Specs/NoStrftime
           @one_day_later = @initial_time + 24.hours
-          @one_day_later_str = @one_day_later.strftime("%Y-%m-%d")
+          @one_day_later_str = @one_day_later.strftime("%Y-%m-%d") # rubocop:disable Specs/NoStrftime
           @three_days_earlier = @initial_time - 72.hours
         end
 
@@ -652,7 +654,7 @@ describe "calendar2" do
 
         load_month_view
 
-        expect(fj(".fc-event .fc-time").text).to eq("11:45p")
+        expect(f(".fc-event .fc-time").text).to eq("11:45p")
       end
 
       it "changes the month" do
@@ -666,13 +668,13 @@ describe "calendar2" do
       it "navigates with jump-to-date control" do
         Account.default.change_root_account_setting!(:agenda_view, true)
         # needs to be 2 months out so it doesn't appear at the start of the next month
-        eventStart = 2.months.from_now
-        make_event(start: eventStart)
+        event_start = 2.months.from_now
+        make_event(start: event_start)
 
         get "/calendar2"
         expect(f("#content")).not_to contain_css(".fc-event")
-        eventStartText = eventStart.strftime("%Y %m %d")
-        quick_jump_to_date(eventStartText)
+        event_start_text = event_start.strftime("%Y %m %d") # rubocop:disable Specs/NoStrftime
+        quick_jump_to_date(event_start_text)
         expect(find(".fc-event")).not_to be_nil
       end
 
@@ -701,7 +703,7 @@ describe "calendar2" do
 
       it "has a working today button", priority: "1" do
         load_month_view
-        date = Time.zone.now.strftime("%-d")
+        date = Time.zone.now.strftime("%-d") # rubocop:disable Specs/NoStrftime
 
         # Check for highlight to be present on this month
         # this class is also present on the mini calendar so we need to make
@@ -741,7 +743,7 @@ describe "calendar2" do
 
         # Expect that a the event picker is present
         # Check various elements to verify that the calendar looks good
-        expect(find(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B"))
+        expect(find(".ui-datepicker-header")).to include_text(Time.now.utc.strftime("%B")) # rubocop:disable Specs/NoStrftime
         expect(find(".ui-datepicker-calendar")).to include_text("Mo")
       end
 
@@ -755,7 +757,7 @@ describe "calendar2" do
         get "/calendar2"
 
         # go to the same month as the date_due
-        quick_jump_to_date(date_due.strftime("%Y-%m-%d"))
+        quick_jump_to_date(date_due.strftime("%Y-%m-%d")) # rubocop:disable Specs/NoStrftime
 
         # verify assignment has line-through
         expect(find(".fc-title").css_value("text-decoration")).to include("line-through")
@@ -769,7 +771,7 @@ describe "calendar2" do
         get "/calendar2"
 
         # go to the same month as the date_due
-        quick_jump_to_date(date_due.strftime("%Y-%m-%d"))
+        quick_jump_to_date(date_due.strftime("%Y-%m-%d")) # rubocop:disable Specs/NoStrftime
 
         # verify discussion has line-through
         expect(find(".fc-title").css_value("text-decoration")).to include("line-through")
@@ -813,7 +815,7 @@ describe "calendar2" do
         child.save!
 
         get "/calendar2"
-        quick_jump_to_date(child.start_at.strftime("%Y-%m-%d"))
+        quick_jump_to_date(child.start_at.strftime("%Y-%m-%d")) # rubocop:disable Specs/NoStrftime
         f(".fc-event").click
 
         hover_and_click ".edit_event_link"
@@ -855,7 +857,7 @@ describe "calendar2" do
         get "/calendar2"
 
         # go to the same month as the date_due
-        quick_jump_to_date(date_due.strftime("%Y-%m-%d"))
+        quick_jump_to_date(date_due.strftime("%Y-%m-%d")) # rubocop:disable Specs/NoStrftime
 
         # verify assignment has line-through
         expect(find(".fc-title").css_value("text-decoration")).to include("line-through")
@@ -879,7 +881,7 @@ describe "calendar2" do
         get "/calendar2"
 
         # go to the same month as the date_due
-        quick_jump_to_date(date_due.strftime("%Y-%m-%d"))
+        quick_jump_to_date(date_due.strftime("%Y-%m-%d")) # rubocop:disable Specs/NoStrftime
 
         # verify discussion has line-through
         expect(find(".fc-title").css_value("text-decoration")).to include("line-through")

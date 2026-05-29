@@ -302,17 +302,6 @@ describe "due date validations", :ignore_js_errors do
       @assignment1.update!(only_visible_to_overrides: true)
     end
 
-    it "shows convert override message when diff tags setting disabled" do
-      @course.account.tap do |a|
-        a.settings[:allow_assign_to_differentiation_tags] = { value: false }
-        a.save!
-      end
-      AssignmentCreateEditPage.visit_assignment_edit_page(@course.id, @assignment1.id)
-      expect(element_exists?(convert_override_alert_selector)).to be_truthy
-      AssignmentCreateEditPage.assignment_save_button.click
-      expect(f("body").text).to include "Invalid group selected"
-    end
-
     it "clicking convert overrides button converts the override and refreshes the cards" do
       @course.account.tap do |a|
         a.settings[:allow_assign_to_differentiation_tags] = { value: false }

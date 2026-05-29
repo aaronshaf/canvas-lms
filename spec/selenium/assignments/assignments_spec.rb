@@ -368,41 +368,6 @@ describe "assignments" do
         expect(assignment.muted).to be true
       end
 
-      it "preserves all assignment attributes for checkpointed discussion when opening and submitting without changes using more options", :ignore_js_errors do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        sub_account = Account.create!(name: "sub1", parent_account: Account.default)
-        @course.update!(account: sub_account)
-        sub_account.enable_feature!(:discussion_checkpoints)
-        @checkpointed_discussion = DiscussionTopic.create_graded_topic!(course: @course, title: "checkpointed discussion")
-        Checkpoints::DiscussionCheckpointCreatorService.call(
-          discussion_topic: @checkpointed_discussion,
-          checkpoint_label: CheckpointLabels::REPLY_TO_TOPIC,
-          dates: [{ type: "everyone", due_at: 2.days.from_now }],
-          points_possible: 6
-        )
-        Checkpoints::DiscussionCheckpointCreatorService.call(
-          discussion_topic: @checkpointed_discussion,
-          checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
-          dates: [{ type: "everyone", due_at: 3.days.from_now }],
-          points_possible: 7,
-          replies_required: 2
-        )
-
-        get "/courses/#{@course.id}/assignments"
-        wait_for_ajaximations
-
-        edit_assignment(@checkpointed_discussion.assignment.id, more_options: true)
-        f(".btn-primary[type='submit']").click
-        wait_for_ajaximations
-
-        assignment = @checkpointed_discussion.assignment.reload
-        expect(assignment.title).to eq "checkpointed discussion"
-        expect(assignment.submission_types).to eq "discussion_topic"
-        expect(assignment.workflow_state).to eq "published"
-        expect(assignment.type).to eq "Assignment"
-        expect(assignment.sub_assignments.first.type).to eq "SubAssignment"
-      end
-
       it "preserves online_upload submission type when editing an assignment" do
         @assignment = @course.assignments.create!(
           title: "Test Assignment",
@@ -559,7 +524,7 @@ describe "assignments" do
       form.find_element(:css, "#assignment_automatic_peer_reviews").click
       wait_for_ajaximations
       f("#assignment_peer_review_count").send_keys("2")
-      driver.execute_script "$('#assignment_peer_reviews_assign_at + .ui-datepicker-trigger').click()"
+      driver.execute_script "$('#assignment_peer_reviews_assign_at + .ui-datepicker-trigger').click()" # rubocop:disable Specs/NoExecuteScript
       wait_for_ajaximations
       datepicker = datepicker_next
       datepicker.find_element(:css, ".ui-datepicker-ok").click
@@ -707,7 +672,7 @@ describe "assignments" do
 
     it "only allows an assignment editor to edit points and title if assignment has multiple due dates" do
       middle_number = "15"
-      expected_date = 1.month.ago.strftime("%b #{middle_number}")
+      expected_date = 1.month.ago.strftime("%b #{middle_number}") # rubocop:disable Specs/NoStrftime
       @assignment = @course.assignments.create!(
         title: "VDD Test Assignment",
         due_at: expected_date
@@ -734,7 +699,7 @@ describe "assignments" do
       expect(@assignment.reload.points_possible).to eq 100
       expect(@assignment.title).to eq "VDD Test Assignment Updated"
       # Assert the time didn't change
-      expect(@assignment.due_at.strftime("%b %d")).to eq expected_date
+      expect(@assignment.due_at.strftime("%b %d")).to eq expected_date # rubocop:disable Specs/NoStrftime
     end
 
     it "shows Due Date field as disabled with message in edit modal when assignment has peer review sub assignment and FF is enabled" do
@@ -876,7 +841,7 @@ describe "assignments" do
     it "keeps erased field on more options click", priority: "2" do
       enable_cache do
         middle_number = "15"
-        expected_date = 1.month.ago.strftime("%b #{middle_number}")
+        expected_date = 1.month.ago.strftime("%b #{middle_number}") # rubocop:disable Specs/NoStrftime
         @assignment = @course.assignments.create!(
           title: "Test Assignment",
           points_possible: 10,

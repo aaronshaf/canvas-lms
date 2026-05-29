@@ -44,7 +44,7 @@ describe "quizzes stats" do
 
       expect(f(".icon-stats")).not_to be_nil
 
-      expect(fj("ul.page-action-list")).to include_text("Quiz Statistics")
+      expect(f("ul.page-action-list")).to include_text("Quiz Statistics")
     end
 
     context "teacher preview" do
