@@ -90,6 +90,28 @@ describe Canvas::LockExplanation do
                 expect { result }.to raise_error("Either Context or Group context must be a Course")
               end
             end
+
+            context "when the context is a course" do
+              let(:context) { course_factory }
+
+              before do
+                allow(host).to receive(:course_context_modules_url).and_return("/some/modules/url")
+              end
+
+              context "when the module name contains HTML" do
+                let(:object) { context.context_modules.create!(workflow_state: "published", name: "<script>alert(1)</script>") }
+
+                it "HTML-escapes the module name in the output" do
+                  expect(result).not_to include("<script>alert(1)</script>")
+                  expect(result).to include("&lt;script&gt;alert(1)&lt;/script&gt;")
+                end
+              end
+
+              it "HTML-escapes ampersands in the modules link href" do
+                allow(host).to receive(:course_context_modules_url).and_return("/modules?a=1&b=2")
+                expect(result).to include('href="/modules?a=1&amp;b=2"')
+              end
+            end
           end
         end
       end

@@ -155,9 +155,15 @@ module Canvas
 
           html << tag.br
           html << tag.div(class: "spinner")
+          link_wrapper = tag.a(
+            "\\1".html_safe,
+            href: course_context_modules_url(context || obj.context, anchor: "module_#{obj.id}", **url_options),
+            class: "module_prerequisites_fallback",
+            style: ("display: none;" if include_js)
+          )
           html << I18n.t("messages.visit_modules_page",
                          "*Visit the course modules page for information on how to unlock this content.*",
-                         wrapper: "<a #{"style='display: none;'" if include_js} class='module_prerequisites_fallback' href='#{course_context_modules_url(context || obj.context, anchor: "module_#{obj.id}", **url_options)}'>\\1</a>").html_safe
+                         wrapper: link_wrapper)
           html << tag.a("&nbsp;".html_safe,
                         "x-canvaslms-trusted-url": course_context_module_prerequisites_needing_finishing_path((context || obj.context).id, obj.id, hash[:asset_string]),
                         style: "display: none;",
