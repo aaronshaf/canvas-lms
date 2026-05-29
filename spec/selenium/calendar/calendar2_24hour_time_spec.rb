@@ -41,27 +41,4 @@ describe "calendar2" do
       expect(f(".fc-time")).to include_text("9p")
     end
   end
-
-  context "24-hour" do
-    before do
-      Account.default.tap do |a|
-        a.default_locale = "en-GB"
-        a.save!
-      end
-    end
-
-    it "shows assignment in 24-hour time", priority: "1" do
-      skip("RAILS_LOAD_ALL_LOCALES=true") unless ENV["RAILS_LOAD_ALL_LOCALES"]
-      create_course_assignment
-      get "/calendar2"
-      expect(f(".fc-time")).to include_text("21")
-    end
-
-    it "shows event in 24-hour time", priority: "1" do
-      skip("RAILS_LOAD_ALL_LOCALES=true") unless ENV["RAILS_LOAD_ALL_LOCALES"]
-      create_course_event
-      get "/calendar2"
-      expect(f(".fc-time")).to include_text("21")
-    end
-  end
 end

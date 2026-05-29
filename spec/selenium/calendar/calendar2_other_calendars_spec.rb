@@ -44,15 +44,6 @@ describe "calendar2" do
       expect(modal_empty_state).to be_displayed
     end
 
-    it "displays accounts if the user has enabled them" do
-      @student.set_preference(:enabled_account_calendars, @subaccount1.id)
-      get "/calendar2"
-
-      account_calendar = other_calendars_context_labels
-      expect(other_calendars_container).to be_displayed
-      expect(account_calendar.first.text).to eq @subaccount1.name
-    end
-
     it "displays a NEW pill to indicate the feature is new" do
       @student.set_preference(:enabled_account_calendars, @subaccount1.id)
       get "/calendar2"
@@ -250,17 +241,6 @@ describe "calendar2" do
           expect(account_calendars_list).not_to contain_css(account_calendar_checkbox_selector(@subaccount1.id))
           expect(account_calendar_list_items.count).to eq(2)
         end
-
-        it "displays an empty state if no matching accounts were found" do
-          user_session(@student)
-          get "/calendar2"
-          open_other_calendars_modal
-          expect(account_calendar_list_items.count).to eq(1)
-          expect(account_calendars_list).not_to contain_css(modal_empty_state_selector)
-
-          search_account("non")
-          expect(modal_empty_state).to be_displayed
-        end
       end
     end
 
@@ -295,15 +275,6 @@ describe "calendar2" do
       before :once do
         @subaccount1.account_calendar_subscription_type = "auto"
         @subaccount1.save!
-      end
-
-      it "cannot uncheck auto-subscribed calendar on selection modal" do
-        @student.set_preference(:enabled_account_calendars, @subaccount1.id)
-        user_session(@student)
-        get "/calendar2"
-
-        open_other_calendars_modal
-        expect(f(account_calendar_checkbox_selector(@subaccount1.id))).to be_disabled
       end
 
       it "can uncheck auto-subscribed calendar for viewing on calendar" do

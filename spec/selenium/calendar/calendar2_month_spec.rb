@@ -443,21 +443,6 @@ describe "calendar2" do
         expect(find("#assignment-draft-state")).not_to include_text("Not Published")
       end
 
-      it "loads discussion edit page when click on edit button in discussion checkpoint info modal" do
-        skip "Will be fixed in VICE-5634 2025-11-11"
-        @course.account.enable_feature!(:discussion_checkpoints)
-        due_at = Time.zone.now.utc + 1.day
-        title = "graded discussion with checkpoints"
-        topic = DiscussionTopic.create_graded_topic!(course: @course, title:)
-        create_checkpoint(topic:, due_at:)
-
-        get "/calendar2"
-        quick_jump_to_date(format_date_for_view(due_at))
-        f(".fc-event").click
-        click_edit_event_button
-        expect(find("h1")).to include_text(title)
-      end
-
       it "loads discussion page when click on title in discussion checkpoint info modal", :ignore_js_errors do
         @course.account.enable_feature!(:discussion_checkpoints)
         due_at = Time.zone.now.utc + 1.day
@@ -923,21 +908,6 @@ describe "calendar2" do
         wait_for_ajaximations
         expect(ff(".fc-title").count).to be(1)
         expect(f(".fc-title")).to include_text("aprilfools") # should still load cached event
-      end
-
-      it "does not include the module override in the assignment list" do
-        skip "FOO-5060 2025-01-26"
-        @section1 = CourseSection.create!(name: "Section 1", course: @course)
-        student_in_section(@section1, user: @student)
-        @assignment = @course.assignments.create!(title: "new assignment")
-        module0 = ContextModule.create!(name: "Alpha Mod", context: @course)
-        module0.content_tags.create!(context: @course, content: @assignment, tag_type: "context_module")
-        AssignmentOverride.create!(set_type: "CourseSection", set_id: @section1.id, title: @section1.name, workflow_state: "active", context_module_id: module0.id)
-
-        @assignment.assignment_overrides.create!(due_at: 1.week.from_now, due_at_overridden: true, set_type: "CourseSection", set_id: @section1.id, title: @section1.name, workflow_state: "active")
-        get "/calendar2"
-        wait_for_ajaximations
-        expect(f(".fc-event").text).to include("new assignment")
       end
 
       it "student sees assignment on calendar when in section" do

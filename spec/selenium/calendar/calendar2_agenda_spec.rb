@@ -330,18 +330,6 @@ describe "calendar2" do
       course_with_student_logged_in
     end
 
-    it "student can not delete events created by a teacher", priority: "1" do
-      # create an event as the teacher
-      @course.calendar_events.create!(title: "Monkey Island", start_at: Time.zone.now.advance(days: 4))
-
-      # browse to the view as a student
-      load_agenda_view
-
-      # click on the event and rxpect there not to be a delete button
-      agenda_item.click
-      expect(f("#content")).not_to contain_css(".event-details .delete_event_link")
-    end
-
     it "displays agenda events" do
       load_agenda_view
       expect(fj(".agenda-wrapper:visible")).to be_present

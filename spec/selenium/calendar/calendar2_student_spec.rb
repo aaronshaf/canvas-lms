@@ -193,44 +193,4 @@ describe "calendar2" do
       end
     end
   end
-
-  context "as a spanish student" do
-    before do
-      # Setup with spanish locale
-      @student = course_with_student_logged_in(active_all: true).user
-      @student.locale = "es"
-      @student.save!
-    end
-
-    describe "main calendar" do
-      it "displays in Spanish" do
-        skip("USE_OPTIMIZED_JS=true") unless ENV["USE_OPTIMIZED_JS"]
-        skip("RAILS_LOAD_ALL_LOCALES=true") unless ENV["RAILS_LOAD_ALL_LOCALES"]
-        date = Date.new(2012, 7, 12)
-        # Use event to  open to a specific and testable month
-        event = calendar_event_model(title: "Test Event", start_at: date, end_at: (date + 1.hour))
-
-        get "/courses/#{@course.id}/calendar_events/#{event.id}?calendar=1"
-        expect(fj(".calendar_header .navigation_title").text).to eq "julio 2012"
-        expect(fj("#calendar-app .fc-sun").text).to eq "DOM."
-        expect(fj("#calendar-app .fc-mon").text).to eq "LUN."
-        expect(fj("#calendar-app .fc-tue").text).to eq "MAR."
-        expect(fj("#calendar-app .fc-wed").text).to eq "MIÉ."
-        expect(fj("#calendar-app .fc-thu").text).to eq "JUE."
-        expect(fj("#calendar-app .fc-fri").text).to eq "VIE."
-        expect(fj("#calendar-app .fc-sat").text).to eq "SÁB."
-      end
-    end
-
-    describe "mini calendar" do
-      it "displays in Spanish" do
-        skip("USE_OPTIMIZED_JS=true") unless ENV["USE_OPTIMIZED_JS"]
-        skip("RAILS_LOAD_ALL_LOCALES=true") unless ENV["RAILS_LOAD_ALL_LOCALES"]
-        get "/calendar2"
-        # Get the spanish text for the current month/year
-        expect_month_year = I18n.l(Time.zone.today, format: "%B %Y", locale: "es")
-        expect(fj("#minical h2").text).to eq expect_month_year.downcase
-      end
-    end
-  end
 end

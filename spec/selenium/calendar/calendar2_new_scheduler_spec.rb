@@ -100,22 +100,6 @@ describe "scheduler" do
       expect(f("#select-course-component")).not_to contain_css("#FindAppointmentButton")
     end
 
-    it "reserves appointment slots in find appointment mode", priority: "1" do
-      skip "Flakey spec. Fix LX-2191 2025-01-09"
-      get "/calendar2"
-      wait_for_ajaximations
-      open_select_courses_modal(@course1.name)
-      ff(".fc-content")[0].click
-      wait_for_ajaximations
-      scroll_into_view(".reserve_event_link")
-      f(".reserve_event_link").click
-      refresh_page
-      expected_time = calendar_time_string(@app1.new_appointments.first.start_at)
-      wait_for_ajaximations
-      expect(f(".fc-content .fc-title")).to include_text(@app1.title)
-      expect(f(".fc-time")).to include_text expected_time
-    end
-
     it "unreserves appointment slot", priority: "1" do
       reserve_appointment_for(@student1, @student1, @app1)
       expect(@app1.appointments.first.workflow_state).to eq("locked")
@@ -128,29 +112,6 @@ describe "scheduler" do
       # save the changes so the appointment object is updated
       @app1.save!
       expect(@app1.appointments.first.workflow_state).to eq("active")
-    end
-
-    it "does not allow scheduling multiple appointment slots when it is restricted", priority: "1" do
-      skip("2025-03-07 This test is flaky and will be fixed with VICE-5108")
-
-      reserve_appointment_for(@student1, @student1, @app1)
-      get "/calendar2"
-      open_select_courses_modal(@course1.name)
-      wait_for_ajaximations
-      expect(f(".fc-content .icon-calendar-add")).to be_displayed
-      scroll_into_view(".fc-content .icon-calendar-add")
-      ff(".fc-content .icon-calendar-add")[0].click
-      wait_for_ajaximations
-      f(".reserve_event_link").click
-      wait_for_ajaximations
-      visible_dialog_element = fj(".ui-dialog:contains('You are already signed up for')")
-      title = visible_dialog_element.find_element(:css, ".ui-dialog-titlebar")
-      expect(title.text).to include("Cancel existing reservation and sign up for this one?")
-      ff(".ui-dialog-buttonset .ui-button")[0].click
-      scroll_to(f('span[class="navigation_title_text"]'))
-      ff(".fc-content .fc-title")[1].click
-      wait_for_ajaximations
-      expect(f(".event-details")).to contain_css(".reserve_event_link")
     end
   end
 

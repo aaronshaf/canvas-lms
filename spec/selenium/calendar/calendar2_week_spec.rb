@@ -149,17 +149,6 @@ describe "calendar2" do
       expect(f(".fc-sun")).to include_text("SUN 1/8")
     end
 
-    it "creates event by clicking on week calendar", priority: "1" do
-      skip("2025-06-06 fickle VICE-5319")
-      title = "from clicking week calendar"
-      load_week_view
-
-      # Click non all-day event
-      fj(".fc-agendaWeek-view .fc-time-grid .fc-slats .fc-widget-content:not(.fc-axis):first").click
-      event_from_modal(title)
-      expect(f(".fc-title")).to include_text title
-    end
-
     it "creates all day event on week calendar", priority: "1" do
       title = "all day event title"
       load_week_view
