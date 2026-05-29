@@ -27,6 +27,7 @@ const mockSnapshot: Snapshot = {
   completed: 6,
   in_progress: 4,
   not_started: 5,
+  evaluation_metrics: [],
 }
 
 describe('OverallSnapshot', () => {

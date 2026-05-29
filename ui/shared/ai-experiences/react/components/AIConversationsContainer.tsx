@@ -33,17 +33,24 @@ import {
   IconArrowOpenEndLine,
 } from '@instructure/ui-icons'
 import {AIExperience, LLMConversationMessage} from '../../types'
-import {useStudentConversations, useConversationDetail} from '../hooks/useAIConversations'
+import {
+  useStudentConversations,
+  useConversationDetail,
+  useConversationEvaluation,
+} from '../hooks/useAIConversations'
 import FocusMode from './FocusMode'
 import MessageThread from './MessageThread'
 import GradientBorder from './GradientBorder'
 import ConversationHeader from './ConversationHeader'
+import OverallSnapshot from './OverallSnapshot'
+import EvaluationInsights from './EvaluationInsights'
 import {roundedTheme, RADIUS_PILL, RADIUS_SM} from '../brand'
 
 const I18n = createI18nScope('ai_experiences_ai_conversations')
 
 const expandButtonTheme = {borderRadius: RADIUS_PILL, smallHeight: '1.75rem'}
 const pillTextStyle: React.CSSProperties = {fontWeight: 'bold', color: '#000000'}
+const pillTextSuccessStyle: React.CSSProperties = {fontWeight: 'bold', color: '#03893D'}
 const navButtonTheme = {
   borderRadius: RADIUS_SM,
   secondaryBackground: '#ffffff',
@@ -60,10 +67,11 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   aiExperience,
   courseId,
 }) => {
-  const {conversations, isLoading: isLoadingConversations} = useStudentConversations(
-    courseId,
-    aiExperience.id,
-  )
+  const {
+    conversations,
+    snapshot,
+    isLoading: isLoadingConversations,
+  } = useStudentConversations(courseId, aiExperience.id)
 
   const [selectedIdentifier, setSelectedIdentifier] = useState<string | undefined>(undefined)
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false)
@@ -75,6 +83,12 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   const selectedConversationId = hasConversation ? selectedStudentData?.id : undefined
 
   const {conversation, isLoading: isLoadingConversation} = useConversationDetail(
+    courseId,
+    aiExperience.id,
+    selectedConversationId || undefined,
+  )
+
+  const {evaluation, isLoading: isLoadingEvaluation} = useConversationEvaluation(
     courseId,
     aiExperience.id,
     selectedConversationId || undefined,
@@ -145,8 +159,12 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
     )
   }
 
+  const enabledMetrics = (aiExperience.evaluation_metrics || []).filter(m => m.enabled)
+
   return (
     <View as="div" margin="medium 0">
+      <OverallSnapshot snapshot={snapshot} isLoading={isLoadingConversations} />
+
       {/* Filter row */}
       <Flex justifyItems="space-between" alignItems="end" margin="0 0 medium 0">
         <Flex.Item>
@@ -214,9 +232,9 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
       {selectedIdentifier && hasConversation && conversation && (
         <Flex gap="small" margin="0 0 medium 0">
           <Flex.Item>
-            <Pill color={conversation.workflow_state === 'completed' ? 'success' : 'info'}>
-              <span style={pillTextStyle}>
-                {conversation.workflow_state === 'completed'
+            <Pill color={conversation.all_objectives_met ? 'success' : 'info'}>
+              <span style={conversation.all_objectives_met ? pillTextSuccessStyle : pillTextStyle}>
+                {conversation.all_objectives_met
                   ? I18n.t('Completed %{date}', {
                       date: new Date(conversation.updated_at || '').toLocaleString(),
                     })
@@ -250,36 +268,55 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
         </View>
       )}
 
-      {/* Conversation card */}
+      {/* Evaluation insights (left) + conversation card (right) */}
       {selectedIdentifier && hasConversation && (
-        <InstUISettingsProvider theme={roundedTheme}>
-          <GradientBorder>
-            <ConversationHeader
-              action={
-                <Button
-                  data-testid="ai-conversations-expand-button"
-                  onClick={() => setIsFocusModeOpen(true)}
-                  size="small"
-                  color="primary-inverse"
-                  withBackground={false}
-                  renderIcon={<IconFullScreenLine />}
-                  themeOverride={expandButtonTheme}
+        <Flex gap="medium" alignItems="stretch">
+          {enabledMetrics.length > 0 && (
+            <Flex.Item shouldGrow shouldShrink>
+              <div style={{height: '100%'}}>
+                <EvaluationInsights
+                  metrics={aiExperience.evaluation_metrics || []}
+                  evaluation={evaluation}
+                  isLoading={isLoadingEvaluation}
+                />
+              </div>
+            </Flex.Item>
+          )}
+          <Flex.Item
+            width={enabledMetrics.length > 0 ? '340px' : undefined}
+            shouldGrow={enabledMetrics.length === 0}
+            shouldShrink={enabledMetrics.length === 0}
+          >
+            <InstUISettingsProvider theme={roundedTheme}>
+              <GradientBorder>
+                <ConversationHeader
+                  action={
+                    <Button
+                      data-testid="ai-conversations-expand-button"
+                      onClick={() => setIsFocusModeOpen(true)}
+                      size="small"
+                      color="primary-inverse"
+                      withBackground={false}
+                      renderIcon={<IconFullScreenLine />}
+                      themeOverride={expandButtonTheme}
+                    >
+                      {I18n.t('Expand')}
+                    </Button>
+                  }
+                />
+                <View
+                  as="div"
+                  padding="medium"
+                  background="primary"
+                  maxHeight="calc(100vh - 510px)"
+                  overflowY="auto"
                 >
-                  {I18n.t('Expand')}
-                </Button>
-              }
-            />
-            <View
-              as="div"
-              padding="medium"
-              background="primary"
-              maxHeight="calc(100vh - 510px)"
-              overflowY="auto"
-            >
-              {renderConversationMessages()}
-            </View>
-          </GradientBorder>
-        </InstUISettingsProvider>
+                  {renderConversationMessages()}
+                </View>
+              </GradientBorder>
+            </InstUISettingsProvider>
+          </Flex.Item>
+        </Flex>
       )}
 
       {/* Empty state */}

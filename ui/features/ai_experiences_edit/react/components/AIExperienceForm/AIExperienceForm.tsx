@@ -26,9 +26,10 @@ import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
-import {AIExperience, AIExperienceFormData} from '../../../types'
+import {AIExperience, AIExperienceFormData, EvaluationMetric} from '../../../types'
 import FormHeader from './FormHeader'
 import ConfigurationSection from './ConfigurationSection'
+import EvaluationMetricsSection, {DEFAULT_METRICS} from './EvaluationMetricsSection'
 import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
 import {roundedTheme} from '../../../../../shared/ai-experiences/react/brand'
 
@@ -67,6 +68,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
     pedagogical_guidance: '',
   })
   const [contextFiles, setContextFiles] = useState<ContextFile[]>([])
+  const [evaluationMetrics, setEvaluationMetrics] = useState<EvaluationMetric[]>(DEFAULT_METRICS)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showErrors, setShowErrors] = useState(false)
   const [showErrorBanner, setShowErrorBanner] = useState(false)
@@ -82,6 +84,9 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
       })
       if (aiExperience.context_files) {
         setContextFiles(aiExperience.context_files as ContextFile[])
+      }
+      if (aiExperience.evaluation_metrics && aiExperience.evaluation_metrics.length > 0) {
+        setEvaluationMetrics(aiExperience.evaluation_metrics)
       }
     }
   }, [aiExperience])
@@ -171,6 +176,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
     const dataToSubmit: AIExperienceFormData = {
       ...formData,
       context_file_ids: contextFiles.map(f => f.id),
+      evaluation_metrics: evaluationMetrics,
     }
     onSubmit(dataToSubmit)
   }
@@ -278,6 +284,17 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             courseId={((window as any).ENV?.COURSE_ID || '').toString()}
             initialFailedFileNames={aiExperience?.failed_context_file_names}
           />
+
+          <View
+            as="div"
+            background="primary"
+            borderWidth="small"
+            borderRadius="medium"
+            padding="medium"
+            margin="large 0 large 0"
+          >
+            <EvaluationMetricsSection metrics={evaluationMetrics} onChange={setEvaluationMetrics} />
+          </View>
         </form>
       </View>
     </InstUISettingsProvider>

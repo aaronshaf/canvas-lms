@@ -62,7 +62,7 @@ module Api::V1::AiExperience
       end
 
       json[:evaluation_metrics] = ai_experience.ai_experience_evaluation_metrics.map do |m|
-        { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
+        { name: m.name, description: m.description, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
       end
     end
 

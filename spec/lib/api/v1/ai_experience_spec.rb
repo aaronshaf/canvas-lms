@@ -266,6 +266,7 @@ describe Api::V1::AiExperience do
       AiExperienceEvaluationMetric.create!(
         ai_experience: @ai_experience,
         name: "Summary",
+        description: "An overall summary of the learner's conversation.",
         enabled: true,
         visible_to_learners: false
       )
@@ -273,13 +274,14 @@ describe Api::V1::AiExperience do
       json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
 
       expect(json).to have_key(:evaluation_metrics)
-      expect(json[:evaluation_metrics]).to eq([{ "name" => "Summary", "enabled" => true, "visible_to_learners" => false }])
+      expect(json[:evaluation_metrics]).to eq([{ "name" => "Summary", "description" => "An overall summary of the learner's conversation.", "enabled" => true, "visible_to_learners" => false }])
     end
 
     it "excludes evaluation_metrics when can_manage is false" do
       AiExperienceEvaluationMetric.create!(
         ai_experience: @ai_experience,
         name: "Summary",
+        description: "An overall summary of the learner's conversation.",
         enabled: true,
         visible_to_learners: false
       )

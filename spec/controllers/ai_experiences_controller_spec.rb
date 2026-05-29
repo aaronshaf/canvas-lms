@@ -1099,8 +1099,8 @@ describe AiExperiencesController, type: :request do
             params: {
               ai_experience: {
                 evaluation_metrics: [
-                  { name: "Summary", enabled: true, visible_to_learners: true },
-                  { name: "Areas for improvement", enabled: false, visible_to_learners: false }
+                  { name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: true },
+                  { name: "Areas for improvement", description: "Guidance for improvement.", enabled: false, visible_to_learners: false }
                 ]
               }
             }
@@ -1117,7 +1117,7 @@ describe AiExperiencesController, type: :request do
         put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
             params: {
               ai_experience: {
-                evaluation_metrics: [{ name: "Summary", enabled: true, visible_to_learners: false }]
+                evaluation_metrics: [{ name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: false }]
               }
             }
 

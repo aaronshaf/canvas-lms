@@ -22,7 +22,6 @@ describe AiConversationsController do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
     @course.root_account.enable_feature!(:ai_experiences)
-    @course.root_account.enable_feature!(:ai_experiences_evaluation)
     @ai_experience = @course.ai_experiences.create!(
       title: "Customer Service Training",
       description: "Practice customer service scenarios",
@@ -158,6 +157,26 @@ describe AiConversationsController do
         expect(json_response["messages"]).to be_an(Array)
         expect(json_response["messages"].length).to eq(2)
         expect(json_response["progress"]).to be_present
+      end
+
+      it "includes all_objectives_met: false when objectives not yet met" do
+        get :show,
+            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+            format: :json
+
+        expect(response).to be_successful
+        expect(json_parse(response.body)["all_objectives_met"]).to be false
+      end
+
+      it "includes all_objectives_met: true when objectives are met" do
+        @conversation.update!(all_objectives_met: true)
+
+        get :show,
+            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+            format: :json
+
+        expect(response).to be_successful
+        expect(json_parse(response.body)["all_objectives_met"]).to be true
       end
 
       it "returns 404 for non-existent conversation" do
@@ -1023,56 +1042,6 @@ describe AiConversationsController do
           expect(json_response["error"]).to eq("Resource Not Found")
         end
       end
-    end
-  end
-
-  describe "ai_experiences_evaluation feature flag (only gates :evaluation)" do
-    before :once do
-      @eval_conversation = @ai_experience.ai_conversations.create!(
-        llm_conversation_id: "eval-ff-conv",
-        user: @student,
-        course: @course,
-        root_account: @course.root_account,
-        account: @course.account,
-        workflow_state: "active"
-      )
-    end
-
-    before do
-      user_session(@teacher)
-      @course.root_account.disable_feature!(:ai_experiences_evaluation)
-    end
-
-    it "returns 404 from #evaluation when the evaluation FF is off" do
-      get :evaluation,
-          params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @eval_conversation.id },
-          format: :json
-
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it "does NOT block #create when only the evaluation FF is off" do
-      mock_service = instance_double(AiExperiences::ConversationStartService)
-      allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
-      allow(mock_service).to receive(:start).and_return({ conversation_id: "x", messages: [] })
-
-      post :create,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-           format: :json
-
-      expect(response).to have_http_status(:created)
-    end
-
-    it "does NOT block #post_message when only the evaluation FF is off" do
-      mock_service = instance_double(AiExperiences::ConversationContinueService)
-      allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
-      allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
-
-      post :post_message,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @eval_conversation.id, message: "hi" },
-           format: :json
-
-      expect(response).to have_http_status(:ok)
     end
   end
 

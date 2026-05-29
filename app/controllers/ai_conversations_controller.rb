@@ -36,7 +36,6 @@ class AiConversationsController < ApplicationController
 
   before_action :require_context
   before_action :check_ai_experiences_feature_flag
-  before_action :check_evaluation_feature_flag, only: :evaluation
   before_action :require_access_right
   before_action :load_experience
   before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
@@ -44,6 +43,11 @@ class AiConversationsController < ApplicationController
   rescue_from InstLLMHelper::RateLimitExceededError do
     render json: { error: t("You've hit the AI Experiences rate limit. Please try again later.") },
            status: :too_many_requests
+  end
+
+  rescue_from LlmConversation::Errors::ConversationError do |e|
+    Rails.logger.warn("[AiConversationsController] llma error: #{e.message}")
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Show conversation
@@ -68,13 +72,12 @@ class AiConversationsController < ApplicationController
       user_id: @conversation.user_id.to_s,
       llm_conversation_id: @conversation.llm_conversation_id,
       workflow_state: @conversation.workflow_state,
+      all_objectives_met: @conversation.all_objectives_met,
       created_at: @conversation.created_at,
       updated_at: @conversation.updated_at,
       messages: messages_and_progress[:messages],
       progress: messages_and_progress[:progress]
     }
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Get active conversation
@@ -97,8 +100,6 @@ class AiConversationsController < ApplicationController
     else
       render json: {}
     end
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Create AI conversation
@@ -143,8 +144,6 @@ class AiConversationsController < ApplicationController
 
     # Return only the Canvas conversation ID, messages, and progress
     render json: { id: conversation_record&.id, messages: result[:messages], progress: result[:progress] }, status: :created
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Post message to conversation
@@ -181,8 +180,6 @@ class AiConversationsController < ApplicationController
 
     # Return only the Canvas conversation ID, messages, and progress
     render json: { id: @conversation.id, messages: result[:messages], progress: }
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Delete AI conversation
@@ -218,8 +215,6 @@ class AiConversationsController < ApplicationController
       id: @conversation.id,
       evaluation: evaluation_data
     }
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Create feedback on a conversation message
@@ -244,8 +239,6 @@ class AiConversationsController < ApplicationController
       feedback_message: params[:feedback_message]
     )
     render json: { feedback: }
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Delete feedback on a conversation message
@@ -264,21 +257,12 @@ class AiConversationsController < ApplicationController
       feedback_id: params[:feedback_id]
     )
     render json: { success: true }
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   private
 
   def check_ai_experiences_feature_flag
     unless @context&.feature_enabled?(:ai_experiences)
-      render_404
-      false
-    end
-  end
-
-  def check_evaluation_feature_flag
-    unless @context&.feature_enabled?(:ai_experiences_evaluation)
       render_404
       false
     end

@@ -29,6 +29,10 @@ class AiExperienceEvaluationMetric < ApplicationRecord
             length: { maximum: 255 },
             format: { with: /\A[^\r\n\t]+\z/ }
   validates :name, uniqueness: { scope: :ai_experience_id }
+  validates :description,
+            presence: true,
+            length: { minimum: 10, maximum: 1000 },
+            format: { with: /\A[^\r\n\t]+\z/ }
 
   before_validation :set_root_account
 

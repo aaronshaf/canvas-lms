@@ -92,10 +92,18 @@ describe('AIConversationsContainer', () => {
     server.close()
   })
 
+  const mockSnapshot = {
+    total_objectives: 2,
+    completed: 1,
+    in_progress: 1,
+    not_started: 1,
+    evaluation_metrics: [],
+  }
+
   beforeEach(() => {
     server.use(
       http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', () => {
-        return HttpResponse.json({conversations: mockConversations})
+        return HttpResponse.json({conversations: mockConversations, snapshot: mockSnapshot})
       }),
       http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations/conv1', () => {
         return HttpResponse.json(mockConversationDetail)
@@ -112,6 +120,13 @@ describe('AIConversationsContainer', () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
     await waitFor(() => {
       expect(screen.getByLabelText('Filter by student')).toBeInTheDocument()
+    })
+  })
+
+  it('renders OverallSnapshot when snapshot is returned by the API', async () => {
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await waitFor(() => {
+      expect(screen.getByTestId('overall-snapshot')).toBeInTheDocument()
     })
   })
 
@@ -189,10 +204,22 @@ describe('AIConversationsContainer', () => {
     })
   })
 
-  it('shows in-progress pill when conversation is active', async () => {
+  it('shows in-progress pill when all_objectives_met is false', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
     await waitFor(() => {
       expect(screen.getByText('In progress')).toBeInTheDocument()
+    })
+  })
+
+  it('shows completed pill when all_objectives_met is true', async () => {
+    server.use(
+      http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations/conv1', () => {
+        return HttpResponse.json({...mockConversationDetail, all_objectives_met: true})
+      }),
+    )
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await waitFor(() => {
+      expect(screen.getByText(/Completed/)).toBeInTheDocument()
     })
   })
 
@@ -306,6 +333,57 @@ describe('AIConversationsContainer', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('ai-conversations-student-heading')).toBeInTheDocument()
+    })
+  })
+
+  describe('OverallSnapshot', () => {
+    const mockSnapshot = {total_objectives: 3, completed: 6, in_progress: 4, not_started: 5}
+
+    it('renders snapshot cards when response includes snapshot', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', () => {
+          return HttpResponse.json({conversations: mockConversations, snapshot: mockSnapshot})
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('overall-snapshot')).toBeInTheDocument()
+      })
+      expect(screen.getByTestId('snapshot-learning-targets')).toBeInTheDocument()
+      expect(screen.getByTestId('snapshot-completed')).toBeInTheDocument()
+      expect(screen.getByTestId('snapshot-in-progress')).toBeInTheDocument()
+      expect(screen.getByTestId('snapshot-not-started')).toBeInTheDocument()
+    })
+
+    it('does not render snapshot when response excludes it', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', () => {
+          return HttpResponse.json({conversations: mockConversations})
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Filter by student')).not.toBeDisabled()
+      })
+
+      expect(screen.queryByTestId('overall-snapshot')).not.toBeInTheDocument()
+    })
+
+    it('shows loading spinner while conversations are loading', () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', async () => {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          return HttpResponse.json({conversations: mockConversations, snapshot: mockSnapshot})
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+
+      expect(screen.getByTestId('overall-snapshot-loading')).toBeInTheDocument()
     })
   })
 

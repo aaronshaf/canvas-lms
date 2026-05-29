@@ -32,43 +32,61 @@ describe AiExperienceEvaluationMetric do
   end
 
   describe "validations" do
-    it "is valid with name, enabled, and visible_to_learners" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", enabled: true, visible_to_learners: false)
+    it "is valid with name, description, enabled, and visible_to_learners" do
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", description: "An overall summary.", enabled: true, visible_to_learners: false)
       expect(metric).to be_valid
     end
 
     it "requires name" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "", enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "", description: "A description.", enabled: true, visible_to_learners: false)
       expect(metric).not_to be_valid
       expect(metric.errors[:name]).to be_present
     end
 
+    it "requires description" do
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", description: "", enabled: true, visible_to_learners: false)
+      expect(metric).not_to be_valid
+      expect(metric.errors[:description]).to be_present
+    end
+
+    it "rejects description shorter than 10 characters" do
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", description: "Too short", enabled: true, visible_to_learners: false)
+      expect(metric).not_to be_valid
+      expect(metric.errors[:description]).to be_present
+    end
+
+    it "rejects description longer than 1000 characters" do
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", description: "a" * 1001, enabled: true, visible_to_learners: false)
+      expect(metric).not_to be_valid
+      expect(metric.errors[:description]).to be_present
+    end
+
     it "rejects name longer than 255 characters" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "a" * 256, enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "a" * 256, description: "A description.", enabled: true, visible_to_learners: false)
       expect(metric).not_to be_valid
       expect(metric.errors[:name]).to be_present
     end
 
     it "accepts name with spaces" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "Student engagement", enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "Student engagement", description: "How engaged the student was.", enabled: true, visible_to_learners: false)
       expect(metric).to be_valid
     end
 
     it "rejects name containing a newline" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary\ninjection", enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary\ninjection", description: "A description.", enabled: true, visible_to_learners: false)
       expect(metric).not_to be_valid
       expect(metric.errors[:name]).to be_present
     end
 
     it "rejects name containing a tab" do
-      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary\tinjection", enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary\tinjection", description: "A description.", enabled: true, visible_to_learners: false)
       expect(metric).not_to be_valid
       expect(metric.errors[:name]).to be_present
     end
 
     it "validates uniqueness of name scoped to ai_experience" do
-      AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", enabled: true, visible_to_learners: false)
-      duplicate = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", enabled: false, visible_to_learners: true)
+      AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", description: "An overall summary.", enabled: true, visible_to_learners: false)
+      duplicate = AiExperienceEvaluationMetric.new(ai_experience:, name: "summary", description: "Another description.", enabled: false, visible_to_learners: true)
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:name]).to be_present
     end
@@ -81,16 +99,16 @@ describe AiExperienceEvaluationMetric do
         pedagogical_guidance: "Other guidance",
         course:
       )
-      AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", enabled: true, visible_to_learners: false)
-      metric = AiExperienceEvaluationMetric.new(ai_experience: other_experience, name: "summary", enabled: true, visible_to_learners: false)
+      AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", description: "An overall summary.", enabled: true, visible_to_learners: false)
+      metric = AiExperienceEvaluationMetric.new(ai_experience: other_experience, name: "summary", description: "An overall summary.", enabled: true, visible_to_learners: false)
       expect(metric).to be_valid
     end
   end
 
   describe "acts_as_list" do
     it "assigns sequential positions scoped to ai_experience" do
-      m1 = AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", enabled: true, visible_to_learners: false)
-      m2 = AiExperienceEvaluationMetric.create!(ai_experience:, name: "areas_for_improvement", enabled: true, visible_to_learners: false)
+      m1 = AiExperienceEvaluationMetric.create!(ai_experience:, name: "summary", description: "An overall summary.", enabled: true, visible_to_learners: false)
+      m2 = AiExperienceEvaluationMetric.create!(ai_experience:, name: "areas_for_improvement", description: "Guidance for improvement.", enabled: true, visible_to_learners: false)
 
       expect(m1.position).to eq(1)
       expect(m2.position).to eq(2)

@@ -16,6 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+export interface EvaluationMetric {
+  name: string
+  description?: string
+  enabled: boolean
+  visible_to_learners: boolean
+}
+
 export interface AIExperience {
   id: string
   course_id: string | number
@@ -25,13 +32,15 @@ export interface AIExperience {
   learning_objective?: string
   pedagogical_guidance?: string
   can_manage: boolean
+  evaluation_metrics?: EvaluationMetric[]
 }
 
 export interface StudentConversation {
   id: string | null
   user_id: string
   llm_conversation_id?: string
-  workflow_state?: 'active' | 'completed' | 'deleted'
+  workflow_state?: 'active' | 'ended' | 'deleted'
+  all_objectives_met?: boolean
   created_at?: string
   updated_at?: string
   has_conversation?: boolean
@@ -68,6 +77,13 @@ export interface ConversationDetail extends StudentConversation {
   }
 }
 
+export interface Snapshot {
+  completed: number
+  in_progress: number
+  not_started: number
+  total_objectives: number
+}
+
 export interface FeedbackItem {
   id: string
   user_id: string
@@ -95,11 +111,30 @@ export interface ConversationProgress {
   }>
 }
 
+export interface LearningObjectiveEvaluation {
+  objective: string
+  met: boolean
+  met_at_turn: number | null
+}
+
+export interface CustomMetricEvaluation {
+  metric: string
+  response: string
+}
+
+export interface ConversationEvaluation {
+  summary: string
+  learning_objectives_evaluation?: LearningObjectiveEvaluation[]
+  areas_for_improvement?: string[]
+  custom_metrics?: CustomMetricEvaluation[]
+}
+
 export interface Snapshot {
   total_objectives: number
   completed: number
   in_progress: number
   not_started: number
+  evaluation_metrics: EvaluationMetric[]
 }
 
 export interface LLMConversationViewProps {

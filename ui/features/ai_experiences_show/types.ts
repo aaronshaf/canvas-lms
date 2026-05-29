@@ -17,6 +17,7 @@
  */
 
 import {ContextFile} from '@canvas/canvas-file-upload/react/types'
+import {EvaluationMetric} from '@canvas/ai-experiences/types'
 
 export interface AIExperience {
   id?: string
@@ -33,6 +34,7 @@ export interface AIExperience {
   context_ready?: boolean
   context_index_status?: 'not_started' | 'in_progress' | 'completed' | 'failed'
   failed_context_file_names?: string[]
+  evaluation_metrics?: EvaluationMetric[]
 }
 
 export interface AIExperienceShowProps {

@@ -18,13 +18,19 @@
 
 import {useState, useEffect} from 'react'
 import doFetchApi from '@canvas/do-fetch-api-effect'
-import {StudentConversation, ConversationDetail} from '../../types'
+import {
+  StudentConversation,
+  ConversationDetail,
+  Snapshot,
+  ConversationEvaluation,
+} from '../../types'
 
 export const useStudentConversations = (
   courseId: string | number,
   aiExperienceId: string | number,
 ) => {
   const [conversations, setConversations] = useState<StudentConversation[]>([])
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -35,8 +41,9 @@ export const useStudentConversations = (
         const {json} = await doFetchApi({
           path: `/api/v1/courses/${courseId}/ai_experiences/${aiExperienceId}/ai_conversations`,
         })
-        const data = json as {conversations?: StudentConversation[]}
+        const data = json as {conversations?: StudentConversation[]; snapshot?: Snapshot}
         setConversations(data.conversations || [])
+        setSnapshot(data.snapshot || null)
       } catch (err) {
         setError(err as Error)
       } finally {
@@ -47,7 +54,7 @@ export const useStudentConversations = (
     fetchConversations()
   }, [courseId, aiExperienceId])
 
-  return {conversations, isLoading, error}
+  return {conversations, snapshot, isLoading, error}
 }
 
 export const useConversationDetail = (
@@ -83,4 +90,41 @@ export const useConversationDetail = (
   }, [courseId, aiExperienceId, conversationId])
 
   return {conversation, isLoading, error}
+}
+
+export const useConversationEvaluation = (
+  courseId: string | number,
+  aiExperienceId: string | number,
+  conversationId?: string,
+) => {
+  const [evaluation, setEvaluation] = useState<ConversationEvaluation | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (!conversationId) {
+      setEvaluation(null)
+      return
+    }
+
+    const fetchEvaluation = async () => {
+      try {
+        setIsLoading(true)
+        setEvaluation(null)
+        const {json} = await doFetchApi({
+          path: `/api/v1/courses/${courseId}/ai_experiences/${aiExperienceId}/conversations/${conversationId}/evaluation`,
+        })
+        const data = json as {id: string; evaluation: ConversationEvaluation}
+        setEvaluation(data.evaluation)
+      } catch (err) {
+        setError(err as Error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEvaluation()
+  }, [courseId, aiExperienceId, conversationId])
+
+  return {evaluation, isLoading, error}
 }

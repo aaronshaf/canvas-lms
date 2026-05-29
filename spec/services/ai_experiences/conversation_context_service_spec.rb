@@ -363,6 +363,7 @@ describe AiExperiences::ConversationContextService do
       AiExperienceEvaluationMetric.create!(
         ai_experience:,
         name: "Summary",
+        description: "An overall summary of the learner's conversation.",
         enabled: true,
         visible_to_learners: true
       )
@@ -372,7 +373,7 @@ describe AiExperiences::ConversationContextService do
       expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         .with(body: hash_including(
           "evaluation_metrics" => [
-            { "name" => "Summary", "enabled" => true, "visible_to_learners" => true }
+            { "name" => "Summary", "description" => "An overall summary of the learner's conversation.", "enabled" => true, "visible_to_learners" => true }
           ]
         ))
     end
@@ -384,10 +385,11 @@ describe AiExperiences::ConversationContextService do
         .with(body: hash_including("evaluation_metrics" => []))
     end
 
-    it "sends all metric fields: name, enabled, visible_to_learners" do
+    it "sends all metric fields: name, description, enabled, visible_to_learners" do
       AiExperienceEvaluationMetric.create!(
         ai_experience:,
         name: "Areas for improvement",
+        description: "Suggest concrete next steps for the learner",
         enabled: false,
         visible_to_learners: false
       )
@@ -397,7 +399,10 @@ describe AiExperiences::ConversationContextService do
       expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         .with(body: hash_including(
           "evaluation_metrics" => [
-            { "name" => "Areas for improvement", "enabled" => false, "visible_to_learners" => false }
+            { "name" => "Areas for improvement",
+              "description" => "Suggest concrete next steps for the learner",
+              "enabled" => false,
+              "visible_to_learners" => false }
           ]
         ))
     end

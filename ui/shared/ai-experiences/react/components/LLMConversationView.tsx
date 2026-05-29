@@ -143,14 +143,19 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
     if (isInitializing) {
       hasInitializedRef.current = false
     }
-    const bottomRef = isFocusModeOpen ? focusModeBottomRef : normalModeBottomRef
+    const containerRef = isFocusModeOpen
+      ? focusModeMessagesContainerRef
+      : normalModeMessagesContainerRef
     // Use instant on initial load so buttons are fully in view immediately;
     // use smooth for subsequent messages to preserve the original UX.
     const behavior = hasInitializedRef.current ? 'smooth' : 'instant'
     if (!isInitializing) {
       hasInitializedRef.current = true
     }
-    bottomRef.current?.scrollIntoView({behavior, block: 'end'})
+    const container = containerRef.current
+    if (container && typeof container.scrollTo === 'function') {
+      container.scrollTo({top: container.scrollHeight, behavior})
+    }
   }, [messages, isLoading, isFocusModeOpen, isInitializing])
 
   useEffect(() => {
@@ -355,7 +360,6 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           </Flex>
         </div>
       </GradientBorder>
-      <div ref={normalModeBottomRef} />
     </View>
   )
 

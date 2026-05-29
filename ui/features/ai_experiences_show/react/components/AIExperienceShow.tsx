@@ -271,6 +271,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                 facts: aiExperience.facts,
                 learning_objective: aiExperience.learning_objective,
                 pedagogical_guidance: aiExperience.pedagogical_guidance,
+                evaluation_metrics: aiExperience.evaluation_metrics,
               }}
               courseId={aiExperience.course_id as string | number}
             />

@@ -59,6 +59,7 @@ class AiExperience < ApplicationRecord
   validate :unpublish_ok?, if: -> { will_save_change_to_workflow_state?(to: "unpublished") }
   validate :publish_ok?, if: -> { will_save_change_to_workflow_state?(to: "published") }
   validate :authorize_context_file_ids, if: :pending_context_file_ids?
+  validate :evaluation_metrics_count_within_limit, if: :pending_evaluation_metrics?
 
   scope :published, -> { where(workflow_state: "published") }
   scope :unpublished, -> { where(workflow_state: "unpublished") }
@@ -170,6 +171,8 @@ class AiExperience < ApplicationRecord
       .exists?
   end
 
+  MAX_EVALUATION_METRICS = 5
+
   private
 
   def set_account_associations
@@ -194,15 +197,22 @@ class AiExperience < ApplicationRecord
     !@pending_evaluation_metrics.nil?
   end
 
+  def evaluation_metrics_count_within_limit
+    return if @pending_evaluation_metrics.length <= MAX_EVALUATION_METRICS
+
+    errors.add(:evaluation_metrics, "cannot exceed #{MAX_EVALUATION_METRICS}")
+  end
+
   def sync_evaluation_metrics
     incoming = @pending_evaluation_metrics.each_with_index.map do |m, i|
       { name: m[:name] || m["name"],
+        description: m[:description] || m["description"],
         enabled: m.fetch(:enabled, m.fetch("enabled", true)),
         visible_to_learners: m.fetch(:visible_to_learners, m.fetch("visible_to_learners", false)),
         position: i + 1 }
     end
 
-    ai_experience_evaluation_metrics.destroy_all
+    ai_experience_evaluation_metrics.delete_all
     incoming.each { |attrs| ai_experience_evaluation_metrics.create!(attrs.merge(root_account_id:)) }
     @evaluation_metrics_changed = true
     @pending_evaluation_metrics = nil

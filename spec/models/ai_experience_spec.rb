@@ -959,8 +959,8 @@ describe AiExperience do
 
     it "creates metrics from the pending list" do
       experience.evaluation_metrics = [
-        { name: "Summary", enabled: true, visible_to_learners: true },
-        { name: "Areas for improvement", enabled: false, visible_to_learners: false }
+        { name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: true },
+        { name: "Areas for improvement", description: "Guidance for improvement.", enabled: false, visible_to_learners: false }
       ]
       experience.save!
 
@@ -972,8 +972,8 @@ describe AiExperience do
 
     it "assigns sequential positions starting at 1" do
       experience.evaluation_metrics = [
-        { name: "Summary", enabled: true, visible_to_learners: false },
-        { name: "Areas for improvement", enabled: true, visible_to_learners: false }
+        { name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: false },
+        { name: "Areas for improvement", description: "Guidance for improvement.", enabled: true, visible_to_learners: false }
       ]
       experience.save!
 
@@ -982,10 +982,10 @@ describe AiExperience do
     end
 
     it "replaces existing metrics on subsequent saves" do
-      experience.evaluation_metrics = [{ name: "Old metric", enabled: true, visible_to_learners: false }]
+      experience.evaluation_metrics = [{ name: "Old metric", description: "Old description here.", enabled: true, visible_to_learners: false }]
       experience.save!
 
-      experience.evaluation_metrics = [{ name: "New metric", enabled: true, visible_to_learners: true }]
+      experience.evaluation_metrics = [{ name: "New metric", description: "New description here.", enabled: true, visible_to_learners: true }]
       experience.save!
 
       metrics = experience.ai_experience_evaluation_metrics.reload
@@ -993,7 +993,7 @@ describe AiExperience do
     end
 
     it "clears all metrics when given an empty array" do
-      experience.evaluation_metrics = [{ name: "Summary", enabled: true, visible_to_learners: false }]
+      experience.evaluation_metrics = [{ name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: false }]
       experience.save!
 
       experience.evaluation_metrics = []
@@ -1003,7 +1003,7 @@ describe AiExperience do
     end
 
     it "does not touch metrics when evaluation_metrics is not assigned" do
-      experience.evaluation_metrics = [{ name: "Summary", enabled: true, visible_to_learners: false }]
+      experience.evaluation_metrics = [{ name: "Summary", description: "An overall summary.", enabled: true, visible_to_learners: false }]
       experience.save!
 
       experience.update!(title: "New title")
@@ -1012,7 +1012,7 @@ describe AiExperience do
     end
 
     it "accepts string keys" do
-      experience.evaluation_metrics = [{ "name" => "Summary", "enabled" => true, "visible_to_learners" => false }]
+      experience.evaluation_metrics = [{ "name" => "Summary", "description" => "An overall summary.", "enabled" => true, "visible_to_learners" => false }]
       experience.save!
 
       expect(experience.ai_experience_evaluation_metrics.first.name).to eq("Summary")

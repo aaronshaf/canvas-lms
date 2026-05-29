@@ -56,6 +56,43 @@ describe('useStudentConversations', () => {
     expect(result.current.error).toBeNull()
   })
 
+  it('returns snapshot when API includes it', async () => {
+    const mockSnapshot = {
+      total_objectives: 2,
+      completed: 1,
+      in_progress: 1,
+      not_started: 0,
+      evaluation_metrics: [{name: 'Summary', enabled: true, visible_to_learners: false}],
+    }
+
+    fetchMock.get('path:/api/v1/courses/123/ai_experiences/1/ai_conversations', {
+      conversations: [],
+      snapshot: mockSnapshot,
+    })
+
+    const {result} = renderHook(() => useStudentConversations('123', '1'))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.snapshot).toEqual(mockSnapshot)
+  })
+
+  it('returns null snapshot when API omits it', async () => {
+    fetchMock.get('path:/api/v1/courses/123/ai_experiences/1/ai_conversations', {
+      conversations: [],
+    })
+
+    const {result} = renderHook(() => useStudentConversations('123', '1'))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.snapshot).toBeNull()
+  })
+
   it('handles API errors', async () => {
     fetchMock.get('path:/api/v1/courses/123/ai_experiences/1/ai_conversations', 500)
 
@@ -82,6 +119,37 @@ describe('useStudentConversations', () => {
 
     expect(result.current.conversations).toEqual([])
     expect(result.current.error).toBeNull()
+  })
+
+  it('parses snapshot from response', async () => {
+    const mockSnapshot = {total_objectives: 3, completed: 6, in_progress: 4, not_started: 5}
+
+    fetchMock.get('path:/api/v1/courses/123/ai_experiences/1/ai_conversations', {
+      conversations: [],
+      snapshot: mockSnapshot,
+    })
+
+    const {result} = renderHook(() => useStudentConversations('123', '1'))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.snapshot).toEqual(mockSnapshot)
+  })
+
+  it('returns null snapshot when not present in response', async () => {
+    fetchMock.get('path:/api/v1/courses/123/ai_experiences/1/ai_conversations', {
+      conversations: [],
+    })
+
+    const {result} = renderHook(() => useStudentConversations('123', '1'))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.snapshot).toBeNull()
   })
 })
 

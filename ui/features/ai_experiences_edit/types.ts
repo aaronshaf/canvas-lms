@@ -26,6 +26,13 @@ export interface ContextFile {
   created_at?: string
 }
 
+export interface EvaluationMetric {
+  name: string
+  description: string
+  enabled: boolean
+  visible_to_learners: boolean
+}
+
 export interface AIExperience {
   id?: string
   title: string
@@ -37,6 +44,7 @@ export interface AIExperience {
   context_files?: ContextFile[]
   context_ready?: boolean
   failed_context_file_names?: string[]
+  evaluation_metrics?: EvaluationMetric[]
 }
 
 export interface AIExperienceFormData {
@@ -47,6 +55,7 @@ export interface AIExperienceFormData {
   pedagogical_guidance: string
   workflow_state?: string
   context_file_ids?: string[]
+  evaluation_metrics?: EvaluationMetric[]
 }
 
 export interface AIExperienceEditProps {
