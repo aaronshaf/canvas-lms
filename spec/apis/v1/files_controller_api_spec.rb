@@ -1292,6 +1292,16 @@ describe "Files API", type: :request do
         json = json_parse
         expect(json["preview_url"]).to eq context_url(@att.context, :context_file_file_preview_url, @att, annotate: 0)
       end
+
+      it "does not error when showing a replaced file" do
+        att2 = Attachment.create!(filename: "test.png", display_name: "test-frd.png", uploaded_data: StringIO.new("hi"), folder: @root, context: @course)
+        @att.update!(replacement_attachment_id: att2.id, file_state: "deleted")
+        user_session(@user)
+        get @file_path + "?include[]=enhanced_preview_url"
+        expect(response).to be_successful
+        json = json_parse
+        expect(json["preview_url"]).to eq context_url(@att.context, :context_file_file_preview_url, att2, annotate: 0)
+      end
     end
 
     describe "with JWT access token" do
