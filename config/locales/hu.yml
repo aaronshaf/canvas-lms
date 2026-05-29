@@ -14359,6 +14359,13 @@ hu:
     registrations: 
       index: 
         title: Bővítmények
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "Hozzáférési token"
+            submit: "Token generálása"
+            tool_id_label: "Eszköz azonosító"
   lti2: 
     register_tool: "Eszköz regisztrálása"
   lti_1_3_configuration_c3534f3b: "LTI 1.3 konfiguráció"
