@@ -783,6 +783,59 @@ describe ConversationsController do
       end
     end
 
+    describe "display_from param" do
+      before :once do
+        course_with_teacher(active_all: true)
+        student_in_course(active_all: true)
+      end
+
+      context "when the token is a site admin service token" do
+        before do
+          user_session(@teacher)
+          site_admin_token = instance_double(AccessToken, site_admin?: true, purpose: nil)
+          controller.instance_variable_set(:@access_token, site_admin_token)
+        end
+
+        it "stores display_from on the message" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello", display_from: "Canvas Support" }
+          expect(response).to have_http_status :created
+          message = ConversationMessage.last
+          expect(message.display_from).to eq("Canvas Support")
+        end
+
+        it "includes display_from in the response" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello", display_from: "Canvas Support" }
+          expect(response).to have_http_status :created
+          message_json = response.parsed_body.first["messages"].first
+          expect(message_json["display_from"]).to eq("Canvas Support")
+        end
+      end
+
+      context "when the token is not a site admin service token" do
+        before do
+          user_session(@teacher)
+          regular_token = instance_double(AccessToken, site_admin?: false, purpose: nil)
+          controller.instance_variable_set(:@access_token, regular_token)
+        end
+
+        it "rejects display_from with a 400" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello", display_from: "Impersonated User" }
+          expect(response).to have_http_status :bad_request
+          expect(response.parsed_body.first["attribute"]).to eq("display_from")
+        end
+      end
+
+      context "when display_from is absent" do
+        before { user_session(@teacher) }
+
+        it "creates the conversation without display_from" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello" }
+          expect(response).to have_http_status :created
+          expect(ConversationMessage.last.display_from).to be_nil
+        end
+      end
+    end
+
     context "soft-concluded course" do
       before do
         course_with_student_logged_in(active_all: true)

@@ -369,10 +369,12 @@ class ConversationMessage < ApplicationRecord
   end
 
   def as_json(*)
-    super(only: %i[id created_at body generated author_id])["conversation_message"]
-      .merge("forwarded_messages" => forwarded_messages,
-             "attachments" => attachments,
-             "media_comment" => media_comment)
+    result = super(only: %i[id created_at body generated author_id])["conversation_message"]
+             .merge("forwarded_messages" => forwarded_messages,
+                    "attachments" => attachments,
+                    "media_comment" => media_comment)
+    result["display_from"] = display_from if display_from.present?
+    result
   end
 
   def to_atom(opts = {})

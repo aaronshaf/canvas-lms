@@ -292,7 +292,8 @@ module ConversationsHelper
     media_comment_type: nil,
     current_user: @current_user,
     real_user: nil,
-    automated: false
+    automated: false,
+    display_from: nil
   )
     if defined?(params)
       body ||= params[:body]
@@ -301,6 +302,7 @@ module ConversationsHelper
       domain_root_account_id ||= @domain_root_account.id
       media_comment_id ||= params[:media_comment_id]
       media_comment_type ||= params[:media_comment_type]
+      display_from ||= params[:display_from]
     end
     [
       current_user,
@@ -312,6 +314,7 @@ module ConversationsHelper
         root_account_id: domain_root_account_id,
         media_comment: infer_media_comment(media_comment_id, media_comment_type, domain_root_account_id, current_user),
         real_user:,
+        display_from:,
       }
     ]
   end

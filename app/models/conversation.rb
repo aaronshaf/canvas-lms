@@ -346,6 +346,7 @@ class Conversation < ApplicationRecord
       message.context_id = options[:root_account_id]
     end
 
+    message.display_from = options[:display_from] if options[:display_from].present?
     message.asset = options[:asset]
     message.attachment_ids = options[:attachment_ids] if options[:attachment_ids].present?
     message.media_comment = options[:media_comment] if options[:media_comment].present?

@@ -400,12 +400,18 @@ class ConversationsController < ApplicationController
   #   The course or group that is the context for this conversation. Same format
   #   as courses or groups in the recipients argument.
   #
+  # @argument display_from [String]
+  #   Display name to show as the message sender instead of the
+  #   authenticated user's name. Only honored when the request is
+  #   authenticated with a site admin service user token.
+  #
   # @argument include[] [Optional, String, "uuid"]
   #   "uuid":: Optionally include an "uuid" key for each user participating in the conversation
   def create
     return render_error("recipients", "blank") if params[:recipients].blank?
     return render_error("recipients", "invalid") if @recipients.blank?
     return render_error("body", "blank") if params[:body].blank?
+    return render_error("display_from", "only available for site admin service users") if params[:display_from].present? && !@access_token&.site_admin?
 
     context_type = nil
     context_id = nil
