@@ -18529,6 +18529,13 @@ tr:
     registrations: 
       index: 
         title: Uygulamalar
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "Erişim Anahtarı"
+            submit: "Token Üret"
+            tool_id_label: "Araç ID"
   lti2: 
     register_tool: "Kayıt Aracı"
   lti_1_3_configuration_c3534f3b: "LTI 1.3 Yapılandırması"
