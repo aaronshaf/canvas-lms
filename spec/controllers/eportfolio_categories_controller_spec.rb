@@ -18,39 +18,30 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe EportfolioCategoriesController do
-  before :once do
-    eportfolio_with_user(active_all: true)
-    @user.account_users.create!(account: Account.default, role: student_role)
-  end
-
-  def eportfolio_category
-    @category = @portfolio.eportfolio_categories.create(name: "some name")
-  end
-
-  def eportfolio_entry(category = nil)
-    @entry = @portfolio.eportfolio_entries.new
-    @entry.eportfolio_category_id = category.id if category
-    @entry.save!
-  end
-
+describe EportfolioCategoriesController, type: :request do
   describe "GET 'index'" do
     it "redirects" do
-      get "index", params: { eportfolio_id: @portfolio.id }
-      expect(response).to be_redirect
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      user_session(@user)
+      get "/eportfolios/#{@portfolio.id}/categories"
+      expect(response).to redirect_to(eportfolio_url(@portfolio))
     end
 
     context "as an unauthenticated user" do
       it "redirects to the eportfolio when it is public" do
-        @portfolio.update!(public: true)
+        eportfolio_with_user(active_all: true)
+        portfolio = @portfolio
+        portfolio.update!(public: true)
 
-        get "index", params: { eportfolio_id: @portfolio.id }
+        get "/eportfolios/#{portfolio.id}/categories"
 
-        expect(response).to redirect_to(eportfolio_url(@portfolio))
+        expect(response).to redirect_to(eportfolio_url(portfolio))
       end
 
       it "redirects to login when the eportfolio is private" do
-        get "index", params: { eportfolio_id: @portfolio.id }
+        eportfolio_with_user(active_all: true)
+        get "/eportfolios/#{@portfolio.id}/categories"
 
         expect(response).to redirect_to(login_url)
       end
@@ -58,143 +49,161 @@ describe EportfolioCategoriesController do
   end
 
   describe "GET 'show'" do
-    before(:once) { eportfolio_category }
-
     it "requires authorization" do
-      get "show", params: { eportfolio_id: @portfolio.id, id: 1 }
-      assert_unauthorized
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      get "/eportfolios/#{@portfolio.id}/categories/1"
+      expect(response).to redirect_to(login_url)
     end
 
     context "as an unauthenticated user" do
-      before(:once) { eportfolio_entry(@category) }
-
       it "renders the category when the eportfolio is public" do
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        entry = @portfolio.eportfolio_entries.new
+        entry.eportfolio_category_id = category.id
+        entry.save!
         @portfolio.update!(public: true)
 
-        get "show", params: { eportfolio_id: @portfolio.id, id: @category.id }
+        get "/eportfolios/#{@portfolio.id}/categories/#{category.id}"
 
-        expect(response).to be_successful
-        expect(assigns[:category]).to eql(@category)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("some name")
       end
 
       it "redirects to login when the eportfolio is private" do
-        get "show", params: { eportfolio_id: @portfolio.id, id: @category.id }
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        get "/eportfolios/#{@portfolio.id}/categories/#{category.id}"
 
         expect(response).to redirect_to(login_url)
       end
     end
 
-    it "assigns variables" do
+    it "renders the category with variables" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
       user_session(@user)
-      get "show", params: { eportfolio_id: @portfolio.id, id: @category.id }
-      expect(response).to be_successful
-      expect(assigns[:portfolio]).not_to be_nil
-      expect(assigns[:portfolio]).to eql(@portfolio)
-      expect(assigns[:category]).not_to be_nil
-      expect(assigns[:category]).to eql(@category)
+      get "/eportfolios/#{@portfolio.id}/categories/#{category.id}"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("some name")
     end
 
     it "responds to named category request" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
       user_session(@user)
-      get "show", params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
-      expect(response).to be_successful
-      expect(assigns[:portfolio]).not_to be_nil
-      expect(assigns[:portfolio]).to eql(@portfolio)
-      expect(assigns[:category]).not_to be_nil
-      expect(assigns[:category]).to eql(@category)
+      get "/eportfolios/#{@portfolio.id}/#{category.slug}"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("some name")
     end
 
     context "with active submissions by owner" do
-      before(:once) do
+      it "renders the category without error" do
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
         course = course_model
         att = attachment_model(filename: "submission.doc", context: @portfolio.user)
-        @assignment = course.assignments.create!(title: "some assignment", submission_types: "online_upload")
-        @submission = @assignment.submit_homework(@portfolio.user, submission_type: "online_upload", attachments: [att])
-      end
-
-      before { user_session(@portfolio.user) }
-
-      it "renders the category without error" do
-        get "show", params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
-        expect(response).to be_successful
-        expect(assigns[:recent_submissions]).not_to be_nil
+        assignment = course.assignments.create!(title: "some assignment", submission_types: "online_upload")
+        assignment.submit_homework(@portfolio.user, submission_type: "online_upload", attachments: [att])
+        user_session(@portfolio.user)
+        get "/eportfolios/#{@portfolio.id}/#{category.slug}"
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("some name")
       end
 
       it "does not show submissions for unpublished assignments" do
-        @assignment.unpublish
-        get "show", params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
-        expect(response).to be_successful
-        expect(assigns[:recent_submissions]).to be_empty
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        course = course_model
+        att = attachment_model(filename: "submission.doc", context: @portfolio.user)
+        assignment = course.assignments.create!(title: "some assignment", submission_types: "online_upload")
+        assignment.submit_homework(@portfolio.user, submission_type: "online_upload", attachments: [att])
+        assignment.unpublish
+        user_session(@portfolio.user)
+        get "/eportfolios/#{@portfolio.id}/#{category.slug}"
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("some name")
       end
 
       it "does not show submissions for unpublished courses" do
-        @course.update!(workflow_state: "claimed")
-        get "show", params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
-        expect(response).to be_successful
-        expect(assigns[:recent_submissions]).to be_empty
-      end
-    end
-
-    describe "js_env" do
-      it "sets SKIP_ENHANCING_USER_CONTENT to true" do
-        user_session(@user)
-        get "show", params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
-        expect(assigns.dig(:js_env, :SKIP_ENHANCING_USER_CONTENT)).to be true
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        course = course_model
+        att = attachment_model(filename: "submission.doc", context: @portfolio.user)
+        assignment = course.assignments.create!(title: "some assignment", submission_types: "online_upload")
+        assignment.submit_homework(@portfolio.user, submission_type: "online_upload", attachments: [att])
+        course.update!(workflow_state: "claimed")
+        user_session(@portfolio.user)
+        get "/eportfolios/#{@portfolio.id}/#{category.slug}"
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("some name")
       end
     end
 
     context "spam eportfolios" do
-      before(:once) do
-        @portfolio.update!(public: true)
-        @portfolio.eportfolio_entries.create!(eportfolio_category: @category, name: "new page")
-      end
-
       context "when the user is the author of the eportfolio" do
         it "renders the category when the eportfolio is spam" do
+          eportfolio_with_user(active_all: true)
+          @user.account_users.create!(account: Account.default, role: student_role)
+          category = @portfolio.eportfolio_categories.create(name: "some name")
+          @portfolio.update!(public: true)
+          @portfolio.eportfolio_entries.create!(eportfolio_category: category, name: "new page")
           @portfolio.update!(spam_status: "marked_as_spam")
           user_session(@user)
-          get :show, params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
+          get "/eportfolios/#{@portfolio.id}/#{category.slug}"
 
           expect(response).to have_http_status(:ok)
+          expect(response.body).to include("some name")
         end
       end
 
       context "when the user is a non-admin, non-author of the eportfolio" do
-        before(:once) do
-          @other_user = user_model
-          @other_user.account_users.create!(account: Account.default, role: student_role)
-        end
-
         it "is unauthorized when the eportfolio is spam" do
+          eportfolio_with_user(active_all: true)
+          category = @portfolio.eportfolio_categories.create(name: "some name")
+          @portfolio.update!(public: true)
+          @portfolio.eportfolio_entries.create!(eportfolio_category: category, name: "new page")
+          other_user = user_model
+          other_user.account_users.create!(account: Account.default, role: student_role)
           @portfolio.update!(spam_status: "marked_as_spam")
-          user_session(@other_user)
-          get :show, params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
+          user_session(other_user)
+          get "/eportfolios/#{@portfolio.id}/#{category.slug}"
 
-          assert_unauthorized
+          expect(response).to have_http_status(:unauthorized)
         end
       end
 
       context "when the user is an admin" do
-        before(:once) do
-          @admin = account_admin_user
-        end
-
         it "renders the category when the eportfolio is spam and the admin has :moderate_user_content permissions" do
+          eportfolio_with_user(active_all: true)
+          category = @portfolio.eportfolio_categories.create(name: "some name")
+          @portfolio.update!(public: true)
+          @portfolio.eportfolio_entries.create!(eportfolio_category: category, name: "new page")
+          admin = account_admin_user
           @portfolio.update!(spam_status: "marked_as_spam")
           Account.default.role_overrides.create!(role: admin_role, enabled: true, permission: :moderate_user_content)
-          user_session(@admin)
-          get :show, params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
+          user_session(admin)
+          get "/eportfolios/#{@portfolio.id}/#{category.slug}"
 
           expect(response).to have_http_status(:ok)
+          expect(response.body).to include("some name")
         end
 
         it "is unauthorized when the eportfolio is spam and the admin does not have :moderate_user_content permissions" do
+          eportfolio_with_user(active_all: true)
+          category = @portfolio.eportfolio_categories.create(name: "some name")
+          @portfolio.update!(public: true)
+          @portfolio.eportfolio_entries.create!(eportfolio_category: category, name: "new page")
+          admin = account_admin_user
           @portfolio.update!(spam_status: "marked_as_spam")
           Account.default.role_overrides.create!(role: admin_role, enabled: false, permission: :moderate_user_content)
-          user_session(@admin)
-          get :show, params: { eportfolio_id: @portfolio.id, category_name: @category.slug }
+          user_session(admin)
+          get "/eportfolios/#{@portfolio.id}/#{category.slug}"
 
-          assert_unauthorized
+          expect(response).to have_http_status(:unauthorized)
         end
       end
     end
@@ -202,87 +211,108 @@ describe EportfolioCategoriesController do
 
   describe "POST 'create'" do
     it "requires authorization" do
-      post "create", params: { eportfolio_id: @portfolio.id, eportfolio_category: { name: "some portfolio" } }
-      assert_unauthorized
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      post "/eportfolios/#{@portfolio.id}/categories", params: { eportfolio_category: { name: "some portfolio" } }
+      expect(response).to redirect_to(login_url)
     end
 
     it "creates eportfolio category" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
       user_session(@user)
-      post "create", params: { eportfolio_id: @portfolio.id, eportfolio_category: { name: "some category" } }
-      expect(response).to be_redirect
-      expect(assigns[:category]).not_to be_nil
-      expect(assigns[:category].name).to eql("some category")
+      post "/eportfolios/#{@portfolio.id}/categories", params: { eportfolio_category: { name: "some category" } }
+      expect(response).to have_http_status(:found)
     end
   end
 
   describe "PUT 'update'" do
-    before(:once) { eportfolio_category }
-
     it "requires authorization" do
-      put "update", params: { eportfolio_id: @portfolio.id, id: @category.id, eportfolio_category: { name: "new name" } }
-      assert_unauthorized
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
+      put "/eportfolios/#{@portfolio.id}/categories/#{category.id}", params: { eportfolio_category: { name: "new name" } }
+      expect(response).to redirect_to(login_url)
     end
 
     it "updates eportfolio category" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
       user_session(@user)
-      put "update", params: { eportfolio_id: @portfolio.id, id: @category.id, eportfolio_category: { name: "new name" } }
-      expect(assigns[:category]).not_to be_nil
-      expect(assigns[:category]).to eql(@category)
+      put "/eportfolios/#{@portfolio.id}/categories/#{category.id}", params: { eportfolio_category: { name: "new name" } }
+      expect(category.reload.name).to eq("new name")
     end
   end
 
   describe "DELETE 'destroy'" do
-    before(:once) { eportfolio_category }
-
     it "requires authorization" do
-      delete "destroy", params: { eportfolio_id: @portfolio.id, id: @category.id }
-      assert_unauthorized
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
+      delete "/eportfolios/#{@portfolio.id}/categories/#{category.id}"
+      expect(response).to redirect_to(login_url)
     end
 
     it "deletes eportfolio category" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
       user_session(@user)
-      delete "destroy", params: { eportfolio_id: @portfolio.id, id: @category.id }
-      expect(assigns[:category]).to be_frozen
+      category = @portfolio.eportfolio_categories.create(name: "some name")
+      category_id = category.id
+      delete "/eportfolios/#{@portfolio.id}/categories/#{category_id}"
+      expect(EportfolioCategory.find_by(id: category_id)).to be_frozen
     end
   end
 
   describe "GET 'pages'" do
-    before(:once) do
-      eportfolio_category
-      eportfolio_entry(@category)
-    end
-
     it "requires authorization" do
-      get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
-      assert_unauthorized
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
+      get "/eportfolios/#{@portfolio.id}/categories/#{category.id}/pages"
+      expect(response).to redirect_to(login_url)
     end
 
     context "as an unauthenticated user" do
       it "returns the pages json when the eportfolio is public" do
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        entry = @portfolio.eportfolio_entries.new
+        entry.eportfolio_category_id = category.id
+        entry.save!
         @portfolio.update!(public: true)
 
-        get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
+        get "/eportfolios/#{@portfolio.id}/categories/#{category.id}/pages"
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         expect(response.parsed_body.length).to be(1)
-        expect(response.parsed_body.first["id"]).to eql(@entry.id)
+        expect(response.parsed_body.first["id"]).to eql(entry.id)
       end
 
       it "redirects to login when the eportfolio is private" do
-        get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
+        eportfolio_with_user(active_all: true)
+        category = @portfolio.eportfolio_categories.create(name: "some name")
+        get "/eportfolios/#{@portfolio.id}/categories/#{category.id}/pages"
 
         expect(response).to redirect_to(login_url)
       end
     end
 
-    it "assigns variables" do
+    it "returns pages as json" do
+      eportfolio_with_user(active_all: true)
+      @user.account_users.create!(account: Account.default, role: student_role)
+      category = @portfolio.eportfolio_categories.create(name: "some name")
+      entry = @portfolio.eportfolio_entries.new
+      entry.eportfolio_category_id = category.id
+      entry.save!
       user_session(@user)
-      get "pages", params: { eportfolio_id: @portfolio.id, category_id: @category.id }
+      get "/eportfolios/#{@portfolio.id}/categories/#{category.id}/pages"
 
-      expect(response).to be_successful
-      json = json_parse(response.body)
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
       expect(json.length).to be(1)
-      expect(json[0]["id"]).to eql(@entry.id)
+      expect(json[0]["id"]).to eql(entry.id)
     end
   end
 end

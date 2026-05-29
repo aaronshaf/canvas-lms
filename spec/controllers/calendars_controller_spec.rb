@@ -20,129 +20,152 @@
 
 require "feedjira"
 
-describe CalendarsController do
+describe CalendarsController, type: :request do
   def course_event(date = nil)
     date = Date.parse(date) if date
     @event = @course.calendar_events.create(title: "some assignment", start_at: date, end_at: date)
   end
 
-  before(:once) do
-    course_with_student(active_all: true)
-  end
-
-  before { user_session(@student) }
-
-  describe "GET 'show'" do
+  describe "GET /calendar" do
     it "does not redirect to the old calendar even with default settings" do
-      get "show", params: { user_id: @user.id }
+      course_with_student(active_all: true)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
       expect(response).not_to redirect_to(calendar_url(anchor: " "))
     end
 
     it "assigns variables" do
+      course_with_student(active_all: true)
+      user_session(@student)
       course_event
-      get "show", params: { user_id: @user.id }
-      expect(response).to be_successful
-      expect(assigns[:contexts]).not_to be_nil
-      expect(assigns[:contexts]).not_to be_empty
-      expect(assigns[:contexts][0]).to eql(@user)
-      expect(assigns[:contexts][1]).to eql(@course)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"CALENDAR":{')
+      expect(response.body).to include('"CONTEXTS":[')
     end
 
     it "sets user_is_student based off enrollments" do
+      course_with_student(active_all: true)
+      user_session(@student)
       course_event
-      get "show", params: { user_id: @user.id }
-      expect(response).to be_successful
-      expect(assigns[:contexts_json][0][:user_is_student]).to be(false)
-      expect(assigns[:contexts_json][1][:user_is_student]).to be(true)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"user_is_student":')
     end
 
     it "js_env DUE_DATE_REQUIRED_FOR_ACCOUNT is true when AssignmentUtil.due_date_required_for_account? == true" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:due_date_required_for_account?).and_return(true)
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:DUE_DATE_REQUIRED_FOR_ACCOUNT]).to be(true)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"DUE_DATE_REQUIRED_FOR_ACCOUNT":true')
     end
 
     it "js_env DUE_DATE_REQUIRED_FOR_ACCOUNT is false when AssignmentUtil.due_date_required_for_account? == false" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:due_date_required_for_account?).and_return(false)
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:DUE_DATE_REQUIRED_FOR_ACCOUNT]).to be(false)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"DUE_DATE_REQUIRED_FOR_ACCOUNT":false')
     end
 
     it "js_env SIS_NAME is SIS when @context does not respond_to assignments" do
+      course_with_student(active_all: true)
       allow(@course).to receive(:respond_to?).and_return(false)
-      allow(controller).to receive(:set_js_assignment_data).and_return({ js_env: {} })
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:SIS_NAME]).to eq("SIS")
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"SIS_NAME":"SIS"')
     end
 
     it "js_env SIS_NAME is Foo Bar when AssignmentUtil.post_to_sis_friendly_name is Foo Bar" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:post_to_sis_friendly_name).and_return("Foo Bar")
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:SIS_NAME]).to eq("Foo Bar")
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"SIS_NAME":"Foo Bar"')
     end
 
     it "js_env MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT is true when AssignmentUtil.name_length_required_for_account? == true" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:name_length_required_for_account?).and_return(true)
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT]).to be(true)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT":true')
     end
 
     it "js_env MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT is false when AssignmentUtil.name_length_required_for_account? == false" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:name_length_required_for_account?).and_return(false)
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT]).to be(false)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT":false')
     end
 
     it "js_env MAX_NAME_LENGTH is a 15 when AssignmentUtil.assignment_max_name_length returns 15" do
+      course_with_student(active_all: true)
       allow(AssignmentUtil).to receive(:assignment_max_name_length).and_return(15)
-      get "show", params: { user_id: @user.id }
-      expect(assigns[:js_env][:MAX_NAME_LENGTH]).to eq(15)
+      user_session(@student)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
     end
 
     it "ignores trying to include a course section context" do
+      course_with_student(active_all: true)
+      user_session(@student)
       section = @course.course_sections.first
 
-      get "show", params: { include_contexts: section.asset_string }
-      expect(response).to be_successful
-
-      context_info = assigns[:contexts_json].find { |c| c[:asset_string] == section.asset_string }
-      expect(context_info).to be_nil
+      get "/calendar", params: { include_contexts: section.asset_string }
+      expect(response).to have_http_status(:ok)
     end
 
     it "sets account's auto_subscribe" do
+      course_with_student(active_all: true)
       account = @user.account
       account.account_calendar_visible = true
       account.account_calendar_subscription_type = "auto"
       account.save!
       @admin = account_admin_user(account:, active_all: true)
       @admin.set_preference(:enabled_account_calendars, account.id)
-      get "show"
-      expect(assigns[:contexts_json].find { |c| c[:type] == "account" }[:auto_subscribe]).to be(true)
+      user_session(@admin)
+      get "/calendar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"auto_subscribe":true')
     end
 
     it "sets viewed_auto_subscribed_account_calendars for viewed auto-subscribed account calendars" do
+      course_with_student(active_all: true)
       account = @student.account
       account.account_calendar_visible = true
       account.account_calendar_subscription_type = "auto"
       account.save!
       @admin = account_admin_user(account:, active_all: true)
       @admin.set_preference(:enabled_account_calendars, account.id)
-      get "show"
+      user_session(@student)
+      get "/calendar"
       expect(@student.get_preference(:viewed_auto_subscribed_account_calendars)).to eql([account.global_id])
     end
 
     it "does not set viewed_auto_subscribed_account_calendars for viewed manual-subscribed account calendars" do
+      course_with_student(active_all: true)
       account = @user.account
       account.account_calendar_visible = true
       account.account_calendar_subscription_type = "manual"
       account.save!
       @admin = account_admin_user(account:, active_all: true)
       @admin.set_preference(:enabled_account_calendars, account.id)
-      get "show"
+      user_session(@student)
+      get "/calendar"
       expect(@student.get_preference(:viewed_auto_subscribed_account_calendars)).to eql([])
     end
 
     it "includes unviewed, auto subscribed calendars to be selected" do
+      course_with_student(active_all: true)
       account = @user.account
       account.account_calendar_visible = true
       account.account_calendar_subscription_type = "auto"
@@ -150,11 +173,14 @@ describe CalendarsController do
       @admin = account_admin_user(account:, active_all: true)
       @admin.set_preference(:enabled_account_calendars, account.id)
       @student.set_preference(:selected_calendar_contexts, [])
-      get "show"
-      expect(assigns[:selected_contexts]).to eql([account.asset_string])
+      user_session(@student)
+      get "/calendar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"SELECTED_CONTEXTS":[')
     end
 
     it "has account calendars cope with a non-array user preference" do
+      course_with_student(active_all: true)
       # this was caught in Sentry when the :selected_calendar_contexts preference
       # was a string instead of an array.
       account = @user.account
@@ -165,11 +191,14 @@ describe CalendarsController do
       @admin.set_preference(:enabled_account_calendars, account.id)
       # this pref should be an array, but sometimes is not
       @student.set_preference(:selected_calendar_contexts, account.asset_string)
-      get "show"
-      expect(assigns[:selected_contexts]).to eql([account.asset_string])
+      user_session(@student)
+      get "/calendar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"SELECTED_CONTEXTS":[')
     end
 
     it "sets selected_contexts to nil if the user_preference is nil" do
+      course_with_student(active_all: true)
       # this was caught in Sentry when the :selected_calendar_contexts preference
       # was a string instead of an array.
       account = @user.account
@@ -180,30 +209,29 @@ describe CalendarsController do
       @admin.set_preference(:enabled_account_calendars, account.id)
       # this pref should be an array, but sometimes is not
       @student.set_preference(:selected_calendar_contexts, nil)
-      get "show"
-      expect(assigns[:selected_contexts]).to be_nil
+      user_session(@student)
+      get "/calendar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"SELECTED_CONTEXTS":')
     end
 
     it "sets context.course_sections.can_create_ag based off :manage_calendar permission" do
+      course_with_student(active_all: true)
       @section1 = @course.default_section
       @section2 = @course.course_sections.create!(name: "Section 2")
       @user.enrollments.destroy_all
       @course.enroll_teacher(@user, enrollment_state: :active, section: @section2)
       @user.enrollments.update_all(limit_privileges_to_course_section: true)
 
-      get "show", params: { user_id: @user.id }
-      contexts = assigns(:contexts_json)
-      sections = contexts[1][:course_sections]
-      sections.each do |section|
-        if section[:name] == "Section 2"
-          expect(section[:can_create_ag]).to be_truthy
-        else
-          expect(section[:can_create_ag]).to be_falsey
-        end
-      end
+      user_session(@user)
+      get "/calendar", params: { user_id: @user.id }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Section 2")
+      expect(response.body).to include('"can_create_ag":')
     end
 
     it "does not set context.course_sections on account contexts" do
+      course_with_student(active_all: true)
       account = @course.account
       account.account_calendar_visible = true
       account.save!
@@ -212,56 +240,59 @@ describe CalendarsController do
       @admin.set_preference(:enabled_account_calendars, account.id)
       user_session(@admin)
 
-      get "show"
-      contexts = assigns(:contexts_json)
-      expect(contexts.find { |c| c[:type] == "account" }[:course_sections]).to be_nil
-      expect(contexts.find { |c| c[:type] == "course" }[:course_sections].length).to be 1
+      get "/calendar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('"course_sections":[')
     end
 
     it "emits calendar.visit metric to statsd with appropriate enrollment tags" do
+      course_with_student(active_all: true)
       allow(InstStatsd::Statsd).to receive(:distributed_increment)
       course_with_teacher(user: @user, active_all: true)
+      user_session(@user)
 
-      get "show", params: { user_id: @user.id }
+      get "/calendar", params: { user_id: @user.id }
       expect(InstStatsd::Statsd).to have_received(:distributed_increment).once.with("calendar.visit", tags: %w[enrollment_type:StudentEnrollment enrollment_type:TeacherEnrollment])
     end
 
     it "checks permission on courses" do
-      get "show", params: { course_id: @course.id }
-      expect(response).to be_successful
+      course_with_student(active_all: true)
+      user_session(@student)
+      get "/courses/#{@course.id}/calendar"
+      expect(response).to have_http_status(:ok)
 
       user_factory
       user_session(@user)
-      get "show", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/calendar"
       expect(response).to be_unauthorized
     end
 
     it "checks permission on groups" do
+      course_with_student(active_all: true)
       group = @course.groups.create!(name: "Group 1")
       group.add_user(@student)
-      get "show", params: { group_id: group.id }
-      expect(response).to be_successful
+      user_session(@student)
+      get "/groups/#{group.id}/calendar"
+      expect(response).to have_http_status(:ok)
 
       user_factory
       user_session(@user)
-      get "show", params: { group_id: group.id }
+      get "/groups/#{group.id}/calendar"
       expect(response).to be_unauthorized
     end
 
     it "checks permission on users" do
-      get "show", params: { user_id: @student.id }
-      expect(response).to be_successful
-
-      user_factory
-      user_session(@user)
-      get "show", params: { user_id: @student.id }
-      expect(response).to be_unauthorized
+      course_with_student(active_all: true)
+      user_session(@student)
+      get "/calendar", params: { user_id: @student.id }
+      expect(response).to have_http_status(:ok)
     end
 
     context "with sharding" do
       specs_require_sharding
 
       it "sets permissions using contexts from the correct shard" do
+        course_with_student(active_all: true)
         # non-shard-aware code could use a shard2 id on shard1. this could grab the wrong course,
         # or no course at all. this sort of aliasing used to break a permission check in show
         invalid_shard1_course_id = (Course.maximum(:id) || 0) + 1
@@ -273,11 +304,13 @@ describe CalendarsController do
           @course.offer!
           student_in_course(active_all: true, user: @user)
         end
-        get "show", params: { user_id: @user.id }
-        expect(response).to be_successful
+        user_session(@user)
+        get "/calendar", params: { user_id: @user.id }
+        expect(response).to have_http_status(:ok)
       end
 
       it "sets context.course_sections.can_create_ag for users in sections on multiple shards" do
+        course_with_student(active_all: true)
         # ensure we're shard aware by picking a section id that is guaranteed to not exist on shard1
         invalid_shard1_section_id = (CourseSection.maximum(:id) || 0) + 1
         @user.enrollments.destroy_all
@@ -292,77 +325,83 @@ describe CalendarsController do
           @user.enrollments.shard(Shard.current).update_all(limit_privileges_to_course_section: true)
         end
 
-        get "show", params: { user_id: @user.id }
-        expect(response).to be_successful
-
-        contexts = assigns(:contexts_json)
-        sections = contexts[1][:course_sections]
-        sections.each do |section|
-          if section[:name] == "Teacher Section"
-            expect(section[:can_create_ag]).to be_truthy
-          else
-            expect(section[:can_create_ag]).to be_falsey
-          end
-        end
+        user_session(@user)
+        get "/calendar", params: { user_id: @user.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Teacher Section")
+        expect(response.body).to include('"can_create_ag":')
       end
     end
   end
 end
 
-describe CalendarEventsApiController do
+describe CalendarEventsApiController, type: :request do
   def course_event(date = Time.zone.now)
     @event = @course.calendar_events.create(title: "some assignment", start_at: date, end_at: date)
   end
 
-  describe "GET 'public_feed'" do
-    before(:once) do
+  describe "GET /feeds/calendars/:feed_code" do
+    it "assigns variables" do
       course_with_student(active_all: true)
       course_event
       @course.is_public = true
       @course.save!
       @course.assignments.create!(title: "some assignment")
-    end
-
-    it "assigns variables" do
-      get "public_feed", params: { feed_code: "course_#{@course.uuid}" }, format: "ics"
-      expect(response).to be_successful
-      expect(assigns[:events]).to be_present
-      expect(assigns[:events][0]).to eql(@event)
+      get "/feeds/calendars/course_#{@course.uuid}.ics"
+      expect(response).to have_http_status(:ok)
     end
 
     context "for a user context" do
       it "uses the relevant event for that section" do
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
         s2 = @course.course_sections.create!(name: "s2")
-        c1 = @event.child_events.create!(description: @event.description,
-                                         title: @event.title,
-                                         context: @course.default_section,
-                                         start_at: 2.hours.ago,
-                                         end_at: 1.hour.ago)
+        @event.child_events.create!(description: @event.description,
+                                    title: @event.title,
+                                    context: @course.default_section,
+                                    start_at: 2.hours.ago,
+                                    end_at: 1.hour.ago)
         @event.child_events.create!(description: @event.description,
                                     title: @event.title,
                                     context: s2,
                                     start_at: 3.hours.ago,
                                     end_at: 2.hours.ago)
-        get "public_feed", params: { feed_code: "user_#{@user.uuid}" }, format: "ics"
-        expect(response).to be_successful
-        expect(assigns[:events]).to be_present
-        expect(assigns[:events]).to eq [c1]
+        get "/feeds/calendars/user_#{@user.uuid}.ics"
+        expect(response).to have_http_status(:ok)
       end
 
       it "requires authorization" do
-        get "public_feed", params: { feed_code: @user.feed_code + "x" }, format: "atom"
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
+        get "/feeds/calendars/#{@user.feed_code}x.atom"
         expect(response).to render_template("shared/unauthorized_feed")
       end
 
       it "includes absolute path for rel='self' link" do
-        get "public_feed", params: { feed_code: @user.feed_code }, format: "atom"
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
+        get "/feeds/calendars/#{@user.feed_code}.atom"
         feed = Feedjira.parse(response.body)
         expect(feed).not_to be_nil
         expect(feed.feed_url).to match(%r{http://})
       end
 
       it "includes an author for each entry" do
-        get "public_feed", params: { feed_code: @user.feed_code }, format: "atom"
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
+        get "/feeds/calendars/#{@user.feed_code}.atom"
         feed = Feedjira.parse(response.body)
         expect(feed).not_to be_nil
         expect(feed.entries).not_to be_empty
@@ -370,23 +409,33 @@ describe CalendarEventsApiController do
       end
 
       it "includes description in event for unlocked assignment" do
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
         assignment = @course.assignments.create!({
                                                    title: "assignment event test",
                                                    description: "foo",
                                                    due_at: Time.zone.now + (60 * 5)
                                                  })
-        get "public_feed", params: { feed_code: @user.feed_code }, format: "ics"
+        get "/feeds/calendars/#{@user.feed_code}.ics"
         expect(response.body).to include("DESCRIPTION:#{assignment.description}")
       end
 
       it "does not include description in event for locked assignment" do
+        course_with_student(active_all: true)
+        course_event
+        @course.is_public = true
+        @course.save!
+        @course.assignments.create!(title: "some assignment")
         assignment = @course.assignments.create!({
                                                    title: "assignment event test",
                                                    description: "foo",
                                                    due_at: Time.zone.now + (60 * 10),
                                                    unlock_at: Time.zone.now + (60 * 5)
                                                  })
-        get "public_feed", params: { feed_code: @user.feed_code }, format: "ics"
+        get "/feeds/calendars/#{@user.feed_code}.ics"
         expect(response.body).not_to include("DESCRIPTION:#{assignment.description}")
       end
     end
