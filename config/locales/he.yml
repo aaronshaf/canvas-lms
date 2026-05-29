@@ -11205,6 +11205,12 @@ he:
     registrations: 
       index: 
         title: תוספות
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "אסימון גישה"
+            submit: "יצירת אסימון "
   lti2: 
     register_tool: "רישום כלי"
   lti_2_reregistration_afabde25: "הרשמת LTI 2"
