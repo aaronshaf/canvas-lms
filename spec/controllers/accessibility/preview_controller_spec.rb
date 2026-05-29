@@ -17,366 +17,310 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-RSpec.describe Accessibility::PreviewController do
+RSpec.describe Accessibility::PreviewController, type: :request do
   include Factories
 
-  describe "feature_flag" do
-    let(:course) { Course.create! }
-
-    context "when a11y_checker feature flag disabled" do
-      it "renders forbidden" do
-        allow(course).to receive(:a11y_checker_enabled?).and_return(false)
-
-        expect(controller).to receive(:render).with(status: :forbidden)
-        controller.send(:check_authorized_action)
-      end
-    end
-  end
-
   describe "#create" do
-    let!(:course) { Course.create! }
-    let!(:user) { User.create! }
-    let(:accessibility_issue_instance) { instance_double(Accessibility::Issue) }
+    it "for a wiki page returns the correct response" do
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+      page = @course.wiki_pages.create!(title: "test page", body: "<div>test body</div>")
 
-    before do
-      allow(controller).to receive_messages(require_context: true, require_user: true, check_authorized_action: true)
-      controller.instance_variable_set(:@context, course)
-      controller.instance_variable_set(:@current_user, user)
-
-      allow(Accessibility::Issue).to receive(:new).with(context: course).and_return(accessibility_issue_instance)
+      post "/courses/#{@course.id}/accessibility/preview", params: {
+        rule: "img-alt",
+        content_type: "Page",
+        content_id: page.id.to_s,
+        path: ".//div",
+        value: "fixed content"
+      }
+      expect(response).to have_http_status(:ok)
+      expected_content = "<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;\"><div alt=\"fixed content\" style=\"max-width: 100%; max-height: 100%; object-fit: contain;\">test body</div></div>"
+      expect(response.parsed_body["content"]).to eq(expected_content)
+      expect(response.parsed_body["path"]).to eq("./div")
     end
 
-    context "for a wiki page" do
-      let!(:wiki_page) { course.wiki_pages.create!(title: "test page", body: "test body") }
-      let(:params) do
-        {
-          course_id: course.id,
-          rule: "some_rule",
-          content_type: "WikiPage",
-          content_id: wiki_page.id.to_s,
-          path: "some_path",
-          value: "some_value"
-        }
-      end
-      let(:response_data) { { json: { "result" => "success" }, status: :ok } }
+    it "for a wiki page sanitizes the value before passing it to update_preview" do
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+      malicious_value = "<script>alert(1)</script>Caption text"
+      page = @course.wiki_pages.create!(title: "test page", body: "<div>content</div>")
 
-      it "returns the correct response" do
-        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", "WikiPage", wiki_page.id.to_s, "some_path", "some_value").and_return(response_data)
-
-        post :create, params:, format: :json
-        expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to eq({ "result" => "success" })
-      end
-
-      it "sanitizes the value before passing it to update_preview" do
-        malicious_value = "<script>alert(1)</script>Caption text"
-        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", "WikiPage", wiki_page.id.to_s, "some_path", "Caption text").and_return(response_data)
-
-        post :create, params: params.merge(value: malicious_value), format: :json
-        expect(response).to have_http_status(:ok)
-      end
-
-      it "passes nil to update_preview when the value key is absent" do
-        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", "WikiPage", wiki_page.id.to_s, "some_path", nil).and_return(response_data)
-
-        post :create, params: params.except(:value), format: :json
-        expect(response).to have_http_status(:ok)
-      end
+      post "/courses/#{@course.id}/accessibility/preview", params: {
+        rule: "img-alt",
+        content_type: "Page",
+        content_id: page.id.to_s,
+        path: ".//div",
+        value: malicious_value
+      }
+      expected_content = "<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;\"><div alt=\"Caption text\" style=\"max-width: 100%; max-height: 100%; object-fit: contain;\">content</div></div>"
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["content"]).to eq(expected_content)
+      expect(response.parsed_body["path"]).to eq("./div")
     end
 
-    context "for an assignment" do
-      let!(:assignment) { course.assignments.create! }
-      let(:params) do
-        {
-          course_id: course.id,
-          rule: "another_rule",
-          content_type: "Assignment",
-          content_id: assignment.id.to_s,
-          path: "another_path",
-          value: "another_value"
-        }
-      end
-      let(:response_data) { { json: { "result" => "success" }, status: :ok } }
+    it "for a wiki page passes nil to update_preview when the value key is absent" do
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+      page = @course.wiki_pages.create!(title: "test page", body: "<div>test body</div>")
 
-      it "returns the correct response" do
-        expect(accessibility_issue_instance).to receive(:update_preview).with("another_rule", "Assignment", assignment.id.to_s, "another_path", "another_value").and_return(response_data)
-
-        post :create, params:, format: :json
-        expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to eq({ "result" => "success" })
-      end
+      post "/courses/#{@course.id}/accessibility/preview", params: {
+        rule: "img-alt",
+        content_type: "Page",
+        content_id: page.id.to_s,
+        path: ".//div"
+      }
+      expected_content = "<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;\"><div role=\"presentation\" alt=\"\" style=\"max-width: 100%; max-height: 100%; object-fit: contain;\">test body</div></div>"
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["content"]).to eq(expected_content)
+      expect(response.parsed_body["path"]).to eq("./div")
     end
 
-    context "with missing params" do
-      let(:params) do
-        {
-          course_id: course.id,
-          rule: "some_rule"
-        }
-      end
-      let(:error_response) { { json: { "error" => "missing params" }, status: :bad_request } }
+    it "for an assignment returns the correct response" do
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+      assignment = @course.assignments.create!(description: "<div>Assignment</div>")
 
-      it "returns an error" do
-        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", nil, nil, nil, nil).and_return(error_response)
+      post "/courses/#{@course.id}/accessibility/preview", params: {
+        rule: "img-alt",
+        content_type: "Assignment",
+        content_id: assignment.id.to_s,
+        path: ".//div",
+        value: "fixed"
+      }
+      expected_content = "<div style=\"display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;\"><div alt=\"fixed\" style=\"max-width: 100%; max-height: 100%; object-fit: contain;\">Assignment</div></div>"
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["content"]).to eq(expected_content)
+      expect(response.parsed_body["path"]).to eq("./div")
+    end
 
-        post :create, params:, format: :json
-        expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body).to eq({ "error" => "missing params" })
-      end
+    it "with invalid resource content_type returns an error" do
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+      post "/courses/#{@course.id}/accessibility/preview", params: {
+        rule: "img-alt",
+        content_type: "InvalidType",
+        content_id: "123",
+        path: ".//div",
+        value: "test"
+      }
+      expect(response).to have_http_status(:internal_server_error)
     end
   end
 
   describe "#show" do
-    let!(:course) { Course.create! }
-    let!(:user) { User.create! }
-
-    before do
-      allow(controller).to receive_messages(require_context: true, require_user: true, check_authorized_action: true)
-      controller.instance_variable_set(:@context, course)
-      controller.instance_variable_set(:@current_user, user)
-    end
-
     context "with missing issue_id parameter" do
-      let(:params) do
-        {
-          course_id: course.id
-        }
-      end
-
       it "returns bad request" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        get "/courses/#{@course.id}/accessibility/preview"
         expect(response).to have_http_status(:bad_request)
         expect(response.body).to be_empty
       end
     end
 
     context "with non-existent issue_id" do
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: "99999"
-        }
-      end
-
       it "returns not found" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: "99999" }
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["error"]).to be_present
+        expect(response.parsed_body["error"]).to include("Couldn't find AccessibilityIssue")
       end
     end
 
     context "with issue_id belonging to a different course" do
-      let!(:other_course) { Course.create! }
-      let!(:other_wiki_page) { other_course.wiki_pages.create!(title: "Other", body: "Other body") }
-      let!(:other_issue) { accessibility_issue_model(course: other_course, context: other_wiki_page, node_path: nil) }
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: other_issue.id.to_s
-        }
-      end
-
       it "returns not found" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        other_course = Course.create!
+        other_wiki_page = other_course.wiki_pages.create!(title: "Other", body: "Other body")
+        other_issue = accessibility_issue_model(course: other_course, context: other_wiki_page, node_path: nil)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: other_issue.id.to_s }
         expect(response).to have_http_status(:not_found)
       end
     end
 
     context "for an assignment" do
-      let!(:assignment) { course.assignments.create!(description: "Assignment description") }
-      let!(:issue) { accessibility_issue_model(course:, context: assignment, node_path: nil) }
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: issue.id.to_s
-        }
-      end
-
       it "returns the assignment description" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        assignment = @course.assignments.create!(description: "Assignment description")
+        issue = accessibility_issue_model(course: @course, context: assignment, node_path: nil)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq({ "content" => "Assignment description" })
       end
     end
 
     context "for a wiki page" do
-      let!(:wiki_page) { course.wiki_pages.create!(title: "Test Page", body: "Wiki page body") }
-      let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: issue.id.to_s
-        }
-      end
-
       it "returns the wiki page body" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "Wiki page body")
+        issue = accessibility_issue_model(course: @course, context: wiki_page, node_path: nil)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq({ "content" => "Wiki page body" })
       end
     end
 
     context "with unknown content type" do
-      let!(:wiki_page) { course.wiki_pages.create!(title: "Test Page", body: "Test content") }
-      let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: issue.id.to_s
-        }
-      end
-
       it "returns an error for unknown content type" do
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "Test content")
+        issue = accessibility_issue_model(course: @course, context: wiki_page, node_path: nil)
+
         allow_any_instance_of(Accessibility::ContentLoader).to receive(:resource_html_content).and_raise(
           Accessibility::ContentLoader::UnsupportedResourceTypeError.new("Unsupported resource type: Course")
         )
 
-        get :show, params:, format: :json
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["error"]).to include("Unsupported resource type")
       end
     end
 
     context "with path parameter for element extraction" do
-      let!(:wiki_page) { course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Page Title</h1><p>Page content</p></div>") }
-
       context "when element exists" do
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: ".//h1") }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
-
         it "returns only the specified element" do
-          get :show, params:, format: :json
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Page Title</h1><p>Page content</p></div>")
+          issue = accessibility_issue_model(course: @course, context: wiki_page, node_path: ".//h1")
+
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq({ "content" => "<h1>Page Title</h1>" })
         end
       end
 
       context "when element does not exist" do
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: ".//nonexistent") }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
-
         it "returns element not found error" do
-          get :show, params:, format: :json
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Page Title</h1><p>Page content</p></div>")
+          issue = accessibility_issue_model(course: @course, context: wiki_page, node_path: ".//nonexistent")
+
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:not_found)
           expect(response.parsed_body["error"]).to include("Element not found")
         end
       end
 
       context "when path is empty string" do
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: "") }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
-
         it "returns full content (treats empty path as no path)" do
-          get :show, params:, format: :json
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Page Title</h1><p>Page content</p></div>")
+          issue = accessibility_issue_model(course: @course, context: wiki_page, node_path: "")
+
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq({ "content" => "<div><h1>Page Title</h1><p>Page content</p></div>" })
         end
       end
 
       context "for assignment with path" do
-        let!(:assignment) { course.assignments.create!(description: "<div><h2>Assignment Title</h2><p>Assignment description</p></div>") }
-        let!(:issue) { accessibility_issue_model(course:, context: assignment, node_path: ".//h2") }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
-
         it "returns only the specified element from assignment" do
-          get :show, params:, format: :json
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          assignment = @course.assignments.create!(description: "<div><h2>Assignment Title</h2><p>Assignment description</p></div>")
+          issue = accessibility_issue_model(course: @course, context: assignment, node_path: ".//h2")
+
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq({ "content" => "<h2>Assignment Title</h2>" })
         end
       end
 
       context "with rule_id parameter" do
-        let!(:wiki_page) { course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Test Header</h1></div>") }
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-        let(:mock_rule_instance) { instance_double(Accessibility::Rule) }
-        let(:mock_rule_registry) { { "img-alt" => mock_rule_instance } }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
+        it "passes rule_id to ContentLoader and uses rule's issue_preview" do
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
 
-        before do
+          rule_wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Test Header</h1></div>")
+          issue = accessibility_issue_model(course: @course, context: rule_wiki_page, rule_type: "img-alt", node_path: ".//h1")
+          mock_rule_instance = instance_double(Accessibility::Rule)
+          mock_rule_registry = { "img-alt" => mock_rule_instance }
+
           allow(Accessibility::Rule).to receive(:registry).and_return(mock_rule_registry)
           allow(mock_rule_instance).to receive(:issue_preview).and_return("<h1>Test Header</h1><p>Additional context</p>")
-        end
 
-        it "passes rule_id to ContentLoader and uses rule's issue_preview" do
-          get :show, params:, format: :json
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body["content"]).to eq("<h1>Test Header</h1><p>Additional context</p>")
         end
       end
 
       context "with rule_id but no matching rule" do
-        let!(:wiki_page) { course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Title</h1></div>") }
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
-
-        before do
-          allow(Accessibility::Rule).to receive(:registry).and_return({})
-        end
-
         it "falls back to default HTML when rule not found" do
-          get :show, params:, format: :json
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          no_rule_wiki_page = @course.wiki_pages.create!(title: "Test Page", body: "<div><h1>Title</h1></div>")
+          issue = accessibility_issue_model(course: @course, context: no_rule_wiki_page, rule_type: "img-alt", node_path: ".//h1")
+
+          allow(Accessibility::Rule).to receive(:registry).and_return({})
+
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq({ "content" => "<h1>Title</h1>" })
         end
       end
 
       context "with rule that provides metadata" do
-        let!(:wiki_page) do
-          course.wiki_pages.create!(
+        it "includes metadata in the response" do
+          course_with_teacher(active_all: true)
+          user_session(@teacher)
+          @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+          metadata_wiki_page = @course.wiki_pages.create!(
             title: "Test Page",
             body: '<div><span style="color: #FF0000; background-color: #FFFFFF;">Low contrast text</span></div>'
           )
-        end
-        let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "small-text-contrast", node_path: ".//span") }
-        let(:mock_rule_instance) { instance_double(Accessibility::Rules::SmallTextContrastRule) }
-        let(:mock_rule_registry) { { "small-text-contrast" => mock_rule_instance } }
-        let(:params) do
-          {
-            course_id: course.id,
-            issue_id: issue.id.to_s
-          }
-        end
+          issue = accessibility_issue_model(course: @course, context: metadata_wiki_page, rule_type: "small-text-contrast", node_path: ".//span")
+          mock_rule_instance = instance_double(Accessibility::Rules::SmallTextContrastRule)
+          mock_rule_registry = { "small-text-contrast" => mock_rule_instance }
 
-        before do
           allow(Accessibility::Rule).to receive(:registry).and_return(mock_rule_registry)
           allow(mock_rule_instance).to receive_messages(
             issue_preview: '<span style="color: #FF0000; background-color: #FFFFFF;">Low contrast text</span>',
             issue_metadata: { foreground: "#FF0000", background: "#FFFFFF" }
           )
-        end
 
-        it "includes metadata in the response" do
-          get :show, params:, format: :json
+          get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq({
                                                "content" => '<span style="color: #FF0000; background-color: #FFFFFF;">Low contrast text</span>',
@@ -388,27 +332,49 @@ RSpec.describe Accessibility::PreviewController do
     end
 
     context "when the resource has been updated since the issue was detected" do
-      let!(:wiki_page) { course.wiki_pages.create!(title: "Stale Page", body: "Original body") }
-      let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-      let(:params) do
-        {
-          course_id: course.id,
-          issue_id: issue.id.to_s
-        }
-      end
-
-      before do
-        allow_any_instance_of(Accessibility::ContentLoader).to receive(:resource_updated_since_issue?).and_return(true)
-      end
-
       it "returns conflict status" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        stale_wiki_page = @course.wiki_pages.create!(title: "Stale Page", body: "Original body")
+        issue = accessibility_issue_model(course: @course, context: stale_wiki_page, node_path: nil)
+
+        allow_any_instance_of(Accessibility::ContentLoader).to receive(:resource_updated_since_issue?).and_return(true)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
         expect(response).to have_http_status(:conflict)
       end
 
       it "returns a stale resource error message" do
-        get :show, params:, format: :json
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        stale_wiki_page = @course.wiki_pages.create!(title: "Stale Page", body: "Original body")
+        issue = accessibility_issue_model(course: @course, context: stale_wiki_page, node_path: nil)
+
+        allow_any_instance_of(Accessibility::ContentLoader).to receive(:resource_updated_since_issue?).and_return(true)
+
+        get "/courses/#{@course.id}/accessibility/preview", params: { issue_id: issue.id.to_s }
         expect(response.parsed_body["error"]).to include("Resource has been updated since this issue was detected")
+      end
+    end
+  end
+end
+
+# Controller spec tests for private methods
+RSpec.describe Accessibility::PreviewController do
+  let(:course) { Course.create! }
+
+  context "check_authorized_action" do
+    context "when a11y_checker feature flag disabled" do
+      it "renders forbidden" do
+        allow(course).to receive(:a11y_checker_enabled?).and_return(false)
+
+        expect(controller).to receive(:render).with(status: :forbidden)
+        controller.instance_variable_set(:@context, course)
+        controller.send(:check_authorized_action)
       end
     end
   end

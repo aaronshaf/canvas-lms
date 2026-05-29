@@ -17,45 +17,32 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-RSpec.describe Accessibility::CourseScanController do
-  let!(:course) { course_model }
-
-  before do
-    allow_any_instance_of(described_class).to receive(:require_user).and_return(true)
-    allow_any_instance_of(described_class).to receive(:check_authorized_action).and_return(true)
-    allow_any_instance_of(Course).to receive(:exceeds_accessibility_scan_limit?).and_return(false)
-  end
-
-  context "when a11y_checker feature flag disabled" do
-    it "renders forbidden" do
-      allow_any_instance_of(described_class).to receive(:check_authorized_action).and_call_original
-      allow(course).to receive(:a11y_checker_enabled?).and_return(false)
-
-      expect(controller).to receive(:render).with(status: :forbidden)
-      controller.send(:check_authorized_action)
-    end
-  end
-
+RSpec.describe Accessibility::CourseScanController, type: :request do
   describe "#show" do
     context "when no scan exists" do
       it "returns not found" do
-        get :show, params: { course_id: course.id }
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+        get "/courses/#{@course.id}/accessibility/course_scan"
 
         expect(response).to have_http_status(:not_found)
       end
     end
 
     context "when a scan exists" do
-      let!(:progress) do
-        Progress.create!(tag: "course_accessibility_scan", context: course, workflow_state: "queued")
-      end
-
       it "returns the progress information" do
-        get :show, params: { course_id: course.id }
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+        progress = Progress.create!(tag: "course_accessibility_scan", context: @course, workflow_state: "queued")
+
+        get "/courses/#{@course.id}/accessibility/course_scan"
 
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
-        expect(json["id"]).to eq(progress.id)
+        expect(json["id"]).to eql(progress.id)
         expect(json["workflow_state"]).to eq("queued")
         expect(json["created_at"]).to eq(progress.created_at.iso8601)
       end
@@ -64,7 +51,11 @@ RSpec.describe Accessibility::CourseScanController do
 
   describe "#create" do
     it "queues a scan and returns the progress" do
-      post :create, params: { course_id: course.id }
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+
+      post "/courses/#{@course.id}/accessibility/course_scan"
 
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
@@ -72,25 +63,30 @@ RSpec.describe Accessibility::CourseScanController do
       expect(json["workflow_state"]).to eq("queued")
       expect(json["created_at"]).to eq(Progress.find(json["id"]).created_at.iso8601)
 
-      # Verify a progress record was created
       progress = Progress.find(json["id"])
       expect(progress.tag).to eq("course_accessibility_scan")
-      expect(progress.context).to eq(course)
+      expect(progress.context).to eq(@course)
     end
 
     it "returns existing progress if scan is already queued" do
-      existing_progress = Accessibility::CourseScanService.queue_course_scan(course)
+      course_with_teacher(active_all: true)
+      user_session(@teacher)
+      @course.root_account.enable_feature!(:a11y_checker_ga1)
+      existing_progress = Accessibility::CourseScanService.queue_course_scan(@course)
 
-      post :create, params: { course_id: course.id }
+      post "/courses/#{@course.id}/accessibility/course_scan"
 
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
-      expect(json["id"]).to eq(existing_progress.id)
+      expect(json["id"]).to eql(existing_progress.id)
     end
 
     context "when the course does not exist" do
       it "returns a not found error" do
-        post :create, params: { course_id: -1 }
+        user = User.create!
+        user_session(user)
+
+        post "/courses/-1/accessibility/course_scan"
 
         expect(response).to have_http_status(:not_found)
       end
@@ -98,13 +94,35 @@ RSpec.describe Accessibility::CourseScanController do
 
     context "when the course exceeds scan limit" do
       it "returns a bad request error" do
-        allow_any_instance_of(Course).to receive(:exceeds_accessibility_scan_limit?).and_return(true)
+        course_with_teacher(active_all: true)
+        user_session(@teacher)
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
 
-        post :create, params: { course_id: course.id }
+        # Create > 1000 resources to exceed MAX_ACCESSIBILITY_SCAN_RESOURCES limit
+        1001.times { |i| @course.wiki_pages.create!(title: "Page #{i}") }
+
+        post "/courses/#{@course.id}/accessibility/course_scan"
 
         expect(response).to have_http_status(:bad_request)
         json = response.parsed_body
         expect(json["error"]).to eq("Course exceeds accessibility scan limit")
+      end
+    end
+  end
+end
+
+# Controller spec tests for private methods
+RSpec.describe Accessibility::CourseScanController do
+  let(:course) { Course.create! }
+
+  context "check_authorized_action" do
+    context "when a11y_checker feature flag disabled" do
+      it "renders forbidden" do
+        allow(course).to receive(:a11y_checker_enabled?).and_return(false)
+
+        expect(controller).to receive(:render).with(status: :forbidden)
+        controller.instance_variable_set(:@context, course)
+        controller.send(:check_authorized_action)
       end
     end
   end
