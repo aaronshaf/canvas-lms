@@ -29,6 +29,7 @@ class FilesChangedDetector implements Serializable {
   private Boolean graphqlFiles = false
   private Boolean erbFiles = false
   private Boolean jsFiles = false
+  private List<String> changedSpecFiles = []
 
   // Getters
   Boolean hasBundleFiles() { return this.bundleFiles }
@@ -39,6 +40,7 @@ class FilesChangedDetector implements Serializable {
   Boolean hasGraphqlFiles() { return this.graphqlFiles }
   Boolean hasErbFiles() { return this.erbFiles }
   Boolean hasJsFiles() { return this.jsFiles }
+  List<String> getChangedSpecFiles() { return this.changedSpecFiles }
 
   // Setters for internal use
   void setBundleFiles(Boolean value) { this.bundleFiles = value }
@@ -49,4 +51,5 @@ class FilesChangedDetector implements Serializable {
   void setGraphqlFiles(Boolean value) { this.graphqlFiles = value }
   void setErbFiles(Boolean value) { this.erbFiles = value }
   void setJsFiles(Boolean value) { this.jsFiles = value }
+  void setChangedSpecFiles(List<String> value) { this.changedSpecFiles = value }
 }

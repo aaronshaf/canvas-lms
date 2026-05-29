@@ -44,6 +44,7 @@ def hasYarnFiles() { return getDetector().hasYarnFiles() }
 def hasGraphqlFiles() { return getDetector().hasGraphqlFiles() }
 def hasErbFiles() { return getDetector().hasErbFiles() }
 def hasJsFiles() { return getDetector().hasJsFiles() }
+def getChangedSpecFiles() { return getDetector().getChangedSpecFiles() }
 
 def preBuild() {
   def dockerDevFiles = [
@@ -84,7 +85,14 @@ def preBuild() {
   parallelChecks['workdirChecks'] = {
     dir(env.LOCAL_WORKDIR) {
       d.setBundleFiles(sh(script: 'git diff --name-only HEAD^..HEAD | grep -E "Gemfile|gemspec"', returnStatus: true) == 0)
-      d.setSpecFiles(sh(script: "${WORKSPACE}/build/new-jenkins/spec-changes.sh", returnStatus: true) == 0)
+      def specOutput = sh(
+        script: 'git show --pretty="" --name-only HEAD^..HEAD | grep "_spec.rb" || true',
+        returnStdout: true,
+        label: 'List changed spec files'
+      ).trim()
+      def specFileList = specOutput ? specOutput.tokenize('\n') : []
+      d.setSpecFiles(!specFileList.isEmpty())
+      d.setChangedSpecFiles(specFileList)
     }
   }
 
@@ -95,6 +103,47 @@ def preBuild() {
   // https://issues.jenkins.io/browse/JENKINS-52750
   if (env.GERRIT_PROJECT != 'canvas-lms') {
     sh "rm -vrf $LOCAL_WORKDIR@tmp"
+  }
+
+  _emitSpecPatchEvents(d.getChangedSpecFiles())
+}
+
+// Emits a rspecq_patch_update event for every *_spec.rb file changed in the
+// current Gerrit patchset. Called from preBuild() which runs on the controller
+// node (real git repo, LOCAL_WORKDIR already checked out) and covers both
+// canvas-lms and plugin builds. The event timestamp predates rspecq_retry_data
+// events from the same build, satisfying the Observe freshness-suppression
+// condition:
+//
+//   suppress freshness  iff  latest_patch_event.timestamp > last_flaky_event.timestamp
+//
+// Non-fatal: any failure is logged and silently skipped.
+// Classname derivation mirrors rspecq_retry_data so both datasets join on
+// classname in OPAL.
+def _emitSpecPatchEvents(specFiles) {
+  if (!env.GERRIT_CHANGE_NUMBER || !env.GERRIT_PATCHSET_NUMBER || !specFiles) {
+    return
+  }
+  try {
+    def patchedSpecs = specFiles.findResults { filePath ->
+      def fp = filePath.trim()
+      if (!fp.endsWith('_spec.rb')) {
+        return null
+      }
+      [
+        classname: fp.replaceAll('\\.rb(?::\\d+|\\[.*)?$', '').replace('/', '.'),
+        file_path: fp
+      ]
+    }
+    if (patchedSpecs) {
+      reportBuildLog(
+        'rspecq_patch_update',
+        [spec_files: patchedSpecs],
+        'observe-test-tracking-token'
+      )
+    }
+  } catch (err) {
+    echo "emitSpecPatchEvents: skipped — ${err.message}"
   }
 }
 
