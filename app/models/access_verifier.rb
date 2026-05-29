@@ -58,7 +58,7 @@ module AccessVerifier
     jwt_claims.merge!(claims.slice(:oauth_host, :return_url, :fallback_url))
 
     expires = TTL_MINUTES.minutes.from_now
-    jwt_claims[:jti] = SecureRandom.uuid if Account.site_admin.feature_enabled?(:safe_files_jti)
+    jwt_claims[:jti] = SecureRandom.uuid
     Rails.cache.write("sf_verifier:#{jwt_claims[:jti]}", true, expires_at: expires)
     key = nil # use default key
     { sf_verifier: Canvas::Security.create_jwt(jwt_claims, expires, key, :HS512) }

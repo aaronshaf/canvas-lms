@@ -292,7 +292,7 @@ class FilesController < ApplicationController
       session["file_access_expiration"] = 1.hour.from_now.to_i
       session[:permissions_key] = SecureRandom.uuid
     end
-    @access_verifier = access_verifier if access_verifier.present? && Account.site_admin.feature_enabled?(:safe_files_jti)
+    @access_verifier = access_verifier if access_verifier.present?
     true
   end
   protected :check_file_access_flags
@@ -695,10 +695,6 @@ class FilesController < ApplicationController
         @skip_crumb = true unless @context
       else
         @attachment ||= attachment_or_replacement(@context, params[:id])
-      end
-
-      if !Account.site_admin.feature_enabled?(:safe_files_jti) && @attachment.inline_content? && params[:sf_verifier] && redirect_for_inline?(params[:sf_verifier])
-        return redirect_to url_for(params.to_unsafe_h.except(:sf_verifier))
       end
 
       params[:download] ||= params[:preview]

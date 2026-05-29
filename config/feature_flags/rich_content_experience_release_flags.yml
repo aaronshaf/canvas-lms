@@ -285,16 +285,6 @@ reset_uuid_on_course_reset:
     Reset the UUID of a course when it is reset.  This allows course restore to work better for New Quizzes.
   applies_to: RootAccount
 
-safe_files_jti:
-  applies_to: SiteAdmin
-  state: allowed_on
-  shadow: true
-  display_name: Safe Files JTI
-  description: |-
-    Adds a one time use token when redirecting to the safe files domain.
-    This prevents replay attacks on the file download links.
-
-
 visibility_performance_improvements:
   state: hidden
   display_name: Selective Release Visibility Performance Improvements
