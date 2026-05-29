@@ -919,7 +919,7 @@ class DiscussionTopicsController < ApplicationController
              discussion_entry_version_history: Account.site_admin.feature_enabled?(:discussion_entry_version_history),
              discussion_translation_available: Translation.available? && @context.feature_enabled?(:translation),
              discussion_translation_feedback: @context.feature_enabled?(:translation) &&
-                                              @context.feature_enabled?(:translation_feedback),
+                                              Account.site_admin.feature_enabled?(:translation_feedback),
              ai_translation_improvements: true, # Temporary kept to avoid front error on release, see  VICE-5844
              cedar_translation: true, # Temporary kept to avoid front error on release, see  VICE-5844
              discussion_translation_languages: Translation.available? ? Translation.languages : [],

@@ -18,11 +18,11 @@
 
 class TranslationController < ApplicationController
   before_action :require_context, only: %i[translate translation_feedback]
-  before_action :require_user, only: %i[translation_feedback]
-  before_action :require_inbox_translation, only: %i[translate_paragraph]
+  before_action :require_user, only: %i[translation_feedback inbox_translation_feedback]
+  before_action :require_inbox_translation, only: %i[translate_paragraph inbox_translation_feedback]
 
   # Skip the authenticity token as this is an API endpoint.
-  skip_before_action :verify_authenticity_token, only: %i[translate translation_feedback]
+  skip_before_action :verify_authenticity_token, only: %i[translate translation_feedback inbox_translation_feedback]
 
   rescue_from Translation::TranslationError, with: :handle_translation_error
 
@@ -65,7 +65,7 @@ class TranslationController < ApplicationController
     return render_unauthorized_action unless Translation.available? &&
                                              user_can_read? &&
                                              @context.feature_enabled?(:translation) &&
-                                             @context.feature_enabled?(:translation_feedback)
+                                             Account.site_admin.feature_enabled?(:translation_feedback)
 
     content_type = params[:content_type]
     unless %w[DiscussionTopic DiscussionEntry].include?(content_type)
@@ -110,6 +110,42 @@ class TranslationController < ApplicationController
     end
 
     render(json: { liked: feedback.liked, disliked: feedback.disliked })
+  end
+
+  def inbox_translation_feedback
+    return render_unauthorized_action unless Account.site_admin.feature_enabled?(:translation_feedback)
+
+    return render(json: { error: "Missing target_language." }, status: :bad_request) if params[:target_language].blank?
+
+    action = params[:_action]&.to_sym
+    unless %i[like dislike reset_like].include?(action)
+      return render(json: { error: "Invalid action." }, status: :bad_request)
+    end
+
+    feedback = InboxTranslationFeedback.find_by(id: params[:id], user: @current_user) if params[:id].present?
+    feedback ||= InboxTranslationFeedback.new(
+      user: @current_user,
+      root_account: @domain_root_account,
+      target_language: params[:target_language]
+    )
+
+    begin
+      case action
+      when :like
+        feedback.like
+        InstStatsd::Statsd.distributed_increment("translation.inbox.feedback.liked")
+      when :dislike
+        feedback.dislike(notes: params[:notes])
+        InstStatsd::Statsd.distributed_increment("translation.inbox.feedback.disliked")
+      when :reset_like
+        feedback.reset_like
+        InstStatsd::Statsd.distributed_increment("translation.inbox.feedback.reset_like")
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      return render(json: { error: e.message }, status: :unprocessable_content)
+    end
+
+    render(json: { id: feedback.id, liked: feedback.liked, disliked: feedback.disliked })
   end
 
   def handle_translation_error(exception)

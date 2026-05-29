@@ -36,6 +36,8 @@ export interface TranslationContextValue {
   errorMessages: FormMessage[]
   setErrorMessages: Dispatch<SetStateAction<FormMessage[]>>
   textTooLongErrors: FormMessage[]
+  translationCompleted: boolean
+  translationNonce: number
 }
 
 interface Inputs {
@@ -63,6 +65,8 @@ export const useTranslationContextState = ({
   const [messagePosition, setMessagePosition] = useState<string | null>(null)
   const [errorMessages, setErrorMessages] = useState<FormMessage[]>([])
   const [textTooLongErrors, setTextTooLongErrors] = useState<FormMessage[]>([])
+  const [translationCompleted, setTranslationCompleted] = useState(false)
+  const [translationNonce, setTranslationNonce] = useState(0)
 
   const getBodyWithoutTranslation = (isPrimary: boolean, bodyText: string) => {
     if (bodyText.includes(translationSeparator)) {
@@ -84,6 +88,7 @@ export const useTranslationContextState = ({
     const strippedBody = getBodyWithoutTranslation(isPrimary, bodyText)
 
     setTranslating(true)
+    setTranslationCompleted(false)
     setTextTooLongErrors([])
 
     translateMessage({
@@ -100,6 +105,8 @@ export const useTranslationContextState = ({
           activeSignature,
           strippedBody,
         )
+        setTranslationNonce(prev => prev + 1)
+        setTranslationCompleted(true)
       })
       .catch(e => {
         if (e.translationError) {
@@ -144,6 +151,8 @@ export const useTranslationContextState = ({
     errorMessages,
     setErrorMessages,
     textTooLongErrors,
+    translationCompleted,
+    translationNonce,
   }
 }
 

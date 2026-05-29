@@ -94,6 +94,75 @@ describe TranslationController do
     end
   end
 
+  describe "#inbox_translation_feedback" do
+    before do
+      allow(Translation).to receive(:available?).and_return(true)
+      # translation_feedback is a SiteAdmin-scoped flag, so it's checked on site admin
+      allow(Account.site_admin).to receive(:feature_enabled?).with(:translation_feedback).and_return(true)
+    end
+
+    context "when inbox translation is not available" do
+      it "renders unauthorized action" do
+        allow(Translation).to receive(:available?).and_return(false)
+        post :inbox_translation_feedback, params: { _action: "like", target_language: "es" }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when translation_feedback flag is disabled" do
+      it "renders unauthorized action" do
+        allow(Account.site_admin).to receive(:feature_enabled?).with(:translation_feedback).and_return(false)
+        post :inbox_translation_feedback, params: { _action: "like", target_language: "es" }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    it "returns bad request when target_language is missing" do
+      post :inbox_translation_feedback, params: { _action: "like" }
+
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "returns bad request for an invalid action" do
+      post :inbox_translation_feedback, params: { _action: "bogus", target_language: "es" }
+
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "creates a feedback row on like" do
+      expect do
+        post :inbox_translation_feedback, params: { _action: "like", target_language: "es" }
+      end.to change { InboxTranslationFeedback.count }.by(1)
+
+      expect(response).to be_successful
+      expect(response.parsed_body["liked"]).to be true
+      expect(response.parsed_body["disliked"]).to be false
+      expect(response.parsed_body["id"]).to be_present
+    end
+
+    it "updates the same row when an id is provided" do
+      post :inbox_translation_feedback, params: { _action: "like", target_language: "es" }
+      id = response.parsed_body["id"]
+
+      expect do
+        post :inbox_translation_feedback, params: { _action: "reset_like", target_language: "es", id: }
+      end.not_to change { InboxTranslationFeedback.count }
+
+      expect(response.parsed_body["liked"]).to be false
+      expect(response.parsed_body["disliked"]).to be false
+    end
+
+    it "persists notes on dislike" do
+      post :inbox_translation_feedback, params: { _action: "dislike", target_language: "es", notes: "Awkward phrasing" }
+
+      expect(response).to be_successful
+      expect(response.parsed_body["disliked"]).to be true
+      expect(InboxTranslationFeedback.last.feedback_notes).to eq("Awkward phrasing")
+    end
+  end
+
   describe "Exception Handling" do
     context "when Translation::SameLanguageTranslationError is raised" do
       before do

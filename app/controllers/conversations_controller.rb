@@ -328,6 +328,8 @@ class ConversationsController < ApplicationController
                  inbox_sis_id_for_duplicates: Account.site_admin.feature_enabled?(:inbox_sis_id_for_duplicates),
                  inbox_translation_languages: @domain_root_account.feature_enabled?(:translate_inbox_messages) ? Translation.languages : [],
                  inbox_translation_enabled: @domain_root_account.feature_enabled?(:translate_inbox_messages),
+                 inbox_translation_feedback: @domain_root_account.feature_enabled?(:translate_inbox_messages) &&
+                   Account.site_admin.feature_enabled?(:translation_feedback),
                  cedar_translation: true, # KEPT TO AVOID P4 on release,  VICE-5844
                })
         @page_title = t("Inbox")

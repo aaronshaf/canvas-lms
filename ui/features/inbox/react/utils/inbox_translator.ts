@@ -85,6 +85,39 @@ export async function translateText(args: TranslateArgs, text: string): Promise<
   }
 }
 
+interface TranslationFeedbackArgs {
+  action: 'like' | 'dislike' | 'reset_like'
+  targetLanguage: string
+  notes?: string
+  id?: number | null
+}
+
+interface TranslationFeedbackResult {
+  id: number
+  liked: boolean
+  disliked: boolean
+}
+
+/**
+ * Record thumbs up/down feedback for an inbox translation.
+ * */
+export async function postInboxTranslationFeedback(
+  args: TranslationFeedbackArgs,
+): Promise<TranslationFeedbackResult> {
+  const {json} = await doFetchApi({
+    method: 'POST',
+    path: '/translate/inbox/feedback',
+    body: {
+      _action: args.action,
+      target_language: args.targetLanguage,
+      notes: args.notes,
+      id: args.id ?? undefined,
+    },
+  })
+
+  return json as TranslationFeedbackResult
+}
+
 /**
  * Strip the signature from the body, so that it can be added back later.
  * */

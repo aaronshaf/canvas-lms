@@ -28,6 +28,7 @@ import {Modal} from '@instructure/ui-modal'
 import {View} from '@instructure/ui-view'
 import {Alert} from '@instructure/ui-alerts'
 import TranslationControls from '../../components/TranslationControls/TranslationControls'
+import TranslationFeedback from '../../components/TranslationControls/TranslationFeedback'
 import {PresentationContent} from '@instructure/ui-a11y-content'
 import {ComposeInputWrapper} from '../../components/ComposeInputWrapper/ComposeInputWrapper'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -69,6 +70,7 @@ const ModalBody = props => {
               />
             }
           />
+          {shouldTranslate && <TranslationFeedback />}
           {shouldTranslate && (
             <TranslationControls
               signature={props.signature}
