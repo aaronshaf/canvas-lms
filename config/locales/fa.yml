@@ -13919,6 +13919,12 @@ fa:
     registrations: 
       index: 
         title: پسوندها
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "نشانه دسترسی"
+            submit: "ایجاد نشانه"
   lti2: 
     register_tool: "ثبت ابزار"
   lti_1_3_configuration_c3534f3b: "پیکربندی LTI 1.3 "
