@@ -9848,6 +9848,12 @@ uk:
     registrations: 
       index: 
         title: Застосунки
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "Маркер доступу"
+            submit: "Згенерувати маркер"
   lti2: 
     register_tool: "Зареєструвати інструмент"
   lti_2_reregistration_afabde25: "Повторна реєстрація LTI 2"
