@@ -9144,6 +9144,11 @@ el:
             
             Η ομάδα του Canvas</mrk>
         course_starts_next_week: "Το μάθημά σου ξεκινάει την επόμενη εβδομάδα"
+    default_email_address_changed: 
+      email: 
+        details_header: "Λεπτομέρειες:"
+        html: 
+          details_header: "Λεπτομέρειες:"
     dialog: 
       title: "Αποστολή απαντητικού μηνύματος"
     discussion_mention: 
@@ -9154,6 +9159,11 @@ el:
       footer: |-
           <mrk mid="7197" mtype="seg">Λάβατε αυτό το email επειδή συμμετέχετε σε ένα ή περισσότερα μαθήματα μέσω του Canvas.</mrk>  <mrk mid="7198" mtype="seg">Για να αλλάξετε ή να απενεργοποιήσετε τις ειδοποιήσεις ηλεκτρονικού ταχυδρομείου, επισκεφθείτε το:</mrk>
           <mrk mid="7199" mtype="seg">%{url}</mrk>
+    email_address_removed: 
+      email: 
+        details_header: "Λεπτομέρειες:"
+        html: 
+          details_header: "Λεπτομέρειες:"
     enrollment_accepted: 
       email: 
         details: "Προβάλετε τη λίστα με τις τρέχουσες εγγραφές εδώ:"
@@ -9563,6 +9573,8 @@ el:
     new_email_address_added: 
       email: 
         details_header: "Λεπτομέρειες:"
+        html: 
+          details_header: "Λεπτομέρειες:"
     new_event_created: 
       email: 
         body: "Έχει προγραμματιστεί ένα νέο γεγονός που πρέπει να γνωρίζετε για το μάθημα %{course_name}:"
