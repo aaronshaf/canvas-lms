@@ -56,6 +56,91 @@ describe "Canvadoc" do
     end
   end
 
+  describe ".session_callback_token" do
+    before do
+      allow(Canvadoc).to receive(:jwt_secret).and_return("sekrit")
+    end
+
+    it "returns a JWT with origin claims signed by jwt_secret using HS512" do
+      token = Canvadoc.session_callback_token(
+        canvas_base_url: "canvas.example.edu",
+        audit_url: "https://canvas.example.edu/api/v1/submissions/1/docviewer_audit_events",
+        submission_id: 42
+      )
+      expect(JSON::JWT.decode(token, :skip_verification).header["alg"]).to eq "HS512"
+      claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+      expect(claims["iss"]).to eq "canvas-lms"
+      expect(claims["sub"]).to eq "canvadocs-callback"
+      expect(claims["aud"]).to eq "canvadocs"
+      expect(claims["jti"]).to be_present
+      expect(claims["canvas_base_url"]).to eq "canvas.example.edu"
+      expect(claims["audit_url"]).to eq "https://canvas.example.edu/api/v1/submissions/1/docviewer_audit_events"
+      expect(claims["submission_id"]).to eq 42
+    end
+
+    it "sets exp to ttl from now" do
+      Timecop.freeze do
+        token = Canvadoc.session_callback_token(canvas_base_url: "x", ttl: 30.minutes)
+        claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+        expect(claims["exp"]).to eq 30.minutes.from_now.to_i
+      end
+    end
+
+    it "issues a unique jti per call" do
+      t1 = Canvadoc.session_callback_token(canvas_base_url: "x")
+      t2 = Canvadoc.session_callback_token(canvas_base_url: "x")
+      jti1 = Canvas::Security.decode_jwt(t1, ["sekrit"])["jti"]
+      jti2 = Canvas::Security.decode_jwt(t2, ["sekrit"])["jti"]
+      expect(jti1).not_to eq jti2
+    end
+
+    it "omits audit_url and submission_id claims when not provided" do
+      token = Canvadoc.session_callback_token(canvas_base_url: "canvas.example.edu")
+      claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+      expect(claims).not_to have_key("audit_url")
+      expect(claims).not_to have_key("submission_id")
+    end
+
+    it "returns nil when jwt_secret is unset" do
+      allow(Canvadoc).to receive(:jwt_secret).and_return(nil)
+      expect(Canvadoc.session_callback_token(canvas_base_url: "x")).to be_nil
+    end
+  end
+
+  describe ".document_callback_token" do
+    before do
+      allow(Canvadoc).to receive(:jwt_secret).and_return("sekrit")
+    end
+
+    it "returns a JWT with base_url and attachment_id claims using HS512" do
+      token = Canvadoc.document_callback_token(
+        base_url: "https://canvas.example.edu",
+        attachment_id: 99
+      )
+      expect(JSON::JWT.decode(token, :skip_verification).header["alg"]).to eq "HS512"
+      claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+      expect(claims["iss"]).to eq "canvas-lms"
+      expect(claims["sub"]).to eq "canvadocs-callback"
+      expect(claims["aud"]).to eq "canvadocs"
+      expect(claims["jti"]).to be_present
+      expect(claims["base_url"]).to eq "https://canvas.example.edu"
+      expect(claims["attachment_id"]).to eq 99
+    end
+
+    it "sets exp to ttl from now" do
+      Timecop.freeze do
+        token = Canvadoc.document_callback_token(base_url: "x", attachment_id: 1, ttl: 7.days)
+        claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+        expect(claims["exp"]).to eq 7.days.from_now.to_i
+      end
+    end
+
+    it "returns nil when jwt_secret is unset" do
+      allow(Canvadoc).to receive(:jwt_secret).and_return(nil)
+      expect(Canvadoc.document_callback_token(base_url: "x", attachment_id: 1)).to be_nil
+    end
+  end
+
   describe "#upload" do
     it "uploads" do
       @doc.upload

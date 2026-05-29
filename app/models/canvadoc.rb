@@ -95,6 +95,41 @@ class Canvadoc < ApplicationRecord
     Base64.decode64(secret) if secret
   end
 
+  CALLBACK_TOKEN_ISS = "canvas-lms"
+  CALLBACK_TOKEN_SUB = "canvadocs-callback"
+  CALLBACK_TOKEN_AUD = "canvadocs"
+  private_constant :CALLBACK_TOKEN_ISS, :CALLBACK_TOKEN_SUB, :CALLBACK_TOKEN_AUD
+
+  # Signed JWT binding session-scoped callback URLs to a verifiable Canvas origin.
+  # Returns nil if jwt_secret is not configured (self-hosted without shared secret).
+  def self.session_callback_token(canvas_base_url:, audit_url: nil, submission_id: nil, ttl: 1.hour)
+    build_callback_jwt(
+      { canvas_base_url:, audit_url:, submission_id: }.compact,
+      ttl:
+    )
+  end
+
+  # Signed JWT binding document-scoped callback URL (word-count) to Canvas origin.
+  # ttl is 7 days because canvadocs may process large documents asynchronously and
+  # only fire the word-count callback once processing completes.
+  def self.document_callback_token(base_url:, attachment_id:, ttl: 7.days)
+    build_callback_jwt({ base_url:, attachment_id: }, ttl:)
+  end
+
+  def self.build_callback_jwt(extra_claims, ttl:)
+    secret = jwt_secret
+    return nil unless secret
+
+    claims = {
+      iss: CALLBACK_TOKEN_ISS,
+      sub: CALLBACK_TOKEN_SUB,
+      aud: CALLBACK_TOKEN_AUD,
+      jti: SecureRandom.uuid
+    }.merge(extra_claims)
+    CanvasSecurity.create_jwt(claims, ttl.from_now, secret, :HS512)
+  end
+  private_class_method :build_callback_jwt
+
   IWORK_MIME_TYPES = %w[
     application/vnd.apple.pages
     application/vnd.apple.keynote

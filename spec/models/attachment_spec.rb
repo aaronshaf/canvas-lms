@@ -239,6 +239,42 @@ describe Attachment do
         expect(a.canvadoc).not_to be_nil
       end
 
+      context "canvas_metadata callback_token" do
+        let(:attachment) do
+          student = course_with_student(course: @course, active_all: true).user
+          assignment = assignment_model(course: @course, submission_types: "online_upload")
+          att = attachment_model(context: student, content_type: "application/pdf", user: student)
+          assignment.submit_homework(student, attachments: [att])
+          Canvadoc.create!(attachment: att)
+          att
+        end
+
+        it "includes a signed callback_token in canvas_metadata when jwt_secret is set" do
+          allow(Canvadoc).to receive(:jwt_secret).and_return("sekrit")
+          expect(attachment.canvadoc).to receive(:upload) do |opts|
+            token = opts[:canvas_metadata][:callback_token]
+            expect(token).to be_present
+            expect(JSON::JWT.decode(token, :skip_verification).header["alg"]).to eq "HS512"
+            claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+            expect(claims["iss"]).to eq "canvas-lms"
+            expect(claims["sub"]).to eq "canvadocs-callback"
+            expect(claims["aud"]).to eq "canvadocs"
+            expect(claims["jti"]).to be_present
+            expect(claims["attachment_id"]).to eq attachment.id
+            expect(claims["base_url"]).to eq opts[:canvas_metadata][:base_url]
+          end
+          attachment.submit_to_canvadocs
+        end
+
+        it "omits callback_token when jwt_secret is unset" do
+          allow(Canvadoc).to receive(:jwt_secret).and_return(nil)
+          expect(attachment.canvadoc).to receive(:upload) do |opts|
+            expect(opts[:canvas_metadata]).not_to have_key(:callback_token)
+          end
+          attachment.submit_to_canvadocs
+        end
+      end
+
       it "downgrades Canvadoc upload timeouts to WARN" do
         canvadocable = canvadocable_attachment_model content_type: "application/pdf"
         cd_double = double

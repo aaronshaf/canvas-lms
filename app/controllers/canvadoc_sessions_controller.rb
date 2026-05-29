@@ -136,6 +136,13 @@ class CanvadocSessionsController < ApplicationController
         opts[:audit_url] = submission_docviewer_audit_events_url(submission_id) if assignment.auditable?
         opts[:anonymous_instructor_annotations] = !!blob["anonymous_instructor_annotations"] if blob["anonymous_instructor_annotations"]
 
+        callback_token = Canvadoc.session_callback_token(
+          canvas_base_url: opts[:canvas_base_url],
+          audit_url: opts[:audit_url],
+          submission_id: opts[:submission_id]
+        )
+        opts[:canvas_callback_token] = callback_token if callback_token
+
         # "annotation_context" should be present only when the assignment is a student annotation.
         if blob["annotation_context"].present?
           opts[:annotation_context] = blob["annotation_context"]

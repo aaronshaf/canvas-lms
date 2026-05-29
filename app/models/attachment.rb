@@ -2150,10 +2150,14 @@ class Attachment < ApplicationRecord
 
       # Add canvas_metadata for submission attachments to enable word count updates
       if assignment_submissions.present?
-        upload_opts[:canvas_metadata] = {
-          base_url: "#{HostUrl.protocol}://#{root_account.environment_specific_domain}",
+        base_url = "#{HostUrl.protocol}://#{root_account.environment_specific_domain}"
+        metadata = {
+          base_url:,
           attachment_jwt: CanvasSecurity.create_jwt({ id: }, 1.hour.from_now)
         }
+        callback_token = Canvadoc.document_callback_token(base_url:, attachment_id: id)
+        metadata[:callback_token] = callback_token if callback_token
+        upload_opts[:canvas_metadata] = metadata
       end
 
       doc.upload(upload_opts)

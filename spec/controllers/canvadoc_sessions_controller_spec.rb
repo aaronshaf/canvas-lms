@@ -681,6 +681,37 @@ describe CanvadocSessionsController do
         end
       end
 
+      it "sends a signed canvas_callback_token when jwt_secret is set" do
+        allow(Canvadoc).to receive(:jwt_secret).and_return("sekrit")
+        @assignment.update!(anonymous_grading: true)
+        expect(@attachment.canvadoc).to receive(:session_url) do |opts|
+          token = opts[:canvas_callback_token]
+          expect(token).to be_present
+          expect(JSON::JWT.decode(token, :skip_verification).header["alg"]).to eq "HS512"
+          claims = Canvas::Security.decode_jwt(token, ["sekrit"])
+          expect(claims["iss"]).to eq "canvas-lms"
+          expect(claims["sub"]).to eq "canvadocs-callback"
+          expect(claims["aud"]).to eq "canvadocs"
+          expect(claims["jti"]).to be_present
+          expect(claims["canvas_base_url"]).to eq opts[:canvas_base_url]
+          expect(claims["audit_url"]).to eq opts[:audit_url]
+          expect(claims["submission_id"]).to eq @submission.id
+          "redirect"
+        end
+        get :show, params: { blob: blob.to_json, hmac: }
+        assert_status(302)
+      end
+
+      it "omits canvas_callback_token when jwt_secret is unset" do
+        allow(Canvadoc).to receive(:jwt_secret).and_return(nil)
+        expect(@attachment.canvadoc).to receive(:session_url) do |opts|
+          expect(opts).not_to have_key(:canvas_callback_token)
+          "redirect"
+        end
+        get :show, params: { blob: blob.to_json, hmac: }
+        assert_status(302)
+      end
+
       it "sends along the audit url when annotations are enabled and assignment is anonymous" do
         @assignment.update!(anonymous_grading: true)
         url = submission_docviewer_audit_events_url(@submission.id)
