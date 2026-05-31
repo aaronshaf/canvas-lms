@@ -8,7 +8,7 @@
   <%= t :subject, "Finish Registration: Canvas" %>
 <% end %>
 
-<% remove_profile_url_in_layout = true %>
+<% remove_profile_url_in_layout = true # rubocop:disable Lint/UselessAssignment -- used in _layout.email.html.erb %>
 
 <%= t :body, "You have been registered for a Canvas account at %{account}!  Before you can log in and start using Canvas, you'll need to finish the configuration process.", account: p.account.display_name %>
 

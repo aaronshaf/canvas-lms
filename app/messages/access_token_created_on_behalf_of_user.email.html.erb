@@ -1,4 +1,4 @@
-<% remove_profile_url_in_layout = true %>
+<% remove_profile_url_in_layout = true # rubocop:disable Lint/UselessAssignment -- used in _layout.email.html.erb %>
 
 <% define_content :link do %>
   <% if user&.account&.primary_domain&.host %>
