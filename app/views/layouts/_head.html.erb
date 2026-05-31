@@ -41,7 +41,8 @@
   <%= favicon_link_tag(brand_variable('ic-brand-apple-touch-icon'), rel: 'apple-touch-icon', type: nil) %>
   <%= favicon_link_tag(favicon) %>
   <% @content_for_head&.each do |string| %>
-  <%= string %><% end %>
+    <%= string %>
+  <% end %>
   <%= include_account_css unless @exclude_account_css %>
   <%= render_datadog_rum_js %>
   <script>if (navigator.userAgent.match(/(MSIE|Trident\/)/)) location.replace('/ie-is-not-supported.html')</script>

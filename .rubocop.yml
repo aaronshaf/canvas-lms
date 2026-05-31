@@ -24,6 +24,20 @@ AllCops:
 Bundler:
   Severity: error
 
+ERB:
+  Severity: error
+# Stock cops only apply these to *.html.erb in case you have ERB that is sensitive to whitespace; we do not
+# have any of that.
+ERB/BlockAlignment:
+  Include:
+    - "**/*.erb"
+ERB/LeadingEmptyLines:
+  Include:
+    - "**/*.erb"
+ERB/TrailingEmptyLines:
+  Include:
+    - "**/*.erb"
+
 FactoryBot:
   Severity: error
 
@@ -260,6 +274,15 @@ Style/WordArray:
 # we should eventually either fix them, or turn them off completely (and move
 # them to the section above)
 # auto-correct needs to be disabled for any that support it in the meantime
+
+ERB/InconsistentControlFlowScope:
+  Severity: convention
+ERB/OmittedClosingTag:
+  Severity: convention
+ERB/TagIndentation:
+  Enabled: false # toooooo many to even have at convention level for now
+  Include:
+    - "**/*.erb"
 
 GraphQL/ExtractInputType:
   Severity: convention

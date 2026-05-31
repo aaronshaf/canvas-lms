@@ -27,7 +27,7 @@ group :test do
   gem "gergich", "~> 2.1", require: false
 
   gem "rubocop-canvas", require: false, path: "../gems/rubocop-canvas"
-  gem "rubocop-erb", "~> 0.7", require: false
+  gem "rubocop-erb", "~> 0.7", require: false, github: "ccutrer/rubocop-erb", branch: "extract-all-ruby"
   gem "rubocop-inst", "~> 1", require: false
   gem "rubocop-factory_bot", "~> 2.22", require: false
   gem "rubocop-graphql", "~> 1.3", require: false

@@ -25,19 +25,19 @@
 %>
 
 <% provide(:page_title, dashboard_title) %>
-<%
-  is_observer = @current_user&.roles(@domain_root_account)&.include?('observer')
-  if show_planner?
-    # fire off these `fetch` requests now so they are ready sooner
-    six_months_ago = CGI.escape Time.now.utc.at_beginning_of_day.months_ago(6).iso8601(3)
-    beginning_of_day = CGI.escape Time.zone.now.at_beginning_of_day.utc.iso8601(3)
-    beginning_of_week = CGI.escape Time.zone.now.beginning_of_week(:sunday).utc.iso8601(3)
-    end_of_week = CGI.escape Time.zone.now.end_of_week(:sunday).utc.iso8601(3)
-    next_year = CGI.escape Time.zone.now.utc.at_beginning_of_day.years_since(1).iso8601(3)
-    last_year = CGI.escape Time.zone.now.utc.at_beginning_of_day.years_ago(1).iso8601(3)
-    if !is_observer || @cards_prefetch_observed_param == @current_user.id
-      if k5_user?
-%>
+<% is_observer = @current_user&.roles(@domain_root_account)&.include?('observer') %>
+<% if show_planner? %>
+  <%
+     # fire off these `fetch` requests now so they are ready sooner
+     six_months_ago = CGI.escape Time.now.utc.at_beginning_of_day.months_ago(6).iso8601(3)
+     beginning_of_day = CGI.escape Time.zone.now.at_beginning_of_day.utc.iso8601(3)
+     beginning_of_week = CGI.escape Time.zone.now.beginning_of_week(:sunday).utc.iso8601(3)
+     end_of_week = CGI.escape Time.zone.now.end_of_week(:sunday).utc.iso8601(3)
+     next_year = CGI.escape Time.zone.now.utc.at_beginning_of_day.years_since(1).iso8601(3)
+     last_year = CGI.escape Time.zone.now.utc.at_beginning_of_day.years_ago(1).iso8601(3)
+  %>
+    <% if !is_observer || @cards_prefetch_observed_param == @current_user.id %>
+      <% if k5_user? %>
         <% unless Account.site_admin.feature_enabled?(:dashboard_graphql_integration) %>
           <%= prefetch_xhr("/api/v1/dashboard/dashboard_cards") %>
         <% end %>
