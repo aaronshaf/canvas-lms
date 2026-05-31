@@ -56,7 +56,7 @@
       <% end %>
     <% else  #is_observer, self is not selected %>
       <% observed_course_ids = @current_user.cached_course_ids_for_observed_user(@selected_observed_user)
-        .sort {|a, b| a <=> b }
+        .sort
         .map {|cid|  "course_ids%5B%5D=#{cid}" }
         .join('&')
 

@@ -64,6 +64,14 @@
       categorize_stream_items(@stream_items)
     end
 %>
+<%
+  category_icons = {
+    'conversation' => 'icon-message',
+    'grading' => 'icon-check-plus',
+    'discussion_topic' => 'icon-discussion',
+    'assessment_request' => 'icon-peer-review'
+  }.freeze
+%>
 <% %w(Announcement Conversation Assignment DiscussionTopic AssessmentRequest).each do |category| %>
   <% items = categorized_items[category] %>
   <% items = items.to_a + categorized_items['DiscussionEntry'].to_a if category == 'DiscussionTopic'%>
@@ -73,12 +81,7 @@
       <div class="stream_header">
         <div class="image-block">
           <div class=image-block-image>
-            <i class="<%= {
-              'conversation' => 'icon-message',
-              'grading' => 'icon-check-plus',
-              'discussion_topic' => 'icon-discussion',
-              'assessment_request' => 'icon-peer-review'
-            }[category_class] || "icon-#{category_class}" %>"></i>
+            <i class="<%= category_icons[category_class] || "icon-#{category_class}" %>"></i>
           </div>
           <div class=image-block-content>
             <div class=title>
