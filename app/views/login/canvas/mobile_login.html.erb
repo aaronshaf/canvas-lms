@@ -49,7 +49,7 @@
       <span aria-live="assertive" id="screenreader-errormsg"></span>
     </span>
   </div>
-<%= form_for :pseudonym_session, url: url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), html: {id: "login_form", class: "front face", novalidate: 'novalidate', autocomplete: "off" } do |f| %>
+<%= form_for :pseudonym_session, url: url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), html: {id: "login_form", class: "front face", novalidate: 'novalidate', autocomplete: "off" } do %>
 
   <div class="ic-Form-control">
     <input
@@ -80,14 +80,14 @@
   <% end %>
 
   <div class="forgotBlock">
-    <% if url = params[:canvas_login].blank? && sanitize_external_url(@domain_root_account.try(:forgot_password_external_url)) %>
+    <% if (url = params[:canvas_login].blank? && sanitize_external_url(@domain_root_account.try(:forgot_password_external_url))) %>
       <%= link_to t('dont_know_password', "Forgot Password?"), url, class: 'forgot-password' %>
     <% else %>
       <a tabindex="0" role="link" class="forgot-password flip-to-back"><%= t('dont_know_password', "Forgot Password?") %></a>
     <% end %>
   </div>
 <% end %>
-<%= form_for :pseudonym_session, url: forgot_password_path, html: {id: "forgot_password_form", class: 'back face', autocomplete: "off" } do |f| %>
+<%= form_for :pseudonym_session, url: forgot_password_path, html: {id: "forgot_password_form", class: 'back face', autocomplete: "off" } do %>
   <div class="ic-Form-control">
     <label for="pseudonym_session_unique_id_forgot" class="screenreader-only"><%= t('login_handle', "Enter your %{login_handle_name} and we'll send you a link to change your password.", login_handle_name: @login_handle_name) %></label>
     <input

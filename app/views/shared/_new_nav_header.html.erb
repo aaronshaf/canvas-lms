@@ -264,10 +264,8 @@
           role="button"
           href="#"
           class="ic-app-header__menu-list-link ic-app-header__menu-list-link--nav-toggle"
-          aria-label="<% if @current_user.try(:collapse_global_nav?) %><%= t('Expand global navigation') %>
-                <% else %><%= t('Minimize global navigation') %><% end %>"
-          title="<% if @current_user.try(:collapse_global_nav?) %><%= t('Expand global navigation') %>
-                <% else %><%= t('Minimize global navigation') %><% end %>"
+          aria-label="<%= (title = @current_user.try(:collapse_global_nav?) ? t('Expand global navigation') : t('Minimize global navigation')) %>"
+          title="<%= title %>"
         >
           <div class="menu-item-icon-container" aria-hidden="true">
             <%= render(partial: "shared/svg/svg_icon_navtoggle", formats: [:svg]) %>

@@ -48,7 +48,7 @@
       <% pseudonyms.each do |pseudonym| %>
         <tr class="login<%= ' blank' unless pseudonym %>" <%= hidden(include_style: true) unless pseudonym %>>
           <td class="sso-icon" <%= tag.attributes(data: { pseudonym_id: pseudonym&.id }) %>>
-            <% if partial = sso_icon_exists?(pseudonym) %>
+            <% if (partial = sso_icon_exists?(pseudonym)) %>
               <%= render(partial:, formats: [:svg]) %>
               <span class="screenreader-only">
                 <%= t("This login is for %{provider}", provider: pseudonym.authentication_provider.class.display_name) %>

@@ -56,12 +56,12 @@
           recent_event.context.grants_right?(@current_user, :manage_grades),
           recent_event.context.grants_right?(@current_user, :participate_as_student)
         ].cache_key) do
-    icon_explanation, icon_aria_label, icon_class = icon_data(:context => @context,
-                                                              :contexts => @contexts,
-                                                              :current_user => @current_user,
-                                                              :recent_event => recent_event,
-                                                              :submission => submission,
-                                                              :show_assignment_type_icon => true)
+    _icon_explanation, icon_aria_label, icon_class = icon_data(:context => @context,
+                                                               :contexts => @contexts,
+                                                               :current_user => @current_user,
+                                                               :recent_event => recent_event,
+                                                               :submission => submission,
+                                                               :show_assignment_type_icon => true)
     if is_calendar_event
       context = recent_event.effective_context
     else

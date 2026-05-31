@@ -163,7 +163,7 @@
     <th scope="row"><%= f.blabel :time_zone, en: "Time Zone" %></th>
     <td>
       <span class="time_zone display_data">
-        <% if name = @user.time_zone.try(:name) %>
+        <% if (name = @user.time_zone.try(:name)) %>
           <%= I18n.send(:translate, I18nTimeZone[name].keyify, name.dup) %>
         <% else %>
           <%= t(:none, "None") %>

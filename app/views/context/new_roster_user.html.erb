@@ -71,7 +71,7 @@
   <a href="<%= user_profile_path(@current_user) %>" class="profile_url" style="display: none;">&nbsp;</a>
 <% end %>
 
-<%= render partial: 'shared/profile_main', locals: { is_roster_user_page: true }%>
+<%= render partial: 'shared/profile_main', locals: { is_roster_page: true }%>
 
 <% can_manage_students = can_do(@context, @current_user, :manage_students) %>
 <% can_manage_admins = can_do(@context, @current_user, :allow_course_admin_actions) %>

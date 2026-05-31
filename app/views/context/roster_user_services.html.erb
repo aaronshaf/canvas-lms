@@ -101,7 +101,6 @@
 <% end %>
 
 <% @services_hash.sort_by{|t, _| UserService.sort_position(t) }.each do |service_type, services| %>
-<% service_example = services.first %>
 <a name="service_<%= service_type %>"></a>
 <h2 class="service_type"><%= image_tag "#{service_type}_icon.png", alt: "" %><%= service_type.titleize %></h2>
 <div class="short_description"><%= UserService.short_description(service_type) %></div>

@@ -98,7 +98,7 @@
   <% unless show_full_discussion_immediately %>
     <div class="submission_description" style="width: 600px; margin: 10px auto;">
       <p>
-        <% if assignment_visible_to_user = @assignment.visible_to_user?(@current_user)%>
+        <% if (assignment_visible_to_user = @assignment.visible_to_user?(@current_user)) %>
           <% if @assignment.discussion_topic.for_group_discussion? && (group = @assignment.discussion_topic.group_category.group_for(@user)) %>
             <% if discussion_checkpoints_enabled && use_discussion_toggle_link %>
               <%= t('group_discussion_submission_description_toggle',
@@ -125,7 +125,7 @@
             <% end %>
           <% end %>
         <% else %>
-          <% if @assignment.discussion_topic.for_group_discussion? && (group = @assignment.discussion_topic.group_category.group_for(@user)) %>
+          <% if @assignment.discussion_topic.for_group_discussion? && @assignment.discussion_topic.group_category.group_for(@user) %>
             <%= t('group_discussion_submission_description_without_link',
                     "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}.",
                     user: user_name) %>

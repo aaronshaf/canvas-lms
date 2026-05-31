@@ -54,7 +54,7 @@
         <% end %>
 
         <% if aac.show_mfa_configuration_options? && aac.account.grants_right?(@current_user, :manage_mfa_settings) %>
-          <div class="ic-Form-control ic-Form-control--radio" %>
+          <div class="ic-Form-control ic-Form-control--radio">
             <span class="ic-Label"><%= t('MFA Required') %></span>
             <div class="ic-Radio">
               <%# Make the value 'default' if MFA is required and this provider doesn't already require it so it doesn't become surprise sticky %>

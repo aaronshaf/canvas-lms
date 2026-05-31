@@ -48,7 +48,7 @@
           <% if submission.submission_type == 'online_url' %>
             <a href="<%= submission.url %>"><%= t('links.submission_url', "View the URL submitted for this assignment") %></a>
             <% rendered = true %>
-          <% elsif submission.submission_type = 'online_upload' %>
+          <% elsif submission.submission_type == 'online_upload' %>
             <ul>
             <% submission.attachments.each do |a| %>
               <% attachment = @static_attachments.find{|att| att.id == a.id } %>
@@ -62,7 +62,7 @@
             <% end %>
             </ul>
             <% rendered = true %>
-          <% elsif submission.submission_type = 'online_text_entry' %>
+          <% elsif submission.submission_type == 'online_text_entry' %>
             <div style="margin: 10px 20px;">
               <%= submission.body %>
             </div>

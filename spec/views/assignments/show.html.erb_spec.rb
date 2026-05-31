@@ -143,7 +143,7 @@ describe "assignments/show" do
       assign(:external_tools, [])
 
       render "assignments/show"
-      expect(rendered).to include "<div id='turnitin_pledge_container_online_upload' data-eulaurl='https://www.test.com/eula' data-pledge='' style='margin:10px 0px'</div>"
+      expect(rendered).to include "<div id='turnitin_pledge_container_online_upload' data-eulaurl='https://www.test.com/eula' data-pledge='' style='margin:10px 0px'></div>"
     end
   end
 

@@ -217,7 +217,7 @@
           <% end %>
           </div>
           <% if @submission.custom_grade_status %>
-            <span class="submission-custom-grade-status-pill-<%= @submission.custom_grade_status_id %>" %>
+            <span class="submission-custom-grade-status-pill-<%= @submission.custom_grade_status_id %>"></span>
           <% elsif @submission.late? %>
             <span class="submission-late-pill"></span>
           <% elsif @submission.missing? %>

@@ -16,14 +16,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% course_home ||= false %>
 <div id="sidebar_content">
   <% if @context.syllabus_course_summary? %>
     <% current = Time.zone.today
-      first_day_of_month = Date.new(y=current.year, m=current.month, d=1)
+      first_day_of_month = Date.new(current.year, current.month, 1)
       last_day_of_previous_month = first_day_of_month - 1
       current = first_day_of_month
-      last_day_of_month = (first_day_of_month >> 1) - 1
       first_day = last_day_of_previous_month - last_day_of_previous_month.wday + I18n.dow_offset
     %>
     <% if !@context.horizon_course? %>

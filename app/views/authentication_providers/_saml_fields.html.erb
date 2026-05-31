@@ -16,8 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% _entity_id_url = aac.entity_id if aac.entity_id&.start_with?("http://", "https://") %>
-<p><%= mt(<<~MD, metadata_url: _entity_id_url ? link_to(aac.entity_id, _entity_id_url) : aac.entity_id)
+<% entity_id_url = aac.entity_id if aac.entity_id&.start_with?("http://", "https://") %>
+<p><%= mt(<<~MD, metadata_url: entity_id_url ? link_to(aac.entity_id, entity_id_url) : aac.entity_id)
 The Canvas SAML Entity ID is %{metadata_url}, and the Service Provider metadata
 is available at that URL.
 MD

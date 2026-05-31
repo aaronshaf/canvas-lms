@@ -22,7 +22,6 @@
   module_data = context_module ? process_module_data(context_module, @current_user, @session, student: @is_student) : { published_status: 'unpublished' }
   had_data = module_data[:items].present? && !module_data[:items].empty?
   can_direct_share = can_do(@context, @current_user, :direct_share)
-  workflow_state = context_module&.workflow_state
   @modules ||= []
   js_bundle :context_modules_publish_icon
   css_bundle :context_modules

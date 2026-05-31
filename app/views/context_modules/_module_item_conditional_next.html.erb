@@ -20,9 +20,6 @@
   module_item_conditional_next ||= nil
   module_item ||= module_item_conditional_next
   item_data ||= { published_status: 'unpublished' }
-  completion_criteria ||= nil
-  editable ||= false
-  criterion = completion_criteria&.find{|c| c[:id] == module_item.id}
 %>
 
 <li

@@ -29,7 +29,7 @@
 <div class="terms-controls">
   <%= form_for @context,
                url: context_url(@context, :context_terms_url),
-               html: { method: :get } do |f| %>
+               html: { method: :get } do %>
     <label for="term_search">
       <%= t :terms_search_name, "Search by term name" %>
     </label>

@@ -23,7 +23,7 @@
   js_env({ PROFILE: @user_data }) if @user_data[:can_edit]
   js_env({ folder_id: @user.profile_pics_folder.id }) if @user == @current_user
 
-  is_roster_page = is_roster_user_page ||= false
+  is_roster_page ||= false
   inst_env_feature_enabled = @domain_root_account.feature_enabled?(:instui_nav)
   legacy_view = (!inst_env_feature_enabled || is_roster_page) ? "legacy" : ""
   image_size = (inst_env_feature_enabled && !is_roster_page)  ? 80 : 128
@@ -81,9 +81,9 @@
             <ul aria-labeledby="profileDropdown" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false" >
               <li class="hide-if-editing"><a data-event="editProfile" role="menuitem"><%= t('edit_profile', 'Edit Profile') %></a></li>
               <li class="show-if-editing"><a data-event="cancelEditProfile" role="menuitem"><%= t('cancel_editing', 'Cancel Editing') %></a></li>
-              <li><a href="<%= user_path(@user.id) %>"role="menuitem"><%= t('links.user_account_details', %{Account Details}) %></a></li>
+              <li><a href="<%= user_path(@user.id) %>" role="menuitem"><%= t('links.user_account_details', %{Account Details}) %></a></li>
               <% if @user != @current_user %>
-                <li><a href="<%= user_profile_url(@user, become_user_id: @user) %>"role="menuitem"> <%= t('Act as User') %></a></li>
+                <li><a href="<%= user_profile_url(@user, become_user_id: @user) %>" role="menuitem"> <%= t('Act as User') %></a></li>
               <% end %>
             </ul>
           </div>

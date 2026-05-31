@@ -118,7 +118,7 @@
               <%= t(:count_attempts_left, {one: "%{user} has 1 attempt left", other: "%{user} has %{count} attempts left"}, user: user_name, count: @current_submission.attempts_left) %>
             <% end %>
             <% if can_do(@submission, @current_user, :add_attempts) %>
-              <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: {method: :post} do |f| %>
+              <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: {method: :post} do %>
                 <input type="hidden" name="extra_attempts" value="<%= (@current_submission.extra_attempts || 0) + 1 %>"/>
                 <button type="submit" class="btn"><%= t('buttons.allow_extra_attempt', "Allow this student an extra attempt") %></button>
               <% end %>

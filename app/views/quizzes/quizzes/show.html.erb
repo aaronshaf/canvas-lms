@@ -211,7 +211,7 @@
                   </a>
                 </li>
               <% else %>
-                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: 'quiz_lock_form' } do |f| %>
+                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: 'quiz_lock_form' } do %>
                   <%= hidden_field_tag 'quiz[locked]', true %>
                 <% end %>
                 <% qos_lock_quiz_title = @quiz.survey? ? t('buttons.lock_survey', "Lock this Survey Now") : t('buttons.lock_quiz', "Lock this Quiz Now") %>

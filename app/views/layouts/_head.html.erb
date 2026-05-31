@@ -53,7 +53,7 @@
     BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { BrandableCSS.handlebars_index_json } %>;
       REMOTES = <%= benchmark("rendering REMOTES") { json_in_script_tag(remote_env) } %>;
   </script>
-  <% if js_env&.present? %>
+  <% if js_env.present? %>
   <script type="text/javascript">
     window.CANVAS_COOKIE_CONSENT_STATE = <%= js_env[:PRE_COOKIE_CONSENT] %>;
   </script>

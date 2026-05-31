@@ -57,11 +57,11 @@
     grade = readable_grade(recent_feedback)
     score = recent_feedback.score
     comment_text = HtmlTextHelper.strip_and_truncate(comment.comment, :max_length => 120) if comment
-    icon_explanation, _, icon_class = icon_data(:context => context,
-                                             :current_user => @current_user,
-                                             :recent_event => assignment,
-                                             :submission => recent_feedback,
-                                             :student_only => true)
+    _icon_explanation, _, icon_class = icon_data(:context => context,
+                                                 :current_user => @current_user,
+                                                 :recent_event => assignment,
+                                                 :submission => recent_feedback,
+                                                 :student_only => true)
   %>
 
   <a

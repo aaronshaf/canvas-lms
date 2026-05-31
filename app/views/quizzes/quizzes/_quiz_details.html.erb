@@ -23,7 +23,7 @@
     <span class="value">
       <% if @quiz.multiple_due_dates_apply_to?(@current_user) %>
         <%=  t(:multiple_due_dates, 'Multiple Due Dates') %>
-      <% elsif due_at = @quiz.overridden_for(@current_user).due_at %>
+      <% elsif (due_at = @quiz.overridden_for(@current_user).due_at) %>
         <span <%= context_sensitive_datetime_title(due_at, @quiz.context) %>>
           <%= datetime_string(due_at) %>
         </span>

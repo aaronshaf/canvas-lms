@@ -41,7 +41,6 @@
   <%end%>
   <% if @assignment.expects_submission? || @assignment.expects_external_submission? %>
     <% turnitin_text = turnitin_active? ? ' ' + t(:turnitin_enabled_short, '(Turnitin enabled)') : '' %>
-    <% vericite_text = vericite_active? ? ' ' + t(:vericite_enabled_short, '(VeriCite enabled)') : '' %>
     <li>
       <span class='title'><%= t :submitting, 'Submitting' %></span>
       <span class='value'><%= @assignment.readable_submission_types + turnitin_text %></span>

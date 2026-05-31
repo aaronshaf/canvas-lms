@@ -110,7 +110,7 @@
                 <% end %>
 
                 <% if Canvas::CacheRegister.enabled? && @domain_root_account.grants_right?(@current_user, :manage_site_settings) %>
-                  <%= "|" unless first %><% first = false %>
+                  <%= "|" unless first %>
                   <a class="clear_user_cache_link" href="<%= api_v1_clear_cache_url(@user) %>"><%= t('Clear User Cache') %></a>
                 <% end %>
               </td>

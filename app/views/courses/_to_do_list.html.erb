@@ -32,7 +32,6 @@ additional_title_context ||= false
   <% else
     cache_opts = (contexts.present? ? {} : { :expires_in => 3.minutes })
     cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do
-      hidden_todos = 0
       presenter = ToDoListPresenter.new(self, @current_user, contexts)
   %>
     <% if presenter.any_assignments? %>
@@ -87,7 +86,7 @@ additional_title_context ||= false
           </li>
         <% end %>
         <% presenter.needs_moderation.each_with_index do |assignment, i| %>
-          <% icon_explanation, icon_aria_label, icon_class = assignment.needs_moderation_icon_data %>
+          <% _icon_explanation, icon_aria_label, icon_class = assignment.needs_moderation_icon_data %>
           <li class="todo" style="<%= hidden if i >= presenter.visible_limit %>">
             <a
             class="item"
@@ -116,7 +115,7 @@ additional_title_context ||= false
           </li>
         <% end %>
         <% presenter.needs_submitting.each_with_index do |assignment, i| %>
-          <% icon_explanation, icon_aria_label, icon_class = assignment.needs_submitting_icon_data %>
+          <% _icon_explanation, icon_aria_label, icon_class = assignment.needs_submitting_icon_data %>
           <li class="todo" style="<%= hidden if i >= presenter.visible_limit %>">
             <a
               class="item"

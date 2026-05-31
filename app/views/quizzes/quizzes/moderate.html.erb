@@ -169,7 +169,7 @@
 <div id="moderate_student_dialog" class="student_extension_dialog" style="display: none;">
   <h2><%= t('headers.student_extensions', "Student Extensions") %></h2>
 
-  <%= form_for :quiz, url: "", html: {id: "moderate_student_form", method: :post} do |f| %>
+  <%= form_for :quiz, url: "", html: {id: "moderate_student_form", method: :post} do %>
 
     <% if @quiz.allowed_attempts > 0 %>
       <div class="field extra_attempts">
