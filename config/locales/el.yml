@@ -8262,6 +8262,12 @@ el:
     registrations: 
       index: 
         title: Εφαρμογές
+    token: 
+      lti_token_form: 
+        lti: 
+          token: 
+            access_token_label: "Token Πρόσβασης"
+            submit: "Δημιουργία Token"
   lti2: 
     register_tool: "Καταχώριση Εργαλείου"
   lti_2_reregistration_afabde25: "Εκ Νέου Καταχώριση LTI 2"
