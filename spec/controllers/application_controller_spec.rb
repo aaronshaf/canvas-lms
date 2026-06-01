@@ -5260,4 +5260,69 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
       end
     end
   end
+
+  context "when enforce_session_fingerprinting is disabled and there is a mismatch" do
+    let(:ua) { "Mozilla/5.0 (test browser)" }
+    let(:ua_md5) { Digest::MD5.hexdigest(ua) }
+
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      Account.default.disable_feature!(:enforce_session_fingerprinting)
+      request.env["HTTP_USER_AGENT"] = ua
+    end
+
+    context "when IP differs from stored MFA IPs" do
+      before do
+        session[:mfa_verified_ips] = ["1.2.3.4"]
+        session[:mfa_verified_uas] = [ua_md5]
+        request.env["REMOTE_ADDR"] = "9.9.9.9"
+      end
+
+      it "stores the current IP in mfa_verified_ips so subsequent requests don't re-log" do
+        get :index, format: :html
+        expect(session[:mfa_verified_ips]).to include("9.9.9.9")
+      end
+
+      it "allows the request through" do
+        get :index, format: :html
+        expect(response).to be_successful
+      end
+    end
+
+    context "when UA differs from stored MFA UAs" do
+      before do
+        session[:mfa_verified_ips] = [request.remote_ip]
+        session[:mfa_verified_uas] = [Digest::MD5.hexdigest("an old browser")]
+      end
+
+      it "stores the current UA hash in mfa_verified_uas so subsequent requests don't re-log" do
+        get :index, format: :html
+        expect(session[:mfa_verified_uas]).to include(ua_md5)
+      end
+
+      it "allows the request through" do
+        get :index, format: :html
+        expect(response).to be_successful
+      end
+    end
+  end
+
+  context "when enforce_session_fingerprinting is enabled and enforcement triggers" do
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+    end
+
+    around do |example|
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) { example.run }
+    end
+
+    it "does not add the current IP to mfa_verified_ips" do
+      get :index, format: :html
+      expect(session[:mfa_verified_ips]).not_to include("9.9.9.9")
+    end
+  end
 end

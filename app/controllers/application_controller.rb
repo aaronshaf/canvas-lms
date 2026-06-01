@@ -1341,23 +1341,39 @@ class ApplicationController < ActionController::Base
     end
 
     return if ip_match && ua_match
-    return unless @domain_root_account.feature_enabled?(:enforce_session_fingerprinting)
 
-    settings = DynamicSettings.find(tree: :private)
-    enforce = if !ip_match
-                (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
-                  (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
-                  settings["mfa_ip_enforce_all_mfa_users"]
-              elsif !ua_match
-                (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
-                  (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
-                  settings["mfa_ua_enforce_all_mfa_users"]
-              end
+    if @domain_root_account.feature_enabled?(:enforce_session_fingerprinting)
+      settings = DynamicSettings.find(tree: :private)
+      enforce = if !ip_match
+                  (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
+                    (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
+                    settings["mfa_ip_enforce_all_mfa_users"]
+                elsif !ua_match
+                  (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
+                    (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
+                    settings["mfa_ua_enforce_all_mfa_users"]
+                end
+    end
 
-    return unless enforce
+    unless enforce
+      # If we aren't enforcing, update the session so that we avoid logging on every request after failure
+      add_mfa_verified_ip_and_user_agent
+      return
+    end
 
     session[:pending_otp] = true
     redirect_to otp_login_url
+  end
+
+  def add_mfa_verified_ip_and_user_agent
+    ips = Array(session[:mfa_verified_ips]).reject { |ip| ip == request.remote_ip }
+    ips.shift if ips.size >= 5
+    session[:mfa_verified_ips] = ips + [request.remote_ip]
+
+    ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
+    uas = Array(session[:mfa_verified_uas]).reject { |ua| ua == ua_md5 }
+    uas.shift if uas.size >= 5
+    session[:mfa_verified_uas] = uas + [ua_md5]
   end
 
   def tab_enabled?(id, no_render: false)
