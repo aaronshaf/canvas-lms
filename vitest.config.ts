@@ -114,10 +114,35 @@ const jestMockHoistPlugin = {
   },
 }
 
+// Vitest 4.x surfaces module loads that resolve *after* a test file's jsdom
+// environment has been torn down as fatal unhandled rejections
+// (EnvironmentTeardownError). In 3.x these floating rejections were silently
+// swallowed. They are a teardown-timing artifact — the test file that owned the
+// work has already finished, so the load can no longer affect any assertion — and
+// Vitest attributes them to whatever unrelated file happened to be running, so
+// they fail random shards. We ignore ONLY this error class (everything else still
+// fails the run) and log each occurrence so the suppression stays observable
+// rather than becoming a silent dumping ground for swallowed errors.
+let environmentTeardownErrorCount = 0
+function onUnhandledError(error: (Error & {type?: string}) | undefined): boolean | void {
+  const name = error?.name
+  const message = error?.message ?? String(error)
+  if (name === 'EnvironmentTeardownError' || /EnvironmentTeardownError/.test(message)) {
+    environmentTeardownErrorCount++
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[vitest] ignoring EnvironmentTeardownError #${environmentTeardownErrorCount} ` +
+        `(module load resolved after env teardown): ${message.split('\n')[0]}`,
+    )
+    return false
+  }
+}
+
 export default defineConfig({
   test: {
     testTimeout: 30000,
     hookTimeout: 30000,
+    onUnhandledError,
     clearMocks: true,
     environment: 'jsdom',
     // Use forks pool for better memory isolation between tests

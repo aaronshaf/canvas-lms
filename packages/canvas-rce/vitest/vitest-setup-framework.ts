@@ -58,6 +58,15 @@ const ignoredErrors = [
   /No outer iframe found/,
   /Cannot access outer iframe content \(cross-origin\)/,
   /EnvironmentTeardownError/,
+  // React logs this generic wrapper via console.error immediately after an
+  // uncaught render error (e.g. an EnvironmentTeardownError surfacing inside a
+  // lazy/Suspense subtree). The wrapper carries no error-specific marker, so it
+  // can't be matched on its own — but the underlying error is always logged in a
+  // separate console.error first, which still throws here unless it is itself
+  // ignorable. Suppressing only this redundant follow-up therefore never hides a
+  // real error; it just stops teardown noise from being re-raised as a fresh
+  // unhandled exception.
+  /The above error occurred in (one of your|the)/,
 ]
 
 const globalWarn = global.console.warn

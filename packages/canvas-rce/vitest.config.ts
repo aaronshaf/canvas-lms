@@ -105,6 +105,36 @@ const jestMockHoistPlugin = {
   },
 }
 
+// Vitest 4.x surfaces module loads that resolve *after* a test file's jsdom
+// environment has been torn down (EnvironmentTeardownError). In this package they
+// arrive as Uncaught Exceptions via React's synchronous lazy/Suspense render path,
+// NOT as unhandled rejections — so the old `dangerouslyIgnoreUnhandledErrors: true`
+// did not actually suppress them (it only clears the exit code for *rejections*,
+// while still printing every error). That printed noise reads like a real failure
+// and makes on-call debugging harder when a genuine error lands on the same node.
+//
+// Instead we drop the error from the run's error set at the source: this hook is
+// invoked for both uncaught exceptions and unhandled rejections, and returning
+// false removes the error so it is neither counted nor printed. The companion
+// `/The above error occurred in/` filter in vitest/vitest-setup-framework.ts stops
+// the strict console.error handler from re-raising React's teardown wrapper.
+// Everything that is NOT a teardown error still fails the run as before.
+let environmentTeardownErrorCount = 0
+function onUnhandledError(error: (Error & {type?: string}) | undefined): boolean | void {
+  const name = error?.name
+  const message = error?.message ?? String(error)
+  const isTeardown = name === 'EnvironmentTeardownError' || /EnvironmentTeardownError/.test(message)
+  if (isTeardown) {
+    environmentTeardownErrorCount++
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[vitest] ignoring EnvironmentTeardownError #${environmentTeardownErrorCount} ` +
+        `(module load resolved after env teardown): ${message.split('\n')[0]}`,
+    )
+    return false
+  }
+}
+
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
@@ -113,7 +143,7 @@ export default defineConfig({
     testTimeout: 15000,
     environment: 'jsdom',
     globals: true,
-    dangerouslyIgnoreUnhandledErrors: true,
+    onUnhandledError,
     setupFiles: [
       resolve(root, 'vitest/vitest-jest-compat.ts'),
       resolve(root, 'vitest/vitest-setup.ts'),
