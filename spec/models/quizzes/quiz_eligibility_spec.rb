@@ -105,6 +105,57 @@ describe Quizzes::QuizEligibility do
       expect(@eligibility).to be_eligible
       expect(@eligibility).to be_potentially_eligible
     end
+
+    it "returns false for a student in the main section when the course has concluded via restrict_enrollments_to_course_dates" do
+      # Arrange
+      course_with_teacher(active_all: true)
+      @course.start_at = 30.days.ago
+      @course.conclude_at = 10.days.ago
+      @course.restrict_enrollments_to_course_dates = true
+      @course.save!
+      new_section = @course.course_sections.create!(name: "New Section")
+      new_section.start_at = 30.days.ago
+      new_section.end_at = 10.days.from_now
+      new_section.restrict_enrollments_to_section_dates = true
+      new_section.save!
+      main_section_student = user_with_pseudonym(active_all: true)
+      @course.enroll_student(main_section_student, enrollment_state: "active")
+      quiz = @course.quizzes.create!(title: "Hierarchy Quiz")
+      quiz.publish!
+      eligibility = Quizzes::QuizEligibility.new(course: @course, user: main_section_student, quiz:)
+
+      # Act / Assert
+      expect(eligibility).not_to be_eligible
+      expect(eligibility).not_to be_potentially_eligible
+    end
+
+    it "returns false for a section student when the section does not restrict to its own dates and the course has concluded" do
+      # Arrange
+      course_with_teacher(active_all: true)
+      @course.start_at = 30.days.ago
+      @course.conclude_at = 10.days.ago
+      @course.restrict_enrollments_to_course_dates = true
+      @course.save!
+      new_section = @course.course_sections.create!(name: "New Section")
+      new_section.start_at = 30.days.ago
+      new_section.end_at = 10.days.from_now
+      new_section.restrict_enrollments_to_section_dates = false
+      new_section.save!
+      section_student = user_with_pseudonym(active_all: true)
+      @course.enroll_student(section_student, enrollment_state: "active", section: new_section)
+      quiz = @course.quizzes.create!(title: "Hierarchy Quiz")
+      quiz.publish!
+      override = quiz.assignment_overrides.build
+      override.set = new_section
+      override.due_at = 3.days.from_now
+      override.due_at_overridden = true
+      override.save!
+      eligibility = Quizzes::QuizEligibility.new(course: @course, user: section_student, quiz:)
+
+      # Act / Assert
+      expect(eligibility).not_to be_eligible
+      expect(eligibility).not_to be_potentially_eligible
+    end
   end
 
   describe "#declined_reason_renders" do

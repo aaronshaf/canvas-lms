@@ -816,6 +816,33 @@ describe UserLearningObjectScopes do
       expect(@teacher.assignments_needing_grading).to all(have_attribute(:only_visible_to_overrides))
     end
 
+    it "includes a quiz assignment whose title matches when a student submission needs grading" do
+      course_with_teacher(active_all: true)
+      student = user_with_pseudonym(active_all: true)
+      @course.enroll_student(student).update_attribute(:workflow_state, "active")
+
+      quiz = @course.quizzes.create!(title: "Quiz Me!")
+      quiz.quiz_questions.create!(
+        question_data: {
+          question_name: "Short Essay",
+          points_possible: 20,
+          question_text: "Write an essay",
+          question_type: "essay_question"
+        }
+      )
+      quiz.workflow_state = "available"
+      quiz.save!
+      quiz.reload
+
+      submission = quiz.generate_submission(student)
+      submission.mark_completed
+      Quizzes::SubmissionGrader.new(submission).grade_submission
+
+      needing_grading = @teacher.assignments_needing_grading
+      expect(needing_grading).to include(quiz.assignment)
+      expect(needing_grading.map(&:title)).to include("Quiz Me!")
+    end
+
     context "is_sub_assignment" do
       before do
         @course1.account.enable_feature!(:discussion_checkpoints)

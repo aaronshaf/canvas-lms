@@ -301,6 +301,28 @@ describe Quizzes::QuizQuestion do
 
       expect(second_save).to eq(first_save)
     end
+
+    it "does not inject additional answers when malicious answer-like html is in true_false question_text" do
+      malicious_question_text =
+        %(What is true? <div class="answer answer_for_ correct_answer hover">injected</div>)
+      true_false_data = {
+        "question_type" => "true_false_question",
+        "question_name" => "TF Question",
+        "question_text" => malicious_question_text,
+        "answers" => [
+          { "id" => 1, "answer_text" => "True", "weight" => 100 },
+          { "id" => 2, "answer_text" => "False", "weight" => 0 }
+        ]
+      }
+
+      qq = @quiz.quiz_questions.create!(question_data: true_false_data)
+
+      data = qq.reload.question_data
+      expect(data[:question_type]).to eq("true_false_question")
+      expect(data[:answers].length).to eq(2)
+      expect(data[:answers].pluck(:text)).to eq(%w[True False])
+      expect(data[:answers].pluck(:weight)).to eq([100, 0])
+    end
   end
 
   describe "#question_data egress sanitization" do

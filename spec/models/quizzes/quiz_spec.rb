@@ -1484,6 +1484,22 @@ describe Quizzes::Quiz do
         expect(quiz.errors).to be_blank
         expect(quiz.ip_filter).to eq "123.fourfivesix"
       end
+
+      it "saves a valid ipv4 ip_filter and persists it on reload" do
+        quiz = @course.quizzes.create! title: "test quiz"
+        quiz.ip_filter = "7.7.7.7"
+        expect(quiz.save).to be_truthy
+        expect(quiz.errors[:invalid_ip_filter]).to be_blank
+        quiz.reload
+        expect(quiz.ip_filter).to eq "7.7.7.7"
+      end
+
+      it "adds the 'IP filter is not valid' error message when ip_filter is malformed" do
+        quiz = @course.quizzes.create! title: "test quiz"
+        quiz.ip_filter = "7"
+        expect(quiz.save).to be_falsey
+        expect(quiz.errors[:invalid_ip_filter].first).to eq "IP filter is not valid"
+      end
     end
 
     context "time_limit" do
