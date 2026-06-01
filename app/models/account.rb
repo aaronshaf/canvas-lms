@@ -2345,6 +2345,7 @@ class Account < ApplicationRecord
   TAB_REPORTS = 23
   TAB_RATE_LIMITING = 24
   TAB_ACCESSIBILITY = 25
+  TAB_OAK_SETTINGS = 26
 
   # site admin tabs
   TAB_PLUGINS = 14
@@ -2468,6 +2469,11 @@ class Account < ApplicationRecord
       )
     end
 
+    # For now, only site admins can see the Oak admin menu item
+    site_admin_user = Account.site_admin.grants_right?(user, :read)
+    if root_account? && feature_enabled?(:oak_for_admins) && site_admin_user && manage_settings
+      tabs << { id: TAB_OAK_SETTINGS, label: t("#account.tab_oak_settings", "IgniteAI Agent"), css_class: "oak_settings", href: :account_oak_settings_path }
+    end
     tabs << { id: TAB_ADMIN_TOOLS, label: t("#account.tab_admin_tools", "Admin Tools"), css_class: "admin_tools", href: :account_admin_tools_path } if can_see_admin_tools_tab?(user)
     if user && grants_right?(user, :moderate_user_content)
       tabs << {

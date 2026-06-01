@@ -1818,6 +1818,17 @@ class AccountsController < ApplicationController
            })
   end
 
+  def oak_settings
+    # For now, only site admins can see the Oak admin menu item
+    unless Account.site_admin.grants_right?(@current_user, :read) &&
+           @account.grants_right?(@current_user, session, :manage_account_settings) &&
+           @account.root_account? &&
+           @account.feature_enabled?(:oak_for_admins)
+      flash[:error] = t("IgniteAI Agent settings are not available for this account.")
+      redirect_to account_settings_url(@account)
+    end
+  end
+
   def confirm_delete_user
     raise ActiveRecord::RecordNotFound unless @account.root_account?
 

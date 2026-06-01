@@ -732,6 +732,7 @@ CanvasRails::Application.routes.draw do
     get :reports_tab
     get :settings
     get :admin_tools
+    get :oak_settings
     get :rate_limiting, controller: :rate_limiting_settings, action: :index, as: :rate_limiting
     resources :rate_limiting_settings, only: %i[index show create update destroy]
     get :eportfolio_moderation

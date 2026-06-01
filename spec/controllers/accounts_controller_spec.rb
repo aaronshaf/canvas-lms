@@ -3150,6 +3150,32 @@ describe AccountsController do
     end
   end
 
+  describe "#oak_settings" do
+    before do
+      account_with_admin_logged_in
+      @account.enable_feature!(:oak_for_admins)
+      Account.site_admin.account_users.create!(user: @user)
+    end
+
+    it "renders successfully for an authorized site admin with oak_for_admins enabled" do
+      get "oak_settings", params: { account_id: @account.id }
+      expect(response).to be_successful
+    end
+
+    it "redirects when oak_for_admins feature flag is disabled" do
+      @account.disable_feature!(:oak_for_admins)
+      get "oak_settings", params: { account_id: @account.id }
+      expect(response).to redirect_to(account_settings_url(@account))
+    end
+
+    it "redirects for unauthorized users" do
+      user_model
+      user_session(@user)
+      get "oak_settings", params: { account_id: @account.id }
+      expect(response).to redirect_to(account_settings_url(@account))
+    end
+  end
+
   describe "#accessibility_issue_summary" do
     before(:once) do
       @account = Account.default

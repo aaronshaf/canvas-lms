@@ -161,6 +161,7 @@ const featureBundles: {
   new_quizzes: () => import('./features/new_quizzes/index'),
   new_user_tutorial: () => import('./features/new_user_tutorial/index'),
   not_found_index: () => import('./features/not_found_index/index'),
+  oak_settings: () => import('./features/oak_settings/index'),
   oauth2_confirm: () => import('./features/oauth2_confirm/index'),
   otp_login: () => import('./features/otp_login/index'),
   outcome_alignment_v2: () => import('./features/outcome_alignment_v2/index'),
