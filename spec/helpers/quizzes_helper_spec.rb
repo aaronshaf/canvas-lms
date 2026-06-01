@@ -61,6 +61,16 @@ describe QuizzesHelper do
       allow(self).to receive(:can_publish).and_return(true)
       expect(needs_unpublished_warning?(quiz)).to be_truthy
     end
+
+    it "is false for a user lacking publish permission even when the quiz has unpublished changes" do
+      quiz = Quizzes::Quiz.new(context: @course)
+      quiz.workflow_state = "available"
+      quiz.last_edited_at = Time.zone.now
+      quiz.published_at   = 1.hour.ago
+
+      allow(self).to receive(:can_publish).and_return(false)
+      expect(needs_unpublished_warning?(quiz)).to be false
+    end
   end
 
   describe "#attachment_id_for" do
@@ -366,6 +376,15 @@ describe QuizzesHelper do
     context "show_correct_answers is false" do
       it "shows No" do
         quiz = instance_double(Quizzes::Quiz, show_correct_answers: false)
+        expect(render_show_correct_answers(quiz)).to eq "No"
+      end
+
+      it "returns No even when show_correct_answers_at and hide_correct_answers_at are set" do
+        quiz = instance_double(Quizzes::Quiz,
+                               show_correct_answers: false,
+                               show_correct_answers_at: 1.day.from_now,
+                               hide_correct_answers_at: 1.week.from_now,
+                               show_correct_answers_last_attempt: false)
         expect(render_show_correct_answers(quiz)).to eq "No"
       end
     end
