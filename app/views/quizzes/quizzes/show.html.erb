@@ -112,10 +112,8 @@
         </li>
       </ul>
       <%= render partial: "quiz_right_side", locals: {allow_take: false} %>
-    <% else %>
-      <% if @submission&.completed? %>
-        <%= render partial: "quiz_right_side", locals: {allow_take: !@locked} %>
-      <% end %>
+    <% elsif @submission&.completed? %>
+      <%= render partial: "quiz_right_side", locals: {allow_take: !@locked} %>
     <% end %>
   <% end %>
 <% else %>
@@ -383,23 +381,21 @@
             <%= link_to_take_or_retake_poll('class' => "btn btn-primary", 'id' => "take_quiz_link") %>
           </div>
         <% end %>
-      <% else %>
-        <% if !@current_user && @quiz.graded? %>
-          <div class="lock_explanation">
-            <%= t(:only_registered_users, "Only registered, enrolled users can take graded quizzes") %>
-          </div>
-        <%# check for active enrollments in sections which override course/term dates %>
-        <% elsif @quiz.context.soft_concluded? && !@quiz.context.grants_right?(@current_user, :participate_as_student) %>
-          <div class="alert alert-danger lock_explanation" role="alert">
-            <%= t(:course_concluded_notice,
-              "This quiz is no longer available as the course has been concluded.")
-            %>
-          </div>
-        <% elsif @locked && !can_do(@quiz, @current_user, :update) %>
-          <div class="lock_explanation">
-            <%= lock_explanation(@locked_reason, 'quiz', @context) %>
-          </div>
-        <% end %>
+      <% elsif !@current_user && @quiz.graded? %>
+        <div class="lock_explanation">
+          <%= t(:only_registered_users, "Only registered, enrolled users can take graded quizzes") %>
+        </div>
+      <%# check for active enrollments in sections which override course/term dates %>
+      <% elsif @quiz.context.soft_concluded? && !@quiz.context.grants_right?(@current_user, :participate_as_student) %>
+        <div class="alert alert-danger lock_explanation" role="alert">
+          <%= t(:course_concluded_notice,
+            "This quiz is no longer available as the course has been concluded.")
+          %>
+        </div>
+      <% elsif @locked && !can_do(@quiz, @current_user, :update) %>
+        <div class="lock_explanation">
+          <%= lock_explanation(@locked_reason, 'quiz', @context) %>
+        </div>
       <% end %>
     <% elsif !can_do(@quiz, @current_user, :update) %>
       <div class="alert alert-danger lock_explanation" role="alert">

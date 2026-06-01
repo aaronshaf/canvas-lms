@@ -15,12 +15,10 @@
     else
       body_text = t("Grade changes and comments have been released for everyone graded.")
     end
+  elsif @data.section_names.present?
+    body_text = t("Grade changes and comments have been released for everyone in sections: %{section_names}.", section_names: @data.section_names.to_sentence)
   else
-    if @data.section_names.present?
-      body_text = t("Grade changes and comments have been released for everyone in sections: %{section_names}.", section_names: @data.section_names.to_sentence)
-    else
-      body_text = t("Grade changes and comments have been released for everyone.")
-    end
+    body_text = t("Grade changes and comments have been released for everyone.")
   end
 %>
 

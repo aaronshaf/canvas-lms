@@ -210,12 +210,10 @@
         <% else %>
           <%= t(:survey_fudged_negative, "This survey score has been manually adjusted by %{fudge} points.", fudge: @submission.fudge_points) %>
         <% end %>
+      <% elsif @submission.fudge_points > 0 %>
+        <%= t(:quiz_fudged_positive, "This quiz score has been manually adjusted by +%{fudge} points.", fudge: @submission.fudge_points) %>
       <% else %>
-        <% if @submission.fudge_points > 0 %>
-          <%= t(:quiz_fudged_positive, "This quiz score has been manually adjusted by +%{fudge} points.", fudge: @submission.fudge_points) %>
-        <% else %>
-          <%= t(:quiz_fudged_negative, "This quiz score has been manually adjusted by %{fudge} points.", fudge: @submission.fudge_points) %>
-        <% end %>
+        <%= t(:quiz_fudged_negative, "This quiz score has been manually adjusted by %{fudge} points.", fudge: @submission.fudge_points) %>
       <% end %>
     </small></div>
   <% end %>

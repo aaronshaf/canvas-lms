@@ -96,12 +96,10 @@
       <td class="latest_score <%= 'mastery' if results[-1]&.mastery %>" title="<%= results[-1]&.mastery ? t(:mastery, "Mastery on latest attempt") : t(:no_mastery, "No Mastery on latest attempt") %>">
         <% if results.empty? %>
            - 
+        <% elsif results[-1].possible %>
+          <%= t :score_out_of_possible, "%{score}* out of %{possible}*", score: results[-1].score, possible: results[-1].possible, wrapper: '<span class="out_of">\1</span>' %>
         <% else %>
-          <% if results[-1].possible %>
-            <%= t :score_out_of_possible, "%{score}* out of %{possible}*", score: results[-1].score, possible: results[-1].possible, wrapper: '<span class="out_of">\1</span>' %>
-          <% else %>
-            <%= results[-1].score %><span class="out_of"></span>
-          <% end %>
+          <%= results[-1].score %><span class="out_of"></span>
         <% end %>
       </td>
       <td class="avg_percent">

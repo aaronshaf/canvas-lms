@@ -86,16 +86,14 @@
         <a href="<%= service.service_user_link %>" title="<%= service_name %>" class="no-hover"><%= image_tag "#{service.service}_icon.png", alt: service_name %></a>
       <% end %>
       </p>
+    <% elsif !services.empty?  %>
+      <p>
+        <%= t 'services_not_visible', "%{user}'s registered services are not visible to you at this time.", user: @user.short_name %>
+      </p>
     <% else %>
-      <% if !services.empty?  %>
-        <p>
-          <%= t 'services_not_visible', "%{user}'s registered services are not visible to you at this time.", user: @user.short_name %>
-        </p>
-      <% else %>
-        <p>
-          <%= t 'no_services', "%{user} hasn't linked any external services to their account yet.", user: @user.short_name %>
-        </p>
-      <% end %>
+      <p>
+        <%= t 'no_services', "%{user} hasn't linked any external services to their account yet.", user: @user.short_name %>
+      </p>
     <% end %>
     <% if @current_user && @current_user == @user && @current_user.user_services.none?{|s| feature_and_service_enabled?(s.service)} %>
       <p>

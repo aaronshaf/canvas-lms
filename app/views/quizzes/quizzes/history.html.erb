@@ -123,12 +123,10 @@
                 <button type="submit" class="btn"><%= t('buttons.allow_extra_attempt', "Allow this student an extra attempt") %></button>
               <% end %>
             <% end %>
+          <% elsif @quiz.survey? %>
+            <%= t(:survey_unlimited_attempts, "This survey has unlimited attempts") %>
           <% else %>
-            <% if @quiz.survey? %>
-              <%= t(:survey_unlimited_attempts, "This survey has unlimited attempts") %>
-            <% else %>
-              <%= t(:quiz_unlimited_attempts, "This quiz has unlimited attempts") %>
-            <% end %>
+            <%= t(:quiz_unlimited_attempts, "This quiz has unlimited attempts") %>
           <% end %>
         </div>
         <a href="<%= context_url(@context, :context_quiz_url, @quiz) %>" class='no-hover icon-arrow-left'> <%= @quiz.survey? ? t('links.back_to_survey', "Back to Survey") : t('links.back_to_quiz', "Back to Quiz") %></a>

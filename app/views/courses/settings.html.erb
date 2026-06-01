@@ -110,19 +110,17 @@
             <%= t('labels.course_status_unpublished', %{Course is Unpublished}) %>
             <i class="icon-unpublished"></i>
           </span>
+        <% elsif @context.unpublishable? %>
+          <span data-tooltip title="" id='course-status' class='published-status published pull-right'>
+            <%= t('labels.course_status_published', %{Course is Published}) %>
+            <i class="icon-publish icon-Solid"></i>
+          </span>
         <% else %>
-          <% if @context.unpublishable? %>
-            <span data-tooltip title="" id='course-status' class='published-status published pull-right'>
-              <%= t('labels.course_status_published', %{Course is Published}) %>
-              <i class="icon-publish icon-Solid"></i>
-            </span>
-          <% else %>
-            <% unpublish_tooltip = t('tooltips.cannot_unpublish_course', %{You cannot unpublish this course if there are graded student submissions}) %>
-            <span data-tooltip title="<%= unpublish_tooltip %>" id='course-status' class='published-status published pull-right'>
-              <%= t('labels.course_status_published', %{Course is Published}) %>
-              <i class="icon-publish icon-Solid"></i>
-            </span>
-          <% end %>
+          <% unpublish_tooltip = t('tooltips.cannot_unpublish_course', %{You cannot unpublish this course if there are graded student submissions}) %>
+          <span data-tooltip title="<%= unpublish_tooltip %>" id='course-status' class='published-status published pull-right'>
+            <%= t('labels.course_status_published', %{Course is Published}) %>
+            <i class="icon-publish icon-Solid"></i>
+          </span>
         <% end %>
       <% end %>
     </h2>
@@ -208,12 +206,10 @@
               <%= master_course.nickname_for(@current_user) %>
             <% end %>
             (courses/<%= master_course.id %>)
+          <% elsif can_manage_master_courses %>
+            <div id="blueprint_menu"></div>
           <% else %>
-            <% if can_manage_master_courses %>
-              <div id="blueprint_menu"></div>
-            <% else %>
-              <span id="course_blueprint"><%= is_master_course ? t("Yes") : t("No") %></span>
-            <% end %>
+            <span id="course_blueprint"><%= is_master_course ? t("Yes") : t("No") %></span>
           <% end %>
         </div>
       </div>
@@ -234,12 +230,10 @@
         <div>
           <% if can_manage %>
             <%= f.time_zone_select :time_zone, I18nTimeZone.us_zones, model: I18nTimeZone %>
+          <% elsif (name = @context.time_zone.try(:name)) %>
+            <%= I18n.send(:translate, I18nTimeZone[name].keyify, name.dup) %>
           <% else %>
-            <% if (name = @context.time_zone.try(:name)) %>
-              <%= I18n.send(:translate, I18nTimeZone[name].keyify, name.dup) %>
-            <% else %>
-              <%= t(:none, "None") %>
-            <% end %>
+            <%= t(:none, "None") %>
           <% end %>
         </div>
       <% if (@context.sis_source_id && can_do(@context, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis) %>

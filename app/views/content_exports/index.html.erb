@@ -56,12 +56,10 @@
             <% date = tag.span(datetime_string(export.created_at), class: %i[created_at time_ago_date], data: { timestamp: export.created_at.iso8601 }) %>
             <% if !export.attachment %>
               <% wrapper = link_to('\1', nil) %>
+            <% elsif Account.site_admin.feature_enabled?(:disable_verified_content_export_links) %>
+              <% wrapper = link_to('\1', file_download_url(export.attachment)) %>
             <% else %>
-              <% if Account.site_admin.feature_enabled?(:disable_verified_content_export_links) %>
-                <% wrapper = link_to('\1', file_download_url(export.attachment)) %>
-              <% else %>
-                <% wrapper = link_to('\1', verified_file_download_url(export.attachment)) %>
-              <% end %>
+              <% wrapper = link_to('\1', verified_file_download_url(export.attachment)) %>
             <% end %>
             <% if export.expired? %>
               <%= t "Course Export from %{date} (file not available)", date: %>
