@@ -140,4 +140,35 @@ describe "QuizRegrading" do
     expect(@submission.quiz_data[0][:question_name]).to eq "Question 1"
     expect(@submission.quiz_data[1][:question_name]).to eq "Question 2"
   end
+
+  it "renders the original score and regraded score cells on the submission_versions table after regrading" do
+    # Arrange
+    set_regrade_option!("current_correct_only")
+    data = @true_false_question.question_data
+    data[:answers].first[:weight] = 0
+    data[:answers].second[:weight] = 100
+    @true_false_question["question_data"] = data.to_hash
+    @true_false_question.save!
+    @quiz.generate_quiz_data
+    @quiz.save!
+    Quizzes::QuizRegrader::Regrader.regrade!(quiz: @quiz)
+    @submission.reload
+    expect(@submission.score_before_regrade).to be_present
+
+    # Act
+    get "/courses/#{@course.id}/quizzes/#{@quiz.id}/submission_versions"
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML5.fragment(response.body)
+    first_row = doc.at_css(".ic-Table tbody tr:first-child")
+    expect(first_row).not_to be_nil
+    regraded_cell = first_row.at_css("td.regraded")
+    expect(regraded_cell).not_to be_nil
+    original_score_cell = first_row.css("td")[2]
+    expect(original_score_cell).not_to be_nil
+    # both cells should contain a score formatted as "<n> out of 3"
+    expect(original_score_cell.text).to match(/out of 3/)
+    expect(regraded_cell.text).to match(/out of 3/)
+  end
 end

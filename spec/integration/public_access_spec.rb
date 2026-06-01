@@ -79,4 +79,16 @@ context "accessing public content" do
       get "/courses/#{@course.id}/pages/#{page.url}"
     end
   end
+
+  it "lists published quizzes by title on the public quizzes index" do
+    quiz = @course.quizzes.create!(title: "hey you should see me")
+    quiz.publish!
+
+    get "/courses/#{@course.id}/quizzes"
+
+    expect(response).to be_successful
+    assignment_quizzes = controller.js_env[:QUIZZES][:assignment]
+    expect(assignment_quizzes.pluck(:title)).to include("hey you should see me")
+    expect(assignment_quizzes.find { |q| q[:title] == "hey you should see me" }[:id].to_i).to eq quiz.id
+  end
 end
