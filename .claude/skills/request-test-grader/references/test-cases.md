@@ -240,7 +240,7 @@ To verify: invoke the grader agent on each fixture (target the first `it` line) 
 |---------|---------|-----------|----------|
 | `fixtures/clean_pass.rb` | `pass` | (empty) | Pass-floor: every applicable rule `pass` or `na`. |
 | `fixtures/one_failure.rb` | `fail` | `reload-assertions` | Single `fail`. Verifies the pass→fail transition at one failure. |
-| `fixtures/multi_failures.rb` | `fail` | `setup-in-it,shape-and-value,reload-assertions,precise-matchers` | Multi-`fail`. `precise-matchers` co-fires with `shape-and-value` per its independence clause. |
+| `fixtures/multi_failures.rb` | `fail` | `no-before-once,shape-and-value,reload-assertions,precise-matchers` | Multi-`fail`. `precise-matchers` co-fires with `shape-and-value` per its independence clause. |
 | `fixtures/auth_mismatch.rb` | `fail` | `auth-matches-initiator` | Single `fail`. Description names an external-API-client-bearer initiator but setup uses `user_session`. |
 | `fixtures/magic_values.rb` | `fail` | `no-magic-values` | Single `fail`. Assertion checks `"Unnamed Course"`, which is never set explicitly in setup. |
 

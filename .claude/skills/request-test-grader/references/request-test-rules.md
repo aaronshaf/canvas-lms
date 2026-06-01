@@ -82,17 +82,21 @@ This rule grades exactly one thing: the *expression form* of the path argument a
 - **Route helper call** as the path argument: `*_path(...)` or `*_url(...)` (e.g. `api_v1_course_url(course)`, `course_assignments_path(course)`).
 - **`process(action, ...)`** in place of a verb + path call.
 
-A string literal (with or without `#{...}` interpolation) passes. Any other expression form — a local variable, a method call returning a string, an instance variable — is **out of scope for this rule** and graded only by whatever rule governs the variable's origin (typically `setup-in-it`). Do not flag `literal-path` based on whether the path is "visible in the `it` body"; visibility is `setup-in-it`'s concern.
+A string literal (with or without `#{...}` interpolation) passes. Any other expression form — a local variable, a method call returning a string, an instance variable — is **out of scope for this rule**. Where a non-literal variable is declared (in the `it`, in a `let`, in a `before`) is not graded here.
 
 *Why:* The path the user actually hits is part of the contract under test. A renamed route silently still passes when the test calls it via a Rails route helper — and the test no longer documents the URL. Literal paths also make grep-by-route trivial during route audits and incident triage. The two failure forms above are the ones that destroy that property; nothing else does.
 
 *Canvas `api_call` helper:* `api_call(:verb, path, params, body, headers, opts)` is graded the same way — the `path` argument (second positional) is the target. A literal string passes; a route helper there fails.
 
-### setup-in-it
+### no-before-once
 
-**All setup lives inside the `it` body.** No `before` hooks of any flavor (`before`, `before(:each)`, `before(:example)`, `before(:all)`, `before(:context)`, `before(:once)`, `before(:suite)`), no `let`, no `subject`, no `@instance_vars` inherited from enclosing scope. Every record, stub, and bit of state the assertions depend on is created in the `it`, in source order.
+**No `before(:once)` blocks.** Use `before(:each)` instead. `before(:all)` and `before(:context)` are also banned but are caught by RuboCop's `RSpec/BeforeAfterAll`; this grader rule covers the Canvas-specific `:once` alias that RuboCop doesn't catch.
 
-*Why:* A reader investigating a failure should read one `it` block top-to-bottom and see every value the assertions depend on, in source order, with no scrolling. Every forbidden mechanism violates that invariant: `before` hooks move setup outside the test and compose across nested contexts in a sequence the reader has to mentally simulate; once-per-group variants (`before(:all)` / `before(:context)` / `before(:once)`) additionally share the same record graph across examples, so any in-example mutation leaks to siblings and produces order-dependent failures (Canvas's `before(:once)` wraps in a savepoint but still shares record identities, so the leakage mode is the same); `let` and `subject` are lazily evaluated, which makes execution order non-obvious and lets setup silently skip when the reference path is missed. Request specs, where each `it` exercises a distinct URL + actor + payload combination, do not benefit from the cross-test DRY these mechanisms provide.
+*Why:* `before(:once)` (Canvas's test-prof `before_all` alias) wraps the block in a savepoint, so DB rows roll back per example — but the **same Ruby objects** are reused across every example in the group. Any in-example mutation of an `@ivar` that isn't immediately persisted-and-reloaded leaves the next example reading a stale value. The hazard extends to WebMock stub state (not transaction-scoped) and ActiveRecord association caches (not cleared by `.reload`). The result is `--order random` flake where the symptom (stale value) and the cause (shared in-memory graph across a transaction boundary that *looks* like it isolates state) are separated, so the fix that comes to mind (`.reload`) treats the symptom while leaving the mechanism in place. `before(:each)` is safe because it re-executes per example, producing a fresh object each time.
+
+*Evidence honesty:* This rule is a prophylactic against a real-but-unobserved-on-record mechanism, justified by exposure (~52 controller spec files use `before(:once)` with no current protections) and the high debugging cost when it does hit (symptom and cause are separated by a transaction boundary that *looks* like it isolates state). Absence of logged flakes is weak evidence of absence: the failure mode shows up as `--order random` intermittency that often gets retried-green and never filed.
+
+*Trigger:* The test or its enclosing group contains a `before(:once)` block. If not, mark `na`.
 
 ### stub-outbound
 
@@ -149,8 +153,9 @@ Rules with trigger conditions:
 | `reload-assertions` | Test asserts on DB state after the request | Test makes no DB-state assertions |
 | `stub-outbound` | Controller action makes outbound HTTP calls | Controller (and its directly-called helpers) make no outbound HTTP |
 | `eql-for-numerics` | Test makes numeric assertions on response or DB values | Test makes no numeric assertions |
+| `no-before-once` | Test or its enclosing group contains a `before(:once)` block | No `before(:once)` declarations present |
 
-All other rules (`no-internal-mocks`, `shape-and-value`, `setup-in-it`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `na`.
+All other rules (`no-internal-mocks`, `shape-and-value`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `na`.
 
 ## Canvas-specific defaults (guidance, not graded)
 
@@ -182,7 +187,7 @@ These inform write-time judgment but the grader does not produce report violatio
 
 - **File size — soft cap at 500 lines per spec file.** When a request-spec file at the writer's chosen target path is already at or above 500 lines, surface a warning before adding the next `it` and recommend splitting. Suggested split axes, in preference order: by sub-resource (e.g., peel `_enrollments_spec.rb` off `_courses_spec.rb`), by HTTP verb (`_courses_index_spec.rb` vs. `_courses_update_spec.rb`), or by initiator (UI vs. API-client specs as sibling files). The cap is a soft signal, not a refusal — adding the 28th `it` is allowed when the user accepts the warning.
 
-  *Why:* request-spec files grow naturally as scenarios accumulate. Past ~500 lines a file becomes hard to scan during review, expensive to load into context when grading or refactoring, and a magnet for cross-`it` coupling pressure — even though **setup-in-it** forbids the `let`/`before` shortcuts that pressure would normally take, the temptation to refactor toward shared helpers grows with file size. Splitting at sub-resource / verb / initiator seams keeps each file purpose-coherent and each `it` independently scannable.
+  *Why:* request-spec files grow naturally as scenarios accumulate. Past ~500 lines a file becomes hard to scan during review, expensive to load into context when grading or refactoring, and a magnet for cross-`it` coupling pressure — and even though `Specs/NoNestedSetup` blocks the nested-`let`/`before` shortcut, the temptation to refactor toward shared helpers grows with file size. Splitting at sub-resource / verb / initiator seams keeps each file purpose-coherent and each `it` independently scannable.
 
 ## Common anti-patterns
 
@@ -199,4 +204,6 @@ Patterns the grader catches via existing rules. This table is for users coming f
 | Stale DB reads (forgot `.reload`) | Asserts against the in-memory ActiveRecord cache, not what was persisted. | `reload-assertions` |
 | Unverified stubs (defined but never hit) | The production code took a different branch; the stub never fired; the test silently passes. | `verify-stubs` |
 | `eq` on numeric serializer fields | `5` and `5.0` are equal under `eq`; an Integer-to-Float regression is silent. | `eql-for-numerics` |
-| Setup hidden outside the `it` (`before` hooks of any flavor, `let`, `subject`, enclosing-scope `@instance_vars`) | Reader can't see what the `it` depends on without scrolling; lazy `let`s hide execution order; once-per-group `before` variants also leak record state across examples. | `setup-in-it` |
+| Nested setup composition (`before`/`let`/`subject` declared at depth ≥ 2 in `describe`/`context` nests) | Reader has to mentally compose hooks outside-in across ancestors; composition errors don't point at any single hook. | RuboCop `Specs/NoNestedSetup` (enabled in `spec/requests/`; see `gems/rubocop-canvas/lib/rubocop_canvas/cops/specs/no_nested_setup.rb`) |
+| `before(:all)` / `before(:context)` at any depth | Reuses Ruby object identity *and* DB rows across examples; mutation leaks combine with stale stubs and association caches to produce `--order random` flake. | RuboCop `RSpec/BeforeAfterAll` (enabled globally) |
+| `before(:once)` (test-prof alias) at any depth | Same in-memory object reuse as `before(:all)`; DB rows roll back per example but Ruby objects don't. | `no-before-once` (grader rule; no RuboCop equivalent because `Specs/NoBeforeOnceStubs` only flags stub calls *inside* `before(:once)` blocks) |

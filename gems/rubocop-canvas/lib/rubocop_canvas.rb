@@ -61,6 +61,7 @@ require "rubocop_canvas/cops/migration/root_account_id"
 require "rubocop_canvas/cops/migration/workflow_state_enum"
 ## specs
 require "rubocop_canvas/cops/specs/no_before_once_stubs"
+require "rubocop_canvas/cops/specs/no_nested_setup"
 require "rubocop_canvas/cops/specs/no_disable_implicit_wait"
 require "rubocop_canvas/cops/specs/ensure_spec_extension"
 require "rubocop_canvas/cops/specs/no_execute_script"

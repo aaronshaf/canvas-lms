@@ -8,7 +8,7 @@ Not referenced by the skill or agent files at runtime. This document exists to e
 
 Two needs:
 
-1. The `request-test-writer` skill needs a validation step that confirms a freshly-written request test obeys the writer's own composition rules (verify-stubs, reload-assertions, setup-in-it, etc.). The writer's prior Self-review step was a hand-rolled checklist inside the writer's SKILL.md — easy to drift from the rules above it, easy for the model to "tick" without actually verifying.
+1. The `request-test-writer` skill needs a validation step that confirms a freshly-written request test obeys the writer's own composition rules (verify-stubs, reload-assertions, no-before-once, etc.). The writer's prior Self-review step was a hand-rolled checklist inside the writer's SKILL.md — easy to drift from the rules above it, easy for the model to "tick" without actually verifying.
 2. Existing request specs in this repo predate the shared request-test rules. We want to audit them and surface specific, prioritized improvements without rewriting the suite blind.
 
 Both needs reduce to the same primitive: **given one `it` block, apply the shared request-test rules and emit a verdict.** The grader is that primitive.

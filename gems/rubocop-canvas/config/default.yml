@@ -133,6 +133,17 @@ Specs/NoBeforeOnceStubs:
     - "**/spec/**/*.rb"
     - "**/spec_canvas/**/*.rb"
 
+Specs/NoNestedSetup:
+  Description: >-
+    Bans `before`/`let`/`subject` declarations inside a nested example group
+    when an ancestor group also declares one. See the cop source at
+    gems/rubocop-canvas/lib/rubocop_canvas/cops/specs/no_nested_setup.rb
+    for the rationale.
+  Enabled: false # opted into per-directory via scoped .rubocop.yml
+  Include:
+    - "**/spec/**/*.rb"
+    - "**/spec_canvas/**/*.rb"
+
 Specs/NoDisableImplicitWait:
   Enabled: true
   Include:
