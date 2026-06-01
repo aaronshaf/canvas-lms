@@ -17,10 +17,14 @@
  */
 
 import $ from 'jquery'
+import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {configure, mount, unmount} from '../index'
 import {fireEvent, findByTestId, waitFor} from '@testing-library/dom'
+import {render} from '@testing-library/react'
+import {MemoryRouter} from 'react-router-dom'
+import EventStream from '../components/event_stream'
 
 const fixture = {
   '/api/v1/quizzes/1/submissions/2': {
@@ -972,5 +976,34 @@ describe('canvas_quizzes/events', () => {
     const rows = answerMatrix.querySelectorAll('tbody tr')
     expect(headers).toHaveLength(9) // 1 for Timestamp and 8 for questions
     expect(rows).toHaveLength(4)
+  })
+})
+
+describe('EventStream', () => {
+  const renderWithRouter = (props: any) =>
+    render(React.createElement(MemoryRouter, null, React.createElement(EventStream, props)))
+
+  it('shows "Answered question" in #ic-EventStream when a question was answered', () => {
+    const submission = {startedAt: '2021-01-04T20:32:49Z'}
+    const questions = [{id: '1', position: 1, question_type: 'multiple_choice_question'}]
+    const events = [
+      {
+        id: '8',
+        type: 'question_answered',
+        createdAt: '2021-01-04T20:33:04Z',
+        data: [{quizQuestionId: '1', answer: '8725'}],
+      },
+    ]
+
+    const {container} = renderWithRouter({
+      events,
+      submission,
+      questions,
+      attempt: 2,
+    })
+
+    const eventStream = container.querySelector('#ic-EventStream') as HTMLElement
+    expect(eventStream).not.toBeNull()
+    expect(eventStream.textContent).toContain('Answered question')
   })
 })

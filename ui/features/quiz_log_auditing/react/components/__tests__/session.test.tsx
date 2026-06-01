@@ -16,9 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import React from 'react'
-import {MemoryRouter} from 'react-router-dom'
+import {MemoryRouter, Route, Routes, useLocation} from 'react-router-dom'
 import Session from '../session'
 
 describe('canvas_quizzes/events/views/session', () => {
@@ -43,5 +43,55 @@ describe('canvas_quizzes/events/views/session', () => {
     expect(getByTestId('attempt-3').nodeName).toBe('A')
     expect(queryByTestId('current-attempt')).toBeTruthy()
     expect(getByTestId('current-attempt').nodeName).not.toBe('A')
+  })
+
+  it('displays the attempt number text for a single attempt', () => {
+    const {getByTestId, container} = render(
+      <MemoryRouter>
+        <Session availableAttempts={[1]} attempt={1} />
+      </MemoryRouter>,
+    )
+
+    expect(getByTestId('current-attempt')).toHaveTextContent('1')
+    expect(container.querySelectorAll('.ic-AttemptController__Attempt')).toHaveLength(1)
+  })
+
+  it('displays the attempt number text for each attempt when multiple attempts exist', () => {
+    const {getByTestId, container} = render(
+      <MemoryRouter>
+        <Session availableAttempts={[1, 2]} attempt={2} />
+      </MemoryRouter>,
+    )
+
+    const attemptEls = container.querySelectorAll('.ic-AttemptController__Attempt')
+    expect(attemptEls).toHaveLength(2)
+    expect(getByTestId('attempt-1')).toHaveTextContent('1')
+    expect(getByTestId('current-attempt')).toHaveTextContent('2')
+  })
+
+  it('updates the URL with the attempt query string when an attempt link is clicked', () => {
+    const LocationDisplay = () => {
+      const location = useLocation()
+      return <div data-testid="location-search">{location.search}</div>
+    }
+
+    const {getByTestId} = render(
+      <MemoryRouter initialEntries={['/?attempt=2']}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Session availableAttempts={[1, 2]} attempt={2} />
+                <LocationDisplay />
+              </>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(getByTestId('attempt-1'))
+    expect(getByTestId('location-search')).toHaveTextContent('?attempt=1')
   })
 })
