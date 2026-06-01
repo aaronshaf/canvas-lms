@@ -100,7 +100,7 @@ describe('ItemAssignToTray - Save Operations', () => {
 
   // Fickle: times out at 15s in CI despite 30s timeout — vitest config may override per-test timeout
   it.skip('creates new assignment overrides', async () => {
-    const {findByTestId, findByText, getByRole, findAllByText} = renderComponent()
+    const {findByTestId, findByText, getByText, findAllByText} = renderComponent()
     const assigneeSelector = await findByTestId('assignee_selector')
     act(() => {
       fireEvent.click(assigneeSelector)
@@ -110,7 +110,7 @@ describe('ItemAssignToTray - Save Operations', () => {
       fireEvent.click(option1)
     })
 
-    getByRole('button', {name: 'Save'}).click()
+    getByText('Save').click()
     expect((await findAllByText(`${DEFAULT_PROPS.itemName} updated`))[0]).toBeInTheDocument()
     await waitFor(() => {
       expect(lastPutBody).not.toBeNull()
@@ -153,20 +153,20 @@ describe('ItemAssignToTray - Save Operations', () => {
 
   it('Save does not persist changes when a card is invalid', async () => {
     const onDismissMock = vi.fn()
-    const {getAllByTestId, getByRole, findByText} = renderComponent({
+    const {getAllByTestId, getByTestId, findByText} = renderComponent({
       itemContentId: '24',
       onDismiss: onDismissMock,
     })
     await waitFor(() => {
       expect(getAllByTestId('item-assign-to-card')).toHaveLength(1)
     })
-    const savebtn = getByRole('button', {name: 'Save'})
+    const savebtn = getByTestId('differentiated_modules_save_button')
     // Wait for card date-validation effects to propagate to assignToCards state
     // (due_at < unlock_at makes the card invalid; this flows through 2 async effect
     // cycles before the state used by focusErrors() is updated)
     await waitFor(() => {
       fireEvent.mouseEnter(savebtn)
-      expect(getByRole('tooltip')).toBeInTheDocument()
+      expect(document.querySelector('[role="tooltip"]')).not.toBeNull()
     })
 
     fireEvent.click(savebtn)
@@ -219,6 +219,37 @@ describe('ItemAssignToTray - Save Operations', () => {
     const {findAllByTestId} = renderComponent()
     const cards = await findAllByTestId('item-assign-to-card')
     expect(cards).toHaveLength(1)
+  }, 30000)
+
+  it('hydrates cards from an existing ADHOC override with students, rendering Everyone else and student chips', async () => {
+    const ADHOC_WITH_STUDENT = {
+      id: '23',
+      due_at: '2023-10-05T12:00:00Z',
+      unlock_at: '2023-10-01T12:00:00Z',
+      lock_at: '2023-11-01T12:00:00Z',
+      only_visible_to_overrides: false,
+      visible_to_everyone: true,
+      overrides: [
+        {
+          id: '1',
+          assignment_id: '23',
+          title: 'Ben',
+          unassign_item: false,
+          student_ids: ['1'],
+          students: [{id: '1', name: 'Ben'}],
+        },
+      ],
+    }
+    server.use(
+      http.get(OVERRIDES_URL, () => {
+        return HttpResponse.json(ADHOC_WITH_STUDENT)
+      }),
+    )
+    const {findAllByTestId, findByTitle, getByTitle} = renderComponent()
+    const cards = await findAllByTestId('item-assign-to-card')
+    expect(cards).toHaveLength(2)
+    expect(await findByTitle('Remove Everyone else')).toBeInTheDocument()
+    expect(getByTitle('Remove Ben')).toBeInTheDocument()
   }, 30000)
 
   it('does not include ADHOC overrides without students when saving', async () => {

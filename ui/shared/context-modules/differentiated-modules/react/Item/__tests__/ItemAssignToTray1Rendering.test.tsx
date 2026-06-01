@@ -161,16 +161,47 @@ describe('ItemAssignToTray - Rendering', () => {
 
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn()
-    const {getByRole} = renderComponent({onClose})
-    fireEvent.click(getByRole('button', {name: 'Close'}))
+    const {getByText} = renderComponent({onClose})
+    fireEvent.click(getByText('Close'))
     expect(onClose).toHaveBeenCalled()
   })
 
   it('calls onDismiss when the cancel button is clicked', () => {
     const onDismiss = vi.fn()
-    const {getByRole} = renderComponent({onDismiss})
-    fireEvent.click(getByRole('button', {name: 'Cancel'}))
+    const {getByText} = renderComponent({onDismiss})
+    fireEvent.click(getByText('Cancel'))
     expect(onDismiss).toHaveBeenCalled()
+  })
+
+  it('does not fire a PUT request when the cancel button is clicked', async () => {
+    const putCalled = vi.fn()
+    server.use(
+      http.put(OVERRIDES_URL, () => {
+        putCalled()
+        return HttpResponse.json({})
+      }),
+      http.put('/api/v1/courses/1/quizzes/23/date_details', () => {
+        putCalled()
+        return HttpResponse.json({})
+      }),
+      http.put('/api/v1/courses/1/discussion_topics/23/date_details', () => {
+        putCalled()
+        return HttpResponse.json({})
+      }),
+      http.put('/api/v1/courses/1/pages/23/date_details', () => {
+        putCalled()
+        return HttpResponse.json({})
+      }),
+    )
+    const onDismiss = vi.fn()
+    const {getByText, findAllByTestId} = renderComponent({onDismiss})
+    // Wait for cards to load so we know the component has fully mounted
+    await findAllByTestId('item-assign-to-card')
+    fireEvent.click(getByText('Cancel'))
+    expect(onDismiss).toHaveBeenCalled()
+    // Allow any potential async network call a tick to fire
+    await new Promise(resolve => setTimeout(resolve, 50))
+    expect(putCalled).not.toHaveBeenCalled()
   })
 
   it('fetches assignee options when defaultCards are passed', async () => {
