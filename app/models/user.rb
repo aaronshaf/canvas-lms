@@ -1588,7 +1588,7 @@ class User < ApplicationRecord
     can :manage_user_details and can :rename and can :update_avatar and can :remove_avatar and
       can :manage_feature_flags and can :view_feature_flags and can :update_profile
 
-    given { |principal| pseudonyms.shard(self).any? { |p| p.grants_right?(principal, :update) } }
+    given { |principal| pseudonyms.shard(self).any? { |p| p.grants_right?(principal, :merge_into) } }
     can :merge
 
     given do |principal|

@@ -517,6 +517,17 @@ class Pseudonym < ApplicationRecord
     end
     can :create and can :update
 
+    # merge transfers a pseudonym's owner rather than editing fields the
+    # upstream authentication provider manages, so it doesn't need
+    # directly_editable? -- which would otherwise block merging any user
+    # whose only pseudonym is tied to Instructure Identity.
+    given do |user|
+      self.account.grants_right?(user, :manage_user_logins) &&
+        self.user.has_subset_of_account_permissions?(user, self.account) &&
+        self.user.grants_right?(user, :read)
+    end
+    can :merge_into
+
     # any user (admin or not) can change their own canvas password. if the
     # pseudonym's account does not allow canvas authentication (i.e. it uses
     # and requires delegated authentication), there is no canvas password to

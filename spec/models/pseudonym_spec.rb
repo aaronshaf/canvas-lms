@@ -810,6 +810,21 @@ describe Pseudonym do
       end
     end
 
+    describe ":merge_into" do
+      it "is granted under the same account / subset / read conditions as :update" do
+        expect(account1.pseudonyms.build(user: bob)).to be_grants_right(sally, :merge_into)
+        expect(account2.pseudonyms.build(user: bob)).not_to be_grants_right(sally, :merge_into)
+        expect(account1.pseudonyms.build(user: alice)).not_to be_grants_right(sally, :merge_into)
+      end
+
+      it "is granted even when the pseudonym is not directly_editable?" do
+        ps = account1.pseudonyms.build(user: bob)
+        allow(ps).to receive(:directly_editable?).and_return(false)
+        expect(ps).not_to be_grants_right(sally, :update)
+        expect(ps).to be_grants_right(sally, :merge_into)
+      end
+    end
+
     describe ":change_password" do
       context "with :admins_can_change_passwords true on the account" do
         before do

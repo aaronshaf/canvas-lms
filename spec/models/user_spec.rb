@@ -4368,6 +4368,17 @@ describe User do
         pseudonym(alice, account: account1)
         expect(alice).not_to be_grants_right(sally, :merge)
       end
+
+      it "grants :merge even when the only pseudonym isn't directly_editable?" do
+        pseudonym(bob, account: account1)
+        # The Instructure Identity plugin overrides directly_editable? to false for
+        # Identity-tied pseudonyms (via the MRA-only is_inst_id column). Stub the
+        # method on bob's loaded pseudonyms instead so this spec runs in open
+        # source. Without the :merge_into ability, a non-directly-editable
+        # pseudonym would block merging users post-Identity rollout.
+        bob.pseudonyms.each { |p| allow(p).to receive(:directly_editable?).and_return(false) }
+        expect(bob).to be_grants_right(sally, :merge)
+      end
     end
 
     describe ":manage_user_details" do
