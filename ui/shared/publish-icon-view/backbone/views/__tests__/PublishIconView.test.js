@@ -113,4 +113,18 @@ describe('PublishIconView', () => {
     expect(btnView.$el.data('tooltip')).toBe('left')
     expect(btnView.$el.attr('title')).toBe('Publish')
   })
+
+  test('shows "Published" text after model transitions from unpublished to published and re-renders', () => {
+    const btnView = new PublishIconView({model: publish}).render()
+    expect(btnView.isPublish()).toBeTruthy()
+    expect(btnView.$text.html()).toMatch(/Publish/)
+    expect(btnView.$text.html()).not.toMatch(/Published/)
+
+    publish.publish()
+    btnView.render()
+
+    expect(btnView.isPublished()).toBeTruthy()
+    expect(btnView.$text.html()).toMatch(/Published/)
+    expect(btnView.$el.attr('title')).toBe('Published')
+  })
 })

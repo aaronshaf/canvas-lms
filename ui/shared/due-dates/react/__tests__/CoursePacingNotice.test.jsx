@@ -31,6 +31,18 @@ describe('CoursePacingNotice', () => {
     expect(link.getAttribute('href')).toEqual('/courses/17/course_pacing')
   })
 
+  it('exposes the CoursePacingNotice data-testid so paced-course pages can target it', () => {
+    const {getByTestId} = render(<CoursePacingNotice courseId="17" />)
+    const notice = getByTestId('CoursePacingNotice')
+    expect(notice).toBeInTheDocument()
+    expect(notice).toHaveTextContent(
+      'This course is using Course Pacing. Go to Course Pacing to manage due dates.',
+    )
+    const link = notice.querySelector('[data-testid="course-pacing-link"]')
+    expect(link).not.toBeNull()
+    expect(link.getAttribute('href')).toEqual('/courses/17/course_pacing')
+  })
+
   describe('renderCoursePacingNotice', () => {
     it('renders', async () => {
       const div = document.createElement('div')

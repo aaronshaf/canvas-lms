@@ -99,6 +99,24 @@ describe('DueDateOverride', () => {
       const errs = view.validateGroupOverrides(data, {})
       expect(errs.invalidGroupOverride).toBeUndefined()
     })
+
+    it('flags pre-existing differentiation-tag overrides as invalid when the tag setting is now disabled', () => {
+      // Simulates the diff-tag-disabled scenario from the quiz-edit page:
+      // a group_id override was created when allow_assign_to_differentiation_tags
+      // was enabled, then the account setting was flipped to false so the group
+      // no longer appears in StudentGroupStore.groupsFilteredForSelectedSet().
+      const data = {assignment_overrides: [{group_id: '777', rowKey: '01'}]}
+
+      vi.spyOn(StudentGroupStore, 'fetchComplete').mockReturnValue(true)
+      vi.spyOn(StudentGroupStore, 'groupsFilteredForSelectedSet').mockReturnValue([])
+      const view = new DueDateOverrideView()
+      const errs = view.validateGroupOverrides(data, {})
+
+      expect(errs.invalidGroupOverride).toBeDefined()
+      expect(errs.invalidGroupOverride.message).toBe(
+        "You cannot assign to a group outside of the assignment's group set",
+      )
+    })
   })
 
   describe('#validateDatetimes', () => {
