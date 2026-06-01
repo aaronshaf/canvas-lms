@@ -180,6 +180,29 @@ describe('QuizItemView', () => {
     )
   })
 
+  it('renders SpeedGrader link inside the admin options dropdown for a published quiz', () => {
+    const quiz = createQuiz({id: 1, title: 'Souffle', assignment_id: '77', published: true})
+    const view = createView(quiz, {canManage: true})
+    const $speedGraderInDropdown = view.$('.al-options .icon-speed-grader.speed-grader-link')
+    expect($speedGraderInDropdown).toHaveLength(1)
+    expect(
+      $speedGraderInDropdown.closest('.speed-grader-link-container').attr('class'),
+    ).not.toContain('hidden')
+  })
+
+  it('keeps SpeedGrader link container hidden in the admin options for an unpublished quiz', () => {
+    const quiz = createQuiz({
+      id: 1,
+      title: 'Tart',
+      assignment_id: '42',
+      published: false,
+    })
+    const view = createView(quiz, {canManage: true})
+    const $container = view.$('.al-options .speed-grader-link-container')
+    expect($container).toHaveLength(1)
+    expect($container.attr('class')).toContain('hidden')
+  })
+
   it('can assign assignment when flag is on and has edit permissions', () => {
     const quiz = createQuiz({id: 1, title: 'Foo'})
     const view = createView(quiz, {
