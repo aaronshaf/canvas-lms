@@ -20,9 +20,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="<%= brand_variable('ic-brand-global-nav-bgd') %>">
-  <%==
+  <%=
     login_metadata = (yield :login_metadata).presence
-    %(<meta name="description" content="#{login_metadata}">) if login_metadata
+    tag.meta name: "description", content: login_metadata if login_metadata
   %>
   <% unless @allow_robot_indexing %><meta name="robots" content="noindex,nofollow" /><% end %>
   <%= include_custom_meta_tags %>
