@@ -194,6 +194,15 @@ intelligent_insights_modernisation:
   root_opt_in: true
   beta: true
   shadow: true
+intelligent_insights_analytics_dashboard:
+  state: hidden
+  applies_to: Account
+  display_name:  Intelligent Insights - Analytics Dashboard
+  description:
+    intelligent-insights-analytics-dashboard: Enables the Intelligent Insights - Analytics Dashboard feature on Canvas Career.
+  root_opt_in: true
+  beta: true
+  shadow: true
 
 # Intelligent Insights - Provided through Ask Your Data LTI App
 advanced_analytics_ask_questions:

@@ -2293,6 +2293,14 @@ BASE_PERMISSIONS = {
     account_only: true,
     account_allows: ->(a) { a.feature_enabled?(:intelligent_insights_accessibility_insights) }
   },
+  view_analytics_dashboard: {
+    label: -> { I18n.t("Analytics Dashboard") },
+    group: :view_advanced_analytics,
+    available_to: %w[AccountAdmin AccountMembership],
+    true_for: %w[AccountAdmin],
+    account_only: true,
+    account_allows: ->(a) { a.feature_enabled?(:intelligent_insights_analytics_dashboard) }
+  },
   manage_impact: {
     label: -> { I18n.t("Impact - Manage") },
     available_to: %w[AccountAdmin AccountMembership],
