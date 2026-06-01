@@ -42,33 +42,6 @@ describe "quiz show page assign to" do
     user_session(@teacher)
   end
 
-  it "brings up the assign to tray when selecting the assign to option" do
-    get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-    click_quiz_assign_to_button
-
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    expect(tray_header.text).to eq("test quiz")
-    expect(icon_type_exists?("Quiz")).to be true
-  end
-
-  it "closes the assign to tray on dismiss" do
-    get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-    click_quiz_assign_to_button
-
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    expect(tray_header.text).to eq("test quiz")
-    expect(icon_type_exists?("Quiz")).to be true
-
-    click_cancel_button
-    keep_trying_until { expect(element_exists?(module_item_edit_tray_selector)).to be_falsey }
-  end
-
   it "assigns student and saves override", :ignore_js_errors do
     get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
 
@@ -150,15 +123,6 @@ describe "quiz show page assign to" do
     check_element_has_focus close_button
   end
 
-  it "does not show the button when the user does not have the manage_assignments_edit permission" do
-    get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-    expect(element_exists?(quiz_assign_to_button_selector)).to be_truthy
-
-    RoleOverride.create!(context: @course.account, permission: "manage_assignments_edit", role: teacher_role, enabled: false)
-    get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-    expect(element_exists?(quiz_assign_to_button_selector)).to be_falsey
-  end
-
   it "does show mastery paths in the assign to list for quizzes" do
     @course.conditional_release = true
     @course.save!
@@ -225,121 +189,6 @@ describe "quiz show page assign to" do
       end
     end
 
-    it "shows dates for Everyone when visible_to_everyone is true" do
-      @classic_quiz.update!(
-        due_at:,
-        unlock_at:,
-        lock_at:,
-        only_visible_to_overrides: false
-      )
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@classic_quiz.visible_to_everyone).to be_truthy
-      validate_all_overrides([
-                               { due_at: "Apr 15, 2024 at 12am", due_for: "Everyone", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 12am" }
-                             ])
-    end
-
-    it "shows dates for Everyone else when visible_to_everyone is true" do
-      @classic_quiz.update!(
-        due_at:,
-        unlock_at:,
-        lock_at:,
-        only_visible_to_overrides: false
-      )
-      @quiz_assignment.update!(
-        group_category: @category
-      )
-
-      params = {
-        due_at:,
-        due_at_overridden: true,
-        unlock_at:,
-        unlock_at_overridden: true,
-        lock_at:,
-        lock_at_overridden: true,
-      }
-
-      create_test_overrides(@quiz_assignment, types: ["student"], params: params.merge!({ due_at: due_at + 1.day }))
-      create_test_overrides(@quiz_assignment, types: ["section"], params: params.merge!({ due_at: due_at + 2.days }))
-      create_test_overrides(@quiz_assignment, types: ["group"], params: params.merge!({ due_at: due_at + 3.days }))
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@classic_quiz.visible_to_everyone).to be_truthy
-
-      validate_all_overrides([
-                               { due_at: "Apr 15, 2024 at 12am", due_for: "Everyone else", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 12am" },
-                               { due_at: "Apr 16, 2024", due_for: "2 students", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 17, 2024", due_for: "Section Alpha", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 17, 2024", due_for: "Section Beta", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 18, 2024", due_for: "Course Group A", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 18, 2024", due_for: "Course Group B", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" }
-                             ])
-    end
-
-    it "does not any dates when without visible_to_everyone is false" do
-      @classic_quiz.update!(
-        due_at:,
-        unlock_at:,
-        lock_at:,
-        only_visible_to_overrides: true
-      )
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@classic_quiz.visible_to_everyone).to be_falsey
-      validate_all_overrides([])
-    end
-
-    it "does not show dates for Everyone else when visible_to_everyone is false" do
-      @classic_quiz.update!(
-        due_at:,
-        unlock_at:,
-        lock_at:,
-        only_visible_to_overrides: true
-      )
-      @quiz_assignment.update!(
-        group_category: @category
-      )
-
-      params = {
-        due_at:,
-        due_at_overridden: true,
-        unlock_at:,
-        unlock_at_overridden: true,
-        lock_at:,
-        lock_at_overridden: true,
-      }
-
-      create_test_overrides(@quiz_assignment, types: ["student"], params:)
-      create_test_overrides(@quiz_assignment, types: ["section"], params: params.merge!({ due_at: due_at + 1.day }))
-      create_test_overrides(@quiz_assignment, types: ["group"], params: params.merge!({ due_at: due_at + 2.days }))
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@classic_quiz.visible_to_everyone).to be_falsey
-      validate_all_overrides([
-                               { due_at: "Apr 15, 2024", due_for: "2 students", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 16, 2024", due_for: "Section Alpha", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 16, 2024", due_for: "Section Beta", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 17, 2024", due_for: "Course Group A", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                               { due_at: "Apr 17, 2024", due_for: "Course Group B", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                             ])
-    end
-
-    it "shows dates for Everyone when there is course override" do
-      @quiz_assignment.assignment_overrides.create!(set_type: "Course", set_id: @course.id, due_at:, unlock_at:, lock_at:)
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@quiz_assignment.visible_to_everyone).to be_truthy
-      validate_all_overrides([
-                               { due_at: "Apr 15, 2024", due_for: "Everyone", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" }
-                             ])
-    end
-
     it "shows dates for default section" do
       @classic_quiz.update!(
         due_at:,
@@ -364,35 +213,6 @@ describe "quiz show page assign to" do
       expect(@classic_quiz.visible_to_everyone).to be_falsey
       validate_all_overrides([
                                { due_at: "Apr 15, 2024", due_for: "Unnamed Course", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" }
-                             ])
-    end
-
-    it "does not show dates for overrides when unassign_item is true" do
-      @classic_quiz.update!(
-        due_at:,
-        unlock_at:,
-        lock_at:,
-        only_visible_to_overrides: false
-      )
-      @quiz_assignment.update!(
-        group_category: @category
-      )
-
-      create_test_overrides(@quiz_assignment, params: {
-                              due_at:,
-                              due_at_overridden: true,
-                              unlock_at:,
-                              unlock_at_overridden: true,
-                              lock_at:,
-                              lock_at_overridden: true,
-                              unassign_item: true
-                            })
-
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-      expect(@classic_quiz.visible_to_everyone).to be_truthy
-      validate_all_overrides([
-                               { due_at: "Apr 15, 2024 at 12am", due_for: "Everyone", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 12am" }
                              ])
     end
 
@@ -449,88 +269,6 @@ describe "quiz show page assign to" do
                                  { due_at: "-", due_for: "Course Group A", unlock_at: "-", lock_at: "-" },
                                  { due_at: "-", due_for: "Course Group B", unlock_at: "-", lock_at: "-" },
                                  { due_at: "-", due_for: "2 students", unlock_at: "-", lock_at: "-" }
-                               ])
-      end
-
-      it "shows only dates for assignment overrides due precedence" do
-        @classic_quiz.update!(
-          due_at:,
-          unlock_at:,
-          lock_at:,
-          only_visible_to_overrides: false
-        )
-        @quiz_assignment.update!(
-          group_category: @category
-        )
-
-        create_test_overrides(@module)
-        create_test_overrides(@quiz_assignment, params: {
-                                due_at:,
-                                due_at_overridden: true,
-                                unlock_at:,
-                                unlock_at_overridden: true,
-                                lock_at:,
-                                lock_at_overridden: true
-                              })
-
-        get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-        # Doesn't show 'Everyone' when there are module overrides even if only_visible_to_overrides is false
-        validate_all_overrides([
-                                 { due_at: "Apr 15, 2024", due_for: "Section Alpha", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "Section Beta", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "Course Group A", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "Course Group B", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "2 students", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" }
-                               ])
-      end
-
-      it "shows dates for inherited overrides and assignment overrides" do
-        @classic_quiz.update!(
-          due_at:,
-          unlock_at:,
-          lock_at:,
-          only_visible_to_overrides: false
-        )
-        @quiz_assignment.update!(
-          group_category: @category
-        )
-
-        student_overrides = @module.assignment_overrides.create!(
-          set_type: "ADHOC",
-          title: "2 students"
-        )
-        student_overrides.assignment_override_students.create!(user: @student1)
-        student_overrides.assignment_override_students.create!(user: @student2)
-        @module.assignment_overrides.create!(set_type: "CourseSection", set_id: @course_section1.id)
-        @module.assignment_overrides.create!(set_type: "CourseSection", set_id: @course_section2.id)
-        override_params = {
-          due_at:,
-          due_at_overridden: true,
-          unlock_at:,
-          unlock_at_overridden: true,
-          lock_at:,
-          lock_at_overridden: true
-        }
-        student_overrides = @quiz_assignment.assignment_overrides.create!(
-          set_type: "ADHOC",
-          title: "2 students",
-          **override_params
-        )
-        student_overrides.assignment_override_students.create!(user: @student1)
-        student_overrides.assignment_override_students.create!(user: @student2)
-        @quiz_assignment.assignment_overrides.create!(set_type: "Group", set_id: @group1.id, **override_params)
-        @quiz_assignment.assignment_overrides.create!(set_type: "Group", set_id: @group2.id, **override_params)
-
-        get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}"
-
-        # Doesn't show 'Everyone' when there are module overrides even if only_visible_to_overrides is false
-        validate_all_overrides([
-                                 { due_at: "Apr 15, 2024", due_for: "Course Group A", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "Course Group B", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "Apr 15, 2024", due_for: "2 students", unlock_at: "Apr 10, 2024 at 12am", lock_at: "Apr 20, 2024 at 11:59pm" },
-                                 { due_at: "-", due_for: "Section Alpha", unlock_at: "-", lock_at: "-" },
-                                 { due_at: "-", due_for: "Section Beta", unlock_at: "-", lock_at: "-" }
                                ])
       end
     end

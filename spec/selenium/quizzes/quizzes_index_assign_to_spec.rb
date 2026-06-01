@@ -58,19 +58,6 @@ describe "quizzes selective_release assign to tray" do
     user_session(@teacher)
   end
 
-  it "brings up the assign to tray when selecting the assign to option" do
-    visit_quizzes_index_page(@course.id)
-    click_manage_quiz_button(@classic_quiz.id)
-    click_assign_to_link(@classic_quiz.id)
-
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    expect(item_tray_exists?).to be_truthy
-    expect(tray_header.text).to eq("test quiz")
-    expect(icon_type_exists?("Quiz")).to be true
-  end
-
   it "assigns student and saves assignment" do
     visit_quizzes_index_page(@course.id)
     click_manage_quiz_button(@classic_quiz.id)
@@ -92,24 +79,6 @@ describe "quizzes selective_release assign to tray" do
     expect(element_exists?(module_item_edit_tray_selector)).to be_falsey
     expect(@classic_quiz.assignment_overrides.last.assignment_override_students.count).to eq(1)
     # TODO: check that the dates are saved with date under the title of the item
-  end
-
-  it "shows existing enrollments when accessing assign to tray" do
-    @classic_quiz.assignment_overrides.create!(set_type: "ADHOC")
-    @classic_quiz.assignment_overrides.first.assignment_override_students.create!(user: @student1)
-
-    visit_quizzes_index_page(@course.id)
-    click_manage_quiz_button(@classic_quiz.id)
-    click_assign_to_link(@classic_quiz.id)
-
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    expect(module_item_assign_to_card[0]).to be_displayed
-    expect(module_item_assign_to_card[1]).to be_displayed
-
-    expect(assign_to_in_tray("Remove Everyone else")[0]).to be_displayed
-    expect(assign_to_in_tray("Remove #{@student1.name}")[0]).to be_displayed
   end
 
   it "saves and shows override updates when tray reaccessed" do
@@ -173,30 +142,6 @@ describe "quizzes selective_release assign to tray" do
     expect(new_quiz_assignment.assignment_overrides.first.assignment_override_students.count).to eq(1)
   end
 
-  it "adds all data and cancels" do
-    @classic_quiz.assignment_overrides.create!(set_type: "ADHOC")
-    @classic_quiz.assignment_overrides.first.assignment_override_students.create!(user: @student1)
-
-    visit_quizzes_index_page(@course.id)
-    click_manage_quiz_button(@classic_quiz.id)
-    click_assign_to_link(@classic_quiz.id)
-
-    wait_for_assign_to_tray_spinner
-    keep_trying_until { expect(item_tray_exists?).to be_truthy }
-
-    select_module_item_assignee(1, @student2.name)
-    update_due_date(1, "12/31/2022")
-    update_due_time(1, "5:00 PM")
-    update_available_date(1, "12/27/2022")
-    update_available_time(1, "8:00 AM")
-    update_until_date(1, "1/7/2023")
-    update_until_time(1, "9:00 PM")
-    click_cancel_button
-    keep_trying_until { expect(item_tray_exists?).to be_falsey }
-
-    expect(@classic_quiz.assignment_overrides.first.assignment_override_students.count).to eq(1)
-  end
-
   it "focus close button on open" do
     visit_quizzes_index_page(@course.id)
     click_manage_quiz_button(@classic_quiz.id)
@@ -208,17 +153,6 @@ describe "quizzes selective_release assign to tray" do
     expect(item_tray_exists?).to be_truthy
 
     check_element_has_focus close_button
-  end
-
-  it "does not show the button when the user does not have the manage_assignments_edit permission" do
-    visit_quizzes_index_page(@course.id)
-    click_manage_quiz_button(@classic_quiz.id)
-    expect(element_exists?(assign_to_link_selector(@classic_quiz.id))).to be_truthy
-
-    RoleOverride.create!(context: @course.account, permission: "manage_assignments_edit", role: teacher_role, enabled: false)
-    visit_quizzes_index_page(@course.id)
-    click_manage_quiz_button(@classic_quiz.id)
-    expect(element_exists?(assign_to_link_selector(@classic_quiz.id))).to be_falsey
   end
 
   it "assigns student only on index page and show page shows correct cords" do

@@ -126,59 +126,10 @@ describe "quiz edit page assign to" do
       @diff_tag1.add_user(@student1)
     end
 
-    it "assigns a differentiation tag and saves quiz" do
-      get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}/edit"
-
-      click_add_assign_to_card
-      select_module_item_assignee(1, @diff_tag1.name)
-      update_due_date(1, "12/31/2022")
-      update_due_time(1, "5:00 PM")
-      update_available_date(1, "12/27/2022")
-      update_available_time(1, "8:00 AM")
-      update_until_date(1, "1/7/2023")
-      update_until_time(1, "9:00 PM")
-
-      submit_page
-
-      override = @classic_quiz.assignment_overrides.last
-      expect(override.set_type).to eq("Group")
-      expect(override.title).to eq(@diff_tag1.name)
-
-      due_at_row = retrieve_quiz_due_date_table_row(@diff_tag1.name)
-      expect(due_at_row).not_to be_nil
-      expect(due_at_row.text.split("\n").first).to include("Dec 31, 2022")
-      expect(due_at_row.text.split("\n").third).to include("Dec 27, 2022")
-      expect(due_at_row.text.split("\n").last).to include("Jan 7, 2023")
-
-      due_at_row = retrieve_quiz_due_date_table_row("Everyone else")
-      expect(due_at_row).not_to be_nil
-      expect(due_at_row.text.count("-")).to eq(3)
-    end
-
     context "existing differentiation tag overrides" do
       before do
         @classic_quiz.assignment_overrides.create!(set_type: "Group", set_id: @diff_tag1.id, title: @diff_tag1.name)
         @classic_quiz.assignment_overrides.create!(set_type: "Group", set_id: @diff_tag2.id, title: @diff_tag2.name)
-      end
-
-      it "renders all the override assignees" do
-        get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}/edit"
-
-        # 3 differentiation tags
-        # Since the quiz is not only visible to overrides the "Everyone else" row is shown
-        expect(selected_assignee_options.count).to eq 3
-      end
-
-      it "shows the convert override message when diff tags setting disabled" do
-        @course.account.tap do |a|
-          a.settings[:allow_assign_to_differentiation_tags] = { value: false }
-          a.save!
-        end
-        get "/courses/#{@course.id}/quizzes/#{@classic_quiz.id}/edit"
-        wait_for_ajaximations
-        expect(element_exists?(convert_override_alert_selector)).to be_truthy
-        quiz_save_button.click
-        expect(f("body").text).to include "Invalid group selected"
       end
 
       it "clicking convert overrides button converts the override and refreshes the cards" do

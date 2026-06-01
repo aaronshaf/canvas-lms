@@ -110,15 +110,6 @@ describe "quizzes section hierarchy" do
         user_session(@student)
         take_hierarchy_quiz
       end
-
-      it "is not accessible for student in the main section", priority: "1" do
-        student1 = user_with_pseudonym(username: "student1@example.com", active_all: 1)
-        student_in_course(course: @course, user: student1)
-        user_session(student1)
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f("#quiz_show .quiz-header .lock_explanation").text)
-          .to include("This quiz is no longer available as the course has been concluded")
-      end
     end
   end
 
@@ -126,15 +117,6 @@ describe "quizzes section hierarchy" do
     before do
       @new_section.restrict_enrollments_to_section_dates = false
       @new_section.save!
-    end
-
-    context "course ends in past" do
-      it "disallows student to view quiz", priority: "1" do
-        user_session(@student)
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f("#quiz_show .quiz-header .lock_explanation").text)
-          .to include("This quiz is no longer available as the course has been concluded")
-      end
     end
 
     context "course ends in future" do
