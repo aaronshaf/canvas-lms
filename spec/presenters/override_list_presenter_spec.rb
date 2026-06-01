@@ -327,6 +327,187 @@ describe OverrideListPresenter do
             .not_to be_nil
         end
       end
+
+      context "assignment-level overrides for quiz show overrides table" do
+        let(:due_at) { Time.zone.parse("2024-04-15") }
+        let(:unlock_at) { Time.zone.parse("2024-04-10") }
+        let(:lock_at) { Time.zone.parse("2024-04-20") }
+        let(:override_params) do
+          {
+            due_at_overridden: true,
+            unlock_at:,
+            unlock_at_overridden: true,
+            lock_at:,
+            lock_at_overridden: true,
+          }
+        end
+
+        before do
+          @section_alpha = course.course_sections.create!(name: "Section Alpha")
+          @section_beta = course.course_sections.create!(name: "Section Beta")
+          @category = course.group_categories.create!(name: "Course Group")
+          @group_a = @category.groups.create!(name: "Course Group A", context: course)
+          @group_b = @category.groups.create!(name: "Course Group B", context: course)
+          @student1 = student_in_course(course:, name: "Student 1", active_all: true).user
+          @student2 = student_in_course(course:, name: "Student 2", active_all: true).user
+        end
+
+        it "returns a single Everyone row with assignment dates when only_visible_to_overrides is false and no overrides exist" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false)
+          @visible_due_dates = @presenter.visible_due_dates
+
+          expect(@visible_due_dates.length).to eq 1
+          everyone_row = @visible_due_dates.first
+          expect(everyone_row[:due_for]).to eq "Everyone"
+          expect(everyone_row[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at: @overridden_assignment.due_at)
+          expect(everyone_row[:unlock_at]).to eq @presenter.formatted_date_string(:unlock_at, unlock_at: @overridden_assignment.unlock_at)
+          expect(everyone_row[:lock_at]).to eq @presenter.formatted_date_string(:lock_at, lock_at: @overridden_assignment.lock_at)
+        end
+
+        it "includes Everyone else row alongside assignment-level adhoc and section overrides with base dates" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false, group_category: @category)
+
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", title: "2 students", due_at: due_at + 1.day, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          adhoc.assignment_override_students.create!(user: @student2)
+          @overridden_assignment.assignment_overrides.create!(set: @section_alpha, due_at: due_at + 2.days, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @section_beta, due_at: due_at + 2.days, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_a, due_at: due_at + 3.days, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_b, due_at: due_at + 3.days, **override_params)
+
+          @visible_due_dates = @presenter.visible_due_dates
+          labels = @visible_due_dates.pluck(:due_for)
+
+          expect(labels).to include("Everyone else")
+
+          everyone_else = @visible_due_dates.detect { |d| d[:due_for] == "Everyone else" }
+          expect(everyone_else[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at: @overridden_assignment.due_at)
+        end
+
+        it "returns an empty list when only_visible_to_overrides is true and no overrides exist" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: true)
+
+          expect(@presenter.visible_due_dates).to eq []
+        end
+
+        it "omits Everyone and Everyone else when only_visible_to_overrides is true and per-target overrides exist" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: true, group_category: @category)
+
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", title: "2 students", due_at:, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          adhoc.assignment_override_students.create!(user: @student2)
+          @overridden_assignment.assignment_overrides.create!(set: @section_alpha, due_at: due_at + 1.day, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @section_beta, due_at: due_at + 1.day, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_a, due_at: due_at + 2.days, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_b, due_at: due_at + 2.days, **override_params)
+
+          @visible_due_dates = @presenter.visible_due_dates
+          labels = @visible_due_dates.pluck(:due_for)
+
+          expect(labels).not_to include("Everyone else", "Everyone")
+        end
+
+        it "returns a single Everyone row when only a Course-level override exists" do
+          @overridden_assignment.update!(due_at: nil, unlock_at: nil, lock_at: nil, only_visible_to_overrides: false)
+          course_override = @overridden_assignment.assignment_overrides.create!(set_type: "Course", set_id: course.id, due_at:, unlock_at:, lock_at:)
+
+          @visible_due_dates = @presenter.visible_due_dates
+
+          expect(@visible_due_dates.length).to eq 1
+          row = @visible_due_dates.first
+          expect(row[:due_for]).to eq "Everyone"
+          expect(row[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at: course_override.reload.due_at)
+          expect(row[:unlock_at]).to eq @presenter.formatted_date_string(:unlock_at, unlock_at: course_override.unlock_at)
+          expect(row[:lock_at]).to eq @presenter.formatted_date_string(:lock_at, lock_at: course_override.lock_at)
+        end
+
+        it "filters assignment-level unassign_item overrides out of visible_due_dates" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false, group_category: @category)
+
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", title: "2 students", due_at:, unassign_item: true, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          adhoc.assignment_override_students.create!(user: @student2)
+          @overridden_assignment.assignment_overrides.create!(set: @section_alpha, due_at:, unassign_item: true, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @section_beta, due_at:, unassign_item: true, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_a, due_at:, unassign_item: true, **override_params)
+          @overridden_assignment.assignment_overrides.create!(set: @group_b, due_at:, unassign_item: true, **override_params)
+
+          @visible_due_dates = @presenter.visible_due_dates
+
+          expect(@visible_due_dates.length).to eq 1
+          expect(@visible_due_dates.first[:due_for]).to eq "Everyone"
+          expect(@visible_due_dates.first[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at: @overridden_assignment.due_at)
+        end
+
+        context "with module overrides and assignment-level overrides" do
+          before do
+            @module = course.context_modules.create!(name: "Module 1")
+            @module.add_item(type: "assignment", id: @overridden_assignment.id)
+          end
+
+          it "suppresses Everyone and Everyone else when module overrides duplicate the assignment override set" do
+            @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false, group_category: @category)
+
+            module_adhoc = @module.assignment_overrides.create!(set_type: "ADHOC", title: "2 students")
+            module_adhoc.assignment_override_students.create!(user: @student1)
+            module_adhoc.assignment_override_students.create!(user: @student2)
+            @module.assignment_overrides.create!(set: @section_alpha)
+            @module.assignment_overrides.create!(set: @section_beta)
+            @module.assignment_overrides.create!(set: @group_a)
+            @module.assignment_overrides.create!(set: @group_b)
+
+            adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", title: "2 students", due_at:, **override_params)
+            adhoc.assignment_override_students.create!(user: @student1)
+            adhoc.assignment_override_students.create!(user: @student2)
+            @overridden_assignment.assignment_overrides.create!(set: @section_alpha, due_at:, **override_params)
+            @overridden_assignment.assignment_overrides.create!(set: @section_beta, due_at:, **override_params)
+            @overridden_assignment.assignment_overrides.create!(set: @group_a, due_at:, **override_params)
+            @overridden_assignment.assignment_overrides.create!(set: @group_b, due_at:, **override_params)
+
+            @visible_due_dates = @presenter.visible_due_dates
+            labels = @visible_due_dates.pluck(:due_for)
+
+            expect(labels).not_to include("Everyone", "Everyone else")
+          end
+
+          it "returns inherited section rows without dates alongside assignment-overridden rows with dates" do
+            @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false, group_category: @category)
+
+            module_adhoc = @module.assignment_overrides.create!(set_type: "ADHOC", title: "2 students")
+            module_adhoc.assignment_override_students.create!(user: @student1)
+            module_adhoc.assignment_override_students.create!(user: @student2)
+            @module.assignment_overrides.create!(set: @section_alpha)
+            @module.assignment_overrides.create!(set: @section_beta)
+
+            adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", title: "2 students", due_at:, **override_params)
+            adhoc.assignment_override_students.create!(user: @student1)
+            adhoc.assignment_override_students.create!(user: @student2)
+            @overridden_assignment.assignment_overrides.create!(set: @group_a, due_at:, **override_params)
+            @overridden_assignment.assignment_overrides.create!(set: @group_b, due_at:, **override_params)
+
+            @visible_due_dates = @presenter.visible_due_dates
+            labels = @visible_due_dates.pluck(:due_for)
+
+            expect(labels).not_to include("Everyone", "Everyone else")
+
+            inherited_alpha = @visible_due_dates.detect { |d| d[:due_for] == "Section Alpha" }
+            inherited_beta = @visible_due_dates.detect { |d| d[:due_for] == "Section Beta" }
+            if inherited_alpha
+              expect(inherited_alpha[:due_at]).to eq "-"
+              expect(inherited_alpha[:unlock_at]).to eq "-"
+              expect(inherited_alpha[:lock_at]).to eq "-"
+            end
+            if inherited_beta
+              expect(inherited_beta[:due_at]).to eq "-"
+            end
+
+            overridden_adhoc = @visible_due_dates.detect { |d| d[:due_for] == "2 students" }
+            if overridden_adhoc
+              expect(overridden_adhoc[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at:)
+            end
+          end
+        end
+      end
     end
   end
 
