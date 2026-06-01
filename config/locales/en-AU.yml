@@ -271,6 +271,8 @@ en-AU:
   a_custom_message_to_display_on_the_parent_registra_447031ba: "A custom message to display on the parent registration screen (see: /login/canvas/register/parent)."
   a_custom_message_to_display_on_the_registration_sc_a8af85df: "A custom message to display on the registration screen (see: /login/canvas/register)."
   a_deleted_user_with_that_id_could_not_be_found_for_57503c7b: "A deleted user with that ID could not be found for this account."
+  a_developer_key_cannot_have_more_than_64_redirect__18a08389: "A developer key cannot have more than 64 redirect URIs. Please remove some entries."
+  a_developer_key_cannot_have_more_than_max_redirect_914e69f8: "A developer key cannot have more than %{max} redirect URIs. Please remove some entries."
   a_few_seconds_ago_e43118d: "a few seconds ago"
   a_file_is_required_to_make_a_submission_6e5a28a0: "A file is required to make a submission."
   a_file_named_filename_already_exists_in_this_locat_606ca948: "A file named \"%{fileName}\" already exists in this location. Do you want to replace the existing file?"
@@ -2114,7 +2116,7 @@ en-AU:
       pending_batches_title: "Pending Batches"
       process_data_button: "Process Data"
       select_file_instructions: |-
-          Select the CSV or zip file that you want imported.  
+          Select the CSV or zip file that you want imported.
           For a description of how to generate these files, [please see this documentation](%{url}).
       sis_import_crumb: "SIS Import"
       started_at_message: "Started: %{started_at}"
@@ -3631,6 +3633,7 @@ en-AU:
       the course level.
   allows_user_to_create_import_edit_and_delete_outco_8eff991: "Allows user to create, import, edit, and delete outcomes and outcome groups at the course level."
   allows_user_to_create_institutional_tags_8187ad8c: "Allows user to create institutional tags."
+  allows_user_to_create_learner_dashboards_on_the_ac_eda79a0a: "Allows user to create learner dashboards on the account."
   allows_user_to_create_modify_and_delete_global_sit_bd57ed4e: "Allows user to create, modify, and delete global (Site Admin) developer keys and LTI configurations."
   allows_user_to_create_new_conferences_allows_user__89cebec2: "Allows user to create new conferences. Allows user to start conferences they created."
   allows_user_to_create_new_conferences_in_courses_a_80899f64: "Allows user to create new conferences in courses and groups."
@@ -3658,6 +3661,7 @@ en-AU:
   allows_user_to_delete_course_sections_19193a35: "Allows user to delete course sections."
   allows_user_to_delete_course_sections_allows_user__649d2d0d: "Allows user to delete course sections. Allows user to delete a user from a course section."
   allows_user_to_delete_differentiated_tags_30770c90: "Allows user to delete differentiated tags"
+  allows_user_to_delete_learner_dashboards_on_the_ac_1a6a326e: "Allows user to delete learner dashboards on the account."
   allows_user_to_delete_other_user_s_access_tokens_4d82f8df: "Allows user to delete other users' access tokens."
   allows_user_to_delete_question_banks_in_a_course_o_d9cd0b2f: "Allows user to delete question banks in a course or account."
   allows_user_to_delete_quizzes_in_a_course_acdbdfba: "Allows user to delete quizzes in a course."
@@ -3729,6 +3733,7 @@ en-AU:
   allows_user_to_edit_grades_in_the_gradebook_allows_b1e33afc: "Allows user to edit grades in the Gradebook. Allows user to access Gradebook History."
   allows_user_to_edit_grading_schemes_98c35117: "Allows user to edit marking schemes."
   allows_user_to_edit_institutional_tags_ff7a9383: "Allows user to edit institutional tags."
+  allows_user_to_edit_learner_dashboards_on_the_acco_db542186: "Allows user to edit learner dashboards on the account."
   allows_user_to_edit_lock_settings_on_individual_as_80ed188a: "Allows user to edit lock settings on individual assignments, pages, or discussions."
   allows_user_to_edit_lock_settings_on_the_assignmen_4c347262: "Allows user to edit lock settings on the Assignments and Quizzes index pages."
   allows_user_to_edit_question_banks_in_a_course_or__f72a39cf: "Allows user to edit question banks in a course or account."
@@ -4031,6 +4036,7 @@ en-AU:
   allows_user_to_view_student_results_view_quiz_stat_7d77640a: "Allows user to view student results, view quiz statistics, and access a quiz in SpeedGrader."
   allows_user_to_view_student_specific_data_in_analy_4abbf6be: "Allows user to view student-specific data in Analytics."
   allows_user_to_view_the_account_s_automation_rules_b72dcc1d: "Allows user to view the account's automation rules."
+  allows_user_to_view_the_account_s_learner_dashboar_c012e184: "Allows user to view the account's learner dashboards."
   allows_user_to_view_the_announcements_link_in_cour_b3522273: "Allows user to view the Announcements link in Course Navigation."
   allows_user_to_view_the_announcements_link_in_cour_f6b03e9a: "Allows user to view the Announcements link in Course Navigation. Allows user to view course announcements."
   allows_user_to_view_the_clone_group_set_button_for_d68aab98: "Allows user to view the Clone Group Set button for an account or course group."
@@ -5738,7 +5744,7 @@ en-AU:
     processing_submission: "Canvas is currently processing your submission. You can safely navigate away from this page and we will email you if the submission fails to process."
     redirect_page: 
       redirect_message: |-
-          This submission was a url, we're taking you to the url link now.  
+          This submission was a url, we're taking you to the url link now.
           [Click Here to go to the submission](%{url})
     remove_never_drop_rule: "Remove never drop rule"
     remove_unsaved_never_drop_rule: "Remove unsaved never drop rule"
@@ -7555,6 +7561,7 @@ en-AU:
   canceling_this_attempt_will_permanently_delete_any_21ce850c: "Cancelling this attempt will permanently delete any work performed in this attempt. Do you wish to proceed and delete your work?"
   cancelled_move_of_item_6fc9a757: "Cancelled move of %{item}"
   cannot_access_group_in_concluded_course_90a8db52: "Cannot access group in concluded course"
+  cannot_activate_a_built_in_role_eab89e55: "Cannot activate a built-in role"
   cannot_add_a_temporary_enrollment_to_a_concluded_c_459a44fa: "Cannot add a temporary enrolment to a concluded course"
   cannot_add_role_name_name_already_in_use_a523639c: "Cannot add role name %{name}: already in use"
   cannot_add_section_to_a_non_section_specific_discu_d2a7f263: "Cannot add section to a non-section-specific discussion"
@@ -10967,6 +10974,7 @@ en-AU:
   course_name_is_required_d987f1c3: "Course name is required."
   course_name_must_be_255_characters_or_less_e7afed1a: "Course name must be 255 characters or less"
   course_name_not_authorized_for_cross_listing_353e500f: "%{course_name} not authorised for cross-listing"
+  course_name_override_does_not_match_this_assignmen_21557f13: "Course \"%{name}\" override does not match this assignment's course."
   course_name_successfully_added_48116a50: "%{course_name} successfully added!"
   course_navigation_and_quick_access_features_coming_7dd88414: "Course navigation and quick access features are coming soon."
   course_navigation_dd035109: "Course Navigation"
@@ -13066,6 +13074,7 @@ en-AU:
   differentiated_tags_add_5297b273: "Differentiated Tags - add"
   differentiated_tags_delete_747504bf: "Differentiated Tags - delete"
   differentiated_tags_manage_6a15d272: "Differentiated Tags - manage"
+  differentiation_tag_name_cannot_be_assigned_to_thi_c488393d: "Differentiation tag \"%{name}\" cannot be assigned to this assignment."
   differentiation_tag_overrides_must_be_removed_48050504: "Differentiation tag overrides must be removed"
   differentiation_tag_sets_635d2f90: "Differentiation Tag Sets"
   differentiation_tags: "Differentiation Tags"
@@ -15482,6 +15491,7 @@ en-AU:
   error_updating_module_access_f0970f4c: "Error updating module access."
   error_updating_moduleitemname_96819b43: "Error updating \"%{moduleItemName}\""
   error_updating_moduleitemname_a34c6a04: "Error updating “%{moduleItemName}”"
+  error_updating_moduleitemname_b4911cb1: "Error updating \"%{moduleItemName}\""
   error_updating_modulename_settings_da982acf: "Error updating %{moduleName} settings."
   error_updating_note_50f33d53: "Error updating note"
   error_updating_notes_31b24785: "Error updating notes"
@@ -18178,6 +18188,7 @@ en-AU:
   granite_assignment_score_summary_66fece24: "Granite Assignment Score Summary"
   grant_tenant_access_9afafd: "Grant tenant access"
   grant_your_browser_permission_to_record_by_allowin_c7b3c53f: "Grant your browser permission to record by allowing access to your camera and microphone."
+  granular_authentication_provider_permissions_ce54c28a: "Granular Authentication Provider Permissions"
   granular_contexttype_notification_settings_will_be_c5dfc901: "Granular %{contextType} notification settings will be configurable here in the future."
   granular_course_notification_settings_will_be_conf_68f122db: "Granular course notification settings will be configurable here in the future."
   granular_permissions_for_add_remove_admin_roles_fr_9a06a75d: "Granular permissions for Add/Remove admin roles from Course"
@@ -18322,6 +18333,7 @@ en-AU:
   group_name_group_pages_def16554: "%{group_name} - Group Pages"
   group_name_group_people_e9d548c1: "%{group_name} - Group People"
   group_name_in_group_category_name_group_category_29bf3254: "%{group_name} in %{group_category_name} group category"
+  group_name_is_not_part_of_this_assignment_s_group__9e7787b6: "Group \"%{name}\" is not part of this assignment's group set."
   group_name_is_required_5547bc0b: "Group name is required"
   group_name_must_be_less_than_255_characters_800ee540: "Group name must be less than 255 characters."
   group_newoptiongroup_entered_newoptioncontextname_9eaf1b13: "Group %{newOptionGroup} entered. %{newOptionContextName}"
@@ -19817,8 +19829,8 @@ en-AU:
   if_you_leave_the_zip_file_download_currently_being_c47c1dfb: "If you leave, the zip file download currently being prepared will be cancelled."
   if_you_made_changes_to_the_student_submission_file_e006d49b: |-
       If you made changes to the student submission files you downloaded
-        before, just zip them back up and upload the zip with the form below.
-        Students will see the modified files in their comments for the submission.
+      before, just zip them back up and upload the zip with the form below.
+      Students will see the modified files in their comments for the submission.
       
       *Make sure you don't change the names of the submission files so we can recognise them.*
   if_you_need_to_make_your_course_public_please_cont_7084c67b: "If you need to make your course public please contact your administrator/support."
@@ -21033,7 +21045,9 @@ en-AU:
   knowledge_chat_94cf8a45: "Knowledge chat"
   knowledge_chat_deleted_successfully_c8a85144: "Knowledge Chat deleted successfully"
   knowledge_chat_description_e0a796ee: "Knowledge chat description"
+  knowledge_chat_description_must_be_max_characters__8f34821a: "Knowledge chat description must be %{max} characters or fewer"
   knowledge_chat_name_4d7ce855: "Knowledge chat name"
+  knowledge_chat_name_must_be_max_characters_or_fewe_f84a4ba2: "Knowledge chat name must be %{max} characters or fewer"
   knowledge_chat_name_required_3ef7af16: "Knowledge chat name required"
   knowledge_chat_options_a72ca25: "Knowledge Chat Options"
   knowledge_chat_published_successfully_2661b781: "Knowledge Chat published successfully"
@@ -21148,6 +21162,7 @@ en-AU:
   last_updated_timestamp_1822e508: "Last updated %{timestamp}"
   last_used_17553fed: "Last Used"
   last_used_f9457313: "Last Used:"
+  last_used_when_86487ac: "last used: %{when}"
   last_user_access_title: "Last User Access"
   last_viewed_cfbbbc3a: "last viewed"
   last_youtube_content_scan_failed_f4785264: "Last YouTube content scan failed."
@@ -21267,6 +21282,11 @@ en-AU:
   learn_more_about_video_conferencing_5f0e76e4: "Learn more about Video Conferencing"
   learn_more_bdd42bd8: "Learn more ..."
   learn_more_in_the_canvas_community_3bba7b11: "Learn more in the Canvas Community"
+  learner_dashboards_2b98a630: "Learner Dashboards"
+  learner_dashboards_add_568ed19b: "Learner Dashboards - add"
+  learner_dashboards_delete_a9a20f42: "Learner Dashboards - delete"
+  learner_dashboards_edit_b6a16cee: "Learner Dashboards - edit"
+  learner_dashboards_view_c969197a: "Learner Dashboards - view"
   learner_passport_prototype_1c3446b3: "Learner Passport Prototype"
   learner_passport_prototype_r2_98517178: "Learner Passport Prototype R2"
   learner_preview_562438f0: "Learner Preview"
@@ -21292,6 +21312,7 @@ en-AU:
   learning_object_dates_36b05acb: "Learning Object Dates"
   learning_objective_progress_percentage_1335247d: "Learning objective progress: %{percentage}%"
   learning_objective_targets_b12b6bc2: "Learning objective targets"
+  learning_objective_targets_must_be_max_characters__4310f523: "Learning objective targets must be %{max} characters or fewer"
   learning_objectives_34d5472a: "Learning Objectives"
   learning_objectives_7b8844fa: "Learning objectives"
   learning_objectives_covered_d8270b8a: "Learning objectives covered:"
@@ -21320,6 +21341,7 @@ en-AU:
       point threshold that will be used to define mastery of this outcome.
   learning_outcomes_csv_d2e9f936: "Learning Outcomes CSV"
   learning_outcomes_import_eca3a09c: "Learning Outcomes - import"
+  learnplatform_provides_product_information_the_url_e9a6deb7: "LearnPlatform provides product information. The URL provided below should point to a valid LearnPlatform environment (for example, %{url} -- be sure to omit the trailing slash."
   learnplatform_provides_product_information_the_url_f491a905: "LearnPlatform provides product information. The URL provided below should point to a valid LearnPlatform environment (for example, %{url} -- be sure to omit the trailing slash"
   leave_5e852989: Leave
   leave_a_comment_7991725b: "Leave a comment"
@@ -21334,6 +21356,7 @@ en-AU:
           will result in a maximum possible score of %{pointRatio} for student submissions graded with the rubric.
   left_aligned_3903b802: "Left aligned"
   left_group_group_name_aac4e813: "Left Group %{group_name}"
+  legacy_redirect_uri_deprecated_matches_on_scheme_a_b482a7f0: "Legacy Redirect URI (Deprecated; matches on scheme and hostname only, including subdomains):"
   legend_5a9768bc: Legend
   len_maxlen_97f1c88d: "%{len}/%{maxLen}"
   length_notifications_found_25276610: "%{length} notifications found"
@@ -22283,6 +22306,7 @@ en-AU:
   manage_options_for_name_83278ad0: "Manage options for %{name}"
   manage_pages_4d2adeb6: "Manage Pages"
   manage_profile_pictures_40c958ce: "Manage profile pictures"
+  manage_read_30c3ff25: "manage / read"
   manage_release_notes_9a51bba0: "Manage release notes"
   manage_rubrics_5d274f6a: "Manage Rubrics"
   manage_sftp_user_settings_95f01949: "Manage SFTP User Settings"
@@ -22596,6 +22620,7 @@ en-AU:
   message_groups_who_1ba736f: "Message Groups Who..."
   message_instructor_846bb4dd: "Message instructor"
   message_is_required_c547cb60: "Message is required"
+  message_must_be_max_characters_or_fewer_365b3060: "Message must be %{max} characters or fewer"
   message_name_3b100614: "Message %{name}"
   message_not_included_login_to_view_the_message_bd7a0627: "Message not included, login to view the message."
   message_observers_of_students_who_6cc6b796: "Message Observers of Students Who..."
@@ -25343,10 +25368,12 @@ en-AU:
   name_has_already_completed_the_required_peer_revie_cdd4ab5c: "%{name} has already completed the required peer reviews."
   name_has_been_read_663891a5: "%{name} has been read"
   name_has_been_successfully_installed_but_has_not_y_c3148b96: "*name* has been successfully installed but has not yet been enabled."
+  name_is_already_assigned_more_than_once_remove_the_da1f8372: "\"%{name}\" is already assigned more than once. Remove the duplicate before saving."
   name_is_currently_locked_and_unavailable_to_view_6e579cea: "%{name} is currently locked and unavailable to view."
   name_is_currently_status_9065c996: "*name* is currently **status**."
   name_is_locked_click_to_unlock_7aad9928: "%{name} is locked. Click to unlock"
   name_is_locked_click_to_unlock_bbebf03e: "%{name} is locked. Click to unlock."
+  name_is_not_enrolled_as_a_student_in_this_course_3fe7af74: "\"%{name}\" is not enrolled as a student in this course."
   name_is_ready_to_be_assigned_temporary_enrollments_f39a6cf6: "%{name} is ready to be assigned temporary enrolments."
   name_is_required_4341f774: "Name is Required"
   name_is_required_ba379522: "Name is required"
@@ -26095,6 +26122,7 @@ en-AU:
   note_it_may_take_up_to_a_week_for_the_beta_url_to__d695bddc: "Note: It may take up to a week for the Beta URL to provision, depending on the Beta refresh cycle."
   note_jobs_blocked_by_shard_migrations_will_not_be__43e7a9b0: "NOTE: Jobs blocked by shard migrations will not be unblocked."
   note_length_cannot_exceed_maxlength_characters_82798b1: "Note length cannot exceed %{maxLength} characters."
+  note_limit_of_1000_per_course_reached_5003eb77: "Note limit of 1000 per course reached"
   note_paper_39834317: "note paper"
   note_question_details_not_available_when_more_than_93199f6d: "NOTE: Question details not available when more than %{question_count}."
   note_some_items_fall_outside_the_start_and_or_end__feab0642: "Note: some items fall outside the start and/or end dates of the course"
@@ -26119,6 +26147,7 @@ en-AU:
   note_you_may_receive_this_email_when_new_authentic_5d9403f4: "Note: You may receive this email when new authentication provider types become supported for migration, or when we're ready to begin the migration process for existing provider types."
   notebook_4998c7e2: Notebook
   notebook_b0eea5b4: notebook
+  notebook_feature_flag_is_not_enabled_3472ede6: "notebook feature flag is not enabled"
   notes_5ef20d1: notes
   notes_6cfc3988: "Notes:"
   notes_c42e0fd5: Notes
@@ -27351,6 +27380,7 @@ en-AU:
   page_comments: 
     errors: 
       create_failed: "Comment creation failed"
+  page_content_c7203759: "Page content"
   page_content_is_sent_to_the_model_to_generate_stud_354ea807: "Page content is sent to the model to generate study materials."
   page_duration_7b562e65: "Page Duration"
   page_editor_9023aaa1: "Page Editor"
@@ -27565,6 +27595,7 @@ en-AU:
   pedagogical_activity_guidance_69492abb: "Pedagogical activity guidance"
   pedagogical_guidance_6195f27c: "Pedagogical Guidance"
   pedagogical_guidance_98e3902a: "Pedagogical guidance"
+  pedagogical_guidance_must_be_max_characters_or_few_fdef6839: "Pedagogical guidance must be %{max} characters or fewer"
   peer_632472b7: "Peer:"
   peer_comments_3c8f20a0: "Peer Comments"
   peer_peername_c4768f58: "Peer: %{peerName}"
@@ -28120,6 +28151,7 @@ en-AU:
   please_wait_while_we_upload_attachments_59544216: "Please wait while we upload attachments."
   please_wait_while_we_upload_attachments_and_media_c7e7221c: "Please wait while we upload attachments and media"
   please_wait_while_we_upload_attachments_fc34efd1: "Please wait while we upload attachments"
+  plugin_settings_can_only_be_modified_on_the_matchi_d896bce1: "Plugin settings can only be modified on the matching account or shard domain."
   plugins: 
     academic_benchmark_importer: 
       description: "This enables importing Academic Benchmark standards into Canvas."
@@ -31389,6 +31421,7 @@ en-AU:
   redirect_uris_79534b60: "* Redirect URIs:"
   redirect_uris_a54bd82f: "Redirect URIs:"
   redirect_uris_d5063b21: "Redirect URIs"
+  redirect_uris_must_match_exactly_including_casing__21e60f40: "Redirect URIs must match exactly, including casing, protocol, host, port, path, and query string. Up to %{max} redirect URIs are allowed per developer key."
   redirected_to_identity_provider_6c4e17d2: "Redirected to identity provider"
   redirecting_please_wait_3d280ed5: "Redirecting, please wait..."
   redo_363c58b7: Redo
@@ -33015,6 +33048,7 @@ en-AU:
   section_name_edb51b2: "section name"
   section_name_fa2b80d7: "Section Name:"
   section_name_inactive_36edffe6: "%{section_name} - Inactive"
+  section_name_is_not_part_of_this_course_4a386042: "Section \"%{name}\" is not part of this course."
   section_name_is_too_long_9cec2a30: "Section name is too long"
   section_pace_989d2856: "Section Pace"
   section_removed_2ac72a79: "%{section} removed"
@@ -34737,6 +34771,7 @@ en-AU:
   shows_instructure_provided_release_notes_in_the_he_8e2bf5ee: "Shows Instructure-provided release notes in the help menu for all users (filtered by user role)"
   shrink_permission_74b01aed: "Shrink %{permission}"
   shuffle_answers_edb602b7: "Shuffle Answers"
+  sidebar_panel_b7880429: "Sidebar panel"
   sighted_users_browse_web_pages_quickly_looking_for_ade806f5: "Sighted users browse web pages quickly, looking for large or bolded headings. Screen reader users rely on headers for contextual understanding. Headers should be concise within the proper structure."
   sighted_users_scan_web_pages_by_identifying_headin_3d8def25: "Sighted users scan web pages by identifying headings. Similarly, screen reader users rely on headings to quickly understand and navigate your content. If a heading is too long, it can be confusing to scan, harder to read aloud by assistive technology, and less effective for outlining your page."
   sighted_users_scan_web_pages_by_identifying_headin_d98efb16: "Sighted users scan web pages by identifying headings. Similarly, screen reader users rely on headings to quickly understand and navigate your content. If a heading is too long, it can be confusing to scan, harder to read aloud by assistive technology, and less effective for outlining your page. Keep headings short, specific, and meaningful, not full sentences or paragraphs."
@@ -35253,6 +35288,10 @@ en-AU:
   split_students_by_number_of_groups_5ace5a6a: "Split students by number of groups"
   split_students_into_groups_with_num_members_studen_c49d5136: "Split students into groups with %{num_members} students per group"
   split_students_into_num_groups_groups_e9854f16: "Split students into %{num_groups} groups"
+  splits_authentication_provider_management_out_of_a_2f4b7286: |-
+      Splits Authentication Provider management out of "Account Settings -
+      manage" into dedicated "Authentication Providers - manage" and
+      "Authentication Providers - read" permissions.
   splitscreen_entry_post_error_page_75be199e: "Splitscreen Entry Post Error Page"
   splitscreen_entry_query_error_9d3cebf9: "Splitscreen Entry query error"
   splitting_disabled_reached_maximum_of_three_assign_716acb13: "Splitting disabled: reached maximum of three assignment groups in a scoring range"
@@ -36443,6 +36482,7 @@ en-AU:
   template_account_not_found_7144542c: "Template account not found"
   template_name_fba74b9c: "Template Name"
   template_quick_look_734f92bc: "Template: Quick Look"
+  template_type_must_be_one_of_types_e98fbb5a: "template_type must be one of: %{types}"
   templates_4ca13d07: Templates
   temporarily_enroll_a_user_into_a_course_this_tempo_990488f8: "Temporarily enrol a user into a course. This temporary enrolment is paired up with another enrolment within the course."
   temporarily_enroll_name_8acb66ce: "Temporarily enrol %{name}"
@@ -36634,6 +36674,7 @@ en-AU:
   text_smaller_than_18pt_or_bold_14pt_should_display_aaffb22b: "Text smaller than 18pt (or bold 14pt) should display a minimum contrast ratio of 4.5:1."
   text_sms_4e2d82a7: "Text (SMS)"
   text_source_7eae4eb3: "Text source"
+  text_source_must_be_max_characters_or_fewer_4295957e: "Text source must be %{max} characters or fewer"
   text_submitted_to_canvas_1bd700c3: "Text submitted to Canvas"
   text_to_image_ratio_58c00217: "Text to image ratio"
   text_translated_to_language_8237c3: "Text Translated to %{language}"
@@ -36919,6 +36960,7 @@ en-AU:
     one: "The following outcome cannot be removed because it is aligned to content. Please unselect it and try again."
     other: "The following outcomes cannot be removed because they are aligned to content. Please unselect them and try again."
   the_following_recipients_have_no_active_enrollment_17395ab4: "The following recipients have no active enrolment in the course, %{invalid_recipients}, unable to send messages"
+  the_following_redirect_uris_have_been_automaticall_dd8b25a6: "The following redirect URIs have been automatically de-activated because they have not been used recently:"
   the_following_shards_set_policy_list_213c5d6d: "The following shards set %{policy}: %{list}"
   the_following_students_have_unsaved_changes_to_the_7762def7: |-
       The following students have unsaved changes to their quiz submissions: 
@@ -36961,6 +37003,7 @@ en-AU:
   the_import_failed_for_the_following_file_s_74d21316: "The import failed for the following file(s):"
   the_imported_question_text_for_this_question_was_t_83b4e6fb: "The imported question text for this question was too long."
   the_importer_will_be_migrating_from_api_v3_to_v4_1_e7550082: "The importer will be migrating from API v3 to v4.1. Credentials will not change, but you should ensure your account has access to v4.1 by February 2021."
+  the_information_you_entered_wasn_t_accepted_update_b5fec985: "The information you entered wasn't accepted. Update these fields to save your changes."
   the_institution_you_logged_in_from_is_not_configur_5ceac41: "The institution you logged in from is not configured on this account."
   the_intention_is_to_expand_this_scope_as_the_smart_80a6ff62: "The intention is to expand this scope as the Smart Search tool continues development."
   the_jwks_uri_provides_the_public_keys_used_to_veri_d21dc032: |-
@@ -37467,6 +37510,7 @@ en-AU:
   these_options_are_hidden_until_a_user_expands_the__e37e94af: "These options are hidden until a user expands the “More sign in options” section on the login page."
   these_permissions_control_the_ability_to_create_ed_d4d043b7: "These permissions control the ability to create, edit, and delete differentiation tags."
   these_permissions_control_the_ability_to_manage_au_ca7062: "These permissions control the ability to manage automation rules on the account."
+  these_permissions_control_the_ability_to_manage_cu_8e4b6d0d: "These permissions control the ability to manage customisable learner dashboards on the account."
   these_permissions_control_the_ability_to_view_crea_45a186b6: "These permissions control the ability to view, create, and edit institutional tags."
   these_permissions_do_not_manage_discussions_discus_79defb66: "These permissions do not manage Discussions. Discussions are managed via individual Discussion permissions."
   these_pronouns_will_appear_after_your_name_when_sh_6b7ff5b2: "These pronouns will appear after your name when shown in the UI"
@@ -38022,6 +38066,7 @@ en-AU:
   this_rule_conflicts_with_rule_rule_text_enforcemen_22db46ad: "This rule conflicts with rule \"%{rule_text}\" (%{enforcement})"
   this_sample_page_includes_common_ui_elements_in_ca_331f4ac4: "This sample page includes common UI elements in Canvas to help you build your custom branding. Once you start making changes to the colour values and images in the left sidebar, you will see a *Preview Your Changes* button. Click it to refresh this page and see how your changes look."
   this_sample_page_includes_common_ui_elements_in_ca_ef71449d: "This sample page includes common UI elements in Canvas to help you build your custom branding. Once you start making changes to colour values and images, you will see a *Preview Your Changes* button. Click it to refresh this page and see how your changes look."
+  this_section_group_or_user_is_already_assigned_mor_9f7754dd: "This section, group, or user is already assigned more than once. Remove the duplicate before saving."
   this_section_pace_will_be_removed_and_the_pace_wil_86093c26: "This section pace will be removed and the pace will revert back to the default pace."
   this_setting_allows_the_admin_to_brand_or_label_al_978c6710: "This setting allows the Admin to brand or label all the \"From\" text on all notifications sent from Canvas for this Account."
   this_setting_defines_the_initial_sort_order_studen_1d20b5b0: "This setting defines the initial sort order. Students can set their preference. After they change it, future default updates won't alter their settings unless locked."
@@ -38612,6 +38657,7 @@ en-AU:
       To enable back channel logout, configure the provider's `backchannel_logout_uri`
       to use %{backchannel_logout_uri}, and preferably set
       `backchannel_logout_session_required` to `true` if the provider supports it.
+  to_configure_the_account_s_multi_factor_authentica_2f4f21c9: "To configure the account's Multi-Factor Authentication policy, Account - Multi-Factor Authentication must also be enabled."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_5c6d93e4: "to create a link you can use in Canvas. You’ll need to sign-up for a Zoom account if you don’t already have one."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_7dd85497: "to create a link you can use in Canvas. You’ll need a Google account to use Google Meet."
   to_create_a_new_course_to_use_as_a_course_template_9e7e2c6c: "To create a new course to use as a course template, Manage Courses - add must also be enabled."
@@ -38877,6 +38923,7 @@ en-AU:
   to_remove_a_user_via_sis_id_sis_data_manage_must_a_5d0f4839: "To remove a user via SIS ID, SIS Data - manage must also be enabled."
   to_reply_to_a_discussion_discussions_post_must_als_c9654a9b: "To reply to a discussion, Discussions - post must also be enabled."
   to_reply_to_a_discussion_discussions_post_must_be__a4cf502a: "To reply to a discussion, Discussions - post must be enabled."
+  to_reset_a_specific_user_s_multi_factor_authentica_324991e: "To reset a specific user's Multi-Factor Authentication enrolment, Reset Multi-Factor Authentication must also be enabled."
   to_restore_a_deleted_course_courses_delete_courses_83c7e64f: "To restore a deleted course, Courses - delete, Courses - undelete, and Course Content - view must also be enabled."
   to_restore_a_deleted_course_courses_undelete_and_c_dc2d0470: "To restore a deleted course, Courses - undelete​ and Course Content - view must also both be enabled."
   to_restore_a_deleted_course_in_an_account_manage_c_3ad933ee: "To restore a deleted course in an account, Manage Courses - delete and Course Content - view must also be enabled."
@@ -40268,6 +40315,7 @@ en-AU:
   user_access_report_ddbedbfe: "User Access Report"
   user_access_report_prospect_education_6bf448c: "User Access Report - Prospect Education"
   user_access_tokens_title: "User Access Tokens"
+  user_account_inherited_db3af3fa: "User (Account-Inherited)"
   user_agent_585ccbc7: "User Agent"
   user_avatars_e4fc4ed3: "User Avatars"
   user_c95de254: User
@@ -40309,6 +40357,7 @@ en-AU:
   user_is_from_unacceptable_domain_domain_b4b6fd1b: "User is from unacceptable domain %{domain}."
   user_is_from_unacceptable_issuer_issuer_6a87cafa: "User is from unacceptable issuer %{issuer}."
   user_is_from_unacceptable_tenant_tenant_f4cb522: "User is from unacceptable tenant %{tenant}."
+  user_is_not_a_student_of_this_course_d41a2aaa: "User is not a student of this course"
   user_is_now_group_leader_60ec9b98: "%{user} is now group leader."
   user_isn_t_allowed_to_edit_global_outcomes_a7eb4a87: "User isn't allowed to edit global outcomes"
   user_just_accepted_their_invitation_to_participate_7a4b2ce4: "%{user} just accepted their invitation to participate in the course, %{course}. Course role: %{role_type}"
