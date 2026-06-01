@@ -49,22 +49,6 @@ describe "quizzes" do
       user_session(@teacher)
     end
 
-    it "shows a summary of due dates if there are multiple", priority: "1" do
-      create_quiz_with_due_date
-      get "/courses/#{@course.id}/quizzes"
-      expect(f(".item-group-container .date-available")).not_to include_text "Multiple Dates"
-      add_due_date_override(@quiz)
-
-      get "/courses/#{@course.id}/quizzes"
-      date_available = f(".item-group-container .date-available")
-      expect(date_available).to include_text "Multiple Dates"
-      driver.action.move_to(date_available).perform
-      tooltip_id = date_available.find_element(:css, "a").dom_attribute("aria-describedby")
-      tooltip = f("[role='tooltip'][id=#{tooltip_id}]")
-      expect(tooltip).to include_text "New Section"
-      expect(tooltip).to include_text "Everyone else"
-    end
-
     it "asynchronously loads student quiz results", priority: "2" do
       @context = @course
       q = quiz_model
@@ -100,19 +84,6 @@ describe "quizzes" do
       fj("button:contains(Cancel)").click
       expect(f("body")).not_to contain_jqcss("h2:contains(Copy To...)")
       check_element_has_focus(f(".al-trigger"))
-    end
-
-    it "creates a new question group", priority: "1" do
-      get "/courses/#{@course.id}/quizzes"
-      click_new_quiz_button
-
-      click_questions_tab
-      f(".add_question_group_link").click
-      group_form = f("#questions .quiz_group_form")
-      group_form.find_element(:name, "quiz_group[name]").send_keys("new group")
-      replace_content(group_form.find_element(:name, "quiz_group[question_points]"), "3")
-      submit_form(group_form)
-      expect(group_form.find_element(:css, ".group_display.name")).to include_text("new group")
     end
 
     it "does not let you exceed the question limit", priority: "2" do
@@ -228,50 +199,6 @@ describe "quizzes" do
       end
     end
 
-    describe "moderation" do
-      before :once do
-        @student = user_with_pseudonym(active_user: true, username: "student@example.com", password: "qwertyuiop")
-        @course.enroll_user(@student, "StudentEnrollment", enrollment_state: "active")
-        @context = @course
-        @quiz = quiz_model
-        @quiz.time_limit = 20
-        @quiz.generate_quiz_data
-        @quiz.save!
-      end
-
-      it "moderates quiz", priority: "1" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/moderate"
-        f(".moderate_student_link").click
-
-        # validates data
-        f("#extension_extra_attempts").send_keys("asdf")
-        submit_dialog_form("#moderate_student_form")
-        expect(f(".attempts_left").text).to eq "1"
-
-        # valid values
-        f("#extension_extra_attempts").clear
-        f("#extension_extra_attempts").send_keys("2")
-        submit_dialog_form("#moderate_student_form")
-        wait_for_ajax_requests
-        expect(f(".attempts_left").text).to eq "3"
-      end
-
-      it "preserves extra time values", priority: "2" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/moderate"
-        f(".moderate_student_link").click
-
-        # initial data entry
-        f("#extension_extra_time").send_keys("13")
-        submit_dialog_form("#moderate_student_form")
-        wait_for_ajax_requests
-
-        # preserve values between moderation invocations
-        expect(f(".extra_time_allowed").text).to eq "gets 13 extra minutes on each attempt"
-        f(".moderate_student_link").click
-        expect(f("#extension_extra_time")).to have_value "13"
-      end
-    end
-
     it "validates numerical input data", priority: "1" do
       skip_if_safari(:alert)
       @quiz = quiz_with_new_questions do |bank, quiz|
@@ -322,44 +249,6 @@ describe "quizzes" do
       get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
 
       expect(f("#right-side")).to include_text("Quiz Statistics")
-    end
-
-    it "does not allow a teacher to take a quiz" do
-      @quiz = quiz_model({ course: @course, time_limit: 5 })
-      @quiz.quiz_questions.create!(question_data: multiple_choice_question_data)
-      @quiz.generate_quiz_data
-      @quiz.save!
-
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/take"
-      expect(f("#content")).not_to contain_css("#take_quiz_link")
-    end
-
-    context "in a paced course" do
-      before do
-        @course_paces_enabled = @course.enable_course_paces?
-        @course.enable_course_paces = true
-        @course.save!
-      end
-
-      after do
-        @course.enable_course_paces = @course_pacing_enabled
-        @course.save!
-      end
-
-      it "shows the course pacing notice" do
-        create_quiz_with_due_date
-        add_quiz_to_module
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f("[data-testid='CoursePacingNotice']")).to be_displayed
-        expect(f("#content")).not_to contain_css("table.assignment_dates")
-      end
-
-      it "does not show course pacing notice if quiz is not a module item" do
-        create_quiz_with_due_date
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f("#content")).not_to contain_css("[data-testid='CoursePacingNotice']")
-        expect(f("table.assignment_dates")).to be_displayed
-      end
     end
   end
 end

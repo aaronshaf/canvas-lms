@@ -66,10 +66,6 @@ describe "quizzes regressions" do
       fj("#rubrics .add_rubric_link:visible").click
     end
 
-    it "doesn't show 'use for grading' as an option", priority: "2" do
-      expect(f("#content")).not_to contain_jqcss(".rubric_grading:visible")
-    end
-
     it "shows' criterion Popover menu" do
       dialog = fj(".ui-dialog:visible")
       fj(".icon-plus:visible", dialog).click

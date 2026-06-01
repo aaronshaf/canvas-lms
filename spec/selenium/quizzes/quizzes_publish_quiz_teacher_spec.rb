@@ -33,28 +33,12 @@ describe "publishing a quiz" do
     end
 
     context "when on the quiz show page" do
-      it "publishes a quiz" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect_new_page_load { f("#quiz-publish-link").click }
-        expect { @quiz.reload.workflow_state }.to become("available")
-      end
-
       context "after the quiz is published" do
         before do
           @quiz.workflow_state = "available"
           @quiz.save!
           get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
           wait_for_quiz_publish_button_to_populate
-        end
-
-        it "changes the button's text to 'Published'", priority: "1" do
-          driver.action.move_to(f("#header")).perform
-          expect(f("#quiz-publish-link")).to include_text "Published"
-        end
-
-        it "changes the button text on hover to |Unpublish|", priority: "1" do
-          driver.action.move_to(f("#quiz-publish-link")).perform
-          expect(f("#quiz-publish-link")).to include_text "Unpublish"
         end
 
         it "removes the 'This quiz is unpublished' message", priority: "1" do

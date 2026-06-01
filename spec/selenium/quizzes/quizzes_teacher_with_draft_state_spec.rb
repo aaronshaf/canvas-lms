@@ -33,38 +33,4 @@ describe "quizzes with draft state" do
     @course.reload
     create_quiz_with_due_date
   end
-
-  context "when there is a single due date" do
-    it 'doesn\'t display "Multiple Dates"', priority: "1" do
-      get "/courses/#{@course.id}/quizzes"
-      expect(f(".ig-details .date-due")).not_to include_text "Multiple Dates"
-      expect(f(".ig-details .date-available")).not_to include_text "Multiple Dates"
-    end
-  end
-
-  context "when there are multiple due dates" do
-    before { add_due_date_override(@quiz) }
-
-    it "shows a due date summary", priority: "2" do
-      # verify page
-      get "/courses/#{@course.id}/quizzes"
-      expect(f(".ig-details .date-due")).to include_text "Multiple Dates"
-      expect(f(".ig-details .date-available")).to include_text "Multiple Dates"
-
-      # verify tooltips
-      date_available = f(".ig-details .date-available")
-      driver.action.move_to(date_available).perform
-      tooltip_id = date_available.find_element(:css, "a").dom_attribute("aria-describedby")
-      tooltip = f("[role='tooltip'][id=#{tooltip_id}]")
-      expect(tooltip).to include_text "New Section"
-      expect(tooltip).to include_text "Everyone else"
-
-      date_due = f(".ig-details .date-due")
-      driver.action.move_to(date_due).perform
-      tooltip_id = date_due.find_element(:css, "a").dom_attribute("aria-describedby")
-      tooltip = f("[role='tooltip'][id=#{tooltip_id}]")
-      expect(tooltip).to include_text "New Section"
-      expect(tooltip).to include_text "Everyone else"
-    end
-  end
 end

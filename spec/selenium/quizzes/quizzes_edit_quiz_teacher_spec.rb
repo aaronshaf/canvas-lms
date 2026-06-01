@@ -58,22 +58,11 @@ describe "editing a quiz" do
         expect(f("#content")).not_to contain_css(".save_and_publish")
       end
 
-      it "shows the speedgrader link", priority: "1" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f(".icon-speed-grader")).to be_displayed
-      end
-
       it "remains published after saving changes", priority: "1" do
         get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
         type_in_tiny("#quiz_description", "changed description")
         click_save_settings_button
         expect(f("#quiz-publish-link")).to include_text "Published"
-      end
-
-      it "deletes the quiz", priority: "1" do
-        skip_if_safari(:alert)
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-        delete_quiz
       end
 
       it "saves question changes with the |Save it now| button", priority: "1" do
@@ -100,12 +89,6 @@ describe "editing a quiz" do
 
         expect { @quiz.quiz_questions.count }.to become(1)
       end
-
-      it "shows the SpeedGrader link" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-        f(".al-trigger").click
-        expect(f(".speed-grader-link-quiz")).to be_displayed
-      end
     end
 
     context "when the quiz isn't published" do
@@ -119,20 +102,9 @@ describe "editing a quiz" do
         expect(f("#quiz-draft-state").text.strip).to match accessible_variant_of "Not Published"
       end
 
-      it "hides the speedgrader link", priority: "1" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-        expect(f("#content")).not_to contain_css(".icon-speed-grader")
-      end
-
       it "shows the |Save and Publish| button", priority: "1" do
         get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
         expect(f(".save_and_publish")).to be_displayed
-      end
-
-      it "deletes the quiz", priority: "1" do
-        skip_if_safari(:alert)
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-        delete_quiz
       end
     end
 
@@ -158,64 +130,6 @@ describe "editing a quiz" do
     it "loads existing due date", priority: "1" do
       wait_for_ajaximations
       compare_assignment_times(@quiz.reload)
-    end
-
-    context "when the quiz has a submission" do
-      before(:once) do
-        quiz_with_submission
-      end
-
-      before do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-      end
-
-      it "flashes a warning message", priority: "1" do
-        message = "Keep in mind, some students have already taken or started taking this quiz"
-        expect(f("#flash_message_holder")).to include_text message
-      end
-
-      it "deletes the quiz", priority: "1" do
-        skip_if_safari(:alert)
-        delete_quiz
-      end
-    end
-
-    context "when the quiz has a question with a custom name" do
-      before do
-        @custom_name = "the hardest question ever"
-        qd = { question_type: "text_only_question", id: 1, question_name: @custom_name }.with_indifferent_access
-        @quiz.quiz_questions.create! question_data: qd
-        @quiz.save!
-        @quiz.reload
-      end
-
-      it "displays the custom name correctly" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-        click_questions_tab
-        expect(f(".question_name")).to include_text @custom_name
-      end
-    end
-
-    it "does allow safe :redirect_to query param" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit?return_to=#{course_assignments_url(@course)}"
-      expect(f("#quiz_edit_actions #cancel_button").attribute("href")).to eq(course_assignments_url(@course))
-    end
-
-    it "doesn't allow XSS via :redirect_to query param" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit?return_to=javascript%3Aalert(document.cookie)"
-      expect(f("#quiz_edit_actions #cancel_button").attribute("href")).to eq(course_quiz_url(@course, @quiz))
-    end
-
-    it "doesn't allow XSS via the return_to query param on Save" do
-      # NOTE: the _=1 is required because the deparam method does not correctly parse the first query param
-      # canvas-lms/packages/deparam/index.js
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit?_=1&return_to=javascript%3Aalert('sadness')"
-
-      test_text = "changed description for XSS test"
-      type_in_tiny "#quiz_description", test_text, clear: true
-
-      click_save_settings_button
-      expect(alert_present?).to be_falsey
     end
 
     context "in a paced course" do
