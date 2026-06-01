@@ -61,7 +61,7 @@
       <% if @user_data[:can_edit] && !can_do(@domain_root_account, @current_user, :manage) %>
         <button data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t('edit_profile', 'Edit Profile') %></button>
         <button data-event="cancelEditProfile" class="show-if-editing Button">
-          <% if !inst_env_feature_enabled %>
+          <% unless inst_env_feature_enabled %>
             <i class="icon-edit"></i>
           <% end %>
           <%= t('cancel_editing', 'Cancel Editing') %></button>

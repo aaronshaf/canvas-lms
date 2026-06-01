@@ -632,7 +632,7 @@
               %>
             <% end %>
           </span>
-          <% if !@context.elementary_homeroom_course? %>
+          <% unless @context.elementary_homeroom_course? %>
             <div class="course_form_more_options" style="padding-<%= direction('left') %>: 20px;">
               <% if @context.self_enrollment_allowed? %>
                 <div class="checkbox-flex-container">

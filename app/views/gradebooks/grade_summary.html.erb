@@ -96,7 +96,7 @@
           <%= t("Grades for %{student}", student: @presenter.student_name) %>
         </h1>
       <% end %>
-      <% if !@use_responsive_design %>
+      <% unless @use_responsive_design %>
         <div class="col-xs-6" ></div>
       <% end %>
     </div>
@@ -309,7 +309,7 @@
                 </td>
                 <td class="asset_processors_cell" data-assignment-id="<%= assignment.id %>" data-submission-id="<%= submission&.id %>" data-assignment-name="<%= assignment.title %>"></td>
                 <td class="details">
-                  <% if !assignment.special_class %>
+                  <% unless assignment.special_class %>
                   <a href="#"
                       class="toggle_final_grade_info tooltip"
                       aria-label="<%= t('This assignment does not count toward the final grade.') %>"

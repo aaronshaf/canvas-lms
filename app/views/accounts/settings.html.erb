@@ -149,7 +149,7 @@
               </td>
             </tr>
             <% end %>
-            <% if !@account.site_admin? %>
+            <% unless @account.site_admin? %>
               <%= f.fields_for :settings do |settings| %>
                 <%= settings.fields_for :default_due_time do |ddt| %>
                   <tr>
@@ -559,7 +559,7 @@
                   </div>
                 </div>
               <% end %>
-              <% if !@account.site_admin?  %>
+              <% unless @account.site_admin?  %>
                 <%= settings.check_box :can_add_pronouns, checked: @account.settings[:can_add_pronouns], class: "element_toggler", "aria-controls": "personal_pronouns_options" %>
                 <%= settings.label :can_add_pronouns, en: "Enable Personal Pronouns" %>
                 <div id="personal_pronouns_options" <%= hidden(include_style: true) unless @account.settings[:can_add_pronouns] %>>
@@ -720,7 +720,7 @@
               </div>
             </div>
 
-            <% if !@account.site_admin? %>
+            <% unless @account.site_admin? %>
               <div>
                 <% diff_tags = @account.allow_assign_to_differentiation_tags %>
                 <% disabled = diff_tags[:locked] && diff_tags[:inherited] %>
@@ -780,7 +780,7 @@
                     <%= settings.label :enable_eportfolios, en: "ePortfolios" %>
                   </div>
 
-                  <% if !@account.feature_enabled?(:new_sis_integrations) %>
+                  <% unless @account.feature_enabled?(:new_sis_integrations) %>
                     <div id="old_sis_integrations">
                       <%= f.check_box :allow_sis_import, checked: @account.allow_sis_import %>
                       <%= f.label :allow_sis_import, t("SIS imports") %>
@@ -1437,7 +1437,7 @@ acknowledge that you have read and agreed to the
 
         </div>
 
-        <% if !@account.site_admin? %>
+        <% unless @account.site_admin? %>
           <div class="ic-Form-control ic-Form-control--checkbox">
             <%= f.check_box :send_message, id: "account_notification_send_message" %>
             <%= f.label :send_message, t("Send notification directly to users when announcement starts"), class: "ic-Label" %>

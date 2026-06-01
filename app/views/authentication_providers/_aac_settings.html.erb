@@ -35,7 +35,7 @@
       <%= f.hidden_field :id, id: nil %>
       <fieldset <%= 'disabled' unless can_manage %> style="display: contents;">
         <h3><%= aac.class.display_name %></h3>
-        <% if !aac.new_record? %>
+        <% unless aac.new_record? %>
           <p><%= mt "You can log in directly with this provider by going to %{url}",
                     url: url_for(presenter.login_url_options(aac)) %></p>
         <% end %>

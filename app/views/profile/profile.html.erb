@@ -190,7 +190,7 @@
       </td>
     </tr>
   <% end %>
-  <% if !@password_pseudonyms.empty? %>
+  <% unless @password_pseudonyms.empty? %>
   <tr class="edit_data_row select_change_password_row" style="display: none;">
     <th scope="row"><%= before_label(:password, "Password") %></th>
     <td><label for="change_password_checkbox" class="checkbox"><input type="checkbox" id="change_password_checkbox" name="pseudonym[change_password]" value="1"/><%= t('labels.change_password', "Change Password") %></label></td>

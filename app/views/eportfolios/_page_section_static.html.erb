@@ -69,7 +69,7 @@
             <% rendered = true %>
           <% end %>
         <% end %>
-        <% if !rendered %>
+        <% unless rendered %>
           <%= t(:not_rendered, "There used to be a submission here, but we couldn't find it or didn't support the submission type for exporting.") %>
         <% end %>
       <% end %>

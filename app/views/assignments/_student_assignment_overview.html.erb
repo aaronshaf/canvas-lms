@@ -33,7 +33,7 @@
           </span><!--
         --></span>
   </li>
-  <% if !@assignment.restrict_quantitative_data?(@current_user) %>
+  <% unless @assignment.restrict_quantitative_data?(@current_user) %>
     <li>
       <span class='title'><%= t :points, 'Points' %></span>
       <span class='value'><%= n(round_if_whole(@assignment.points_possible)) || t(:no_points, 'None') %></span>

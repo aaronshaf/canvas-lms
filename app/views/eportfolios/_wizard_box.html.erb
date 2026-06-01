@@ -78,7 +78,7 @@
           </div>
         </div>
       </li>
-      <% if !@owner_view %>
+      <% unless @owner_view %>
         <li class="option edit_step">
           <a href="#" class="header"><%= t('headers.page_content', "Page Content") %></a>
           <div class="details" style="display: none;">

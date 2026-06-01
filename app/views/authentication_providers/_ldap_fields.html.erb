@@ -102,7 +102,7 @@
   <%= f.check_box :verify_tls_cert_opt_in, class: 'verify_tls_cert_opt_in_checkbox', disabled: aac.account.feature_enabled?(:verify_ldap_certs), checked: aac.account.feature_enabled?(:verify_ldap_certs) || aac.verify_tls_cert_opt_in, id: "verify_tls_cert_opt_in_#{presenter.id_suffix(aac)}" %>
 
   <!-- Only show help text if verification isn't forced on -->
-  <% if !aac.account.feature_enabled?(:verify_ldap_certs) %>
+  <% unless aac.account.feature_enabled?(:verify_ldap_certs) %>
     <% if Setting.get("ldap_validate_tls_cert_help_text_format", nil) == 'undated' %>
       <div class="ic-Form-help-text ldap-verify-tls-cert-opt-in-help-text">
         <%= t(:verify_tls_cert_opt_in_undated_description, "TLS certificate verification will be required soon, but you may enable it early to ensure your LDAP server is compliant.") %>

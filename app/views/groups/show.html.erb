@@ -22,7 +22,7 @@
 <%  set_active_tab "home" %>
 
 <% provide :right_side do %>
-  <% if !@domain_root_account.feature_enabled?(:instui_nav) %>
+  <% unless @domain_root_account.feature_enabled?(:instui_nav) %>
     <% if can_do(@context, @current_user, :update) %>
       <div>
         <a href="#" id="edit_group" title="Edit Group" class="Button button-sidebar-wide">

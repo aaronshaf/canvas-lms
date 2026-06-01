@@ -65,7 +65,7 @@
             aria-label="<%= t("Other Calendars toggle list visibility") %>" tabindex="0">
             <i class="icon-mini-arrow-down auto_rotate"></i> <%= t(:other_calendars, "Other Calendars") %>
           </span>
-          <% if !@account_calendar_events_seen %>
+          <% unless @account_calendar_events_seen %>
           <div class="new-feature-pill"><%= t("New") %></div>
           <% end %>
         </h2>

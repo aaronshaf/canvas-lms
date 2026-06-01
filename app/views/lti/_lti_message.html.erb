@@ -43,7 +43,7 @@
 <% end %>
 
 <%= render partial: "lti/launch_iframe" %>
-<% if !Rubric.enhanced_rubrics_assignments_enabled?(@context) %>
+<% unless Rubric.enhanced_rubrics_assignments_enabled?(@context) %>
   <% js_bundle :edit_rubric %>
 <% end %>
 

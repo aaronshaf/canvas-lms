@@ -18,7 +18,7 @@
 <% current_or_submission = @current_submission || @submission %>
 <% submission_location_tag = "quiz_submission_#{current_or_submission[:id]}" %>
 <div class="quiz-submission <%= "headless" unless @headers %>">
-<% if !current_or_submission.results_visible?(user: @current_user)%>
+<% unless current_or_submission.results_visible?(user: @current_user)%>
   <h4><%= render_result_protection(@quiz, current_or_submission) %></h4>
 <% end %>
 
@@ -194,7 +194,7 @@
   </div>
 <% end %>
 
-<% if !editable %>
+<% unless editable %>
 <div class="quiz_score" style="text-align: <%= direction('right') %>; font-size: 1.2em; <%= hidden if @quiz.ungraded? %>">
   <% if @quiz.survey? %>
     <%= before_label(:survey_score, "Survey Score") %>

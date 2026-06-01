@@ -25,7 +25,7 @@
     notification that a new comment was added.
     TEXT
   %></p>
-  <% if !@failures.empty? %>
+  <% unless @failures.empty? %>
     <p><%= t(:failures, <<~TEXT)
       There were some files we didn't know what to do with. They have not been
       added to anyone's submission page. You can see the list to the left.

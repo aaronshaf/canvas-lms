@@ -49,7 +49,7 @@
           <span class="description description_title"><%= description %></span>
           <span class="learning_outcome_id" style="display: none;"><%= learning_outcome_criterion %></span>
           <span class="criterion_id" style="display: none;"><%= criterion.try(:id) %></span>
-          <% if !assessing %>
+          <% unless assessing %>
             <div class="long_description small_description">
               <%#
                 Note to future code spelunkers:
@@ -78,7 +78,7 @@
       </div>
 
       <div class="links editing">
-        <% if !learning_outcome_criterion %>
+        <% unless learning_outcome_criterion %>
           <a href="#" class="edit_criterion_link" role="button"><i class="icon-edit standalone-icon"></i><span class="screenreader-only"><%= t 'Edit criterion description' %></span></a>
         <% end %>
         <% if should_show_delete || rubric.nil? %>
@@ -142,7 +142,7 @@
                   <span class="rating_long_description small_description"><%= rating.long_description %></span>
                 </span>
                 <span class="rating_id" style="display: none;"><%= rating&.id %></span>
-                <% if !learning_outcome_criterion %>
+                <% unless learning_outcome_criterion %>
                   <div class="editing links">
                     <a href="#" class="edit_rating_link" role="button" aria-label="<%= t 'Edit rating' %>">
                       <i class="icon-edit standalone-icon" aria-hidden="true"></i>

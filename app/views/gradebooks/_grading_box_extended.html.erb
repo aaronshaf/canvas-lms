@@ -21,7 +21,7 @@
 %>
 
 <label class="bold" for="grading-box-extended">
-  <% if !assignment.has_sub_assignments? %>
+  <% unless assignment.has_sub_assignments? %>
     <div id="grading-box-points-possible">
       <%= t('labels.grade', "Grade") %>
       <% if assignment.grading_type == 'points' %>

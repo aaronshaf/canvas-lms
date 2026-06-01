@@ -73,7 +73,7 @@
     </div>
   </div>
   <div id="collaborate_authorize_google_docs" class="collaboration_authorization" style="display: none;">
-    <% if !@user_has_google_drive %>
+    <% unless @user_has_google_drive %>
       <%= t '#instructions.authorize_google_drive', "Before you can collaborate on documents, you need to authorize Canvas
               to access your Google Drive account:" %>
       <div class="button-container">

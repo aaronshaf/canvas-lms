@@ -169,7 +169,7 @@
         <%end%>
         <% show_peer_review_info = !@is_student && module_item && module_item.content_type == 'Assignment' && module_item.content&.peer_reviews? && module_item.content.peer_review_sub_assignment && @context.feature_enabled?(:peer_review_allocation_and_grading) %>
         <% render_peer_review_container = !@is_student && @context.feature_enabled?(:peer_review_allocation_and_grading) && (!module_item || (module_item.content_type == 'Assignment' && module_item.content&.peer_review_sub_assignment)) %>
-        <% if !show_peer_review_info %>
+        <% unless show_peer_review_info %>
           <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-due-date" class="due_date_display ig-details__item"></div>
           <% if (!module_item && !@is_student) || (module_item&.graded? && !module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true))%>
             <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-points" class="points_possible_display ig-details__item"></div>
@@ -252,7 +252,7 @@
       <% else %>
         </div>
       <% end %>
-    <% if !@can_view %>
+    <% unless @can_view %>
       <div class="module-item-status-icon"></div> <%# going to set this in JS-land, not here %>
     <% end %>
     <% if @can_view || module_item.nil? || (can_direct_share && module_item.direct_shareable?) %>

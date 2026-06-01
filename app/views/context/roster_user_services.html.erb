@@ -116,7 +116,7 @@
     <% end %>
   </li>
 <% end %>
-<% if !@current_user_services[service_type] %>
+<% unless @current_user_services[service_type] %>
   <li class="current_user">
     <% if UserService.registration_url(service_type) %>
       <a href="<%= UserService.registration_url(service_type) %>"><%= t('links.sign_up_for_service', %{Sign Up}) %></a>

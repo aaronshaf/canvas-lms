@@ -21,7 +21,7 @@
 <div class="grading_standard" id="grading_standard_<%= grading_standard&.id ? grading_standard.id : 'blank' %>">
   <div class="display_grading_standard">
     <div class="standard_title text-center">
-      <% if !read_only %>
+      <% unless read_only %>
       <div style="float: <%= direction('right') %>;" class="displaying links">
         <a href="#"
            class="find_grading_standard_link no-hover"
@@ -186,7 +186,7 @@
       </tr>
     </table>
     <div class="displaying" style="text-align: <%= direction('right') %>;">
-      <% if !read_only %>
+      <% unless read_only %>
         <a href="<%= context_url(@context, :context_grading_standards_url) %>"><%= t('managing_grading_standards', 'manage grading schemes') %></a>
       <% end %>
       <button type="button" class="done_button btn"><%= t('buttons.done', 'Done') %></button>

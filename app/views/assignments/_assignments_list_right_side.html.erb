@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
-<% if !can_do(@context, @current_user, :participate_as_student) %>
+<% unless can_do(@context, @current_user, :participate_as_student) %>
   <%= render partial: "shared/event_list",
              object: @upcoming_assignments,
              locals: {

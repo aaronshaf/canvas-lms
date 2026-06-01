@@ -16,7 +16,7 @@
 
 <p><%= t :body, "A course, %{course}, has been added for the account %{account}", course: asset.name, account: asset.root_account.name %></p>
 
-<% if !asset.teachers.empty? %>
+<% unless asset.teachers.empty? %>
   <p>
     <strong><%= before_label :teachers, "Teachers" %></strong>
     <ul style="padding: 0; list-style: none;">

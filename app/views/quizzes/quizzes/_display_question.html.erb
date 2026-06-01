@@ -417,7 +417,7 @@
       <div class="after_answers">
         <% if question && hash_get(question, :question_type) == 'matching_question' && !assessing && ((@quiz && display_correct_answers) || (!user_answer && !assessment_results)) && !@quiz.try(:survey?) %>
           <% other_matches = (hash_get(question, :matches) || hash_get(question, :answers, [])).reject{|a| hash_get(question, :answers, []).map{|an| hash_get(an, :match_id) }.include?(hash_get(a, :match_id)) } %>
-          <% if !other_matches.empty? %>
+          <% unless other_matches.empty? %>
             <%= t('Other Incorrect Match Options:') %>
             <ul class="matching_answer_incorrect_matches_list">
             <% other_matches.each do |match| %>
