@@ -87,6 +87,23 @@ describe Quizzes::QuizGroupsController, type: :request do
       expect(json["errors"]).to have_key "question_points"
       expect(new_quiz_group).to be_nil
     end
+
+    it "returns the group name and linked assessment_question_bank_id in the response when linking to a bank" do
+      json = api_create_quiz_group("name" => "New Question Group", "assessment_question_bank_id" => @bank.id)
+      group = json["quiz_groups"].first
+      expect(group["name"]).to eq "New Question Group"
+      expect(group["assessment_question_bank_id"]).to eq @bank.id
+    end
+
+    it "persists the group name and assessment_question_bank_id after creation when fetched via index" do
+      api_create_quiz_group("name" => "New Question Group", "assessment_question_bank_id" => @bank.id)
+      res = api_call(:get,
+                     "/api/v1/courses/#{@course.id}/quizzes/#{@quiz.id}/groups",
+                     { controller: "quizzes/quiz_groups", action: "index", format: "json", course_id: @course.id.to_s, quiz_id: @quiz.id.to_s })
+      created = res["quiz_groups"].find { |g| g["name"] == "New Question Group" }
+      expect(created).not_to be_nil
+      expect(created["assessment_question_bank_id"]).to eq @bank.id
+    end
   end
 
   describe "PUT /api/v1/courses/:course_id/quizzes/:quiz_id/groups/:id (update)" do

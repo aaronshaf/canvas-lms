@@ -96,6 +96,41 @@ describe Quizzes::QuizExtensionsController, type: :request do
         expect(res["quiz_extensions"][0]["extra_attempts"]).to eq 2
         expect(res["quiz_extensions"][1]["extra_attempts"]).to eq 3
       end
+
+      it "coerces a non-numeric extra_attempts string to zero rather than rejecting the request" do
+        # Arrange: quiz defaults to allowed_attempts = 1, student has no prior submission
+
+        # Act
+        quiz_extension_params = [
+          { user_id: @student1.id, extra_attempts: "asdf" }
+        ]
+        res = api_create_quiz_extension(quiz_extension_params)
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(res["quiz_extensions"][0]["extra_attempts"]).to eq 0
+        submission = @quiz.quiz_submissions.where(user_id: @student1.id).first
+        expect(submission.extra_attempts).to eq 0
+        expect(submission.attempts_left).to eq 1
+      end
+
+      it "increases attempts_left by the extra_attempts added on top of the quiz's allowed_attempts" do
+        # Arrange
+        @quiz.update!(allowed_attempts: 1)
+
+        # Act
+        quiz_extension_params = [
+          { user_id: @student1.id, extra_attempts: 2 }
+        ]
+        res = api_create_quiz_extension(quiz_extension_params)
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(res["quiz_extensions"][0]["extra_attempts"]).to eq 2
+        submission = @quiz.quiz_submissions.where(user_id: @student1.id).first
+        expect(submission.extra_attempts).to eq 2
+        expect(submission.attempts_left).to eq 3
+      end
     end
   end
 end
