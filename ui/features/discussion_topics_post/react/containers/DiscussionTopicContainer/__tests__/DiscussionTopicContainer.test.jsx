@@ -152,6 +152,23 @@ describe('DiscussionTopicContainer', () => {
     expect(container.getByTestId('replies-counter')).toBeInTheDocument()
   })
 
+  // selenium row spec/selenium/discussions/discussion_topic_show_spec.rb:133
+  // "Displays when all features are turned on" asserts the show page renders an
+  // <h1> containing the discussion title (fj("h1:contains('value for title')")).
+  // At the component level the title is rendered by PostMessage as an InstUI
+  // Heading level="h1" (data-testid="message_title"), so driving the topic title
+  // reproduces the heading the selenium row checks. The group / discussions_reporting
+  // / discussion_checkpoints flags in the selenium row only change *which* page
+  // renders the topic; they do not change the heading element itself.
+  it('renders the discussion title as an h1 heading', async () => {
+    const title = 'value for title'
+    const container = setup({discussionTopic: Discussion.mock({title})})
+
+    const heading = await container.findByTestId('message_title')
+    expect(heading.tagName).toBe('H1')
+    expect(heading).toHaveTextContent(title)
+  })
+
   it('renders infoText only when there are replies', async () => {
     const container = setup({discussionTopic: Discussion.mock()})
     const infoText = await container.findByTestId('replies-counter')
@@ -405,6 +422,64 @@ describe('DiscussionTopicContainer', () => {
     expect(container.queryByTestId('discussion-topic-reply')).toBeNull()
   })
 
+  // Component-level coverage for the discussion permission matrix asserted by
+  // spec/selenium/discussions/discussion_permission_spec.rb and
+  // spec/selenium/discussions/discussions_threaded_spec.rb:50.
+  //
+  // The topic-level reply button (data-testid="discussion-topic-reply") is
+  // gated on discussionTopic.permissions.reply, and the topic Edit menu item
+  // (data-testid="discussion-thread-menuitem-edit") is gated on
+  // discussionTopic.permissions.update (passed to PostToolbar as onEdit). The
+  // server now derives `reply`/`update` from the user's view/post/edit
+  // permissions, so driving these props reproduces each selenium row.
+  describe('discussion permission matrix (reply button + edit menu item)', () => {
+    const renderWithPermissions = ({reply, update}) =>
+      setup({
+        discussionTopic: Discussion.mock({
+          permissions: DiscussionPermissions.mock({reply, update}),
+        }),
+      })
+
+    const editMenuItem = async container => {
+      fireEvent.click(await container.findByTestId('discussion-post-menu-trigger'))
+      return container.queryByTestId('discussion-thread-menuitem-edit')
+    }
+
+    // selenium rows 127 / 353: view only -> no reply, no edit
+    it('view only: hides reply button and edit menu item', async () => {
+      const container = renderWithPermissions({reply: false, update: false})
+
+      expect(container.queryByTestId('discussion-topic-reply')).toBeNull()
+      expect(await editMenuItem(container)).toBeNull()
+    })
+
+    // selenium rows 161 / 387: view + post -> reply shown, edit hidden
+    it('view + post: shows reply button but hides edit menu item', async () => {
+      const container = renderWithPermissions({reply: true, update: false})
+
+      expect(await container.findByTestId('discussion-topic-reply')).toBeInTheDocument()
+      expect(await editMenuItem(container)).toBeNull()
+    })
+
+    // selenium rows 200 / 421: view + edit -> reply hidden, edit shown
+    it('view + edit: hides reply button but shows edit menu item', async () => {
+      const container = renderWithPermissions({reply: false, update: true})
+
+      expect(container.queryByTestId('discussion-topic-reply')).toBeNull()
+      expect(await editMenuItem(container)).toBeInTheDocument()
+    })
+
+    // selenium rows 234 / 455 + 499 (author of own post): view + edit + post ->
+    // reply shown, edit shown. Row 499 is the same UI outcome: the server grants
+    // the author reply/update on their own post even with role permissions off.
+    it('view + edit + post (incl. author of own post): shows reply button and edit menu item', async () => {
+      const container = renderWithPermissions({reply: true, update: true})
+
+      expect(await container.findByTestId('discussion-topic-reply')).toBeInTheDocument()
+      expect(await editMenuItem(container)).toBeInTheDocument()
+    })
+  })
+
   it('should not render group menu button when there is child topics but no group set', () => {
     const container = setup({discussionTopic: Discussion.mock({groupSet: null})})
 
@@ -576,6 +651,71 @@ describe('DiscussionTopicContainer', () => {
       const container = setup(props)
       expect(container.queryByText('This topic is available')).toBeInTheDocument()
       expect(container.queryByTestId('locked-discussion')).toBeNull()
+    })
+  })
+
+  // Parity coverage for spec/selenium/discussions/discussion_topic_show_spec.rb
+  // "student availability" context. The server (DiscussionTopic#locked_for?)
+  // decides the lock shape; this component half renders the indicator text and
+  // the body content. The override-vs-topic distinction (selenium 677 vs 691,
+  // 684 vs 699) is purely server-side, so at the component level both rows in
+  // each pair reduce to the same render given the same lock-shaped props.
+  describe('discussion lock-state UI', () => {
+    const COOL_BODY = 'a very cool discussion'
+
+    // selenium row 672: unlocked discussion shows the body, no lock indicator.
+    it('shows discussion body and no lock indicator for an unlocked discussion', async () => {
+      const container = setup({
+        discussionTopic: Discussion.mock({
+          message: COOL_BODY,
+          availableForUser: true,
+          permissions: DiscussionPermissions.mock({reply: true}),
+        }),
+      })
+
+      expect(await container.findByText(COOL_BODY)).toBeInTheDocument()
+      expect(container.queryByTestId('locked-for-user')).toBeNull()
+      expect(container.queryByTestId('discussion-topic-closed-for-comments')).toBeNull()
+    })
+
+    // selenium rows 677 & 691: locked by a future unlock_at (topic date in 677,
+    // student-override date in 691). Server sends availableForUser=false plus the
+    // "This topic is locked until ..." lockInformation. Component renders that
+    // message and hides the body content.
+    it('renders the "locked until" indicator and hides the body for a future-unlock lock', async () => {
+      const lockedUntilMessage = 'This topic is locked until Jan 1, 3000 12:00am.'
+      const container = setup({
+        discussionTopic: Discussion.mock({
+          message: COOL_BODY,
+          availableForUser: false,
+          lockInformation: lockedUntilMessage,
+        }),
+      })
+
+      const lockAlert = await container.findByTestId('locked-for-user')
+      expect(lockAlert).toHaveTextContent('This topic is locked until')
+      expect(container.getByText(lockedUntilMessage)).toBeInTheDocument()
+      // body content is replaced by the LockedDiscussion title, so it is hidden
+      expect(container.queryByText(COOL_BODY)).toBeNull()
+    })
+
+    // selenium rows 684 & 699: locked by a past lock_at (topic date in 684,
+    // student-override date in 699). Server keeps availableForUser=true but sets
+    // permissions.reply=false. Component renders "This topic is closed for
+    // comments." while the body content stays visible.
+    it('renders the "closed for comments" indicator while still showing the body for a past lock', async () => {
+      const container = setup({
+        discussionTopic: Discussion.mock({
+          message: COOL_BODY,
+          availableForUser: true,
+          permissions: DiscussionPermissions.mock({reply: false}),
+        }),
+      })
+
+      expect(await container.findByText(COOL_BODY)).toBeInTheDocument()
+      const closedMessage = await container.findByTestId('discussion-topic-closed-for-comments')
+      expect(closedMessage).toHaveTextContent('This topic is closed for comments.')
+      expect(container.queryByTestId('locked-for-user')).toBeNull()
     })
   })
 

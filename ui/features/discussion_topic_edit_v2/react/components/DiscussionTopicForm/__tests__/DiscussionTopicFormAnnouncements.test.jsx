@@ -91,4 +91,35 @@ describe('DiscussionTopicForm Announcements', () => {
     expect(document.queryAllByTestId('reset-available-until-button')).toHaveLength(1)
     vi.useRealTimers()
   })
+
+  // spec/selenium/discussions/discussions_edit_page_spec.rb:496
+  // editing an announcement whose options are enabled shows the matching
+  // checkboxes checked
+  it('shows the enabled announcement options as checked when editing', () => {
+    vi.useFakeTimers()
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MODERATE = true
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MANAGE_CONTENT = true
+    window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.is_announcement = true
+    window.ENV.ANNOUNCEMENTS_COMMENTS_DISABLED = false
+    window.ENV.CREATE_ANNOUNCEMENTS_UNLOCKED = true
+
+    const {queryByLabelText} = setup({
+      isEditing: true,
+      currentDiscussionTopic: DiscussionTopic.mock({
+        isAnnouncement: true,
+        locked: false,
+        podcastEnabled: true,
+        podcastHasStudentPosts: true,
+        allowRating: true,
+        onlyGradersCanRate: true,
+      }),
+    })
+
+    expect(queryByLabelText('Allow Participants to Comment')).toBeChecked()
+    expect(queryByLabelText('Allow liking')).toBeChecked()
+    expect(queryByLabelText('Only graders can like')).toBeChecked()
+    expect(queryByLabelText('Enable podcast feed')).toBeChecked()
+    expect(queryByLabelText('Include student replies in podcast feed')).toBeChecked()
+    vi.useRealTimers()
+  })
 })

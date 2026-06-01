@@ -96,6 +96,29 @@ describe('DiscussionTopicForm Rendering', () => {
     expect(document.queryByTestId('schedule-info-alert')).toBeFalsy()
   })
 
+  it('does not render the legacy Post To section or Available From/Until date inputs when Selective Release assign-to cards are embedded', () => {
+    // Mirrors discussions_new_page_spec.rb:1341 - with SR assign-to cards
+    // embedded in the new discussion page, the legacy "Post to" section select
+    // (input[data-testid='section-select']) and the legacy non-graded
+    // Available From/Until date inputs (input[placeholder='Select Date'], the
+    // NonGradedDateOptions container) are not rendered.
+    const document = setup()
+
+    // Selective Release assign-to section is rendered instead
+    expect(document.queryByTestId('discussion-assign-to-section')).toBeInTheDocument()
+
+    // Legacy "Post to" section select is absent (section_selection_selector)
+    expect(document.queryByTestId('section-select')).not.toBeInTheDocument()
+
+    // Legacy non-graded date options container is absent
+    expect(document.queryByTestId('non-graded-date-options')).not.toBeInTheDocument()
+
+    // Legacy "Select Date" date inputs are absent (select_date_selector)
+    expect(
+      document.container.querySelector("input[placeholder='Select Date']"),
+    ).not.toBeInTheDocument()
+  })
+
   it('does not render rce when mastercourse is locked', () => {
     window.ENV.DISCUSSION_CONTENT_LOCKED = true
     const document = setup()

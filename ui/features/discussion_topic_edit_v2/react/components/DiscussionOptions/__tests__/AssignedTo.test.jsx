@@ -80,6 +80,28 @@ describe('AssignTo', () => {
     expect(queryByText('Jason')).toBeInTheDocument()
   })
 
+  it('renders all selected assignees when there are multiple assignment overrides', () => {
+    // Mirrors discussions_edit_page_spec.rb:1122 - a discussion with multiple
+    // assignment overrides (2 differentiation-tag groups + Everyone Else) renders
+    // all 3 selected assignees as tags.
+    const availableAssignToOptions = {
+      ...DEFAULT_LIST_OPTIONS,
+      'Everyone Else': [{assetCode: 'everyone', label: 'Everyone Else'}],
+      Groups: [
+        {assetCode: 'group_1', label: 'Differentiation Tag 1'},
+        {assetCode: 'group_2', label: 'Differentiation Tag 2'},
+      ],
+    }
+
+    const {getAllByTitle} = setup({
+      availableAssignToOptions,
+      initialAssignedToInformation: ['everyone', 'group_1', 'group_2'],
+    })
+
+    // Each selected option renders a dismissible tag titled "Remove <label>"
+    expect(getAllByTitle(/^Remove /)).toHaveLength(3)
+  })
+
   it('allows backspace to remove tags', () => {
     const onOptionDismiss = vi.fn()
 

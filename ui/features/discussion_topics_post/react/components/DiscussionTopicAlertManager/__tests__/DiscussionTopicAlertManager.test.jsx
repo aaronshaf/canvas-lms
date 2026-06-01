@@ -22,6 +22,7 @@ import {DiscussionTopicAlertManager} from '../DiscussionTopicAlertManager'
 
 import {Discussion} from '../../../../graphql/Discussion'
 import {Assignment} from '../../../../graphql/Assignment'
+import {DiscussionPermissions} from '../../../../graphql/DiscussionPermissions'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 vi.mock('../../../utils', async (importOriginal) => ({
@@ -142,6 +143,55 @@ describe('DiscussionTopicAlertManager', () => {
       }),
     })
     expect(container.queryByTestId('locked-for-user')).toBeTruthy()
+  })
+
+  describe('Checkpointed discussion without the feature flag', () => {
+    const checkpointDisabledText =
+      'This discussion includes graded checkpoints, but the Discussion Checkpoints feature flag is currently disabled. To enable this functionality, please contact an administrator to activate the feature flag.'
+
+    afterEach(() => {
+      fakeENV.teardown()
+    })
+
+    it('shows the alert to a teacher who can manage course content', () => {
+      // Mirrors discussions_threaded_spec.rb:1322 — a checkpointed discussion
+      // viewed with the discussion_checkpoints FF disabled. The server sets
+      // ENV.checkpointed_discussion_without_feature_flag in this scenario.
+      fakeENV.setup({
+        checkpointed_discussion_without_feature_flag: true,
+      })
+
+      const container = setup({
+        userHasEntry: false,
+        discussionTopic: Discussion.mock({
+          permissions: DiscussionPermissions.mock({manageCourseContentEdit: true}),
+        }),
+      })
+
+      expect(container.getByTestId('checkpointed-discussion-without-feature-flag')).toBeTruthy()
+      expect(container.getByText(checkpointDisabledText)).toBeInTheDocument()
+    })
+
+    it('does NOT show the alert to a student who cannot manage course content', () => {
+      // Mirrors discussions_threaded_spec.rb:1352 — same checkpointed discussion
+      // and disabled FF, but a student does not have manageCourseContentEdit so
+      // the warning is hidden.
+      fakeENV.setup({
+        checkpointed_discussion_without_feature_flag: true,
+      })
+
+      const container = setup({
+        userHasEntry: false,
+        discussionTopic: Discussion.mock({
+          permissions: DiscussionPermissions.mock({manageCourseContentEdit: false}),
+        }),
+      })
+
+      expect(
+        container.queryByTestId('checkpointed-discussion-without-feature-flag'),
+      ).not.toBeInTheDocument()
+      expect(container.queryByText(checkpointDisabledText)).not.toBeInTheDocument()
+    })
   })
 
   describe('Full anonymous discussion', () => {

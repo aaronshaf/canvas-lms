@@ -61,6 +61,13 @@ describe('ReplyInfo', () => {
       const container = setup({replyCount: 1})
       expect(container.getAllByText('1 Reply')).toHaveLength(2)
     })
+
+    it('renders "1 Reply" in the replies-counter for a single reply', () => {
+      // Mirrors discussions_threaded_spec.rb:1295, which asserts the
+      // div[data-testid='replies-counter'] includes the text "1 Reply".
+      const container = setup({replyCount: 1})
+      expect(container.getByTestId('replies-counter')).toHaveTextContent('1 Reply')
+    })
   })
 
   describe('mobile', () => {

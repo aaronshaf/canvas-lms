@@ -21,6 +21,7 @@ import React from 'react'
 import {Assignment} from '../../../../graphql/Assignment'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
 import {GroupSet} from '../../../../graphql/GroupSet'
+import {REPLY_TO_ENTRY, REPLY_TO_TOPIC} from '../../../util/constants'
 import DiscussionTopicForm from '../DiscussionTopicForm'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
@@ -153,6 +154,43 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
     })
 
     expect(queryByTestId('checkpoints-checkbox').querySelector('input')).toBeDisabled()
+  })
+
+  it('displays existing checkpoint point values and required reply count when editing a graded discussion with checkpoints', () => {
+    // Mirrors discussions_edit_page_spec.rb:1419 - editing a checkpointed graded
+    // discussion (reply_to_topic 6 pts, reply_to_entry 7 pts, 5 replies required)
+    // shows those values pre-filled in the checkpoint settings inputs.
+    const {getByTestId} = setup({
+      isEditing: true,
+      currentDiscussionTopic: DiscussionTopic.mock({
+        replyToEntryRequiredCount: 5,
+        assignment: Assignment.mock({
+          hasSubAssignments: true,
+          checkpoints: [
+            {
+              dueAt: null,
+              name: 'checkpointed discussion',
+              onlyVisibleToOverrides: false,
+              pointsPossible: 6,
+              tag: REPLY_TO_TOPIC,
+              assignmentOverrides: {nodes: []},
+            },
+            {
+              dueAt: null,
+              name: 'checkpointed discussion',
+              onlyVisibleToOverrides: false,
+              pointsPossible: 7,
+              tag: REPLY_TO_ENTRY,
+              assignmentOverrides: {nodes: []},
+            },
+          ],
+        }),
+      }),
+    })
+
+    expect(getByTestId('points-possible-input-reply-to-topic').value).toBe('6')
+    expect(getByTestId('points-possible-input-reply-to-entry').value).toBe('7')
+    expect(getByTestId('reply-to-entry-required-count').value).toBe('5')
   })
 
   it('disables checkpoints for group discussions with child topic replies', () => {

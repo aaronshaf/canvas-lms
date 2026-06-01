@@ -136,6 +136,21 @@ describe('DiscussionRow', () => {
     expect(link.getAttribute('href')).toBe('https://example.com')
   })
 
+  it('row title links to the discussion show page (html_url)', () => {
+    // mirrors selenium individual_discussion_url: /courses/:id/discussion_topics/:id
+    const discussion = {
+      id: '7',
+      locked: false,
+      title: 'Graded Discussion',
+      html_url: '/courses/3/discussion_topics/7',
+    }
+    render(<DiscussionRow {...makeProps({discussion})} />)
+    const link = screen.getByTestId(`discussion-link-${discussion.id}`)
+    expect(link.tagName.toLowerCase()).toBe('a')
+    expect(link).toHaveTextContent(discussion.title)
+    expect(link.getAttribute('href')).toBe('/courses/3/discussion_topics/7')
+  })
+
   it('when feature flag is off, anonymous title is plain text ', () => {
     window.ENV.discussion_anonymity_enabled = false
     const discussion = {id: '1', locked: false, title: 'blerp', anonymous_state: 'full_anonymity'}

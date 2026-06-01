@@ -122,6 +122,26 @@ describe('DiscussionThreadContainer', () => {
     expect(container.querySelector('svg[name="IconDiscussionReply2"]')).toBeInTheDocument()
   })
 
+  // The threading-toolbar reply button (data-testid="threading-toolbar-reply")
+  // is gated on discussionEntry.permissions.reply. This mirrors the exact
+  // selector asserted by spec/selenium/discussions/discussions_threaded_spec.rb:50
+  // ("does not display reply button in threading toolbar"): for a not_threaded
+  // discussion the server returns reply=false for the entry, so the button is
+  // not rendered.
+  it('does not render the threading-toolbar reply button when reply permission is false', () => {
+    const {queryByTestId} = setup(
+      defaultProps({
+        discussionEntryOverrides: {permissions: DiscussionEntryPermissions.mock({reply: false})},
+      }),
+    )
+    expect(queryByTestId('threading-toolbar-reply')).toBeNull()
+  })
+
+  it('renders the threading-toolbar reply button when reply permission is true', () => {
+    const {getByTestId} = setup(defaultProps())
+    expect(getByTestId('threading-toolbar-reply')).toBeInTheDocument()
+  })
+
   it('should not render quote button if reply permission is false', () => {
     const {queryAllByText, getByTestId} = setup(
       defaultProps({

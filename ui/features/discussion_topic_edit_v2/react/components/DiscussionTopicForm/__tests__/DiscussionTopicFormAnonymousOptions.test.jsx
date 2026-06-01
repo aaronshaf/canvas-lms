@@ -140,4 +140,50 @@ describe('DiscussionTopicForm - Anonymous Options', () => {
     const document = setup({isGroupContext: false})
     expect(document.queryByText('Anonymous Discussion')).toBeFalsy()
   })
+
+  // spec/selenium/discussions/discussion_group_submit_spec.rb:44
+  // "does not show anonymity options" when creating within a group's context
+  it('does not render the full_anonymity option in a group context', () => {
+    window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.is_announcement = false
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MODERATE = true
+
+    const document = setup({isGroupContext: true})
+
+    expect(document.queryByText('Anonymous Discussion')).toBeFalsy()
+    expect(document.queryByTestId('anonymous-discussion-options')).toBeFalsy()
+    expect(document.container.querySelector("input[value='full_anonymity']")).toBeFalsy()
+  })
+
+  // spec/selenium/discussions/discussions_new_page_spec.rb:87
+  // "does not show anonymity options when not allowed" for a student without
+  // allow_student_anonymous_discussion_topics
+  it('does not render the full_anonymity option when student anonymous discussions are not allowed', () => {
+    window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.is_announcement = false
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MODERATE = false
+    window.ENV.allow_student_anonymous_discussion_topics = false
+
+    const document = setup({isStudent: true, isGroupContext: false})
+
+    expect(document.queryByText('Anonymous Discussion')).toBeFalsy()
+    expect(document.queryByTestId('anonymous-discussion-options')).toBeFalsy()
+    expect(document.container.querySelector("input[value='full_anonymity']")).toBeFalsy()
+  })
+
+  // spec/selenium/discussions/discussions_new_page_spec.rb:157
+  // "hides the correct options" for a student: no full_anonymity, no podcast feed,
+  // no graded, no group-discussion options
+  it('hides full_anonymity, podcast, graded, and group-discussion options for a student', () => {
+    window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.is_announcement = false
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MODERATE = false
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_CREATE_ASSIGNMENT = false
+    window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_SET_GROUP = false
+    window.ENV.allow_student_anonymous_discussion_topics = false
+
+    const document = setup({isStudent: true, isGroupContext: false})
+
+    expect(document.container.querySelector("input[value='full_anonymity']")).toBeFalsy()
+    expect(document.container.querySelector("input[value='enable-podcast-feed']")).toBeFalsy()
+    expect(document.container.querySelector("input[value='graded']")).toBeFalsy()
+    expect(document.queryByTestId('group-discussion-checkbox')).toBeFalsy()
+  })
 })

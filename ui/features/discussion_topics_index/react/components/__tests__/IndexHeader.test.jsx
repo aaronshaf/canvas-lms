@@ -74,6 +74,22 @@ describe('IndexHeader', () => {
     expect(testScreen.getByText('Add Discussion')).toBeInTheDocument()
   })
 
+  it('Add Discussion button links to the new discussion page for the context', () => {
+    render(
+      <IndexHeader
+        {...makeProps({
+          contextType: 'course',
+          contextId: '1',
+          permissions: {create: true},
+        })}
+      />,
+    )
+    const addButton = document.getElementById('add_discussion')
+    expect(addButton).toBeInTheDocument()
+    expect(addButton.tagName.toLowerCase()).toBe('a')
+    expect(addButton.getAttribute('href')).toBe('/courses/1/discussion_topics/new')
+  })
+
   it('does not render create discussion button if we do not have create permissions', () => {
     render(<IndexHeader {...makeProps({permissions: {create: false}})} />)
     expect(testScreen.queryByText('Add Discussion')).not.toBeInTheDocument()
@@ -137,6 +153,28 @@ describe('IndexHeader', () => {
     it('renders title', () => {
       render(<IndexHeader {...makeProps()} />)
       expect(testScreen.getByText('Discussions')).toBeInTheDocument()
+    })
+
+    it('shows the "Discussions" header title when the "all" filter is selected', async () => {
+      render(<IndexHeader {...makeProps()} />)
+
+      // default selected filter is "all"
+      const heading = testScreen.getByRole('heading', {level: 1})
+      expect(heading).toHaveTextContent('Discussions')
+
+      await userEvent.click(testScreen.getByTestId('toggle-filter-menu'))
+      await userEvent.click(await testScreen.findByTestId('menu-filter-all'))
+
+      expect(testScreen.getByRole('heading', {level: 1})).toHaveTextContent('Discussions')
+    })
+
+    it('shows the "Unread Discussions" header title when the "unread" filter is selected', async () => {
+      render(<IndexHeader {...makeProps()} />)
+
+      await userEvent.click(testScreen.getByTestId('toggle-filter-menu'))
+      await userEvent.click(await testScreen.findByTestId('menu-filter-unread'))
+
+      expect(testScreen.getByRole('heading', {level: 1})).toHaveTextContent('Unread Discussions')
     })
   })
 })
