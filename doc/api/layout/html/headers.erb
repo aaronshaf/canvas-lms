@@ -31,16 +31,10 @@
   (function() {
     var redirectUrl = <%= @redirect_url.to_json %>;
 
-    function isTest() {
-      var testHosts = [
-        'canvas.cd.instructure.com',
-        'canvas.test.instructure.com'
-      ];
-      var currentHost = window.location.hostname;
-      return testHosts.indexOf(currentHost) !== -1;
-    }
+    var isLocalDev = window.location.protocol === 'file:' ||
+                     window.location.host.endsWith('.inseng.test');
 
-    if (redirectUrl && isTest()) {
+    if (redirectUrl && !isLocalDev) {
       // Add canonical link for SEO
       var canonical = document.createElement('link');
       canonical.rel = 'canonical';
