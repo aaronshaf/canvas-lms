@@ -191,6 +191,95 @@ describe Quizzes::QuizQuestionsController do
       expect(question.assessment_question.updating_user).to eq(@teacher)
     end
 
+    it "creates a numerical_question with an exact answer and a range answer" do
+      # Arrange
+      user_session(@teacher)
+
+      # Act
+      post "create", params: { course_id: @course.id,
+                               quiz_id: @quiz,
+                               question: {
+                                 question_type: "numerical_question",
+                                 question_text: "What is 2 + 3?",
+                                 answers: {
+                                   "0" => {
+                                     numerical_answer_type: "exact_answer",
+                                     answer_exact: 5,
+                                     answer_error_margin: 2
+                                   },
+                                   "1" => {
+                                     numerical_answer_type: "range_answer",
+                                     answer_range_start: 5,
+                                     answer_range_end: 10
+                                   }
+                                 }
+                               } }
+
+      # Assert
+      expect(response).to be_successful
+      question = assigns[:question]
+      expect(question).not_to be_nil
+      expect(question.question_data[:question_type]).to eq("numerical_question")
+      answers = question.question_data[:answers]
+      expect(answers.length).to be(2)
+      expect(answers[0][:numerical_answer_type]).to eq("exact_answer")
+      expect(answers[0][:exact]).to eq(5.0)
+      expect(answers[0][:margin]).to eq(2.0)
+      expect(answers[1][:numerical_answer_type]).to eq("range_answer")
+      expect(answers[1][:start]).to eq(5.0)
+      expect(answers[1][:end]).to eq(10.0)
+    end
+
+    it "round-trips HTML answer markup on create for a multiple_choice_question" do
+      # Arrange
+      user_session(@teacher)
+
+      # Act
+      post "create", params: { course_id: @course.id,
+                               quiz_id: @quiz,
+                               question: {
+                                 question_type: "multiple_choice_question",
+                                 answers: {
+                                   "0" => { answer_text: "first", weight: 100 },
+                                   "1" => { answer_text: "second", weight: 0 },
+                                   "2" => { answer_text: "third", weight: 0 },
+                                   "3" => { answer_html: "<p>HTML</p>", weight: 0 }
+                                 }
+                               } }
+
+      # Assert
+      expect(response).to be_successful
+      answers = assigns[:question].question_data[:answers]
+      expect(answers.length).to be(4)
+      expect(answers[3][:html]).to eq("<p>HTML</p>")
+    end
+
+    it "round-trips HTML answer markup on create for a multiple_answers_question" do
+      # Arrange
+      user_session(@teacher)
+
+      # Act
+      post "create", params: { course_id: @course.id,
+                               quiz_id: @quiz,
+                               question: {
+                                 question_type: "multiple_answers_question",
+                                 answers: {
+                                   "0" => { answer_text: "first", weight: 100 },
+                                   "1" => { answer_text: "second", weight: 0 },
+                                   "2" => { answer_text: "third", weight: 0 },
+                                   "3" => { answer_html: "<p>HTML</p>", weight: 100 }
+                                 }
+                               } }
+
+      # Assert
+      expect(response).to be_successful
+      question = assigns[:question]
+      expect(question.question_data[:question_type]).to eq("multiple_answers_question")
+      answers = question.question_data[:answers]
+      expect(answers.length).to be(4)
+      expect(answers[3][:html]).to eq("<p>HTML</p>")
+    end
+
     context "when adding questions from a bank" do
       it "add_assessment_questions would create assessment with a cloned attachment" do
         @bank = @course.assessment_question_banks.create!(title: "Test Bank")
@@ -216,6 +305,49 @@ describe Quizzes::QuizQuestionsController do
         expect(quiz_question).not_to be_nil
         expect(quiz_question.assessment_question).not_to be_nil
         expect(quiz_question.assessment_question.attachments).not_to be_nil
+      end
+
+      it "adds bank questions into the supplied quiz_group" do
+        # Arrange
+        bank = @course.assessment_question_banks.create!(title: "Group Bank")
+        aq1 = bank.assessment_questions.create!(
+          question_data: {
+            question_type: "multiple_choice_question",
+            question_name: "BQ1",
+            question_text: "<p>q1</p>",
+            points_possible: 2
+          }
+        )
+        aq2 = bank.assessment_questions.create!(
+          question_data: {
+            question_type: "multiple_choice_question",
+            question_name: "BQ2",
+            question_text: "<p>q2</p>",
+            points_possible: 2
+          }
+        )
+        group = @quiz.quiz_groups.create!(name: "group1", pick_count: 2, question_points: 2)
+        user_session(@teacher)
+
+        # Act
+        post "create", params: {
+          course_id: @course.id,
+          quiz_id: @quiz,
+          assessment_question_bank_id: bank.id,
+          assessment_questions_ids: "#{aq1.id},#{aq2.id}",
+          quiz_group_id: group.id,
+          existing_questions: "1"
+        }
+
+        # Assert
+        expect(response).to be_successful
+        added = assigns[:questions]
+        expect(added.length).to be(2)
+        expect(added.map(&:quiz_group_id).uniq).to eq([group.id])
+        group.reload
+        expect(group.name).to eq("group1")
+        expect(group.pick_count).to be(2)
+        expect(group.question_points).to eq(2.0)
       end
     end
   end
@@ -418,6 +550,36 @@ describe Quizzes::QuizQuestionsController do
           @question.reload
         end.not_to change { @question.assessment_question }
       end
+    end
+
+    it "persists updated essay question_text and exposes it via Quizzes::QuizQuestion lookup" do
+      # Arrange
+      essay_question = @quiz.quiz_questions.create!(
+        question_data: {
+          question_type: "essay_question",
+          question_name: "essay",
+          question_text: "original text",
+          points_possible: 1
+        }
+      )
+      user_session(@teacher)
+
+      # Act
+      put "update", params: { course_id: @course.id,
+                              quiz_id: @quiz,
+                              id: essay_question.id,
+                              question: {
+                                question_type: "essay_question",
+                                question_text: "This is an essay question."
+                              } }
+
+      # Assert
+      expect(response).to be_successful
+      essay_question.reload
+      expect(essay_question.question_data["question_type"]).to eq("essay_question")
+      expect(essay_question.question_data["question_text"]).to include("This is an essay question.")
+      matches = Quizzes::QuizQuestion.where("question_data like ?", "%This is an essay question%")
+      expect(matches).to include(essay_question)
     end
   end
 

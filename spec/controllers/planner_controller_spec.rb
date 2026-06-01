@@ -2216,6 +2216,21 @@ describe PlannerController do
           expect(item["plannable_date"]).to eq(cached_due.iso8601)
         end
       end
+
+      it "includes published untaken quizzes due soon in the planner items response" do
+        # Arrange
+        quiz = quiz_model(course: @course, due_at: 2.days.from_now)
+
+        # Act
+        get :index
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        response_json = json_parse(response.body)
+        quiz_json = response_json.find { |rj| rj["plannable_type"] == "quiz" && rj["plannable_id"] == quiz.id }
+        expect(quiz_json).not_to be_nil
+        expect(quiz_json["plannable"]["title"]).to eq "Test Quiz"
+      end
     end
   end
 

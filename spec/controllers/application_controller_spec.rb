@@ -557,7 +557,6 @@ RSpec.describe ApplicationController do
                                        settings: {},
                                        cache_key: "key",
                                        uuid: "bleh",
-                                       salesforce_id: "blah",
                                        suppress_assignments?: false,
                                        lookup_feature_flag: nil)
         context = instance_double(Course, a11y_checker_enabled?: true)
@@ -586,7 +585,6 @@ RSpec.describe ApplicationController do
                                        settings: {},
                                        cache_key: "key",
                                        uuid: "blah",
-                                       salesforce_id: "bleh",
                                        suppress_assignments?: false,
                                        lookup_feature_flag: nil)
         allow(root_account).to receive(:kill_joy?).and_return(true)
@@ -1346,6 +1344,10 @@ RSpec.describe ApplicationController do
         expect(controller.send(:clean_return_to, "/courses/1/files/1/download?wrap=1")).to eq "https://canvas.example.com/courses/1/files/1"
         expect(controller.send(:clean_return_to, "/courses/1~1/files/1~1/download?wrap=1")).to eq "https://canvas.example.com/courses/1~1/files/1~1"
         expect(controller.send(:clean_return_to, "/courses/1/pages/download?wrap=1")).to eq "https://canvas.example.com/courses/1/pages/download?wrap=1"
+      end
+
+      it "rejects a javascript: scheme return_to to prevent XSS" do
+        expect(controller.send(:clean_return_to, "javascript:alert('sadness')")).to be_nil
       end
     end
 

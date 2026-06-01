@@ -61,6 +61,23 @@ describe AssessmentQuestionBanksController do
         get :show, params: { id: @bank.id }, format: :json
         expect(response).to be_forbidden
       end
+
+      it "denies access for teachers when read_question_banks role_override is disabled" do
+        # Arrange
+        Account.default.role_overrides.create!(
+          permission: "read_question_banks",
+          role: teacher_role,
+          enabled: false
+        )
+        Account.default.reload
+        user_session(@teacher)
+
+        # Act
+        get :show, params: { id: @bank.id }, format: :json
+
+        # Assert
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
     context "with an account-level question bank" do
@@ -169,6 +186,23 @@ describe AssessmentQuestionBanksController do
         user_session(@student)
         get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
         expect(response).to be_forbidden
+      end
+
+      it "denies access for teachers when read_question_banks role_override is disabled" do
+        # Arrange
+        Account.default.role_overrides.create!(
+          permission: "read_question_banks",
+          role: teacher_role,
+          enabled: false
+        )
+        Account.default.reload
+        user_session(@teacher)
+
+        # Act
+        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
+
+        # Assert
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
