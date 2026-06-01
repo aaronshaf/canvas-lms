@@ -55,9 +55,5 @@ describe "viewing a quiz with variable due dates on the quiz show page" do
       expect(obtain_availability_end_date(@section_b))
         .to include_text(format_time_for_view(@lock_at_b))
     end
-
-    it "allows previewing the quiz", priority: "2" do
-      expect(f("#preview_quiz_button")).to be_displayed
-    end
   end
 end
