@@ -116,24 +116,11 @@ describe Attachment do
       end
     end
 
-    context "with the :disable_file_verifier_access flag off" do
-      before(:once) { @course.root_account.disable_feature!(:file_association_access) }
+    it "returns a URL with a jwt verifier" do
+      attachment = attachment_with_context(@course)
+      md = attachment.public_url(user: @teacher).match(%r{/files/#{attachment.id}/download\?verifier=(.+)$})
 
-      it "returns a URL with a uuid verifier" do
-        attachment = attachment_with_context(@course)
-        expect(attachment.public_url).to end_with("/files/#{attachment.id}/download?verifier=#{attachment.uuid}")
-      end
-    end
-
-    context "with the :disable_file_verifier_access flag on" do
-      before(:once) { @course.root_account.enable_feature!(:file_association_access) }
-
-      it "returns a URL with with a jwt verifier" do
-        attachment = attachment_with_context(@course)
-        md = attachment.public_url(user: @teacher).match(%r{/files/#{attachment.id}/download\?verifier=(.+)$})
-
-        expect(CanvasSecurity.decode_jwt(md[1])).not_to be_nil
-      end
+      expect(CanvasSecurity.decode_jwt(md[1])).not_to be_nil
     end
   end
 
@@ -667,7 +654,7 @@ describe Attachment do
     end
 
     it "removes avatars from the destroyed file" do
-      user_model(avatar_image_url: a.public_url)
+      user_model(avatar_image_url: "http://canvas.example.com/files/#{a.id}/download?verifier=#{a.uuid}")
       a.update(context: @user)
       a.destroy
       expect(@user.reload.avatar_image_url).to be_nil
@@ -1770,7 +1757,11 @@ describe Attachment do
         )
       end
 
-      it { is_expected.to eq "http://localhost/files/#{attachment.id}/download?verifier=#{attachment.uuid}" }
+      it "generates a JWT verifier in the download URL" do
+        url = subject
+        expect(url).to start_with("http://localhost/files/#{attachment.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(url.match(/verifier=(.+)$/)[1])).not_to be_nil
+      end
     end
 
     context "when the attachment context is not a ContentExport" do
@@ -1784,7 +1775,11 @@ describe Attachment do
         )
       end
 
-      it { is_expected.to eq "http://localhost/courses/#{@course.id}/files/#{attachment.id}/download?verifier=#{attachment.uuid}" }
+      it "generates a JWT verifier in the download URL" do
+        url = subject
+        expect(url).to start_with("http://localhost/courses/#{@course.id}/files/#{attachment.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(url.match(/verifier=(.+)$/)[1])).not_to be_nil
+      end
     end
 
     it "works with s3 storage" do

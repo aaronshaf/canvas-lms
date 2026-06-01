@@ -78,9 +78,12 @@ describe "student planner" do
     validate_object_displayed(@course.name, "Announcement")
     elem = f("a[href='/courses/#{@course.id}']")
     url = driver.current_url
-    # validate the background image url
-    expect(elem[:style])
-      .to include("#{url}courses/#{@course.id}/files/#{@course_attachment.id}/download?verifier=#{@course_attachment.uuid}")
+    # validate the background image url contains a valid JWT verifier
+    style = elem[:style]
+    expected_path = "#{url}courses/#{@course.id}/files/#{@course_attachment.id}/download?verifier="
+    expect(style).to include(expected_path)
+    verifier = style.match(/verifier=([^"'&\s]+)/)[1]
+    expect(CanvasSecurity.decode_jwt(verifier)).not_to be_nil
   end
 
   context "responsive layout" do

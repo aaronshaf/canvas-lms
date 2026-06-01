@@ -1025,11 +1025,7 @@ class Attachment < ApplicationRecord
   end
 
   def local_storage_path(user: nil, ttl: nil, location: nil)
-    verifier_string = if root_account.feature_enabled?(:file_association_access)
-                        Attachments::Verification.new(self).verifier_for_user(user, expires: ttl || 1.hour.from_now)
-                      else
-                        uuid
-                      end
+    verifier_string = Attachments::Verification.new(self).verifier_for_user(user, expires: ttl || 1.hour.from_now)
     "#{HostUrl.context_host(context)}#{context_path_prefix_for(context:)}/files/#{id}/download?verifier=#{verifier_string}"
   end
 

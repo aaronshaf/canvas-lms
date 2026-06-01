@@ -2642,8 +2642,9 @@ describe FilesController do
       it "gives a download url" do
         get "public_url", params: { id: @attachment.id }
         expect(response).to be_successful
-        data = json_parse
-        expect(data).to eq({ "public_url" => @attachment.public_url(secure: false) })
+        public_url = json_parse["public_url"]
+        expect(public_url).to include("/files/#{@attachment.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(public_url.match(/verifier=(.+)$/)[1])).not_to be_nil
       end
     end
 
@@ -2654,14 +2655,17 @@ describe FilesController do
 
       it "allows a teacher to download an attachment if no submission_id is given" do
         get "public_url", params: { id: @attachment.id }
-        expect(json_parse).to eq({ "public_url" => @attachment.public_url(secure: false) })
+        public_url = json_parse["public_url"]
+        expect(public_url).to include("/files/#{@attachment.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(public_url.match(/verifier=(.+)$/)[1])).not_to be_nil
       end
 
       it "allows a teacher to download a student's submission" do
         get "public_url", params: { id: @attachment.id, submission_id: @submission.id }
         expect(response).to be_successful
-        data = json_parse
-        expect(data).to eq({ "public_url" => @attachment.public_url(secure: false) })
+        public_url = json_parse["public_url"]
+        expect(public_url).to include("/files/#{@attachment.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(public_url.match(/verifier=(.+)$/)[1])).not_to be_nil
       end
 
       it "verifies that the requested file belongs to the submission" do
@@ -2676,8 +2680,9 @@ describe FilesController do
         @assignment.submit_homework @student, attachments: [new_file]
         get "public_url", params: { id: old_file.id, submission_id: @submission.id }
         expect(response).to be_successful
-        data = json_parse
-        expect(data).to eq({ "public_url" => old_file.public_url(secure: false) })
+        public_url = json_parse["public_url"]
+        expect(public_url).to include("/files/#{old_file.id}/download?verifier=")
+        expect(CanvasSecurity.decode_jwt(public_url.match(/verifier=(.+)$/)[1])).not_to be_nil
       end
     end
   end
