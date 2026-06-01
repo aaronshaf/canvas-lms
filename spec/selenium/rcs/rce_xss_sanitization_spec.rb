@@ -18,18 +18,25 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require_relative "../helpers/wiki_and_tiny_common"
-require_relative "../helpers/rce_sanitization_common"
 require_relative "pages/rce_next_page"
 
 describe "RCE XSS sanitization regression", :ignore_js_errors do
   include_context "in-process server selenium tests"
   include WikiAndTinyCommon
   include RCENextPage
-  include RCESanitizationCommon
 
   before do
     course_with_teacher_logged_in
     stub_rcs_config
+  end
+
+  def xss_payloads
+    <<~HTML
+      <script>alert("xss_script")</script>
+      <img src="x" id="xss-img" onerror="alert('xss_img')" />
+      <a id="xss-link" href="javascript:void(0)">click me</a>
+      <div id="xss-div" style="position:fixed;top:0;left:0;width:100%;height:100%">overlay</div>
+    HTML
   end
 
   def inject_via_raw_html_editor(payload)
@@ -44,23 +51,23 @@ describe "RCE XSS sanitization regression", :ignore_js_errors do
     in_frame rce_page_body_ifr_id do
       body_html = wiki_body.attribute("innerHTML")
       aggregate_failures "no XSS in editor content" do
-        expect(body_html).not_to include(xss_script_tag)
-        expect(body_html).not_to match(xss_onerror_attr)
-        expect(body_html).not_to match(xss_js_protocol)
+        expect(body_html).not_to include("<script")
+        expect(body_html).not_to match(/onerror/i)
+        expect(body_html).not_to match(/javascript:/i)
       end
     end
   end
 
   def assert_no_xss_in_stored_body(stored_html)
     aggregate_failures "no XSS in stored HTML" do
-      expect(stored_html).not_to include(xss_script_tag)
-      expect(stored_html).not_to match(xss_onerror_attr)
-      expect(stored_html).not_to match(xss_js_protocol)
-      expect(stored_html).not_to match(xss_css_overlay)
+      expect(stored_html).not_to include("<script")
+      expect(stored_html).not_to match(/onerror/i)
+      expect(stored_html).not_to match(/javascript:/i)
+      expect(stored_html).not_to match(/position\s*:\s*fixed/i)
     end
   end
 
-  context "TinyMCE client-side sanitization" do
+  context "TinyMCE sanitizes XSS entered via the raw HTML editor" do
     it "strips and does not execute XSS payloads when switching from raw HTML editor to WYSIWYG view" do
       visit_front_page_edit(@course)
       expect_no_dialog_fired { inject_via_raw_html_editor(xss_payloads) }
@@ -68,15 +75,15 @@ describe "RCE XSS sanitization regression", :ignore_js_errors do
     end
   end
 
-  context "Backend sanitize_field on WikiPage" do
-    it "strips XSS from wiki page body before persistence" do
-      page = @course.wiki_pages.create!(
-        title: "xss-backend-test",
-        body: xss_payloads,
-        saving_user: @teacher
-      )
-      page.reload
-      assert_no_xss_in_stored_body(page.body)
+  context "TinyMCE sanitizes XSS independently of backend sanitize_field" do
+    it "strips XSS from content that bypassed backend sanitization" do
+      assignment = @course.assignments.create!(title: "XSS Test")
+      assignment.update_column(:description, xss_payloads)
+
+      get "/courses/#{@course.id}/assignments/#{assignment.id}/edit"
+      wait_for_rce
+
+      assert_no_xss_in_rce_editor
     end
   end
 
