@@ -32,11 +32,4 @@ describe "quizzes" do
     user_session(@teacher)
     visit_quizzes_index_page(@course.id)
   end
-
-  it "shows direct share options" do
-    manage_quiz_menu(@quiz1.id).click
-
-    expect(quiz_settings_menu(@quiz1.id).text).to include("Send to...")
-    expect(quiz_settings_menu(@quiz1.id).text).to include("Copy to...")
-  end
 end

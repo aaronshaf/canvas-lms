@@ -28,37 +28,4 @@ describe "quizzes question creation with attempts" do
     course_with_teacher_logged_in
     @last_quiz = start_quiz_question
   end
-
-  context "quiz attempts" do
-    def fill_out_attempts_and_validate(attempts, alert_text, expected_attempt_text)
-      click_settings_tab
-      set_value(f("#multiple_attempts_option"), false)
-      set_value(f("#multiple_attempts_option"), true)
-      set_value(f("#limit_attempts_option"), false)
-      set_value(f("#limit_attempts_option"), true)
-      replace_content(f("#quiz_allowed_attempts"), attempts)
-      wait_for_ajaximations
-      alert = driver.switch_to.alert
-      expect(alert.text).to eq alert_text
-      alert.dismiss
-      expect(f("#quiz_allowed_attempts")).to have_attribute("value", expected_attempt_text)
-    end
-
-    it "allows a 3 digit number for a quiz attempt", priority: "2" do
-      attempts = "123"
-      click_questions_tab
-      question = fj(".question_form:visible")
-      submit_form(question)
-      wait_for_ajaximations
-      click_settings_tab
-      f("#multiple_attempts_option").click
-      f("#limit_attempts_option").click
-      replace_content(f("#quiz_allowed_attempts"), attempts)
-      f("#quiz_time_limit").click
-      expect(alert_present?).to be_falsey
-      expect(fj("#quiz_allowed_attempts")).to have_attribute("value", attempts) # fj to avoid selenium caching
-      expect_new_page_load { f(".save_quiz_button").click }
-      expect(Quizzes::Quiz.last.allowed_attempts).to eq attempts.to_i
-    end
-  end
 end

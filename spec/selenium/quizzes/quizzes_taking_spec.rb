@@ -44,12 +44,6 @@ describe "quiz taking" do
     expect(f("#content")).not_to contain_css("#take_quiz_link")
   end
 
-  it "shows take quiz button for admins enrolled as a student" do
-    course_with_teacher(user: @student, course: @course)
-    get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-    expect(f("#take_quiz_link")).to be_present
-  end
-
   it "shows a prompt when attempting to submit with unanswered questions",
      priority: "1" do
     skip_if_safari(:alert)

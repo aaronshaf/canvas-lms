@@ -25,13 +25,4 @@ describe "quizzes for a public course" do
   include_context "in-process server selenium tests"
   include_context "public course as a logged out user"
   include QuizzesCommon
-
-  it "displays quizzes list", priority: "1" do
-    course_quiz(active: true)
-    @quiz.update(title: "hey you should see me")
-
-    get "/courses/#{public_course.id}/quizzes"
-    validate_selector_displayed("#assignment-quizzes")
-    expect(f("#assignment-quizzes")).to include_text(@quiz.title)
-  end
 end

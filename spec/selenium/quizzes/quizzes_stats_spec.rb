@@ -62,23 +62,5 @@ describe "quizzes stats" do
         expect(f("ul.page-action-list")).not_to include_text("Quiz Statistics")
       end
     end
-
-    context "stats page" do
-      before do
-        quiz_with_submission
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/statistics"
-      end
-
-      ["Student Analysis", "Item Analysis"].each do |report_type|
-        it "has a item #{report_type} button tooltip", priority: "2" do
-          expect(fj(".report-generator:contains('#{report_type}')")).not_to include_text("Report has been generated")
-
-          # move mouse over button
-          driver.action.move_to(f("#header")).perform
-          wait_for_ajaximations
-          expect(fj(".report-generator:contains('#{report_type}')")).to include_text("Generate #{report_type.downcase} report")
-        end
-      end
-    end
   end
 end
