@@ -238,6 +238,8 @@ ms:
   a_custom_message_to_display_on_the_parent_registra_447031ba: "Mesej tersuai untuk dipaparkan pada skrin pendaftaran induk (lihat: /login/canvas/register/parent)."
   a_custom_message_to_display_on_the_registration_sc_a8af85df: "Mesej tersuai untuk dipaparkan pada skrin pendaftaran (lihat: /login/canvas/register)."
   a_deleted_user_with_that_id_could_not_be_found_for_57503c7b: "Pengguna yang dipadamkan dengan ID tersebut tidak dapat dicari untuk akaun ini."
+  a_developer_key_cannot_have_more_than_64_redirect__18a08389: "Kunci pembangun tidak boleh lebih daripada 64 URI penghalaan semula. Sila alih keluar sesetengah masukan."
+  a_developer_key_cannot_have_more_than_max_redirect_914e69f8: "Kunci pembangun tidak boleh lebih daripada %{max} URI penghalaan semula. Sila alih keluar sesetengah masukan."
   a_few_seconds_ago_e43118d: "beberapa saat lepas"
   a_file_is_required_to_make_a_submission_6e5a28a0: "Fail diperlukan untuk penyerahan."
   a_file_named_filename_already_exists_in_this_locat_606ca948: "Fail bernama \"%{fileName}\" sudah wujud di lokasi ini. Adakah anda ingin menggantikan fa sedia ada?"
@@ -1705,8 +1707,8 @@ ms:
       pending_batches_title: "Kelompok Belum Selesai"
       process_data_button: "Proses Data"
       select_file_instructions: |-
-          Pilih fail CSV atau zip yang ingin anda import.  
-          Untuk penerangan tentang cara menjana fail ini, [sila lihat dokumentasi ini](%{url}).
+          Pilih CSV atau fail zip yang ingin anda import.
+          Untuk penerangan mengenai cara bagi menjana fail-fail ini, [sila lihat dokumentasi ini](%{url}).
       sis_import_crumb: "Import SIS"
       started_at_message: "Bermula pada: %{started_at}"
       title: "Import SIS"
@@ -2928,6 +2930,7 @@ ms:
   allows_user_to_create_edit_and_delete_outcomes_and_1cf52c38: "Membenarkan pengguna mencipta, mengedit dan memadamkan hasil dan kumpulan hasil pada tahap kursus."
   allows_user_to_create_edit_and_delete_rubrics_1c0acc08: "Membenarkan pengguna mencipta, mengedit dan memadamkan rubrik."
   allows_user_to_create_institutional_tags_8187ad8c: "Membolehkan pengguna mencipta tag institusi."
+  allows_user_to_create_learner_dashboards_on_the_ac_eda79a0a: "Membenarkan pengguna mencipta papan pemuka pelajar pada akaun."
   allows_user_to_create_modify_and_delete_global_sit_bd57ed4e: "Membolehkan pengguna mencipta, mengubah suai dan memadamkan kunci pembangun (Pentadbir Laman) dan konfigurasi LTI global."
   allows_user_to_create_new_conferences_in_courses_a_80899f64: "Membenarkan pengguna mencipta persidangan baharu dalam kursus dan kumpulan."
   allows_user_to_create_new_differentiated_tags_aab68171: "Membolehkan pengguna mencipta tag terbeza baharu"
@@ -2952,6 +2955,7 @@ ms:
   allows_user_to_delete_course_pages_dfaf4fb7: "Membenarkan pengguna memadamkan halaman kursus."
   allows_user_to_delete_course_sections_19193a35: "Membenarkan pengguna memadamkan seksyen kursus."
   allows_user_to_delete_differentiated_tags_30770c90: "Membolehkan pengguna memadamkan tag terbeza"
+  allows_user_to_delete_learner_dashboards_on_the_ac_1a6a326e: "Membenarkan pengguna memadamkan papan pemuka pelajar pada akaun."
   allows_user_to_delete_other_user_s_access_tokens_4d82f8df: "Membenarkan pengguna memadam token akses pengguna lain."
   allows_user_to_delete_question_banks_in_a_course_o_d9cd0b2f: "Membenarkan pengguna memadamkan bank soalan dalam kursus atau akaun."
   allows_user_to_delete_quizzes_in_a_course_acdbdfba: "Membenarkan pengguna memadamkan kuiz dalam kursus."
@@ -2988,6 +2992,7 @@ ms:
   allows_user_to_edit_grades_in_the_gradebook_83fa5c4f: "Membenarkan pengguna mengedit gred dalam Buku Gred."
   allows_user_to_edit_grading_schemes_98c35117: "Membenarkan pengguna mengedit skema penggredan."
   allows_user_to_edit_institutional_tags_ff7a9383: "Membolehkan pengguna mengedit tag institusi."
+  allows_user_to_edit_learner_dashboards_on_the_acco_db542186: "Membenarkan pengguna mengedit papan pemuka pelajar pada akaun."
   allows_user_to_edit_lock_settings_on_individual_as_80ed188a: "Membenarkan pengguna mengedit tetapan kunci pada tugasan, halaman atau perbincangan masing-masing."
   allows_user_to_edit_lock_settings_on_the_assignmen_4c347262: "Membenarkan pengguna mengedit tetapan kunci pada halaman indeks Tugasan dan Kuiz."
   allows_user_to_edit_question_banks_in_a_course_or__f72a39cf: "Membenarkan pengguna mengedit bank soalan dalam kursus atau akaun."
@@ -3167,6 +3172,7 @@ ms:
   allows_user_to_view_student_results_view_quiz_stat_7d77640a: "Membenarkan pengguna melihat hasil pelajar, melihat statistik kuiz dan mengakses kuiz dalam SpeedGrader."
   allows_user_to_view_student_specific_data_in_analy_4abbf6be: "Membenarkan pengguna melihat data khusus pelajar dalam Analisis."
   allows_user_to_view_the_account_s_automation_rules_b72dcc1d: "Membenarkan pengguna untuk melihat peraturan automasi akaun."
+  allows_user_to_view_the_account_s_learner_dashboar_c012e184: "Membenarkan pengguna melihat papan pemuka pelajar bagi akaun ini."
   allows_user_to_view_the_announcements_link_in_cour_b3522273: "Membenarkan pengguna melihat pautan Pengumuman dalam Navigasi Kursus."
   allows_user_to_view_the_clone_group_set_button_for_d68aab98: "Membenarkan pengguna melihat butang Tetapkan Kumpulan Klon untuk kumpulan akaun atau kumpulan kursus."
   allows_user_to_view_the_clone_group_set_button_for_f975352: "Membenarkan pengguna melihat butang Tetapkan Kumpulan Klon untuk kumpulan akaun atau kursus."
@@ -4468,8 +4474,8 @@ ms:
       reviews_per_user: "Tinjauan Semula bagi Setiap Pengguna"
     redirect_page: 
       redirect_message: |-
-          Serahan ini dalam bentuk url, kami akan membawa anda ke pautan url sekarang.  
-          [Klik di sini untuk pergi ke serahan](%{url})
+          Serahan ini ialah URL, kami akan membawa anda ke pautan URL ini sekarang.
+          [Klik di sini untuk ke serahan](%{url})
     show: 
       allowed_attempts: "Percubaan Dibenarkan"
       assignment_locked: "Serahan ini berkunci pada masa ini."
@@ -5905,6 +5911,7 @@ ms:
   canceling_this_attempt_will_permanently_delete_any_21ce850c: "Pembatalan percubaan ini akan memadamkan apa-apa kerja yang dilaksanakan dalam percubaan ini secara kekal. Adakah anda ingin teruskan dan memadamkan kerja anda?"
   cancelled_move_of_item_6fc9a757: "Peralihan %{item} dibatalkan"
   cannot_access_group_in_concluded_course_90a8db52: "Tidak boleh mengakses kumpulan dalam kursus yang telah selesai"
+  cannot_activate_a_built_in_role_eab89e55: "Tidak dapat mengaktifkan peranan terbina dalam"
   cannot_add_a_temporary_enrollment_to_a_concluded_c_459a44fa: "Tidak dapat menambah pendaftaran sementara pada kursus yang telah selesai"
   cannot_add_role_name_name_already_in_use_a523639c: "Tidak boleh menambah nama peranan %{name}: sudah digunakan"
   cannot_add_section_to_a_non_section_specific_discu_d2a7f263: "Tidak dapat menambah seksyen pada perbincangan yang bukan khusus untuk seksyen"
@@ -8820,6 +8827,7 @@ ms:
   course_name_is_required_d987f1c3: "Nama kursus diperlukan."
   course_name_must_be_255_characters_or_less_e7afed1a: "Nama kursus mestilah 255 aksara atau kurang"
   course_name_not_authorized_for_cross_listing_353e500f: "%{course_name} tidak dibenarkan untuk penyenaraian rentas"
+  course_name_override_does_not_match_this_assignmen_21557f13: "Kursus gantian \"%{name}\" tidak sepadan dengan kursus tugasan ini."
   course_name_successfully_added_48116a50: "%{course_name} berjaya ditambah!"
   course_navigation_and_quick_access_features_coming_7dd88414: "Ciri navigasi kursus dan akses pantas akan tiba tidak lama lagi."
   course_navigation_dd035109: "Navigasi Kursus"
@@ -10373,6 +10381,7 @@ ms:
   differentiated_tags_add_5297b273: "Tag Terbeza - tambah"
   differentiated_tags_delete_747504bf: "Tag Terbeza - padam"
   differentiated_tags_manage_6a15d272: "Tag Terbeza - urus"
+  differentiation_tag_name_cannot_be_assigned_to_thi_c488393d: "Tag terbeza \"%{name}\" tidak boleh ditetapkan pada tugasan ini."
   differentiation_tag_overrides_must_be_removed_48050504: "Penggantian tag pembezaan akan dialih keluar"
   differentiation_tag_sets_635d2f90: "Set Tag Terbeza"
   differentiation_tags: "Tag Terbeza"
@@ -12343,6 +12352,7 @@ ms:
   error_updating_module_access_f0970f4c: "Ralat mengemas kini akses modul."
   error_updating_moduleitemname_96819b43: "Ralat mengemas kini \"%{moduleItemName}\""
   error_updating_moduleitemname_a34c6a04: "Ralat mengemas kini “%{moduleItemName}”"
+  error_updating_moduleitemname_b4911cb1: "Ralat mengemas kini \"%{moduleItemName}\""
   error_updating_modulename_settings_da982acf: "Ralat mengemas kini tetapan %{moduleName}."
   error_updating_note_50f33d53: "Ralat mengemas kini nota"
   error_updating_notes_31b24785: "Ralat mengemas kini nota"
@@ -14157,6 +14167,7 @@ ms:
   granite_assignment_score_summary_66fece24: "Rumusan Skor Tugasan Granit"
   grant_tenant_access_9afafd: "Berikan akses penyewa"
   grant_your_browser_permission_to_record_by_allowin_c7b3c53f: "Berikan pelayar imbas anda keizinan untuk merakam dengan membenarkan akses kepada kamera dan mikrofon anda."
+  granular_authentication_provider_permissions_ce54c28a: "Keizinan Penyedia Pengesahan Butiran"
   granular_permissions_for_add_remove_roles_from_cou_b0a34301: "Keizinan terperinci untuk Tambah/Alih keluar peranan daripada Kursus"
   granular_permissions_for_assignments_and_quizzes_6b3bddc6: "Keizinan terperinci untuk tugasan dan kuiz"
   granular_permissions_for_managing_course_content_91375668: "Keizinan terperinci untuk mengurus kandungan kursus"
@@ -14289,6 +14300,7 @@ ms:
   group_name_group_pages_def16554: "%{group_name} - Halaman Kumpulan"
   group_name_group_people_e9d548c1: "%{group_name} - Orang Kumpulan"
   group_name_in_group_category_name_group_category_29bf3254: "%{group_name} dalam kategori kumpulan %{group_category_name}"
+  group_name_is_not_part_of_this_assignment_s_group__9e7787b6: "Kumpulan \"%{name}\" bukan sebahagian daripada set kumpulan tugasan ini."
   group_name_is_required_5547bc0b: "Nama kumpulan diperlukan"
   group_name_must_be_less_than_255_characters_800ee540: "Nama kumpulan mestilah kurang daripada 255 aksara."
   group_newoptiongroup_entered_newoptioncontextname_9eaf1b13: "Kumpulan %{newOptionGroup} dimasukkan. %{newOptionContextName}"
@@ -15376,10 +15388,10 @@ ms:
   if_you_leave_the_zip_file_download_currently_being_c47c1dfb: "Jika anda keluar, muat turun fail ZIP yang sedang disediakan akan dibatalkan."
   if_you_made_changes_to_the_student_submission_file_e006d49b: |-
       Jika anda membuat perubahan pada fail serahan pelajar yang anda muat turun
-        sebelum ini, hanya zipkan fail itu semula dan muat naik fail ZIP itu menggunakan borang di bawah.
-        Pelajar akan melihat fail yang diubah suai dalam komen mereka untuk serahan.
-        
-        *Pastikan anda tidak mengubah nama fail serahan ini supaya kami dapat mengenal pasti fail tersebut.*
+      sebelum ini, hanya zipkan fail itu semula dan muat naik fail ZIP itu menggunakan borang di bawah.
+      Pelajar akan melihat fail yang diubah suai dalam komen mereka untuk serahan.
+      
+      *Pastikan anda tidak mengubah nama fail serahan ini supaya kami dapat mengenal pasti fail tersebut.*
   if_you_need_to_make_your_course_public_please_cont_7084c67b: "Jika anda perlu menjadikan kursus anda umum sila hubungi pentadbir/sokongan anda."
   if_you_re_able_include_a_link_to_a_screencast_scre_91c49cf2: "Jika anda boleh, sertakan pautan kepada rakam siar skrin atau tangkapan skrin"
   if_you_re_seeing_this_with_a_local_dev_or_http_ver_504d7831: "Jika anda melihat ini dengan versi pembangun tempatan atau HTTP Canvas, berkemungkinan kerana *Chrome menyekat kuki Laman Serupa yang tidak Selamat*, jadi proses pelancaran LTI dalam iframe tidak dapat melihat kuki sesi Canvas."
@@ -16387,7 +16399,9 @@ ms:
   knowledge_chat_94cf8a45: "Sembang pengetahuan"
   knowledge_chat_deleted_successfully_c8a85144: "Sembang Pengetahuan berjaya dipadamkan"
   knowledge_chat_description_e0a796ee: "Penerangan sembang pengetahuan"
+  knowledge_chat_description_must_be_max_characters__8f34821a: "Penerangan sembang pengetahuan mestilah %{max} aksara atau lebih"
   knowledge_chat_name_4d7ce855: "Nama sembang pengetahuan"
+  knowledge_chat_name_must_be_max_characters_or_fewe_f84a4ba2: "Nama sembang pengetahuan mestilah %{max} aksara atau kurang"
   knowledge_chat_name_required_3ef7af16: "Nama sembang pengetahuan diperlukan"
   knowledge_chat_options_a72ca25: "Pilihan Sembang Pengetahuan"
   knowledge_chat_published_successfully_2661b781: "Sembang Pengetahuan berjaya diterbitkan"
@@ -16495,6 +16509,7 @@ ms:
   last_updated_date_4901b63: "Kemas Kini Terakhir %{date}"
   last_used_17553fed: "Terakhir Digunakan"
   last_used_f9457313: "Kali Terakhir Digunakan:"
+  last_used_when_86487ac: "terakhir digunakan: %{when}"
   last_user_access_title: "Akses Pengguna Terakhir"
   last_viewed_cfbbbc3a: "kali terakhir dilihat"
   last_youtube_content_scan_failed_f4785264: "Imbasan kandungan YouTube terakhir gagal."
@@ -16596,6 +16611,11 @@ ms:
   learn_more_about_video_conferencing_5f0e76e4: "Ketahui lebih lanjut tentang Persidangan Video"
   learn_more_bdd42bd8: "Ketahui lebih lanjut ..."
   learn_more_in_the_canvas_community_3bba7b11: "Ketahui lebih lanjut dalam Komuniti Canvas"
+  learner_dashboards_2b98a630: "Papan Pemuka Pengguna"
+  learner_dashboards_add_568ed19b: "Papan Pemuka Pengguna - tambah"
+  learner_dashboards_delete_a9a20f42: "Papan Pemuka Pengguna - padam"
+  learner_dashboards_edit_b6a16cee: "Papan Pemuka Pengguna - edit"
+  learner_dashboards_view_c969197a: "Papan Pemuka Pengguna - lihat"
   learner_passport_prototype_1c3446b3: "Protaip Pasport Pelajar"
   learner_passport_prototype_r2_98517178: "Protaip Pasport Pelajar R2"
   learner_preview_562438f0: "Pratonton Pelajar"
@@ -16620,6 +16640,7 @@ ms:
   learning_object_dates_36b05acb: "Tarikh Objek Pembelajaran"
   learning_objective_progress_percentage_1335247d: "Kemajuan objektif pembelajaran: %{percentage}%"
   learning_objective_targets_b12b6bc2: "Sasaran objektif pembelajaran"
+  learning_objective_targets_must_be_max_characters__4310f523: "Sasaran objektif pembelajaran mestilah %{max} aksara atau kurang"
   learning_objectives_34d5472a: "Objektif Pembelajaran"
   learning_objectives_7b8844fa: "Objektif pembelajaran"
   learning_objectives_covered_d8270b8a: "Objektif pembelajaran yang telah dipelajari:"
@@ -16648,6 +16669,7 @@ ms:
       ambang mata yang akan digunakan untuk mentakrifkan penguasaan hasil ini.
   learning_outcomes_csv_d2e9f936: "CSV Hasil Pembelajaran"
   learning_outcomes_import_eca3a09c: "Hasil Pembelajaran - import"
+  learnplatform_provides_product_information_the_url_e9a6deb7: "LearnPlatform menyediakan maklumat produk. URL yang disediakan di bawah hendaklah menunjukkan kepada persekitaran LearnPlatform yang sah (sebagai contoh, %{url} -- pastikan agar garis miring belakang dihilangkan."
   learnplatform_provides_product_information_the_url_f491a905: "LearnPlatform menyediakan maklumat produk. URL yang disediakan di bawah patut menuding kepada persekitaran LearnPlatform yang sah (sebagai contoh, %{url} -- pastikan tidak memasukkan simbol miring belakang"
   leave_5e852989: Tinggalkan
   leave_a_comment_7991725b: "Tinggalkan Komen"
@@ -16662,6 +16684,7 @@ ms:
           akan menyebabkan skor berpotensi maksimum sebanyak %{pointRatio} untuk serahan pelajar yang digredkan dengan rubrik.
   left_aligned_3903b802: "Dijajarkan ke kiri"
   left_group_group_name_aac4e813: "Telah meninggalkan kumpulan %{group_name}"
+  legacy_redirect_uri_deprecated_matches_on_scheme_a_b482a7f0: "URI Penghalaan Semula Legasi (Tidak digunakan lagi: hanya sepadan pada skema dan nama hos, termasuk subdomain):"
   legend_5a9768bc: Legenda
   len_maxlen_97f1c88d: "%{len}/%{maxLen}"
   length_notifications_found_25276610: "%{length} pemberitahuan ditemui"
@@ -17514,6 +17537,7 @@ ms:
   manage_options_for_name_83278ad0: "Urus pilihan untuk %{name}"
   manage_pages_4d2adeb6: "Urus Halaman"
   manage_profile_pictures_40c958ce: "Urus gambar profil"
+  manage_read_30c3ff25: "urus / baca"
   manage_release_notes_9a51bba0: "Urus nota keluaran"
   manage_sftp_user_settings_95f01949: "Urus Tetapan Pengguna SFTP"
   manage_sftp_users_75ac1968: "Urus pengguna SFTP"
@@ -17751,6 +17775,7 @@ ms:
   message_from_external_tool_message_3e857697: "Mesej daripada alat luaran: %{message}"
   message_instructor_846bb4dd: "Mesej Pengajar"
   message_is_required_c547cb60: "Mesej diperlukan"
+  message_must_be_max_characters_or_fewer_365b3060: "Mesej mestilah %{max} aksara atau kurang"
   message_name_3b100614: "Mesej %{name}"
   message_not_included_login_to_view_the_message_bd7a0627: "Mesej tidak disertakan, sila log masuk untuk melihat mesej."
   message_observers_of_students_who_6cc6b796: "Mesej Pemerhati Pelajar Yang..."
@@ -20010,10 +20035,12 @@ ms:
   name_grading_period_id_c9c8b6ae: "%{name} id tempoh penggredan"
   name_has_already_completed_the_required_peer_revie_cdd4ab5c: "%{name} Telah melengkapkan tinjauan semula setara yang disyaratkan."
   name_has_been_successfully_installed_but_has_not_y_c3148b96: "*nama* telah berjaya dipasang tetapi belum lagi didayakan."
+  name_is_already_assigned_more_than_once_remove_the_da1f8372: "\"%{name}\" sudah ditetapkan lebih daripada sekali. Alih keluar pendua sebelum menyimpan."
   name_is_currently_locked_and_unavailable_to_view_6e579cea: "%{name} dikunci dan tidak dapat dilihat buat masa sekarang."
   name_is_currently_status_9065c996: "*nama* pada masa ini **status**."
   name_is_locked_click_to_unlock_7aad9928: "%{name} dikunci. Klik untuk menyahkunci"
   name_is_locked_click_to_unlock_bbebf03e: "%{name} dikunci. Klik untuk menyahkunci."
+  name_is_not_enrolled_as_a_student_in_this_course_3fe7af74: "\"%{name}\" tidak didaftarkan sebagai pelajar dalam kursus ini."
   name_is_ready_to_be_assigned_temporary_enrollments_f39a6cf6: "%{name} sedia untuk ditetapkan pendaftaran sementara."
   name_is_required_4341f774: "Nama Diperlukan"
   name_is_required_ba379522: "Nama diperlukan!"
@@ -20703,6 +20730,7 @@ ms:
   note_it_may_take_up_to_a_week_for_the_beta_url_to__d695bddc: "Nota: Masa seminggu mungkin diambil untuk URL Beta disediakan, bergantung pada kitaran segar semula Beta tersebut."
   note_jobs_blocked_by_shard_migrations_will_not_be__43e7a9b0: "NOTA: Kerja disekat oleh migrasi serpihan tidak akan dinyahsekat."
   note_length_cannot_exceed_maxlength_characters_82798b1: "Kepanjangan nota tidak boleh melebihi %{maxLength} aksara."
+  note_limit_of_1000_per_course_reached_5003eb77: "Had nota sebanyak 1000 bagi setiap kursus dicapai"
   note_paper_39834317: "kertas nota"
   note_question_details_not_available_when_more_than_93199f6d: "NOTA: Butiran soalan tidak tersedia apabila terdapat lebih daripada %{question_count}"
   note_some_items_fall_outside_the_start_and_or_end__feab0642: "Nota: sesetengah item berada di luar daripada lingkungan tarikh mula dan/atau akhir kursus"
@@ -20727,6 +20755,7 @@ ms:
   note_you_may_receive_this_email_when_new_authentic_5d9403f4: "Perhatian: Anda mungkin menerima e-mel ini apabila jenis penyedia pengesahan baharu disokong untuk penghijrahan atau apabila kami bersedia untuk memulakan proses penghijrahan untuk jenis penyedia sedia ada."
   notebook_4998c7e2: "Buku Nota"
   notebook_b0eea5b4: "buku nota"
+  notebook_feature_flag_is_not_enabled_3472ede6: "bendera ciri buku nota tidak didayakan"
   notes_5ef20d1: nota
   notes_6cfc3988: "Nota:"
   notes_c42e0fd5: Nota
@@ -21745,6 +21774,7 @@ ms:
   page_comments: 
     errors: 
       create_failed: "Penciptaan komen gagal"
+  page_content_c7203759: "Kandungan halaman"
   page_content_is_sent_to_the_model_to_generate_stud_354ea807: "Kandungan halaman dihantar kepada model untuk menjana bahan pembelajaran"
   page_duration_7b562e65: "Tempoh Halaman"
   page_editor_9023aaa1: "Editor Halaman"
@@ -21944,6 +21974,7 @@ ms:
   pedagogical_activity_guidance_69492abb: "Panduan aktiviti pedagogi"
   pedagogical_guidance_6195f27c: "Panduan Pedagogi"
   pedagogical_guidance_98e3902a: "Bimbingan pedagogi"
+  pedagogical_guidance_must_be_max_characters_or_few_fdef6839: "Panduan pedagogi mestilah %{max} aksara atau kurang"
   peer_632472b7: "Setara:"
   peer_comments_3c8f20a0: "Komen Rakan Setara"
   peer_peername_c4768f58: "Setara: %{peerName}"
@@ -22456,6 +22487,7 @@ ms:
   please_wait_e6355980: "Sila tunggu..."
   please_wait_while_we_upload_attachments_59544216: "Sila tunggu sementara kami memuat naik kepilan."
   please_wait_while_we_upload_attachments_and_media_c7e7221c: "Sila tunggu sementara kami memuat naik kepilan dan media"
+  plugin_settings_can_only_be_modified_on_the_matchi_d896bce1: "Tetapan pemalam hanya boleh diubah suai pada akaun yang sepadan atau domain pecahan."
   plugins: 
     academic_benchmark_importer: 
       description: "Ini mendayakan pengimportan standard Academic Benchmarks ke dalam Canvas."
@@ -25072,6 +25104,7 @@ ms:
   redirect_uris_79534b60: "* Hala Semula URI:"
   redirect_uris_a54bd82f: "Hala Semula URI:"
   redirect_uris_d5063b21: "Hala semula URI"
+  redirect_uris_must_match_exactly_including_casing__21e60f40: "URI penghalaan semula mestilah sepadan dengan tepat, termasuk selongsong, protokol, hos, port, laluan dan rentetan pertanyaan. Sehingga %{max} URI penghalaan semula dibenarkan bagi setiap kunci pembangun."
   redirected_to_identity_provider_6c4e17d2: "Dihala semula ke penyedia identiti"
   redirecting_please_wait_3d280ed5: "Sedang menghala semula, sila tunggu..."
   redo_363c58b7: "Buat semula"
@@ -26484,6 +26517,7 @@ ms:
   section_name_edb51b2: "nama seksyen"
   section_name_fa2b80d7: "Nama Seksyen:"
   section_name_inactive_36edffe6: "%{section_name} - Tidak Aktif"
+  section_name_is_not_part_of_this_course_4a386042: "Seksyen \"%{name}\" bukan sebahagian daripada kursus ini."
   section_name_is_too_long_9cec2a30: "Nama seksyen terlalu panjang"
   section_pace_989d2856: "Pergerakan Seksyen"
   section_removed_2ac72a79: "%{section} dialih keluar"
@@ -27784,6 +27818,7 @@ ms:
   showing_the_most_recent_count_updates_9746eafa: "Menunjukkan %{count} kemas kini terkini."
   shrink_permission_74b01aed: "Kecilkan %{permission}"
   shuffle_answers_edb602b7: "Kocok Jawapan"
+  sidebar_panel_b7880429: "Panel bar sisi"
   sighted_users_browse_web_pages_quickly_looking_for_ade806f5: "Pengguna yang menggunakan penglihatan untuk memperoleh maklumat menyemak imbas halaman web dengan pantas untuk mencari tajuk yang besar dan tebal. Pengguna pembaca skrin bergantung pada pengepala untuk memperoleh pemahaman kontekstual. Pengepala sepatutnya ringkas dan berada dalam struktur yang betul."
   sighted_users_scan_web_pages_by_identifying_headin_3d8def25: "Pengguna yang dapat melihat mengimbas halaman web dengan mengenal pasti tajuk. Demikian juga, pengguna pembaca skrin bergantung pada tajuk untuk memahami dan menavigasi kandungan anda dengan pantas. Jika tajuk terlalu panjang, ia akan mengelirukan untuk diimbas, lebih sukar untuk dibaca dengan nyaring oleh teknologi bantu, dan kurang berkesan untuk menggaris kasar halaman anda."
   sighted_users_scan_web_pages_by_identifying_headin_d98efb16: "Pengguna yang dapat melihat mengimbas halaman web dengan mengenal pasti tajuk. Demikian juga, pengguna pembaca skrin bergantung pada tajuk untuk memahami dan menavigasi kandungan anda dengan pantas. Jika tajuk terlalu panjang, ia akan mengelirukan untuk diimbas, lebih sukar untuk dibaca dengan nyaring oleh teknologi bantu, dan kurang berkesan untuk menggaris kasar halaman anda. Kekalkan tajuk yang pendek, khusus dan bermakna, bukan ayat penuh atau perenggan."
@@ -28231,6 +28266,10 @@ ms:
   split_number_of_students_per_group_4a05f76f: "Split bilangan pelajar setiap kumpulan"
   split_student_names_df0ef806: "Split Nama Pelajar"
   split_students_by_number_of_groups_5ace5a6a: "Split pelajar mengikut bilangan kumpulan"
+  splits_authentication_provider_management_out_of_a_2f4b7286: |-
+      Pisahkan pengurusan Penyedia Pengesahan daripada "Tetapan Akaun -
+      urus" ke dalam "Penyedia Pengesahan - urus" dan
+      keizinan "Penyedia Pengesahan - baca" yang khusus.
   splitscreen_entry_post_error_page_75be199e: "Halaman Ralat Siaran Masukan Skrin Terpisah"
   splitscreen_entry_query_error_9d3cebf9: "Ralat pertanyaan Masukan Skrin Terpisah"
   splitting_disabled_reached_maximum_of_three_assign_716acb13: "Split dinyahdayakan: mencapai maksimum tiga kumpulan tugasan dalam julat penskoran"
@@ -29288,6 +29327,7 @@ ms:
   template_account_not_found_7144542c: "Akaun templat tidak ditemui"
   template_name_fba74b9c: "Nama Templat"
   template_quick_look_734f92bc: "Templat: Lihat Sekilas"
+  template_type_must_be_one_of_types_e98fbb5a: "template_type mestilah satu daripada: %{types}"
   templates_4ca13d07: Templat
   temporarily_enroll_a_user_into_a_course_this_tempo_990488f8: "Daftarkan pengguna dalam kursus buat sementara. Pendaftaran sementara ini digandingkan dengan satu lagi pendaftaran lain dalam kursus."
   temporarily_enroll_name_8acb66ce: "Daftarkan %{name} buat sementara"
@@ -29470,6 +29510,7 @@ ms:
   text_smaller_than_18pt_or_bold_14pt_should_display_aaffb22b: "Teks yang lebih kecil daripada 18pt (atau tebal 14pt) sepatutnya memaparkan nisbah kontras minimum 4.5:1."
   text_sms_4e2d82a7: "Teks (SMS)"
   text_source_7eae4eb3: "Sumber teks"
+  text_source_must_be_max_characters_or_fewer_4295957e: "Sumber teks mestilah %{max} aksara atau kurang"
   text_submitted_to_canvas_1bd700c3: "Teks diserahkan ke Canvas"
   text_to_image_ratio_58c00217: "Nisbah teks kepada imej"
   text_translated_to_language_8237c3: "Teks Diterjemahan Kepada %{language}"
@@ -29709,6 +29750,7 @@ ms:
                        Untuk mengalih keluar domain ini, alih keluar alat berkaitan.
   the_following_fields_are_invalid_fields_b3565800: "Medan berikut adalah tidak sah: %{fields}"
   the_following_recipients_have_no_active_enrollment_17395ab4: "Penerima berikut tidak mempunyai pendaftaran aktif dalam kursus, %{invalid_recipients}, tidak dapat menghantar kursus"
+  the_following_redirect_uris_have_been_automaticall_dd8b25a6: "URI penghalaan semula yang berikut telah dinyahaktifkan secara automatik kerana tidak digunakan baru-baru ini:"
   the_following_shards_set_policy_list_213c5d6d: "%{policy} untuk set serpihan berikut: %{list}"
   the_following_students_have_unsaved_changes_to_the_7762def7: |-
       Pelajar berikut mempunyai perubahan yang tidak disimpan pada serahan kuiz mereka: 
@@ -29745,6 +29787,7 @@ ms:
   the_image_will_be_cropped_to_a_5_1_aspect_ratio_57369a9c: "Imej akan dipangkas kepada nisbah aspek 5:1"
   the_import_failed_for_the_following_file_s_74d21316: "Import gagal kerana fail berikut:"
   the_imported_question_text_for_this_question_was_t_83b4e6fb: "Teks soalan yang diimport untuk soalan ini adalah terlalu panjang."
+  the_information_you_entered_wasn_t_accepted_update_b5fec985: "Maklumat yang anda masukkan tidak diterima. Kemas kini medan ini untuk menyimpan perubahan anda."
   the_institution_you_logged_in_from_is_not_configur_5ceac41: "Anda log masuk dari institusi yang tidak dikonfigurasikan pada akaun ini."
   the_intention_is_to_expand_this_scope_as_the_smart_80a6ff62: "Tujuan kami adalah untuk mengembangkan skop ini semasa pembangunan alat Carian Pintar diteruskan."
   the_jwks_uri_provides_the_public_keys_used_to_veri_d21dc032: |-
@@ -30180,6 +30223,7 @@ ms:
   these_options_are_hidden_until_a_user_expands_the__e37e94af: "Pilihan ini tersembunyi sehingga pengguna mengembangkan bahagian “Lebih banyak pilihan daftar masuk” di halaman log masuk."
   these_permissions_control_the_ability_to_create_ed_d4d043b7: "Keizinan ini mengawal keupayaan untuk mencipta, mengedit dan memadamkan tag terbeza."
   these_permissions_control_the_ability_to_manage_au_ca7062: "Keizinan ini mengawal keupayaan untuk mengurus peraturan automasi pada akaun."
+  these_permissions_control_the_ability_to_manage_cu_8e4b6d0d: "Keizinan ini mengawal keupayaan untuk mengurus papan pemuka pemuka pengguna boleh disuaikan pada akaun."
   these_permissions_control_the_ability_to_view_crea_45a186b6: "Keizinan ini mengawal kebolehan untuk melihat, mencipta dan mengedit tag institusi."
   these_permissions_do_not_manage_discussions_discus_79defb66: "Keizinan ini tidak mengurus Perbincangan. Perbincangan diurus melalui keizinan Perbincangan persendirian."
   these_pronouns_will_be_available_to_canvas_users_i_e8f474e5: "Kata ganti nama ini akan tersedia kepada pengguna Canvas dalam akaun mereka sebagai pilihan."
@@ -30624,6 +30668,7 @@ ms:
   this_rule_conflicts_with_rule_rule_text_32c948b4: "Peraturan ini bercanggah dengan peraturan \"%{rule_text}\""
   this_rule_conflicts_with_rule_rule_text_enforcemen_22db46ad: "Peraturan ini bercanggah dengan peraturan \"%{rule_text}\" (%{enforcement})"
   this_sample_page_includes_common_ui_elements_in_ca_ef71449d: "Halaman contoh ini termasuk elemen UI biasa dalam Canvas untuk membantu anda membina penjenamaan tersuai anda. Setelah anda mula membuat perubahan kepada nilai warna dan imej, anda akan dapat melihat butang *Pratonton Perubahan Anda*. Klik butang untuk menyegarkan halaman ini semula dan lihat hasil perubahan yang anda lakukan."
+  this_section_group_or_user_is_already_assigned_mor_9f7754dd: "Seksyen, kumpulan atau pengguna ini suah ditetapkan lebih daripada sekali. Alih keluar pendua sebelum menyimpan."
   this_setting_allows_the_admin_to_brand_or_label_al_978c6710: "Tetapan ini membenarkan Pentadbir untuk menjenamakan atau melabelkan semua teks “Daripada” pada semua pemberitahuan yang dihantar daripada Canvas kepada Akaun ini."
   this_setting_defines_the_initial_sort_order_studen_1d20b5b0: "Tetapan ini mentakrifkan tertib isihan awal. Pelajar boleh menetapkan keutamaan mereka. Selepas pelajar menukar keutamaan, kemas kini lalai akan datang tidak akan mengubah tetapan mereka melainkan dikunci."
   this_setting_defines_the_initial_thread_state_stud_ebe06903: "Tetapan ini mentakrifkan keadaan bebenang awal. Pelajar boleh menetapkan keutamaan mereka. Selepas pelajar menukar keutamaan, kemas kini lalai akan datang tidak akan mengubah tetapan mereka melainkan dikunci."
@@ -31086,6 +31131,7 @@ ms:
       Untuk membolehkan log keluar saluran belakang, konfigurasikan `backchannel_logout_uri` penyedia
       bagi menggunakan %{backchannel_logout_uri}, dan lebih baik menetapkan
       `backchannel_logout_session_required` kepada `true` jika penyedia menyokongnya.
+  to_configure_the_account_s_multi_factor_authentica_2f4f21c9: "Bagi mengkonfigurasikan dasar Pengesahan Berbilang Faktor bagi akaun, Akaun - Pengesahan Berbilang Faktor mestilah didayakan."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_5c6d93e4: "untuk mencipta pautan yang anda boleh gunakan dalam Canvas. Anda perlu mendaftar untuk akaun Zoom jika anda belum lagi memiliki akaun."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_7dd85497: "untuk mencipta pautan yang anda boleh gunakan dalam Canvas. Anda memerlukan akaun Google untuk menggunakan Google Meet."
   to_create_a_new_course_to_use_as_a_course_template_aa0ff48e: "Untuk mencipta kursus baharu yang ingin digunakan sebagai templat kursus, Kursus - tambah mesti didayakan juga."
@@ -31206,6 +31252,7 @@ ms:
   to_remove_a_user_via_sis_id_sis_data_manage_must_a_5d0f4839: "Untuk mengalih keluar pengguna melalui ID SIS, Data SIS - urus mesti didayakan juga."
   to_reply_to_a_discussion_discussions_post_must_als_c9654a9b: "Untuk membalas sesuatu perbincangan, Perbincangan - siar mesti didayakan juga."
   to_reply_to_a_discussion_discussions_post_must_be__a4cf502a: "Untuk membalas sesuatu perbincangan, Perbincangan - siar mesti didayakan."
+  to_reset_a_specific_user_s_multi_factor_authentica_324991e: "Bagi menetapkan semula pendaftaran Pengesahan Berbilang Faktor pengguna, Tetapkan Semula Pengesahan Berbilang Faktor mestilah didayakan."
   to_restore_a_deleted_course_courses_delete_courses_83c7e64f: "Untuk memulihkan kursus yang dipadamkan, Kursus - padam, Kursus - nyahpadam dan Kandungan Kursus - lihat mesti didayakan juga."
   to_restore_a_deleted_course_in_an_account_manage_c_3ad933ee: "Untuk memulihkan kursus yang dipadamkan dalam akaun, Urus Kursus - padam dan Kandungan Kursus - lihat mesti didayakan juga."
   to_restrict_to_users_from_a_specific_clever_distri_dc3b89fb: "Untuk menyekat pengguna daripada daerah Clever tertentu, masukkan ID Clever daerah di sini. Ini diperlukan untuk Log Masuk Segera Clever supaya berfungsi dalam persekitaran berbilang penyewa."
@@ -32287,6 +32334,7 @@ ms:
   user_access_report_ddbedbfe: "Laporan Akses Pengguna"
   user_access_report_prospect_education_6bf448c: "Laporan Akses Pengguna - Prospect Education"
   user_access_tokens_title: "Token Akses Pengguna"
+  user_account_inherited_db3af3fa: "Pengguna (Diwarisi Akaun)"
   user_agent_585ccbc7: "Agen Pengguna"
   user_avatars_e4fc4ed3: "Avatar Pengguna"
   user_c95de254: Pengguna
@@ -32325,6 +32373,7 @@ ms:
   user_is_from_unacceptable_domain_domain_b4b6fd1b: "Pengguna adalah daripada domain %{domain} yang tidak boleh diterima."
   user_is_from_unacceptable_issuer_issuer_6a87cafa: "Pengguna adalah daripada pengeluar %{issuer} yang tidak boleh diterima."
   user_is_from_unacceptable_tenant_tenant_f4cb522: "Pengguna adalah daripada penyewa %{tenant} yang tidak boleh diterima."
+  user_is_not_a_student_of_this_course_d41a2aaa: "Pengguna ini bukan pelajar dalam kursus ini"
   user_is_now_group_leader_60ec9b98: "%{user} kini ketua kumpulan"
   user_just_accepted_their_invitation_to_participate_7a4b2ce4: "%{user} baru sahaja menerima jemputan mereka untuk menyertai kursus, %{course}. Peranan kursus: %{role_type}"
   user_just_updated_title_88074ab2: "%{user} baru sahaja mengemas kini %{title}"
