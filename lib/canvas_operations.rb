@@ -16,9 +16,18 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
 module CanvasOperations
   def self.registered_operations
     []
+  end
+
+  def self.find(id)
+    id = id.to_s if id.is_a? Symbol
+
+    unless id.is_a? String
+      raise ArgumentError, "Could not lookup operation by identifier `#{id}`. Provide a string or symbol"
+    end
+
+    registered_operations.find { it.operation_name == id }
   end
 end

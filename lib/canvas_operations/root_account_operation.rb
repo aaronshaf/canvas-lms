@@ -50,7 +50,7 @@ module CanvasOperations
 
     # Override run_later to wrap execution in PluginSetting.with_account context.
     # This ensures that plugin settings are resolved in the context of the root account.
-    def run_later
+    def run_later(run_at: nil)
       PluginSetting.with_account(root_account) { super }
     end
 

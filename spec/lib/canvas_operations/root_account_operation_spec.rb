@@ -90,6 +90,19 @@ RSpec.describe CanvasOperations::RootAccountOperation do
       )
       expect(job).to be_present
     end
+
+    context "when run_at is specified" do
+      let(:scheduled_time) { 2.hours.from_now }
+
+      it "schedules the job at the given time" do
+        operation_instance.run_later(run_at: scheduled_time)
+
+        job = Delayed::Job.find_by(
+          singleton: "operations/my_root_account_operation/shards/#{root_account.shard.id}/accounts/#{root_account.global_id}"
+        )
+        expect(job.run_at).to be_within(1.second).of(scheduled_time)
+      end
+    end
   end
 
   describe "#singleton" do

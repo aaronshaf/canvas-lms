@@ -20,6 +20,8 @@
 module CanvasOperations
   module BaseConcerns
     module Schema
+      AR_ARG_SUFFIX = "_id"
+
       Argument = Data.define(:name, :type, :required, :title, :description, :default) do
         def initialize(**)
           super
@@ -33,7 +35,7 @@ module CanvasOperations
         end
 
         def property_name
-          active_record_type? ? :"#{name}_id" : name
+          active_record_type? ? :"#{name}#{AR_ARG_SUFFIX}" : name
         end
 
         def to_property
@@ -58,6 +60,31 @@ module CanvasOperations
           schema: json_schema,
           ui_schema:,
         }
+      end
+
+      # Canvas operations accept AR instances for convenince in programatic use
+      #
+      # Operation schemas instead expose a string and _id arguments for users to
+      # specify the global ID of an AR instance. (See the Argument data struct)
+      #
+      # This parse_args method does the translation of _id arguments into the
+      # AR instance arguments the operation initializer expects.
+      def resolve_args(arg_hash)
+        arg_hash.each_with_object({}) do |(k, v), hash|
+          if k.ends_with?(AR_ARG_SUFFIX)
+            unless Shard.global_id?(v)
+              raise ArgumentError, "Non-global ID given for argument `#{k}`. IDs for ActiveRecord arguments must be global to avoid ambiguity."
+            end
+
+            arg_name = k.delete_suffix(AR_ARG_SUFFIX).to_sym
+            arg = arguments.find { it.name == arg_name }
+            raise ArgumentError, "Unknown ActiveRecord argument `#{k}`" unless arg&.active_record_type?
+
+            hash[arg_name] = arg.type.find(v)
+          else
+            hash[k.to_sym] = v
+          end
+        end
       end
 
       private

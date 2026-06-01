@@ -730,4 +730,61 @@ RSpec.describe CanvasOperations::BaseOperation do
       )
     end
   end
+
+  describe ".resolve_args" do
+    include_context "schema operation"
+
+    let(:account) { account_model }
+
+    context "with an AR-backed _id key and a global ID" do
+      subject(:resolved) do
+        Operations::SchemaSpecTestOp.resolve_args("root_account_id" => account.global_id.to_s)
+      end
+
+      it "resolves the AR instance under the non-suffixed symbol key" do
+        expect(resolved[:root_account]).to eq(account)
+      end
+
+      it "omits the _id key from the result" do
+        expect(resolved).not_to have_key(:root_account_id)
+      end
+    end
+
+    context "with a non-AR key" do
+      subject(:resolved) { Operations::SchemaSpecTestOp.resolve_args("skip_admins" => true) }
+
+      it "converts the key to a symbol and preserves the value" do
+        expect(resolved).to eq({ skip_admins: true })
+      end
+    end
+
+    context "with a mix of AR and non-AR keys" do
+      subject(:resolved) do
+        Operations::SchemaSpecTestOp.resolve_args(
+          "root_account_id" => account.global_id.to_s,
+          "skip_admins" => false
+        )
+      end
+
+      it "resolves AR instances and passes scalars through" do
+        expect(resolved).to eq({ root_account: account, skip_admins: false })
+      end
+    end
+
+    context "when given a non-global ID for an AR argument" do
+      it "raises ArgumentError" do
+        expect do
+          Operations::SchemaSpecTestOp.resolve_args("root_account_id" => "1")
+        end.to raise_error(ArgumentError, /Non-global ID given for argument `root_account_id`/)
+      end
+    end
+
+    context "when given an _id key for an unknown argument" do
+      it "raises ArgumentError" do
+        expect do
+          Operations::SchemaSpecTestOp.resolve_args("unknown_thing_id" => account.global_id.to_s)
+        end.to raise_error(ArgumentError, /Unknown ActiveRecord argument `unknown_thing_id`/)
+      end
+    end
+  end
 end
