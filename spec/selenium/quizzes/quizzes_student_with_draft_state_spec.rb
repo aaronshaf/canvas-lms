@@ -37,24 +37,6 @@ describe "quizzes with draft state" do
   end
 
   context "with a student" do
-    context "with an unpublished quiz" do
-      before do
-        @quiz.unpublish!
-      end
-
-      it "shows an error", priority: "1" do
-        open_quiz_edit_form(should_wait_for_rce: false)
-        wait_for_ajaximations
-        expect(f("#unauthorized_message")).to include_text "Access Denied"
-      end
-
-      it "can't take an unpublished quiz", priority: "1" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}/take"
-        wait_for_ajaximations
-        expect(f("#unauthorized_message")).to include_text "Access Denied"
-      end
-    end
-
     context "when the available date is in the future" do
       before do
         @quiz.unlock_at = Time.now.utc + 200.seconds

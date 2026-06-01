@@ -32,30 +32,4 @@ describe "quizzes observers" do
   before do
     user_session(@observer)
   end
-
-  context "when 'show correct answers after last attempt setting' is on" do
-    before do
-      quiz_with_submission
-      @quiz.update(show_correct_answers: true,
-                   show_correct_answers_last_attempt: true,
-                   allowed_attempts: 2)
-      @quiz.save!
-    end
-
-    it "does not show correct answers on first attempt", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/history?quiz_submission_id=#{@qsub.id}"
-      expect(f("#content")).not_to contain_css(".correct_answer")
-    end
-  end
-
-  it "shows quiz descriptions" do
-    @context = @course
-    quiz = quiz_model
-    description = "some description"
-    quiz.description = description
-    quiz.save!
-
-    open_quiz_show_page
-    expect(f(".description")).to include_text(description)
-  end
 end

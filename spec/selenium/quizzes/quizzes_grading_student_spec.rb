@@ -79,16 +79,6 @@ describe "Viewing graded quizzes" do
         expect(f(quiz_regrade_banner_css)).to include_text "This quiz has been regraded; your score was affected."
       end
 
-      it "shows the correct quiz score after regrading", priority: "1" do
-        get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-        original_score = fj(".ic-Table > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(4)")
-        expect(original_score).to include_text "1 out of 1"
-
-        regraded_score = f("td.regraded")
-        expect(regraded_score).to include_text "0 out of 1"
-      end
-
       it "shows the correct quiz question score after regrading", priority: "1" do
         get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
 

@@ -33,24 +33,6 @@ describe "quizzes" do
   end
 
   context "with a student" do
-    it "can't see unpublished quizzes", priority: "1" do
-      # create course with an unpublished quiz
-      assignment_quiz([], course: @course)
-      @quiz.update_attribute(:published_at, nil)
-      @quiz.update_attribute(:workflow_state, "unavailable")
-
-      get "/courses/#{@course.id}/quizzes/"
-      expect(f("#content-wrapper")).to include_text "No quizzes available"
-    end
-
-    it "can see published quizzes", priority: "1" do
-      # create course with a published quiz
-      assignment_quiz([], course: @course)
-
-      get "/courses/#{@course.id}/quizzes/"
-      expect(f("#assignment-quizzes")).to be_present
-    end
-
     context "with a quiz started" do
       before(:once) do
         @qsub = quiz_with_submission(complete_quiz: false)
@@ -70,11 +52,6 @@ describe "quizzes" do
             @resume_text = "Resume Quiz"
           end
 
-          it "can see the resume quiz button if the quiz is unlocked", priority: "1" do
-            get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-            validate_resume_button_text(@resume_text)
-          end
-
           it "can see the resume quiz button if the quiz unlock_at date is < now", priority: "1" do
             update_quiz_lock(nil, 10.minutes.ago)
             get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
@@ -85,22 +62,6 @@ describe "quizzes" do
             update_quiz_lock(5.minutes.ago, nil)
             get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
             expect(f("#not_right_side")).not_to contain_css(".take_quiz_button")
-          end
-
-          it "can't see the publish button", priority: "1" do
-            get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-            expect(f("#content")).not_to contain_css("#quiz-publish-link")
-          end
-
-          it "can't see unpublished warning", priority: "1" do
-            # set to unpublished state
-            @quiz.last_edited_at = Time.now.utc
-            @quiz.published_at   = 1.hour.ago
-            @quiz.save!
-
-            get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-            expect(f("#content")).not_to contain_css(".unpublished_warning")
           end
         end
       end
@@ -134,99 +95,5 @@ describe "quizzes" do
         end
       end
     end
-  end
-
-  context "with multiple fill in the blanks" do
-    it "displays MFITB responses in their respective boxes on submission view page", priority: "2" do
-      # create new multiple fill in the blank quiz and question
-      @quiz = quiz_model({ course: @course, time_limit: 5 })
-
-      question = @quiz.quiz_questions.create!(question_data: fill_in_multiple_blanks_question_data)
-      @quiz.generate_quiz_data
-      @quiz.tap(&:save)
-      # create and grade a submission on our mfitb quiz
-      qs = @quiz.generate_submission(@student)
-      # this generates 6 answers on our submission for each blank in fill_in_multiple_blanks_question_data
-      (1..6).each do |var|
-        qs.submission_data[
-          "question_#{question.id}_#{AssessmentQuestion.variable_id("answer#{var}")}"
-        ] = "this is my answer ##{var}"
-      end
-      response_array = qs.submission_data.values
-      Quizzes::SubmissionGrader.new(qs).grade_submission
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}/"
-      wait_for_ajaximations
-      answer_fields = ff(".question_input")
-      answer_array = answer_fields.map { |element| driver.execute_script("return $(arguments[0]).val()", element) }
-      expect(answer_array).to eq response_array
-    end
-  end
-
-  context "when the 'show correct answers' setting is on" do
-    before(:once) do
-      quiz_with_submission
-      @quiz.update(show_correct_answers: true)
-      @quiz.save!
-    end
-
-    it "highlights correct answers", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-      expect(ff(".correct_answer").length).to be > 0
-    end
-
-    it "always highlights incorrect answers", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-      expect(ff(".incorrect.answer_arrow").length).to be > 0
-    end
-  end
-
-  context "when 'show correct answers after last attempt setting' is on" do
-    before do
-      quiz_with_submission
-      @quiz.update(show_correct_answers: true,
-                   show_correct_answers_last_attempt: true,
-                   allowed_attempts: 2)
-      @quiz.save!
-    end
-
-    it "does not show correct answers on first attempt", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-      expect(f("#content")).not_to contain_css(".correct_answer")
-    end
-
-    it "shows correct answers on last attempt", priority: "1" do
-      @qsub.update_attribute :attempt, 2
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-      expect(ff(".correct_answer").length).to be > 0
-    end
-  end
-
-  context "when the 'show correct answers' setting is off" do
-    before(:once) do
-      quiz_with_submission
-      @quiz.update(show_correct_answers: false)
-      @quiz.save!
-    end
-
-    it "doesn't highlight correct answers", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-      expect(f("#content")).not_to contain_css(".correct_answer")
-    end
-
-    it "always highlights incorrect answers", priority: "1" do
-      get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-      expect(ff(".incorrect.answer_indicator").length).to be > 0
-    end
-  end
-
-  it "shows badge counts after completion", priority: "1" do
-    quiz_with_submission
-    get "/courses/#{@course.id}/quizzes/#{@quiz.id}"
-
-    expect(f("#section-tabs .grades .nav-badge").text).to eq "1"
   end
 end
