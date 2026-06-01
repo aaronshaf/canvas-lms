@@ -270,6 +270,8 @@ nl:
   a_custom_message_to_display_on_the_parent_registra_447031ba: "Een aangepast bericht om op het scherm voor de registratie van een ouder weer te geven (zie: /login/canvas/register/parent)."
   a_custom_message_to_display_on_the_registration_sc_a8af85df: "Een aangepast bericht om op het registratiescherm weer te geven (zie: /login/canvas/register)."
   a_deleted_user_with_that_id_could_not_be_found_for_57503c7b: "Een verwijderde gebruiker met die ID is voor dit account niet te vinden."
+  a_developer_key_cannot_have_more_than_64_redirect__18a08389: "Een ontwikkelaarssleutel kan niet meer dan 64 omleidings-URI's hebben. Verwijder enkele vermeldingen."
+  a_developer_key_cannot_have_more_than_max_redirect_914e69f8: "Een ontwikkelaarssleutel kan niet meer dan %{max} omleidings-URI's hebben. Verwijder enkele vermeldingen."
   a_few_seconds_ago_e43118d: "een paar seconden geleden"
   a_file_is_required_to_make_a_submission_6e5a28a0: "Er is een bestand vereist om een inlevering te maken."
   a_file_named_filename_already_exists_in_this_locat_606ca948: "Een bestand met de naam \"%{fileName}\" bestaat al op deze locatie. Wil je het bestaande bestand vervangen?"
@@ -2113,8 +2115,8 @@ nl:
       pending_batches_title: "Batches in behandeling"
       process_data_button: "Gegevens verwerken"
       select_file_instructions: |-
-          Selecteer het CSV- of zip-bestand dat je wilt importeren.  
-          [Bekijk deze documentatie](%{url}) voor een beschrijving van hoe je deze bestanden kunt genereren.
+          Selecteer het CSV- of zip-bestand dat je wilt importeren.
+          Voor informatie over het genereren van deze bestanden [zie deze documentatie](%{url}).
       sis_import_crumb: SIS-import
       started_at_message: "Gestart: %{started_at}"
       title: SIS-import
@@ -3627,6 +3629,7 @@ nl:
       bewerken en verwijderen.
   allows_user_to_create_import_edit_and_delete_outco_8eff991: "Hiermee kan een gebruiker leerdoelen en leerdoelgroepen op cursusniveau maken, importeren, bewerken en verwijderen."
   allows_user_to_create_institutional_tags_8187ad8c: "Hiermee kan een gebruiker institutionele tags maken."
+  allows_user_to_create_learner_dashboards_on_the_ac_eda79a0a: "Gebruikers kunnen studentendashboards voor het account maken."
   allows_user_to_create_modify_and_delete_global_sit_bd57ed4e: "Hiermee kan de gebruiker globale (sitebeheerder-) ontwikkelaarssleutels en LTI-configuraties maken, wijzigen en verwijderen."
   allows_user_to_create_new_conferences_allows_user__89cebec2: "Hiermee kan een gebruiker nieuwe vergaderingen maken. Hiermee kan een gebruiker zelfgemaakte vergaderingen starten."
   allows_user_to_create_new_conferences_in_courses_a_80899f64: "Hiermee kan een gebruiker nieuwe vergaderingen in cursussen en groepen maken."
@@ -3654,6 +3657,7 @@ nl:
   allows_user_to_delete_course_sections_19193a35: "Hiermee kan een gebruiker cursussecties verwijderen."
   allows_user_to_delete_course_sections_allows_user__649d2d0d: "Hiermee kan een gebruiker cursussecties verwijderen. Hiermee kan een gebruiker een andere gebruiker van een cursussectie verwijderen."
   allows_user_to_delete_differentiated_tags_30770c90: "Hiermee kan een gebruiker gedifferentieerde tags verwijderen"
+  allows_user_to_delete_learner_dashboards_on_the_ac_1a6a326e: "Gebruikers kunnen studentendashboards voor het account verwijderen."
   allows_user_to_delete_other_user_s_access_tokens_4d82f8df: "Hiermee kan een gebruiker toegangstokens van een andere gebruiker verwijderen."
   allows_user_to_delete_question_banks_in_a_course_o_d9cd0b2f: "Hiermee kan een gebruiker toetsbanken in een cursus of account verwijderen."
   allows_user_to_delete_quizzes_in_a_course_acdbdfba: "Hiermee kan een gebruiker toetsen in een cursus verwijderen."
@@ -3725,6 +3729,7 @@ nl:
   allows_user_to_edit_grades_in_the_gradebook_allows_b1e33afc: "Hiermee kan een gebruiker cijfers in de Cijferlijst bewerken. Hiermee kan een gebruiker cijferlijstgeschiedenis openen."
   allows_user_to_edit_grading_schemes_98c35117: "Hiermee kan een gebruiker beoordelingsschema's bewerken."
   allows_user_to_edit_institutional_tags_ff7a9383: "Hiermee kan een gebruiker institutionele tags bewerken."
+  allows_user_to_edit_learner_dashboards_on_the_acco_db542186: "Gebruikers kunnen studentendashboards voor het account bewerken."
   allows_user_to_edit_lock_settings_on_individual_as_80ed188a: "Hiermee kan een gebruiker vergrendelingsinstellingen voor afzonderlijke opdrachten, pagina's of discussies bewerken."
   allows_user_to_edit_lock_settings_on_the_assignmen_4c347262: "Hiermee kan een gebruiker vergrendelingsinstellingen op de indexpagina's Opdrachten en Toetsen bewerken."
   allows_user_to_edit_question_banks_in_a_course_or__f72a39cf: "Hiermee kan een gebruiker toetsbanken in een cursus of account bewerken."
@@ -4027,6 +4032,7 @@ nl:
   allows_user_to_view_student_results_view_quiz_stat_7d77640a: "Hiermee kan een gebruiker cursistresultaten weergeven, toetsstatistieken weergeven en een toets openen in SpeedGrader."
   allows_user_to_view_student_specific_data_in_analy_4abbf6be: "Hiermee kan een gebruiker cursistspecifieke gegevens in Analyses weergeven."
   allows_user_to_view_the_account_s_automation_rules_b72dcc1d: "Staat gebruikers toe de automatiseringsregels van de account weer te geven."
+  allows_user_to_view_the_account_s_learner_dashboar_c012e184: "Gebruikers kunnen studentendashboards van het account bekijken."
   allows_user_to_view_the_announcements_link_in_cour_b3522273: "Hiermee kan een gebruiker de link Aankondigingen in Cursusnavigatie weergeven."
   allows_user_to_view_the_announcements_link_in_cour_f6b03e9a: "Hiermee kan een gebruiker de link Aankondigingen in Cursusnavigatie weergeven. Hiermee kan een gebruiker cursusaankondigingen weergeven."
   allows_user_to_view_the_clone_group_set_button_for_d68aab98: "Hiermee kan een gebruiker de knop Groepsreeks klonen voor een account- of cursusgroep bekijken."
@@ -5731,8 +5737,8 @@ nl:
     processing_submission: "Canvas is bezig met het verwerken van je inlevering. Je kunt deze pagina gewoon sluiten en wij sturen je een e-mail als de inlevering niet kan worden verwerkt."
     redirect_page: 
       redirect_message: |-
-          Deze inzending is een URL. We sturen je nu door naar de URL link.  
-          [Hier klikken om naar de inzending te gaan](%{url})
+          Deze inlevering is een URL. We sturen je nu door naar de URL-link.
+          [Klik hier om naar de inlevering te gaan](%{url})
     remove_never_drop_rule: "Nooit regel laten vallen verwijderen"
     remove_unsaved_never_drop_rule: "Niet opgeslagen nooit regel laten vallen verwijderen"
     rules_text: 
@@ -7542,6 +7548,7 @@ nl:
   canceling_this_attempt_will_permanently_delete_any_21ce850c: "Bij annuleren van deze poging wordt eventueel werk dat in deze poging is gedaan permanent verwijderd. Wil je verdergaan en je werk verwijderen?"
   cancelled_move_of_item_6fc9a757: "Verplaatsing van %{item} geannuleerd"
   cannot_access_group_in_concluded_course_90a8db52: "Kan groep niet openen in een beëindigde cursus"
+  cannot_activate_a_built_in_role_eab89e55: "Kan geen ingebouwde rol activeren"
   cannot_add_a_temporary_enrollment_to_a_concluded_c_459a44fa: "Kan geen tijdelijke inschrijving toevoegen voor een afgesloten cursus"
   cannot_add_role_name_name_already_in_use_a523639c: "Kan rolnaam %{name} niet toevoegen: is al in gebruik"
   cannot_add_section_to_a_non_section_specific_discu_d2a7f263: "Kan sectie niet toevoegen aan een niet-sectiespecifieke discussie"
@@ -10947,6 +10954,7 @@ nl:
   course_name_is_required_d987f1c3: "Cursusnaam is vereist."
   course_name_must_be_255_characters_or_less_e7afed1a: "Cursusnaam moet uit 255 tekens of minder bestaan"
   course_name_not_authorized_for_cross_listing_353e500f: "%{course_name} mag geen kruisverwijzingen maken"
+  course_name_override_does_not_match_this_assignmen_21557f13: "Overschrijving van cursus \"%{name}\" komt niet overeen met de cursus van deze opdracht."
   course_name_successfully_added_48116a50: "%{course_name} succesvol toegevoegd!"
   course_navigation_and_quick_access_features_coming_7dd88414: "Cursusnavigatie en snelle toegangsfuncties binnenkort beschikbaar."
   course_navigation_dd035109: Cursusnavigatie
@@ -13042,6 +13050,7 @@ nl:
   differentiated_tags_add_5297b273: "Gedifferentieerde tags - toevoegen"
   differentiated_tags_delete_747504bf: "Gedifferentieerde tags - verwijderen"
   differentiated_tags_manage_6a15d272: "Gedifferentieerde tags - beheren"
+  differentiation_tag_name_cannot_be_assigned_to_thi_c488393d: "Differentiatietag \"%{name}\" kan niet aan deze opdracht worden toegewezen."
   differentiation_tag_overrides_must_be_removed_48050504: "Differentiatietag-overschrijvingen moeten worden verwijderd"
   differentiation_tag_sets_635d2f90: Differentiatietagsets
   differentiation_tags: "Gedifferentieerde tags"
@@ -15455,6 +15464,7 @@ nl:
   error_updating_module_access_f0970f4c: "Fout bij bijwerken van moduletoegang."
   error_updating_moduleitemname_96819b43: "Fout bij bijwerken \"%{moduleItemName}\""
   error_updating_moduleitemname_a34c6a04: "Fout bij bijwerken van “%{moduleItemName}”"
+  error_updating_moduleitemname_b4911cb1: "Fout met bijwerken van \"%{moduleItemName}\""
   error_updating_modulename_settings_da982acf: "Fout bij bijwerken van %{moduleName}-instellingen."
   error_updating_note_50f33d53: "Fout bij bijwerken van notitie"
   error_updating_notes_31b24785: "Fout tijdens bijwerken van opmerkingen"
@@ -18151,6 +18161,7 @@ nl:
   granite_assignment_score_summary_66fece24: "Overzicht van opdrachtscores Granite"
   grant_tenant_access_9afafd: "Tenant toegang verlenen"
   grant_your_browser_permission_to_record_by_allowin_c7b3c53f: "Geef je browser toestemming om opnamen te maken, door toegang te geven tot je camera en microfoon."
+  granular_authentication_provider_permissions_ce54c28a: "Gedetaillleerde machtigingen verificatieproviders"
   granular_contexttype_notification_settings_will_be_c5dfc901: "Specifieke instellingen voor %{contextType} kunnen hier in de toekomst worden geconfigureerd."
   granular_course_notification_settings_will_be_conf_68f122db: "Specifieke instellingen voor cursusmeldingen kunnen hier in de toekomst worden geconfigureerd."
   granular_permissions_for_add_remove_admin_roles_fr_9a06a75d: "Gedetailleerde machtigingen voor Toevoegen/Verwijderen van beheerdersrollen van cursus"
@@ -18295,6 +18306,7 @@ nl:
   group_name_group_pages_def16554: "%{group_name} - Groeppagina's"
   group_name_group_people_e9d548c1: "%{group_name} - Groep personen"
   group_name_in_group_category_name_group_category_29bf3254: "%{group_name} in %{group_category_name} groepscategorie"
+  group_name_is_not_part_of_this_assignment_s_group__9e7787b6: "Groep \"%{name}\" maakt geen deel uit van de groepsset van deze opdracht."
   group_name_is_required_5547bc0b: "Groepsnaam is vereist"
   group_name_must_be_less_than_255_characters_800ee540: "Groepsnaam moet korter dan 255 tekens zijn."
   group_newoptiongroup_entered_newoptioncontextname_9eaf1b13: "Groep %{newOptionGroup} ingevoerd. %{newOptionContextName}"
@@ -19779,11 +19791,11 @@ nl:
   if_you_keep_having_problems_click_the_link_link_be_a4d695eb: "Als de problemen blijven aanhouden, klik dan op de \"%{link}\" hieronder om de handleiding grondig door te lopen of om het probleem aan ons door te geven."
   if_you_leave_the_zip_file_download_currently_being_c47c1dfb: "Wanneer je vertrekt, zal de zip bestand download die momenteel voorbereid wordt, geannuleerd worden."
   if_you_made_changes_to_the_student_submission_file_e006d49b: |-
-      Als je wijzigingen hebt aangebracht in de ingezonden bestanden van cursisten die je al gedownload
-        hebt, pak dan de bestanden opnieuw in en upload het zip-bestand met het onderstaande formulier.
-        Cursisten zullen de aangepaste bestanden zien in hun opmerkingen voor de indiening.
+      Als je wijzigingen hebt aangebracht in de ingeleverde bestanden van studenten die je al gedownload hebt,
+      pak dan de bestanden opnieuw in en upload het zip-bestand met het onderstaande formulier.
+      Studenten krijgen de aangepaste bestanden te zien in de opmerkingen voor de inlevering.
       
-        *Zorg ervoor dat je de namen van de ingezonden bestanden niet verandert, zodat we ze kunnen herkennen.*
+      *Zorg ervoor dat je de namen van de ingeleverde bestanden niet verandert, zodat we ze kunnen herkennen.*
   if_you_need_to_make_your_course_public_please_cont_7084c67b: "Neem contact op met de beheerder of ondersteuning als je je cursus openbaar wilt maken."
   if_you_re_able_include_a_link_to_a_screencast_scre_91c49cf2: "Voeg een link naar een screencast/schermafbeelding toe als dat mogelijk is."
   if_you_re_seeing_this_with_a_local_dev_or_http_ver_504d7831: "Als je dit te zien krijgt bij een lokale dev of HTTP-versie van Canvas, komt dit waarschijnlijk doordat *onveilige same-site cookies door Chrome worden geblokkeerd*, waardoor het LTI-startproces binnen het iframe de sessiecookie van Canvas niet kan zien."
@@ -20976,7 +20988,9 @@ nl:
   knowledge_chat_94cf8a45: Kennischat
   knowledge_chat_deleted_successfully_c8a85144: "Kennischat verwijderd"
   knowledge_chat_description_e0a796ee: "Beschrijving kennischat"
+  knowledge_chat_description_must_be_max_characters__8f34821a: "De beschrijving van de kennischat moet uit %{max} of minder tekens bestaan"
   knowledge_chat_name_4d7ce855: "Naam kennischat"
+  knowledge_chat_name_must_be_max_characters_or_fewe_f84a4ba2: "De naam van de kennischat moet uit %{max} of minder tekens bestaan"
   knowledge_chat_name_required_3ef7af16: "Naam kennischat vereist"
   knowledge_chat_options_a72ca25: "Opties kennischat"
   knowledge_chat_published_successfully_2661b781: "Kennischat gepubliceerd"
@@ -21091,6 +21105,7 @@ nl:
   last_updated_timestamp_1822e508: "Laatst bijgewerkt %{timestamp}"
   last_used_17553fed: "Laatst gebruikt"
   last_used_f9457313: "Laatst gebruikt:"
+  last_used_when_86487ac: "laatst gebruikt: %{when}"
   last_user_access_title: "Laatste gebruikerstoegang"
   last_viewed_cfbbbc3a: "laatst bekeken"
   last_youtube_content_scan_failed_f4785264: "Laatste scan van YouTube-inhoud mislukt."
@@ -21210,6 +21225,11 @@ nl:
   learn_more_about_video_conferencing_5f0e76e4: "Meer informatie over videoconferencing"
   learn_more_bdd42bd8: "Meer informatie..."
   learn_more_in_the_canvas_community_3bba7b11: "Meer informatie in de Canvas Community"
+  learner_dashboards_2b98a630: Studentendashboards
+  learner_dashboards_add_568ed19b: "Studentendashboards - toevoegen"
+  learner_dashboards_delete_a9a20f42: "Studentendashboards - verwijderen"
+  learner_dashboards_edit_b6a16cee: "Studentendashboards - bewerken"
+  learner_dashboards_view_c969197a: "Studentendashboards - bekijken"
   learner_passport_prototype_1c3446b3: "Prototype Learner Passport"
   learner_passport_prototype_r2_98517178: "Learner Passport Prototype R2"
   learner_preview_562438f0: "Voorbeeld cursist"
@@ -21235,6 +21255,7 @@ nl:
   learning_object_dates_36b05acb: "Datums leerobjecten"
   learning_objective_progress_percentage_1335247d: "Voortgang leerdoel: %{percentage}%"
   learning_objective_targets_b12b6bc2: "Streefcijfers leerdoelen"
+  learning_objective_targets_must_be_max_characters__4310f523: "Streefcijfers leerdoelen moeten uit %{max} of minder tekens bestaan"
   learning_objectives_34d5472a: Leerdoelen
   learning_objectives_7b8844fa: Leerobjecten
   learning_objectives_covered_d8270b8a: "Behandelde leerdoelen:"
@@ -21263,6 +21284,7 @@ nl:
       om dit leerdoel te behalen.
   learning_outcomes_csv_d2e9f936: "CSV met leerdoelen"
   learning_outcomes_import_eca3a09c: "Leerdoelen - importeren"
+  learnplatform_provides_product_information_the_url_e9a6deb7: "LearnPlatform geeft productinformatie. De onderstaande URL moet verwijzen naar een geldige LearnPlatform-omgeving (bijvoorbeeld %{url} – laat de slash aan het einde weg)."
   learnplatform_provides_product_information_the_url_f491a905: "LearnPlatform geeft productinformatie. De onderstaande URL moet verwijzen naar een geldige LearnPlatform-omgeving (bijvoorbeeld %{url} – laat de slash aan het einde weg)"
   leave_5e852989: Verlaten
   leave_a_comment_7991725b: "Laat een opmerking achter"
@@ -21277,6 +21299,7 @@ nl:
           resulteert in een maximaal te behalen score van %{pointRatio} voor inleveringen van cursisten die met de rubriek worden beoordeeld.
   left_aligned_3903b802: "Links uitgelijnd"
   left_group_group_name_aac4e813: "Heeft groep %{group_name} verlaten"
+  legacy_redirect_uri_deprecated_matches_on_scheme_a_b482a7f0: "Oude omleidings-URI (uitgefaseerd; komt alleen overeen met schema en hostnaam, subdomeinen inbegrepen):"
   legend_5a9768bc: Legenda
   len_maxlen_97f1c88d: "%{len}/%{maxLen}"
   length_notifications_found_25276610: "%{length} meldingen gevonden"
@@ -22226,6 +22249,7 @@ nl:
   manage_options_for_name_83278ad0: "Opties beheren voor %{name}"
   manage_pages_4d2adeb6: "Pagina's beheren"
   manage_profile_pictures_40c958ce: "Profielfoto's beheren"
+  manage_read_30c3ff25: "beheren / lezen"
   manage_release_notes_9a51bba0: "Releaseopmerkingen beheren"
   manage_rubrics_5d274f6a: "Rubrieken beheren"
   manage_sftp_user_settings_95f01949: "SFTP-gebruikersinstellingen beheren"
@@ -22538,6 +22562,7 @@ nl:
   message_groups_who_1ba736f: "Een bericht versturen naar groepen die..."
   message_instructor_846bb4dd: "Bericht naar docent sturen"
   message_is_required_c547cb60: "Bericht is vereist"
+  message_must_be_max_characters_or_fewer_365b3060: "Bericht moet uit %{max} of minder tekens bestaan"
   message_name_3b100614: "Bericht %{name}"
   message_not_included_login_to_view_the_message_bd7a0627: "Bericht niet inbegrepen, inloggen om het bericht te zien."
   message_observers_of_students_who_6cc6b796: "Berichtwaarnemers van cursisten die..."
@@ -25285,10 +25310,12 @@ nl:
   name_has_already_completed_the_required_peer_revie_cdd4ab5c: "%{name} heeft de vereiste peerbeoordelingen al voltooid."
   name_has_been_read_663891a5: "%{name} is gelezen"
   name_has_been_successfully_installed_but_has_not_y_c3148b96: "*naam* is succesvol geïnstalleerd, maar nog niet ingeschakeld."
+  name_is_already_assigned_more_than_once_remove_the_da1f8372: "\"%{name}\" is al vaker dan één keer toegewezen. Verwijder het duplicaat voordat je gaat opslaan."
   name_is_currently_locked_and_unavailable_to_view_6e579cea: "%{name} is momenteel vergrendeld en kan niet bekeken worden."
   name_is_currently_status_9065c996: "*naam* is momenteel **status**."
   name_is_locked_click_to_unlock_7aad9928: "%{name} is vergrendeld. Klik om te ontgrendelen"
   name_is_locked_click_to_unlock_bbebf03e: "%{name} is vergrendeld. Klik om te ontgrendelen."
+  name_is_not_enrolled_as_a_student_in_this_course_3fe7af74: "\"%{name}\" is niet als student voor deze cursus ingeschreven."
   name_is_ready_to_be_assigned_temporary_enrollments_f39a6cf6: "Aan %{name} kunnen nu tijdelijke inschrijvingen worden toegewezen."
   name_is_required_4341f774: "Naam is vereist."
   name_is_required_ba379522: "Naam is vereist"
@@ -26036,6 +26063,7 @@ nl:
   note_it_may_take_up_to_a_week_for_the_beta_url_to__d695bddc: "Opmerking: Inrichten door de bèta URL kan tot een week duren, afhankelijk van de bèta verversingscyclus."
   note_jobs_blocked_by_shard_migrations_will_not_be__43e7a9b0: "OPMERKING: De blokkering van taken die zijn geblokkeerd door shard-migraties wordt niet opgeheven."
   note_length_cannot_exceed_maxlength_characters_82798b1: "Notitielengte mag maximaal %{maxLength} tekens bedragen."
+  note_limit_of_1000_per_course_reached_5003eb77: "Limiet van 1000 per cursus is bereikt"
   note_paper_39834317: notitieblaadjes
   note_question_details_not_available_when_more_than_93199f6d: "OPMERKING: vraagdetails zijn niet beschikbaar bij meer dan %{question_count}."
   note_some_items_fall_outside_the_start_and_or_end__feab0642: "Opmerking: Sommige items vallen buiten de begin- en/of einddatums van de cursus"
@@ -26060,6 +26088,7 @@ nl:
   note_you_may_receive_this_email_when_new_authentic_5d9403f4: "Opmerking: Je kunt deze e-mail ontvangen wanneer nieuwe types verificatieproviders worden ondersteund voor de migratie, of wanneer we gereed zijn om het migratieproces voor bestaande types providers te beginnen."
   notebook_4998c7e2: Notitieboek
   notebook_b0eea5b4: notitieblok
+  notebook_feature_flag_is_not_enabled_3472ede6: "functietag voor notitieboeken is niet ingeschakeld"
   notes_5ef20d1: opmerkingen
   notes_6cfc3988: "Opmerkingen:"
   notes_c42e0fd5: Opmerkingen
@@ -27287,6 +27316,7 @@ nl:
   page_comments: 
     errors: 
       create_failed: "Het maken van samenwerking mislukt"
+  page_content_c7203759: Pagina-inhoud
   page_content_is_sent_to_the_model_to_generate_stud_354ea807: "De inhoud van de pagina is naar het model gestuurd om studiemateriaal te genereren."
   page_duration_7b562e65: "Duur pagina"
   page_editor_9023aaa1: "Page Editor"
@@ -27501,6 +27531,7 @@ nl:
   pedagogical_activity_guidance_69492abb: "Pedagogische begeleiding bij activiteit"
   pedagogical_guidance_6195f27c: "Pedagogische begeleiding"
   pedagogical_guidance_98e3902a: "Pedagogische begeleiding"
+  pedagogical_guidance_must_be_max_characters_or_few_fdef6839: "Pedagogische begeleiding moet uit %{max} of minder tekens bestaan"
   peer_632472b7: "Peer:"
   peer_comments_3c8f20a0: "Opmerkingen van peers"
   peer_peername_c4768f58: "Peer: %{peerName}"
@@ -28056,6 +28087,7 @@ nl:
   please_wait_while_we_upload_attachments_59544216: "Even wachten terwijl we de bijlagen uploaden."
   please_wait_while_we_upload_attachments_and_media_c7e7221c: "Even wachten terwijl we de bijlagen en media uploaden"
   please_wait_while_we_upload_attachments_fc34efd1: "Even wachten terwijl we de bijlagen uploaden"
+  plugin_settings_can_only_be_modified_on_the_matchi_d896bce1: "Instellingen voor plug-ins kunnen alleen worden gewijzigd in het overeenkomende account of het gedeelde domein."
   plugins: 
     academic_benchmark_importer: 
       description: "Hiermee kun je Academic Benchmark-standaarden in Canvas importeren."
@@ -31321,6 +31353,7 @@ nl:
   redirect_uris_79534b60: "* URL's doorsturen:"
   redirect_uris_a54bd82f: "URL's doorsturen:"
   redirect_uris_d5063b21: "URL's doorsturen"
+  redirect_uris_must_match_exactly_including_casing__21e60f40: "Omleidings-URI's moet exact overeenkomen, inclusief hoofdlettergebruik, protocol, host, poort, pad en queryreeksen. Er zijn maximaal %{max} omleidings-URI's per ontwikkelaarssleutel toegestaan."
   redirected_to_identity_provider_6c4e17d2: "Doorgestuurd naar Identity Provider"
   redirecting_please_wait_3d280ed5: "Bezig met omleiden, een ogenblik geduld..."
   redo_363c58b7: Opnieuw
@@ -32946,6 +32979,7 @@ nl:
   section_name_edb51b2: sectienaam
   section_name_fa2b80d7: "Sectienaam:"
   section_name_inactive_36edffe6: "%{section_name} - Inactief"
+  section_name_is_not_part_of_this_course_4a386042: "Sectie \"%{name}\" maakt geen deel uit van deze cursus."
   section_name_is_too_long_9cec2a30: "Sectienaam is te lang"
   section_pace_989d2856: Sectietempo
   section_removed_2ac72a79: "%{section} verwijderd"
@@ -34661,6 +34695,7 @@ nl:
   shows_instructure_provided_release_notes_in_the_he_8e2bf5ee: "Toont door Instructure geleverde releaseopmerkingen in het helpmenu voor alle gebruikers (gefilterd op gebruikersrol)"
   shrink_permission_74b01aed: "%{permission} samenvouwen"
   shuffle_answers_edb602b7: "Volgorde van antwoorden wisselen"
+  sidebar_panel_b7880429: Zijbalkvenster
   sighted_users_browse_web_pages_quickly_looking_for_ade806f5: "Slechtzienden bladeren snel door webpagina's, op zoek naar grote of vette koppen. Gebruikers van schermlezers zijn afhankelijk van koppen om een idee van de context te krijgen. Koppen moeten beknopt zijn en de juiste structuur hebben."
   sighted_users_scan_web_pages_by_identifying_headin_3d8def25: "Ziende gebruikers kunnen webpagina's scannen door koppen te identificeren. Op dezelfde manier kunnen mensen die gebruikmaken van schermlezers koppen gebruiken om inhoud snel te begrijpen en hun weg door de tekst te vinden. Als een kop te lang is, kan het scannen verwarrend zijn, kan het moeilijker zijn om de tekst voor te laten lezen door hulptechnologie en kan het minder effectief zijn voor het in kaart brengen van je pagina."
   sighted_users_scan_web_pages_by_identifying_headin_d98efb16: "Ziende gebruikers kunnen webpagina's scannen door koppen te identificeren. Op dezelfde manier kunnen mensen die gebruikmaken van schermlezers koppen gebruiken om inhoud snel te begrijpen en hun weg door de tekst te vinden. Als een kop te lang is, kan het scannen verwarrend zijn, kan het moeilijker zijn om de tekst voor te laten lezen door hulptechnologie en kan het minder effectief zijn voor het in kaart brengen van je pagina. Hou koppen kort, specifiek en zinvol, maak geen volledige zinnen of alinea's."
@@ -35177,6 +35212,10 @@ nl:
   split_students_by_number_of_groups_5ace5a6a: "Cursisten splitsen op aantal groepen"
   split_students_into_groups_with_num_members_studen_c49d5136: "Splits cursisten in groepen op met %{num_members} cursisten per groep"
   split_students_into_num_groups_groups_e9854f16: "Splits cursisten op in %{num_groups} groepen"
+  splits_authentication_provider_management_out_of_a_2f4b7286: |-
+      Splitst Verificatieproviderbeheer afkomstig uit "Accountinstellingen -
+      beheren" op in de specifieke machtigingen "Verificatieproviders - beheren" en
+      "Verificatieproviders - lezen".
   splitscreen_entry_post_error_page_75be199e: "Foutpagina Plaatsen Splitscreen-invoer"
   splitscreen_entry_query_error_9d3cebf9: "Queryfout Splitscreen-invoer"
   splitting_disabled_reached_maximum_of_three_assign_716acb13: "Splitsen uitgeschakeld: maximum van drie opdrachtgroepen in een scorebereik is bereikt"
@@ -36361,6 +36400,7 @@ nl:
   template_account_not_found_7144542c: "Sjabloonaccount is niet gevonden"
   template_name_fba74b9c: Sjabloonnaam
   template_quick_look_734f92bc: "Sjabloon: Snelle blik"
+  template_type_must_be_one_of_types_e98fbb5a: "template_type moet een van de volgende zijn: %{types}"
   templates_4ca13d07: Sjablonen
   temporarily_enroll_a_user_into_a_course_this_tempo_990488f8: "Schrijf een gebruiker tijdelijk in voor een cursus. Deze tijdelijke inschrijving wordt binnen de cursus gekoppeld aan een andere inschrijving."
   temporarily_enroll_name_8acb66ce: "Schrijf %{name} tijdelijk in"
@@ -36552,6 +36592,7 @@ nl:
   text_smaller_than_18pt_or_bold_14pt_should_display_aaffb22b: "Voor tekst kleiner dan 18pt (of vet 14pt) geldt een minimum contrastverhouding van 4,5:1."
   text_sms_4e2d82a7: "Tekst (SMS)"
   text_source_7eae4eb3: Tekstbron
+  text_source_must_be_max_characters_or_fewer_4295957e: "Tekstbron moet uit %{max} of minder tekens bestaan"
   text_submitted_to_canvas_1bd700c3: "Tekst ingediend bij Canvas"
   text_to_image_ratio_58c00217: "Verhouding tussen tekst en afbeelding"
   text_translated_to_language_8237c3: "Tekst vertaald naar het %{language}"
@@ -36835,6 +36876,7 @@ nl:
     one: "Het volgende leerdoel kan niet worden verwijderd want het is gekoppeld aan inhoud. Deselecteer het en probeer opnieuw."
     other: "De volgende leerdoelen kunnen niet worden verwijderd want ze zijn gekoppeld aan inhoud. Deselecteer ze en probeer opnieuw."
   the_following_recipients_have_no_active_enrollment_17395ab4: "De volgende ontvangers hebben geen actieve inschrijving in de cursus, %{invalid_recipients}, kan geen berichten verzenden"
+  the_following_redirect_uris_have_been_automaticall_dd8b25a6: "De volgende omleidings-URI's zijn automatisch gedeactiveerd omdat ze de laatste tijd niet zijn gebruikt:"
   the_following_shards_set_policy_list_213c5d6d: "De volgende shards stellen %{policy} in: %{list}"
   the_following_students_have_unsaved_changes_to_the_7762def7: |-
       De volgende cursisten hebben niet-opgeslagen wijzigingen in hun ingezonden toetsen: 
@@ -36877,6 +36919,7 @@ nl:
   the_import_failed_for_the_following_file_s_74d21316: "De import van de volgende bestand(en) is mislukt:"
   the_imported_question_text_for_this_question_was_t_83b4e6fb: "De geïmporteerde vraagtekst voor deze vraag was te lang."
   the_importer_will_be_migrating_from_api_v3_to_v4_1_e7550082: "Het importeerprogramma wordt gemigreerd van API v3 naar v4.1. De referenties veranderen niet, maar je moet ervoor zorgen dat je account toegang heeft tot v4.1 vóór februari 2021."
+  the_information_you_entered_wasn_t_accepted_update_b5fec985: "De door jou ingevoerde informatie werd niet geaccepteerd. Werk deze velden bij om je wijzigingen op te slaan."
   the_institution_you_logged_in_from_is_not_configur_5ceac41: "De instelling waarbij je probeerde aan te melden, is niet geconfigureerd voor dit account."
   the_intention_is_to_expand_this_scope_as_the_smart_80a6ff62: "Het is de bedoeling dit bereik te vergroten naarmate Smart Search verder wordt ontwikkeld."
   the_jwks_uri_provides_the_public_keys_used_to_veri_d21dc032: |-
@@ -37383,6 +37426,7 @@ nl:
   these_options_are_hidden_until_a_user_expands_the__e37e94af: "Deze opties zijn verborgen totdat een gebruiker de sectie \"Meer aanmeldopties\" (More sign in options) op de inlogpagina uitvouwt."
   these_permissions_control_the_ability_to_create_ed_d4d043b7: "Met deze machtigingen kan worden geregeld wie differentiatietags kan maken, bewerken en verwijderen."
   these_permissions_control_the_ability_to_manage_au_ca7062: "Deze machtigingen bepalen of automatiseringsregels voor het account kunnen worden beheerd."
+  these_permissions_control_the_ability_to_manage_cu_8e4b6d0d: "Deze machtigingen bepalen of aanpasbare studentendashboards voor het account kunnen worden beheerd."
   these_permissions_control_the_ability_to_view_crea_45a186b6: "Deze machtigingen oefenen controle uit over het kunnen weergeven, maken en bewerken van institutionele tags."
   these_permissions_do_not_manage_discussions_discus_79defb66: "Deze machtigingen beheren Discussies niet. Discussies worden beheerd via afzonderlijke Discussie-machtigingen."
   these_pronouns_will_appear_after_your_name_when_sh_6b7ff5b2: "Deze voornaamwoorden komen achter je naam te staan wanneer je naam in de UI wordt weergegeven"
@@ -37938,6 +37982,7 @@ nl:
   this_rule_conflicts_with_rule_rule_text_enforcemen_22db46ad: "Deze regel conflicteert met regel \"%{rule_text}\" (%{enforcement})"
   this_sample_page_includes_common_ui_elements_in_ca_331f4ac4: "Deze voorbeeldpagina bevat gemeenschappelijke UI-elementen in Canvas om je te helpen je aangepaste huisstijl op te bouwen. Zodra je begint met het aanbrengen van wijzigingen aan de kleurwaarden en beelden in de linkerzijbalk, zie je een knop *Voorbeeld van wijzigingen*. Klik erop om deze pagina te vernieuwen en te zien hoe je wijzigingen eruit zien."
   this_sample_page_includes_common_ui_elements_in_ca_ef71449d: "De voorbeeldpagina bevat algemene UI-elementen in Canvas om je te helpen bij het samenstellen van je huisstijl. Zodra je wijzigingen gaat aanbrengen aan kleurwaarden en afbeeldingen, wordt de knop *Voorbeeld van je wijzigingen* weergegeven. Klik erop om deze pagina te vernieuwen en je wijzigingen te zien."
+  this_section_group_or_user_is_already_assigned_mor_9f7754dd: "Deze sectie, groep of gebruiker is al vaker dan één keer toegewezen. Verwijder het duplicaat voordat je gaat opslaan."
   this_section_pace_will_be_removed_and_the_pace_wil_86093c26: "Dit sectietempo wordt verwijderd en het tempo wordt teruggezet naar de standaardinstelling."
   this_setting_allows_the_admin_to_brand_or_label_al_978c6710: "Deze instelling stelt de beheerder in staat om alle 'Van'-tekst in alle meldingen die vanuit Canvas verstuurd worden voor dit account te markeren of te labelen."
   this_setting_defines_the_initial_sort_order_studen_1d20b5b0: "Deze instelling definieert de oorspronkelijke sorteervolgorde. Cursisten kunnen hun voorkeur instellen. Nadat ze de instellingen hebben gewijzigd, zullen toekomstige updates hun instellingen niet wijzigen, tenzij deze zijn vergrendeld."
@@ -38528,6 +38573,7 @@ nl:
       Om 'back channel logout' mogelijk te maken, configureer je de `backchannel_logout_uri`
       van de provider voor gebruik %{backchannel_logout_uri} en stel je bij voorkeur
       `backchannel_logout_session_required` in op `true` als de provider dit ondersteunt.
+  to_configure_the_account_s_multi_factor_authentica_2f4f21c9: "Om het beleid Multi-Factor-verificatie van het account te configureren, moet ook Account - Multi-Factor-verificatie zijn ingeschakeld."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_5c6d93e4: "om een link te maken die je in Canvas kunt gebruiken. Meld je aan voor een Zoom-account als je er nog geen hebt."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_7dd85497: "om een link te maken die je in Canvas kunt gebruiken. Je hebt een Google-account nodig om Google Meet te kunnen gebruiken."
   to_create_a_new_course_to_use_as_a_course_template_9e7e2c6c: "Om een nieuwe cursus te maken voor gebruik als een cursussjabloon, moet ook Cursussen beheren - toevoegen zijn ingeschakeld."
@@ -38793,6 +38839,7 @@ nl:
   to_remove_a_user_via_sis_id_sis_data_manage_must_a_5d0f4839: "Om een gebruiker via SIS-ID te verwijderen, moet SIS-gegevens - beheren ook zijn ingeschakeld."
   to_reply_to_a_discussion_discussions_post_must_als_c9654a9b: "Om discussies te beantwoorden, moet Discussies - posten ook zijn ingeschakeld."
   to_reply_to_a_discussion_discussions_post_must_be__a4cf502a: "Om discussies te beantwoorden, moet Discussies - posten zijn ingeschakeld."
+  to_reset_a_specific_user_s_multi_factor_authentica_324991e: "Om de inschrijving voor Multi-Factor-verificatie van een specifieke student opnieuw in te stellen, moet ook Multi-Factor-verificatie opnieuw instellen zijn ingeschakeld."
   to_restore_a_deleted_course_courses_delete_courses_83c7e64f: "Om een verwijderde cursus te herstellen, moeten Cursussen - verwijderen, Cursussen verwijderen ongedaan maken en Cursusinhoud - weergeven ook zijn ingeschakeld."
   to_restore_a_deleted_course_courses_undelete_and_c_dc2d0470: "Om een verwijderde cursus te herstellen, moeten Cursussen - verwijderen ongedaan maken en Cursusinhoud - weergeven ook zijn ingeschakeld."
   to_restore_a_deleted_course_in_an_account_manage_c_3ad933ee: "Om een verwijderde cursus in een account te herstellen, moeten Cursussen beheren - verwijderen en Cursusinhoud - weergeven ook zijn ingeschakeld."
@@ -40180,6 +40227,7 @@ nl:
   user_access_report_ddbedbfe: "Rapport over gebruikerstoegang"
   user_access_report_prospect_education_6bf448c: "Rapport over gebruikerstoegang - Prospect Education"
   user_access_tokens_title: "Toegangstokens van gebruiker"
+  user_account_inherited_db3af3fa: "Gebruiker (overgenomen van account)"
   user_agent_585ccbc7: Gebruikersagent
   user_avatars_e4fc4ed3: "Avatars gebruiker"
   user_c95de254: Gebruiker
@@ -40221,6 +40269,7 @@ nl:
   user_is_from_unacceptable_domain_domain_b4b6fd1b: "Gebruiker is afkomstig van een domein dat niet wordt geaccepteerd %{domain}."
   user_is_from_unacceptable_issuer_issuer_6a87cafa: "Gebruiker is afkomstig van verstrekker %{issuer} die niet wordt geaccepteerd."
   user_is_from_unacceptable_tenant_tenant_f4cb522: "Gebruiker is afkomstig van tenant %{tenant} die niet wordt geaccepteerd."
+  user_is_not_a_student_of_this_course_d41a2aaa: "De gebruiker is geen student van deze cursus"
   user_is_now_group_leader_60ec9b98: "%{user} is nu groepsleider"
   user_isn_t_allowed_to_edit_global_outcomes_a7eb4a87: "Gebruiker mag geen globale leerdoelen bewerken"
   user_just_accepted_their_invitation_to_participate_7a4b2ce4: "%{user} accepteerde zojuist de uitnodiging om aan de cursus %{course} deel te nemen. Cursusfunctie: %{role_type}"
