@@ -263,6 +263,8 @@ da-x-k12:
   a_custom_message_to_display_on_the_parent_registra_447031ba: "En brugerdefineret besked, der skal vises på forældreregistreringsskærmen (se: /login/canvas/register/parent)."
   a_custom_message_to_display_on_the_registration_sc_a8af85df: "En brugerdefineret besked, der skal vises på registreringsskærmen (se: /login/canvas/register)."
   a_deleted_user_with_that_id_could_not_be_found_for_57503c7b: "En slettet bruger med det pågældende ID kunne ikke findes for denne konto."
+  a_developer_key_cannot_have_more_than_64_redirect__18a08389: "En udviklernøgle må ikke indeholde mere end 64 omdirigerings-URI'er. Du bedes fjerne nogle poster."
+  a_developer_key_cannot_have_more_than_max_redirect_914e69f8: "En udviklernøgle må ikke indeholde mere end %{max} omdirigerings-URI'er. Du bedes fjerne nogle poster."
   a_few_seconds_ago_e43118d: "for et par sekunder siden"
   a_file_is_required_to_make_a_submission_6e5a28a0: "Der kræves en fil for at sende en aflevering."
   a_file_named_filename_already_exists_in_this_locat_606ca948: "En fil med navnet \"%{fileName}\" findes allerede på denne placering. Vil du udskifte den eksisterende fil?"
@@ -3444,6 +3446,7 @@ da-x-k12:
       læringsudbytte på fagniveauet.
   allows_user_to_create_import_edit_and_delete_outco_8eff991: "Gør det muligt for en bruger at oprette, importere, redigere og slette læringsudbytte og læringsudbyttegrupper på fagniveauet."
   allows_user_to_create_institutional_tags_8187ad8c: "Giver brugeren mulighed for at oprette institutionelle tags."
+  allows_user_to_create_learner_dashboards_on_the_ac_eda79a0a: "Giver brugeren mulighed for at oprette oversigter for studerende på kontoen."
   allows_user_to_create_modify_and_delete_global_sit_bd57ed4e: "Lader brugeren oprette, ændre og slette globale (siteadministrator) udviklernøgler og LTI-konfigurationer."
   allows_user_to_create_new_conferences_allows_user__89cebec2: "Gør det muligt for en bruger at oprette nye konferencer. Gør det muligt for en bruger at starte konferencer, som brugeren selv har oprettet."
   allows_user_to_create_new_conferences_in_courses_a_80899f64: "Gør det muligt for en bruger at oprette nye konferencer i fag og grupper."
@@ -3471,6 +3474,7 @@ da-x-k12:
   allows_user_to_delete_course_sections_19193a35: "Gør det muligt for en bruger at slette fagsektioner."
   allows_user_to_delete_course_sections_allows_user__649d2d0d: "Gør det muligt for en bruger at slette fagsektioner. Gør det muligt for en bruger at slette en bruger fra en fagsektion."
   allows_user_to_delete_differentiated_tags_30770c90: "Giver brugeren mulighed for at slette differentierede tags"
+  allows_user_to_delete_learner_dashboards_on_the_ac_1a6a326e: "Giver brugeren mulighed for at slette oversigter for studerende på kontoen."
   allows_user_to_delete_other_user_s_access_tokens_4d82f8df: "Tillader brugeren at slette andre brugeres adgangstokens."
   allows_user_to_delete_question_banks_in_a_course_o_d9cd0b2f: "Lader brugeren slette spørgsmålsbanker i et fag eller en konto."
   allows_user_to_delete_quizzes_in_a_course_acdbdfba: "Lader brugeren slette quizzer i et fag."
@@ -3540,6 +3544,7 @@ da-x-k12:
               Gør det muligt for en bruger at få adgang til vurderingsoversigten for opfyldelse af læringsmål (hvis aktiveret).
   allows_user_to_edit_grading_schemes_98c35117: "Gør det muligt for en bruger at redigere vurderingssystemer."
   allows_user_to_edit_institutional_tags_ff7a9383: "Giver brugeren mulighed for at redigere institutionelle tags."
+  allows_user_to_edit_learner_dashboards_on_the_acco_db542186: "Giver brugeren mulighed for at redigere oversigter for studerende på kontoen."
   allows_user_to_edit_lock_settings_on_individual_as_80ed188a: "Lader brugeren redigere låseindstillinger i enkelte opgaver, sider eller diskussioner"
   allows_user_to_edit_lock_settings_on_the_assignmen_4c347262: "Lader brugeren redigere låseindstillinger på indekssiderne Opgaver og Quizzer."
   allows_user_to_edit_question_banks_in_a_course_or__f72a39cf: "Lader brugeren redigere spørgsmålsbanker i et fag eller en konto."
@@ -3835,6 +3840,7 @@ da-x-k12:
   allows_user_to_view_student_results_view_quiz_stat_7d77640a: "Gør det muligt for en bruger at se elevernes resultater, se quizstatistikker og få adgang til en quiz i SpeedGrader."
   allows_user_to_view_student_specific_data_in_analy_4abbf6be: "Gør det muligt for en bruger at få vist data, der er specifikke for elever, i Analyse."
   allows_user_to_view_the_account_s_automation_rules_b72dcc1d: "Lader brugeren se kontoens automatiseringsregler."
+  allows_user_to_view_the_account_s_learner_dashboar_c012e184: "Giver brugeren mulighed for at se kontoens oversigter for studerende."
   allows_user_to_view_the_announcements_link_in_cour_b3522273: "Gør det muligt for en bruger at få vist linket Beskeder i Fagnavigation."
   allows_user_to_view_the_announcements_link_in_cour_f6b03e9a: "Gør det muligt for en bruger at få vist linket Beskeder i Fagnavigation. Gør det muligt for en bruger at få vist fagbeskeder."
   allows_user_to_view_the_clone_group_set_button_for_d68aab98: "Lader brugeren se knappen Klon gruppesæt for en konto eller faggruppe."
@@ -5383,8 +5389,8 @@ da-x-k12:
     processing_submission: "Canvas behandler din aflevering i øjeblikket. Du kan sikkert forlade denne side. Vi vil maile dig, når din aflevering er behandlet."
     redirect_page: 
       redirect_message: |-
-          Denne aflevering var en url. Vi tager dig til url-linket nu.  
-          [Klik her for at gå til afleveringen](%{url})
+          Denne indsendelse var en url, vi fører dig til url-linket nu.
+          [Klik her for at gå til indsendelsen](%{url})
     remove_never_drop_rule: "Fjern reglen 'fjern aldrig'"
     remove_unsaved_never_drop_rule: "Fjern den ikke gemte regel 'fjern aldrig'"
     rules_text: 
@@ -7082,6 +7088,7 @@ da-x-k12:
   canceling_this_attempt_will_permanently_delete_any_21ce850c: "Annullering af dette forsøg vil permanent slette alt arbejde, der er blevet udført i dette forsøg. Ønsker du at fortsætte og slette dit arbejde?"
   cancelled_move_of_item_6fc9a757: "Annulleret flytning af %{item}"
   cannot_access_group_in_concluded_course_90a8db52: "Kan ikke få adgang til gruppe i afsluttet fag"
+  cannot_activate_a_built_in_role_eab89e55: "Kan ikke aktivere en indbygget rolle"
   cannot_add_a_temporary_enrollment_to_a_concluded_c_459a44fa: "Kan ikke tilføje en midlertidig tilmelding til et afsluttet fag"
   cannot_add_role_name_name_already_in_use_a523639c: "Kan ikke tilføje rollenavn %{name}: allerede i brug"
   cannot_add_section_to_a_non_section_specific_discu_d2a7f263: "Kan ikke tilføje sektion til en ikke-sektionsspecifik diskussion"
@@ -10241,6 +10248,7 @@ da-x-k12:
   course_name_is_required_d987f1c3: "Fagnavn er påkrævet."
   course_name_must_be_255_characters_or_less_e7afed1a: "Fagnavn skal være på 255 tegn eller derunder"
   course_name_not_authorized_for_cross_listing_353e500f: "%{course_name} har ikke tilladelse til at blive krydslistet"
+  course_name_override_does_not_match_this_assignmen_21557f13: "Fagets \"%{name}\" tilsidesættelse matcher ikke denne opgaves fag."
   course_name_successfully_added_48116a50: "%{course_name} blev tilføjet!"
   course_navigation_and_quick_access_features_coming_7dd88414: "Fagnavigation og hurtigadgangsfunktioner kommer snart."
   course_navigation_dd035109: Fagnavigation
@@ -12133,6 +12141,7 @@ da-x-k12:
   differentiated_tags_add_5297b273: "Differentierede tags – tilføj"
   differentiated_tags_delete_747504bf: "Differentierede tags – slet"
   differentiated_tags_manage_6a15d272: "Differentierede tags – administrer"
+  differentiation_tag_name_cannot_be_assigned_to_thi_c488393d: "Differentierede tags \"%{name}\" kan ikke tildeles denne opgave."
   differentiation_tag_overrides_must_be_removed_48050504: "Tilsidesættelser af differentierede tags skal fjernes"
   differentiation_tag_sets_635d2f90: "Sæt af differentierede tags"
   differentiation_tags: "Differentierede tags"
@@ -14408,6 +14417,7 @@ da-x-k12:
   error_updating_module_access_f0970f4c: "Fejl ved opdatering af adgang til forløb."
   error_updating_moduleitemname_96819b43: "Fejl ved opdatering af \"%{moduleItemName}\""
   error_updating_moduleitemname_a34c6a04: "Fejl ved opdatering af “%{moduleItemName}”"
+  error_updating_moduleitemname_b4911cb1: "Fejl ved opdatering af \"%{moduleItemName}\""
   error_updating_modulename_settings_da982acf: "Fejl ved opdatering af indstillinger for %{moduleName}."
   error_updating_note_50f33d53: "Der opstod en fejl ved opdatering af bemærkningen."
   error_updating_notes_31b24785: "Fejl ved opdatering af bemærkninger"
@@ -16574,6 +16584,7 @@ da-x-k12:
   granite_assignment_score_summary_66fece24: "Oversigt over Granite-opgaveresultat"
   grant_tenant_access_9afafd: "Giv lejeradgang"
   grant_your_browser_permission_to_record_by_allowin_c7b3c53f: "Giv din browser tilladelse til at optage ved at tillade adgang til din kamera og mikrofon."
+  granular_authentication_provider_permissions_ce54c28a: "Tilladelser for granulære godkendelsesudbydere"
   granular_contexttype_notification_settings_will_be_c5dfc901: "Granulære %{contextType} meddelelses-indstillinger kan konfigureres her i fremtiden."
   granular_course_notification_settings_will_be_conf_68f122db: "Granulære fagmeddelelsesindstillinger vil kunne konfigureres her i fremtiden."
   granular_permissions_for_add_remove_admin_roles_fr_9a06a75d: "Detaljerede tilladelser for Tilføj / fjern administratorroller fra fag"
@@ -16716,6 +16727,7 @@ da-x-k12:
   group_name_group_pages_def16554: "%{group_name} - Gruppesider"
   group_name_group_people_e9d548c1: "%{group_name} - Gruppedeltagere"
   group_name_in_group_category_name_group_category_29bf3254: "%{group_name} i %{group_category_name} gruppekategori"
+  group_name_is_not_part_of_this_assignment_s_group__9e7787b6: "Gruppen \"%{name}\" er ikke en del af denne opgaves gruppesæt."
   group_name_is_required_5547bc0b: "Gruppenavn er påkrævet"
   group_name_must_be_less_than_255_characters_800ee540: "Gruppenavnet skal indeholde mindre end 255 tegn."
   group_newoptiongroup_entered_newoptioncontextname_9eaf1b13: "Gruppe %{newOptionGroup} indtastet. %{newOptionContextName}"
@@ -18015,11 +18027,11 @@ da-x-k12:
   if_you_keep_having_problems_click_the_link_link_be_a4d695eb: "Hvis du fortsat har problemer, klik \"%{link}\" linket nedenfor for at søge i guiderne eller for at lade os vide, hvad problemet er."
   if_you_leave_the_zip_file_download_currently_being_c47c1dfb: "Hvis du lukker, så annulleres den zip-fil, som forberedes i øjeblikket."
   if_you_made_changes_to_the_student_submission_file_e006d49b: |-
-      Hvis du foretager ændringer i elevernes afleveringsfiler, som du downloadede
-        forinden, skal du blot komprimere dem igen og uploade zip-filen med den nedenstående
-        formular. Eleverne vil se de modificerede filer i deres kommentarer til afleveringen.
+      Hvis du foretager ændringer i elevernes afleveringsfiler, som du downloadede forinden,
+      skal du blot komprimere dem igen og uploade zip-filen med den nedenstående formular.
+      Eleverne vil se de modificerede filer i deres kommentarer til afleveringen.
       
-        *Sørg for, at du ikke ændrer afleveringsfilernes navne, så vi kan genkende dem.*
+      *Sørg for, at du ikke ændrer afleveringsfilernes navne, så vi kan genkende dem.*
   if_you_need_to_make_your_course_public_please_cont_7084c67b: "Hvis du vil offentliggøre dit fag, skal du kontakte din administrator / support."
   if_you_re_able_include_a_link_to_a_screencast_scre_91c49cf2: "Medtag om muligt et link til screencast/skærmbillede"
   if_you_re_seeing_this_with_a_local_dev_or_http_ver_504d7831: "Hvis du ser dette med en lokal udvikler- eller HTTP-version af Canvas, er det sandsynligt, da *Chrome blokerer cookies fra samme websted, der ikke er sikre*, so LTI-lanceringsprocessen i iframe kan ikke se Canvas' sessionscookie."
@@ -19166,7 +19178,9 @@ da-x-k12:
   knowledge_chat_94cf8a45: Videnschat
   knowledge_chat_deleted_successfully_c8a85144: "Videnschatten er blevet slettet"
   knowledge_chat_description_e0a796ee: "Beskrivelse af videnschat"
+  knowledge_chat_description_must_be_max_characters__8f34821a: "Beskrivelsen af videnschatten skal være %{max} tegn eller færre"
   knowledge_chat_name_4d7ce855: "Navn på videnschat"
+  knowledge_chat_name_must_be_max_characters_or_fewe_f84a4ba2: "Navnet på videnschatten skal være %{max} tegn eller færre"
   knowledge_chat_name_required_3ef7af16: "Navn på videnschat påkrævet"
   knowledge_chat_options_a72ca25: "Muligheder for videnschat"
   knowledge_chat_published_successfully_2661b781: "Videnschat er blevet offentiggjort"
@@ -19277,6 +19291,7 @@ da-x-k12:
   last_updated_timestamp_1822e508: "Sidst opdateret %{timestamp}"
   last_used_17553fed: "Sidst brugt"
   last_used_f9457313: "Sidst brugt:"
+  last_used_when_86487ac: "sidst brugt: %{when}"
   last_user_access_title: "Sidste brugeradgang"
   last_viewed_cfbbbc3a: "sidst vist"
   last_youtube_content_scan_failed_f4785264: "Seneste YouTube indholdsscanning mislykkedes."
@@ -19384,6 +19399,11 @@ da-x-k12:
   learn_more_about_video_conferencing_5f0e76e4: "Lær mere om videokonferencer"
   learn_more_bdd42bd8: "Få mere at vide ..."
   learn_more_in_the_canvas_community_3bba7b11: "Få mere at vide i Canvas Community"
+  learner_dashboards_2b98a630: "Oversigter for studerende"
+  learner_dashboards_add_568ed19b: "Oversigter for studerende – tilføj"
+  learner_dashboards_delete_a9a20f42: "Oversigter for studerende – slet"
+  learner_dashboards_edit_b6a16cee: "Oversigter for studerende – rediger"
+  learner_dashboards_view_c969197a: "Oversigter for studerende – vis"
   learner_passport_prototype_1c3446b3: "Studenterpas prototype"
   learner_passport_prototype_r2_98517178: "Studenterpas prototype R2"
   learner_preview_562438f0: "Forhåndsvisning af studerende"
@@ -19409,6 +19429,7 @@ da-x-k12:
   learning_object_dates_36b05acb: "Datoer for læringsobjekter"
   learning_objective_progress_percentage_1335247d: "Fremskridt i læringsobjekter: %{percentage}%"
   learning_objective_targets_b12b6bc2: Læringsmål
+  learning_objective_targets_must_be_max_characters__4310f523: "Læringsmål skal være %{max} tegn eller færre"
   learning_objectives_34d5472a: Læringsmål
   learning_objectives_7b8844fa: Læringsobjekter
   learning_objectives_covered_d8270b8a: "Gennemgåede læringsobjekter:"
@@ -19437,6 +19458,7 @@ da-x-k12:
       pointtærskel, der vil blive brugt til at definere opfyldelse af dette læringsmål.
   learning_outcomes_csv_d2e9f936: Læringsudbytte-CSV
   learning_outcomes_import_eca3a09c: "Læringsudbytte - importer"
+  learnplatform_provides_product_information_the_url_e9a6deb7: "LearnPlatform giver produktoplysninger URL'en nedenfor skal pege på et gyldigt LearnPlatform miljø (for eksempel %{url} -- sørg for at udelade den ekstra skråstreg."
   learnplatform_provides_product_information_the_url_f491a905: "LearnPlatform giver produktoplysninger URL'en angivet nedenfor skulle henvise til et gyldigt LearnPlatform miljø (f.eks. %{url} -- sørg for at udelade den sidste skråstreg"
   leave_5e852989: Forlad
   leave_a_comment_7991725b: "Skriv en kommentar"
@@ -19451,6 +19473,7 @@ da-x-k12:
           vil resultere i et maksimalt muligt resultat på %{pointRatio} for elevafleveringer bedømt med vurderingskriteriet.
   left_aligned_3903b802: Venstrejusteret
   left_group_group_name_aac4e813: "Forladt gruppen %{group_name}"
+  legacy_redirect_uri_deprecated_matches_on_scheme_a_b482a7f0: "Ældre omdirigerings-URI (udfaset; matcher kun på skema og værtsnavn, herunder underdomæner):"
   legend_5a9768bc: Forklaring
   len_maxlen_97f1c88d: "%{len}/%{maxLen}"
   length_notifications_found_25276610: "%{length} meddelelser fundet"
@@ -20346,6 +20369,7 @@ da-x-k12:
   manage_options_for_name_83278ad0: "Administrer indstillinger for %{name}"
   manage_pages_4d2adeb6: "Administrering af sider"
   manage_profile_pictures_40c958ce: "Administrering af profilbilleder"
+  manage_read_30c3ff25: "administrer / læs"
   manage_release_notes_9a51bba0: "Administrer frigivelsesnoter"
   manage_rubrics_5d274f6a: "Administrering af vurderingskriterier"
   manage_sftp_user_settings_95f01949: "Administrer SFTP-brugerindstillinger"
@@ -20643,6 +20667,7 @@ da-x-k12:
   message_groups_who_1ba736f: "Send besked til grupper, der ..."
   message_instructor_846bb4dd: "Besked til instruktør"
   message_is_required_c547cb60: "Besked er påkrævet"
+  message_must_be_max_characters_or_fewer_365b3060: "Beskeden skal være %{max} tegn eller færre"
   message_name_3b100614: "Send besked til %{name}"
   message_not_included_login_to_view_the_message_bd7a0627: "Besked ikke inkluderet, log ind for at se beskeden."
   message_observers_of_students_who_6cc6b796: "Send besked til observatører af elever, der ..."
@@ -23070,10 +23095,12 @@ da-x-k12:
   name_has_already_completed_the_required_peer_revie_cdd4ab5c: "%{name} har allerede gennemført de nødvendige elev-elev vurderinger."
   name_has_been_read_663891a5: "%{name} er blevet læst"
   name_has_been_successfully_installed_but_has_not_y_c3148b96: "*navn* er blevet installeret, men er endnu ikke blevet aktiveret."
+  name_is_already_assigned_more_than_once_remove_the_da1f8372: "\"%{name}\" er allerede tildelt mere end én gang. Fjern dubletten, før du gemmer."
   name_is_currently_locked_and_unavailable_to_view_6e579cea: "%{name} er i øjeblikket låst og kan ikke vises."
   name_is_currently_status_9065c996: "*navn* er aktuelt **status**."
   name_is_locked_click_to_unlock_7aad9928: "%{name} er låst. Klik for at låse op"
   name_is_locked_click_to_unlock_bbebf03e: "%{name} er låst. Klik for at låse op."
+  name_is_not_enrolled_as_a_student_in_this_course_3fe7af74: "\"%{name}\" er ikke tilmeldt som elev på dette fag."
   name_is_ready_to_be_assigned_temporary_enrollments_f39a6cf6: "%{name} er klar til at blive tildelt midlertidige tilmeldinger."
   name_is_required_4341f774: "Navn er påkrævet"
   name_is_required_ba379522: "Navn er påkrævet"
@@ -23798,6 +23825,7 @@ da-x-k12:
   note_it_may_take_up_to_a_week_for_the_beta_url_to__d695bddc: "Bemærk: Det tager muligvis op til en uge for klargøring af Beta URL, afhængigt af Beta opdateringscyklussen."
   note_jobs_blocked_by_shard_migrations_will_not_be__43e7a9b0: "BEMÆRK: Job blokeret af shard-overførsler vil ikke blive fjernet."
   note_length_cannot_exceed_maxlength_characters_82798b1: "Notens længde må ikke overskride %{maxLength} tegn."
+  note_limit_of_1000_per_course_reached_5003eb77: "Bemærk grænsen på 1000 pr. fag er nået"
   note_paper_39834317: noteopgave
   note_question_details_not_available_when_more_than_93199f6d: "BEMÆRK: Spørgsmålsdetaljer er ikke tilgængelige, når der er mere end %{question_count}."
   note_some_items_fall_outside_the_start_and_or_end__feab0642: "Bemærk: Visse elementer falder uden for fagets start- og/eller slutdatoer"
@@ -23822,6 +23850,7 @@ da-x-k12:
   note_you_may_receive_this_email_when_new_authentic_5d9403f4: "Bemærk: Du kan modtage denne e-mail, når nye typer godkendelsesudbydere understøttes til overførsel, eller når vi er klar til at starte overførselsprocessen for eksisterende udbydertyper."
   notebook_4998c7e2: Notesbog
   notebook_b0eea5b4: notesbog
+  notebook_feature_flag_is_not_enabled_3472ede6: "notebook-funktionsflaget er ikke aktiveret"
   notes_5ef20d1: noter
   notes_6cfc3988: "Bemærk:"
   notes_c42e0fd5: Noter
@@ -24990,6 +25019,7 @@ da-x-k12:
   page_comments: 
     errors: 
       create_failed: "Kommentaroprettelse mislykkedes"
+  page_content_c7203759: Sideindhold
   page_content_is_sent_to_the_model_to_generate_stud_354ea807: "Sideindhold sendes til modellen for at generere studiematerialer."
   page_duration_7b562e65: Sidevarighed
   page_editor_9023aaa1: Sideredigeringsprogram
@@ -25199,6 +25229,7 @@ da-x-k12:
   pedagogical_activity_guidance_69492abb: "Pædagogisk aktivitetsvejledning"
   pedagogical_guidance_6195f27c: "Pædagogisk vejledning"
   pedagogical_guidance_98e3902a: "Pædagogisk vejledning"
+  pedagogical_guidance_must_be_max_characters_or_few_fdef6839: "Pædagogisk vejledning skal være %{max} tegn eller færre"
   peer_632472b7: "Peer:"
   peer_comments_3c8f20a0: "Kommentarer fra andre elev"
   peer_peername_c4768f58: "Elev-elev: %{peerName}"
@@ -25733,6 +25764,7 @@ da-x-k12:
   please_wait_while_we_upload_attachments_59544216: "Vent, mens vi uploader vedhæftede filer."
   please_wait_while_we_upload_attachments_and_media_c7e7221c: "Vent, mens vi uploader vedhæftede filer og medier"
   please_wait_while_we_upload_attachments_fc34efd1: "Vent, mens vi uploader vedhæftede filer"
+  plugin_settings_can_only_be_modified_on_the_matchi_d896bce1: "Plugin-indstillinger kan kun ændres på den matchende konto eller shard-domæne."
   plugins: 
     academic_benchmark_importer: 
       description: "Dette gør det muligt at importere Academic benchmark-standarder ind i Canvas."
@@ -28629,6 +28661,7 @@ da-x-k12:
   redirect_uris_79534b60: "* Omdirigerings-URI'er:"
   redirect_uris_a54bd82f: "Omrediger URI'er:"
   redirect_uris_d5063b21: "Omrediger URI'er"
+  redirect_uris_must_match_exactly_including_casing__21e60f40: "Omdirigerings-URI'er skal stemme nøjagtigt overens, herunder store og små bogstaver, protokol, vært, port, sti og forespørgselsstreng. Op til %{max} omdirigerings-URI'er er tilladt pr. udviklernøgle."
   redirected_to_identity_provider_6c4e17d2: "Omdirigeret til identitetsudbyder"
   redirecting_please_wait_3d280ed5: "Omdirigerer, vent venligst ..."
   redo_363c58b7: "Annuller fortryd"
@@ -30187,6 +30220,7 @@ da-x-k12:
   section_name_edb51b2: sektionsnavn
   section_name_fa2b80d7: "Sektionsnavn:"
   section_name_inactive_36edffe6: "%{section_name} – Inaktiv"
+  section_name_is_not_part_of_this_course_4a386042: "Afsnittet \"%{name}\" er ikke en del af dette fag."
   section_name_is_too_long_9cec2a30: "Sektionsnavn er for langt"
   section_pace_989d2856: "Tempo for sektioner"
   section_removed_2ac72a79: "%{section} fjernet"
@@ -31706,6 +31740,7 @@ da-x-k12:
   shows_instructure_provided_release_notes_in_the_he_8e2bf5ee: "Viser udgivelsesnotater leveret af Instructure i hjælpemenuen for alle brugere (filtreret efter brugerrolle)"
   shrink_permission_74b01aed: "Formindsk %{permission}"
   shuffle_answers_edb602b7: "Bland svar"
+  sidebar_panel_b7880429: Sidepanel
   sighted_users_browse_web_pages_quickly_looking_for_ade806f5: "Brugere, der er i stand til at se, gennemser websider hurtigt og leder efter store overskrifter. Skærmlæsere er afhængige af overskrifter for kontekstuel forståelse. Overskrifter bør være kortfattede inden for den rigtige struktur."
   sighted_users_scan_web_pages_by_identifying_headin_3d8def25: "Seende brugere får et overblik over websider ved at identificere overskrifter. På samme måde er skærmlæserbrugere afhængige af overskrifter for hurtigt at forstå og navigere i dit indhold. Hvis en overskrift er for lang, kan den være forvirrende at skanne, sværere at læse højt med teknologiske hjælpemidler og mindre effektiv til at give et overblik over din side."
   sighted_users_scan_web_pages_by_identifying_headin_d98efb16: "Seende brugere får et overblik over websider ved at identificere overskrifter. På samme måde er skærmlæserbrugere afhængige af overskrifter for hurtigt at forstå og navigere i dit indhold. Hvis en overskrift er for lang, kan den være forvirrende at skanne, sværere at læse højt med teknologiske hjælpemidler og mindre effektiv til at give et overblik over din side. Skriv korte overskrifter, der er specifikke og meningsfulde, ikke hele sætninger eller afsnit."
@@ -32180,6 +32215,10 @@ da-x-k12:
   split_students_by_number_of_groups_5ace5a6a: "Opdel elever efter antal grupper"
   split_students_into_groups_with_num_members_studen_c49d5136: "Opdel elever i grupper med %{num_members} elever pr. gruppe"
   split_students_into_num_groups_groups_e9854f16: "Opdel elever i %{num_groups} grupper"
+  splits_authentication_provider_management_out_of_a_2f4b7286: |-
+      Opdeler administration af godkendelsesudbydere fra "Kontoindstillinger –
+      administrer" til dedikerede tilladelser for "Godkendelsesudbydere – administrer" og
+      "Godkendelsesudbydere – læs".
   splitscreen_entry_post_error_page_75be199e: "Fejlside ved delt skærm ved opslag af post"
   splitscreen_entry_query_error_9d3cebf9: "Delt skærm indtastning - forespørgselsfejl"
   splitting_disabled_reached_maximum_of_three_assign_716acb13: "Opdeling deaktiveret: nået maksimalt tre opgavegrupper i et resultatområde"
@@ -33307,6 +33346,7 @@ da-x-k12:
   template_account_not_found_7144542c: "Skabelonkonto blev ikke fundet"
   template_name_fba74b9c: Skabelonnavn
   template_quick_look_734f92bc: "Skabelon: Hurtigt kig"
+  template_type_must_be_one_of_types_e98fbb5a: "template_type skal være en af: %{types}"
   templates_4ca13d07: Skabeloner
   temporarily_enroll_a_user_into_a_course_this_tempo_990488f8: "Tilmeld midlertidigt en bruger til et fag. Denne midlertidige tilmelding er parret med en anden tilmelding i faget."
   temporarily_enroll_name_8acb66ce: "Tilmeld %{name} midlertidigt"
@@ -33489,6 +33529,7 @@ da-x-k12:
   text_smaller_than_18pt_or_bold_14pt_should_display_aaffb22b: "Tekst mindre end 18pt (eller fed 14pt) skal have et kontrastforhold på mindst 4,5:1."
   text_sms_4e2d82a7: "Tekstbesked (SMS)"
   text_source_7eae4eb3: Tekstkilde
+  text_source_must_be_max_characters_or_fewer_4295957e: "Tekstkilden skal være %{max} tegn eller færre"
   text_submitted_to_canvas_1bd700c3: "Tekst indsendt til Canvas"
   text_to_image_ratio_58c00217: Tekst-til-billede-forhold
   text_translated_to_language_8237c3: "Tekst oversat til %{language}"
@@ -33773,6 +33814,7 @@ da-x-k12:
     one: "Følgende læringsudbytte kan ikke fjernes, fordi det er tilpasset til indholdet. Fjern markeringen af det, og prøv igen."
     other: "Følgende læringsudbytter kan ikke fjernes, fordi de er tilpasset til indholdet. Fjern markeringen af dem, og prøv igen."
   the_following_recipients_have_no_active_enrollment_17395ab4: "Følgende modtagere har ingen aktiv tilmelding til faget, %{invalid_recipients}, ude af stand til at sende beskeder"
+  the_following_redirect_uris_have_been_automaticall_dd8b25a6: "Følgende omdirigerings-URI'er er blevet automatisk deaktiveret, fordi de ikke er blevet brugt for nylig:"
   the_following_shards_set_policy_list_213c5d6d: "Følgende shard er indstillet %{policy}: %{list}"
   the_following_students_have_unsaved_changes_to_the_7762def7: |-
       Følgende elever har ikke-gemte ændringer i deres afleverede quiz: 
@@ -33812,6 +33854,7 @@ da-x-k12:
   the_import_failed_for_the_following_file_s_74d21316: "Importen mislykkedes for følgende fil(er):"
   the_imported_question_text_for_this_question_was_t_83b4e6fb: "Den importerede tekst for dette spørgsmål var for lang."
   the_importer_will_be_migrating_from_api_v3_to_v4_1_e7550082: "Importøren migrerer fra API v3 til v4.1. Brugeroplysningerne ændres ikke, men du skal sikre dig, at din konto har adgang til v4.1 inden februar 2021."
+  the_information_you_entered_wasn_t_accepted_update_b5fec985: "De oplysninger, du indtastede, blev ikke accepteret. Opdater disse felter for at gemme dine ændringer."
   the_institution_you_logged_in_from_is_not_configur_5ceac41: "Institutionen, fra hvilken du loggede på, er ikke konfigureret på denne konto."
   the_intention_is_to_expand_this_scope_as_the_smart_80a6ff62: "Hensigten er at udvide dette anvendelsesområde, efterhånden som Smart søgning-værktøjet fortsætter udviklingen."
   the_jwks_uri_provides_the_public_keys_used_to_veri_d21dc032: |-
@@ -34298,6 +34341,7 @@ da-x-k12:
   these_options_are_hidden_until_a_user_expands_the__e37e94af: "Disse muligheder er skjult, indtil en bruger udvider afsnittet \"Flere loginmuligheder\" på loginsiden."
   these_permissions_control_the_ability_to_create_ed_d4d043b7: "Disse tilladelser styrer muligheden for at oprette, redigere og slette differentierede tags."
   these_permissions_control_the_ability_to_manage_au_ca7062: "Disse tilladelser styrer muligheden for at administrere automatiseringsregler på kontoen."
+  these_permissions_control_the_ability_to_manage_cu_8e4b6d0d: "Disse tilladelser styrer muligheden for at administrere brugerdefinerede oversigter for studerende på kontoen."
   these_permissions_control_the_ability_to_view_crea_45a186b6: "Disse tilladelser styrer muligheden for at se, oprette og redigere institutionelle tags."
   these_permissions_do_not_manage_discussions_discus_79defb66: "Disse tilladelser administrerer ikke diskussioner. Diskussioner administreres via individuelle diskussionstilladelser."
   these_pronouns_will_appear_after_your_name_when_sh_6b7ff5b2: "Disse pronomener vises efter dit navn, når vist i brugergrænsefladen"
@@ -34827,6 +34871,7 @@ da-x-k12:
   this_rule_conflicts_with_rule_rule_text_enforcemen_22db46ad: "Denne regel er i konflikt med regel \"%{rule_text}\" (%{enforcement})"
   this_sample_page_includes_common_ui_elements_in_ca_331f4ac4: "Denne eksempelside inkluderer almindelige elementer til brugergrænsefladen i Canvas, som hjælper dig med at oprette brugertilpasset branding. Når du begynder at foretage ændringer til farveværdierne og billederne i venstre sidepanel, vil du se knappen *Vis dine ændringer*. Klik på den for at opdatere siden og se, hvordan dine ændringer ser ud."
   this_sample_page_includes_common_ui_elements_in_ca_ef71449d: "Denne eksempelside inkluderer almindelige brugergrænsefladeelementer i Canvas til at hjælpe dig med at opbygge din egen branding. Når du begynder at ændre farveværdier og billeder, ser du knappen *Preview Your Changes* (Vis dine ændringer). Klik på den for at opdatere denne side og se, hvordan dine ændringer ser ud."
+  this_section_group_or_user_is_already_assigned_mor_9f7754dd: "Denne sektion, gruppe eller bruger er allerede tildelt mere end én gang. Fjern dubletten, før du gemmer."
   this_section_pace_will_be_removed_and_the_pace_wil_86093c26: "Dette tempo for sektioner vil blive fjernet, og tempoet vender tilbage til standardtempoet."
   this_setting_allows_the_admin_to_brand_or_label_al_978c6710: "Denne indstilling giver administratoren mulighed for at mærke eller etikettere al 'Fra'-teksten på alle meddelelser, som sendes fra Canvas til denne konto."
   this_setting_defines_the_initial_sort_order_studen_1d20b5b0: "Denne indstilling definerer den oprindelige sorteringsrækkefølge. Eleverne kan indstille deres præferencer. Når de har ændrer en indstilling, vil fremtidige standardopdateringer ikke ændre deres indstillinger, medmindre de er låst."
@@ -35412,6 +35457,7 @@ da-x-k12:
       For at aktivere bagkanallogout skal du konfigurere udbyderens `backchannel_logout_uri`
       for at bruge %{backchannel_logout_uri}, og helst indstille
       `backchannel_logout_session_required` til `true`, hvis udbyderen understøtter det.
+  to_configure_the_account_s_multi_factor_authentica_2f4f21c9: "For at konfigurere kontoens politik for multifaktorgodkendelse skal Konto - multifaktorgodkendelse også være aktiveret."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_5c6d93e4: "for at oprette et link, du kan bruge i Canvas. Du skal oprette en Zoom-konto, hvis du ikke allerede har en."
   to_create_a_link_you_can_use_in_canvas_you_ll_need_7dd85497: "for at oprette et link, du kan bruge i Canvas. Du skal bruge en Google-konto for at bruge Google Meet."
   to_create_a_new_course_to_use_as_a_course_template_9e7e2c6c: "For at oprette et nyt fag, der skal bruges som fagskabelon, skal Administrer fag - tilføj også være aktiveret."
@@ -35673,6 +35719,7 @@ da-x-k12:
   to_remove_a_user_via_sis_id_sis_data_manage_must_a_5d0f4839: "For at fjerne en bruger via SIS-ID skal SIS-data - administrer også være aktiveret."
   to_reply_to_a_discussion_discussions_post_must_als_c9654a9b: "For at svare i en diskussion skal Diskussioner - slå op også være aktiveret."
   to_reply_to_a_discussion_discussions_post_must_be__a4cf502a: "For at svare i en diskussion skal Diskussioner - slå op være aktiveret."
+  to_reset_a_specific_user_s_multi_factor_authentica_324991e: "For at nulstille en bestemt brugers tilmelding til multifaktorgodkendelse skal Nulstil multifaktorgodkendelse også være aktiveret."
   to_restore_a_deleted_course_courses_delete_courses_83c7e64f: "For at gendanne et slettet fag skal Fag - slet, Fag - fortryd sletning og Fagindhold - vis også være aktiveret."
   to_restore_a_deleted_course_courses_undelete_and_c_dc2d0470: "For at gendanne et slettet fag skal både Fag - fortryd sletning og Fagindhold - vis også være aktiveret."
   to_restore_a_deleted_course_in_an_account_manage_c_3ad933ee: "For at gendanne et slettet fag på en konto skal Administrer fag - slet og Fagindhold - vis også være aktiveret."
@@ -36996,6 +37043,7 @@ da-x-k12:
   user_access_report_ddbedbfe: Brugeradgangsrapport
   user_access_report_prospect_education_6bf448c: "Brugeradgangsrapport - Prospect Education"
   user_access_tokens_title: "Tokens til brugeradgang"
+  user_account_inherited_db3af3fa: "Bruger (konto-nedarvet)"
   user_agent_585ccbc7: Brugeragent
   user_avatars_e4fc4ed3: Brugeravatarer
   user_c95de254: Bruger
@@ -37035,6 +37083,7 @@ da-x-k12:
   user_is_from_unacceptable_domain_domain_b4b6fd1b: "Brugeren kommer fra et uacceptabelt domæne: %{domain}."
   user_is_from_unacceptable_issuer_issuer_6a87cafa: "Brugeren er fra en uacceptabel udsteder %{issuer}."
   user_is_from_unacceptable_tenant_tenant_f4cb522: "Brugeren er fra en uacceptabel lejer %{tenant}."
+  user_is_not_a_student_of_this_course_d41a2aaa: "Brugeren er ikke elev i dette fag"
   user_is_now_group_leader_60ec9b98: "%{user} er nu gruppeleder"
   user_isn_t_allowed_to_edit_global_outcomes_a7eb4a87: "Brugeren har ikke tilladelse til at redigere globale læringsudbytter"
   user_just_accepted_their_invitation_to_participate_7a4b2ce4: "%{user} har lige accepteret invitationen til at deltage i faget, %{course}. Fag-rolle: %{role_type}"
