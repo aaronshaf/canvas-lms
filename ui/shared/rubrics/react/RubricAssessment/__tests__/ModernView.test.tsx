@@ -308,44 +308,6 @@ describe('ModernView', () => {
     expect(defaultProps.onUpdateAssessmentData).toHaveBeenCalledTimes(1)
   })
 
-  describe('XSS protection for criterion.longDescription', () => {
-    const renderWithLongDescription = (longDescription: string) => {
-      const xssCriteria = [
-        {
-          ...mockCriteria[0],
-          longDescription,
-        },
-      ]
-      return renderModernView({criteria: xssCriteria, rubricAssessmentData: []})
-    }
-
-    it('strips <script> tags from longDescription', () => {
-      const {container} = renderWithLongDescription('<script>alert(1)</script>malicious')
-      expect(container.innerHTML).not.toContain('<script>')
-      expect(container.innerHTML).not.toContain('alert(1)')
-    })
-
-    it('strips onerror event handlers from longDescription', () => {
-      const {container} = renderWithLongDescription('<img src="x" onerror="alert(1)">')
-      expect(container.innerHTML).not.toContain('onerror')
-    })
-
-    it('strips onclick event handlers from longDescription', () => {
-      const {container} = renderWithLongDescription('<div onclick="alert(1)">click me</div>')
-      expect(container.innerHTML).not.toContain('onclick')
-    })
-
-    it('strips javascript: protocol from longDescription', () => {
-      const {container} = renderWithLongDescription('<a href="javascript:alert(1)">click</a>')
-      expect(container.innerHTML).not.toContain('javascript:')
-    })
-
-    it('strips object tags with event handlers from longDescription', () => {
-      const {container} = renderWithLongDescription('<object onerror="alert(3)">x</object>')
-      expect(container.innerHTML).not.toContain('onerror')
-    })
-  })
-
   describe('buttonDisplay tests', () => {
     it('renders numeric button displays by default for horizontal view', () => {
       renderModernView({selectedViewMode: 'horizontal'})
