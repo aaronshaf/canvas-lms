@@ -174,7 +174,6 @@
     "page": "^1.11",
     "parse-decimal-number": "1.0.0",
     "prop-types": "^15",
-    "punycode2": "1.0.1",
     "qs": "6.15.0",
     "re-resizable": "6.9.16",
     "react": "^18",
