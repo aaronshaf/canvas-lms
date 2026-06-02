@@ -24,9 +24,9 @@
             <% if @assignment.multiple_due_dates? %>
               <%= multiple_due_date_tooltip(@assignment, @current_user) %>
             <% elsif @assignment.due_at %>
-              <% ot(:date_time_by, "%{date} by %{time}", :date => capture { %>
-                <span class="display_date"><%= date_string(@assignment.due_at) rescue '' %></span><% }, :time => capture { %>
-                <span class="display_time"><%= time_string(@assignment.due_at) rescue '' %></span><% }) %>
+              <% ot(:date_time_by, "%{date} by %{time}", :date => capture do %>
+                <span class="display_date"><%= date_string(@assignment.due_at) rescue '' %></span><% end, :time => capture do %>
+                <span class="display_time"><%= time_string(@assignment.due_at) rescue '' %></span><% end) %>
             <% else %>
               <%= t :no_due_date, 'No Due Date' %>
             <% end %>

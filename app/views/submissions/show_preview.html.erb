@@ -95,7 +95,16 @@
       discussion_checkpoints_enabled = @assignment.context.discussion_checkpoints_enabled?
       discussion_iframe_src = context_url(topic_to_show.context, :context_discussion_topic_url, topic_to_show.id, url_opts)
     %>
-  <% unless show_full_discussion_immediately %>
+  <% if show_full_discussion_immediately %>
+    <div class="ef-file-preview-stretch">
+      <iframe
+        id="discussion_preview_iframe"
+        title="<%= t 'Graded discussion submission' %>"
+        src="<%= discussion_iframe_src %>"
+        class="ef-file-preview-frame">
+      </iframe>
+    </div>
+  <% else %>
     <div class="submission_description" style="width: 600px; margin: 10px auto;">
       <p>
         <% if (assignment_visible_to_user = @assignment.visible_to_user?(@current_user)) %>
@@ -138,15 +147,6 @@
         <div style="text-align: center; font-size: 1.2em; margin-top: 10px; display: none;">
           <a href="<%= context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, headless: 1, combined: 1, embed: true) %>" class="forward"><%= t('show_entire_discussion', 'Show the Entire Discussion') %></a>
         </div>
-    </div>
-  <% else %>
-    <div class="ef-file-preview-stretch">
-      <iframe
-        id="discussion_preview_iframe"
-        title="<%= t 'Graded discussion submission' %>"
-        src="<%= discussion_iframe_src %>"
-        class="ef-file-preview-frame">
-      </iframe>
     </div>
   <% end %>
 <% elsif @submission.submission_type == "online_url" %>
@@ -310,7 +310,7 @@
   <% end %>
 
   <% js_bundle 'submissions_show_preview_upload' %>
-<% elsif @submission.submission_type == "online_quiz" and  @assignment&.quiz&.id %>
+<% elsif @submission.submission_type == "online_quiz" &&  @assignment&.quiz&.id %>
   <meta HTTP-EQUIV="REFRESH" content="0; url=<%= context_url(@context, :context_quiz_history_url, @assignment.quiz.id, user_id: @submission.user_id, hide_student_name: params[:hide_student_name], headless: 1, version: @submission.quiz_submission_version) %>"/>
   <div style="text-align: center;">
     <%= t('quiz_submission', 'This submission was a quiz submission.  Redirecting to quiz page.') %>

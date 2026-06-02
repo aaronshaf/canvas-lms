@@ -10,10 +10,10 @@
 
 <%= asset.title %>
 
-<% if !asset.available_for?(user, check_policies: true) %>
-  <%= t("Discussion content is locked or not yet available") %>
-<% else %>
+<% if asset.available_for?(user, check_policies: true) %>
   <%= html_to_text(asset.message, base_url: dashboard_url) %>
+<% else %>
+  <%= t("Discussion content is locked or not yet available") %>
 <% end %>
 
 <% if asset.attachment %><%= before_label :file_included, "File Included" %> <%= asset.attachment.display_name %> - <%= asset.attachment.readable_size %>

@@ -322,7 +322,7 @@
                   <% end %>
                 <% end %>
 
-                <% unless !@account.root_account.feature_enabled?(:restrict_quantitative_data) %>
+                <% if @account.root_account.feature_enabled?(:restrict_quantitative_data) %>
                   <%= settings.fields_for :restrict_quantitative_data do |r| %>
                     <% hash = @account.restrict_quantitative_data %>
                     <% disabled = hash[:locked] && hash[:inherited] %>
@@ -1080,7 +1080,7 @@
             <div id="emoji-deny-list"></div>
         <% end %>
 
-        <% if @account.primary_settings_root_account? and !(exposed_services = Account.services_exposed_to_ui_hash(:service, @current_user)).empty? %>
+        <% if @account.primary_settings_root_account? && !(exposed_services = Account.services_exposed_to_ui_hash(:service, @current_user)).empty? %>
           <fieldset>
             <h2 class="screenreader-only"><%= t('Enabled Web Services') %></h2>
             <legend><%= t('Enabled Web Services') %></legend>

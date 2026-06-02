@@ -27,12 +27,10 @@ show_legacy_todo_list ||= false
 additional_title_context ||= false
 %>
 <% unless @context&.account&.limited_access_for_user?(@current_user) %>
-  <% if !show_legacy_todo_list %>
-    <div class="todo-list Sidebar__TodoListContainer"></div>
-  <% else
-    cache_opts = (contexts.present? ? {} : { :expires_in => 3.minutes })
-    cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do
-      presenter = ToDoListPresenter.new(self, @current_user, contexts)
+  <% if show_legacy_todo_list
+     cache_opts = (contexts.present? ? {} : { :expires_in => 3.minutes })
+     cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do
+       presenter = ToDoListPresenter.new(self, @current_user, contexts)
   %>
     <% if presenter.any_assignments? %>
       <h2 class="todo-list-header" tabindex="-1">
@@ -192,5 +190,7 @@ additional_title_context ||= false
       </ul>
       <% end %>
     <% end %>
+  <% else %>
+    <div class="todo-list Sidebar__TodoListContainer"></div>
   <% end %>
 <% end %>

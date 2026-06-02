@@ -54,14 +54,7 @@
 <% elsif question_type.entry_type == "textarea" %>
   <textarea name="question_<%= hash_get(question, :id) %>" class="question_input" autocomplete='off' <%= 'readonly="readonly"' unless editable %>><%= value %></textarea>
 <% elsif question_type.entry_type == "file" %>
-  <% if !editable%>
-    <% attachment = @attachments[user_answer[:attachment_ids].try(:first).to_i] %>
-      <% if attachment %>
-        <a class="icon-download" href="<%= file_download_url(attachment) %>">
-          <%= attachment.display_name %>
-        </a>
-      <% end %>
-  <% else %>
+  <% if editable%>
     <div class="control-group">
       <div class=controls>
         <label class="control-label upload-label" for=file>
@@ -77,6 +70,13 @@
     <input type="hidden" class="attachment-id question_input"
     name="question_<%= question[:id] %>[]"
     value="<%= attachment_id_for(question) %>"/>
+  <% else %>
+    <% attachment = @attachments[user_answer[:attachment_ids].try(:first).to_i] %>
+    <% if attachment %>
+      <a class="icon-download" href="<%= file_download_url(attachment) %>">
+        <%= attachment.display_name %>
+      </a>
+    <% end %>
   <% end %>
   <input type="hidden" id="fileupload_in_progress" value="false"/>
 <% end %>

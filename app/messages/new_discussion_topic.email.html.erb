@@ -16,13 +16,13 @@
 
 <p><strong><%= asset.title %></strong></p>
 
-<% if !asset.available_for?(user, check_policies: true) %>
-  <%= t("Discussion content is locked or not yet available") %>
-<% else %>
+<% if asset.available_for?(user, check_policies: true) %>
   <%= html_to_simple_html(asset.message,
   base_url: dashboard_url,
   tags: %w[tr td table tbody caption],
   attributes: { 'table' => %w[border style cellspacing cellpadding] }) %>
+<% else %>
+  <%= t("Discussion content is locked or not yet available") %>
 <% end %>
 
 <% if asset.attachment %>

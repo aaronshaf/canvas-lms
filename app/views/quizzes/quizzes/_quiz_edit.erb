@@ -42,13 +42,13 @@
     <ul id="quiz_tabs_tab_list">
       <li><a href="#options_tab"><%= t('Details') %></a></li>
       <li><a href="#questions_tab"><%= t('Questions') %></a></li>
-      <% if ConditionalRelease::Service.enabled_in_context?(@context) then %>
+      <% if ConditionalRelease::Service.enabled_in_context?(@context) %>
         <li><a href="#mastery-paths-editor"><%= t('Mastery Paths') %></a></li>
       <% end %>
     </ul>
     <%= render partial: 'quiz_edit_details' %>
     <%= render partial: 'quiz_edit_questions' %>
-    <% if ConditionalRelease::Service.enabled_in_context?(@context) then %>
+    <% if ConditionalRelease::Service.enabled_in_context?(@context) %>
       <%= render partial: 'quiz_edit_conditional_release' %>
     <% end %>
   </div>

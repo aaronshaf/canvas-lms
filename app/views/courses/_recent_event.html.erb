@@ -30,7 +30,7 @@
       submission = @current_user_submissions.detect { |s| s.assignment_id == recent_event.id }
       submission.assignment = recent_event if submission
     elsif @current_user
-      submission = @current_user.submissions.select([:id, :assignment_id, :grading_period_id, :score, :grade, :workflow_state, :updated_at]).where(:assignment_id => recent_event).first
+      submission = @current_user.submissions.select(%i[id assignment_id grading_period_id score grade workflow_state updated_at]).where(:assignment_id => recent_event).first
     end
     recent_event = recent_event.overridden_for(@current_user)
   end

@@ -37,7 +37,7 @@
     courses_title = t('Courses')
   end
 
-  student_view_label = @context.is_a?(Course) && @context.horizon_course? ? t('View as Learner') : t('View as Student')
+  student_view_label = (@context.is_a?(Course) && @context.horizon_course?) ? t('View as Learner') : t('View as Student')
 %>
 
 <header id="mobile-header" class="no-print">
@@ -264,7 +264,7 @@
           role="button"
           href="#"
           class="ic-app-header__menu-list-link ic-app-header__menu-list-link--nav-toggle"
-          aria-label="<%= (title = @current_user.try(:collapse_global_nav?) ? t('Expand global navigation') : t('Minimize global navigation')) %>"
+          aria-label="<%= title = @current_user.try(:collapse_global_nav?) ? t('Expand global navigation') : t('Minimize global navigation') %>"
           title="<%= title %>"
         >
           <div class="menu-item-icon-container" aria-hidden="true">

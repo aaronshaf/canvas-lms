@@ -175,12 +175,7 @@
     </style>
 
     <% if @assignment.submission_types&.include?('media_recording') %>
-      <% if !feature_enabled?(:kaltura) %>
-        <div id="submit_media_recording_form">
-          <h3><%= t 'titles.media_recordings_disabled', "Media recordings are not enabled for this Canvas site" %></h3>
-          <p><%= t 'messages.media_recordings_disabled', "Media recordings are not enabled for this Canvas site, and you will not be able to submit these types of assignments.  Please contact your instructor about changing the settings for this assignment, or your system administrator about enabling media recordings." %></p>
-        </div>
-      <% else %>
+      <% if feature_enabled?(:kaltura) %>
         <%= form_tag(submission_create_url, {id: "submit_media_recording_form", class: "submit_assignment_form", multipart: true }) do %>
         <%= hidden_field :submission, :submission_type, value: "media_recording" %>
         <%= hidden_field :submission, :media_comment_id, value: "", class: "media_comment_id" %>
@@ -235,6 +230,11 @@
           </tr>
         </table>
        <% end %>
+      <% else %>
+        <div id="submit_media_recording_form">
+          <h3><%= t 'titles.media_recordings_disabled', "Media recordings are not enabled for this Canvas site" %></h3>
+          <p><%= t 'messages.media_recordings_disabled', "Media recordings are not enabled for this Canvas site, and you will not be able to submit these types of assignments.  Please contact your instructor about changing the settings for this assignment, or your system administrator about enabling media recordings." %></p>
+        </div>
       <% end %>
     <% end %>
 

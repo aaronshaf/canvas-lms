@@ -49,7 +49,7 @@
     </thead>
 
     <tbody>
-      <% @eportfolios.group_by(&:user_id).values.each do |eportfolios_for_user| %>
+      <% @eportfolios.group_by(&:user_id).each_value do |eportfolios_for_user| %>
         <% eportfolios_for_user.each_with_index do |eportfolio, index| %>
 
           <tr>

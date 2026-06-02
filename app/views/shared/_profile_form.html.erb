@@ -164,7 +164,9 @@
       <div class="profile_links">
         <h3 class="profileHeader"><%= t :links, "Links" %></h3>
         <div class="hide-if-editing">
-          <% if !@user_data[:links].empty? %>
+          <% if @user_data[:links].empty? %>
+            <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
+          <% else %>
             <ul class="profileLink">
               <% @user_data[:links].each do |link| %>
                 <li class="profileLink__Item">
@@ -173,8 +175,6 @@
                 </li>
               <% end %>
             </ul>
-          <% else %>
-            <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
           <% end %>
         </div>
 
@@ -193,7 +193,9 @@
           </div>
         <% else %>
           <div class="show-if-editing">
-            <% if !@user_data[:links].empty? %>
+            <% if @user_data[:links].empty? %>
+              <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
+            <% else %>
               <ul class="profileLink">
                 <% @user_data[:links].each do |link| %>
                   <li class="profileLink__Item">
@@ -202,8 +204,6 @@
                   </li>
                 <% end %>
               </ul>
-            <% else %>
-              <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
             <% end %>
           </div>
         <% end %>

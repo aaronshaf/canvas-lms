@@ -74,7 +74,7 @@
       if answer_type == 'matching_answer'
         user_answer_choice = hash_get(user_answer, :"answer_#{answer_id}").to_i
         display_choice = hash_get(question, :matches).find {|m| hash_get(m, :match_id) == user_answer_choice } || {}
-        matching_correct_answer = (hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, :match_id).to_i}[:text] rescue ''))
+        matching_correct_answer = hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, :match_id).to_i}[:text] rescue '') # rubocop:disable Style/RedundantParentheses
 
         matching_answer_title(hash_get(answer, :text), selected_answer, display_choice[:text] || '', correct_answer, matching_correct_answer, show_correct_answers)
       else

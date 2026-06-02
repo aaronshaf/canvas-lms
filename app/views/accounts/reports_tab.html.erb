@@ -22,7 +22,7 @@
     parameters_partial = report + '_parameters' if parameters_partial == true
     last_complete = @last_complete_reports[report]
     last_report = @last_reports[report]
-    in_progress = last_report && last_report.in_progress?
+    in_progress = last_report&.in_progress?
     #the extra text is added so that you can give more than the date for the last run report
     extra_text = last_complete.try(:parameters).try(:[], "extra_text")
 %>

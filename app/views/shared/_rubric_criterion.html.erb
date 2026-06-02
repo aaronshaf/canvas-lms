@@ -173,7 +173,7 @@
       <span style="white-space: nowrap; font-size: 0.8em">
         <%
           if assessing
-            points_value = (n(round_if_whole(assessment_rating.points)) rescue "")
+            points_value = n(round_if_whole(assessment_rating.points)) rescue ""
           else
             points_value = n(round_if_whole((criterion.points rescue 5)))
           end
