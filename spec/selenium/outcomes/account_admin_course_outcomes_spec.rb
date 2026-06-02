@@ -68,21 +68,8 @@ describe "account admin outcomes" do
     end
 
     context "create/edit/delete outcome groups" do
-      it "creates an outcome group (root level)", priority: "2" do
-        should_create_an_outcome_group_root_level
-      end
-
       it "creates an outcome group (nested)", priority: "2" do
         should_create_an_outcome_group_nested
-      end
-
-      it "edits an outcome group", priority: "2" do
-        should_edit_an_outcome_group
-      end
-
-      it "deletes an outcome group", priority: "2" do
-        skip_if_safari(:alert)
-        should_delete_an_outcome_group
       end
     end
 

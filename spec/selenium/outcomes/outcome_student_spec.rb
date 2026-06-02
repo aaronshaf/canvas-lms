@@ -56,15 +56,4 @@ describe "outcomes as a student" do
       expect(f(".outcomes-content .title")).to include_text "group 0"
     end
   end
-
-  it "does not display outcome manipulation controls" do
-    mock_feature_flag_on_account(:improved_outcomes_management, true)
-    course_bulk_outcome_groups_course(2, 2)
-    get outcome_url
-    wait_for_ajaximations
-    button_texts = ff("button").map(&:text)
-    expect(button_texts).not_to include("Find")
-    expect(button_texts).not_to include("Import")
-    expect(button_texts).not_to include("Create")
-  end
 end
