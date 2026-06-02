@@ -316,7 +316,7 @@ module Lti
       end
 
       def index_query
-        rlid = params[:resource_link_id]
+        rlid = params[:resource_link_id]&.to_s
         assignments = Assignment
                       .active
                       .joins(rlid.present? ? { line_items: :resource_link } : :line_items)
@@ -329,8 +329,8 @@ module Lti
 
         {
           assignment: assignments,
-          tag: params[:tag],
-          resource_id: params[:resource_id]
+          tag: params[:tag]&.to_s,
+          resource_id: params[:resource_id]&.to_s
         }.compact
       end
 

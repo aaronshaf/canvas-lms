@@ -770,6 +770,26 @@ module Lti
           end
         end
 
+        context "when a query param is given as a hash instead of a string" do
+          # A crafted query string (e.g. ?tag[foo]=bar) makes the param an
+          # ActionController::Parameters, which raises a 500 ("can't quote")
+          # against the varchar columns. The controller's &.to_s coercion
+          # makes them query as a harmless string that matches nothing.
+          let(:params_overrides) do
+            super().merge(
+              tag: { foo: "bar" },
+              resource_id: { foo: "bar" },
+              resource_link_id: { foo: "bar" }
+            )
+          end
+
+          it "treats them as non-matching strings rather than erroring" do
+            send_request
+            expect(response).to have_http_status(:ok)
+            expect(line_item_list).to be_empty
+          end
+        end
+
         it "responds with the correct mime type" do
           send_request
           expect(response.headers["Content-Type"]).to include described_class::CONTAINER_MIME_TYPE
