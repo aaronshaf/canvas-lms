@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import 'graphiql/setup-workers/webpack'
 import React from 'react'
 import {render} from '@canvas/react'
 import GraphiQLApp from './react/GraphiQLApp'

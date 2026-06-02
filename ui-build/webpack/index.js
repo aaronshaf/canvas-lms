@@ -220,4 +220,14 @@ module.exports = {
     webpackManifest,
     isDev && new ReactRefreshRspackPlugin(),
   ].filter(Boolean),
+
+  // monaco-editor uses a dynamic require() for AMD module loading which rspack
+  // cannot statically analyze. The isESM branch is always taken at runtime so
+  // this code path is never actually executed.
+  ignoreWarnings: [
+    {
+      module: /monaco-editor/,
+      message: /Critical dependency/,
+    },
+  ],
 }

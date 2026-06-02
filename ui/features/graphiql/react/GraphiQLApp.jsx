@@ -17,14 +17,13 @@
  */
 
 import React from 'react'
-import GraphiQL from 'graphiql'
-import GraphiQLExplorer from 'graphiql-explorer'
-import {ToolbarButton, PrettifyIcon, ChevronLeftIcon, ChevronDownIcon} from '@graphiql/react'
-import {getIntrospectionQuery, buildClientSchema} from 'graphql'
+import {GraphiQL} from 'graphiql'
+import {explorerPlugin} from '@graphiql/plugin-explorer'
 import axios from '@canvas/axios'
-import 'graphiql/graphiql.css'
-import './graphiql-overrides.css'
-import {makeDefaultArg, getDefaultScalarArgValue} from '../CustomArgs'
+import 'graphiql/style.css'
+import '@graphiql/plugin-explorer/style.css'
+
+const explorer = explorerPlugin()
 
 function fetcher(params) {
   return axios
@@ -34,95 +33,6 @@ function fetcher(params) {
     .then(({data}) => data)
 }
 
-export default class GraphiQLApp extends React.Component {
-  constructor(props) {
-    super(props)
-
-    this._graphql = React.createRef()
-
-    this.state = {
-      schema: null,
-      explorerIsOpen: true,
-      error: null,
-    }
-  }
-
-  componentDidMount() {
-    return fetcher({
-      query: getIntrospectionQuery(),
-    })
-      .then(result => {
-        if (result && result.data) {
-          this.setState({
-            schema: buildClientSchema(result.data),
-          })
-        } else {
-          console.error('Failed to fetch schema:', result)
-          this.setState({error: 'An error occurred while fetching the schema.'})
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching schema:', error)
-        this.setState({error: 'An error occurred while fetching the schema.'})
-      })
-  }
-
-  _handleEditQuery = query => {
-    this.setState({query})
-  }
-
-  _handleToggleExplorer = () => {
-    this.setState(state => ({
-      explorerIsOpen: !state.explorerIsOpen,
-    }))
-  }
-
-  render() {
-    const {query, schema, explorerIsOpen, error} = this.state
-
-    if (error) {
-      return <div>{error}</div>
-    }
-
-    if (!schema) {
-      return <div>Loading schema...</div>
-    }
-
-    return (
-      <div className="graphiql-container">
-        <GraphiQLExplorer
-          schema={schema}
-          query={query}
-          onEdit={this._handleEditQuery}
-          explorerIsOpen={explorerIsOpen}
-          onToggleExplorer={this._handleToggleExplorer}
-          getDefaultScalarArgValue={getDefaultScalarArgValue}
-          makeDefaultArg={makeDefaultArg}
-        />
-        <GraphiQL
-          ref={this._graphql}
-          fetcher={fetcher}
-          schema={schema}
-          query={query}
-          onEditQuery={this._handleEditQuery}
-        >
-          <GraphiQL.Toolbar>
-            <ToolbarButton
-              onClick={() => this.graphiqlRef.current?.handlePrettifyQuery()}
-              title="Prettify Query (Shift-Ctrl-P)"
-            >
-              <PrettifyIcon className="graphiql-toolbar-icon" aria-hidden="true" />
-            </ToolbarButton>
-            <ToolbarButton onClick={this._handleToggleExplorer} title="Toggle Explorer">
-              {explorerIsOpen ? (
-                <ChevronLeftIcon className="graphiql-chevron-icon" aria-hidden="true" />
-              ) : (
-                <ChevronDownIcon className="graphiql-chevron-icon" aria-hidden="true" />
-              )}
-            </ToolbarButton>
-          </GraphiQL.Toolbar>
-        </GraphiQL>
-      </div>
-    )
-  }
+export default function GraphiQLApp() {
+  return <GraphiQL fetcher={fetcher} plugins={[explorer]} />
 }

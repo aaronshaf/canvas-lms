@@ -58,7 +58,7 @@ exports.images = {
 
 exports.fonts = {
   test: /\.(woff(2)?|otf|ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-  use: 'asset/resource',
+  type: 'asset/resource',
 }
 
 const browserTargets = {
