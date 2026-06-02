@@ -60,14 +60,13 @@
   </div>
 <% else %>
 <% @stored_params ||= {}
-    editable ||= false
-    submission_data = @submission.data
-    submission_data_hash = {}
-    submission_data.each { |d| submission_data_hash[d[:question_id]] = d }
-    submission_questions = @submission.questions
-    submission_questions_hash = {}
-    submission_questions.each { |q| submission_questions_hash[q[:id]] = q }
-%>
+   editable ||= false
+   submission_data = @submission.data
+   submission_data_hash = {}
+   submission_data.each { |d| submission_data_hash[d[:question_id]] = d }
+   submission_questions = @submission.questions
+   submission_questions_hash = {}
+   submission_questions.each { |q| submission_questions_hash[q[:id]] = q } %>
 <% if @submission.pending_review? %>
   <% if editable %>
     <% if @quiz.changed_significantly_since?(@submission.quiz_version) %>
@@ -149,26 +148,28 @@
     <input id="fudge_points_entry" type="text" value="<%= ((!@submission.fudge_points || @submission.fudge_points == 0) ? '' : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
     <%
       fudge_text = if @submission.quiz_points_possible == @quiz.points_possible || !@submission.quiz_points_possible || !@quiz.points_possible
-          t('labels.fudge_points_generic_explanation', "You can manually adjust the score by adding positive or negative points to this box.")
-        elsif @quiz.survey?
-          t('labels.fudge_points_changed_points_survey', <<~TEXT,
-            Since %{user} took this survey, the number of points possible
-            has changed by %{difference}. You can adjust for this
-            change and manually add positive or negative points using
-            this box.
-            TEXT
-            user: @submission.user.name,
-            difference: render_score(@quiz.points_possible - @submission.quiz_points_possible))
-        else
-          t('labels.fudge_points_changed_points_quiz', <<~TEXT,
-            Since %{user} took this quiz, the number of points possible
-            has changed by %{difference}. You can adjust for this
-            change and manually add positive or negative points using
-            this box.
-            TEXT
-            user: @submission.user.name,
-            difference: render_score(@quiz.points_possible - @submission.quiz_points_possible))
-        end
+                     t('labels.fudge_points_generic_explanation', "You can manually adjust the score by adding positive or negative points to this box.")
+                   elsif @quiz.survey?
+                     t('labels.fudge_points_changed_points_survey',
+                       <<~TEXT,
+                         Since %{user} took this survey, the number of points possible
+                         has changed by %{difference}. You can adjust for this
+                         change and manually add positive or negative points using
+                         this box.
+                       TEXT
+                       user: @submission.user.name,
+                       difference: render_score(@quiz.points_possible - @submission.quiz_points_possible))
+                   else
+                     t('labels.fudge_points_changed_points_quiz',
+                       <<~TEXT,
+                         Since %{user} took this quiz, the number of points possible
+                         has changed by %{difference}. You can adjust for this
+                         change and manually add positive or negative points using
+                         this box.
+                       TEXT
+                       user: @submission.user.name,
+                       difference: render_score(@quiz.points_possible - @submission.quiz_points_possible))
+                   end
     %>
 
     <% if @current_user.preferences[:enable_speedgrader_grade_by_question] %>

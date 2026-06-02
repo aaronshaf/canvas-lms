@@ -21,19 +21,19 @@
 <% if Account.site_admin.feature_enabled?(:deprecate_context_groups_old_view) %>
   <%
     js_env({
-      course_id: @context.id,
-      STUDENT_CAN_ORGANIZE_GROUPS_FOR_COURSE: @context.respond_to?(:allow_student_organized_groups) && @context.allow_student_organized_groups && can_do(@context.groups.temp_record, @current_user, :create),
-      CAN_VIEW_PAGES: @context.grants_right?(@current_user, :view_group_pages)
-    })
+             course_id: @context.id,
+             STUDENT_CAN_ORGANIZE_GROUPS_FOR_COURSE: @context.respond_to?(:allow_student_organized_groups) && @context.allow_student_organized_groups && can_do(@context.groups.temp_record, @current_user, :create),
+             CAN_VIEW_PAGES: @context.grants_right?(@current_user, :view_group_pages)
+           })
   %>
   <% js_bundle :groups %>
 <% elsif !@context.is_a?(Account) %>
   <%
     js_env({
-      course_id: @context.id,
-      STUDENT_CAN_ORGANIZE_GROUPS_FOR_COURSE: @context.respond_to?(:allow_student_organized_groups) && @context.allow_student_organized_groups && can_do(@context.groups.temp_record, @current_user, :create),
-      CAN_VIEW_PAGES: @context.grants_right?(@current_user, :view_group_pages)
-    })
+             course_id: @context.id,
+             STUDENT_CAN_ORGANIZE_GROUPS_FOR_COURSE: @context.respond_to?(:allow_student_organized_groups) && @context.allow_student_organized_groups && can_do(@context.groups.temp_record, @current_user, :create),
+             CAN_VIEW_PAGES: @context.grants_right?(@current_user, :view_group_pages)
+           })
   %>
   <% js_bundle :groups %>
 <% else %>
@@ -45,13 +45,14 @@
     <div class="roster-tab tab-panel">
       <h2><%= @context.is_a?(Account) ? t('account_groups', 'Account Groups') : t('course_groups', 'Course Groups') %></h2>
       <p>
-        <%= t 'group_explanation', <<~TEXT
-        Groups are a good place to collaborate on projects or to figure out schedules for study sessions
-        and the like.  Every group gets a calendar, a wiki, discussions, and a little bit of space to store
-        files.  Groups can collaborate on documents, or even schedule web conferences.
-        It's really like a mini-course where you can work with a smaller number of students on a
-        more focused project.
-        TEXT
+        <%=
+          t 'group_explanation', <<~TEXT
+            Groups are a good place to collaborate on projects or to figure out schedules for study sessions
+            and the like.  Every group gets a calendar, a wiki, discussions, and a little bit of space to store
+            files.  Groups can collaborate on documents, or even schedule web conferences.
+            It's really like a mini-course where you can work with a smaller number of students on a
+            more focused project.
+          TEXT
         %>
       </p>
       <ul class="group_list">
@@ -69,13 +70,14 @@
       <%= form_for :group, url: context_url(@context, :context_groups_url), html: { id: "add_group_form", style: "display: none;" } do |f| %>
         <h2><%= t 'headings.new_group', 'Make a New Group' %></h2>
         <%= image_tag "warning.png", alt: '' %>
-        <%= t :student_group_warning, <<~TEXT
-        If your teacher has talked about putting you into
-        groups as part of an assignment, this is not the way to make that happen.
-        Groups you organize yourself can't be used for grading... you can still form
-        your own groups, but you won't be able to turn in an electric copy of any
-        assignments unless your teacher builds the groups for you.
-        TEXT
+        <%=
+          t :student_group_warning, <<~TEXT
+            If your teacher has talked about putting you into
+            groups as part of an assignment, this is not the way to make that happen.
+            Groups you organize yourself can't be used for grading... you can still form
+            your own groups, but you won't be able to turn in an electric copy of any
+            assignments unless your teacher builds the groups for you.
+          TEXT
         %>
         <table class="formtable">
           <tr>
@@ -117,5 +119,5 @@
         </table>
       </div>
     </div>
-  <% end %>
+      <% end %>
 <% end %>

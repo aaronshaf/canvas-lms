@@ -216,9 +216,9 @@
             <% if @can_view %>
              <% if Account.site_admin.feature_enabled?(:create_external_apps_side_tray_overrides) %>
                 <% json_data = external_tools_menu_items_grouped_json(
-                  @menu_tools.slice(:module_menu, :module_group_menu, :module_menu_modal),
-                  module_menu: { modules: [context_module&.id || "{{ id }}"] }
-                ) %>
+                     @menu_tools.slice(:module_menu, :module_group_menu, :module_menu_modal),
+                     module_menu: { modules: [context_module&.id || "{{ id }}"] }
+                   ) %>
                 <% if json_data.present? %>
                   <li role="presentation">
                     <%= tag.a href: "#",

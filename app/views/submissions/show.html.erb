@@ -50,10 +50,10 @@
   end
 
   assessment_type = if !presenter.currently_peer_reviewing? && can_do(@submission, @current_user, :grade)
-    "grading"
-  else
-    "peer_review"
-  end
+                      "grading"
+                    else
+                      "peer_review"
+                    end
 
   show_updated_plagiarism_icons = @assignment.context.root_account.feature_enabled?(:new_gradebook_plagiarism_indicator)
 
@@ -69,13 +69,13 @@
       # don't leak grades if submission is not posted
       points_possible: @assignment.points_possible, # score below is useless without points possible
       submission: if @submission.user_can_read_grade?(@current_user, session)
-        @submission.attributes.merge(
-          entered_grade: presenter.entered_grade,
-          entered_score: @submission.entered_score
-        )
-      else
-        {}
-      end,
+                    @submission.attributes.merge(
+                      entered_grade: presenter.entered_grade,
+                      entered_score: @submission.entered_score
+                    )
+                  else
+                    {}
+                  end,
       **submission_owner_param
     },
     CURRENT_USER_CAN_GRADE_SUBMISSION: can_do(@assignment, @current_user, :grade),
@@ -87,25 +87,25 @@
   if @assignment.checkpoints_parent?
     js_env_hash[:CHECKPOINT_SUBMISSIONS] = {
       reply_to_topic: if @reply_to_topic_submission.user_can_read_grade?(@current_user, session)
-        @reply_to_topic_assignment.attributes.merge(
-          entered_grade: @reply_to_topic_presenter.entered_grade,
-          entered_score: @reply_to_topic_submission.entered_score,
-          points_possible: @reply_to_topic_assignment.points_possible,
-          submission_id: @reply_to_topic_submission.id
-        )
-      else
-        {}
-      end,
+                        @reply_to_topic_assignment.attributes.merge(
+                          entered_grade: @reply_to_topic_presenter.entered_grade,
+                          entered_score: @reply_to_topic_submission.entered_score,
+                          points_possible: @reply_to_topic_assignment.points_possible,
+                          submission_id: @reply_to_topic_submission.id
+                        )
+                      else
+                        {}
+                      end,
       reply_to_entry: if @reply_to_entry_submission.user_can_read_grade?(@current_user, session)
-        @reply_to_entry_assignment.attributes.merge(
-          entered_grade: @reply_to_entry_presenter.entered_grade,
-          entered_score: @reply_to_entry_submission.entered_score,
-          points_possible: @reply_to_entry_assignment.points_possible,
-          submission_id: @reply_to_entry_submission.id
-        )
-      else
-        {}
-      end
+                        @reply_to_entry_assignment.attributes.merge(
+                          entered_grade: @reply_to_entry_presenter.entered_grade,
+                          entered_score: @reply_to_entry_submission.entered_score,
+                          points_possible: @reply_to_entry_assignment.points_possible,
+                          submission_id: @reply_to_entry_submission.id
+                        )
+                      else
+                        {}
+                      end
     }
   end
 
@@ -139,7 +139,7 @@
           <% end %>
         <% if can_do(@submission, @current_user, :view_turnitin_report) %>
           <% if (turnitin_score = @submission.turnitin_data[@submission.asset_string]) &&
-            @submission.turnitin_data[:provider].nil? && turnitin_score[:similarity_score] %>
+                @submission.turnitin_data[:provider].nil? && turnitin_score[:similarity_score] %>
             <% if show_updated_plagiarism_icons %>
               <%=
                 render partial: 'shared/originality_score_icon', locals: {
@@ -188,8 +188,7 @@
              @assignment.rubric_association.user_can_assess_for?(assessor: @current_user, assessee: @submission.user) ||
              @assignment.rubric_association.user_did_assess_for?(assessor: @current_user, assessee: @submission.user) ||
              can_do(@assignment.rubric, @current_user, :read)
-           )
-        %>
+           ) %>
           <% unread_comments = @current_user.unread_rubric_assessments?(@submission) %>
           <div class="submission-details-header__rubric <% if can_do(@assignment, @current_user, :grade) %>submission-details-header__rubric--can-grade<% end %>">
             <a href="#" class="assess_submission_link Button Button--small Button--link" tabindex='0' title="<%= unread_comments ? t('There are unread rubric comments.') : '' %>">
@@ -304,13 +303,14 @@
     </div>
     <% if @assignment.rubric.present? %>
       <%= render({
-        partial: 'shared/rubric',
-        object: @assignment.rubric,
-        locals: {
-          anonymize_student: presenter.anonymize_submission_owner?,
-          assessing: @submission.grants_right?(@current_user, :grade) || presenter.currently_peer_reviewing?,
-          rubric_association: @assignment.rubric_association
-        } }) %>
+                   partial: 'shared/rubric',
+                   object: @assignment.rubric,
+                   locals: {
+                     anonymize_student: presenter.anonymize_submission_owner?,
+                     assessing: @submission.grants_right?(@current_user, :grade) || presenter.currently_peer_reviewing?,
+                     rubric_association: @assignment.rubric_association
+                   }
+                 }) %>
     <% end %>
     <%= render partial: "shared/rubric_criterion_dialog" %>
     <div class="button-container">
@@ -357,9 +357,9 @@
                   <% if comment.media_comment_id %>
                     <div class="comment_media">
                       <%= t(
-                        "This is a media comment, *click here to view*.",
-                        wrapper: "<br/><a data-author=\"#{h(author_name)}\" data-created_at=\"#{h(created_at)}\" href=\"#\" class=\"play_comment_link media-comment\">\1</a>.")
-                      %>
+                            "This is a media comment, *click here to view*.",
+                            wrapper: "<br/><a data-author=\"#{h(author_name)}\" data-created_at=\"#{h(created_at)}\" href=\"#\" class=\"play_comment_link media-comment\">\1</a>."
+                          ) %>
                       <span class="media_comment_id" style="display: none;"><%= comment.media_comment_id %></span>
                       <div class="media_comment_content">
                       </div>

@@ -55,11 +55,11 @@
 <% end %>
 <h1 class="screenreader-only">
   <% case @context.class.to_s %>
-    <% when 'Course' %>
+  <% when 'Course' %>
       <%= t 'course_rubrics', "Course Rubrics" %>
-    <% when 'User' %>
+  <% when 'User' %>
       <%= t 'user_rubrics', "User Rubrics" %>
-    <% when 'Account' %>
+  <% when 'Account' %>
       <%= t 'account_rubrics', "Account Rubrics" %>
   <% end %>
 </h1>

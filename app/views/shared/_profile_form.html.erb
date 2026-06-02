@@ -41,10 +41,9 @@
       <% if @user.pronouns || @domain_root_account.settings[:can_add_pronouns] %>
         <label for="pronouns" class="show-if-editing ic-Label"><%= t('Pronouns') %></label>
         <%= select_tag :pronouns,
-                        options_for_select(([[t("None"), '']] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns),
-                        class: "show-if-editing",
-                        disabled: !@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(@current_user, :manage_courses_admin))
-        %>
+                       options_for_select(([[t("None"), '']] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns),
+                       class: "show-if-editing",
+                       disabled: !@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(@current_user, :manage_courses_admin)) %>
       <% end %>
 
       <div class="profileDetails">

@@ -14,24 +14,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
-# This is rendered both on the dashboard and on the course homepage. On the
-# dashboard, contexts is nil, and so the cache is only based on the user, which
-# does not get touched when an assignment needs_grading count changes. So for
-# the dashboard, we expire after 3 minutes. On the course page, contexts is the
-# course, which does get touched, and so the cache expiration works.
-#
-# BTW if you add a new thing here, it probably needs adding to the /users/self/todo API
-show_legacy_todo_list ||= false
-additional_title_context ||= false
+%>
+<%
+  # This is rendered both on the dashboard and on the course homepage. On the
+  # dashboard, contexts is nil, and so the cache is only based on the user, which
+  # does not get touched when an assignment needs_grading count changes. So for
+  # the dashboard, we expire after 3 minutes. On the course page, contexts is the
+  # course, which does get touched, and so the cache expiration works.
+  #
+  # BTW if you add a new thing here, it probably needs adding to the /users/self/todo API
+  show_legacy_todo_list ||= false
+  additional_title_context ||= false
 %>
 <% unless @context&.account&.limited_access_for_user?(@current_user) %>
   <% if show_legacy_todo_list
-     cache_opts = (contexts.present? ? {} : { expires_in: 3.minutes })
+       cache_opts = (contexts.present? ? {} : { expires_in: 3.minutes })
      cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do
-       presenter = ToDoListPresenter.new(self, @current_user, contexts)
-  %>
+         presenter = ToDoListPresenter.new(self, @current_user, contexts) %>
     <% if presenter.any_assignments? %>
       <h2 class="todo-list-header" tabindex="-1">
         <% if Account.site_admin.feature_enabled?(:render_both_to_do_lists) && additional_title_context %>

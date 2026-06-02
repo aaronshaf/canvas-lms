@@ -17,14 +17,14 @@
 %>
 
 <%
-    editable ||= false
-    entry_type_class = case question_type.entry_type
-                       when 'file' then 'file-upload-question-holder'
-                       when 'text_box' then 'text-box-question-holder'
-                       when 'numerical_text_box' then 'numerical-question-holder'
-                       when 'textarea' then 'textarea-question-holder'
-                       else ''
-                       end
+  editable ||= false
+  entry_type_class = case question_type.entry_type
+                     when 'file' then 'file-upload-question-holder'
+                     when 'text_box' then 'text-box-question-holder'
+                     when 'numerical_text_box' then 'numerical-question-holder'
+                     when 'textarea' then 'textarea-question-holder'
+                     else ''
+                     end
 %>
 <div class="form-control <%= entry_type_class unless entry_type_class.empty? %>">
   <% value = @stored_params.present? ? h(@stored_params["question_#{hash_get(question, :id)}"]) : h(hash_get(user_answer, :text).to_s) %>

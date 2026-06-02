@@ -116,15 +116,15 @@
                     wrapper: "<button id='discussion_temporary_toggle' <b>\\1</b></button>") %>
             <% else %>
               <%= t('group_discussion_submission_description',
-                      "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}, or you can *view the full group discussion*.",
-                      user: user_name,
-                      wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(group, :context_discussion_topics_url, root_discussion_topic_id: @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
+                    "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}, or you can *view the full group discussion*.",
+                    user: user_name,
+                    wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(group, :context_discussion_topics_url, root_discussion_topic_id: @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
             <% end %>
           <% elsif discussion_checkpoints_enabled && use_discussion_toggle_link %>
             <%= t('discussion_submission_description_toggle',
-                    "The submissions for the assignment are posts in the assignment's discussion. You can view the discussion posts for %{user} below, or you can *switch to viewing the full discussion context.*",
-                    user: user_name,
-                    wrapper: "<button id='discussion_temporary_toggle'><b>\\1</b></button>") %>
+                  "The submissions for the assignment are posts in the assignment's discussion. You can view the discussion posts for %{user} below, or you can *switch to viewing the full discussion context.*",
+                  user: user_name,
+                  wrapper: "<button id='discussion_temporary_toggle'><b>\\1</b></button>") %>
             <% else %>
               <%= t('discussion_submission_description',
                     "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}, or you can *view the full discussion*.",
@@ -133,12 +133,12 @@
           <% end %>
         <% elsif @assignment.discussion_topic.for_group_discussion? && @assignment.discussion_topic.group_category.group_for(@user) %>
           <%= t('group_discussion_submission_description_without_link',
-                  "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}.",
-                  user: user_name) %>
+                "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}.",
+                user: user_name) %>
         <% else %>
           <%= t('discussion_submission_description_without_link',
-                  "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}.",
-                  user: user_name) %>
+                "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}.",
+                user: user_name) %>
         <% end %>
       </p>
         <% @entries.each do |entry| %>
@@ -167,7 +167,8 @@
       <%= link_to t('view_in_a_new_tab', '(View in a new tab)'),
                   @submission.url,
                   class: "open_in_a_new_tab",
-                  target: "_blank", rel: "noopener" %>
+                  target: "_blank",
+                  rel: "noopener" %>
 
       <span style="display: inline-block;" class="ui-icon ui-icon-extlink ui-icon-inline"
         title="<%= t('titles.external_link', 'Links to an external site.') %>"/>
@@ -177,22 +178,22 @@
   <% if @submission.processed %>
     <%
       preview_url = if anonymize_students
-        context_url(
-          @context,
-          :context_assignment_anonymous_submission_url,
-          @assignment.id,
-          @submission.anonymous_id,
-          download: image.id
-        )
-      else
-        context_url(
-          @context,
-          :context_assignment_submission_url,
-          @assignment.id,
-          @submission.user_id,
-          download: image.id
-        )
-      end
+                      context_url(
+                        @context,
+                        :context_assignment_anonymous_submission_url,
+                        @assignment.id,
+                        @submission.anonymous_id,
+                        download: image.id
+                      )
+                    else
+                      context_url(
+                        @context,
+                        :context_assignment_submission_url,
+                        @assignment.id,
+                        @submission.user_id,
+                        download: image.id
+                      )
+                    end
     %>
     <img src="<%= preview_url %>" alt="<%= t('URL Preview') %>"/>
   <% end %>
@@ -237,22 +238,22 @@
             <td class="file-upload-submission-info">
               <%
                 preview_url = if anonymize_students
-                  context_url(
-                    @context,
-                    :context_assignment_anonymous_submission_url,
-                    @assignment.id,
-                    @submission.anonymous_id,
-                    download: attachment.id
-                  )
-                else
-                  context_url(
-                    @context,
-                    :context_assignment_submission_url,
-                    @assignment.id,
-                    @submission.user_id,
-                    download: attachment.id
-                  )
-                end
+                                context_url(
+                                  @context,
+                                  :context_assignment_anonymous_submission_url,
+                                  @assignment.id,
+                                  @submission.anonymous_id,
+                                  download: attachment.id
+                                )
+                              else
+                                context_url(
+                                  @context,
+                                  :context_assignment_submission_url,
+                                  @assignment.id,
+                                  @submission.user_id,
+                                  download: attachment.id
+                                )
+                              end
               %>
               <a href="<%= preview_url %>" class="<%= attachment.mime_class %> file-upload-submission-info__link">
                 <%= attachment.display_name %>
@@ -278,12 +279,10 @@
                   <% preview_document = unread_annotations ?
                        t('Preview your submission and view teacher feedback. There are unread comments.') :
                        t('preview_crocodoc_document', 'Preview your submission and view teacher feedback, if available')
-                     button_text = t('view_feedback_button', 'View Feedback')
-                  %>
+                     button_text = t('view_feedback_button', 'View Feedback') %>
               <% elsif attachment.canvadocable? %>
                 <% preview_document = t('preview_submission', 'Preview your submission')
-                   button_text = t('view_preview_button', 'Preview')
-                %>
+                   button_text = t('view_preview_button', 'Preview') %>
               <% end %>
               <% if attachment.canvadocable? %>
                 <a
@@ -317,11 +316,12 @@
   </div>
 <% elsif @submission.submission_type == 'media_recording' && @submission.media_comment_id %>
   <% wrapper = tag.div do
-       tag.a "\\1", href: "#", class: "play_media_recording_link",
-         "data-media_comment_id": @submission.media_comment_id,
-         "data-media_comment_type": @submission.media_comment_type
-     end
-  %>
+       tag.a "\\1",
+             href: "#",
+             class: "play_media_recording_link",
+             "data-media_comment_id": @submission.media_comment_id,
+             "data-media_comment_type": @submission.media_comment_type
+     end %>
   <%= t('media_comment_link', "This submission is a media recording. *click here to view.*", wrapper:) %>
   <div style="width: 400px; margin: 10px auto;" id="media_recording_box">
     <div id="box_content" class="box_content">

@@ -6,4 +6,5 @@
         utc_time_range: datetime_string(next_window[0], :weekday_only, next_window[1], shorten_midnight: false, zone: ActiveSupport::TimeZone['UTC']) }) %>
 <br/>
 <%= t("Next window: %{window}", {
-    window: datetime_string(next_window[0], :verbose, next_window[1], shorten_midnight: false, zone: local_zone, with_weekday: true) }) %>
+        window: datetime_string(next_window[0], :verbose, next_window[1], shorten_midnight: false, zone: local_zone, with_weekday: true)
+      }) %>

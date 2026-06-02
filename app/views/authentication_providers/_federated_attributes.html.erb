@@ -18,11 +18,12 @@
 
 <div class="federated_attributes">
   <h4><%= t 'Federated Attributes' %></h4>
-  <p><%= t <<~TEXT
-Federated attributes are information sent from your authentication provider that can be used
-to automatically update corresponding information for users in Canvas each time they log in.
-TEXT
-%></p>
+  <p><%=
+       t <<~TEXT
+         Federated attributes are information sent from your authentication provider that can be used
+         to automatically update corresponding information for users in Canvas each time they log in.
+       TEXT
+     %></p>
   <table class="ic-Table" style="<%= hidden unless aac.federated_attributes.present? %>">
     <thead>
       <th scope="col"><%= t 'Canvas Attribute' %></th>
@@ -33,11 +34,12 @@ TEXT
           class="icon-info"
           tabindex="0"
           data-tooltip='{"tooltipClass":"popover popover-padded", "position":"right"}'
-          title= "<%= t <<~TEXT
-        If an attribute is marked as provisioning only, then it will only be used when Just in Time
-        Provisioning creates a new user, and will not be kept up to date each time the user logs in.
-        TEXT
-        %>"
+          title= "<%=
+                    t <<~TEXT
+                      If an attribute is marked as provisioning only, then it will only be used when Just in Time
+                      Provisioning creates a new user, and will not be kept up to date each time the user logs in.
+                    TEXT
+                  %>"
           >
           <span class="screenreader-only"><%= t 'What does Provisioning Only mean?' %></span>
         </a>
@@ -48,13 +50,14 @@ TEXT
           class="icon-info"
           tabindex="0"
           data-tooltip='{"tooltipClass":"popover popover-padded", "position":"right"}'
-          title= "<%= t <<~TEXT
-        If the email attribute is not set to autoconfirm, users will be sent an email to confirm
-        ownership of their email address. This should only be enabled if you are confident that
-        your authentication provider is providing email addresses that are both valid and not
-        user-provided (or that have already had their ownership confirmed).
-        TEXT
-        %>"
+          title= "<%=
+                    t <<~TEXT
+                      If the email attribute is not set to autoconfirm, users will be sent an email to confirm
+                      ownership of their email address. This should only be enabled if you are confident that
+                      your authentication provider is providing email addresses that are both valid and not
+                      user-provided (or that have already had their ownership confirmed).
+                    TEXT
+                  %>"
           >
           <span class="screenreader-only"><%= t 'What does Autoconfirm mean?' %></span>
         </a>

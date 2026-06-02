@@ -3,8 +3,8 @@
 <div class="ic-Layout-contentMain" role="main">
   <h1><%= t("lti.token.heading", "Generate LTI Advantage Access Token") %></h1>
   <p><%= t("lti.token.description",
-            "Enter the Tool ID and your authenticator app OTP code to generate " \
-            "a short-lived LTI 1.3 access token for the specified tool.") %></p>
+           "Enter the Tool ID and your authenticator app OTP code to generate " \
+           "a short-lived LTI 1.3 access token for the specified tool.") %></p>
 
   <% if @error %>
     <div class="ic-flash-error">
@@ -16,7 +16,8 @@
   <% if @token_data %>
     <div class="ic-flash-success">
       <div class="ic-flash__icon" aria-hidden="true"><i class="icon-check"></i></div>
-      <%= t("lti.token.success", "Token generated successfully. Copy it now - it expires in %{expires_in} seconds.",
+      <%= t("lti.token.success",
+            "Token generated successfully. Copy it now - it expires in %{expires_in} seconds.",
             expires_in: @token_data["expires_in"]) %>
     </div>
     <div style="margin: 12px 0;">

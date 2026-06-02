@@ -83,7 +83,8 @@
   <h2><%= t 'headings.popular_tags', "Popular Tags" %></h2>
   <select id="tags-flavor">
     <%= options_for_select([[t('job_options.current', "Current"), 'current'],
-                            [t('job_options.all', "All"), 'all']], @flavor) %>
+                            [t('job_options.all', "All"), 'all']],
+                           @flavor) %>
   </select>
   <div id="tags-grid" style="clear:both; width:250px; height:250px" class='grid'>
   </div>
@@ -97,8 +98,8 @@
                               [t('job_options.failed', "Failed"), 'failed'],
                               [t('job_options.id', "ID"), 'id'],
                               [t('job_options.strand', "Strand"), 'strand'],
-                              [t('job_options.tag', "Tag"), 'tag'],
-      ], @flavor) %>
+                              [t('job_options.tag', "Tag"), 'tag'],],
+                             @flavor) %>
     </select>
     <input type='search' results='15' placeholder='<%= t :search_jobs, "Search Jobs" %>' autosave='canvas-jobs-search' id='jobs-search' name='q' value="<%= params[:q].presence %>" />
     <button id='jobs-refresh'><%= t '#buttons.refresh', "refresh" %></button>
@@ -172,34 +173,34 @@
 </div>
 
 <%
-jobs_opts = {
-  max_attempts: Delayed::Settings.max_attempts,
-  flavor: @flavor,
-  url: jobs_v1_index_url(only: :jobs),
-  batch_update_url: batch_update_jobs_v1_index_url,
-  job_url: jobs_v1_index_url,
-  on_hold_attempt_count: Delayed::Job::ON_HOLD_COUNT,
-  limit: JobsController::LIMIT,
-  starting_query: params[:q],
-  slow_threshold: 10.minutes,
-  super_slow_threshold: 1.hour
-}
-running_opts = jobs_opts.merge({
-  url: jobs_v1_index_url(only: :running),
-  refresh_rate: @running_jobs_refresh_seconds * 1000,
-  starting_query: nil,
-})
-tags_opts = {
-  url: jobs_v1_index_url(only: :tags),
-  refresh_rate: @job_tags_refresh_seconds * 1000,
-}
-
-js_env({
-  JOBS: {
-    opts: jobs_opts.as_json(include_root: false),
-    running_opts: running_opts.as_json(include_root: false),
-    tags_opts:
+  jobs_opts = {
+    max_attempts: Delayed::Settings.max_attempts,
+    flavor: @flavor,
+    url: jobs_v1_index_url(only: :jobs),
+    batch_update_url: batch_update_jobs_v1_index_url,
+    job_url: jobs_v1_index_url,
+    on_hold_attempt_count: Delayed::Job::ON_HOLD_COUNT,
+    limit: JobsController::LIMIT,
+    starting_query: params[:q],
+    slow_threshold: 10.minutes,
+    super_slow_threshold: 1.hour
   }
-})
+  running_opts = jobs_opts.merge({
+                                   url: jobs_v1_index_url(only: :running),
+                                   refresh_rate: @running_jobs_refresh_seconds * 1000,
+                                   starting_query: nil,
+                                 })
+  tags_opts = {
+    url: jobs_v1_index_url(only: :tags),
+    refresh_rate: @job_tags_refresh_seconds * 1000,
+  }
+
+  js_env({
+           JOBS: {
+             opts: jobs_opts.as_json(include_root: false),
+             running_opts: running_opts.as_json(include_root: false),
+             tags_opts:
+           }
+         })
 %>
 

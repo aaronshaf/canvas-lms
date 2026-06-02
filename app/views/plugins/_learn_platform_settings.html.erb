@@ -20,11 +20,12 @@
   <table style="width: 500px;" class="formtable">
     <tr>
       <td colspan="2">
-        <p><%= t <<~TEXT, url: "https://app.learnplatform.com"
-                 LearnPlatform provides product information.
-                 The URL provided below should point to a valid LearnPlatform environment (for example, %{url} -- be sure to omit the trailing slash.
-               TEXT
-        %></p>
+        <p><%=
+             t <<~TEXT, url: "https://app.learnplatform.com"
+               LearnPlatform provides product information.
+               The URL provided below should point to a valid LearnPlatform environment (for example, %{url} -- be sure to omit the trailing slash.
+             TEXT
+           %></p>
       </td>
     </tr>
     <tr>

@@ -36,12 +36,13 @@
           <a href="#" class="upload_submissions_link icon-upload" style="<%= hidden unless @assignment.submissions_downloaded? %>"><%= t 'links.reupload_submissions', "Re-Upload Submissions" %></a>
           <%= form_tag context_url(@context, :submissions_upload_context_gradebook_url, @assignment.id), { id: "re_upload_submissions_form", multipart: true, style: "margin-top: 10px; margin-bottom: 0px; display: none;" } do %>
             <div style="font-size: 0.8em;">
-              <%= mt <<~MD
-  If you made changes to the student submission files you downloaded
-  before, just zip them back up and upload the zip with the form below.
-  Students will see the modified files in their comments for the submission.
+              <%=
+                mt <<~MD
+                  If you made changes to the student submission files you downloaded
+                  before, just zip them back up and upload the zip with the form below.
+                  Students will see the modified files in their comments for the submission.
 
-  *Make sure you don't change the names of the submission files so we can recognize them.*
+                  *Make sure you don't change the names of the submission files so we can recognize them.*
                 MD
               %>
             </div>
@@ -81,8 +82,10 @@
     <% resubmitted = subs.count(&:needs_regrading?) %>
     <% submitted = subs.length %>
     <span class="graded_count" id="ratio_of_submissions_graded" style="<%= 'font-weight: bold;' if graded < submitted %>">
-      <%= t :graded_count, "%{graded_count} *out of* %{total} Submissions Graded",
-            graded_count: graded, total: submitted,
+      <%= t :graded_count,
+            "%{graded_count} *out of* %{total} Submissions Graded",
+            graded_count: graded,
+            total: submitted,
             wrapper: '<span style="font-size: 0.8em;">\1</span>' %>
     </span>
     <% if resubmitted > 0 %>

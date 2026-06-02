@@ -31,12 +31,11 @@
 <% if render_teacher_to_do %>
   <%= render partial: 'courses/to_do_list', locals: { contexts: nil, show_legacy_todo_list: true, additional_title_context: @user.has_student_enrollment? } %>
   <% locals = {
-      title: t('coming_up', "Coming Up"),
-      period: :one_week,
-      show_context: true,
-      upcoming: true
-  }
-  %>
+       title: t('coming_up', "Coming Up"),
+       period: :one_week,
+       show_context: true,
+       upcoming: true
+     } %>
   <%= render partial: "shared/event_list", object: @upcoming_events, locals: %>
 <% end %>
 <% if @show_recent_feedback %>

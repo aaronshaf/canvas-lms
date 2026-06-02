@@ -26,27 +26,27 @@
         <div
           id="uncrosslist_link_button_container"
           data-props="<%= {
-            courseName: @section.nonxlist_course.name,
-            enrollmentsCount: @student_enrollments_count,
-            sectionId: @section.id.to_s,
-            courseId: @section.course.id.to_s,
-            nonxlistCourseId: @section.nonxlist_course.id.to_s
-          }.to_json %>"
+                            courseName: @section.nonxlist_course.name,
+                            enrollmentsCount: @student_enrollments_count,
+                            sectionId: @section.id.to_s,
+                            courseId: @section.course.id.to_s,
+                            nonxlistCourseId: @section.nonxlist_course.id.to_s
+                          }.to_json %>"
         ></div>
       <% end %>
     <% end %>
     <div
       id="crosslist_link_button_container"
       data-props="<%= {
-        sectionId: @section.id.to_s,
-        isAlreadyCrosslisted: @section.nonxlist_course_id.present?,
-        nonxlistCourseId: @section.nonxlist_course_id&.to_s,
-        nonxlistCourseName: @section.nonxlist_course&.name,
-        enrollmentsCount: @student_enrollments_count,
-        manageableCoursesUrl: context_url(@current_user, :context_manageable_courses_url, format: :json),
-        confirmCrosslistUrl: context_url(@context, :context_section_confirm_crosslist_url, @section.id, ':id'),
-        crosslistUrl: context_url(@context, :context_section_crosslist_url, @section.id)
-      }.to_json %>"
+                        sectionId: @section.id.to_s,
+                        isAlreadyCrosslisted: @section.nonxlist_course_id.present?,
+                        nonxlistCourseId: @section.nonxlist_course_id&.to_s,
+                        nonxlistCourseName: @section.nonxlist_course&.name,
+                        enrollmentsCount: @student_enrollments_count,
+                        manageableCoursesUrl: context_url(@current_user, :context_manageable_courses_url, format: :json),
+                        confirmCrosslistUrl: context_url(@context, :context_section_confirm_crosslist_url, @section.id, ':id'),
+                        crosslistUrl: context_url(@context, :context_section_crosslist_url, @section.id)
+                      }.to_json %>"
     ></div>
   <% end %>
   <a href="<%= context_url(@context, :context_settings_url) %>" class="btn button-sidebar-wide"><i class="icon-settings"></i> <%= t('buttons.back_to_course', 'Back to Course Settings') %></a>

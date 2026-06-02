@@ -33,18 +33,18 @@
 
   <% if @lti_launch.launch_type != "window" %>
     <%= iframe(
-    "about:blank",
-    name: @tool_form_id ? "tool_content_#{@tool_form_id}" : "tool_content",
-    id: @tool_form_id ? "tool_content_#{@tool_form_id}" : "tool_content",
-    class: "tool_launch",
-    allowfullscreen: "true",
-    webkitallowfullscreen: "true",
-    mozallowfullscreen: "true",
-    tabindex: "0",
-    title: @lti_launch.link_text,
-    style: "height:#{@lti_launch.tool_dimensions[:selection_height]};width:#{@lti_launch.tool_dimensions[:selection_width]};",
-    allow: Lti::Launch.iframe_allowances.join('; '),
-    data: { "lti-launch": true }
-    ) %>
+          "about:blank",
+          name: @tool_form_id ? "tool_content_#{@tool_form_id}" : "tool_content",
+          id: @tool_form_id ? "tool_content_#{@tool_form_id}" : "tool_content",
+          class: "tool_launch",
+          allowfullscreen: "true",
+          webkitallowfullscreen: "true",
+          mozallowfullscreen: "true",
+          tabindex: "0",
+          title: @lti_launch.link_text,
+          style: "height:#{@lti_launch.tool_dimensions[:selection_height]};width:#{@lti_launch.tool_dimensions[:selection_width]};",
+          allow: Lti::Launch.iframe_allowances.join('; '),
+          data: { "lti-launch": true }
+        ) %>
   <% end %>
 </div>

@@ -29,10 +29,10 @@
     <div class="ic-notification__message notification_message">
       <%=
         mt(:invitation_text, "You have been invited to join [%{course}](%{link_to_course}) with the following user role: %{role_name}", {
-          course: invitation.long_name,
-          link_to_course: course_path(invitation.course_id, invitation: invitation.uuid),
-          role_name: invitation&.role&.label
-        })
+             course: invitation.long_name,
+             link_to_course: course_path(invitation.course_id, invitation: invitation.uuid),
+             role_name: invitation&.role&.label
+           })
       %>
     </div>
     <div class="ic-notification__actions">

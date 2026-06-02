@@ -20,10 +20,11 @@
   <table style="width: 500px;" class="formtable">
     <tr>
       <td colspan="2">
-        <p><%= t <<~TEXT, url: "https://www.eduappcenter.com"
-                 App Center will appear in the "Apps" tab on the settings page of either a course or account.
-                 The URL provided below should point to a valid App Center endpoint (for example, %{url} -- be sure to omit the trailing slash
-               TEXT
+        <p><%=
+             t <<~TEXT, url: "https://www.eduappcenter.com"
+               App Center will appear in the "Apps" tab on the settings page of either a course or account.
+               The URL provided below should point to a valid App Center endpoint (for example, %{url} -- be sure to omit the trailing slash
+             TEXT
            %></p>
       </td>
     </tr>

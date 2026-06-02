@@ -24,20 +24,20 @@
 
   score = (plagiarism_data[:status] == "scored") ? plagiarism_data[:similarity_score] : nil
   icon_class = case plagiarism_data[:status]
-    when "error"
-      "icon-warning"
-    when "pending"
-      "icon-clock"
-    when "scored"
-      score_icon = if score > 60
-        "icon-empty"
-      elsif score > 20
-        "icon-oval-half"
-      else
-        "icon-certified"
-      end
-      "#{score_icon} icon-Solid"
-    end
+               when "error"
+                 "icon-warning"
+               when "pending"
+                 "icon-clock"
+               when "scored"
+                 score_icon = if score > 60
+                                "icon-empty"
+                              elsif score > 20
+                                "icon-oval-half"
+                              else
+                                "icon-certified"
+                              end
+                 "#{score_icon} icon-Solid"
+               end
 %>
 
 <% if icon_class.present? %>

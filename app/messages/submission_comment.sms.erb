@@ -4,7 +4,8 @@
   assignment = asset.submission.assignment
   assignment = assignment.parent_assignment if assignment.checkpoint? && assignment.parent_assignment
 %>
-<%= t :body, "New comment by %{author} for %{assignment}, %{user}, %{context}.",
+<%= t :body,
+      "New comment by %{author} for %{assignment}, %{user}, %{context}.",
       author: submission_comment_author(asset, user),
       assignment: assignment.title,
       user: submission_comment_submittor(asset, user),

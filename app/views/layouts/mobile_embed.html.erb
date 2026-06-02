@@ -18,14 +18,14 @@
 <!DOCTYPE html>
 <html>
     <%-
-    css_bundle(:instructure_eportfolio) if @eportfolio_view == true
-    css_bundle(:new_user_tutorials) if tutorials_enabled?
-    js_bundle(:navigation_header) unless @headers == false
+      css_bundle(:instructure_eportfolio) if @eportfolio_view == true
+      css_bundle(:new_user_tutorials) if tutorials_enabled?
+      js_bundle(:navigation_header) unless @headers == false
 
-    provide :head, include_common_stylesheets
-    js_env({ notices: flash_notices })
+      provide :head, include_common_stylesheets
+      js_env({ notices: flash_notices })
 
-    body_classes << 'Underline-All-Links__enabled' if @current_user&.feature_enabled?(:underline_all_links)
+      body_classes << 'Underline-All-Links__enabled' if @current_user&.feature_enabled?(:underline_all_links)
 
     -%>
     <%= render partial: "layouts/head" %>

@@ -50,9 +50,9 @@
   has_answer_comment = hash_get(answer, :comments_html).present? || comment_get(answer, :comments).present?
   skip_if_correct ||= nil
   should_skip = (skip_if_correct && selected_answer && correct_answer) ||
-    (hash_get(question, :question_type) == 'fill_in_multiple_blanks_question' &&
-      answer.respond_to?(:[]) && answer['text'].blank? && answer['html'].blank?) ||
-    (hash_get(question, :question_type) == 'multiple_dropdowns_question' && !correct_answer && (selected_answer.nil? ? false : !selected_answer))
+                (hash_get(question, :question_type) == 'fill_in_multiple_blanks_question' &&
+                  answer.respond_to?(:[]) && answer['text'].blank? && answer['html'].blank?) ||
+                (hash_get(question, :question_type) == 'multiple_dropdowns_question' && !correct_answer && (selected_answer.nil? ? false : !selected_answer))
   asset_string = if question_bank_id
                    "assessment_question_#{hash_get(question, :id)}"
                  elsif @submission
@@ -116,7 +116,7 @@
           <span class="text_box_answer <%= 'correct_text_box_answer' if matched && matched[:weight] == 100 %>">
                   <%= before_label(:your_answer, 'Your Answer') %>
             <% user_text = hash_get(matched, :right) || hash_get(matched, :text)
-                user_text = nil if user_text.blank? %>
+               user_text = nil if user_text.blank? %>
             <b><%= user_text || t(:you_left_this_blank, '(You left this blank)') %></b>
           </span>
           <% if show_correct_answers %>
@@ -153,7 +153,8 @@
       </span> (<%= before_label :answer_with_precision, 'with precision' %> <span class="answer_precision"><%= render_number(hash_get(answer, :precision, 10)) %></span>)
     </div>
     <div class="numerical_range_answer answer_type" <%= hidden(include_style: true) unless number_type == 'range' %>>
-      <%= t(:range_answer, "Between %{lower_bound} and %{upper_bound}",
+      <%= t(:range_answer,
+            "Between %{lower_bound} and %{upper_bound}",
             lower_bound: tag.span(render_number(hash_get(answer, :start, 0)), class: :answer_range_start),
             upper_bound: tag.span(render_number(hash_get(answer, :end, 0)), class: :answer_range_end)) %>
     </div>

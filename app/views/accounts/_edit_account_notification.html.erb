@@ -17,12 +17,13 @@
 %>
 
 <%= form_for :account_notification,
-  url: { controller: 'account_notifications', action: 'update', id: announcement.id },
-  html: {
-    id: "edit_notification_form_#{announcement.id}",
-    class: 'edit_notification_form hidden_form',
-    role: 'region',
-    method: 'put' } do |f| %>
+             url: { controller: 'account_notifications', action: 'update', id: announcement.id },
+             html: {
+               id: "edit_notification_form_#{announcement.id}",
+               class: 'edit_notification_form hidden_form',
+               role: 'region',
+               method: 'put'
+             } do |f| %>
 
   <div class="grid-row">
 
@@ -42,10 +43,11 @@
         </label>
         <select id="<%= "account_notification_icon_#{announcement.id}" %>" class="ic-Input" name="account_notification[icon]">
           <%= options_for_select([[t("information"), "information", { class: "information" }],
-            [t("error"), "error", { class: "error" }],
-            [t("warning"), "warning", { class: "warning" }],
-            [t("question"), "question", { class: "question" }],
-            [t("calendar"), "calendar", { class: "calendar" }]], announcement.icon) %>
+                                  [t("error"), "error", { class: "error" }],
+                                  [t("warning"), "warning", { class: "warning" }],
+                                  [t("question"), "question", { class: "question" }],
+                                  [t("calendar"), "calendar", { class: "calendar" }]],
+                                 announcement.icon) %>
         </select>
       </div>
     </div>
@@ -185,14 +187,19 @@
 
   <% unless @account.site_admin? %>
     <div class="ic-Form-control ic-Form-control--checkbox">
-      <%= f.check_box :send_message, checked: announcement.send_message? && !announcement.messages_sent_at,
-          id: "account_notification_send_message_#{announcement.id}" %>
+      <%= f.check_box :send_message,
+                      checked: announcement.send_message? && !announcement.messages_sent_at,
+                      id: "account_notification_send_message_#{announcement.id}" %>
       <% if announcement.messages_sent_at? %>
-        <%= f.label :send_message, t("Re-send notification directly to users when announcement starts"),
-            class: "ic-Label", for: "account_notification_send_message_#{announcement.id}" %>
+        <%= f.label :send_message,
+                    t("Re-send notification directly to users when announcement starts"),
+                    class: "ic-Label",
+                    for: "account_notification_send_message_#{announcement.id}" %>
       <% else %>
-        <%= f.label :send_message, t("Send notification directly to users when announcement starts"),
-            class: "ic-Label", for: "account_notification_send_message_#{announcement.id}" %>
+        <%= f.label :send_message,
+                    t("Send notification directly to users when announcement starts"),
+                    class: "ic-Label",
+                    for: "account_notification_send_message_#{announcement.id}" %>
       <% end %>
     </div>
   <% end %>

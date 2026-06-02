@@ -63,18 +63,18 @@
 <% end %>
 <% if can_do(@context, @current_user, :read_as_admin) && !@context.elementary_homeroom_course? %>
   <% tabs << {
-      id:           "tools",
-      title:        t('tabs.apps', default: "Apps"),
-      contentMount: "tab-tools-mount"
-    } %>
+       id: "tools",
+       title: t('tabs.apps', default: "Apps"),
+       contentMount: "tab-tools-mount"
+     } %>
 <% end %>
 <% if @context.root_account.feature_enabled?(:lti_apps_page_instructors) && can_do(@context, @current_user, :read_as_admin) &&
       !@context.elementary_homeroom_course? %>
   <% tabs << {
-      id:           "apps",
-      title:        t('tabs.apps_new', default: "Apps (New)"),
-      contentMount: "tab-apps-mount"
-    } %>
+       id: "apps",
+       title: t('tabs.apps_new', default: "Apps (New)"),
+       contentMount: "tab-apps-mount"
+     } %>
 <% end %>
 <% if @publishing_enabled %>
   <% tabs << { id: "grade-publishing", title: t('tabs.grade_syncing', default: "Grade Syncing"), contentMount: "tab-grade-publishing-mount" } %>
@@ -217,11 +217,10 @@
         <div class="form-label nobr"><%= f.blabel :course_template, en: "Course Template" %></div>
         <div class="nobr">
           <% editable = if @context.template?
-                 @context.can_stop_being_template? && @context.grants_right?(@current_user, session, :delete_course_template)
-               else
-                 @context.can_become_template? && @context.grants_right?(@current_user, session, :add_course_template)
-               end
-          %>
+                          @context.can_stop_being_template? && @context.grants_right?(@current_user, session, :delete_course_template)
+                        else
+                          @context.can_become_template? && @context.grants_right?(@current_user, session, :add_course_template)
+                        end %>
           <div id="course_template_details" data-is-editable=<%= editable %> %>></div>
         </div>
       </div>
@@ -388,7 +387,8 @@
             <div>
               <%= f.select :locale,
                            [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
-                           { selected: @context.locale }, { :class => 'locale', 'aria-describedby' => 'language-description' } %>
+                           { selected: @context.locale },
+                           { :class => 'locale', 'aria-describedby' => 'language-description' } %>
               <%= render partial: 'shared/locale_warning' %>
             </div>
             <div class="aside palign" id="language-description">
@@ -484,15 +484,15 @@
                 <% Course::CUSTOMIZABLE_PERMISSIONS.map do |setting, options| %>
                   <%= f.label :"#{setting}_visibility_option", options[:get_setting_name].call, class: "#{setting}-visibility" %>
                   <%= f.select(
-                    :"#{setting}_visibility_option",
-                    @context.course_visibility_options.map { |id, attrs| [attrs[:setting], id.to_s] },
-                    {},
-                    {
-                      :id => options[:setting],
-                      "aria-label" => t(:visibility_option, "%{type} Visibility Options", type: options[:setting]),
-                      "data-flexibility" => options[:flex]
-                    }
-                  ) %>
+                        :"#{setting}_visibility_option",
+                        @context.course_visibility_options.map { |id, attrs| [attrs[:setting], id.to_s] },
+                        {},
+                        {
+                          :id => options[:setting],
+                          "aria-label" => t(:visibility_option, "%{type} Visibility Options", type: options[:setting]),
+                          "data-flexibility" => options[:flex]
+                        }
+                      ) %>
                 <% end %>
               </div>
             </div>
@@ -521,9 +521,9 @@
       </div><div class="form-row">
         <div class="form-label"><label for="course_course_format"><%= before_label('course_format', %{Format}) %></label></div>
         <% format_options = [[t('#course.course_format.not_set', 'Not Set'), ''],
-          [t('#course.course_format.on_campus', "On-Campus"), "on_campus"],
-          [t('#course.course_format.online', "Online"), "online"],
-          [t('#course.course_format.blended', "Blended"), "blended"]] %>
+                             [t('#course.course_format.on_campus', "On-Campus"), "on_campus"],
+                             [t('#course.course_format.online', "Online"), "online"],
+                             [t('#course.course_format.blended', "Blended"), "blended"]] %>
         <div>
           <% if can_manage %>
             <%= f.select :course_format, format_options %>
@@ -616,19 +616,21 @@
         <div colspan="3">
           <span class="self_enrollment_message" style="<%= hidden unless @context.self_enrollment_enabled? && !is_master_course %>">
             <% if @context.root_account.self_registration? %>
-              <%= t 'course_open_enrollment', <<~TEXT, url: enroll_url(@context.self_enrollment_code || '{{ self_enrollment_code }}'), url2: register_url, code: @context.self_enrollment_code || '{{ self_enrollment_code }}', wrapper: '<b>\1</b>'
-                    This course has enabled open enrollment. Students can
-                    self-enroll in the course once you share with them this URL:
-                    *%{url}*. Alternatively, they can sign up at *%{url2}* and
-                    use the following join code: *%{code}*
-                  TEXT
+              <%=
+                t 'course_open_enrollment', <<~TEXT, url: enroll_url(@context.self_enrollment_code || '{{ self_enrollment_code }}'), url2: register_url, code: @context.self_enrollment_code || '{{ self_enrollment_code }}', wrapper: '<b>\1</b>'
+                  This course has enabled open enrollment. Students can
+                  self-enroll in the course once you share with them this URL:
+                  *%{url}*. Alternatively, they can sign up at *%{url2}* and
+                  use the following join code: *%{code}*
+                TEXT
               %>
             <% else %>
-              <%= t 'course_open_enrollment_without_code', <<~TEXT, url: enroll_url(@context.self_enrollment_code || '{{ self_enrollment_code }}'), wrapper: '<b>\1</b>'
-                    This course has enabled open enrollment. Students can
-                    self-enroll in the course once you share with them this URL:
-                    *%{url}*
-                  TEXT
+              <%=
+                t 'course_open_enrollment_without_code', <<~TEXT, url: enroll_url(@context.self_enrollment_code || '{{ self_enrollment_code }}'), wrapper: '<b>\1</b>'
+                  This course has enabled open enrollment. Students can
+                  self-enroll in the course once you share with them this URL:
+                  *%{url}*
+                TEXT
               %>
             <% end %>
           </span>
@@ -713,10 +715,14 @@
                   <% end %>
                 </div>
               <% end %>
-              <%= f.select :default_wiki_editing_roles, [
-                [t('#course.wiki_permissions.only_teachers', "Only Teachers"), "teachers"],
-                [t('#course.wiki_permissions.teachers_students', "Teacher and Students"), "teachers,students"],
-                [t('#course.wiki_permissions.all', "Anyone"), "teachers,students,public"]], {}, disabled: !can_manage %>
+              <%= f.select :default_wiki_editing_roles,
+                           [
+                             [t('#course.wiki_permissions.only_teachers', "Only Teachers"), "teachers"],
+                             [t('#course.wiki_permissions.teachers_students', "Teacher and Students"), "teachers,students"],
+                             [t('#course.wiki_permissions.all', "Anyone"), "teachers,students,public"]
+                           ],
+                           {},
+                           disabled: !can_manage %>
               <label for="course_default_wiki_editing_roles">
                 <%= t(%{can create, rename, and edit course pages by default}) %>
               </label><br/>
@@ -738,7 +744,7 @@
         <footer class="sticky-footer">
           <div>
             <% if Setting.get('cross_root_account_course_moves', 'false') == 'true' &&
-              Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) && Account.root_accounts.many? %>
+                  Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) && Account.root_accounts.many? %>
                 <a href="#" class="move_course_link btn"><i class="icon-arrow-right"></i> <%= t('links.move_course', %{Move To Another Account}) %></a>
             <% end %>
               <span class="course_form">
@@ -756,13 +762,15 @@
     <h2 style="margin-top: 10px;"><%= t('headings.sections', %{Course Sections}) %></h2>
     <div class="course_section_dates">
       <%= t('Course Start Date: %{start_date} | Course End Date: %{end_date}', {
-        start_date: format_course_section_date(@context.start_at),
-        end_date: format_course_section_date(@context.end_at) }) %>
+              start_date: format_course_section_date(@context.start_at),
+              end_date: format_course_section_date(@context.end_at)
+            }) %>
     </div>
     <div class="course_section_dates">
       <%= t('Term Start Date: %{start_date} | Term End Date: %{end_date}', {
-        start_date: format_course_section_date(@context.enrollment_term.start_at),
-        end_date: format_course_section_date(@context.enrollment_term.end_at) }) %>
+              start_date: format_course_section_date(@context.enrollment_term.start_at),
+              end_date: format_course_section_date(@context.enrollment_term.end_at)
+            }) %>
     </div>
     <ul id="sections">
       <% if can_do(@context.course_sections.temp_record, @current_user, :create) %>
@@ -797,8 +805,9 @@
         </span>
         <div class="course_section_dates">
           <%= t('Start Date: %{start_date} | End Date: %{end_date}', {
-            start_date: format_course_section_date,
-            end_date: format_course_section_date }) %>
+                  start_date: format_course_section_date,
+                  end_date: format_course_section_date
+                }) %>
         </div>
         <div class="clear"></div>
       </li>
@@ -856,8 +865,9 @@
           <% end %>
           <div class="course_section_dates">
             <%= t('Start Date: %{start_date} | End Date: %{end_date}', {
-              start_date: format_course_section_date(section.start_at),
-              end_date: format_course_section_date(section.end_at) }) %>
+                    start_date: format_course_section_date(section.start_at),
+                    end_date: format_course_section_date(section.end_at)
+                  }) %>
           </div>
           <% if section.nonxlist_course %>
             <div class="course_section_crosslist">
@@ -884,7 +894,7 @@
     <h2 class="screenreader-only"><%= t('headings.navigation', %{Course Navigation}) %></h2>
     <div class="screenreader-only drag_and_drop_warning" tabindex="0">
       <%= t('nav_items_keyboard_drag_and_drop',
-      'Warning: For improved accessibility in reordering Course Navigation elements, please use the Move To Dialog option found in the menu.') %>
+            'Warning: For improved accessibility in reordering Course Navigation elements, please use the Move To Dialog option found in the menu.') %>
     </div>
 
     <%

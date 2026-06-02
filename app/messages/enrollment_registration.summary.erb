@@ -9,4 +9,6 @@
 <% website = HostUrl.context_host(asset.user.pseudonym.account) rescue HostUrl.default_host %>
 
 <%= t "You've been invited to participate in a class at %{website}.  The class is called %{course}. Course role: %{role_type}",
-    website:, course: asset.course.name, role_type: asset.readable_role_name %>
+      website:,
+      course: asset.course.name,
+      role_type: asset.readable_role_name %>

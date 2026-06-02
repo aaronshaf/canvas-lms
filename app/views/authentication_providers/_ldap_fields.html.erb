@@ -20,8 +20,8 @@
 <p class='last_timeout_failure'>
   <%= t :ldap_timeout_failure_help2,
         "If Canvas times out too many times communicating with the LDAP server, " \
-          "it will block further login attempts from using that LDAP " \
-          "server for %{time}. Your LDAP server last timed out at %{timestamp}.",
+        "it will block further login attempts from using that LDAP " \
+        "server for %{time}. Your LDAP server last timed out at %{timestamp}.",
         time: distance_of_time_in_words(aac.failure_wait_time),
         timestamp: datetime_string(aac.last_timeout_failure) %>
 </p>
@@ -89,12 +89,14 @@
   <div class="ic-Form-help-text">
           <%= t(:internal_ca_description,
                 "If your LDAP server presents a certificate issued by an untrusted, internal root CA, you *must* upload your root " \
-          "CA in order for Canvas to trust it when connecting.", wrapper: '<strong>\1</strong>') %>
+                "CA in order for Canvas to trust it when connecting.",
+                wrapper: '<strong>\1</strong>') %>
     </div>
     <div class="ic-Form-help-text">
           <%= t(:internal_ca_warning,
                 "*Warning*: Using an internal root CA is less secure, and increases the risk of compromise. We strongly " \
-                "recommend using certificates issued by a trusted certificate authority, instead.", wrapper: '<strong>\1</strong>') %>
+                "recommend using certificates issued by a trusted certificate authority, instead.",
+                wrapper: '<strong>\1</strong>') %>
   </div>
 </div>
 <div class="ic-Form-control">

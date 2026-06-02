@@ -12,7 +12,8 @@
   </a>
 <% end %>
 
-<p><%= t('body', "The group %{group_name} has just turned in a late submission for %{assignment_name} in the course %{course_name}.",
+<p><%= t('body',
+         "The group %{group_name} has just turned in a late submission for %{assignment_name} in the course %{course_name}.",
          group_name: asset.group.name,
          assignment_name: asset.assignment.title,
          course_name: asset.assignment.context.name) %></p>

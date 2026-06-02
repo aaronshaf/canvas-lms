@@ -33,8 +33,11 @@
 <%= form_tag(context_url(@context, :context_quiz_moderate_url, @quiz.id), method: :get) do %>
   <div class="ic-Form-control">
     <div class="ic-Input-group">
-      <%= text_field_tag :search_term, params[:search_term], class: "ic-Input", placeholder: t('Search People'),
-      aria_label: t('Search people. As you type in this field, the list of people will be automatically filtered to only include those whose names match your input.') %>
+      <%= text_field_tag :search_term,
+                         params[:search_term],
+                         class: "ic-Input",
+                         placeholder: t('Search People'),
+                         aria_label: t('Search people. As you type in this field, the list of people will be automatically filtered to only include those whose names match your input.') %>
       <%= submit_tag t('Filter'), class: "Button" %>
     </div>
   </div>
@@ -70,17 +73,16 @@
         </td>
         <td class="name">
           <%= t(:student_gets_extra_time,
-              { one: "*%{student_name}* **gets 1 extra minute on each attempt**",
-                other: "*%{student_name}* **gets %{count} extra minutes on each attempt**" },
-              {
-               student_name:,
-               count: (submission && submission.extra_time) || '0',
-               wrapper: {
-                 '*' => submission ? %{<a class="student_name" href="#{context_url(@context, :context_quiz_history_url, @quiz.id, quiz_submission_id: submission.id)}">\\1</a>} : '\1',
-                 '**' => %{<div class='extra_time_allowed' style="#{hidden unless submission && submission.extra_time && submission.extra_time != "0"}">\\1</div>}
-               },
-             })
-          %>
+                { one: "*%{student_name}* **gets 1 extra minute on each attempt**",
+                  other: "*%{student_name}* **gets %{count} extra minutes on each attempt**" },
+                {
+                  student_name:,
+                  count: (submission && submission.extra_time) || '0',
+                  wrapper: {
+                    '*' => submission ? %{<a class="student_name" href="#{context_url(@context, :context_quiz_history_url, @quiz.id, quiz_submission_id: submission.id)}">\\1</a>} : '\1',
+                    '**' => %{<div class='extra_time_allowed' style="#{hidden unless submission && submission.extra_time && submission.extra_time != "0"}">\\1</div>}
+                  },
+                }) %>
         </td>
         <td class="attempt number"><%= (submission && !submission.settings_only?) ? submission.attempt : "--" %></td>
         <td class="time_holder">
@@ -208,7 +210,7 @@
         <input type="checkbox" name="reset_has_seen_results" id="extension_reset_has_seen_results" value="1" />
         <label for="extension_reset_has_seen_results">
           <%= t('labels.reset_has_seen_results',
-          "Let the student see the results one more time") %>
+                "Let the student see the results one more time") %>
         </label>
       </div>
     <% end %>

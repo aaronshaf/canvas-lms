@@ -1,39 +1,39 @@
 <%
-# Copyright (C) 2011 - present Instructure, Inc.
-#
-# This file is part of Canvas.
-#
-# Canvas is free software: you can redistribute it and/or modify it under
-# the terms of the GNU Affero General Public License as published by the Free
-# Software Foundation, version 3 of the License.
-#
-# Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Affero General Public License along
-# with this program. If not, see <http://www.gnu.org/licenses/>.
+  # Copyright (C) 2011 - present Instructure, Inc.
+  #
+  # This file is part of Canvas.
+  #
+  # Canvas is free software: you can redistribute it and/or modify it under
+  # the terms of the GNU Affero General Public License as published by the Free
+  # Software Foundation, version 3 of the License.
+  #
+  # Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+  # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  # A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+  # details.
+  #
+  # You should have received a copy of the GNU Affero General Public License along
+  # with this program. If not, see <http://www.gnu.org/licenses/>.
   set_active_tab "settings"
   js_bundle :account_settings
   css_bundle :account_settings, :reports, :tinymce
   provide :page_title, t(:page_title, "Account Settings")
 
   js_env({
-    ACCOUNT: {
-      'id' => @context.id,
-      'site_admin' => @account.site_admin?,
-      'root_account' => @account.root_account?
-    }.tap do |h|
-      if can_do(@context, @current_user, :manage_storage_quotas)
-        h.merge!(
-          'default_storage_quota_mb' => @context.default_storage_quota_mb,
-          'default_user_storage_quota_mb' => @context.default_user_storage_quota_mb,
-          'default_group_storage_quota_mb' => @context.default_group_storage_quota_mb
-        )
-      end
-    end
-  })
+           ACCOUNT: {
+             'id' => @context.id,
+             'site_admin' => @account.site_admin?,
+             'root_account' => @account.root_account?
+           }.tap do |h|
+             if can_do(@context, @current_user, :manage_storage_quotas)
+               h.merge!(
+                 'default_storage_quota_mb' => @context.default_storage_quota_mb,
+                 'default_user_storage_quota_mb' => @context.default_user_storage_quota_mb,
+                 'default_group_storage_quota_mb' => @context.default_group_storage_quota_mb
+               )
+             end
+           end
+         })
 %>
 
 <% provide :right_side do %>
@@ -143,7 +143,8 @@
                 <% no_language = t(:no_language_preference, "Not set (defaults to %{language})", language: available_locales[infer_locale(context: @context.parent_account)]) %>
                 <%= f.select :default_locale,
                              [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
-                             { selected: @context.default_locale }, { class: 'locale' } %>
+                             { selected: @context.default_locale },
+                             { class: 'locale' } %>
                 <%= render partial: 'shared/locale_warning' %>
                 <p class="aside"><%= t(:default_language_description, "This will override any browser/OS language settings. Preferred languages can still be set at the course/user level.") %></p>
               </td>
@@ -183,10 +184,12 @@
                   <tr>
                     <td><%= settings.blabel :mfa_settings, en: "Multi-Factor Authentication" %></td>
                     <td>
-                      <%= settings.select :mfa_settings, [[t('select.mfa.disabled', "Disabled"), :disabled],
-                                                          [t('select.mfa.optional', "Optional"), :optional],
-                                                          [t('select.mfa.required_for_admins', "Required for Admins"), :required_for_admins],
-                                                          [t('select.mfa.required', "Required"), :required]], selected: @account.mfa_settings %>
+                      <%= settings.select :mfa_settings,
+                                          [[t('select.mfa.disabled', "Disabled"), :disabled],
+                                           [t('select.mfa.optional', "Optional"), :optional],
+                                           [t('select.mfa.required_for_admins', "Required for Admins"), :required_for_admins],
+                                           [t('select.mfa.required', "Required"), :required]],
+                                          selected: @account.mfa_settings %>
                     </td>
                   </tr>
                 <% end %>
@@ -203,11 +206,13 @@
                   <tr>
                     <td><%= settings.blabel :self_enrollment, en: "Allow Self-Enrollment" %></td>
                     <td>
-                      <%= settings.select :self_enrollment, [
-                              [t(:never_allow_self_enrollment_option, 'Never'), ''],
-                              [t(:self_enroll_for_manually_created_courses_option, 'For Manually-Created Courses'), 'manually_created'],
-                              [t(:self_enroll_for_any_courses_option, 'For Any Courses'), 'any']
-                        ], selected: @account.settings[:self_enrollment] %>
+                      <%= settings.select :self_enrollment,
+                                          [
+                                            [t(:never_allow_self_enrollment_option, 'Never'), ''],
+                                            [t(:self_enroll_for_manually_created_courses_option, 'For Manually-Created Courses'), 'manually_created'],
+                                            [t(:self_enroll_for_any_courses_option, 'For Any Courses'), 'any']
+                                          ],
+                                          selected: @account.settings[:self_enrollment] %>
                     </td>
                   </tr>
 
@@ -568,7 +573,7 @@
                     <%= settings.label :can_change_pronouns, en: "Allow users to change their pronouns in Canvas" %>
                   </div>
                     <% js_env({ PRONOUNS_LIST: @account.pronouns.presence || Pronouns.default_pronouns })
-                    js_bundle :available_pronouns_list %>
+                       js_bundle :available_pronouns_list %>
                 </div>
               <% end %>
               <div>
@@ -641,17 +646,19 @@
                   <td>
                     <% if @account.root_account? %>
                       <%= settings.select :impact_account_type,
-                        options_for_select([
-                          [t("Account (default)"), "account"],
-                          [t("Consortium"), "consortium"]
-                        ], @account.settings[:impact_account_type] || "account") %>
+                                          options_for_select([
+                                                               [t("Account (default)"), "account"],
+                                                               [t("Consortium"), "consortium"]
+                                                             ],
+                                                             @account.settings[:impact_account_type] || "account") %>
                       <p class="aside"><%= t("Send the Salesforce ID as a partner account ID (oemAccountId). Use this for special cases like Impact purchased for a consortium.") %></p>
                     <% else %>
                       <%= settings.select :impact_account_type,
-                        options_for_select([
-                          [t("Account (default)"), "account"],
-                          [t("Sub-account"), "subaccount"]
-                        ], @account.settings[:impact_account_type] || "account") %>
+                                          options_for_select([
+                                                               [t("Account (default)"), "account"],
+                                                               [t("Sub-account"), "subaccount"]
+                                                             ],
+                                                             @account.settings[:impact_account_type] || "account") %>
                       <p class="aside"><%= t("Send a unique ID as a partner account ID (oemAccountId). Use this for special cases like Impact purchased for a single sub-account.") %></p>
                     <% end %>
                   </td>
@@ -661,9 +668,9 @@
           </fieldset>
         <% end %>
         <% if !@account.site_admin? &&
-               @account.primary_settings_root_account? &&
-               @account.feature_enabled?(:google_docs_domain_restriction) &&
-               @account.grants_right?(@current_user, :manage_site_settings) %>
+              @account.primary_settings_root_account? &&
+              @account.feature_enabled?(:google_docs_domain_restriction) &&
+              @account.grants_right?(@current_user, :manage_site_settings) %>
           <fieldset id="google-docs-domain">
             <legend><%= t(:google_docs_domain, 'Allowed Google Docs Domain') %></legend>
 
@@ -943,11 +950,11 @@
               {
                 suppressNotifications: @account.settings[:suppress_notifications].presence || false,
                 notificationCategories: Notification.all_cached
-                  .map { |n| { slug: n.category_slug, displayName: n.category_display_name } }
-                  .uniq { |c| c[:slug] }
-                  .sort_by { |c| c[:displayName] }
+                                        .map { |n| { slug: n.category_slug, displayName: n.category_display_name } }
+                                        .uniq { |c| c[:slug] }
+                                        .sort_by { |c| c[:displayName] }
               }.to_json
-            %>"></div>
+                                                                %>"></div>
           </fieldset>
         <% end %>
 
@@ -1043,10 +1050,11 @@
                   <tr>
                     <td><%= ds.blabel :value, :decimal_separator_label, en: "Decimal separator" %></td>
                     <td>
-                      <%= ds.select :value, [[t(:decimal_separator_no_language_preference, "Not set (defaults to Language setting)"), nil],
-                                             [t(:decimal_separator_period, "Period (.) - Example: 123.45"), :period],
-                                             [t(:decimal_separator_comma, "Comma (,) - Example: 123,45"), :comma],
-                      ], selected: @account.decimal_separator[:value] %>
+                      <%= ds.select :value,
+                                    [[t(:decimal_separator_no_language_preference, "Not set (defaults to Language setting)"), nil],
+                                     [t(:decimal_separator_period, "Period (.) - Example: 123.45"), :period],
+                                     [t(:decimal_separator_comma, "Comma (,) - Example: 123,45"), :comma],],
+                                    selected: @account.decimal_separator[:value] %>
                       <p class="aside">
                         <%= t("If the wrong separator is used (e.g., 1,5 instead of 1.5), student answers might be marked incorrect.") %>
                       </p>
@@ -1057,11 +1065,12 @@
                   <tr>
                     <td><%= ds.blabel :value, :thousand_separator_label, en: "Thousand separator" %></td>
                     <td>
-                      <%= ds.select :value, [[t(:thousand_separator_no_language_preference, "Not set (defaults to Language setting)"), nil],
-                                             [t(:thousand_separator_period, "Period (.) - Example: 1.234.567"), :period],
-                                             [t(:thousand_separator_comma, "Comma (,) - Example: 1,234,567"), :comma],
-                                             [t(:thousand_separator_space, "Space ( ) - Example: 1 234 567"), :space],
-                      ], selected: @account.thousand_separator[:value] %>
+                      <%= ds.select :value,
+                                    [[t(:thousand_separator_no_language_preference, "Not set (defaults to Language setting)"), nil],
+                                     [t(:thousand_separator_period, "Period (.) - Example: 1.234.567"), :period],
+                                     [t(:thousand_separator_comma, "Comma (,) - Example: 1,234,567"), :comma],
+                                     [t(:thousand_separator_space, "Space ( ) - Example: 1 234 567"), :space],],
+                                    selected: @account.thousand_separator[:value] %>
                       <p class="aside">
                         <%= t("If the wrong separator is used (e.g., 1,5 instead of 1.5), student answers might be marked incorrect.") %>
                       </p>
@@ -1074,9 +1083,9 @@
         <% end %>
 
         <% if !@account.site_admin? &&
-            @account.primary_settings_root_account? &&
-            @account.feature_allowed?(:submission_comment_emojis) &&
-            @account.grants_right?(@current_user, :manage_account_settings) %>
+              @account.primary_settings_root_account? &&
+              @account.feature_allowed?(:submission_comment_emojis) &&
+              @account.grants_right?(@current_user, :manage_account_settings) %>
             <div id="emoji-deny-list"></div>
         <% end %>
 
@@ -1096,17 +1105,18 @@
               <!-- put all of the helpful dialogs describing what each service does in here
                    the magic is in giving it an id of "<name_of_service>_help_dialog" and class="service_help_dialog" -->
               <div class="service_help_dialog" title="<%= t(:about_google_docs_tooltip, "About Google Docs Previews") %>" id="google_docs_previews_help_dialog">
-                <%= mt(:about_google_docs, <<~MD, terms_url: "https://www.google.com/drive/terms-of-service")
-Google Docs Previews allow users to view documents from
-within Canvas, rather than having to download them and
-open the corresponding program (e.g. Word or Excel).
-
-Google Docs Previews can also render file types
-not supported by the Canvas document previewer.
-
-By using this service you
-acknowledge that you have read and agreed to the
-[Google Docs Viewer Terms of Service](%{terms_url}).
+                <%=
+                  mt(:about_google_docs, <<~MD, terms_url: "https://www.google.com/drive/terms-of-service")
+                    Google Docs Previews allow users to view documents from
+                    within Canvas, rather than having to download them and
+                    open the corresponding program (e.g. Word or Excel).
+                    
+                    Google Docs Previews can also render file types
+                    not supported by the Canvas document previewer.
+                    
+                    By using this service you
+                    acknowledge that you have read and agreed to the
+                    [Google Docs Viewer Terms of Service](%{terms_url}).
                   MD
                 %>
               </div>
@@ -1178,8 +1188,7 @@ acknowledge that you have read and agreed to the
         <%= render partial: 'external_integration_keys', locals: { f: } %>
 
         <% if               @account.root_account&.feature_enabled?(:smart_alerts) &&
-              can_do(@account, @current_user, :manage_alerts)
-        %>
+                            can_do(@account, @current_user, :manage_alerts) %>
           <fieldset>
             <h2 class="screenreader-only"><%= t('Smart Assignment Alerts') %></h2>
             <legend><%= t('Smart Assignment Alerts') %></legend>
@@ -1193,12 +1202,11 @@ acknowledge that you have read and agreed to the
                   </td>
                   <td>
                     <%= settings.select :smart_alerts_threshold,
-                      options_for_select(
-                        # ref: KNO-231
-                        %w[12 24 36 48].map { |x| [x, x] },
-                        @account.settings.fetch(:smart_alerts_threshold, '36')
-                      )
-                    %>
+                                        options_for_select(
+                                          # ref: KNO-231
+                                          %w[12 24 36 48].map { |x| [x, x] },
+                                          @account.settings.fetch(:smart_alerts_threshold, '36')
+                                        ) %>
                   </td>
                 </tr>
               </table>
@@ -1234,7 +1242,7 @@ acknowledge that you have read and agreed to the
         customNameOption: default_name.blank? ? "default" : "custom",
         defaultName: HostUrl.outgoing_email_default_name
       }.to_json
-    %>"></div>
+                                                                 %>"></div>
   <% end %>
 
   <div tabindex="0" id="tab-users-mount">
@@ -1280,11 +1288,12 @@ acknowledge that you have read and agreed to the
         <i class="icon-plus"></i> <%= t("New Announcement") %>
       </button>
       <%= form_for :account_notification,
-       url: account_account_notifications_url(@account),
-       html: {
-         id: "add_notification_form",
-         class: "hidden_form",
-         role: "region" } do |f| %>
+                   url: account_account_notifications_url(@account),
+                   html: {
+                     id: "add_notification_form",
+                     class: "hidden_form",
+                     role: "region"
+                   } do |f| %>
 
         <div class="grid-row">
 
@@ -1308,10 +1317,10 @@ acknowledge that you have read and agreed to the
                 name="account_notification[icon]"
               >
                 <%= options_for_select([[t("information"), "information", { class: "information" }],
-                  [t("error"), "error", { class: "error" }],
-                  [t("warning"), "warning", { class: "warning" }],
-                  [t("question"), "question", { class: "question" }],
-                  [t("calendar"), "calendar", { class: "calendar" }]]) %>
+                                        [t("error"), "error", { class: "error" }],
+                                        [t("warning"), "warning", { class: "warning" }],
+                                        [t("question"), "question", { class: "question" }],
+                                        [t("calendar"), "calendar", { class: "calendar" }]]) %>
               </select>
             </div>
           </div>
@@ -1523,7 +1532,8 @@ acknowledge that you have read and agreed to the
           <div class="announcement-details">
             <div class="announcement-details-post-info">
               <div class="announcement-details-post-info__datetime">
-                <%= t(:alert_timespan, "from %{start_at} to %{end_at}",
+                <%= t(:alert_timespan,
+                      "from %{start_at} to %{end_at}",
                       start_at: datetime_string(announcement.start_at),
                       end_at: datetime_string(announcement.end_at)) %>
               </div>

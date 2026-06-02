@@ -17,10 +17,10 @@
 %>
 
 <%= form_for Course.new, html: { :id => 'new_course_form',
-                                    :class => 'bootstrap-form form-horizontal',
-                                    'data-turn-into-dialog' => '{"responsive":true,"width":500,"resizable":false}',
-                                    :title => t('start_a_new_course', 'Start a New Course'),
-                                    :style => 'display:none;' } do |f| %>
+                                 :class => 'bootstrap-form form-horizontal',
+                                 'data-turn-into-dialog' => '{"responsive":true,"width":500,"resizable":false}',
+                                 :title => t('start_a_new_course', 'Start a New Course'),
+                                 :style => 'display:none;' } do |f| %>
 
   <div class="control-group">
     <%= f.label :name, en: "Course Name", class: "control-label" %>

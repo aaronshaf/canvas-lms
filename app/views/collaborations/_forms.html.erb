@@ -17,7 +17,7 @@
 %>
 
 <%= form_for([@context, Collaboration.new], html: { target: '_blank',
-                                                      style: 'display: none;' }) do |f| %>
+                                                    style: 'display: none;' }) do |f| %>
   <h2 tabindex="-1"><%= t 'titles.new', "Start a New Collaboration" %></h2>
   <div class="ic-Form-control">
     <%= f.label :collaboration_type, t('labels.collaboration_type', 'Collaborate using'), class: "ic-Label" %>
@@ -44,13 +44,13 @@
       <%= mt 'descriptions.google_docs',
              "**Warning:** you (and all your collaborators) will need accounts from the supported web tool in order to participate in any collaborations.
            Free online web tools are an excellent place for students to work on group projects or papers, take shared notes, etc.
-           Teachers or students can set up group collaborations."
-      %>
+           Teachers or students can set up group collaborations." %>
     </div>
     <div id="etherpad_description" style="display: none;" class="collaboration_type">
-      <%= mt 'descriptions.etherpad', <<~MD, etherpad_deletion_policy_url: "http://titanpad.com/ep/pro-help/#deletionpolicy"
-  EtherPad is an open source project that lets you quickly set up shared documents.  It's fast enough that you can see what others are typing as they're typing it. On the other hand, "pads" aren't protected by a password so anyone with a link to them can edit them. EtherPad is better suited than Google Docs if you want to support anonymity and/or allowing people without Google accounts to participate.  \n  \n**Warning**: be sure you are familiar with [EtherPad's deletion policy](%{etherpad_deletion_policy_url}) to ensure your work is preserved.
-  MD
+      <%=
+        mt 'descriptions.etherpad', <<~MD, etherpad_deletion_policy_url: "http://titanpad.com/ep/pro-help/#deletionpolicy"
+          EtherPad is an open source project that lets you quickly set up shared documents.  It's fast enough that you can see what others are typing as they're typing it. On the other hand, "pads" aren't protected by a password so anyone with a link to them can edit them. EtherPad is better suited than Google Docs if you want to support anonymity and/or allowing people without Google accounts to participate.  \n  \n**Warning**: be sure you are familiar with [EtherPad's deletion policy](%{etherpad_deletion_policy_url}) to ensure your work is preserved.
+        MD
       %>
     </div>
   </div>

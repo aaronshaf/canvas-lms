@@ -20,10 +20,11 @@
 <% end %>
 
 <p>
-<%= t :body2, <<~TEXT, course: asset.context.name, wrapper: '<em>\1</em>'
-There was a problem exporting the course *%{course}*.
-Please notify your system administrator, and give them the following export identifier:
-TEXT
+<%=
+  t :body2, <<~TEXT, course: asset.context.name, wrapper: '<em>\1</em>'
+        There was a problem exporting the course *%{course}*.
+    Please notify your system administrator, and give them the following export identifier:
+  TEXT
 %>
 </p>
 

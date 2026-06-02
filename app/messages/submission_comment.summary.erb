@@ -9,13 +9,15 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Submission Comment: %{user}, %{assignment}, %{context}",
+  <%= t :subject,
+        "Submission Comment: %{user}, %{assignment}, %{context}",
         user: submission_comment_submittor(asset, user),
         assignment: assignment.title,
         context: assignment.context.name %>
 <% end %>
 
-<%= t :body, "%{author} just made a new comment on the submission for %{user} for %{assignment}.",
+<%= t :body,
+      "%{author} just made a new comment on the submission for %{user} for %{assignment}.",
       author: submission_comment_author(asset, user),
       user: submission_comment_submittor(asset, user),
       assignment: assignment.title %>

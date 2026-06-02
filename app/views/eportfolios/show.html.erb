@@ -111,12 +111,13 @@
   <% end %>
 
   <h2><%= t('headers.welcome', "Welcome to Your ePortfolio") %></h2>
-  <p><%= t(:welcome, <<~TEXT)
-    If this is your first time here, you may want to pop up the wizard and see
-    how best to get started. Otherwise you can quickly add recent submissions
-    or just jump straight to the portfolio.
-    TEXT
-  %></p>
+  <p><%=
+       t(:welcome, <<~TEXT)
+         If this is your first time here, you may want to pop up the wizard and see
+         how best to get started. Otherwise you can quickly add recent submissions
+         or just jump straight to the portfolio.
+       TEXT
+     %></p>
   <ul class="unstyled_list" style="padding-<%= direction('left') %>: 20px; margin-bottom: 20px; line-height: 1.8em; font-size: 1.2em;">
     <li><a href="?view=wizard_box" class="wizard_popup_link icon-question"><%= t('links.wizard', "Getting Started Wizard") %></a></li>
     <li><a href="?view=preview" class="icon-arrow-right"><%= t('links.portfolio', "Go to the Actual ePortfolio") %></a></li>
@@ -124,21 +125,23 @@
 
   <% if @portfolio.public %>
     <h3><%= t('headers.public_eportfolio', "Your ePortfolio is Public") %></h3>
-    <p><%= t(:public_eportfolio, <<~TEXT,
-      That means anyone who knows the address of your portfolio can view it.
-      You can make your portfolio private by *changing your portfolio
-      settings*.
-      TEXT
-      wrapper: '<a href="#" class="portfolio_settings_link"><b>\1</b></a>') %></p>
+    <p><%= t(:public_eportfolio,
+             <<~TEXT,
+               That means anyone who knows the address of your portfolio can view it.
+               You can make your portfolio private by *changing your portfolio
+               settings*.
+             TEXT
+             wrapper: '<a href="#" class="portfolio_settings_link"><b>\1</b></a>') %></p>
   <% else %>
     <h3><%= t('headers.private_eportfolio', "Your ePortfolio is Private") %></h3>
-    <p><%= t(:private_eportfolio, <<~TEXT)
-      That means people can't find it or even view it without permission. You
-      can see it since it's your portfolio, but if you want to let anybody else
-      see it, you'll need to copy and share the following special link so
-      they can access your portfolio:
-      TEXT
-    %></p>
+    <p><%=
+         t(:private_eportfolio, <<~TEXT)
+           That means people can't find it or even view it without permission. You
+           can see it since it's your portfolio, but if you want to let anybody else
+           see it, you'll need to copy and share the following special link so
+           they can access your portfolio:
+         TEXT
+       %></p>
     <p>
     <%= t('links.share', "Copy and share this link to give others access to your private ePortfolio:") %><br />
       <a
@@ -346,11 +349,12 @@
   <h2 style="<%= hidden unless @page.show_comments || @page.allow_comments || can_do(@portfolio, @current_user, :update) %>"><%= t 'headings.page_comments', 'Page Comments' %></h2>
   <% if @page.show_comments || can_do(@portfolio, @current_user, :update) %>
     <% if !@page.page_comments.empty? && !@page.show_comments %>
-      <p><%= t(:private_comments, <<~TEXT,
-        Right now only you can see the comments for this page. You can make the
-        comments public if you like by *changing the settings for this page*.
-        TEXT
-        wrapper: '<a href="#" class="edit_content_link"><b>\1</b></a>') %></p>
+      <p><%= t(:private_comments,
+               <<~TEXT,
+                 Right now only you can see the comments for this page. You can make the
+                 comments public if you like by *changing the settings for this page*.
+               TEXT
+               wrapper: '<a href="#" class="edit_content_link"><b>\1</b></a>') %></p>
     <% end %>
     <div id="page_comments" style="padding: 5px 20px;">
       <%= t(:no_comments, "No Comments") if @page.page_comments.empty? %>
@@ -358,11 +362,12 @@
     </div>
     <%= render partial: "eportfolios/page_comment", object: nil %>
   <% elsif @page.allow_comments %>
-    <p><%= t(:write_only_comments, <<~TEXT)
-      Comments for this page are private. You can make comments, but only the
-      portfolio's owner will be able to see them.
-      TEXT
-    %></p>
+    <p><%=
+         t(:write_only_comments, <<~TEXT)
+           Comments for this page are private. You can make comments, but only the
+           portfolio's owner will be able to see them.
+         TEXT
+       %></p>
   <% end %>
   <% if @page.allow_comments %>
     <%= form_for :page_comment, url: eportfolio_entry_page_comments_path(@portfolio.id, @page.id), html: { id: "add_page_comment_form", style: "margin-top: 20px;" } do |f| %>
@@ -374,7 +379,8 @@
         </div>
       <% else %>
         <div style="text-align: center; font-size: 1.2em; margin: 10px;">
-          <%= t(:login_required, "You must be *logged in* to make comments on this page.",
+          <%= t(:login_required,
+                "You must be *logged in* to make comments on this page.",
                 wrapper: "<a href=\"#{login_path}\"><b>\\1</b></a>") %>
         </div>
       <% end %>
@@ -398,10 +404,12 @@
     <a href="<%= eportfolio_url(@portfolio.id) %>" class="delete_eportfolio_link icon-trash"><%= t('links.delete', "Delete this ePortfolio") %></a>
   </div>
   <%= form_tag eportfolio_url(@portfolio.id), { method: :delete, id: "delete_eportfolio_form", style: "margin-top: 20px; margin-#{direction('left')}: 20px; display: none;" } do %>
-    <%= t(:delete_confirm, {
-        one: "You currently have 1 page in this ePortfolio. Are you sure you want to delete the entire ePortfolio?",
-        other: "You currently have %{count} pages in this ePortfolio. Are you sure you want to delete the entire ePortfolio?"
-      }, count: @portfolio.eportfolio_entries.count) %>
+    <%= t(:delete_confirm,
+          {
+            one: "You currently have 1 page in this ePortfolio. Are you sure you want to delete the entire ePortfolio?",
+            other: "You currently have %{count} pages in this ePortfolio. Are you sure you want to delete the entire ePortfolio?"
+          },
+          count: @portfolio.eportfolio_entries.count) %>
     <div class="button-container">
       <button type="submit" class="btn"><%= t('buttons.delete', "Delete ePortfolio") %></button>
       <button type="button" class="btn button-secondary delete_eportfolio_link"><%= t('#buttons.cancel', "Cancel") %></button>

@@ -36,7 +36,8 @@
               <span class="id" style="display: none;">&nbsp;</span>
             </a>
             <div class="sub_content">
-              <%= t(:bank_description, "%{bank_name}, %{n} questions",
+              <%= t(:bank_description,
+                    "%{bank_name}, %{n} questions",
                     bank_name: tag.span(nbsp, class: :cached_context_short_name),
                     n: tag.span(nbsp, class: :assessment_question_count)) %>
             </div>
@@ -89,7 +90,8 @@
         <div class="title"><%= t('headers.bank_name', "Bank Name") %></div>
         <span class="id" style="display: none;">&nbsp;</span>
         <div class="sub_content">
-          <%= t(:bank_description, "%{bank_name}, %{n} questions",
+          <%= t(:bank_description,
+                "%{bank_name}, %{n} questions",
                 bank_name: tag.span(nbsp, class: :cached_context_short_name),
                 n: tag.span(nbsp, class: :assessment_question_count)) %>
         </div>

@@ -25,13 +25,13 @@
   <%
     if can_do(Account.site_admin, @current_user, :manage_user_logins)
       js_env({
-        PASSWORD_POLICIES: Account.root_accounts.active.non_shadow.to_h { |a| [a.id, a.password_policy] },
-        ACCOUNT_SELECT_OPTIONS: Account.root_accounts
+               PASSWORD_POLICIES: Account.root_accounts.active.non_shadow.to_h { |a| [a.id, a.password_policy] },
+               ACCOUNT_SELECT_OPTIONS: Account.root_accounts
                                        .active
                                        .non_shadow
                                        .map { |a| { label: a.name || t("Unnamed Account (%{id})", id: a.id), value: a.id } }
                                        .sort_by(&:first)
-      })
+             })
     end
   %>
   <fieldset
@@ -80,9 +80,11 @@
               <%= link_to(pseudonym.account.name, account_url(pseudonym.account), class: 'account_name') %>
             <% elsif pseudonym %>
               <% pseudonym.shard.activate do %>
-                <%= link_to(pseudonym.account.name, account_user_url(pseudonym.account,
-                                                                     pseudonym.user,
-                                                                     host: HostUrl.context_host(pseudonym.account)), class: 'account_name') %>
+                <%= link_to(pseudonym.account.name,
+                            account_user_url(pseudonym.account,
+                                             pseudonym.user,
+                                             host: HostUrl.context_host(pseudonym.account)),
+                            class: 'account_name') %>
               <% end %>
             <% else %>
               <%= link_to(nbsp, account_url("{{ account_id }}"), class: 'account_name') %>

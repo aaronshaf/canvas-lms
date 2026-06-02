@@ -25,7 +25,8 @@
       &nbsp;<i class="icon-warning"></i>&nbsp;<%= t('Marked as spam') %>
   <% end %>
   <div style="padding-<%= direction('left') %>: 30px;">
-    <%= t(:entry_count, { one: "*1* page", other: "*%{count}* pages" },
+    <%= t(:entry_count,
+          { one: "*1* page", other: "*%{count}* pages" },
           count: eportfolio.eportfolio_entries.size,
           wrapper: '<span class="entry_count">\1</span>') %>
     &nbsp;&nbsp;&nbsp;&nbsp;

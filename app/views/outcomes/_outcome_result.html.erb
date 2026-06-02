@@ -31,10 +31,10 @@
     </span>
   <% end %>
   <div class="scoring">
-    <%= t :scoring, "%{points} out of %{possible_points}",
+    <%= t :scoring,
+          "%{points} out of %{possible_points}",
           points: tag.span(outcome_result.try_rescue(:score) || nbsp, class: :score),
-          possible_points: tag.span(outcome_result.try_rescue(:possible) || nbsp, class: :possible)
-    %>
+          possible_points: tag.span(outcome_result.try_rescue(:possible) || nbsp, class: :possible) %>
     <% if outcome_result&.mastery? %>
       <span class="mastery">(<i class="icon-check" aria-hidden="true"></i><%= t :outcome_mastered, 'mastered' %>)</span>
     <% end %>

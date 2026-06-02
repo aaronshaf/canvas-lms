@@ -44,7 +44,8 @@
             <a href="<%= eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid) %>" class="no-hover"><%= image_tag eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid), alt: attachment.display_name %></a>
           <% elsif attachment %>
             <a href="<%= eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid) %>">
-              <%= t('links.download_attachment', "Click here to Download *%{attachment}*",
+              <%= t('links.download_attachment',
+                    "Click here to Download *%{attachment}*",
                     attachment: attachment.display_name,
                     wrapper: '<span class="filename">\1</span>') %>
             </a>

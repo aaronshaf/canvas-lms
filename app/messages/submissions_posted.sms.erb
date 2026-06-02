@@ -14,9 +14,10 @@
   end
 %>
 
-<%= t <<~TEXT, body_text:, url: polymorphic_url([asset.context, asset])
-%{body_text}
-
-More info at %{url}
-TEXT
+<%=
+  t <<~TEXT, body_text:, url: polymorphic_url([asset.context, asset])
+        %{body_text}
+    
+    More info at %{url}
+  TEXT
 %>

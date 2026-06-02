@@ -94,8 +94,7 @@
               name="question_score_<%= hash_get(question, :id) %>"
               value="<%= (point_value_for_input(user_answer, question).is_a?(Float) &&
                 !point_value_for_input(user_answer, question).nan? &&
-                round_if_whole(point_value_for_input(user_answer, question).round(2))) || ''
-              %>" />
+                round_if_whole(point_value_for_input(user_answer, question).round(2))) || '' %>" />
             <label class="screenreader-only" for="question_score_<%= hash_get(question, :id) %>_visible"><%= t(:question_score, 'Question Score') %></label>
             <input class="question_input"
               placeholder="--"
@@ -104,8 +103,7 @@
               id="question_score_<%= hash_get(question, :id) %>_visible"
               value="<%= (point_value_for_input(user_answer, question).is_a?(Float) &&
                 !point_value_for_input(user_answer, question).nan? &&
-                render_score(point_value_for_input(user_answer, question))) || ''
-              %>"
+                render_score(point_value_for_input(user_answer, question))) || '' %>"
               autocomplete='off'/>
           <% elsif hash_get(user_answer, :correct) == "undefined" %>
             <%= t(:not_yet_graded, 'Not yet graded') %>
@@ -182,48 +180,48 @@
 
           <%
             answer_list = if assessment_results
-              blanks = hash_get(question, :answers, []).map do |answer|
-                hash_get(answer, :blank_id)
-              end
+                            blanks = hash_get(question, :answers, []).map do |answer|
+                              hash_get(answer, :blank_id)
+                            end
 
-              blanks.compact.uniq.map do |blank|
-                {
-                  blank_id: blank,
-                  answer: hash_get(user_answer, "answer_for_#{blank}")
-                }
-              end
-            else
-              []
-            end
+                            blanks.compact.uniq.map do |blank|
+                              {
+                                blank_id: blank,
+                                answer: hash_get(user_answer, "answer_for_#{blank}")
+                              }
+                            end
+                          else
+                            []
+                          end
           %>
           <%= fill_in_multiple_blanks_question({
-            question:,
-            answers: @stored_params,
-            answer_list:,
-            editable: assessing
-          }) %>
+                                                 question:,
+                                                 answers: @stored_params,
+                                                 answer_list:,
+                                                 editable: assessing
+                                               }) %>
         <% elsif question && hash_get(question, :question_type) == "multiple_dropdowns_question" %>
           <% answer_list = []
              if assessment_results
                variables = hash_get(question, :answers, []).filter_map { |a| hash_get(a, :blank_id) }.uniq
                variables.each { |var| answer_list << hash_get(user_answer, "answer_id_for_#{var}") }
-             end
-          %>
+             end %>
           <%= multiple_dropdowns_question({
-            question:, answers: @stored_params, answer_list:, editable: assessing
-          }) %>
+                                            question:, answers: @stored_params, answer_list:, editable: assessing
+                                          }) %>
         <% else %>
           <%= user_content(Sanitize.clean(hash_get(question, :question_text) || '', CanvasSanitize::SANITIZE), location: asset_string) %>
         <% end %>
       </div>
       <% if question_type&.unsupported %>
         <div class="unsupported_question_type_message" style="font-size: 0.8em; font-weight: bold;">
-          <%= t(:unsupported_question_type, <<~TEXT, question_type: hash_get(question, :question_type))
-          This question was imported from an external source. It was a
-          '%{question_type}' question, which is not supported in this quiz
-          tool.
-          TEXT
-        %></div>
+          <%=
+            t(:unsupported_question_type, <<~TEXT, question_type: hash_get(question, :question_type))
+              This question was imported from an external source. It was a
+              '%{question_type}' question, which is not supported in this quiz
+              tool.
+            TEXT
+          %></div>
       <% end %>
       <% if editing %>
       <div class="variable_definitions_holder calculated_question_answers" style="<%= hidden unless question && hash_get(question, :question_type) == 'calculated_question' %>">
@@ -321,20 +319,18 @@
           <% variables.each_with_index do |variable, idx| %>
             <% answers = hash_get(question, :answers, []).select { |a| hash_get(a, :blank_id) == variable } %>
             <% user_answer[:text] = hash_get(user_answer, "answer_for_#{variable}")
-                user_answer[:text] = nil if user_answer[:text].blank?
-                user_answer[:answer_id] = hash_get(user_answer, "answer_id_for_#{variable}")
-                user_answer[:answer_id] = nil if user_answer[:answer_id].blank?
-                matched_answer = answers.find { |a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) }
-            %>
+               user_answer[:text] = nil if user_answer[:text].blank?
+               user_answer[:answer_id] = hash_get(user_answer, "answer_id_for_#{variable}")
+               user_answer[:answer_id] = nil if user_answer[:answer_id].blank?
+               matched_answer = answers.find { |a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) } %>
             <div class="answer_group">
               <b class="answer-group-heading"><%= before_label(:for_answer_number, "Answer %{answer_number}", answer_number: idx + 1) %></b>
               <% if question_type.entry_type == "text_box" %>
                 <% answer_classes = ['selected_answer']
-                    if display_correct_answers
-                      answer_classes << ((matched_answer && matched_answer[:weight] == 100) ? 'correct_answer' : 'wrong_answer')
-                    end
-                    answer_classes << 'no_answer' if hash_get(user_answer, :text).blank?
-                %>
+                   if display_correct_answers
+                     answer_classes << ((matched_answer && matched_answer[:weight] == 100) ? 'correct_answer' : 'wrong_answer')
+                   end
+                   answer_classes << 'no_answer' if hash_get(user_answer, :text).blank? %>
                 <div class='answer <%= answer_classes.compact.join(' ') %>'>
                   <%= hash_get(matched_answer || user_answer, :text) || t(:you_left_this_blank, "(You left this blank)") %>
                   <% if matched_answer && comment_get(matched_answer, :comments).present? %>
@@ -368,27 +364,26 @@
               <% else %>
                 <% matched_answer = hash_get(question, :answers, []).find { |a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) } %>
                 <% hash_get(question, :answers, []).each do |a|
-                  # Temporary workaround until we can figure out why the
-                  # "answers" aren't getting cleared out when switching
-                  # question types
-                  break if hash_get(question, :question_type) == 'file_upload_question'
-                  val = hash_get(user_answer, :text).to_f
-                  # Duplicates logic from app/models/quizzes/quiz_question/numerical_question.rb:46
-                  matched_answer = a if hash_get(a, :numerical_answer_type) == 'exact_answer' && val <= (hash_get(a, :exact) + hash_get(a, :margin, 0)) && val >= (hash_get(a, :exact) - hash_get(a, :margin, 0))
-                  matched_answer = a if hash_get(a, :numerical_answer_type) == 'range_answer' && val <= hash_get(a, :end) && val >= hash_get(a, :start)
-                  if hash_get(a, :numerical_answer_type) == 'precision_answer'
-                    submission = BigDecimal(val, 16).split
-                    expected = BigDecimal(a[:approximate].to_s, 16).split
-                    precision = a[:precision].to_i
-                    matched_answer = a if submission[0] == expected[0] && submission[1][0, precision] == expected[1][0, precision] && submission[3] == expected[3]
-                  end
-                end %>
+                     # Temporary workaround until we can figure out why the
+                     # "answers" aren't getting cleared out when switching
+                     # question types
+                     break if hash_get(question, :question_type) == 'file_upload_question'
+                     val = hash_get(user_answer, :text).to_f
+                     # Duplicates logic from app/models/quizzes/quiz_question/numerical_question.rb:46
+                     matched_answer = a if hash_get(a, :numerical_answer_type) == 'exact_answer' && val <= (hash_get(a, :exact) + hash_get(a, :margin, 0)) && val >= (hash_get(a, :exact) - hash_get(a, :margin, 0))
+                     matched_answer = a if hash_get(a, :numerical_answer_type) == 'range_answer' && val <= hash_get(a, :end) && val >= hash_get(a, :start)
+                     if hash_get(a, :numerical_answer_type) == 'precision_answer'
+                       submission = BigDecimal(val, 16).split
+                       expected = BigDecimal(a[:approximate].to_s, 16).split
+                       precision = a[:precision].to_i
+                       matched_answer = a if submission[0] == expected[0] && submission[1][0, precision] == expected[1][0, precision] && submission[3] == expected[3]
+                     end
+                   end %>
                 <% answer_classes = ['selected_answer']
-                  if display_correct_answers && hash_get(question, :question_type) != 'file_upload_question'
-                    answer_classes << ((hash_get(user_answer, :correct) == true) ? 'correct_answer' : 'wrong_answer')
-                  end
-                  answer_classes << 'no_answer' if hash_get(user_answer, :text).blank? || hash_get(user_answer, :attachment_ids).blank?
-                %>
+                   if display_correct_answers && hash_get(question, :question_type) != 'file_upload_question'
+                     answer_classes << ((hash_get(user_answer, :correct) == true) ? 'correct_answer' : 'wrong_answer')
+                   end
+                   answer_classes << 'no_answer' if hash_get(user_answer, :text).blank? || hash_get(user_answer, :attachment_ids).blank? %>
                 <div class='answer <%= answer_classes.compact.join(' ') %>'>
                   <%= render partial: "quizzes/quizzes/single_answer", locals:                       { question:, right_answers:, question_type:, user_answer: } %>
                 </div>

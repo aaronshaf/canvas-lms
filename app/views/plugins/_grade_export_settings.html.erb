@@ -20,19 +20,20 @@
   <table style="width: 500px;" class="formtable">
     <tr>
       <td colspan="2">
-        <%= mt(:description, <<~MD)
-This plugin allows final grades to be published back to a student information system (SIS).  When enabled, the user will be given an option in the gradebook to publish these grades.  This will occur via a POST request to the specified publish endpoint.  Each type defines it's own content format and mime type.  The response from the endpoint does not matter and is currently ignored.
-
-For example, the Instructure formatted CSV will POST a csv file with mime type 'text/csv' to the specified endpoint, containing the following columns:
-
-"publisher\\_id", "publisher\\_sis\\_id", "course\\_id", "course\\_sis\\_id", "section\\_id", "section\\_sis\\_id", "student\\_id", "student\\_sis\\_id", "enrollment\\_id", "enrollment\\_status", "score", "grade", "custom\\_grade\\_status"
-
-(Note: the "grade" column is only returned if the course specifies a grading standard)
-
-For each student in the course being published, there will be 1 or more rows in the published csv. Specifically, there will be 1 row for each login that the student has in the course's root account.  Most of the time this will result in 1 row per student, but if the student has multiple logins, there will be a row for each of them.
-
-If "Include final grade overrides" is checked, and the feature for Final Grade Override is enabled, students with an override grade/score will receive that in place of the calculated score and grade.  If the Custom Status Labels feature is enabled, the "custom\\_grade\\_status" column will contain any custom grade statuses applied to the final grade overrides for that student.
-MD
+        <%=
+          mt(:description, <<~MD)
+            This plugin allows final grades to be published back to a student information system (SIS).  When enabled, the user will be given an option in the gradebook to publish these grades.  This will occur via a POST request to the specified publish endpoint.  Each type defines it's own content format and mime type.  The response from the endpoint does not matter and is currently ignored.
+            
+            For example, the Instructure formatted CSV will POST a csv file with mime type 'text/csv' to the specified endpoint, containing the following columns:
+            
+            "publisher\\_id", "publisher\\_sis\\_id", "course\\_id", "course\\_sis\\_id", "section\\_id", "section\\_sis\\_id", "student\\_id", "student\\_sis\\_id", "enrollment\\_id", "enrollment\\_status", "score", "grade", "custom\\_grade\\_status"
+            
+            (Note: the "grade" column is only returned if the course specifies a grading standard)
+            
+            For each student in the course being published, there will be 1 or more rows in the published csv. Specifically, there will be 1 row for each login that the student has in the course's root account.  Most of the time this will result in 1 row per student, but if the student has multiple logins, there will be a row for each of them.
+            
+            If "Include final grade overrides" is checked, and the feature for Final Grade Override is enabled, students with an override grade/score will receive that in place of the calculated score and grade.  If the Custom Status Labels feature is enabled, the "custom\\_grade\\_status" column will contain any custom grade statuses applied to the final grade overrides for that student.
+          MD
         %>
       </td>
     </tr>

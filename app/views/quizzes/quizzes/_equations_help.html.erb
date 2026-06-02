@@ -24,19 +24,20 @@
       <li><a href="#functions"><%= t('links.functions', "Functions") %></a></li>
     </ul>
     <div id="intro">
-      <% concat(t(:equation_intro, <<~TEXT,
-Calculated questions are based on a set of one or more formulas computed
-in order.  You can define intermediate variables in these formulas, but the
-numerical result of the last formula is what is used to generate the
-correct answer.  For example:
-
-%{example}
-
-For this set of formulas, the final answer is 71.  However,
-there are no predefined variables, so all students would have the
-same question with the same answer. See the "variables" tab for more
-information on variables.
-TEXT
+      <% concat(t(:equation_intro,
+                  <<~TEXT,
+                    Calculated questions are based on a set of one or more formulas computed
+                    in order.  You can define intermediate variables in these formulas, but the
+                    numerical result of the last formula is what is used to generate the
+                    correct answer.  For example:
+                    
+                    %{example}
+                    
+                    For this set of formulas, the final answer is 71.  However,
+                    there are no predefined variables, so all students would have the
+                    same question with the same answer. See the "variables" tab for more
+                    information on variables.
+                  TEXT
       example: capture do %>
       <table>
         <tr>
@@ -54,22 +55,23 @@ TEXT
     </div>
     <div id="variables">
 
-      <% concat(t(:equation_variables2, <<~TEXT,
-You can also define variables in your question text using brackets
-("What is [a] + [b]?").  For every variable, you'll see an "Example Value"
-based on the variable settings.  This allows you to check your math and
-make sure the formulas work.
-
-For example, if your question was "What is [a] + 5?" then you'd
-be asked to define the variable "a".  If the example value for "a"
-were 5.2, you could write:
-
-%{example}
-
-With this formula you can generate any number of solution sets, with a
-different value of "a" in each set.  One student might see the question,
-"What is 5.2 + 5?" and another might see "What is 9 + 5?".
-TEXT
+      <% concat(t(:equation_variables2,
+                  <<~TEXT,
+                    You can also define variables in your question text using brackets
+                    ("What is [a] + [b]?").  For every variable, you'll see an "Example Value"
+                    based on the variable settings.  This allows you to check your math and
+                    make sure the formulas work.
+                    
+                    For example, if your question was "What is [a] + 5?" then you'd
+                    be asked to define the variable "a".  If the example value for "a"
+                    were 5.2, you could write:
+                    
+                    %{example}
+                    
+                    With this formula you can generate any number of solution sets, with a
+                    different value of "a" in each set.  One student might see the question,
+                    "What is 5.2 + 5?" and another might see "What is 9 + 5?".
+                  TEXT
       example: capture do %>
       <table>
         <tr>
@@ -80,15 +82,16 @@ TEXT
       <% end)) %>
     </div>
     <div id="functions">
-      <% concat(t(:equation_functions, <<~TEXT,
-In addition to variables, there are also a collection of helper functions
-you can use to generate useful values.  For example:
-
-%{example}
-
-To see an explanation of a given helper function, select it from the list
-below:
-TEXT
+      <% concat(t(:equation_functions,
+                  <<~TEXT,
+                    In addition to variables, there are also a collection of helper functions
+                    you can use to generate useful values.  For example:
+                    
+                    %{example}
+                    
+                    To see an explanation of a given helper function, select it from the list
+                    below:
+                  TEXT
       example: capture do %>
       <table>
         <tr>

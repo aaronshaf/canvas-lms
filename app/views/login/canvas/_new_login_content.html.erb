@@ -26,7 +26,7 @@
                                               end
   unique_id = begin
     params[:login_hint]&.to_s ||
-    params.dig(:pseudonym_session, :unique_id)&.to_s
+      params.dig(:pseudonym_session, :unique_id)&.to_s
   rescue TypeError
     nil
   end

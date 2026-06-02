@@ -17,18 +17,18 @@
 %>
 
 <%=
-    case invitation.type
-    when 'TeacherEnrollment'
-      mt :body_teacher, "You've been invited to join %{course} as a **teacher** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
-    when 'TaEnrollment'
-      mt :body_ta, "You've been invited to join %{course} as a **TA** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
-    when 'ObserverEnrollment'
-      mt :body_observer, "You've been invited to join %{course} as an **observer** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
-    when 'DesignerEnrollment'
-      mt :body_designer, "You've been invited to join %{course} as a **designer** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
-    else
-      mt :body_student, "You've been invited to join %{course} as a **student** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
-    end
+  case invitation.type
+  when 'TeacherEnrollment'
+    mt :body_teacher, "You've been invited to join %{course} as a **teacher** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
+  when 'TaEnrollment'
+    mt :body_ta, "You've been invited to join %{course} as a **TA** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
+  when 'ObserverEnrollment'
+    mt :body_observer, "You've been invited to join %{course} as an **observer** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
+  when 'DesignerEnrollment'
+    mt :body_designer, "You've been invited to join %{course} as a **designer** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
+  else
+    mt :body_student, "You've been invited to join %{course} as a **student** for the user account **%{email_address}**.", course: invitation.long_name, email_address: invitation.user.email
+  end
 %>
 <% if !@domain_root_account || @domain_root_account.allow_invitation_previews? %>
   <%= mt('wander_around_dont_get_lost', "Feel free to [wander around](%{link_to_course}) and see what it's like.", link_to_course: course_path(invitation.course_id, invitation: invitation.uuid)) %>

@@ -17,24 +17,24 @@
 %>
 
 <% granted_permissions = ContextExternalTool.global_navigation_granted_permissions(root_account: @domain_root_account,
-    user: @current_user, context: @context || @domain_root_account, session:)
+                                                                                   user: @current_user,
+                                                                                   context: @context || @domain_root_account,
+                                                                                   session:)
 
-  tools = ContextExternalTool.filtered_global_navigation_tools(@domain_root_account, granted_permissions).map do |tool|
-    tool_display = (tool.extension_setting('global_navigation', 'windowTarget') == '_blank') ? 'borderless' : nil
-    # need to correctly format toolId param for global navigation tools
-    tool_label = tool.label_for(:global_navigation, I18n.locale)
-    tool_id = "#{tool_label.tr(' ', '-').downcase}-#{tool.id}"
-    tool_path = account_external_tool_path(@domain_root_account, tool, launch_type: 'global_navigation', display: tool_display, toolId: tool_id)
+   tools = ContextExternalTool.filtered_global_navigation_tools(@domain_root_account, granted_permissions).map do |tool|
+     tool_display = (tool.extension_setting('global_navigation', 'windowTarget') == '_blank') ? 'borderless' : nil
+     # need to correctly format toolId param for global navigation tools
+     tool_label = tool.label_for(:global_navigation, I18n.locale)
+     tool_id = "#{tool_label.tr(' ', '-').downcase}-#{tool.id}"
+     tool_path = account_external_tool_path(@domain_root_account, tool, launch_type: 'global_navigation', display: tool_display, toolId: tool_id)
 
-    { tool:, tool_path:, tool_label:, tool_id:, current_page: current_page?(tool_path), new_tab: tool_display == 'borderless' }
-  end
-%>
+     { tool:, tool_path:, tool_label:, tool_id:, current_page: current_page?(tool_path), new_tab: tool_display == 'borderless' }
+   end %>
 <%# include active tab status in cache key so that the HTML is always accurate %>
 <% cache([ContextExternalTool.global_navigation_menu_render_cache_key(@domain_root_account, granted_permissions), tools.pluck(:current_page), I18n.locale]) do %>
   <% tools.each do |tool_details|
-        tool = tool_details[:tool]
-        new_tab = tool_details[:new_tab]
-  %>
+       tool = tool_details[:tool]
+       new_tab = tool_details[:new_tab] %>
     <li id="<%= tool.asset_string %>_menu_item" data-tool-id="<%= tool_details[:tool_id] %>" class="globalNavExternalTool menu-item ic-app-header__menu-list-item<% if tool_details[:current_page] %> ic-app-header__menu-list-item--active<% end %>">
       <a class='ic-app-header__menu-list-link' href="<%= tool_details[:tool_path] %>" target="<%= new_tab ? '_blank' : '' %>">
         <% svg_path = tool.extension_setting(:global_navigation, :icon_svg_path_64) %>

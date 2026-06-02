@@ -20,13 +20,13 @@
   js_bundle :speed_grader
   css_bundle :speed_grader
   js_env({
-    RUBRIC_ASSESSMENT: {
-      assessor_id: @current_user.id.to_s,
-      assessment_type: can_do(@assignment, @current_user, :grade) ? "grading" : "peer_review"
-    },
-    studio_media_capture_enabled: Account.site_admin.feature_enabled?(:speedgrader_studio_media_capture),
-    ENTRY_ID: @entry_id
-  })
+           RUBRIC_ASSESSMENT: {
+             assessor_id: @current_user.id.to_s,
+             assessment_type: can_do(@assignment, @current_user, :grade) ? "grading" : "peer_review"
+           },
+           studio_media_capture_enabled: Account.site_admin.feature_enabled?(:speedgrader_studio_media_capture),
+           ENTRY_ID: @entry_id
+         })
   @show_left_side = false
   @show_embedded_chat = false
   add_body_class 'ic-no-flex-layout full-width'
@@ -470,12 +470,13 @@
     <p>
       <label for="eg_sort_by"><%= t('labels.sort_by', "Sort student list") %></label>
       <%= select_tag 'eg_sort_by', options_for_select([
-        [t('sort_by.student_name', "by student name (alphabetically)"), "alphabetically"],
-        [t('sort_by.submitted_at', "the date they submitted the assignment"), "submitted_at"],
-        [t('sort_by.status', "by submission status (needs grading, not submitted, etc)"), "submission_status"],
-        [t('sort_by.randomize', "randomize students"), "randomize"],
-        [t('sort_by.status_randomize', "randomize students within submission status"), "submission_status_randomize"],
-        ], cookies[:eg_sort_by]) %>
+                                                        [t('sort_by.student_name', "by student name (alphabetically)"), "alphabetically"],
+                                                        [t('sort_by.submitted_at', "the date they submitted the assignment"), "submitted_at"],
+                                                        [t('sort_by.status', "by submission status (needs grading, not submitted, etc)"), "submission_status"],
+                                                        [t('sort_by.randomize', "randomize students"), "randomize"],
+                                                        [t('sort_by.status_randomize', "randomize students within submission status"), "submission_status_randomize"],
+                                                      ],
+                                                      cookies[:eg_sort_by]) %>
     </p>
 
     <% unless @assignment.anonymous_grading? %>
@@ -496,10 +497,11 @@
     <% end %>
 
     <p <% unless @assignment.supports_grade_by_question? %>class=hidden<% end %>>
-      <%= check_box_tag :enable_speedgrader_grade_by_question, "1",
-        @current_user.preferences[:enable_speedgrader_grade_by_question] %>
+      <%= check_box_tag :enable_speedgrader_grade_by_question,
+                        "1",
+                        @current_user.preferences[:enable_speedgrader_grade_by_question] %>
       <%= label_tag :enable_speedgrader_grade_by_question,
-        t("Grade by question") %>
+                    t("Grade by question") %>
     </p>
 
     <% if @context.feature_enabled?(:platform_service_speedgrader) %>
@@ -555,12 +557,12 @@
   <span id="aria_name_alert" class="screenreader-only" aria-live="polite"></span>
   <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
     <% keyboard_navigation([
-      { key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student') },
-      { key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student') },
-      { key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment') },
-      { key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade') },
-      { key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric') }
-    ]) %>
+                             { key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student') },
+                             { key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student') },
+                             { key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment') },
+                             { key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade') },
+                             { key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric') }
+                           ]) %>
   <% end %>
 
 </div>

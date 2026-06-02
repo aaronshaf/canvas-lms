@@ -17,13 +17,12 @@
 %>
 
 <% unless @read_only
-    account = @context && (@context.is_a?(Account) ? @context : @context.account)
-    managed_accounts = @user.associated_root_accounts.select { |a| can_do(a, @current_user, :allow_course_admin_actions) }
-    account ||= managed_accounts.first
-    root_account = account.root_account if account
-  end
-  login_history ||= nil
-%>
+     account = @context && (@context.is_a?(Account) ? @context : @context.account)
+     managed_accounts = @user.associated_root_accounts.select { |a| can_do(a, @current_user, :allow_course_admin_actions) }
+     account ||= managed_accounts.first
+     root_account = account.root_account if account
+   end
+   login_history ||= nil %>
 <% js_bundle :user_name %>
   <fieldset id="name_and_email">
     <legend><%= t('titles.name_and_email', 'Name and Email') %></legend>

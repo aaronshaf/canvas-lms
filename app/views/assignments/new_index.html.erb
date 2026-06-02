@@ -20,7 +20,7 @@
   add_body_class 'with_item_groups'
 
   provide :page_title, join_title((t '#titles.assignments', 'Assignments'),
-    @context.name)
+                                  @context.name)
 
   js_bundle :assignment_index
   css_bundle :new_assignments

@@ -29,9 +29,9 @@
       <div class="ic-notification__message notification_message">
         <%=
           mt(:current_conference_text, "You have been invited to join %{conference}. It starts on %{starts_at}.", {
-                  conference: conference.title,
-                  starts_at: datetime_string(conference.scheduled_date)
-          })
+               conference: conference.title,
+               starts_at: datetime_string(conference.scheduled_date)
+             })
         %>
       </div>
     </div>

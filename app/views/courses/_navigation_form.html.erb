@@ -14,13 +14,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-navigation_help_text =
-  if @context.elementary_subject_course?
-    t("help.edit_navigation_k5", "Drag and drop items to reorder them in the subject navigation.")
-  else
-    t("help.edit_navigation", "Drag and drop items to reorder them in the course navigation.")
-  end
+%>
+<%
+  navigation_help_text =
+    if @context.elementary_subject_course?
+      t("help.edit_navigation_k5", "Drag and drop items to reorder them in the subject navigation.")
+    else
+      t("help.edit_navigation", "Drag and drop items to reorder them in the course navigation.")
+    end
 %>
 
 <%= form_tag context_url(@context, :context_update_nav_url), { id: "nav_form", title: t('titles.edit_navigation', "Edit Course Navigation") } do %>
@@ -47,7 +48,7 @@ navigation_help_text =
       >
         <div class="draggable_handle">
           <% if @context.tab_enabled?(tab) %>
-              <i class="icon-drag-handle"></i>
+            <i class="icon-drag-handle"></i>
           <% else %>
             &nbsp;
           <% end %>
@@ -101,21 +102,21 @@ navigation_help_text =
           <span class="disabled_message"><%= tab[:disabled_message] %></span>
         </div>
         <div class="admin-links">
-            <a class="al-trigger al-trigger-gray" role="button" href="#">
-              <i class="icon-more" aria-hidden="true"></i>
-              <span class="screenreader-only"><%= t('Settings for %{tab_label}', { tab_label: tab[:label] }) %>
-              </span>
-            </a>
+          <a class="al-trigger al-trigger-gray" role="button" href="#">
+            <i class="icon-more" aria-hidden="true"></i>
+            <span class="screenreader-only"><%= t('Settings for %{tab_label}', { tab_label: tab[:label] }) %>
+            </span>
+          </a>
 
-            <ul id="content-2" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false" aria-activedescendant="content-3">
-              <li role="presentation">
-                <a href="#" class="icon-plus enable_nav_item_link" id="enable_nav_item_link_<%= tab[:id] %>" role="menuitem" title="Enable this item"><%= t("Enable") %></a>
-              </li>
-              <li role="presentation">
-                <a href="#" class="icon-updown move_nav_item_link" id="move_nav_item_link_<%= tab[:id] %>" role="menuitem" title="Move this item"><%= t("Move") %></a>
-              </li>
-            </ul>
-          </div>
+          <ul id="content-2" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false" aria-activedescendant="content-3">
+            <li role="presentation">
+              <a href="#" class="icon-plus enable_nav_item_link" id="enable_nav_item_link_<%= tab[:id] %>" role="menuitem" title="Enable this item"><%= t("Enable") %></a>
+            </li>
+            <li role="presentation">
+              <a href="#" class="icon-updown move_nav_item_link" id="move_nav_item_link_<%= tab[:id] %>" role="menuitem" title="Move this item"><%= t("Move") %></a>
+            </li>
+          </ul>
+        </div>
       </li>
     <% end %>
   </ul>

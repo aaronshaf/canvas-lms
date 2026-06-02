@@ -3,13 +3,15 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t('subject', '%{count} new files added for the course, %{name}',
-          count: n(data.count),
-          name: asset.context.name) %>
-<% end %>
-<%= t('body', '%{count} new files have been added for the course, %{name}:',
+  <%= t('subject',
+        '%{count} new files added for the course, %{name}',
         count: n(data.count),
         name: asset.context.name) %>
+<% end %>
+<%= t('body',
+      '%{count} new files have been added for the course, %{name}:',
+      count: n(data.count),
+      name: asset.context.name) %>
 
 <% data.display_names.first(Attachment::NOTIFICATION_MAX_DISPLAY).each do |title| %>
   <%= title %>
@@ -17,7 +19,7 @@
 
 <% if data.count > Attachment::NOTIFICATION_MAX_DISPLAY %>
   <%= t('The first %{max_displayed} files are listed above. Click below to view all files.',
-  max_displayed: Attachment::NOTIFICATION_MAX_DISPLAY) %>
+        max_displayed: Attachment::NOTIFICATION_MAX_DISPLAY) %>
 <% end %>
 
 <%= t 'link', 'You can view them here' %>

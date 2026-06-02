@@ -21,7 +21,7 @@
     <div id="ada-chat-container"></div>
 
     <%# Load the Ada Embed2 SDK in lazy mode so it does not auto-initialize.
-        adaEmbed.start() is called only after receiving user metadata via
+      adaEmbed.start() is called only after receiving user metadata via
         postMessage from the Canvas page that opened this popup. %>
     <script
       data-lazy
@@ -32,7 +32,7 @@
 
     <script>
       <%# Message type strings must stay in sync with ADA_MSG_* constants
-          in ui/shared/help-dialog/react/AdaChatbot.tsx %>
+        in ui/shared/help-dialog/react/AdaChatbot.tsx %>
       var metaFieldsListener = function(event) {
         if (event.origin !== window.location.origin) return;
         if (!event.data || event.data.type !== "ADA_META_FIELDS") return;

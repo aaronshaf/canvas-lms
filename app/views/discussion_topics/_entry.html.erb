@@ -33,18 +33,18 @@
   hide_student_names ||= nil
   use_discussion_toggle_link ||= false
   discussion_checkpoints_enabled = entry_context.discussion_checkpoints_enabled?
- %>
+%>
 <% cache([
-    'entry_message_render_2_',
-    entry_key,
-    out_of_context,
-    skip_sub_entries,
-    @topic_agglomerated,
-    Time.zone.utc_offset,
-    read_state,
-    link_to_headless,
-    hide_student_names,
-  ].join('/')) do %>
+     'entry_message_render_2_',
+     entry_key,
+     out_of_context,
+     skip_sub_entries,
+     @topic_agglomerated,
+     Time.zone.utc_offset,
+     read_state,
+     link_to_headless,
+     hide_student_names,
+   ].join('/')) do %>
 <div class="discussion_entry communication_message can_be_marked_as_read <%= read_state %>" <%= hidden(include_style: true) unless entry %> id="entry_<%= entry ? entry.id : "blank" %>" data-mark-read-url="<%= entry && entry_id && context_url(entry_context, :api_v1_context_discussion_topic_discussion_entry_mark_read_url, discussion_topic_id, entry_id) %>">
   <div class="header clearfix">
     <% if entry&.new_record? && entry.new_record_header %>

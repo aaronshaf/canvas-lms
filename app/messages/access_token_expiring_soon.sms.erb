@@ -3,5 +3,5 @@
 <% end %>
 
 <%= t "Your Canvas access token (Purpose: %{purpose}) will expire on %{expiration_date}. Visit your user settings to generate a new token if needed.",
-  purpose: asset.purpose,
-  expiration_date: datetime_string(asset.permanent_expires_at) %>
+      purpose: asset.purpose,
+      expiration_date: datetime_string(asset.permanent_expires_at) %>

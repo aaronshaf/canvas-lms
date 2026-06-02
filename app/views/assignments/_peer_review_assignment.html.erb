@@ -35,8 +35,7 @@
     <% user = request.try_rescue(:assessor).try_rescue(:name)
        user ||= t 'titles.user_default', "User"
        reminder = t('titles.remind_reviewer', "Remind %{user} about Assessment", user:)
-       reminder = t 'titles.remind_reviewier_with_last_notification', "Remind %{user} about Assessment, last notified %{at}", user: user, at: datetime_string(request.updated_at) if request&.assigned?
-    %>
+       reminder = t 'titles.remind_reviewier_with_last_notification', "Remind %{user} about Assessment, last notified %{at}", user: user, at: datetime_string(request.updated_at) if request&.assigned? %>
     <a
       class="remind_peer_review_link no-hover"
       style="<%= hidden if request&.completed? %>"

@@ -17,8 +17,8 @@
 %>
 
 <%
-content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
-                    !!js_env.dig(:MASTER_COURSE_DATA, "restricted_by_master_course") &&
+  content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
+                      !!js_env.dig(:MASTER_COURSE_DATA, "restricted_by_master_course") &&
                       js_env.dig(:MASTER_COURSE_DATA, "master_course_restrictions", :content)
 %>
 <div id="options_tab">
@@ -30,8 +30,13 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
           <input type="hidden" name="quiz[title]" value="<%= @quiz.title %>"/>
         <% else %>
           <label for="quiz_title" class="bold form-control__label"><%= t('Quiz Title') %><span aria-hidden="true" class="asterisk"> *</span></label>
-          <%= text_field :quiz, :title, :maxlength => "254", :autofocus => true, :required => true,
-                         :class => "form-control__input", "aria-describedby" => "quiz_title_message" %>
+          <%= text_field :quiz,
+                         :title,
+                         :maxlength => "254",
+                         :autofocus => true,
+                         :required => true,
+                         :class => "form-control__input",
+                         "aria-describedby" => "quiz_title_message" %>
           <div class="form-control__message input-message__container hidden">
             <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
             <span id="quiz_title_message" class="input-message__text"></span>
@@ -81,8 +86,12 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
             <%= t("Score") %>
           </label>
           <div class="controls">
-            <%= text_field :quiz, :points_possible, :class => "form-control__input", :style => "width: 50px;",
-                           :required => true, :value => points_possible_display,
+            <%= text_field :quiz,
+                           :points_possible,
+                           :class => "form-control__input",
+                           :style => "width: 50px;",
+                           :required => true,
+                           :value => points_possible_display,
                            "aria-describedby" => "graded_survey_points_message" %> pts
             <div class="form-control__message input-message__container" data-original-text="<%= t("Students will automatically receive full credit once they take the survey") %>">
               <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
@@ -125,9 +134,13 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
 
               <div class="form-control time-limit">
                 <div class="form-control__wrapper">
-                  <%= text_field :quiz, :time_limit, :id => "quiz_time_limit",
-                                 :class => "form-control__input", :style => "width: 30px;",
-                                 :"aria-label" => t("How many minutes?"), "aria-describedby" => "time_limit__message" %>
+                  <%= text_field :quiz,
+                                 :time_limit,
+                                 :id => "quiz_time_limit",
+                                 :class => "form-control__input",
+                                 :style => "width: 30px;",
+                                 :"aria-label" => t("How many minutes?"),
+                                 "aria-describedby" => "time_limit__message" %>
                   <label class="time-limit__label" for="quiz_time_limit">
                     <%= t("Minutes") %>
                   </label>
@@ -171,11 +184,14 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                     <%= t("Allowed Attempts") %>
                   </label>
                   <div style="display: flex; flex-direction: column">
-                    <%= text_field :quiz, :allowed_attempts, :tabindex => "0",
+                    <%= text_field :quiz,
+                                   :allowed_attempts,
+                                   :tabindex => "0",
                                    :value => ((@quiz.allowed_attempts == -1) ? 1 : @quiz.allowed_attempts),
-                                   :"aria-label" => t("Number of allowed attempts"), :class => "form-control__input",
-                                   :required => true, "aria-describedby" => "allowed_attempts__message"
-                    %>
+                                   :"aria-label" => t("Number of allowed attempts"),
+                                   :class => "form-control__input",
+                                   :required => true,
+                                   "aria-describedby" => "allowed_attempts__message" %>
                     <div style="margin-bottom:10px" class="form-control__message input-message__container hidden" data-original-text="">
                       <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
                       <span id="allowed_attempts__message" class="input-message__text"></span>
@@ -247,15 +263,15 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                         </label>
 
                         <div class="form-control__inline-wrapper">
-                          <%= text_field :quiz, :show_correct_answers_at,
-                            :class => "input-medium date_field form-control__input",
-                            :type => "text",
-                            :value => @quiz.show_correct_answers_at.as_json,
-                            "aria-labelledby" => "show_correct_answers_accessible_label",
-                            "data-tooltip" => "",
-                            :title => accessible_date_format,
-                            "aria-describedby" => "hide_correct_answers_at_message"
-                          %>
+                          <%= text_field :quiz,
+                                         :show_correct_answers_at,
+                                         :class => "input-medium date_field form-control__input",
+                                         :type => "text",
+                                         :value => @quiz.show_correct_answers_at.as_json,
+                                         "aria-labelledby" => "show_correct_answers_accessible_label",
+                                         "data-tooltip" => "",
+                                         :title => accessible_date_format,
+                                         "aria-describedby" => "hide_correct_answers_at_message" %>
                         </div>
                       </div>
                     </div>
@@ -273,14 +289,15 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                       </label>
 
                       <div class="form-control__inline-wrapper">
-                        <%= text_field :quiz, :hide_correct_answers_at,
-                          :class => "input-medium date_field",
-                          :type => "text",
-                          :value => @quiz.hide_correct_answers_at.as_json,
-                          "aria-labelledby" => "hide_correct_answers_accessible_label",
-                          "data-tooltip" => "",
-                          :title => accessible_date_format,
-                          "aria-describedby" => "hide_correct_answers_at_message" %>
+                        <%= text_field :quiz,
+                                       :hide_correct_answers_at,
+                                       :class => "input-medium date_field",
+                                       :type => "text",
+                                       :value => @quiz.hide_correct_answers_at.as_json,
+                                       "aria-labelledby" => "hide_correct_answers_accessible_label",
+                                       "data-tooltip" => "",
+                                       :title => accessible_date_format,
+                                       "aria-describedby" => "hide_correct_answers_at_message" %>
 
                         <div class="form-control__message input-message__container hidden">
                           <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
@@ -380,8 +397,8 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
         </div>
       </div>
       <% if @context.root_account.feature_enabled?(:course_pace_pacing_with_mastery_paths) &&
-        ConditionalRelease::Service.enabled_in_context?(@context) &&
-        @context.is_a?(Course) && @context.enable_course_paces? %>
+            ConditionalRelease::Service.enabled_in_context?(@context) &&
+            @context.is_a?(Course) && @context.enable_course_paces? %>
         <div>
           <label class="control-label">
             <%= t("Mastery Paths") %>

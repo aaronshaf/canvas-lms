@@ -100,9 +100,10 @@
               <%= t "Created %{created}", created: datetime_string(enrollment.created_at) %>
               <% if enrollment.is_a?(ObserverEnrollment) %>
                 <br />
-                <%= t 'enrollment_linked_to', "Linked to *%{linked_user}*",
-                    linked_user: context_user_name(@context, enrollment.associated_user),
-                    wrapper: '<span class="associated_user_name">\1</span>' %>
+                <%= t 'enrollment_linked_to',
+                      "Linked to *%{linked_user}*",
+                      linked_user: context_user_name(@context, enrollment.associated_user),
+                      wrapper: '<span class="associated_user_name">\1</span>' %>
               <% end %>
               <div class="completed_at_holder" style="<%= hidden unless enrollment.completed? %>">
                 <%= t 'completed_enrollment', "Completed *%{completed_at}*", completed_at: datetime_string(enrollment.completed_at), wrapper: '<span class="completed_at">\1</span>' %>

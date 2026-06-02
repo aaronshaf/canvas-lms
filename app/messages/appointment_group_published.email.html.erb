@@ -3,7 +3,8 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t('subject', 'Appointment "%{appointment_name}" is available for signup (%{course})',
+  <%= t('subject',
+        'Appointment "%{appointment_name}" is available for signup (%{course})',
         appointment_name: asset.title,
         course: asset.contexts_for_user(user).map(&:name).join(", ")) %>
 <% end %>

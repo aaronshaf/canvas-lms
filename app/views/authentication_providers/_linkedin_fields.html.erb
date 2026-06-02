@@ -17,12 +17,13 @@
 %>
 
 <% unless AuthenticationProvider::LinkedIn.globally_configured? %>
-  <p><%= mt(:description, <<~MD, linkedin_url: 'https://www.linkedin.com/secure/developer', callback_url: oauth2_login_callback_url)
-You will need to [register an application on LinkedIn](%{linkedin_url}).
-You should add %{callback_url} as an OAuth 2.0 authorized redirect URL, and set the Application Status to Live
-After you create your application, make a note of the Client ID and Client Secret, and enter them here.
-MD
-      %></p>
+  <p><%=
+       mt(:description, <<~MD, linkedin_url: 'https://www.linkedin.com/secure/developer', callback_url: oauth2_login_callback_url)
+         You will need to [register an application on LinkedIn](%{linkedin_url}).
+         You should add %{callback_url} as an OAuth 2.0 authorized redirect URL, and set the Application Status to Live
+         After you create your application, make a note of the Client ID and Client Secret, and enter them here.
+       MD
+     %></p>
   <%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
 <% end %>
 <%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>

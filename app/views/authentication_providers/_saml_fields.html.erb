@@ -17,19 +17,21 @@
 %>
 
 <% entity_id_url = aac.entity_id if aac.entity_id&.start_with?("http://", "https://") %>
-<p><%= mt(<<~MD, metadata_url: entity_id_url ? link_to(aac.entity_id, entity_id_url) : aac.entity_id)
-The Canvas SAML Entity ID is %{metadata_url}, and the Service Provider metadata
-is available at that URL.
-MD
-%></p>
+<p><%=
+     mt(<<~MD, metadata_url: entity_id_url ? link_to(aac.entity_id, entity_id_url) : aac.entity_id)
+       The Canvas SAML Entity ID is %{metadata_url}, and the Service Provider metadata
+       is available at that URL.
+     MD
+   %></p>
 <% css_bundle :saml_fields %>
-<p><%= t(<<~TEXT)
-Provide a URI to your IdP's metadata to automatically populate the other
-fields. If your school is part of InCommon or the UK Access Management
-Federation, specify urn:mace:incommon or http://ukfederation.org.uk,
-respectively, for the metadata URI, and also provide your school's entity ID.
-TEXT
-%></p>
+<p><%=
+     t(<<~TEXT)
+       Provide a URI to your IdP's metadata to automatically populate the other
+       fields. If your school is part of InCommon or the UK Access Management
+       Federation, specify urn:mace:incommon or http://ukfederation.org.uk,
+       respectively, for the metadata URI, and also provide your school's entity ID.
+     TEXT
+   %></p>
 <div class="ic-Form-control">
   <%= f.label :metadata_uri, t('IdP Metadata URI'), class: 'ic-Label', for: "metadata_uri_#{presenter.id_suffix(aac)}" %>
   <%= f.text_field :metadata_uri, class: 'ic-Input', id: "metadata_uri_#{presenter.id_suffix(aac)}" %>
@@ -53,9 +55,9 @@ TEXT
 <div class="ic-Form-control">
   <%= f.label :login_attribute, t('Login Attribute'), class: 'ic-Label', for: "login_attributes_#{presenter.id_suffix(aac)}" %>
   <%= f.text_field(:login_attribute,
-               class: 'ic-Input',
-               id: "login_attributes_#{presenter.id_suffix(aac)}",
-               list: "saml_login_attributes") %>
+                   class: 'ic-Input',
+                   id: "login_attributes_#{presenter.id_suffix(aac)}",
+                   list: "saml_login_attributes") %>
 </div>
 <div class="ic-Form-control">
   <%= f.label :strip_domain_from_login_attribute, t('Strip Domain From Login Attribute Value'), class: 'ic-Label', for: "strip_domain_from_login_attribute_#{presenter.id_suffix(aac)}" %>
@@ -66,14 +68,16 @@ TEXT
   <%= f.select(:identifier_format,
                presenter.saml_identifiers,
                {},
-               class: 'ic-Input', id: "identifier_format_#{presenter.id_suffix(aac)}") %>
+               class: 'ic-Input',
+               id: "identifier_format_#{presenter.id_suffix(aac)}") %>
 </div>
 <div class="ic-Form-control">
   <%= f.label :requested_authn_context, t('Authentication Context'), class: 'ic-Label', for: "requested_authn_context_#{presenter.id_suffix(aac)}" %>
   <%= f.select(:requested_authn_context,
                presenter.saml_authn_contexts,
                {},
-               class: 'ic-Input', id: "requested_authn_context_#{presenter.id_suffix(aac)}") %>
+               class: 'ic-Input',
+               id: "requested_authn_context_#{presenter.id_suffix(aac)}") %>
 </div>
 <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
   <legend class="ic-Legend">

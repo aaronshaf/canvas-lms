@@ -6,10 +6,11 @@
   <%= t :subject, "Assignment Changed: %{title}, %{course}", title: asset.title, course: asset.context.name %>
 <% end %>
 
-<%= t :body, <<~TEXT, title: asset.title, course: asset.context.name, url: content(:link)
-The assignment "%{title}" for %{course} has changed.
-
-Click here to view the assignment:
-%{url}
-TEXT
+<%=
+  t :body, <<~TEXT, title: asset.title, course: asset.context.name, url: content(:link)
+        The assignment "%{title}" for %{course} has changed.
+    
+    Click here to view the assignment:
+    %{url}
+  TEXT
 %>

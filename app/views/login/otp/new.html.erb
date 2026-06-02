@@ -34,12 +34,14 @@
         <% if @current_user.mfa_settings(pseudonym_hint: @current_pseudonym) == :required %>
           <p><%= t("You are required to set up Multi-Factor Authentication.") %></p>
         <% end %>
-        <% otp_via_sms_message = otp_via_sms_in_us_region? ? mt(<<~MD) : ""
-          The device can be a code generator or a mobile phone that receives text messages.
-          **Using an authenticator app is strongly recommended for enhanced security.**
+        <%
+          otp_via_sms_message = otp_via_sms_in_us_region? ? mt(<<~MD) : ""
+            The device can be a code generator or a mobile phone that receives text messages.
+            **Using an authenticator app is strongly recommended for enhanced security.**
           MD
         %>
-        <%= mt(<<~MD, otp_via_sms_message:)
+        <%=
+          mt(<<~MD, otp_via_sms_message:)
             Multi-Factor Authentication (MFA) enhances security by requiring a physical device and your Canvas login password.
             %{otp_via_sms_message}
 

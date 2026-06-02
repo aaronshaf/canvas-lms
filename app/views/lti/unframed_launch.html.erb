@@ -18,7 +18,6 @@
 
 <%# Unframed launches can be either started from within an iframe or in a new tab.
   # A launch_type of 'window' indicates that the launch should be opened in a new tab,
-  # and even an unframed launch should allow that.
-%>
+  # and even an unframed launch should allow that. %>
 <% @lti_launch.launch_type = 'self' unless @lti_launch.launch_type == 'window' %>
 <%= render 'lti/lti_message_quizzes_next' %>

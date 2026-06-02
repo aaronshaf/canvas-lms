@@ -19,12 +19,13 @@
 <%= fields_for :settings do |f| %>
   <table style="width: 500px;" class="formtable">
     <tr>
-      <td colspan="2"><%= mt(:description, <<~MD, diigo_url: 'https://www.diigo.com/api_keys/new/')
-You will need to register a [new app on Diigo](%{diigo_url}).
-
-* After you save your app, make a note of the API Key
-MD
-      %></td>
+      <td colspan="2"><%=
+                        mt(:description, <<~MD, diigo_url: 'https://www.diigo.com/api_keys/new/')
+                          You will need to register a [new app on Diigo](%{diigo_url}).
+                          
+                          * After you save your app, make a note of the API Key
+                        MD
+                      %></td>
     </tr>
     <tr>
       <td><%= f.blabel :api_key, en: "API Key" %></td>

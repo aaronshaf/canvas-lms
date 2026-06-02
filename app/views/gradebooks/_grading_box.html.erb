@@ -53,8 +53,7 @@
     style="<%= hidden unless submission %> text-align: center;"/>
 <% elsif assignment.grading_type == "pass_fail"
      complete_selected = submission && %w[pass complete].include?(submission.grade)
-     incomplete_selected = submission && %w[fail incomplete].include?(submission.grade)
-%>
+     incomplete_selected = submission && %w[fail incomplete].include?(submission.grade) %>
   <select
     class="grading_value grading_box pass_fail"
     id="student_grading_<%= assignment.id %>"

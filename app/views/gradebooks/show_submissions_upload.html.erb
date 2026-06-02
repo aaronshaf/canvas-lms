@@ -63,12 +63,13 @@
       <i class="icon-info"></i>
     </div>
 
-    <p><%= t(<<~TEXT)
-      We are currently processing your files. This may take a while depending on the file size of the submissions.
-      You may navigate away from this screen and check back later by clicking on the "View Upload Status" link on
-      the assignment page, or refresh this page to see the status.
-      TEXT
-    %></p>
+    <p><%=
+         t(<<~TEXT)
+           We are currently processing your files. This may take a while depending on the file size of the submissions.
+           You may navigate away from this screen and check back later by clicking on the "View Upload Status" link on
+           the assignment page, or refresh this page to see the status.
+         TEXT
+       %></p>
   </div>
 <% elsif @failed %>
   <div class="Alert ic-flash-error">
@@ -84,20 +85,22 @@
       <i class="icon-check"></i>
     </div>
 
-    <p><%= t(<<~TEXT)
-      Done! We took the files you uploaded and attached them with a short comment
-      to each user's submission page for this assignment. The students will get a
-      notification that a new comment was added.
-      TEXT
-    %></p>
+    <p><%=
+         t(<<~TEXT)
+           Done! We took the files you uploaded and attached them with a short comment
+           to each user's submission page for this assignment. The students will get a
+           notification that a new comment was added.
+         TEXT
+       %></p>
   </div>
 
   <% if @comments.any? %>
     <%
       heading = t({
-        one: "(1) file was attached to the following user submission",
-        other: "(%{count}) files were attached to the following user submissions"
-      }, count: @comments.size)
+                    one: "(1) file was attached to the following user submission",
+                    other: "(%{count}) files were attached to the following user submissions"
+                  },
+                  count: @comments.size)
     %>
 
     <h3 class="Heading"><%= heading %></h3>
@@ -141,18 +144,20 @@
   <% if @ignored_files.any? %>
     <%
       heading = t({
-        one: "(1) file was ignored",
-        other: "(%{count}) files were ignored"
-      }, count: @ignored_files.size)
+                    one: "(1) file was ignored",
+                    other: "(%{count}) files were ignored"
+                  },
+                  count: @ignored_files.size)
     %>
 
     <h3 class="Heading"><%= heading %></h3>
 
-    <p><%= t(<<~TEXT)
-      There were some files we didn't know what to do with. They have not been
-      added to anyone's submission page.
-      TEXT
-    %></p>
+    <p><%=
+         t(<<~TEXT)
+           There were some files we didn't know what to do with. They have not been
+           added to anyone's submission page.
+         TEXT
+       %></p>
 
     <ul id="ignored-files">
     <% @ignored_files.each do |ignored_file| %>

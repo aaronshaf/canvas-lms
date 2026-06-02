@@ -17,8 +17,7 @@
 %>
 
 <% js_bundle :settings_sidebar
-   css_bundle :settings_sidebar
-%>
+   css_bundle :settings_sidebar %>
 <% blueprint_subscription ||= nil %>
 <% show_publish_controls ||= false %>
 <% if blueprint_subscription %>
@@ -142,8 +141,7 @@
           <td><%= n(user_count(base_role[:count])) %></td>
         </tr>
         <% base_role[:custom_roles].each do |cr|
-           next if skip_custom_role?(cr)
-        %>
+             next if skip_custom_role?(cr) %>
           <tr>
             <th>
               <%= cr[:label] %><% if cr[:workflow_state] == 'inactive' %> (<%= t('role.inactive', 'inactive') %>)<% end %>:

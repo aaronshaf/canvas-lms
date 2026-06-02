@@ -17,23 +17,23 @@
 %>
 
 <%
-    submission_create_url = context_url(
-      @context,
-      controller: :submissions,
-      action: :create,
-      assignment_id: @assignment.id
-    )
+  submission_create_url = context_url(
+    @context,
+    controller: :submissions,
+    action: :create,
+    assignment_id: @assignment.id
+  )
 -%>
 <%
   js_bundle :submit_assignment
   css_bundle :tinymce
   js_env({
-    SUBMIT_ASSIGNMENT: {
-      ALLOWED_EXTENSIONS: ((@assignment.submission_types && @assignment.submission_types.include?('online_upload')) ? @assignment.allowed_extensions : []),
-      ID: @assignment.id,
-      GROUP_ID_FOR_USER: @assignment.group_category.try(:group_for, @current_user).try(:id)
-    }
-  })
+           SUBMIT_ASSIGNMENT: {
+             ALLOWED_EXTENSIONS: ((@assignment.submission_types && @assignment.submission_types.include?('online_upload')) ? @assignment.allowed_extensions : []),
+             ID: @assignment.id,
+             GROUP_ID_FOR_USER: @assignment.group_category.try(:group_for, @current_user).try(:id)
+           }
+         })
 %>
 <div style="display: none;" id="submit_assignment" data-context_code="<%= @assignment.context_code %>" data-asset_string="<%= @assignment.asset_string %>">
   <% if @assignment.submission_types && @assignment.annotated_document? %>
@@ -229,7 +229,7 @@
             </td>
           </tr>
         </table>
-       <% end %>
+        <% end %>
       <% else %>
         <div id="submit_media_recording_form">
           <h3><%= t 'titles.media_recordings_disabled', "Media recordings are not enabled for this Canvas site" %></h3>

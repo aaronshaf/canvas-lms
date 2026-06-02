@@ -66,15 +66,19 @@
         <td>
           <%= mt :term_runs_from, "**Term Runs** from" %>&nbsp;
         </td>
-        <%= render partial: 'timespan', locals: { object: term, key: '', idx: '1', start_tooltip: t('titles.term_starts', "Term starts"),
-                                                        end_tooltip: t('titles.term_ends', "Term ends"), whenever: [true, true] } %>
+        <%= render partial: 'timespan', locals: { object: term,
+                                                  key: '',
+                                                  idx: '1',
+                                                  start_tooltip: t('titles.term_starts', "Term starts"),
+                                                  end_tooltip: t('titles.term_ends', "Term ends"),
+                                                  whenever: [true, true] } %>
       </tr>
     <% types.each_with_index do |type, idx| %>
       <% if term
            override = term.enrollment_dates_overrides.detect do |edo|
              edo.context_type == @context.class.to_s &&
-             edo.context_id == @context.id &&
-             edo.enrollment_type == type.to_s
+               edo.context_id == @context.id &&
+               edo.enrollment_type == type.to_s
            end
          end %>
       <% override ||= EnrollmentDatesOverride.new %>
@@ -83,31 +87,34 @@
       <tr class="<%= "#{type_string}_dates" %>">
         <td>
           <% case type_string
-              when 'student_enrollment'
-                start_tooltip = t 'tooltips.term_starts_students', "For students the term starts"
-                end_tooltip = t 'tooltips.term_ends_students', "For students the term ends"
-                access_label = mt 'labels.students_can_access_from', "**Students** can access from"
-                start_whenever = false
-              when 'teacher_enrollment'
-                start_tooltip = t 'tooltips.term_starts_teachers', "For teachers the term starts"
-                end_tooltip = t 'tooltips.term_ends_teachers', "For teachers the term ends"
-                access_label = mt 'labels.teachers_can_access_from', "**Teachers** can access from"
-              when 'ta_enrollment'
-                start_tooltip = t 'tooltips.term_starts_tas', "For TAs the term starts"
-                end_tooltip = t 'tooltips.term_ends_tas', "For TAs the term ends"
-                access_label = mt 'labels.tas_can_access_from', "**TAs** can access from"
-              when 'designer_enrollment'
-                start_tooltip = t 'tooltips.term_starts_designers', "For designers the term starts"
-                end_tooltip = t 'tooltips.term_ends_designers', "For designers the term ends"
-                access_label = mt 'labels.designers_can_access_from', "**Designers** can access from"
-              end
-          %>
+             when 'student_enrollment'
+               start_tooltip = t 'tooltips.term_starts_students', "For students the term starts"
+               end_tooltip = t 'tooltips.term_ends_students', "For students the term ends"
+               access_label = mt 'labels.students_can_access_from', "**Students** can access from"
+               start_whenever = false
+             when 'teacher_enrollment'
+               start_tooltip = t 'tooltips.term_starts_teachers', "For teachers the term starts"
+               end_tooltip = t 'tooltips.term_ends_teachers', "For teachers the term ends"
+               access_label = mt 'labels.teachers_can_access_from', "**Teachers** can access from"
+             when 'ta_enrollment'
+               start_tooltip = t 'tooltips.term_starts_tas', "For TAs the term starts"
+               end_tooltip = t 'tooltips.term_ends_tas', "For TAs the term ends"
+               access_label = mt 'labels.tas_can_access_from', "**TAs** can access from"
+             when 'designer_enrollment'
+               start_tooltip = t 'tooltips.term_starts_designers', "For designers the term starts"
+               end_tooltip = t 'tooltips.term_ends_designers', "For designers the term ends"
+               access_label = mt 'labels.designers_can_access_from', "**Designers** can access from"
+             end %>
           <%= access_label %>
           &nbsp;
         </td>
-        <%= render partial: 'timespan', locals: { object: override, key: "[overrides][#{type_string}]", idx:,
-                                                        start_tooltip:, end_tooltip:,
-                                                        date_class_prefix: "#{type_string}_", whenever: [start_whenever, false] } %>
+        <%= render partial: 'timespan', locals: { object: override,
+                                                  key: "[overrides][#{type_string}]",
+                                                  idx:,
+                                                  start_tooltip:,
+                                                  end_tooltip:,
+                                                  date_class_prefix: "#{type_string}_",
+                                                  whenever: [start_whenever, false] } %>
       </tr>
     <% end %>
     <tr class="edit-buttons">

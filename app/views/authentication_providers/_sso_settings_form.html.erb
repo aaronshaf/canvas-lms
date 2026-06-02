@@ -20,13 +20,15 @@
 <div class="content-box">
   <div class="grid-row">
     <div class="col-xs-12 col-lg-11 off-lg-1">
-      <%= form_for(account, as: :sso_settings,
+      <%= form_for(account,
+                   as: :sso_settings,
                    url: account_update_sso_settings_path(account),
                    method: :put,
                    html: { class: "ic-Form ic-Form--horizontal" }) do |f| %>
       <fieldset <%= 'disabled' unless can_manage %> style="display: contents;">
         <div class="ic-Form-control">
-          <%= f.label :login_handle_name, t("Login Label"),
+          <%= f.label :login_handle_name,
+                      t("Login Label"),
                       class: 'ic-Label' %>
           <%= f.text_field :login_handle_name,
                            :placeholder => presenter.login_placeholder,
@@ -39,7 +41,8 @@
           </div>
         </div>
         <div class="ic-Form-control">
-          <%= f.label :change_password_url, t("Forgot Password URL"),
+          <%= f.label :change_password_url,
+                      t("Forgot Password URL"),
                       class: 'ic-Label' %>
           <%= f.text_field :change_password_url,
                            :class => 'ic-Input',
@@ -52,17 +55,19 @@
 
         <%# BEGIN discovery url logic %>
         <div class="ic-Form-control">
-          <%= f.label :auth_discovery_url, t("Discovery URL"),
+          <%= f.label :auth_discovery_url,
+                      t("Discovery URL"),
                       class: 'ic-Label' %>
           <%= f.text_field :auth_discovery_url,
                            :class => 'ic-Input',
                            'aria-describedby' => 'auth_discovery_url_description' %>
           <div class="ic-Form-help-text" id="auth_discovery_url_description">
-            <%= t(<<~TEXT)
-              Enter an external URL where users can choose how to log in.
-              This page should direct users to a specific Canvas authentication provider (e.g., /login/saml/3).
-              If left blank, Canvas defaults to your first listed authentication method.
-            TEXT
+            <%=
+              t(<<~TEXT)
+                Enter an external URL where users can choose how to log in.
+                This page should direct users to a specific Canvas authentication provider (e.g., /login/saml/3).
+                If left blank, Canvas defaults to your first listed authentication method.
+              TEXT
             %>
             <% if @account.discovery_page_allowed? %>
               <%= t("Use this option if you need more customization than the native Discovery Page offers.") %>
@@ -78,12 +83,13 @@
             <%= f.hidden_field :discovery_page_active, id: 'discovery_page_active_field', value: presenter.discovery_page_active? %>
             <div id="discovery-page-root"></div>
             <div class="ic-Form-help-text">
-              <%= t(<<~TEXT)
-                Configure a native Canvas discovery page.
-                When enabled, this page displays instead of the Discovery URL or the first listed authentication method.
-                You can configure this page before enabling it, and turning it on will not delete the Discovery URL saved above.
-                This page automatically inherits your Login page branding from the Theme Editor.
-              TEXT
+              <%=
+                t(<<~TEXT)
+                  Configure a native Canvas discovery page.
+                  When enabled, this page displays instead of the Discovery URL or the first listed authentication method.
+                  You can configure this page before enabling it, and turning it on will not delete the Discovery URL saved above.
+                  This page automatically inherits your Login page branding from the Theme Editor.
+                TEXT
               %>
             </div>
           </div>
@@ -92,7 +98,8 @@
 
         <% if presenter.needs_unknown_user_url? %>
           <div class="ic-Form-control">
-            <%= f.label :unknown_user_url, t("Unknown User URL"),
+            <%= f.label :unknown_user_url,
+                        t("Unknown User URL"),
                         class: 'ic-Label' %>
             <%= f.text_field :unknown_user_url,
                              :placeholder => login_url,
@@ -106,7 +113,8 @@
           </div>
         <% end %>
         <div class="ic-Form-control">
-          <%= f.label :login_help_url, t("Login Help URL"),
+          <%= f.label :login_help_url,
+                      t("Login Help URL"),
                       class: 'ic-Label' %>
           <%= f.text_field :login_help_url,
                            :class => 'ic-Input',

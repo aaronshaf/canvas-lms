@@ -21,10 +21,10 @@
   is_anonymous_peer_reviews_enabled = assignment.anonymous_peer_reviews?
   title = t("Required Peer Review %{index}", index:)
   reviewee_username = if assessment.available?
-    is_anonymous_peer_reviews_enabled ? t("Anonymous User") : assessment.user.name
-  else
-    t("Not Available")
-  end
+                        is_anonymous_peer_reviews_enabled ? t("Anonymous User") : assessment.user.name
+                      else
+                        t("Not Available")
+                      end
 %>
 
 <li

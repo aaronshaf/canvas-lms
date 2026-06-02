@@ -30,11 +30,11 @@
     <div class="ic-notification__message notification_message">
       <%=
         mt(:current_conference_text, "You have been invited to join **[%{conference}](%{link_to_conference})**. It started at %{started_at} and has %{participant_count}.", {
-          conference: conference.title,
-          link_to_conference: context_url(@context, :context_conference_url, conference.id),
-          started_at: time_string(conference.started_at),
-          participant_count: t(:participant_count, "participant", count: conference.added_users.length)
-        })
+             conference: conference.title,
+             link_to_conference: context_url(@context, :context_conference_url, conference.id),
+             started_at: time_string(conference.started_at),
+             participant_count: t(:participant_count, "participant", count: conference.added_users.length)
+           })
       %>
     </div>
     <div class="ic-notification__actions">

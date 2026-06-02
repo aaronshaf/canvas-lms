@@ -14,8 +14,8 @@
       </tr>
     <% end %>
     <% points_deducted = I18n.n(-@submission.points_deducted) if @submission.points_deducted&.> 0
-        points_possible = I18n.n(round_if_whole(@assignment.points_possible))
-        grade_breakdown_style = hidden unless points_deducted && !@submission.excused? %>
+       points_possible = I18n.n(round_if_whole(@assignment.points_possible))
+       grade_breakdown_style = hidden unless points_deducted && !@submission.excused? %>
     <tr class="error late-penalty-display" style="<%= grade_breakdown_style %>">
       <th><%= I18n.t('Late penalty:') %></th>
       <td class="late_penalty bold"><%= points_deducted %></td>

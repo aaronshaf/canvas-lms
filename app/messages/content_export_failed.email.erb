@@ -13,10 +13,11 @@
 <%= t :subject, "Course Export Failed: %{course}", course: asset.context.name %>
 <% end %>
 
-<%= t :body, <<~TEXT, course: asset.context.name, id: %{"#{asset.class}:#{asset.id}"}
-There was a problem exporting the course "%{course}".
-Please notify your system administrator, and give them the following export identifier: %{id}.
-TEXT
+<%=
+  t :body, <<~TEXT, course: asset.context.name, id: %{"#{asset.class}:#{asset.id}"}
+        There was a problem exporting the course "%{course}".
+    Please notify your system administrator, and give them the following export identifier: %{id}.
+  TEXT
 %>
 
 <%= content :link %>

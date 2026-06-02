@@ -22,7 +22,7 @@
   if action_name != "post_message_forwarding" && !request.path.starts_with?("/login")
     current_domain = request.host_with_port
     oidc_auth_domain = Lti::Oidc.auth_domain(current_domain)
- %>
+%>
   <%=
     iframe(
       lti_post_message_forwarding_url(

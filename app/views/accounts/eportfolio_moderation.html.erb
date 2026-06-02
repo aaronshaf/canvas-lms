@@ -63,32 +63,32 @@
 
             <%
               display_status = case eportfolio.spam_status
-              when "flagged_as_possible_spam"
-                t("Needs review: flagged as possible spam")
-              when "marked_as_spam"
-                t("Marked as spam")
-              when "marked_as_safe"
-                t("Marked as safe")
-              else
-                t("Not reviewed")
-              end
+                               when "flagged_as_possible_spam"
+                                 t("Needs review: flagged as possible spam")
+                               when "marked_as_spam"
+                                 t("Marked as spam")
+                               when "marked_as_safe"
+                                 t("Marked as safe")
+                               else
+                                 t("Not reviewed")
+                               end
 
               eportfolio_name = eportfolio.name.presence || t("Untitled")
               path = if eportfolio.public?
-                eportfolio_path(eportfolio)
-              else
-                eportfolio_path(eportfolio, verifier: eportfolio.uuid)
-              end
+                       eportfolio_path(eportfolio)
+                     else
+                       eportfolio_path(eportfolio, verifier: eportfolio.uuid)
+                     end
 
               current_visibility = if eportfolio.flagged_as_possible_spam?
-                t("Administrators and author only (flagged as possible spam)")
-              elsif eportfolio.spam?(include_possible_spam: false)
-                t("Administrators and author only (marked as spam)")
-              elsif eportfolio.public?
-                t("Everyone (public)")
-              else
-                t("Anyone with a direct link (private)")
-              end
+                                     t("Administrators and author only (flagged as possible spam)")
+                                   elsif eportfolio.spam?(include_possible_spam: false)
+                                     t("Administrators and author only (marked as spam)")
+                                   elsif eportfolio.public?
+                                     t("Everyone (public)")
+                                   else
+                                     t("Anyone with a direct link (private)")
+                                   end
             %>
 
             <td>

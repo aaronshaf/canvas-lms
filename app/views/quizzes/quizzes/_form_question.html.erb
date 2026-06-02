@@ -200,7 +200,8 @@
       </div>
       <div class="equation_content variables_specified formulas_specified">
         <label class="screenreader-only" for="combinations_input"><%= t("Possible combination count") %></label>
-        <%= t(:offer_combinations, "Offer %{how_many} possible value combinations (max %{max_combinations})",
+        <%= t(:offer_combinations,
+              "Offer %{how_many} possible value combinations (max %{max_combinations})",
               how_many: tag.input(id: "combinations_input", type: "text", class: "combination_count combinations_option", style: "width: 30px;"),
               max_combinations: js_env&.dig(:quiz_max_combination_count)) %>
         <br/>

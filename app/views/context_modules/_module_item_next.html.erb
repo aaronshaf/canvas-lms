@@ -462,13 +462,13 @@
       <% checkpoints.each do |checkpoint| %>
         <div class="ig-row" data-testid="checkpoint" style="display: flex; align-items: center;">
           <% left_padding = case module_item.try_rescue(:indent)
-            when 1 then "60px"
-            when 2 then "80px"
-            when 3 then "100px"
-            when 4 then "120px"
-            when 5 then "140px"
-            else "40px"
-          end %>
+                            when 1 then "60px"
+                            when 2 then "80px"
+                            when 3 then "100px"
+                            when 4 then "120px"
+                            when 5 then "140px"
+                            else "40px"
+                            end %>
           <span class="ig-type-icon" aria-hidden="true" style="display: inline-block; max-width: 1.75rem; font-size: 1.125rem; padding-left: <%= left_padding %>">
             <i class='icon-arrow-nest'></i>
           </span>

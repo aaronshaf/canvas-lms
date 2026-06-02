@@ -18,10 +18,10 @@
 <%
   hide_student_name = params[:hide_student_name]&.to_i&.nonzero?
   user_name = if hide_student_name || @quiz.anonymous_survey?
-    t('Student')
-  else
-    context_user_name(@context, @user)
-  end
+                t('Student')
+              else
+                context_user_name(@context, @user)
+              end
 
   if !user_name && !@submission.user_id
     user_name = t('Logged Out User %{index}', index: @logged_out_user_index)
@@ -29,8 +29,7 @@
 %>
 <% provide :page_title, (@quiz.survey? ?
      join_title(t(:page_title_survey, "%{user}'s Survey History", user: user_name), @quiz.quiz_title || t(:default_survey_name, "Survey %{course_name}", course_name: @context.name)) :
-     join_title(t(:page_title_quiz, "%{user}'s Quiz History", user: user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", course_name: @context.name)))
-%>
+     join_title(t(:page_title_quiz, "%{user}'s Quiz History", user: user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", course_name: @context.name))) %>
 
 <% quiz_nav_class = 'quiz-nav' %>
 <% unless params[:headless] %>
@@ -147,9 +146,8 @@
 
     <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, @current_user, :view_log) %>
       <%= link_to t(:view_log, 'View Log'),
-        course_quiz_quiz_submission_events_url(@context, @quiz, @submission),
-        { "class" => "pull-right" }
-      %>
+                  course_quiz_quiz_submission_events_url(@context, @quiz, @submission),
+                  { "class" => "pull-right" } %>
     <% end %>
   </h2>
 </header>

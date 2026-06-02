@@ -16,7 +16,7 @@
 </a>
 
 <p><%= t :body,
-      "Thank you for registering with %{product_name}!  This email is confirmation that the user %{user} is registering for a new account at %{website}.",
-      product_name:,
-      user: asset.user.short_name,
-      website: HostUrl.context_host(p&.account) || HostUrl.default_host %></p>
+         "Thank you for registering with %{product_name}!  This email is confirmation that the user %{user} is registering for a new account at %{website}.",
+         product_name:,
+         user: asset.user.short_name,
+         website: HostUrl.context_host(p&.account) || HostUrl.default_host %></p>

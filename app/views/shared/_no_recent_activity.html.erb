@@ -30,12 +30,13 @@
         <%= t('no_recent_messages', 'No Recent Messages') %>
       </div>
       <span class="notification_message">
-      <%= t 'empty_stream_message', <<~TEXT
-      You don't have any messages to show in your stream yet.  Once you
-      begin participating in your courses you'll see this stream fill up
-      with messages from discussions, grading updates, private messages between
-      you and other users, etc.
-      TEXT
+      <%=
+        t 'empty_stream_message', <<~TEXT
+          You don't have any messages to show in your stream yet.  Once you
+          begin participating in your courses you'll see this stream fill up
+          with messages from discussions, grading updates, private messages between
+          you and other users, etc.
+        TEXT
       %>
       </span>
     </div>

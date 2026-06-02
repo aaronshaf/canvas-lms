@@ -24,17 +24,19 @@
     <% if content[:locked] %>
       <% if content[:time_lock] %>
         <p>
-          <%= I18n.t(<<~TEXT, datetime: friendly_date(Time.zone.at(content[:unlock_at]).to_s))
-            This module is locked until %{datetime}
-          TEXT
+          <%=
+            I18n.t(<<~TEXT, datetime: friendly_date(Time.zone.at(content[:unlock_at]).to_s))
+              This module is locked until %{datetime}
+            TEXT
           %>
         </p>
       <% end %>
       <% if content[:prerequisites].present? %>
         <p>
-          <%= I18n.t(<<~TEXT, prerequisites: display_prerequisites(content[:prerequisites]))
-            This module is locked until completing all of the requirements for the following modules: %{prerequisites}
-          TEXT
+          <%=
+            I18n.t(<<~TEXT, prerequisites: display_prerequisites(content[:prerequisites]))
+              This module is locked until completing all of the requirements for the following modules: %{prerequisites}
+            TEXT
           %>
         </p>
       <% end %>
@@ -43,7 +45,7 @@
       <% content[:items].each do |item| %>
         <%=
           build(item) ||
-          content_tag(:div, I18n.t("%{item_name} is not currently supported", { item_name: HtmlTextHelper.escape_html(item[:title]) }))
+            content_tag(:div, I18n.t("%{item_name} is not currently supported", { item_name: HtmlTextHelper.escape_html(item[:title]) }))
         %>
         <hr/>
         <p><a href="<%= "##{reference}.xhtml" %>">

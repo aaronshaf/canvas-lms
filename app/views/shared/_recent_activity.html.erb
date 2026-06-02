@@ -60,10 +60,9 @@
 
 <ul class="recent_activity unstyled_list">
 <% categorized_items =
-    Rails.cache.fetch(['categorized_stream_items', @user || @current_user, collection_cache_key(@stream_items)].cache_key, expires_in: 15.minutes) do
-      categorize_stream_items(@stream_items)
-    end
-%>
+     Rails.cache.fetch(['categorized_stream_items', @user || @current_user, collection_cache_key(@stream_items)].cache_key, expires_in: 15.minutes) do
+       categorize_stream_items(@stream_items)
+     end %>
 <%
   category_icons = {
     'conversation' => 'icon-message',
@@ -91,9 +90,10 @@
             <% if unread_count > 0 %>
               <strong class="unread-count">
                 <span aria-hidden="true"><%= unread_count %></span>
-                <span class="screenreader-only"><%= t(:unread_count_badge, { one: "1 *unread item*", other: "%{count} *unread items*" },
-                      count: unread_count,
-                      wrapper: '<span>\1</span>') %>
+                <span class="screenreader-only"><%= t(:unread_count_badge,
+                                                      { one: "1 *unread item*", other: "%{count} *unread items*" },
+                                                      count: unread_count,
+                                                      wrapper: '<span>\1</span>') %>
                 </span>
               </strong>
             <% end %>

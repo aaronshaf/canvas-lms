@@ -86,7 +86,7 @@
         <% end %>
 
         <% if (can_do(@quiz, @current_user, :grade) || can_do(@quiz, @current_user, :review_grades)) && @quiz.available? &&
-          @quiz.published? && !!@quiz.assignment&.can_view_speed_grader?(@current_user) %>
+              @quiz.published? && !!@quiz.assignment&.can_view_speed_grader?(@current_user) %>
           <% speed_grader_title = t(:speed_grader, "SpeedGrader") %>
           <li>
             <a target="_blank" href="<%= context_url(@context, :speed_grader_context_gradebook_url, assignment_id: @quiz.assignment.id) %>">
@@ -96,8 +96,8 @@
         <% end %>
       </ul>
       <% if can_do(@context, @current_user, :view_all_grades) &&
-              @quiz.assignment.present? &&
-              ConditionalRelease::Service.triggers_mastery_paths?(@quiz.assignment, @current_user, session) %>
+            @quiz.assignment.present? &&
+            ConditionalRelease::Service.triggers_mastery_paths?(@quiz.assignment, @current_user, session) %>
         <div id="crs-graphs"></div>
       <% end %>
     </div>
@@ -297,9 +297,10 @@
       <i class="icon-warning" aria-label="<%= t("labels.warning_icon", "Warning") %>"></i>
       <strong>
       <% if score_affected_by_regrade?(@submission) %>
-        <%= t 'quiz_regraded_your_score_affected', { one: "This quiz has been regraded; your score was affected.",
-                                                    other: "This quiz has been regraded; your new score reflects %{count} questions that were affected." },
-                                                    count: @submission.questions_regraded_since_last_attempt %>
+        <%= t 'quiz_regraded_your_score_affected',
+              { one: "This quiz has been regraded; your score was affected.",
+                other: "This quiz has been regraded; your new score reflects %{count} questions that were affected." },
+              count: @submission.questions_regraded_since_last_attempt %>
       <% else %>
         <%= t 'quiz_regraded_your_score_not_affected', 'This quiz has been regraded; your score was not affected.' %>
       <% end %>
@@ -389,8 +390,7 @@
       <% elsif @quiz.context.soft_concluded? && !@quiz.context.grants_right?(@current_user, :participate_as_student) %>
         <div class="alert alert-danger lock_explanation" role="alert">
           <%= t(:course_concluded_notice,
-            "This quiz is no longer available as the course has been concluded.")
-          %>
+                "This quiz is no longer available as the course has been concluded.") %>
         </div>
       <% elsif @locked && !can_do(@quiz, @current_user, :update) %>
         <div class="lock_explanation">
@@ -400,8 +400,7 @@
     <% elsif !can_do(@quiz, @current_user, :update) %>
       <div class="alert alert-danger lock_explanation" role="alert">
         <%= t(:course_concluded_notice,
-          "This quiz is no longer available as the course has been concluded.")
-        %>
+              "This quiz is no longer available as the course has been concluded.") %>
       </div>
     <% end %>
 

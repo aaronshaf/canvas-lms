@@ -46,27 +46,26 @@
   end
 
   cache(['recent_event_render3',
-          @current_user&.course_nickname_hash,
-          submission || 'no_submission',
-          recent_event || 'blank_event',
-          (recent_event.due_at if is_assignment_or_sub_assignment),
-          Time.zone.today,
-          Time.zone.name,
-          recent_event.context.short_name,
-          recent_event.context.grants_right?(@current_user, :manage_grades),
-          recent_event.context.grants_right?(@current_user, :participate_as_student)
-].cache_key) do
-    _icon_explanation, icon_aria_label, icon_class = icon_data(context: @context,
-                                                               contexts: @contexts,
-                                                               current_user: @current_user,
-                                                               recent_event:,
-                                                               submission:,
-                                                               show_assignment_type_icon: true)
-    if is_calendar_event
-      context = recent_event.effective_context
-    else
-      context = recent_event.context
-    end
+         @current_user&.course_nickname_hash,
+         submission || 'no_submission',
+         recent_event || 'blank_event',
+         (recent_event.due_at if is_assignment_or_sub_assignment),
+         Time.zone.today,
+         Time.zone.name,
+         recent_event.context.short_name,
+         recent_event.context.grants_right?(@current_user, :manage_grades),
+         recent_event.context.grants_right?(@current_user, :participate_as_student)].cache_key) do
+     _icon_explanation, icon_aria_label, icon_class = icon_data(context: @context,
+                                                                contexts: @contexts,
+                                                                current_user: @current_user,
+                                                                recent_event:,
+                                                                submission:,
+                                                                show_assignment_type_icon: true)
+     if is_calendar_event
+       context = recent_event.effective_context
+     else
+       context = recent_event.context
+     end
 
 %>
 

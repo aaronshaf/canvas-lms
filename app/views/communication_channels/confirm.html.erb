@@ -42,9 +42,12 @@
           <% if !@enrollment && @user.registered? %>
             <%= mt 'details.merge_one', "Would you like to combine the user accounts **%{current_user}** and **%{other_user}**?", current_user: friendly_name(@user, @merge_opportunities), other_user: friendly_name(@merge_opportunities.first.last.find { |p| p.account == @root_account } || @merge_opportunities.first.last.first, @merge_opportunities) %>
           <% else %>
-            <%= mt 'details.account_exists', "There's a user account already associated with %{email}.
+            <%= mt 'details.account_exists',
+                   "There's a user account already associated with %{email}.
 
-  **Are you %{name}?**", email: @communication_channel.path, name: friendly_name(@merge_opportunities.first.last.first, @merge_opportunities) %>
+  **Are you %{name}?**",
+                   email: @communication_channel.path,
+                   name: friendly_name(@merge_opportunities.first.last.first, @merge_opportunities) %>
           <% end %></p>
         </div>
         <div class="button_box ic-Login-confirmation__actions">
@@ -86,9 +89,11 @@
         <% if !@enrollment && @user.registered? %>
           <%= mt 'details.merge_multiple', "Select the account you would like to combine with **%{current_user}**.", current_user: friendly_name(@user, @merge_opportunities) %>
         <% else %>
-          <%= mt 'details.multiple_accounts_course', "There are already %{count} accounts associated with this email address.
+          <%= mt 'details.multiple_accounts_course',
+                 "There are already %{count} accounts associated with this email address.
 
-Which is you?", count: @merge_opportunities.length %>
+Which is you?",
+                 count: @merge_opportunities.length %>
         <% end %>
         <ul class="unstyled_list">
           <% @merge_opportunities.each_with_index do |(user, pseudonyms), i| %>
@@ -141,10 +146,10 @@ Which is you?", count: @merge_opportunities.length %>
   <% if @pseudonym %>
     <%= form_for :pseudonym, url: registration_confirmation_url(@nonce, request.query_parameters), html: { id: "registration_confirmation_form", class: 'form-horizontal bootstrap-form', style: ((!@merge_opportunities.empty? || @enrollment) && !params[:register]) ? hidden : '' } do |form| %>
       <p class="instructions"><%= if @enrollment
-          mt 'details.register_with_course', "In order to finish signing you up for the course **%{course}**, we'll need a little more information.", course: @course.name
-        else
-          t 'details.register', "In order to set up your account, we'll need a little more information."
-        end %></p>
+                                    mt 'details.register_with_course', "In order to finish signing you up for the course **%{course}**, we'll need a little more information.", course: @course.name
+                                  else
+                                    t 'details.register', "In order to set up your account, we'll need a little more information."
+                                  end %></p>
       <input type="hidden" name="register" value="1"/>
       <div class="control-group">
         <%= form.blabel :unique_id, en: "Login", class: 'control-label' %>
@@ -159,8 +164,7 @@ Which is you?", count: @merge_opportunities.length %>
         <div class="controls">
           <%= form.password_field :password,
                                   value: '',
-                                  required: true
-          %>
+                                  required: true %>
         </div>
       </div>
       <div class="control-group">

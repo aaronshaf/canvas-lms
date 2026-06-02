@@ -15,17 +15,16 @@
     <th class="reports"><%= t 'Run Report' %></th>
   </tr>
   <% @available_reports.sort_by { |_, details| details.title }.each do |report, details|
-    title = details.title
-    description_partial = details[:description_partial]
-    description_partial = report + '_description' if description_partial == true
-    parameters_partial = details[:parameters_partial]
-    parameters_partial = report + '_parameters' if parameters_partial == true
-    last_complete = @last_complete_reports[report]
-    last_report = @last_reports[report]
-    in_progress = last_report&.in_progress?
-    # the extra text is added so that you can give more than the date for the last run report
-    extra_text = last_complete.try(:parameters).try(:[], "extra_text")
-%>
+       title = details.title
+       description_partial = details[:description_partial]
+       description_partial = report + '_description' if description_partial == true
+       parameters_partial = details[:parameters_partial]
+       parameters_partial = report + '_parameters' if parameters_partial == true
+       last_complete = @last_complete_reports[report]
+       last_report = @last_reports[report]
+       in_progress = last_report&.in_progress?
+       # the extra text is added so that you can give more than the date for the last run report
+       extra_text = last_complete.try(:parameters).try(:[], "extra_text") %>
     <tr id="<%= report %>" class="reports">
       <th class="title reports">
         <span class="title"><%= title %></span>
@@ -36,9 +35,9 @@
           </button>
           <div id="<%= "#{report}_report_description" %>" style="display: none" class="report_description">
             <%= render(partial: description_partial, locals: {
-              report:,
-              report_details: details,
-            }) %>
+                         report:,
+                         report_details: details,
+                       }) %>
           </div>
         <% end %>
       </th>
@@ -63,9 +62,9 @@
               <form id="<%= report %>_form" class="run_report_form" action="<%= api_v1_account_create_report_path(@account, report) %>">
                 <div class="report_parameters">
                   <%= render(partial: parameters_partial, locals: {
-                    report:,
-                    report_details: details,
-                  }) %>
+                               report:,
+                               report_details: details,
+                             }) %>
                 </div>
               </form>
             </div>

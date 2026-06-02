@@ -38,10 +38,10 @@
     <% if @plugin_setting.errors.any? %>
       <div id="error_explanation">
         <h2><%= t({
-          one: "1 error prohibited this plugin from being saved:",
-          other: "%{count} errors prohibited this plugin from being saved:" },
-          count: @plugin_setting.errors.count
-        ) %></h2>
+                    one: "1 error prohibited this plugin from being saved:",
+                    other: "%{count} errors prohibited this plugin from being saved:"
+                  },
+                  count: @plugin_setting.errors.count) %></h2>
 
         <ul>
         <% @plugin_setting.errors.full_messages.each do |msg| %>
