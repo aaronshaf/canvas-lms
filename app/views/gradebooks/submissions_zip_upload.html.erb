@@ -106,7 +106,7 @@
   <h3 style="margin-top: 40px;"><%= t('header.ignored_files', "Ignored the following files") %></h3>
   <ul id="failure_list">
   <% @failures.each do |failure| %>
-    <li><%= failure.match(%r{/([^/]*)\z})[1].to_s %></li>
+    <li><%= failure.match(%r{/([^/]*)\z})[1] %></li>
   <% end %>
   </ul>
 <% end %>

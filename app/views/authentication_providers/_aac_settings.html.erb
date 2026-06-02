@@ -21,8 +21,11 @@
      <%= hidden(include_style: true) if aac.new_record? %>>
   <div class="grid-row">
     <div class="col-xs-12 col-lg-11 off-lg-1">
-      <% url = aac.new_record? ? account_authentication_providers_url(account) :
-              account_authentication_provider_url(account, aac) %>
+      <% url = if aac.new_record?
+                 account_authentication_providers_url(account)
+               else
+                 account_authentication_provider_url(account, aac)
+               end %>
 
       <%= form_for(aac,
                    as: :authentication_provider,

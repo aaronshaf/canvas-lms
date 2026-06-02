@@ -16,7 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% skip_ul ||= false; exclude_files ||= false %>
+<% skip_ul ||= false
+   exclude_files ||= false %>
 <% unless skip_ul %><ul><% end %>
   <% folders ||= [] %>
   <% nested_content.compact.select { |i| !i.is_a?(Attachment) || !exclude_files }.each do |item|

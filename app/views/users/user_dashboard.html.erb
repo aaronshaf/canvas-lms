@@ -17,11 +17,11 @@
 %>
 
 <%
-  if k5_user?
-    dashboard_title = t('Home')
-  else
-    dashboard_title = t('Dashboard')
-  end
+  dashboard_title = if k5_user?
+                      t('Home')
+                    else
+                      t('Dashboard')
+                    end
 %>
 
 <% provide(:page_title, dashboard_title) %>

@@ -16,7 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% membership = group; context = membership.is_a?(Enrollment) ? membership.course : membership.group %>
+<% membership = group
+   context = membership.is_a?(Enrollment) ? membership.course : membership.group %>
 <div>
   <div style="position: relative; overflow: hidden; white-space: nowrap;" class="group_reference group_<%= "#{context.class.to_s.downcase}_#{context.id}" %>">
     &nbsp;

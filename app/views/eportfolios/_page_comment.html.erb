@@ -16,7 +16,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% page_comment ||= nil; comment = page_comment || nil; read_only ||= false %>
+<% page_comment ||= nil
+   comment = page_comment || nil
+   read_only ||= false %>
 <div class="comment" id="comment_<%= comment ? comment.id : "{{ blank }}" %>" style="<%= hidden unless comment %> border: 0px solid #aaa; margin-bottom: 10px;">
   <div class="user_name pull-left"><%= comment.user_name rescue nbsp %></div>
   <div style="float: <%= direction('right') %>;">

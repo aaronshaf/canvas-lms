@@ -7,7 +7,8 @@
 <% end %>
 
 <%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", course: asset.course.name, role_type: asset.readable_role_name %>
-<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
+<% email = asset.user.email
+   login = asset.user.pseudonym.unique_id rescue "none" %>
 <%= before_label :name, "Name" %> <%= asset.user.name %>
 <%= before_label :email, "Email" %> <%= asset.user.email %>
 <% if email != login %><%= before_label :username, "Username" %> <%= asset.user.pseudonym.unique_id rescue t(:none, "none") %><% end %>

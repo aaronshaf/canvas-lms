@@ -161,7 +161,7 @@
 
     <ul id="ignored-files">
     <% @ignored_files.each do |ignored_file| %>
-      <li><%= ignored_file.match(%r{/([^/]*)\z})[1].to_s %></li>
+      <li><%= ignored_file.match(%r{/([^/]*)\z})[1] %></li>
     <% end %>
     </ul>
   <% end %>

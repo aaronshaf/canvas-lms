@@ -18,7 +18,8 @@
   <% end %>
 <% end %>
 
-<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
+<% email = asset.user.email
+   login = asset.user.pseudonym.unique_id rescue "none" %>
 <p>
   <%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", course: asset.course.name, role_type: asset.readable_role_name %>
 </p>

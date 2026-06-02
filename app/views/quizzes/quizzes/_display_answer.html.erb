@@ -42,7 +42,11 @@
   correct_answer = (hash_get(user_answer, "answer_#{answer_id}").to_f - hash_get(answer, :match_id).to_f).abs < Float::EPSILON if user_answer && answer && question_type && question_type.answer_type == "matching_answer"
   correct_answer = false if !user_answer && question && hash_get(question, :question_type) == "matching_question"
   correct_answer = false unless show_correct_answers || selected_answer
-  correct_answer_class = show_correct_answers ? (correct_answer ? "correct_answer" : "") : "unspecified_answer"
+  correct_answer_class = if show_correct_answers
+                           correct_answer ? "correct_answer" : ""
+                         else
+                           "unspecified_answer"
+                         end
   wrong_answer = selected_answer && !correct_answer
   no_answer = wrong_answer && (hash_get(user_answer, "answer_#{answer_id}") == '')
   hide_right_arrow = false

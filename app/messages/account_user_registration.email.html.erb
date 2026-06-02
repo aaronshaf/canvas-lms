@@ -10,7 +10,8 @@
   <%= t(:click_to_finish_registration, "Click here to finish the registration process") %>
 </a>
 
-<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
+<% email = asset.user.email
+   login = asset.user.pseudonym.unique_id rescue "none" %>
 
 <p>
     <%= t("You've been given an account role for the %{account} account at %{website}. Role type: %{role_type}.",

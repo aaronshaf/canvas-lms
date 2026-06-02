@@ -12,7 +12,8 @@
   </a>
 <% end %>
 
-<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
+<% email = asset.user.email
+   login = asset.user.pseudonym.unique_id rescue "none" %>
 
 <p>
   <%= t "You've been invited to participate in the course, %{course}. Course role: %{role_type}",

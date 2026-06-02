@@ -27,9 +27,11 @@
     user_name = t('Logged Out User %{index}', index: @logged_out_user_index)
   end
 %>
-<% provide :page_title, (@quiz.survey? ?
-     join_title(t(:page_title_survey, "%{user}'s Survey History", user: user_name), @quiz.quiz_title || t(:default_survey_name, "Survey %{course_name}", course_name: @context.name)) :
-     join_title(t(:page_title_quiz, "%{user}'s Quiz History", user: user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", course_name: @context.name))) %>
+<% provide :page_title, (if @quiz.survey?
+                           join_title(t(:page_title_survey, "%{user}'s Survey History", user: user_name), @quiz.quiz_title || t(:default_survey_name, "Survey %{course_name}", course_name: @context.name))
+                         else
+                           join_title(t(:page_title_quiz, "%{user}'s Quiz History", user: user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", course_name: @context.name))
+                         end) %>
 
 <% quiz_nav_class = 'quiz-nav' %>
 <% unless params[:headless] %>
@@ -179,6 +181,6 @@
 <% end %>
 
 <div style="display: none;" id="submission_details">
-  <div class="version_number"><%= @version_number.to_s %></div>
+  <div class="version_number"><%= @version_number %></div>
   <div class="user_id"><%= @submission.user_id %></div>
 </div>

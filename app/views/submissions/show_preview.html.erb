@@ -276,9 +276,11 @@
             <td class="file-upload-submission-attachment">
               <% unread_annotations = @current_user&.unread_submission_annotations?(@submission) %>
               <% if attachment.canvadoc.try(:has_annotations?) %>
-                  <% preview_document = unread_annotations ?
-                       t('Preview your submission and view teacher feedback. There are unread comments.') :
-                       t('preview_crocodoc_document', 'Preview your submission and view teacher feedback, if available')
+                  <% preview_document = if unread_annotations
+                                          t('Preview your submission and view teacher feedback. There are unread comments.')
+                                        else
+                                          t('preview_crocodoc_document', 'Preview your submission and view teacher feedback, if available')
+                                        end
                      button_text = t('view_feedback_button', 'View Feedback') %>
               <% elsif attachment.canvadocable? %>
                 <% preview_document = t('preview_submission', 'Preview your submission')

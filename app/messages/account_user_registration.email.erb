@@ -11,7 +11,8 @@
       account: asset.account.name,
       website: HostUrl.context_host(asset.account)) %>
 
-<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
+<% email = asset.user.email
+   login = asset.user.pseudonym.unique_id rescue "none" %>
 <%= t(:name_info, "Name: %{name}", name: asset.user.name) %>
 <%= t(:email_info, "Email: %{email}", email:) %>
 <% if email != login %><%= t(:username_info, "Username: %{username}", username: login) %><% end %>

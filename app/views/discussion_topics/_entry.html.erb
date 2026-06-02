@@ -108,7 +108,8 @@
       <div class="clear"></div>
     </div>
     <div class="subcontent" style="<%= hidden if entry&.new_record? %>">
-      <% entries ||= []; @grouped_entries ||= {} %>
+      <% entries ||= []
+         @grouped_entries ||= {} %>
       <% if entry && !skip_sub_entries %>
         <% entries = @grouped_entries[entry.id] %>
         <% entries ||= [] # entry.discussion_subentries.active %>

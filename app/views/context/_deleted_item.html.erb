@@ -38,11 +38,11 @@
     <% elsif item.respond_to?(:title) %>
       <%= item.title %>
     <% else %>
-      <%= item.class.to_s %>:<%= item.id %>
+      <%= item.class %>:<%= item.id %>
     <% end %>
   </div>
   <div class="type">
-    <%= item.class.to_s %>
+    <%= item.class %>
   </div>
   <div class="details">
     <% if item.respond_to?(:description) %>

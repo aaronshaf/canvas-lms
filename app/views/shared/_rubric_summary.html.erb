@@ -19,7 +19,10 @@
 <% rubric_summary ||= nil %>
 <% rubric = rubric_summary %>
 <% rubric_association ||= nil
-   assessing ||= false; assessment ||= nil; brief ||= false; checkpointed ||= false; %>
+   assessing ||= false
+   assessment ||= nil
+   brief ||= false
+   checkpointed ||= false %>
 <div class="rubric_container rubric rubric_summary <%= 'free_form' if rubric&.free_form_criterion_comments %>" id="<%= rubric ? "rubric_summary_#{rubric.id}" : "default_rubric_summary" %>" style="<%= 'hidden' unless brief %>">
   <div class="screenreader-only"><h3><%= t 'rubric', "Rubric" %></h3></div>
   <div class="rubric_title" style="<%= hidden if brief %>">

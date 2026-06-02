@@ -17,8 +17,13 @@
 %>
 
 <%
-  rubric_association ||= nil; editable ||= false; edit_view ||= false
-  rubric ||= nil; assessing ||= false; assessment ||= nil; has_assessments ||= false
+  rubric_association ||= nil
+  editable ||= false
+  edit_view ||= false
+  rubric ||= nil
+  assessing ||= false
+  assessment ||= nil
+  has_assessments ||= false
   for_context ||= false
   context = @context
   context = context.context if context.is_a?(Group)

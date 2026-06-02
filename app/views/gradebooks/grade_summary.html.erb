@@ -301,7 +301,7 @@
                         <%= submission.blank? ? 'none' : submission.workflow_state %>
                       </span>
                       <span class="assignment_group_id"><%= assignment.assignment_group_id rescue "" %></span>
-                      <span class="assignment_id"><%= assignment.id.to_s %></span>
+                      <span class="assignment_id"><%= assignment.id %></span>
                       <span class="group_weight"><%= assignment.group_weight rescue "" %></span>
                       <span class="rules"><%= assignment.rules rescue "" %></span>
                     </div>
@@ -722,7 +722,11 @@
                               <div style="text-align: <%= direction('right') %>; font-size: 0.8em; margin-<%= direction('right') %>: 10px; clear: both;">
                                 <% comment.attachments.each do |attachment| %>
                                   <div>
-                                    <a href="<%= context_url(@context, :context_assignment_submission_url, submission.assignment_id, submission.user_id, download: attachment.id, comment_id: comment.id) %>"><%= image_tag "file.png", style: "height: 12px;", alt: "" %><%= t('links.download', "Download %{attachment}", attachment: attachment.display_name) %></a>
+                                    <a href="<%= context_url(@context, :context_assignment_submission_url, submission.assignment_id, submission.user_id, download: attachment.id, comment_id: comment.id) %>">
+                                      <%= image_tag "file.png",
+                                                    style: "height: 12px;",
+                                                    alt: "" %><%= t('links.download', "Download %{attachment}", attachment: attachment.display_name) %>
+                                    </a>
                                   </div>
                                 <% end %>
                               </div>

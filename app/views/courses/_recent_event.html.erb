@@ -61,11 +61,11 @@
                                                                 recent_event:,
                                                                 submission:,
                                                                 show_assignment_type_icon: true)
-     if is_calendar_event
-       context = recent_event.effective_context
-     else
-       context = recent_event.context
-     end
+     context = if is_calendar_event
+                 recent_event.effective_context
+               else
+                 recent_event.context
+               end
 
 %>
 

@@ -53,7 +53,7 @@
   <% end %>
   </ul>
   <div style="display: none;" id="rubric_parameters">
-    <input type="hidden" name="rubric_association[association_type]" value="<%= @context.class.to_s %>"/>
+    <input type="hidden" name="rubric_association[association_type]" value="<%= @context.class %>"/>
     <input type="hidden" name="rubric_association[association_id]" value="<%= @context.id %>"/>
     <input type="hidden" name="rubric_association[purpose]" value="bookmark"/>
   </div>

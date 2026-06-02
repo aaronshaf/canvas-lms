@@ -28,7 +28,11 @@
   range_rating_enabled = @domain_root_account.feature_enabled?(:rubric_criterion_range)
   learning_outcome_criterion = criterion.try(:learning_outcome_id)
   learning_outcome_ids ||= rubric.learning_outcome_ids_from_results if learning_outcome_criterion && edit_view
-  should_show_delete = edit_view ? learning_outcome_ids.present? ? learning_outcome_ids.exclude?(learning_outcome_criterion) : true : false
+  should_show_delete = if edit_view
+                         learning_outcome_ids.present? ? learning_outcome_ids.exclude?(learning_outcome_criterion) : true
+                       else
+                         false
+                       end
   range_rating_visible = range_rating_enabled && !learning_outcome_criterion
 
   long_description_text = criterion.try(:long_description) || ''
@@ -115,16 +119,17 @@
       </div>
     <% else %>
       <div class="ratings" style="<%= hidden if rubric&.free_form_criterion_comments %>">
-        <% ratings = criterion.ratings rescue nil; ratings = nil if ratings&.empty? %>
+        <% ratings = criterion.ratings rescue nil
+           ratings = nil if ratings&.empty? %>
         <% ratings ||= [Rubric::Rating.new(id: "blank", description: t(:full_marks, "Full Marks"), points: 5), Rubric::Rating.new(id: "blank_2", description: t(:no_marks, "No Marks"), points: 0)] %>
         <% ratings.each_index do |idx| %>
-          <% rating = ratings[idx];
+          <% rating = ratings[idx]
              last_rating = idx == ratings.length - 1
-             edge = idx == 0 || last_rating;
-             next_rating = ratings[idx + 1];
-             rating_min = next_rating&.points || 0;
+             edge = idx == 0 || last_rating
+             next_rating = ratings[idx + 1]
+             rating_min = next_rating&.points || 0
              rating_match = assessment_rating && assessment_rating[:points] == rating.points
-             use_range = criterion.try(:criterion_use_range) && rating_min.try(:to_f) != rating.points.try(:to_f) && range_rating_enabled;
+             use_range = criterion.try(:criterion_use_range) && rating_min.try(:to_f) != rating.points.try(:to_f) && range_rating_enabled
              selected = rating_match || ((assessment_rating && assessment_rating[:points] && use_range) ? (assessment_rating[:points] > rating_min && assessment_rating[:points] < rating.points) : false) %>
           <div class="rating <%= "edge_rating" if edge %>
                 <%= "infinitesimal" if rating_min.try(:to_f) == rating.points.try(:to_f) %>
@@ -171,11 +176,11 @@
     <div class="editing" style="white-space: normal">
       <span style="white-space: nowrap; font-size: 0.8em">
         <%
-          if assessing
-            points_value = n(round_if_whole(assessment_rating.points)) rescue ""
-          else
-            points_value = n(round_if_whole((criterion.points rescue 5)))
-          end
+          points_value = if assessing
+                           n(round_if_whole(assessment_rating.points)) rescue ""
+                         else
+                           n(round_if_whole((criterion.points rescue 5)))
+                         end
 
           rating_points = tag.input(type: "text", "aria-label": t("Points"), value: points_value, class: "criterion_points span1 no-margin-bottom")
         %>

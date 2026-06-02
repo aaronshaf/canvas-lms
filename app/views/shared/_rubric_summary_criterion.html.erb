@@ -16,7 +16,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% rubric_summary_criterion ||= nil; criterion = rubric_summary_criterion || nil; assessing ||= false; brief ||= false; assessment_rating ||= nil %>
+<% rubric_summary_criterion ||= nil
+   criterion = rubric_summary_criterion || nil
+   assessing ||= false
+   brief ||= false
+   assessment_rating ||= nil %>
 <% @empty_rating ||= [Rubric::Rating.new(id: "blank", description: t(:full_marks, "Full Marks"), points: 5), Rubric::Rating.new(id: "blank_2", description: t(:no_marks, "No Marks"), points: 0)] %>
 <tr id="criterion_<%= criterion ? criterion.id : "blank" %>" class="criterion <%= "blank" unless criterion %> criterion_<%= criterion ? criterion.id : "blank" %> <%= 'ignore_criterion_for_scoring' if criterion&.ignore_for_scoring %> <%= 'learning_outcome_criterion' if criterion&.learning_outcome_id %>">
   <td class="criterion_description">
@@ -36,7 +40,8 @@
       <div class="ratings">
       <% ratings = criterion ? criterion.ratings : @empty_rating %>
       <% ratings.each_index do |idx| %>
-        <% rating = ratings[idx]; edge = idx == 0 || idx == ratings.length - 1 %>
+        <% rating = ratings[idx]
+           edge = idx == 0 || idx == ratings.length - 1 %>
         <div class="rating_holder"><span id="rating_<%= rating.id %>" class="rating <%= "edge_rating" if edge %>"><%= rating.description %></span></div>
       <% end %>
       </div>
@@ -53,7 +58,11 @@
           <% ot(:out_of_points,
                 "%{points}/%{total} pts",
                 points: capture do %>
-            <span class="criterion_points" style="<%= hidden if brief %>"><%= assessing ? (assessment_rating ? I18n.n(assessment_rating.points) : "") : (criterion ? I18n.n(criterion.points) : I18n.n(5)) %></span>
+            <span class="criterion_points" style="<%= hidden if brief %>"><%= if assessing
+                                                                                assessment_rating ? I18n.n(assessment_rating.points) : ""
+                                                                              else
+                                                                                (criterion ? I18n.n(criterion.points) : I18n.n(5))
+                                                                              end %></span>
           <% end,
                 total: capture do %>
             <span class="criterion_points_possible"><%= criterion ? I18n.n(criterion.points) : I18n.n(5) %></span>

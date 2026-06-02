@@ -32,11 +32,11 @@
   <input type="text" name="question_<%= hash_get(question, :id) %>" value="<%= value %>" class="question_input" autocomplete='off' <%= 'readonly="readonly"' unless editable %> aria-label="<%= label_for_question_type(question_type) %>" />
 <% elsif question_type.entry_type == "numerical_text_box" %>
   <%
-    if question[:answers].any? { |answer| answer[:numerical_answer_type] == 'precision_answer' }
-      answer_type_class = 'precision_question_input'
-    else
-      answer_type_class = 'numerical_question_input'
-    end
+    answer_type_class = if question[:answers].any? { |answer| answer[:numerical_answer_type] == 'precision_answer' }
+                          'precision_question_input'
+                        else
+                          'numerical_question_input'
+                        end
   %>
   <input
     type="text"

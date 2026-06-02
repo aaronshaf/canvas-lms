@@ -176,7 +176,10 @@
           <% end %>
         <% end %>
         <% if render_peer_review_container %>
-          <div class="peer-review-info-container" id="module_teacher_peer_review_info_<%= module_item ? module_item.content_id : "{{ content_id }}" %>_<%= module_item ? module_item.context_module_id : "{{ context_module_id }}" %>" style="<%= 'display: none;' unless show_peer_review_info %>"></div>
+          <div class="peer-review-info-container" id="module_teacher_peer_review_info_<%= module_item ? module_item.content_id : "{{ content_id }}" %>_<%= module_item ? module_item.context_module_id : "{{ context_module_id }}" %>" style="<%= unless show_peer_review_info
+                                                                                                                                                                                                                                                    'display: none
+'
+                                                                                                                                                                                                                                                  end %>"></div>
         <% end %>
         <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-requirement" class="requirement-description ig-details__item">
           <span class="completion_requirement">
@@ -348,7 +351,7 @@
                   <a
                     href="#"
                     class="module_item_send_to"
-                    data-content-id="<%= module_item&.content_id.to_s %>"
+                    data-content-id="<%= module_item&.content_id %>"
                     data-content-type="<%= module_item&.direct_share_type %>"
                     title="<%= t("Send this module item to another user...") %>"
                     aria-label="<%= t("Send this module item to another user...") %>"
@@ -359,7 +362,7 @@
                   <a
                     href="#"
                     class="module_item_copy_to"
-                    data-select-id="<%= module_item&.content_id.to_s %>"
+                    data-select-id="<%= module_item&.content_id %>"
                     data-select-class="<%= module_item&.direct_share_select_class %>"
                     title="<%= t('Copy this module item to a course...') %>"
                     aria-label="<%= t('Copy this module item to a course...') %>"
@@ -416,7 +419,7 @@
                   <a
                     href="#"
                     class="module_item_send_to"
-                    data-content-id="<%= module_item&.content_id.to_s %>"
+                    data-content-id="<%= module_item&.content_id %>"
                     data-content-type="<%= module_item&.direct_share_type %>"
                     title="<%= t("Send this module item to another user...") %>"
                     aria-label="<%= t("Send this module item to another user...") %>"
@@ -427,7 +430,7 @@
                   <a
                     href="#"
                     class="module_item_copy_to"
-                    data-select-id="<%= module_item&.content_id.to_s %>"
+                    data-select-id="<%= module_item&.content_id %>"
                     data-select-class="<%= module_item&.direct_share_select_class %>"
                     title="<%= t('Copy this module item to a course...') %>"
                     aria-label="<%= t('Copy this module item to a course...') %>"
