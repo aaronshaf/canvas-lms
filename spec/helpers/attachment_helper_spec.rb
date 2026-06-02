@@ -433,5 +433,20 @@ describe AttachmentHelper do
 
       expect(sanitized_verifier).to be_nil
     end
+
+    it "passes a CanvasSlug verifier" do
+      params[:verifier] = "NIG4p191MDULF2IyH6vpeAX6DBzBcKvLo85S0c4K"
+      expect(sanitized_verifier).to eq(params[:verifier])
+    end
+
+    it "passes a hex UUID verifier" do
+      params[:verifier] = "8dca4d31-cd95-4f7f-bcc1-b8adf7759031"
+      expect(sanitized_verifier).to eq(params[:verifier])
+    end
+
+    it "passes a JWT verifier" do
+      params[:verifier] = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZXJpb3VzbHkiOnRydWV9.CqoPNOlW4jrx3ShiSst_3qAN7SFYmQqdL-_NZ0jzb3Q"
+      expect(sanitized_verifier).to eq(params[:verifier])
+    end
   end
 end

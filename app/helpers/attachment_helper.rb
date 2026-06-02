@@ -20,11 +20,11 @@
 
 module AttachmentHelper
   # Attachment verifiers are CanvasSlug.generate_securish_uuid values
-  # (SecureRandom.alphanumeric(40)). Reject anything that doesn't match that
-  # shape so the value is safe to render regardless of how a downstream
-  # caller consumes it. Returns nil when params[:verifier] is missing or
-  # malformed.
-  VALID_VERIFIER_FORMAT = /\A[A-Za-z0-9]{1,64}\z/
+  # (SecureRandom.alphanumeric(40)), hex UUIDs, or JWTs.
+  # Reject anything that doesn't match that shape so the value is
+  # safe to render regardless of how a downstream caller consumes it.
+  # Returns nil when params[:verifier] is missing or malformed.
+  VALID_VERIFIER_FORMAT = /\A[A-Za-z0-9_.-]+\z/
   private_constant :VALID_VERIFIER_FORMAT
 
   def sanitized_verifier
