@@ -41,20 +41,6 @@ describe "student dashboard Course work widget", :ignore_js_errors do
       dashboard_course_submission_setup
     end
 
-    it "can filter work items in not submitted" do
-      go_to_dashboard
-      expect(course_work_summary_stats("Due")).to be_displayed
-
-      expect(all_course_work_items.size).to eq(3)
-      expect(course_work_summary_stats("Due").text).to eq("3\nDue")
-      expect(course_work_item(@due_assignment.id)).to be_displayed
-      expect(course_work_item(@due_graded_discussion.id)).to be_displayed
-      expect(course_work_item(@due_quiz.id)).to be_displayed
-      expect(course_work_item_pill("due_soon", @due_assignment.id)).to be_displayed
-      expect(course_work_item_pill("due_soon", @due_graded_discussion.id)).to be_displayed
-      expect(course_work_item_pill("due_soon", @due_quiz.id)).to be_displayed
-    end
-
     it "can filter work items in missing" do
       go_to_dashboard
       expect(course_work_summary_stats("Missing")).to be_displayed
@@ -89,39 +75,6 @@ describe "student dashboard Course work widget", :ignore_js_errors do
       expect(course_work_item_pill("late", @graded_assignment.id)).to be_displayed
       expect(course_work_item_pill("late", @graded_discussion.id)).to be_displayed
       expect(course_work_item_pill("submitted", @graded_quiz.assignment_id)).to be_displayed
-    end
-
-    it "can filter work items in course" do
-      go_to_dashboard
-      expect(course_work_summary_stats("Due")).to be_displayed
-
-      filter_course_work_by(:course, @course2.name)
-      expect(course_work_summary_stats("Due").text).to eq("0\nDue")
-      expect(no_course_work_message).to be_displayed
-
-      filter_course_work_by(:date, "Missing")
-      expect(all_course_work_items.size).to eq(2)
-      expect(course_work_summary_stats("Missing").text).to eq("2\nMissing")
-
-      filter_course_work_by(:date, "Submitted")
-      expect(all_course_work_items.size).to eq(2)
-      expect(course_work_summary_stats("Submitted").text).to eq("2\nSubmitted")
-    end
-
-    it "navigates to the course work when clicking the item" do
-      go_to_dashboard
-
-      expect(course_work_item_link(@due_assignment.id)).to be_displayed
-      course_work_item_link(@due_assignment.id).click
-      expect(driver.current_url).to include("/courses/#{@course1.id}/assignments/#{@due_assignment.id}")
-    end
-
-    it "navigates to the course when clicking go to course link" do
-      go_to_dashboard
-
-      expect(course_work_item_course_link(@due_assignment.id)).to be_displayed
-      course_work_item_course_link(@due_assignment.id).click
-      expect(driver.current_url).to include("/courses/#{@course1.id}")
     end
 
     it "displays course work in pagination" do

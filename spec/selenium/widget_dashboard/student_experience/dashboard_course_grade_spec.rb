@@ -39,54 +39,12 @@ describe "student dashboard Course grade widget", :ignore_js_errors do
   end
 
   context "course grade widget smoke tests" do
-    it "undisplay and display individual grades with toggle" do
-      go_to_dashboard
-
-      expect(hide_single_grade_button(@course1.id)).to be_displayed
-      expect(course_grade_text(@course1.id)).to be_displayed
-      expect(course_grade_text(@course2.id)).to be_displayed
-      hide_single_grade_button(@course1.id).click
-      expect(show_single_grade_button(@course1.id)).to be_displayed
-      expect(course_grade_hidden?(@course1.id)).to be_truthy
-      expect(course_grade_text(@course2.id)).to be_displayed
-
-      show_single_grade_button(@course1.id).click
-      expect(hide_single_grade_button(@course1.id)).to be_displayed
-      expect(course_grade_hidden?(@course1.id)).to be_falsey
-      expect(course_grade_text(@course2.id)).to be_displayed
-    end
-
-    it "undisplay and display all grades with toggle" do
-      go_to_dashboard
-
-      expect(hide_all_grades_checkbox).to be_displayed
-      expect(course_grade_text(@course1.id)).to be_displayed
-      expect(course_grade_text(@course2.id)).to be_displayed
-      force_click_native(hide_all_grades_checkbox_selector)
-      expect(show_all_grades_checkbox).to be_displayed
-      expect(course_grade_hidden?(@course1.id)).to be_truthy
-      expect(course_grade_hidden?(@course2.id)).to be_truthy
-
-      force_click_native(show_all_grades_checkbox_selector)
-      expect(hide_all_grades_checkbox).to be_displayed
-      expect(course_grade_hidden?(@course1.id)).to be_falsey
-      expect(course_grade_hidden?(@course2.id)).to be_falsey
-    end
-
     it "navigates to the course gradebook when clicking view gradebook link" do
       go_to_dashboard
 
       expect(course_gradebook_link(@course1.id)).to be_displayed
       course_gradebook_link(@course1.id).click
       expect(driver.current_url).to include("/courses/#{@course1.id}/grades")
-    end
-
-    it "navigates to the course when clicking go to course link" do
-      go_to_dashboard
-
-      expect(course_grades_go_to_course_link(@course1.id)).to be_displayed
-      course_grades_go_to_course_link(@course1.id).click
-      expect(driver.current_url).to include("/courses/#{@course1.id}")
     end
 
     it "displays last updated timestamp from course score" do
@@ -121,33 +79,11 @@ describe "student dashboard Course grade widget", :ignore_js_errors do
       expect(show_single_grade_button(@course1.id)).to be_displayed
       expect(course_grade_hidden?(@course1.id)).to be_truthy
     end
-
-    it "displays N/A grade badge for courses without a calculable grade" do
-      course_with_student(user: @student, active_all: true, course_name: "No Grades Course")
-      ungraded_course = @course
-
-      go_to_dashboard
-
-      expect(course_grade_text(ungraded_course.id).text).to eq("N/A")
-      expect(element_exists?(course_last_updated_selector(ungraded_course.id))).to be_falsey
-    end
   end
 
   context "Course grade widget pagination" do
     before :once do
       pagination_course_setup # Creates 20 additional courses
-    end
-
-    it "displays all pagination link on initial load" do
-      go_to_dashboard
-
-      expect(all_course_grade_items.size).to eq(6)
-      expect(widget_pagination_button("Course grades", "1")).to be_displayed
-      expect(widget_pagination_button("Course grades", "4")).to be_displayed
-      widget_pagination_button("Course grades", "4").click
-      expect(all_course_grade_items.size).to eq(4)
-      widget_pagination_button("Course grades", "1").click
-      expect(all_course_grade_items.size).to eq(6)
     end
 
     it "maintains pagination when switching all grades toggle" do

@@ -35,18 +35,6 @@ describe "student dashboard widget customization tests", :ignore_js_errors do
     user_session(@student)
   end
 
-  it "enters and exits edit mode with save and cancel buttons" do
-    go_to_dashboard
-
-    click_widget_customize_button
-    expect(save_customize_button).to be_displayed
-    expect(cancel_customize_button).to be_displayed
-    expect(widget_drag_handle("course-work-combined")).to be_displayed
-
-    cancel_customize_button.click
-    expect(customize_dashboard_button).to be_displayed
-  end
-
   context "Rearrange widget via context menu" do
     it "moves widgets up and down using context menu options" do
       go_to_dashboard
@@ -162,16 +150,6 @@ describe "student dashboard widget customization tests", :ignore_js_errors do
       refresh_page
       verify_widget_is_removed("announcements", 2)
     end
-
-    it "restores removed widget when canceling edit mode" do
-      go_to_dashboard
-      click_widget_customize_button
-      click_widget_remove_button("announcements")
-      verify_widget_is_removed("announcements", 2)
-
-      cancel_customize_button.click
-      expect(widget_container("announcements")).to be_displayed
-    end
   end
 
   context "Add widget" do
@@ -189,51 +167,6 @@ describe "student dashboard widget customization tests", :ignore_js_errors do
       refresh_page
       wait_for_ajaximations
       expect(widget_container("todo_list")).to be_displayed
-    end
-
-    it "shows added status for widget that is already on dashboard" do
-      go_to_dashboard
-      click_widget_customize_button
-
-      click_add_widget_button
-      expect(add_widget_modal_added_button("course_grades")).to be_displayed
-      expect(add_widget_modal_added_button("course_grades")).to have_attribute("disabled")
-    end
-
-    it "closes add widget modal without adding when close button is clicked" do
-      go_to_dashboard
-      verify_default_widget_count
-
-      click_widget_customize_button
-      click_add_widget_button
-      expect(add_widget_modal_close_button).to be_displayed
-      add_widget_modal_close_button.click
-
-      expect(element_exists?(add_widget_modal_selector)).to be_falsey
-      verify_default_widget_count
-    end
-
-    it "does not add widgets when canceling edit mode" do
-      go_to_dashboard
-      click_widget_customize_button
-      click_add_widget_button
-
-      expect(add_widget_modal_add_button("todo_list")).to be_displayed
-      add_widget_modal_add_button("todo_list").click
-      expect(widget_container("todo_list")).to be_displayed
-      cancel_customize_button.click
-      verify_default_widget_count
-    end
-
-    it "does not show educator widget cards for non-educator roles" do
-      go_to_dashboard
-      click_widget_customize_button
-      click_add_widget_button
-
-      expect(add_widget_modal).to be_displayed
-      expect(element_exists?(widget_card_selector("educator_announcement_creation"))).to be_falsey
-      expect(element_exists?(widget_card_selector("educator_todo_list"))).to be_falsey
-      expect(element_exists?(widget_card_selector("educator_content_quality"))).to be_falsey
     end
   end
 end

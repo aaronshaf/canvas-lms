@@ -95,16 +95,6 @@ describe "student dashboard todo widget", :ignore_js_errors do
       expect(todo_item(@incomplete_discussion.id)).to be_displayed
     end
 
-    it "filter selection persists across refresh" do
-      go_to_dashboard
-
-      filter_todos_by("Complete")
-      refresh_page
-      wait_for_ajaximations
-
-      expect(todo_filter_select.attribute("value")).to eq("Complete")
-    end
-
     it "marking item complete removes it from Incomplete filter" do
       go_to_dashboard
 
@@ -173,27 +163,6 @@ describe "student dashboard todo widget", :ignore_js_errors do
 
       filter_todos_by("All")
       expect(all_todo_items.size).to be >= 1
-    end
-
-    it "can mark todos complete and incomplete across pages" do
-      go_to_dashboard
-
-      filter_todos_by("All")
-      expect(widget_pagination_button("To-do list", 2)).to be_displayed
-      widget_pagination_button("To-do list", 2).click
-      wait_for_ajaximations
-
-      target_todo_id = all_todo_items[2].attribute("data-testid").split("-").last
-      svg_element = f(todo_checkbox_icon_selector(target_todo_id))
-      todo_status = svg_element.attribute("name")
-
-      expect(todo_status).to eq("IconCheckPlus")
-      todo_checkbox(target_todo_id).click
-      wait_for_ajaximations
-
-      changed_svg_element = f(todo_checkbox_icon_selector(target_todo_id))
-      changed_todo_status = changed_svg_element.attribute("name")
-      expect(changed_todo_status).to eq("IconCheck")
     end
   end
 

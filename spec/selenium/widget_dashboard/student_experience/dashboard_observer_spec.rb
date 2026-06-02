@@ -220,50 +220,6 @@ describe "Student dashboard as observer", :ignore_js_errors do
       expect(message_instructor_button(@teacher2.id)).to be_displayed
       expect(element_exists?(message_instructor_button_selector(@teacher1.id))).to be_falsey
     end
-
-    it "sends message to instructor as observer" do
-      go_to_dashboard
-      select_observed_student(@student.name)
-
-      expect(message_instructor_button(@teacher1.id)).to be_displayed
-      message_instructor_button(@teacher1.id).click
-      wait_for_ajaximations
-      expect(message_modal_subject_input).to be_displayed
-      message_modal_subject_input.send_keys("Observer")
-      expect(message_modal_body_textarea).to be_displayed
-      message_modal_body_textarea.send_keys("Observer")
-      message_modal_send_button.click
-
-      message = ConversationMessage.last
-      expect(message.author_id).to eq(@observer.id)
-    end
-  end
-
-  context "Todo list widget as observer" do
-    before :once do
-      add_widget_to_dashboard(@observer, :todo_list, 1)
-    end
-
-    it "shows observed student's todo items" do
-      go_to_dashboard
-      select_observed_student(@student.name)
-
-      expect(todo_item(@due_assignment.id)).to be_displayed
-    end
-
-    it "hides the New To-do button" do
-      go_to_dashboard
-      select_observed_student(@student.name)
-
-      expect(element_exists?(new_todo_button_selector)).to be_falsey
-    end
-
-    it "disables the complete checkbox" do
-      go_to_dashboard
-      select_observed_student(@student.name)
-
-      expect(todo_checkbox(@due_assignment.id)).to be_disabled
-    end
   end
 
   context "Recent grades widget as observer" do

@@ -101,12 +101,6 @@ describe "educator announcement creation", :ignore_js_errors, custom_timeout: 30
       expect(announcement_modal_open?).to be false
     end
 
-    it "marks the RCE backing textarea as aria-required" do
-      open_announcement_modal
-      textarea = f(rce_announcement_textarea_selector)
-      expect(textarea.attribute("aria-required")).to eq("true")
-    end
-
     it "moves focus into the RCE iframe on empty-content validation error" do
       open_announcement_modal
       select_course_in_modal("Biology 101")

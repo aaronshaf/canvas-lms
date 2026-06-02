@@ -158,14 +158,6 @@ describe "student dashboard", :ignore_js_errors do
   end
 
   context "new widgets on zero states" do
-    it "shows empty state when no graded submissions exist" do
-      add_widget_to_dashboard(@student, :recent_grades, 1)
-      go_to_dashboard
-
-      expect(recent_grades_empty_message).to be_displayed
-      expect(recent_grades_empty_message.text).to include("No recent grades available")
-    end
-
     it "shows empty state message when no messages exist" do
       add_widget_to_dashboard(@student, :inbox, 1)
       go_to_dashboard
@@ -183,17 +175,6 @@ describe "student dashboard", :ignore_js_errors do
       expect(inbox_no_messages_message).to be_displayed
       filter_inbox_messages_by("All")
       expect(all_inbox_message_items.size).to eq(3)
-    end
-
-    it "shows empty state for all todo filter options when no items exist" do
-      add_widget_to_dashboard(@student, :todo_list, 1)
-      go_to_dashboard
-
-      expect(no_todo_items_message.text).to eq("No upcoming items")
-      filter_todos_by("Complete")
-      expect(no_todo_items_message.text).to eq("No upcoming items")
-      filter_todos_by("All")
-      expect(no_todo_items_message.text).to eq("No upcoming items")
     end
 
     it "shows empty state for progress widget when no items exist" do

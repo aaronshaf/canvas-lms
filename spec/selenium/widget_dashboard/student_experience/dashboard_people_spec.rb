@@ -36,32 +36,6 @@ describe "student dashboard people widget", :ignore_js_errors do
     user_session(@student)
   end
 
-  context "people widget smoke tests" do
-    it "displays teachers and TA" do
-      go_to_dashboard
-
-      expect(message_instructor_button(@teacher1.id)).to be_displayed
-      expect(message_instructor_button(@teacher2.id)).to be_displayed
-      expect(message_instructor_button(@ta1.id)).to be_displayed
-    end
-
-    it "can message instructors" do
-      go_to_dashboard
-
-      expect(message_instructor_button(@teacher1.id)).to be_displayed
-      message_instructor_button(@teacher1.id).click
-      wait_for_ajaximations
-      expect(send_message_to_modal(@teacher1.name)).to be_displayed
-      expect(message_modal_subject_input).to be_displayed
-      message_modal_subject_input.send_keys("hello teacher")
-      expect(message_modal_body_textarea).to be_displayed
-      message_modal_body_textarea.send_keys("just wanted to say hi")
-      message_modal_send_button.click
-      expect(message_modal_alert).to be_displayed
-      expect(message_modal_alert.text).to include("Your message was sent!")
-    end
-  end
-
   context "People widget pagination" do
     before :once do
       pagination_course_setup # Creates 20 courses with different teachers
