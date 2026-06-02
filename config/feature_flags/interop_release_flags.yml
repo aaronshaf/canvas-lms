@@ -1,4 +1,15 @@
 ---
+provisioning_report_admin_notification:
+  state: hidden
+  applies_to: RootAccount
+  display_name: Provisioning Report Admin Notification
+  description: When enabled, all account admins will receive an email notification
+    when a provisioning report is run.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 mfa_event_collection:
   state: hidden
   applies_to: SiteAdmin

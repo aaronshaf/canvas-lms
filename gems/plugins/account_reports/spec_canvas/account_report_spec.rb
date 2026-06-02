@@ -212,6 +212,77 @@ describe "Account Reports" do
     end
   end
 
+  describe ".notify_account_admins" do
+    let_once(:provisioning_notification) { Notification.where(name: "Provisioning Report Run", category: "Registration").first_or_create! }
+    let_once(:admin_with_channel) do
+      user = account_admin_user(account: @account)
+      communication_channel(user, { username: "admin@example.com", active_cc: true })
+      user
+    end
+
+    before :once do
+      provisioning_notification
+      BroadcastPolicy.notification_finder.refresh_cache
+    end
+
+    it "sends a notification to account admins when the feature is enabled" do
+      @account.enable_feature!(:provisioning_report_admin_notification)
+      ar = AccountReport.create!(account: @account,
+                                 user: admin_with_channel,
+                                 report_type: "provisioning_csv",
+                                 start_at: Time.zone.now)
+
+      expect { AccountReports.notify_account_admins(ar) }
+        .to change { Message.where(notification_name: "Provisioning Report Run").count }.by(1)
+    end
+
+    it "does not send a notification when the feature is disabled" do
+      @account.disable_feature!(:provisioning_report_admin_notification)
+      ar = AccountReport.create!(account: @account,
+                                 user: admin_with_channel,
+                                 report_type: "provisioning_csv",
+                                 start_at: Time.zone.now)
+
+      expect { AccountReports.notify_account_admins(ar) }
+        .not_to change { Message.where(notification_name: "Provisioning Report Run").count }
+    end
+
+    it "does not send a notification when skip_message is set" do
+      @account.enable_feature!(:provisioning_report_admin_notification)
+      ar = AccountReport.create!(account: @account,
+                                 user: admin_with_channel,
+                                 report_type: "provisioning_csv",
+                                 start_at: Time.zone.now,
+                                 parameters: { "skip_message" => true })
+
+      expect { AccountReports.notify_account_admins(ar) }
+        .not_to change { Message.where(notification_name: "Provisioning Report Run").count }
+    end
+
+    it "sends a notification when provisioning_csv runs via generate_report" do
+      @account.enable_feature!(:provisioning_report_admin_notification)
+      ar = AccountReport.create!(account: @account,
+                                 user: admin_with_channel,
+                                 report_type: "provisioning_csv",
+                                 workflow_state: "created",
+                                 parameters: { "users" => true })
+
+      expect { AccountReports.generate_report(ar) }
+        .to change { Message.where(notification_name: "Provisioning Report Run").count }.by(1)
+    end
+
+    it "does not send a notification when a non-provisioning report runs via generate_report" do
+      @account.enable_feature!(:provisioning_report_admin_notification)
+      ar = AccountReport.create!(account: @account,
+                                 user: admin_with_channel,
+                                 report_type: "unpublished_courses_csv",
+                                 workflow_state: "created")
+
+      expect { AccountReports.generate_report(ar) }
+        .not_to change { Message.where(notification_name: "Provisioning Report Run").count }
+    end
+  end
+
   describe "sharding" do
     specs_require_sharding
 

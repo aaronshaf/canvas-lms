@@ -1,0 +1,9 @@
+<% define_content :subject do %>
+  <%= t(:subject, "Provisioning Report Started") %>
+<% end %>
+
+<%= t :body,
+      "The provisioning report for %{account} was started by %{user} at %{time}.",
+      account: asset.account.name,
+      user: asset.user.name,
+      time: datetime_string(asset.start_at) %>

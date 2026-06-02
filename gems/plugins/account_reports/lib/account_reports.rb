@@ -112,6 +112,7 @@ module AccountReports
       raise ReportHelper::ReportStopped if account_report.stopped?
 
       account_report.update(workflow_state: "running", start_at: Time.zone.now)
+      notify_account_admins(account_report) if account_report.report_type == "provisioning_csv"
       I18n.with_locale(account_report.parameters["locale"]) do
         REPORTS[account_report.report_type].proc.call(account_report)
       end
@@ -284,5 +285,17 @@ module AccountReports
 
     notification = account_report.attachment ? NotificationFinder.new.by_name("Report Generated") : NotificationFinder.new.by_name("Report Generation Failed")
     notification&.create_message(account_report, [account_report.user])
+  end
+
+  def self.notify_account_admins(account_report)
+    return if account_report.parameters["skip_message"]
+    return unless account_report.account.feature_enabled?(:provisioning_report_admin_notification)
+
+    notification = NotificationFinder.new.by_name("Provisioning Report Run")
+    return unless notification
+
+    admin_role = Role.get_built_in_role("AccountAdmin", root_account_id: account_report.account.resolved_root_account_id)
+    admins = User.where(id: account_report.account.active_account_users.where(role_id: admin_role).select(:user_id))
+    notification.create_message(account_report, admins) unless admins.empty?
   end
 end
