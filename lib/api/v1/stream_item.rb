@@ -22,6 +22,14 @@ module Api::V1::StreamItem
   include Api::V1::Context
   include Api::V1::Submission
 
+  # Fix for Snyk CWE-94 - use an explicit allowlist for api_render_stream pagination
+  # to prevent code injection via paginate_url
+  ALLOWED_PAGINATE_URLS = %i[
+    api_v1_course_activity_stream_url
+    api_v1_group_activity_stream_url
+    api_v1_user_activity_stream_url
+  ].freeze
+
   def stream_item_preloads(stream_items)
     discussion_topics = stream_items.select { |si| ["DiscussionTopic", "Announcement"].include?(si.asset_type) }
     ActiveRecord::Associations.preload(discussion_topics, :context)
@@ -157,7 +165,10 @@ module Api::V1::StreamItem
         notification_categories = opts[:notification_categories].map { |c| (c == "null") ? nil : c }
         scope = scope.eager_load(:stream_item).where(stream_items: { notification_category: notification_categories })
       end
-      Api.paginate(scope, self, send(opts[:paginate_url], @context), default_per_page: 21).to_a
+      paginate_url = opts[:paginate_url]
+      raise ArgumentError, "Invalid paginate_url: #{paginate_url.inspect}" unless ALLOWED_PAGINATE_URLS.include?(paginate_url)
+
+      Api.paginate(scope, self, send(paginate_url, @context), default_per_page: 21).to_a
     end
     items.select!(&:stream_item)
     stream_item_preloads(items.map(&:stream_item))
