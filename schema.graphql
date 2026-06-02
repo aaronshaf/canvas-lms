@@ -12594,6 +12594,7 @@ input UpdateSubmissionsGradeStatusInput {
   checkpointTag: String
   customGradeStatusId: ID
   latePolicyStatus: String
+  secondsLateOverride: Int
   submissionId: ID!
 }
 

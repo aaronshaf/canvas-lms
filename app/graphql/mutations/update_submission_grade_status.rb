@@ -23,6 +23,7 @@ class Mutations::UpdateSubmissionGradeStatus < Mutations::BaseMutation
   argument :checkpoint_tag, String, required: false
   argument :custom_grade_status_id, ID, required: false
   argument :late_policy_status, String, required: false
+  argument :seconds_late_override, Integer, required: false
   argument :submission_id, ID, required: true
 
   field :submission, Types::SubmissionType, null: true
@@ -50,7 +51,9 @@ class Mutations::UpdateSubmissionGradeStatus < Mutations::BaseMutation
         )
         submission.reload
       else
-        submission.update(late_policy_status: input[:late_policy_status], grader: current_user)
+        attrs = { late_policy_status: input[:late_policy_status], grader: current_user }
+        attrs[:seconds_late_override] = input[:seconds_late_override] if input[:late_policy_status] == "late" && input[:seconds_late_override].present?
+        submission.update(attrs)
       end
     elsif (input[:custom_grade_status_id].nil? && input[:late_policy_status].nil?) || input[:late_policy_status] == "none"
       submission.update(custom_grade_status_id: nil, late_policy_status: input[:late_policy_status], excused: false, grader: current_user)

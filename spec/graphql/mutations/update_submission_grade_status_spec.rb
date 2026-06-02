@@ -21,9 +21,10 @@
 require_relative "../graphql_spec_helper"
 
 RSpec.describe Mutations::UpdateSubmissionGrade do
-  def mutation_str(submission_id: nil, late_policy_status: nil, custom_grade_status_id: nil)
+  def mutation_str(submission_id: nil, late_policy_status: nil, custom_grade_status_id: nil, seconds_late_override: nil)
     late_policy_status = late_policy_status ? "\"#{late_policy_status}\"" : "null"
     custom_grade_status_id = custom_grade_status_id ? "\"#{custom_grade_status_id}\"" : "null"
+    seconds_late_override_str = seconds_late_override.nil? ? "" : "secondsLateOverride: #{seconds_late_override}"
     <<~GQL
       mutation {
         updateSubmissionGradeStatus(
@@ -31,6 +32,7 @@ RSpec.describe Mutations::UpdateSubmissionGrade do
             submissionId: #{submission_id}
             latePolicyStatus: #{late_policy_status}
             customGradeStatusId: #{custom_grade_status_id}
+            #{seconds_late_override_str}
           }
         ) {
           submission {
@@ -42,6 +44,8 @@ RSpec.describe Mutations::UpdateSubmissionGrade do
             latePolicyStatus
             customGradeStatus
             excused
+            deductedPoints
+            score
           }
           errors {
             attribute
@@ -180,6 +184,63 @@ RSpec.describe Mutations::UpdateSubmissionGrade do
       result = run_mutation({ submission_id: @submission.id, custom_grade_status_id: status.global_id })
       expect(result[:data][:updateSubmissionGradeStatus][:submission][:_id]).to eq @submission.id.to_s
       expect(result[:data][:updateSubmissionGradeStatus][:submission][:customGradeStatus]).to eq "global"
+    end
+  end
+
+  describe "secondsLateOverride (EVAL-6420)" do
+    before(:once) do
+      @course.create_late_policy!(
+        late_submission_deduction_enabled: true,
+        late_submission_deduction: 10.0,
+        late_submission_interval: "day"
+      )
+      @late_assignment = @course.assignments.create!(
+        title: "Late Policy Assignment",
+        points_possible: 10,
+        due_at: 2.days.ago,
+        submission_types: "online_text_entry"
+      )
+      @late_submission = @late_assignment.submit_homework(
+        @student,
+        submission_type: "online_text_entry",
+        body: "submitted late"
+      )
+      @late_assignment.grade_student(@student, grader: @teacher, score: 10)
+      @late_submission.reload
+    end
+
+    it "applies late deduction when secondsLateOverride is provided with late status" do
+      result = run_mutation({
+                              submission_id: @late_submission.id,
+                              late_policy_status: "late",
+                              seconds_late_override: 86_400 # 1 day
+                            })
+      submission_data = result[:data][:updateSubmissionGradeStatus][:submission]
+      expect(submission_data[:latePolicyStatus]).to eq "late"
+      expect(submission_data[:deductedPoints]).to eq 1.0
+      expect(submission_data[:score]).to eq 9.0
+    end
+
+    it "does not apply deduction when secondsLateOverride is not provided" do
+      result = run_mutation({
+                              submission_id: @late_submission.id,
+                              late_policy_status: "late"
+                            })
+      submission_data = result[:data][:updateSubmissionGradeStatus][:submission]
+      expect(submission_data[:latePolicyStatus]).to eq "late"
+      expect(submission_data[:deductedPoints]).to eq 0.0
+      expect(submission_data[:score]).to eq 10.0
+    end
+
+    it "ignores secondsLateOverride for non-late statuses" do
+      result = run_mutation({
+                              submission_id: @late_submission.id,
+                              late_policy_status: "missing",
+                              seconds_late_override: 86_400
+                            })
+      submission_data = result[:data][:updateSubmissionGradeStatus][:submission]
+      expect(submission_data[:latePolicyStatus]).to eq "missing"
+      expect(submission_data[:score]).to eq 10.0
     end
   end
 end
