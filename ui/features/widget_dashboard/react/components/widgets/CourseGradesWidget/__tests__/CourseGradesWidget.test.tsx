@@ -317,4 +317,44 @@ describe('CourseGradesWidget', () => {
     expect(screen.getByTestId('course-1-grade')).not.toHaveTextContent('•••')
     expect(screen.getByTestId('course-2-grade')).toHaveTextContent('•••')
   })
+
+  it('paginates courses and navigates between pages on initial load', async () => {
+    // The widget shows COURSE_GRADES_WIDGET.MAX_GRID_ITEMS (6) courses per page.
+    // 22 courses -> 4 pages: pages 1-3 have 6 items, page 4 has the remaining 4.
+    const pageSize = 6
+    const totalCourses = 22
+    const manyCourses: SharedCourseData[] = Array.from({length: totalCourses}, (_, i) => {
+      const id = String(i + 1)
+      return {
+        courseId: id,
+        courseCode: `CODE${id}`,
+        courseName: `Course ${id}`,
+        currentGrade: 90,
+        gradingScheme: 'percentage',
+        lastUpdated: '2025-01-01T00:00:00Z',
+      }
+    })
+
+    setup({}, manyCourses)
+
+    // Numbered pagination controls render once there is more than one page.
+    await waitFor(() => expect(screen.getByTestId('pagination-container')).toBeInTheDocument())
+    expect(screen.getByRole('button', {name: '1'})).toBeInTheDocument()
+    expect(screen.getByRole('button', {name: '4'})).toBeInTheDocument()
+
+    // Initial page shows a full page of items.
+    expect(screen.getAllByTestId(/^course-grade-card-/)).toHaveLength(pageSize)
+
+    // Navigating to the last page shows only that page's remaining items.
+    await userEvent.click(screen.getByRole('button', {name: '4'}))
+    await waitFor(() =>
+      expect(screen.getAllByTestId(/^course-grade-card-/)).toHaveLength(
+        totalCourses - pageSize * 3,
+      ),
+    )
+
+    // Returning to page 1 restores the first full page of items.
+    await userEvent.click(screen.getByRole('button', {name: '1'}))
+    await waitFor(() => expect(screen.getAllByTestId(/^course-grade-card-/)).toHaveLength(pageSize))
+  })
 })
