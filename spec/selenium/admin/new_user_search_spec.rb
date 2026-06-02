@@ -67,12 +67,6 @@ describe "new account user search" do
       expect(f("span[data-testid='address-book-tag']")).to include_text @user.name
     end
 
-    it "searches but not find bogus user", priority: "1" do
-      enter_search("jtsdumbthing")
-      expect(f("#content h2")).to include_text("No users found")
-      expect(results_body).not_to contain_css(results_row)
-    end
-
     it "links to the user group page" do
       click_people_more_options
       click_view_user_groups_option

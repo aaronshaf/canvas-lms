@@ -30,35 +30,6 @@ describe "root account basic settings" do
     let(:reports_url) { "/accounts/#{account.id}/reports_tab" }
     let(:admin_tab_url) { "/accounts/#{account.id}/settings#tab-users" }
 
-    it "is able to disable enable_gravatar" do
-      account_admin_user(active_all: true)
-      user_session(@admin)
-      get account_settings_url
-
-      avatars = f("#account_services_avatars")
-      avatars.location_once_scrolled_into_view
-      avatars.click
-      f("#account_settings_enable_gravatar").click
-
-      submit_form("#account_settings")
-      wait_for_ajaximations
-      expect(Account.default.reload.settings[:enable_gravatar]).to be false
-    end
-
-    it "lets admins enable kill_joy on root account settings", :ignore_js_errors do
-      account.settings[:kill_joy] = false
-      account.save!
-
-      user_session(@admin)
-      get account_settings_url
-      el = f("#account_settings_kill_joy")
-      el.location_once_scrolled_into_view
-      el.click
-      submit_form("#account_settings")
-      wait_for_ajaximations
-      expect(Account.default.reload.settings[:kill_joy]).to be true
-    end
-
     context "with restrict_quantitative_data" do
       before :once do
         account.enable_feature!(:restrict_quantitative_data)

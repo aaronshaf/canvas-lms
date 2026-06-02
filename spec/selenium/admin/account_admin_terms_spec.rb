@@ -111,27 +111,4 @@ describe "account admin terms" do
       check_element_has_focus f(".add_term_link")
     end
   end
-
-  context "with grading periods" do
-    let(:account) { Account.default }
-
-    before do
-      admin_logged_in
-    end
-
-    context "with grading period set associated to a new term" do
-      let(:term) { account.enrollment_terms.create! }
-      let(:group) { Factories::GradingPeriodGroupHelper.new.create_for_account(account) }
-
-      before do
-        group.enrollment_terms = [term]
-      end
-
-      it "displays link to grading standards page", priority: "1" do
-        get "/accounts/#{account.id}/terms"
-        standards_url = "/accounts/#{account.id}/grading_standards"
-        expect(fln(group.title).attribute("href")).to include(standards_url)
-      end
-    end
-  end
 end

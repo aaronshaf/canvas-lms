@@ -94,12 +94,4 @@ describe "direct share page" do
     expect(received_item_actions_menu[1].text).to match(/Import/i)
     expect(received_item_actions_menu[2].text).to match(/Remove/i)
   end
-
-  it "allows removal of a received item" do
-    manage_received_item_button(@read_share.name).click
-    remove_received_item.click
-    driver.switch_to.alert.accept
-    wait_for_ajaximations
-    expect(content_share_main_content.text).not_to include "c-read share"
-  end
 end

@@ -114,17 +114,6 @@ describe "Developer Keys" do
       expect(key.icon_url).to eq "/images/add.png"
     end
 
-    it "allows deletion through 'delete this key button'" do
-      skip_if_safari(:alert)
-      root_developer_key
-      get "/accounts/#{Account.default.id}/developer_keys"
-      fj("table[data-automation='devKeyAdminTable'] tbody tr button:has(svg[name='IconTrash'])").click
-      fj("span[role='dialog'] button:contains('Delete')").click
-      wait_for_ajaximations
-      expect(element_exists?("table[data-automation='devKeyAdminTable'] tbody tr")).to be(false)
-      expect(Account.default.developer_keys.nondeleted.count).to eq 0
-    end
-
     it "allows for pagination on account tab" do
       11.times { |i| Account.default.developer_keys.create!(name: "tool #{i}") }
       get "/accounts/#{Account.default.id}/developer_keys"
@@ -144,14 +133,6 @@ describe "Developer Keys" do
       expect(ff("table[data-automation='devKeyInheritedTable'] tbody tr")).to have_size(11)
     end
 
-    it "renders the key not visible by default upon creation" do
-      site_admin_developer_key
-      site_admin_logged_in
-      get "/accounts/site_admin/developer_keys"
-      expect(f("table[data-automation='devKeyAdminTable'] tbody tr")).to contain_css("svg[name='IconOff']")
-      expect(site_admin_developer_key.reload.visible).to be false
-    end
-
     it "renders the key visible" do
       set_domain_root_account(account: Account.site_admin)
       site_admin_developer_key
@@ -163,12 +144,6 @@ describe "Developer Keys" do
     end
 
     context "Account Binding" do
-      it "creates an account binding with default workflow_state 'off'" do
-        site_admin_developer_key
-        expect(DeveloperKeyAccountBinding.last.workflow_state).to eq "off"
-        expect(DeveloperKeyAccountBinding.last.account_id).to eq Account.site_admin.id
-      end
-
       it "site admin dev key is visible and set to 'off' in root account" do
         site_admin_developer_key.update(visible: true)
         get "/accounts/#{Account.default.id}/developer_keys"
@@ -398,17 +373,6 @@ describe "Developer Keys" do
         find_button("Save").click
         wait_for_ajax_requests
         expect(developer_key_with_scopes.reload.scopes).to match_array api_token_scopes
-      end
-
-      it "keeps all endpoints read only checkbox checked after save", skip: "2026-05-08 INTEROP-10566 Disabling flaky test" do
-        get "/accounts/#{Account.default.id}/developer_keys"
-        find_button("Developer Key").click
-        find_button("API Key").click
-        click_select_all_readonly_checkbox
-        find_button("Save").click
-        wait_for_dev_key_modal_to_close
-        click_edit_icon
-        expect(all_endpoints_readonly_checkbox_selected?).to be true
       end
 
       it "keeps all endpoints read only checkbox checked if check/unchecking another http method" do

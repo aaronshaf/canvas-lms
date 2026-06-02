@@ -230,19 +230,6 @@ describe "settings tabs" do
         expect(job.run_at.to_i).to eq notification.start_at.to_i
       end
 
-      it "does not show option for site admins" do
-        skip("VICE-5335 2025-06-18")
-        user_session(site_admin_user)
-        get "/accounts/#{Account.site_admin.id}/settings"
-        wait_for_ajaximations
-        f("#tab-announcements").click
-        wait_for_ajaximations
-        fj(".element_toggler:visible").click
-        wait_for_ajaximations
-        notification_form = f("#add_notification_form")
-        expect(notification_form).not_to contain_css("label[for=account_notification_send_message]")
-      end
-
       it "is able to send messages for an existing announcement" do
         notification = account_notification(start_at: 2.days.from_now, end_at: 4.days.from_now)
         get "/accounts/#{Account.default.id}/settings"

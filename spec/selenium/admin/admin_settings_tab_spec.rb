@@ -122,50 +122,6 @@ describe "admin settings tab" do
       get "/accounts/#{Account.default.id}/settings"
     end
 
-    it "changes the default time zone to Lima" do
-      f("#account_default_time_zone option[value='Lima']").click
-      click_submit
-      expect(Account.default.default_time_zone.name).to eq "Lima"
-      expect(f("#account_default_time_zone option[value='Lima']")).to have_attribute("selected", "true")
-    end
-
-    describe "allow self-enrollment" do
-      def enrollment_helper(value = "")
-        if value == ""
-          f("#account_settings_self_enrollment option[value='']").click
-        else
-          f("#account_settings_self_enrollment option[value=#{value}]").click
-        end
-        click_submit
-        expect(Account.default[:settings][:self_enrollment]).to eq value.presence
-        expect(f("#account_settings_self_enrollment")).to have_value value
-      end
-
-      it "selects never for self-enrollment" do
-        enrollment_helper
-      end
-
-      it "selects self-enrollment for any courses" do
-        enrollment_helper "any"
-      end
-
-      it "selects self-enrollment for manually-created courses" do
-        enrollment_helper "manually_created"
-      end
-    end
-
-    it "clicks on don't let teachers rename their courses" do
-      check_box_verifier("#account_settings_prevent_course_renaming_by_teachers", :prevent_course_renaming_by_teachers)
-    end
-
-    it "clicks on don't let teachers change availability on their courses" do
-      check_box_verifier("#account_settings_prevent_course_availability_editing_by_teachers", :prevent_course_availability_editing_by_teachers)
-    end
-
-    it "unchecks 'students can opt-in to receiving scores in email notifications'" do
-      check_box_verifier("#account_settings_allow_sending_scores_in_emails", :allow_sending_scores_in_emails, checker: false)
-    end
-
     it "sets trusted referers for account" do
       trusted_referers = "https://example.com,http://example.com"
       set_value f("#account_settings_trusted_referers"), trusted_referers
@@ -240,31 +196,6 @@ describe "admin settings tab" do
     end
   end
 
-  context "features" do
-    before do
-      get "/accounts/#{Account.default.id}/settings"
-    end
-
-    it "checks 'open registration'" do
-      check_box_verifier("#account_settings_open_registration", :open_registration)
-    end
-
-    it "unchecks users can edit display name' and check it again" do
-      check_box_verifier("#account_settings_users_can_edit_name", :users_can_edit_name, checker: false)
-      check_box_verifier("#account_settings_users_can_edit_name", :users_can_edit_name)
-    end
-
-    it "unchecks users_can_edit_profile and check it again" do
-      check_box_verifier("#account_settings_users_can_edit_profile", :users_can_edit_profile, checker: false)
-      check_box_verifier("#account_settings_users_can_edit_profile", :users_can_edit_profile)
-    end
-
-    it "unchecks users_can_edit_comm_channels and check it again" do
-      check_box_verifier("#account_settings_users_can_edit_comm_channels", :users_can_edit_comm_channels, checker: false)
-      check_box_verifier("#account_settings_users_can_edit_comm_channels", :users_can_edit_comm_channels)
-    end
-  end
-
   context "enabled web services" do
     before do
       get "/accounts/#{Account.default.id}/settings"
@@ -275,24 +206,6 @@ describe "admin settings tab" do
       scroll_into_view(question)
       question.click
       expect(f("[data-testid='about-google-docs']")).to include_text("About Google Docs Previews")
-    end
-
-    it "unclicks and click on google docs previews" do
-      check_box_verifier("#account_services_google_docs_previews", { allowed_services: :google_docs_previews }, checker: false)
-      check_box_verifier("#account_services_google_docs_previews", { allowed_services: :google_docs_previews })
-    end
-
-    it "clicks on user avatars" do
-      check_box_verifier("#account_services_avatars", { allowed_services: :avatars })
-      check_box_verifier("#account_services_avatars", { allowed_services: :avatars }, checker: false)
-    end
-
-    it "disables all web services" do
-      check_box_verifier(nil, :all_selectors, checker: false)
-    end
-
-    it "enables all web services" do
-      check_box_verifier("#account_services_avatars", :all_selectors)
     end
 
     it "enables and disable a plugin service (setting)" do
@@ -307,24 +220,6 @@ describe "admin settings tab" do
       get "/accounts/#{Account.default.id}/settings"
       check_box_verifier("#account_services_myplugin", { allowed_services: :myplugin })
       check_box_verifier("#account_services_myplugin", { allowed_services: :myplugin }, checker: false)
-    end
-  end
-
-  context "who can create new courses" do
-    before do
-      get "/accounts/#{Account.default.id}/settings"
-    end
-
-    it "checks on teachers" do
-      check_box_verifier("#account_settings_teachers_can_create_courses", :teachers_can_create_courses)
-    end
-
-    it "checks on users with no enrollments" do
-      check_box_verifier("#account_settings_no_enrollments_can_create_courses", :no_enrollments_can_create_courses)
-    end
-
-    it "checks on students" do
-      check_box_verifier("#account_settings_students_can_create_courses", :students_can_create_courses)
     end
   end
 

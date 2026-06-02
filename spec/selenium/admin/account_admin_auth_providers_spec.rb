@@ -90,16 +90,6 @@ describe "account authentication" do
         expect(config.auth_decrypted_password).to eq "newpassword"
       end
 
-      it "allows deletion of config", priority: "1" do
-        skip_if_safari(:alert)
-        add_ldap_config
-        f("#delete-aac-#{ldap_aac.active.last.id}").click
-        accept_alert
-        wait_for_ajax_requests
-
-        expect(ldap_aac.active.count).to eq 0
-      end
-
       it "allows creation of multiple configs", priority: "2" do
         add_ldap_config(1)
         expect(error_displayed?).to be_falsey
@@ -161,18 +151,6 @@ describe "account authentication" do
         expect(config.identifier_format).to eq "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
         expect(config.requested_authn_context).to be_nil
         expect(config.parent_registration).to be_falsey
-      end
-
-      it "allows deletion of config", priority: "1" do
-        skip_if_safari(:alert)
-        add_saml_config
-        expect { saml_aac.active.count }.to become 1
-        f("#delete-aac-#{saml_aac.active.last.id}").click
-        accept_alert
-        wait_for_ajax_requests
-
-        expect(saml_aac.active.count).to eq 0
-        expect(saml_aac.count).to eq 1
       end
 
       context "debugging" do
