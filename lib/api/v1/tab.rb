@@ -62,6 +62,10 @@ module Api::V1::Tab
       opts = {}
     end
 
+    unless method.to_s.end_with?("_path", "_url") && respond_to?(method)
+      raise ArgumentError, "Invalid tab href: #{tab[:href].inspect}"
+    end
+
     if tab[:args]
       if tab[:args].is_a?(Hash)
         # LTI 2 tools have args as a hash rather than an array (see MessageHandler#lti_apps_tabs)
