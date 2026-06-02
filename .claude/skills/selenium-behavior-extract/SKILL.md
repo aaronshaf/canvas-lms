@@ -43,6 +43,12 @@ One of:
 
 If no input is supplied, ask.
 
+## Output root
+
+Outputs default to `tmp/`. When invoked with `--run-dir <root>` (the
+`selenium-pipeline` always passes this), replace the leading `tmp` in every output
+path below with `<root>` so concurrent or repeated runs never clobber each other.
+
 ## Output
 
 `tmp/selenium-behavior/<name>.behaviors.csv`
@@ -167,10 +173,21 @@ will flag it with LOW complexity and note the uncertainty.
 **Parallelise for large inputs:** If there are more than 5 unique files to read, spawn one
 Explore agent per file to extract all its snippets simultaneously. Each agent reads one file,
 extracts all target-line windows for that file, and returns the snippets as a JSON array.
-Wait for all file agents to complete before proceeding to Step 3.
+
+**Pipeline read → extract; don't barrier on the whole set.** Step 3 forms batches
+file-by-file (see its grouping strategy), so a file's snippets don't depend on any other
+file's read. As each read agent returns:
+- If that file alone yields ≥ the minimum batch size (3 snippets), cluster it immediately
+  (Step 3) and spawn its extraction agent(s) (Step 4) right away — while other files are
+  still being read.
+- If it yields fewer than the minimum, hold its snippets in a small-file merge pool and
+  batch them together once all reads are in.
+
+This keeps the read and extract waves overlapping instead of waiting for the slowest file
+read before any extraction starts. Only the merge-pool stragglers wait for the full set.
 
 For ≤5 files, extract snippets in the main context directly (the file reads are fast enough
-that agent spin-up overhead would dominate).
+that agent spin-up overhead would dominate), then proceed to Step 3.
 
 ### 3. Cluster snippets into agent batches
 

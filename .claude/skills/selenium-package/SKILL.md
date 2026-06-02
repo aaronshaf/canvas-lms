@@ -14,6 +14,12 @@ attach to a Jira ticket, save to a custom path, or both.
 A directory name or path, e.g. `courses` or `spec/selenium/courses`.
 If not supplied, ask for one.
 
+Optional `--run-dir <root>` — the run-scoped artifact root to package from.
+Defaults to `tmp`. The `selenium-pipeline` always passes this
+(e.g. `tmp/selenium-runs/courses_20260602-141530`); when set, discover artifacts
+under `<root>/selenium-audit/`, `<root>/selenium-trim/`, `<root>/selenium-behavior/`,
+and `<root>/selenium-coverage/` instead of the bare `tmp/` paths in Step 2.
+
 ## Zip naming convention
 
 ```

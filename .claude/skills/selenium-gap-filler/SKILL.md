@@ -22,6 +22,13 @@ Ruby/TypeScript) is embarrassingly parallel. The sequential gate is only the fas
 
 This skill does NOT delete any Selenium tests. Deletion is [[selenium-trim]]'s job.
 
+## Output root
+
+Inputs and outputs default to `tmp/`. When invoked with `--run-dir <root>` (the
+`selenium-pipeline` always passes this), replace the leading `tmp` in every path
+below — both the quality CSV it reads and the gap report it writes — with `<root>`,
+so concurrent or repeated runs never clobber each other.
+
 ## Inputs
 
 The user supplies a quality CSV path: `tmp/selenium-behavior/grades.quality.csv`
@@ -106,9 +113,11 @@ existing cited spec file).
 **For GAP / request_spec rows:**
 - Derive the controller name from `controller_route` (e.g., `GradesController` →
   `spec/requests/grades_spec.rb`)
-- Check whether the file already exists: `test -f <path>`
+- Also check for an existing controller spec: `spec/controllers/<name>_controller_spec.rb`
+- Check whether the request spec file already exists: `test -f <path>`
 - If it exists, that is the output file (rows will be appended)
 - If not, it will be created
+- Record whether a controller spec exists — this determines how Phase 1 runs (see Step 5)
 
 **For GAP / model_spec rows:**
 - Derive the model name from `controller_route` or `then` assertion
@@ -149,12 +158,57 @@ Write plan — N output files across M clusters
 
 ### 5. Phase 1 — Parallel write agents
 
-Spawn one `general-purpose` agent per cluster **simultaneously** (all in a single message).
+Clusters are split by layer type. To maximise parallelism, **launch 5b write agents
+first** (all in a single message), then immediately begin 5a request-spec skill calls
+in the main context while those agents run. The two groups share no Phase 1 output
+dependency. Collect all 5b agent results after 5a completes, then proceed to Phase 2.
 
-Each agent is self-contained: it reads source files, writes tests, lints, and returns the
-complete file content. It does NOT write to disk.
+#### 5a. request_spec clusters — delegate to `controller-to-request-spec`
 
-#### Agent prompt template
+For each `request_spec` cluster, **do not spawn a write agent**. Instead, invoke the
+`controller-to-request-spec` skill directly in the main context via the `Skill` tool.
+
+**Case 1 — controller spec exists** (`spec/controllers/<name>_controller_spec.rb` is
+present):
+```
+Skill("controller-to-request-spec", "<path to controller spec>")
+```
+The skill converts the file, runs lint, runs the spec, and grades every `it` block.
+After it completes, append any additional `it` blocks needed to cover the GAP-row
+behavioral contracts that are not already covered by the converted spec. Use
+`request-test-writer` for each additional scenario:
+```
+Skill("request-test-writer", "<Given/When/Then from quality CSV row>")
+```
+
+**Case 2 — no controller spec exists** (pure GAP, new request spec needed):
+
+Write a stub spec file at `spec/requests/<name>_spec.rb` that contains an empty
+`describe` block with `type: :request`, then use `request-test-writer` for each
+GAP-row behavioral contract:
+```
+Skill("request-test-writer", "<Given/When/Then from quality CSV row>")
+```
+After all `it` blocks are appended, invoke `controller-to-request-spec` with
+`--no-grading` skipped — i.e., pass the new request spec file so grading mode runs
+over every `it` block:
+```
+Skill("controller-to-request-spec", "spec/requests/<name>_spec.rb")
+```
+
+In both cases, `controller-to-request-spec` owns lint, run, and grading for the
+request spec file. **Phase 2 steps 6b–6d are skipped for request_spec clusters**
+because `controller-to-request-spec` already performs them.
+
+Phase 2 step 6e (commit) and 6f (record outcomes) still apply.
+
+#### 5b. model_spec and component_test clusters — write agents (unchanged)
+
+Spawn one `general-purpose` agent per cluster **simultaneously** (all in a single
+message). Each agent is self-contained: it reads source files, writes tests, lints, and
+returns the complete file content. It does NOT write to disk.
+
+#### Agent prompt template (model_spec / component_test only)
 
 ```
 You are writing lower-layer replacement tests for Canvas LMS Selenium behaviors.
@@ -165,7 +219,7 @@ to an existing file). Do NOT write to disk. Return the content as a structured r
 <output_path>
 
 ## Layer
-<request_spec | model_spec | component_test>
+<model_spec | component_test>
 
 ## Existing file content (empty if new file)
 <full current content of the output file, or "(new file)" if it does not exist>
@@ -174,21 +228,6 @@ to an existing file). Do NOT write to disk. Return the content as a structured r
 <for each row: file, line, test_name, given, when, then, classification, gap_description>
 
 ## Rules by layer
-
-### request_spec rules (apply ALL of these):
-- Arrange / Act / Assert headers (# Arrange, # Act, # Assert)
-- No let, subject, @instance_vars, or before blocks — all setup is local to the it block
-- Explicit literal path — no route helpers
-- Status assertions use Rails symbols (:ok, :forbidden, etc.)
-- Body assertions check both shape AND value — not just have_key
-- DB-state assertions use .reload
-- Exactly one HTTP call per it block
-- Feature flags set explicitly before user_session
-- Read the controller action at <controller_route> before writing to verify:
-  - Exact route and params accepted
-  - Scope filters that must be satisfied (enrollment state, course state, etc.)
-  - Feature flags the action reads
-  - Outbound HTTP calls that need stubbing
 
 ### model_spec rules:
 - One describe block per method being tested
@@ -227,10 +266,27 @@ Wait for all agents to return before proceeding to Phase 2.
 marker, no `ROW_MAPPINGS_START` marker), log a warning and mark all rows in that cluster
 as `FAILED`. Do not block Phase 2 for other clusters.
 
-### 6. Phase 2 — Sequential verify+commit
+### 6. Phase 2 — verify+commit
 
-Process clusters one at a time in the main context. For each cluster whose agent returned
-valid output:
+The sequencing constraint is the **Docker rspec runner**, not Phase 2 as a whole —
+only one Ruby spec run can use the test database at a time. Split clusters by runner:
+
+- **Ruby clusters** (request_spec, model_spec) — process one at a time. Their run
+  step (6c) and mutation check (6d) hold the single Docker runner.
+- **component_test clusters** — `yarn test` runs on the host and never touches the
+  Docker runner. Launch their write+lint+run (6a–6d) **concurrently** with the Ruby
+  queue. Collect their results when they finish.
+
+Commits (6e) are always serialised across all clusters — git is a single writer and
+diffs must not interleave. Queue each green cluster's commit and apply them in order
+once its verification is done.
+
+**Request spec clusters** were already handled by `controller-to-request-spec` in Phase 1
+(lint, run, grade). Skip steps 6b–6d for those clusters and proceed directly to 6e (commit)
+and 6f (record outcomes). If `controller-to-request-spec` reported any red `it` blocks,
+record `run_result=red` for the corresponding rows and do not commit.
+
+For **model_spec and component_test clusters** whose agent returned valid output:
 
 #### 6a. Write to disk
 
@@ -427,5 +483,9 @@ Keep selenium rows:
 - **Don't split clusters too aggressively.** Related behaviors that touch the same
   controller benefit from being written by the same agent — it produces more coherent
   tests that share setup patterns.
-- **Don't run Phase 2 in parallel.** Docker has one test runner; concurrent rspec runs
-  will collide on the test database.
+- **Don't run two Ruby spec runs at once.** Docker has one test runner; concurrent
+  rspec runs collide on the test database. Component tests (`yarn test`) run on the
+  host and may run concurrently with the Ruby queue (see Step 6) — but never run two
+  Docker rspec invocations in parallel.
+- **Don't interleave commits.** Verification can overlap across runners, but commits
+  are applied one at a time in source order — git is a single writer.

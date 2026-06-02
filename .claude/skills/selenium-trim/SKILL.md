@@ -19,6 +19,11 @@ Optional flags the user may pass:
 - `--apply` — perform the deletions and commit. Default is dry-run.
 - `--branch <name>` — override default branch name (`selenium-trim/<directory>`).
 - `--no-commit` — apply the edits but don't commit. Engineer commits manually.
+- `--run-dir <root>` — root for reading the audit CSV and writing the
+  preview/manual-review/follow-up artifacts. Defaults to `tmp`. The
+  `selenium-pipeline` always passes this (e.g. `tmp/selenium-runs/courses_20260602-141530`);
+  replace the leading `tmp` in every artifact path below with `<root>` so concurrent
+  or repeated runs never clobber each other.
 
 ## Action policy (auto vs. manual)
 
@@ -165,19 +170,29 @@ test plan:
 
 Use the Canvas commit-message conventions from CLAUDE.md (60-char lines, JIRA verb). Ask the user for the JIRA key once at the start of apply mode if not provided — it goes on every commit.
 
-6. Run the cited lower-level tests for any `DELETE_COVERED` rows in this commit:
+6. Run the cited lower-level tests for any `DELETE_COVERED` rows in this commit.
+
+   Maintain a `passed_citations` set across all commits in this apply session.
+   Before running a cited spec, check if it is already in `passed_citations` —
+   deleting selenium tests cannot affect lower-layer spec results, so a green
+   citation from an earlier commit in the same session is still valid. Only
+   run specs not already in `passed_citations`.
 
 ```
-bin/rspec <each unique cited Ruby spec file>
+bin/rspec <each unique cited Ruby spec file not in passed_citations>
 ```
 
 For jest tests (`.test.tsx`/`.test.jsx`/`.test.ts`/`.test.js`):
 
 ```
-yarn test <each unique cited JS test file>
+yarn test <each unique cited JS test file not in passed_citations>
 ```
 
-If any cited test fails: `git revert HEAD` and surface the failure to the user with the failing test path. Do NOT continue to the next file — bail and let the engineer investigate. The whole point of the citation is that it covers the deleted behavior; if it's broken, our deletion was unsafe.
+   Add each spec that passes to `passed_citations`. If any cited test fails:
+   `git revert HEAD` and surface the failure to the user with the failing test
+   path. Do NOT continue to the next file — bail and let the engineer
+   investigate. The whole point of the citation is that it covers the deleted
+   behavior; if it's broken, our deletion was unsafe.
 
 7. After all files processed, print summary:
 

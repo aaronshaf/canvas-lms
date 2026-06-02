@@ -13,6 +13,13 @@ The user supplies a directory path, e.g. `spec/selenium/courses` or `spec/seleni
 
 If the user did not specify a directory, ask for one. Do not run on `spec/selenium/` wholesale — that is hundreds of files.
 
+## Output root
+
+Outputs default to `tmp/`. When invoked with `--run-dir <root>` (the
+`selenium-pipeline` always passes this, e.g. `tmp/selenium-runs/courses_20260602-141530`),
+replace the leading `tmp` in every output path below with `<root>` so concurrent or
+repeated runs never clobber each other's artifacts.
+
 ## Output
 
 A CSV at `tmp/selenium-audit/<directory-name>.csv` (create `tmp/selenium-audit/` if missing). Header row:
@@ -145,12 +152,32 @@ If any row fails validation, fix it before writing.
 
 ### 4b. Verify citations
 
-For every `DELETE_COVERED` and `PARTIAL` row, verify the cited test actually exists. This catches hallucinated citations from the batch agents. For each row:
+For every `DELETE_COVERED` and `PARTIAL` row, verify the cited test actually exists. This catches hallucinated citations from the batch agents.
+
+**Batch existence check first (single Bash call):**
+
+Collect every unique path from `existing_coverage` and issue all `test -f` checks in
+one Bash command rather than per row:
+
+```bash
+while IFS= read -r path; do
+  test -f "$path" && echo "OK:$path" || echo "MISSING:$path"
+done <<'EOF'
+<path1>
+<path2>
+...
+EOF
+```
+
+Mark rows whose path came back `MISSING` immediately (downgrade + append
+`(citation unverified)` to `reason`). Only proceed to per-row checks below for
+paths that passed.
+
+**Per-row checks (only for paths that passed the existence check):**
 
 1. Split `existing_coverage` on the last `:` into `<path>` and `<line>`.
-2. Check `<path>` exists on disk relative to repo root.
-3. Check `<line>` is a positive integer within the file's line count (`wc -l`).
-4. Spot-check that the cited line is inside or near an `it`/`describe`/`context` block — read lines `<line> - 5` through `<line> + 5` and confirm it looks like a test, not a stray import line.
+2. Check `<line>` is a positive integer within the file's line count (`wc -l`).
+3. Spot-check that the cited line is inside or near an `it`/`describe`/`context` block — read lines `<line> - 5` through `<line> + 5` and confirm it looks like a test, not a stray import line.
 
 If a citation fails verification:
 - Malformed `existing_coverage` (missing `:`, no line, line not an integer) → downgrade `confidence` to `LOW` and append ` (citation malformed)` to the `reason` column.

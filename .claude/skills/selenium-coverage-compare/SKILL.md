@@ -24,6 +24,16 @@ The user supplies:
 - Optional `--audit-csv <path>` — path to `tmp/selenium-audit/<dir>.csv` to
   cross-check lost production lines against cited lower-level specs
   (auto-detected from `tmp/selenium-audit/<directory>.csv` if present)
+- Optional `--full` — skip the changed-files-only fast path and run the full
+  directory in both passes from the start (see Step 2 and Step 8.5). Use when you
+  want the exhaustive comparison regardless of the fast-path result.
+- Optional `--run-dir <root>` — root for the output directory and the auto-detected
+  audit CSV. Defaults to `tmp`. The `selenium-pipeline` always passes this
+  (e.g. `tmp/selenium-runs/courses_20260602-141530`); when set, all output lands in
+  `<root>/selenium-coverage/<directory-name>/` (host and container side both),
+  and the audit CSV is looked up at `<root>/selenium-audit/<directory>.csv`. Replace
+  the leading `tmp` in every path below — including the container `OUT_DIR` and the
+  `docker cp` source paths — with `<root>`.
 
 If no directory is given, ask for one.
 
@@ -69,7 +79,27 @@ git diff --name-only <base-ref>...HEAD -- <spec_dir>/
 If the diff is empty (no spec files changed), tell the user and stop — there is
 nothing to compare.
 
-Capture this list. These are the files swapped between runs.
+Capture this list. These are the files swapped between runs, AND — by default —
+the only files the fast path runs (see Step 4).
+
+#### Fast path vs full directory
+
+Running **only the changed files** in both passes can only ever *over-report*
+coverage loss: it ignores any coverage contributed by the unchanged files in the
+directory, which it never executes. Therefore:
+
+- If the changed-files-only diff shows **zero** production lines lost, the
+  full-directory diff is *guaranteed* to be zero too — the two full runs are
+  unnecessary and are skipped.
+- If it shows any potential production loss, fall back to the full two-run
+  pipeline (Step 8.5) to get the exact answer, because an unchanged file may
+  still cover the "lost" line.
+
+This makes the common case (trimming well-covered tests, true loss = 0) cost two
+runs of just the touched files instead of two full Selenium suites. The fast path
+never yields a false "safe" — only a false "unsafe" that triggers the correct,
+slower fallback. Default to the fast path; use `--full` to force the full
+directory run from the start.
 
 ### 3. Ensure selenium hub is running
 
@@ -102,6 +132,12 @@ Docker container as one background task**. This avoids the manual
 save → swap → save dance that requires two separate background jobs and human
 intervention between them.
 
+The script runs `bin/rspec` against `RUN_TARGETS` rather than the whole
+directory. For the **fast path** (default), `RUN_TARGETS` is the list of changed
+files from Step 2. For the **full fallback** (Step 8.5, or `--full`),
+`RUN_TARGETS` is `$SPEC_DIR`. Everything else about the script is identical, so
+the same template serves both.
+
 Create `tmp/selenium-coverage/<directory-name>/pipeline.sh`:
 
 ```bash
@@ -113,9 +149,15 @@ BASE_REF="<base_ref>"
 OUT_DIR="/usr/src/app/tmp/selenium-coverage/<directory-name>"
 CHANGED_FILES=(<space-separated list from step 2>)
 
-echo "=== RUN 1: current branch ($(git rev-parse --short HEAD)) ==="
+# Fast path: RUN_TARGETS = "${CHANGED_FILES[@]}"  (only the touched files)
+# Full fallback (--full or after Step 8.5): RUN_TARGETS = "$SPEC_DIR"
+RUN_TARGETS=(<changed files for fast path, or "$SPEC_DIR" for full>)
+
+mkdir -p "$OUT_DIR"   # run-scoped path may be several levels deep inside the volume
+
+echo "=== RUN 1: current branch ($(git rev-parse --short HEAD)) — targets: ${RUN_TARGETS[*]} ==="
 rm -rf coverage
-COVERAGE=1 bin/rspec "$SPEC_DIR" --format progress --no-color \
+COVERAGE=1 bin/rspec "${RUN_TARGETS[@]}" --format progress --no-color \
   2>&1 | tee "$OUT_DIR/run_current.log" || true   # don't abort on test failures
 
 cp coverage/.resultset.json "$OUT_DIR/trimmed.resultset.json"
@@ -128,9 +170,9 @@ for f in "${CHANGED_FILES[@]}"; do
   echo "  restored $f"
 done
 
-echo "=== RUN 2: base ref ($BASE_REF) ==="
+echo "=== RUN 2: base ref ($BASE_REF) — targets: ${RUN_TARGETS[*]} ==="
 rm -rf coverage
-COVERAGE=1 bin/rspec "$SPEC_DIR" --format progress --no-color \
+COVERAGE=1 bin/rspec "${RUN_TARGETS[@]}" --format progress --no-color \
   2>&1 | tee "$OUT_DIR/run_base.log" || true
 
 cp coverage/.resultset.json "$OUT_DIR/original.resultset.json"
@@ -145,6 +187,11 @@ done
 
 echo "=== Pipeline complete ==="
 ```
+
+The file swap always covers only `CHANGED_FILES` — unchanged files are identical
+between HEAD and base, so there is nothing to restore for them. On the fast path
+`RUN_TARGETS` equals `CHANGED_FILES`; on the full path it is `$SPEC_DIR` while the
+swap list stays `CHANGED_FILES`.
 
 Key details:
 - `|| true` after each `bin/rspec` so a test failure doesn't abort the pipeline.
@@ -240,6 +287,28 @@ Partition `lost` into:
 
 Test infrastructure losses are expected and harmless — page-object methods and
 helper functions only exercised by deleted tests. Don't flag them as problems.
+
+### 8.5. Fast-path decision — escalate to full runs only if needed
+
+This step applies only when the runs just analysed were the **fast path**
+(changed files only). Skip it entirely if this was already a full-directory run
+(`--full`, or a fallback run re-entering here).
+
+- **Zero production lines lost** → the fast path is conclusive. Because running
+  only the changed files can only over-report loss, an empty production `lost`
+  set proves the full-directory diff is also empty. Record in `report.md` that
+  the verdict was reached via the fast path (changed files only), note the run
+  duration saved, and proceed to Step 10 with verdict ✅. **Do not run the full
+  suites.**
+
+- **One or more production lines lost** → the result is inconclusive: an
+  unchanged file in the directory may still cover those lines. Re-run Step 4 with
+  `RUN_TARGETS="$SPEC_DIR"` (full directory) in both passes, overwriting the same
+  output files, then re-enter Step 5 → Step 8. Tell the user the fast path
+  flagged N potential losses and the full comparison is running to confirm.
+  On this second entry, skip this step (8.5) and continue to Step 9.
+
+Mark in `report.md` which path produced the final numbers.
 
 ### 9. Cross-check production losses against the audit CSV
 

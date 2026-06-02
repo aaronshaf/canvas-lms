@@ -34,6 +34,13 @@ or a short name: `grades` (resolved to `tmp/selenium-behavior/grades.behaviors.c
 If not supplied, ask. If the CSV doesn't exist, instruct the user to run
 `selenium-behavior-extract` first.
 
+## Output root
+
+Outputs default to `tmp/`. When invoked with `--run-dir <root>` (the
+`selenium-pipeline` always passes this), replace the leading `tmp` in every output
+path below with `<root>`, and read the behaviors CSV from the same root, so
+concurrent or repeated runs never clobber each other.
+
 ## Output
 
 `tmp/selenium-behavior/<name>.quality.csv`
@@ -75,12 +82,19 @@ For each unique `controller_route`, grep for candidate lower-layer test files.
 Do this **before** spawning agents so every agent receives pre-built file lists rather than
 performing redundant greps independently.
 
-For each route, derive search terms:
-- Controller class name: extract from route string (`GradesController` → `grades_controller`)
-- Route path fragment: extract from route string (`/courses/:id/grades` → `grades`)
-- Page object names: collect from `extract_notes` column of rows using that route
+#### 2a. Derive search terms for every unique controller
 
-Run these searches:
+For each unique controller class present in the behaviors CSV, derive:
+- Controller snake-case name (`GradesController` → `grades_controller`)
+- Route path fragment (`/courses/:id/grades` → `grades`)
+- Page object names collected from `extract_notes` for all rows on that controller
+
+#### 2b. Run all controller grep queries in parallel
+
+Issue all controller grep queries as **parallel Bash calls in a single message** —
+one call per unique controller class. Do not run them sequentially.
+
+Each query:
 
 ```bash
 # Ruby specs — controller/request/api
@@ -96,7 +110,12 @@ grep -rn "<PageObjectName>\|<feature_keyword>" \
   ui/features/ ui/shared/ --include="*.test.{ts,tsx,js,jsx}" -l
 ```
 
-Deduplicate results per route. The output is a dict:
+Wait for all parallel results, then merge. Deduplicate results per controller.
+
+#### 2c. Build the index
+
+The output is a dict keyed by `controller_route` (all routes on the same
+controller share the same candidate file list — one search covers all):
 
 ```
 coverage_index = {
@@ -104,9 +123,6 @@ coverage_index = {
   ...
 }
 ```
-
-Routes sharing the same controller (e.g. all `AssignmentsController` variants) share their
-candidate file list — search once, reuse for all matching rows.
 
 ### 3. Cluster rows into parallel scoring groups
 

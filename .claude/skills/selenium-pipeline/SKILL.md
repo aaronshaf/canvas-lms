@@ -47,6 +47,35 @@ If the argument contains no `/`, prepend `spec/selenium/`.
 Verify the directory exists: `test -d <path>` must succeed.
 If the directory doesn't exist, stop and tell the user.
 
+### Step 1.5 — Establish a per-run output directory
+
+Each pipeline run gets its own artifact root so repeated runs on the same
+directory (or two runs going at once) never clobber each other's CSVs, reports,
+or coverage files.
+
+```bash
+RUN_SLUG="<dir_name>_$(date +%Y%m%d-%H%M%S)"
+RUN_DIR="tmp/selenium-runs/${RUN_SLUG}"
+mkdir -p "$RUN_DIR"
+```
+
+`RUN_DIR` is a repo-relative path such as `tmp/selenium-runs/courses_20260602-141530`.
+Hold this concrete string for the rest of the run — every sub-skill is invoked with
+`--run-dir "$RUN_DIR"`, and each writes its artifacts under that root instead of the
+bare `tmp/` default. (The Bash tool does not persist env vars between calls, so pass
+the literal `RUN_DIR` value on each invocation rather than relying on an exported
+variable.)
+
+Tell the user the run directory up front:
+
+```
+Run directory: tmp/selenium-runs/<dir>_<timestamp>
+  All artifacts for this run land here; prior runs are left untouched.
+```
+
+Throughout the rest of this document, any path written as `tmp/selenium-<stage>/…`
+means `${RUN_DIR}/selenium-<stage>/…`.
+
 ### Step 2 — Upfront precondition checks
 
 > **First time using the skill suite, or after any skill update?**
@@ -109,6 +138,7 @@ Agent(
     prompt=f"""
 Audit this directory: {spec_dir}
 Base ref for comparison: {base_ref}
+Write all output under this run directory: {RUN_DIR}/selenium-audit/
 
 Follow the selenium-audit-batch agent instructions exactly.
 Return the AUDIT_RESULT block when done.
@@ -144,12 +174,14 @@ in your response text is fine; wait for the user's next message.
 ### Step 5 — Trim dry-run (in this context, via Skill tool)
 
 Invoke the `selenium-trim` skill WITHOUT `--apply` (dry-run mode).
-Pass the directory name. Provide the JIRA key when asked.
+Pass the directory name and `--run-dir "$RUN_DIR"`. Also pass the audit CSV path
+inside the run dir (`$RUN_DIR/selenium-audit/<dir>.csv`). Provide the JIRA key when
+asked.
 
-The trim skill will write:
-- `tmp/selenium-trim/<dir>.preview.md`
-- `tmp/selenium-trim/<dir>.manual_review.csv`
-- `tmp/selenium-trim/<dir>.follow_up.md`
+The trim skill will write (under `$RUN_DIR`):
+- `$RUN_DIR/selenium-trim/<dir>.preview.md`
+- `$RUN_DIR/selenium-trim/<dir>.manual_review.csv`
+- `$RUN_DIR/selenium-trim/<dir>.follow_up.md`
 
 No files are deleted yet. After the dry-run completes, show the user:
 
@@ -172,30 +204,37 @@ write replacement tests so those rows can be auto-deleted by trim.
 
 Skip this step entirely when `run_quality` is false.
 
+Capture the SHA before any gap-filler commits, so the consolidation step in 5.5c
+knows the exact range of commits this run produced:
+
+```bash
+quality_start_sha=$(git rev-parse HEAD)
+```
+
 #### 5.5a — Behavior extraction
 
 Invoke the `selenium-behavior-extract` skill:
 
 ```
-selenium-behavior-extract tmp/selenium-trim/<dir>.manual_review.csv
+selenium-behavior-extract $RUN_DIR/selenium-trim/<dir>.manual_review.csv --run-dir "$RUN_DIR"
 ```
 
 This reads every `it` block listed in the manual review CSV and extracts a
 precise Given/When/Then behavioral contract for each one. Output:
-`tmp/selenium-behavior/<dir>.behaviors.csv`
+`$RUN_DIR/selenium-behavior/<dir>.behaviors.csv`
 
 #### 5.5b — Coverage quality scoring
 
 Invoke the `selenium-coverage-quality` skill:
 
 ```
-selenium-coverage-quality <dir>
+selenium-coverage-quality <dir> --run-dir "$RUN_DIR"
 ```
 
 This scores each behavioral contract STRONG / WEAK / GAP by searching for
 existing lower-layer tests that assert the same specific outcome. Output:
-`tmp/selenium-behavior/<dir>.quality.csv`
-`tmp/selenium-behavior/<dir>.quality.summary.md`
+`$RUN_DIR/selenium-behavior/<dir>.quality.csv`
+`$RUN_DIR/selenium-behavior/<dir>.quality.summary.md`
 
 Show the quality summary to the user:
 
@@ -210,31 +249,57 @@ Quality analysis complete — <dir>
   GAP / keep_selenium:         n   ← will be added to audit CSV as KEEP
 ```
 
-#### 5.5c — Gap filling (separate confirmation gate)
+#### 5.5c — Gap filling
 
-**Confirmation gate:** "Run gap-filler to write replacement tests for GAP
+Gap filling always runs on **WEAK rows** (no confirmation needed) and runs
+on **GAP rows** after a confirmation gate.
+
+**WEAK rows — always run:**
+
+If the quality CSV shows 0 WEAK rows, skip this sub-step entirely and proceed
+directly to the GAP gate.
+
+Otherwise, invoke gap-filler immediately. These already have cited existing spec
+files; gap-filler strengthens them from WEAK to STRONG by extending the existing
+assertions:
+
+```
+selenium-gap-filler <dir> --score WEAK --run-dir "$RUN_DIR"
+```
+
+Show the WEAK-pass summary before proceeding to the GAP gate:
+
+```
+WEAK → STRONG pass complete — <dir>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Extended (green): n   ← WEAK rows promoted to STRONG
+  Extended (red):   n   ← spec files on disk, not committed; manual fix needed
+```
+
+**GAP rows — confirmation gate:**
+
+After the WEAK pass, ask: "Run gap-filler to write replacement tests for GAP
 rows? This writes and commits new spec files (request specs, model specs,
 or component tests) for each actionable GAP. Proceed? (y/n)"
 
 If the user declines, skip to Step 5.6. The STRONG and keep_selenium promotions
 still happen in Step 5.6.
 
-If the user proceeds: invoke the `selenium-gap-filler` skill:
+If the user proceeds: invoke gap-filler for GAP rows only:
 
 ```
-selenium-gap-filler <dir>
+selenium-gap-filler <dir> --score GAP --run-dir "$RUN_DIR"
 ```
 
 The gap-filler will:
-- Write new or extended spec files for each GAP row where a lower-layer test
-  is feasible
+- Write new spec files for each GAP row where a lower-layer test is feasible
 - Run, lint, and mutation-check each generated test
 - Commit each passing spec file with a message explaining which selenium test
   it enables for deletion
 - Report keep_selenium rows as confirmed untouchable
 - Write `tmp/selenium-behavior/<dir>.gap_report.md`
 
-Show the gap-filler summary to the user:
+Show the combined gap-filler summary to the user:
 
 ```
 Gap filler complete — <dir>
@@ -245,7 +310,54 @@ Gap filler complete — <dir>
   Follow-up:             n   ← skipped (component_test layer) — see gap_report.md
 ```
 
-Record `quality_end_sha`:
+#### 5.5d — Consolidate gap-filler commits
+
+Gap-filler produces one commit per spec file. A run that fills many gaps can leave
+a dozen-plus tiny, near-identical commits, which is noise for a reviewer. Before
+the trim commit lands on top, group these into a smaller number of coherent,
+reviewable commits.
+
+This runs only if the gap-filler made commits this run
+(`git rev-list --count ${quality_start_sha}..HEAD` > 1). Skip if 0 or 1.
+
+**Grouping rules** — balance reviewability against overwhelm:
+- **Never mix layers in one commit.** Request specs, model specs, and component
+  tests are reviewed by different lenses; keep them in separate commits.
+- Within a layer, group by subject area:
+  - request specs for the same controller → one commit
+  - model specs for related models → one commit
+  - component tests for the same feature → one commit
+- **Cap each consolidated commit at roughly 8 files or ~400 changed lines.** If a
+  group exceeds that, split it by sub-feature rather than producing one giant
+  commit. A reviewer should be able to take in each commit in one sitting.
+- Don't go the other way either — a layer with three one-file commits for the same
+  controller becomes one commit, not three.
+
+**Mechanics** (no interactive rebase — these gap-filler commits are currently at
+the tip, so a soft reset is safe):
+
+```bash
+git reset --soft ${quality_start_sha}   # all new-spec changes now staged
+git reset ${quality_start_sha}          # unstage, keep working-tree changes
+# then, per group:
+git add <files for this group>
+git commit -m "<combined message for the group>"
+```
+
+Each consolidated commit keeps the Canvas commit conventions (≤60-char subject,
+`refs <jira_key>`, `flag=none`, test plan). The git hook regenerates a Change-Id
+per resulting commit. Use `test: cover <layer> for <subject>` as the subject.
+
+Report the consolidation to the user:
+
+```
+Commits consolidated — gap-filler
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Before: n one-file commits
+  After:  m grouped commits (by layer + subject)
+```
+
+Record `quality_end_sha` **after** consolidation:
 
 ```bash
 quality_end_sha=$(git rev-parse HEAD)
@@ -253,8 +365,7 @@ quality_end_sha=$(git rev-parse HEAD)
 
 This SHA marks the boundary between quality commits (new tests) and trim
 commits (test deletions). It is used in Step 5b to squash only the trim commits.
-If the gap-filler made no commits, `quality_end_sha` equals the SHA before
-Step 5.5 started.
+If the gap-filler made no commits, `quality_end_sha` equals `quality_start_sha`.
 
 ### Step 5.6 — Promote rows in the audit CSV
 
@@ -312,6 +423,13 @@ analysis is complete (audit + dry-run + quality + promotions). This is the
 definitive pre-deletion record: the ticket gets the full picture of what was
 found, what will be deleted, and what new coverage was written before any
 Selenium tests are removed.
+
+**Don't block on this.** The Jira comment is a record, not a dependency of the
+trim. Fire the `jira_add_comment` call and immediately continue to Step 5b — do
+not wait for the network round-trip before starting the trim. Check the result
+opportunistically before the final summary (Step 8); if it failed, log the
+warning there. Composing the comment body, however, must happen here while the
+analysis numbers are in hand.
 
 Use the `jira_add_comment` MCP tool:
 
@@ -386,8 +504,10 @@ continue — do not stop the pipeline over a Jira comment failure.
 
 #### Trim --apply
 
-Invoke the `selenium-trim` skill with `--apply` and the directory name.
-Provide the JIRA key when asked.
+Invoke the `selenium-trim` skill with `--apply`, the directory name, and
+`--run-dir "$RUN_DIR"` (so it reads the promoted audit CSV and writes its
+manual-review/follow-up artifacts under the run dir). Provide the JIRA key when
+asked.
 
 The trim skill will:
 - Create branch `selenium-trim/<directory-name>` if it does not exist
@@ -407,8 +527,8 @@ Trim complete
 #### Squash trim commits
 
 Squash only the trim commits — not the quality/gap-filler commits that preceded
-them. The quality commits (new spec files) should stay as individual reviewable
-commits.
+them. The gap-filler commits (new spec files), already consolidated into coherent
+per-layer/per-subject groups in Step 5.5d, stay as their own reviewable commits.
 
 **Determine the squash base:**
 
@@ -482,34 +602,36 @@ and subject. Show separately any gap-filler commits that precede it (they are
 intentionally not squashed).
 
 **Confirmation gate:** Ask whether to proceed with coverage compare. The
-coverage compare takes ~10–15 minutes (two full selenium runs). If the user
-declines, summarise what's been done and stop.
+coverage compare runs the changed spec files first (fast path, usually a few
+minutes); it only falls back to two full selenium runs (~10–15 minutes) if that
+narrowed pass detects potential production coverage loss. If the user declines,
+summarise what's been done and stop.
 
 ### Step 6 — Coverage compare (in this context, via Skill tool)
 
-Invoke the `selenium-coverage-compare` skill with the spec directory and
-`--base <base_ref>` (from step 3).
+Invoke the `selenium-coverage-compare` skill with the spec directory,
+`--base <base_ref>` (from step 3), and `--run-dir "$RUN_DIR"`.
 
 The coverage skill will:
 - Ensure the selenium hub is running (start if needed)
-- Build and `docker cp` a pipeline script that runs both rspec passes and
-  the file swap in one background job
-- Wait for the task notification
+- Run the changed spec files first (fast path); fall back to the full directory
+  only if that pass flags potential production coverage loss
 - `docker cp` the resultsets out of the Docker volume
 - Run the diff analysis and cross-check against the audit CSV
-- Write `tmp/selenium-coverage/<dir>/report.md`
+- Write `$RUN_DIR/selenium-coverage/<dir>/report.md`
 
 ### Step 7 — Package and archive (via Skill tool)
 
 After coverage compare completes, invoke the `selenium-package` skill:
 
 ```
-selenium-package <dir_name>
+selenium-package <dir_name> --run-dir "$RUN_DIR"
 ```
 
 The skill will:
-- Discover all artifact files under `tmp/selenium-audit/`, `tmp/selenium-trim/`,
-  `tmp/selenium-behavior/`, and `tmp/selenium-coverage/`
+- Discover all artifact files under `$RUN_DIR/selenium-audit/`,
+  `$RUN_DIR/selenium-trim/`, `$RUN_DIR/selenium-behavior/`, and
+  `$RUN_DIR/selenium-coverage/`
 - Prompt the user once (ticket key + destination: jira / path / both)
 - Build the named zip and deliver it
 
@@ -523,10 +645,12 @@ After all stages (and packaging) complete, print:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SELENIUM PIPELINE COMPLETE — spec/selenium/<dir>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Audit CSV:         tmp/selenium-audit/<dir>.csv
+  Run directory:     $RUN_DIR
+  Audit CSV:         $RUN_DIR/selenium-audit/<dir>.csv
   Trim branch:       selenium-trim/<dir>
-  Coverage report:   tmp/selenium-coverage/<dir>/report.md
+  Coverage report:   $RUN_DIR/selenium-coverage/<dir>/report.md
 
+  Commits:           m grouped gap-filler commits + 1 trim commit
   Tests deleted:     N (HIGH confidence, squashed into 1 trim commit)
   Coverage verdict:  <verdict line from report>
 ```
@@ -535,9 +659,9 @@ If the quality pipeline ran, also print:
 
 ```
   Quality artifacts:
-    Behaviors:  tmp/selenium-behavior/<dir>.behaviors.csv
-    Quality:    tmp/selenium-behavior/<dir>.quality.csv
-    Gap report: tmp/selenium-behavior/<dir>.gap_report.md
+    Behaviors:  $RUN_DIR/selenium-behavior/<dir>.behaviors.csv
+    Quality:    $RUN_DIR/selenium-behavior/<dir>.quality.csv
+    Gap report: $RUN_DIR/selenium-behavior/<dir>.gap_report.md
 
   Quality results:
     Rows promoted → DELETE_COVERED:  n
@@ -553,13 +677,19 @@ Always print next steps:
   1. Verify cited and new specs still pass locally:
        bin/rspec <cited_spec_files>
        yarn test <component_test_files>
-  2. Push the trim branch for review:
+  2. Review the commit list — gap-filler commits are grouped by layer +
+     subject, with the trim deletion as its own commit:
+       git log --oneline master..HEAD
+  3. Push the trim branch for review (use gerrit-commit for the commit,
+     then push with the Jira ticket as the Gerrit topic):
        /gerrit-commit
-  3. Triage remaining follow-up work:
-       tmp/selenium-trim/<dir>.follow_up.md    (Q items)
-       tmp/selenium-behavior/<dir>.gap_report.md (red/skipped gaps)
-  4. Manual review queue:
-       tmp/selenium-trim/<dir>.manual_review.csv (P rows)
+       git push origin HEAD:refs/for/master%topic=<jira_key>
+     (omit %topic= when jira_key is "none")
+  4. Triage remaining follow-up work:
+       $RUN_DIR/selenium-trim/<dir>.follow_up.md    (Q items)
+       $RUN_DIR/selenium-behavior/<dir>.gap_report.md (red/skipped gaps)
+  5. Manual review queue:
+       $RUN_DIR/selenium-trim/<dir>.manual_review.csv (P rows)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -578,17 +708,31 @@ Always print next steps:
 
 ## Resuming an interrupted pipeline
 
-If a previous run partially completed (trim branch exists, CSVs exist):
+Because each run gets its own `RUN_DIR` (Step 1.5), resuming means continuing the
+**existing** run directory rather than starting a fresh one. Find the most recent
+run dir for the target directory and reuse it:
 
-- Skip re-running any stage whose output already exists on the current branch:
-  - Audit: `test -f tmp/selenium-audit/<dir>.csv`
-  - Behaviors: `test -f tmp/selenium-behavior/<dir>.behaviors.csv`
-  - Quality: `test -f tmp/selenium-behavior/<dir>.quality.csv`
-  - Trim dry-run: `test -f tmp/selenium-trim/<dir>.manual_review.csv`
-  - Gap report: `test -f tmp/selenium-behavior/<dir>.gap_report.md`
+```bash
+RUN_DIR=$(ls -dt tmp/selenium-runs/<dir>_* 2>/dev/null | head -1)
+```
+
+If none exists, start fresh (Step 1.5). Confirm the chosen `RUN_DIR` with the user
+before reusing it — a different run may be the one they meant.
+
+If a previous run partially completed (trim branch exists, artifacts exist under
+the chosen `RUN_DIR`):
+
+- Skip re-running any stage whose output already exists in that run dir:
+  - Audit: `test -f $RUN_DIR/selenium-audit/<dir>.csv`
+  - Behaviors: `test -f $RUN_DIR/selenium-behavior/<dir>.behaviors.csv`
+  - Quality: `test -f $RUN_DIR/selenium-behavior/<dir>.quality.csv`
+  - Trim dry-run: `test -f $RUN_DIR/selenium-trim/<dir>.manual_review.csv`
+  - Gap report: `test -f $RUN_DIR/selenium-behavior/<dir>.gap_report.md`
   - Trim + squash: `git log --oneline selenium-trim/<dir> ^master` has
     exactly **1** trim commit (subject starts with `selenium: trim`)
-  - Coverage: `test -f tmp/selenium-coverage/<dir>/report.md`
+  - Coverage: `test -f $RUN_DIR/selenium-coverage/<dir>/report.md`
 - Ask the user which stages to re-run rather than silently skipping.
-- When resuming after a partial quality run, re-derive `quality_end_sha`
-  from the last gap-filler commit: `git log --oneline --grep="gap-filler" master..HEAD | head -1`
+- When resuming after a partial quality run, re-derive the commit boundary as the
+  parent of the trim commit (the gap-filler commits sit below it):
+  `quality_end_sha=$(git rev-parse selenium-trim/<dir>~1)` if a trim commit exists,
+  otherwise `quality_end_sha=$(git rev-parse HEAD)`.
