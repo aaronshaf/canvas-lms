@@ -215,7 +215,6 @@
     "tinycolor2": "^1.6.0",
     "twitter-text": "^3.1.0",
     "use-debounce": "^10",
-    "use-media-set": "^1.1",
     "uuid": "3.4.0",
     "webpack-retry-chunk-load-plugin": "^3.1.1",
     "yarn-deduplicate": "^3.0.1",
