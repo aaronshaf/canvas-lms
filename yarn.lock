@@ -3309,6 +3309,16 @@
   resolved "https://registry.yarnpkg.com/@instructure/shared-types/-/shared-types-11.6.0.tgz#b1ae3b7986ffe394911aa1487272f7f7a60e4429"
   integrity sha512-uomkewk/Rfhurlm9dGr7O9hmL3Di3BMZDEjwrfWeGOqFN70xWUNFoEa/f9bqGU/83vAHecM4OlHb7Gz1UqIbnQ==
 
+"@instructure/studio-capture@12.2.2":
+  version "12.2.2"
+  resolved "https://registry.yarnpkg.com/@instructure/studio-capture/-/studio-capture-12.2.2.tgz#29ec126c9a16678f6f11ea7754d24aa902801199"
+  integrity sha512-VD1F3Ur36o58NkhZxzHr8+ytw1FqbnEKPONewG/97oMA/Pg4p+2deva3X7HvDwBPv/ng+EzUmTC7VRM15bxK4A==
+  dependencies:
+    "@mediapipe/tasks-vision" "^0.10.14"
+    "@reduxjs/toolkit" "^2.9.0"
+    react-redux "^9.3.0"
+    ts-ebml "^2.0.2"
+
 "@instructure/studio-player@1.10.0":
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/@instructure/studio-player/-/studio-player-1.10.0.tgz#4fcd89b9c59f4ab551b5bf84310e41b0d551ead0"
@@ -5964,6 +5974,18 @@
   resolved "https://registry.yarnpkg.com/@react-types/shared/-/shared-3.35.0.tgz#6427fdc266c0a5980679e10ab9df5db5da234f73"
   integrity sha512-iNWvuzEwANttpQpdlu8nPBtdHb0mcCMj1ZTH//iRB5E/14IAnyRlR25rxH7pNLyzHINsPGEKnWvpwDMCT6vziQ==
 
+"@reduxjs/toolkit@^2.9.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-2.12.0.tgz#e62787503a38561e04bb8f39e29ca8db689590f9"
+  integrity sha512-KiT+RzZbp6mQET+Mg+h2c97+9j1sNflUxQkIHI7Yuzf6Peu+OYpmkn6nbHWmLLWj+1ZODUJFwGZ7gx3L9R9EOw==
+  dependencies:
+    "@standard-schema/spec" "^1.0.0"
+    "@standard-schema/utils" "^0.3.0"
+    immer "^11.0.0"
+    redux "^5.0.1"
+    redux-thunk "^3.1.0"
+    reselect "^5.1.0"
+
 "@remix-run/router@1.23.3":
   version "1.23.3"
   resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.23.3.tgz#957c098d4393d301a8aa7dccf3ef28ea5430e36a"
@@ -6441,10 +6463,15 @@
   dependencies:
     "@sinonjs/commons" "^3.0.1"
 
-"@standard-schema/spec@^1.1.0":
+"@standard-schema/spec@^1.0.0", "@standard-schema/spec@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"
   integrity sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==
+
+"@standard-schema/utils@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@standard-schema/utils/-/utils-0.3.0.tgz#3d5e608f16c2390c10528e98e59aef6bf73cae7b"
+  integrity sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==
 
 "@swc/core-darwin-arm64@1.15.3":
   version "1.15.3"
@@ -7028,6 +7055,11 @@
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@types/use-sync-external-store/-/use-sync-external-store-0.0.3.tgz#b6725d5f4af24ace33b36fafd295136e75509f43"
   integrity sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==
+
+"@types/use-sync-external-store@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@types/use-sync-external-store/-/use-sync-external-store-0.0.6.tgz#60be8d21baab8c305132eb9cb912ed497852aadc"
+  integrity sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==
 
 "@types/uuid@^9.0.0":
   version "9.0.0"
@@ -13008,6 +13040,11 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
+immer@^11.0.0:
+  version "11.1.8"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-11.1.8.tgz#08a6426f7019dbce8d6dff8c4a43bb25c550a575"
+  integrity sha512-/tbkHMW7y10Lx6i1crLjD4/OhNkRG+Fo7byZHtah0547nIeXYcpIXaUh0IAQY6gO5459qpGGYapcEOHtFXkIuA==
+
 immer@^3:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/immer/-/immer-3.3.0.tgz#ee7cf3a248d5dd2d4eedfbe7dfc1e9be8c72041d"
@@ -17734,6 +17771,14 @@ react-redux@^8.1.3:
     react-is "^18.0.0"
     use-sync-external-store "^1.0.0"
 
+react-redux@^9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-9.3.0.tgz#a30113bb6d95c0a715d54dda4308d450fca6ce09"
+  integrity sha512-KQopgqFo/p/fgmAs5qz6p5RWaNAzq40WAu7fJIXnQpYxFPbJYtsJPWvGeF2rOBaY/kEuV77AVsX8TsQzKm+A/g==
+  dependencies:
+    "@types/use-sync-external-store" "^0.0.6"
+    use-sync-external-store "^1.4.0"
+
 react-refresh@^0.17.0:
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.17.0.tgz#b7e579c3657f23d04eccbe4ad2e58a8ed51e7e53"
@@ -18089,6 +18134,11 @@ redux@^4, redux@^4.0.0, redux@^4.0.1, redux@^4.0.4, redux@^4.1.2, redux@^4.2.1:
   dependencies:
     "@babel/runtime" "^7.9.2"
 
+redux@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/redux/-/redux-5.0.1.tgz#97fa26881ce5746500125585d5642c77b6e9447b"
+  integrity sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==
+
 reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
@@ -18302,6 +18352,11 @@ reselect@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.0.0.tgz#f2529830e5d3d0e021408b246a206ef4ea4437f7"
   integrity sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==
+
+reselect@^5.1.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-5.2.0.tgz#f380ef7664332d26ea06c1cba04bdbbdcaa955f1"
+  integrity sha512-AgZ3UOZm3YndfrJ4OYjgrT7bmCm/1iqkjvEfH/oYjzh6PD2qw4QuT3jjnXIrpdt4MTpMXclMT3lXbmRY+XRakw==
 
 resize-observer-polyfill@^1.5.0, resize-observer-polyfill@^1.5.1:
   version "1.5.1"
@@ -20825,7 +20880,7 @@ use-sync-external-store@1.2.2:
   resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.2.2.tgz#c3b6390f3a30eba13200d2302dcdf1e7b57b2ef9"
   integrity sha512-PElTlVMwpblvbNqQ82d2n6RjStvdSoNe9FG28kNfz3WiXilJm4DdNkEzRhCZuIDwY8U08WVihhGR5iRqAwfDiw==
 
-use-sync-external-store@^1.0.0, use-sync-external-store@^1.5.0, use-sync-external-store@^1.6.0:
+use-sync-external-store@^1.0.0, use-sync-external-store@^1.4.0, use-sync-external-store@^1.5.0, use-sync-external-store@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.6.0.tgz#b174bfa65cb2b526732d9f2ac0a408027876f32d"
   integrity sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==

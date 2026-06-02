@@ -16,11 +16,11 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const {IgnorePlugin} = require('webpack')
 const {
   DefinePlugin,
   ProvidePlugin,
   EnvironmentPlugin,
+  IgnorePlugin,
   SwcJsMinimizerRspackPlugin,
 } = require('@rspack/core')
 const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin')

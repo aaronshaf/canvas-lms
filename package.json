@@ -24,7 +24,7 @@
     "@instructure/canvas-media": "*",
     "@instructure/debounce": "11.6.0",
     "@instructure/emotion": "11.6.0",
-    "@instructure/media-capture": "12.0.0",
+    "@instructure/studio-capture": "12.2.2",
     "@instructure/outcomes-ui": "4.1.6",
     "@instructure/platform-alerts": "1.0.0",
     "@instructure/platform-canvas-fetch": "0.1.3",

@@ -177,7 +177,7 @@ export class UploadMediaModal extends React.Component {
 
       // Ensure the file name has a proper extension so the K5Uploader's
       // extension-based file type check can determine the correct media type.
-      // Recordings from @instructure/media-capture often lack a file extension.
+      // Recordings from @instructure/studio-capture often lack a file extension.
       // This must happen before onStartUpload so placeholder insertion and
       // later removal in the RCE both key off the same file name.
       if (!fileExtensionRegex.test(file.name)) {

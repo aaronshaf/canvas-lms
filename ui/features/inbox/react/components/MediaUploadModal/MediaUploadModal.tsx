@@ -18,8 +18,8 @@
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {IconAudioSolid, IconVideoCameraSolid} from '@instructure/ui-icons'
-// @ts-expect-error no types available for media-capture
-import {ScreenCapture, canUseMediaCapture} from '@instructure/media-capture'
+// @ts-expect-error no types available for studio-capture
+import {ScreenCapture, canUseMediaCapture} from '@instructure/studio-capture'
 import {Modal} from '@instructure/ui-modal'
 import React from 'react'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'

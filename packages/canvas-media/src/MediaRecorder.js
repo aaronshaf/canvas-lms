@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {canUseMediaCapture, ScreenCapture} from '@instructure/media-capture'
+import {canUseMediaCapture, ScreenCapture} from '@instructure/studio-capture'
 
 import {Alert} from '@instructure/ui-alerts'
 import {func, object, string} from 'prop-types'
@@ -26,8 +26,6 @@ export default function MediaRecorder(props) {
   return (
     <div>
       {canUseMediaCapture() ? (
-        // In @instructure/media-capture v11, MediaCapture was replaced by ScreenCapture (ARC-9172).
-        // noScreenSharing preserves the original webcam-only behavior.
         <ScreenCapture
           translations={props.MediaCaptureStrings}
           onCompleted={props.onSave}

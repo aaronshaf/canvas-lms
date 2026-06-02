@@ -62,7 +62,7 @@ const uploadMediaTranslations = {
     OPTION_SELECTED: '{option} selected.',
   },
 
-  // Structure copied from @instructure/media-capture translations file
+  // Structure copied from @instructure/studio-capture translations file
   MediaCaptureStrings: {
     ARIA_TIMEBAR_LABEL: formatMessage('Timebar'),
     ARIA_VIDEO_LABEL: formatMessage('Video Player'),

@@ -17,7 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {ScreenCapture, canUseScreenCapture, canUseMediaCapture} from '@instructure/media-capture'
+import {ScreenCapture, canUseScreenCapture, canUseMediaCapture} from '@instructure/studio-capture'
 import $ from 'jquery'
 import {func, string} from 'prop-types'
 import React from 'react'
