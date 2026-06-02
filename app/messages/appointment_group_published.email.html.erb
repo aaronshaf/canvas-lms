@@ -27,15 +27,19 @@
     </tr>
     <tr>
         <td style="padding-right: 10px;" valign="top"><%= t :signup_type, "Signup Type" %>:</td>
-        <td valign="top"><%= (asset.participant_type == 'Group') ?
-                t(:group_signup, "Group (%{group_category})", group_category: asset.sub_contexts.first.name) :
-                t(:individual_signup, "Individual") %></td>
+        <td valign="top"><%= if asset.participant_type == 'Group'
+                               t(:group_signup, "Group (%{group_category})", group_category: asset.sub_contexts.first.name)
+                             else
+                               t(:individual_signup, "Individual")
+                             end %></td>
     </tr>
     <tr>
         <td style="padding-right: 10px;" valign="top"><%= t :course, "Course" %>:</td>
-        <td valign="top"><%= (asset.participant_type == 'Group') ?
-                asset.contexts.first.name :
-                asset.contexts_for_user(user).map(&:name).join(", ") %></td>
+        <td valign="top"><%= if asset.participant_type == 'Group'
+                               asset.contexts.first.name
+                             else
+                               asset.contexts_for_user(user).map(&:name).join(", ")
+                             end %></td>
     </tr>
     <% if asset.available_slots -%>
       <tr>

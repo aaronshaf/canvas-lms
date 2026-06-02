@@ -21,19 +21,17 @@
 <% provide :right_side do %>
   <% if can_do(@section, @current_user, :update) %>
     <a href="#" class="btn button-sidebar-wide edit_section_link"><i class="icon-edit"></i> <%= t('buttons.edit_section', 'Edit Section') %></a>
-    <% if @section.nonxlist_course_id %>
-      <% if can_do(@section.nonxlist_course, @current_user, :manage_sections_edit) %>
-        <div
-          id="uncrosslist_link_button_container"
-          data-props="<%= {
-                            courseName: @section.nonxlist_course.name,
-                            enrollmentsCount: @student_enrollments_count,
-                            sectionId: @section.id.to_s,
-                            courseId: @section.course.id.to_s,
-                            nonxlistCourseId: @section.nonxlist_course.id.to_s
-                          }.to_json %>"
-        ></div>
-      <% end %>
+    <% if @section.nonxlist_course_id && can_do(@section.nonxlist_course, @current_user, :manage_sections_edit) %>
+      <div
+        id="uncrosslist_link_button_container"
+        data-props="<%= {
+                          courseName: @section.nonxlist_course.name,
+                          enrollmentsCount: @student_enrollments_count,
+                          sectionId: @section.id.to_s,
+                          courseId: @section.course.id.to_s,
+                          nonxlistCourseId: @section.nonxlist_course.id.to_s
+                        }.to_json %>"
+      ></div>
     <% end %>
     <div
       id="crosslist_link_button_container"

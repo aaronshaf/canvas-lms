@@ -100,30 +100,31 @@
           <% end %>
         </div>
 
-        <% unless @can_view %>
-          <% if context_module %>
-            <div class="completion_status">
-              <i class="icon-check complete_icon"
-                data-tooltip
-                title="<%= t('Completed') %>"
-              >
-                <span class="screenreader-only"><%= t("Module Completed") %></span>
-              </i>
-              <i class="icon-minimize in_progress_icon"
-                data-tooltip
-                title="<%= t('In Progress') %>"
-              >
-                <span class="screenreader-only"><%= t("Module In Progress") %></span>
-              </i>
-              <i class="icon-lock locked_icon"
-                data-tooltip
-                title="<%= context_module&.to_be_unlocked ?
-                        t('Locked until %{unlock_date}', unlock_date: datetime_string(context_module.try_rescue(:unlock_at)) || nbsp) : t('Locked') %>"
-              >
-                <span class="screenreader-only"><%= t("Module Locked") %></span>
-              </i>
-            </div>
-          <% end %>
+        <% if !@can_view && context_module %>
+          <div class="completion_status">
+            <i class="icon-check complete_icon"
+              data-tooltip
+              title="<%= t('Completed') %>"
+            >
+              <span class="screenreader-only"><%= t("Module Completed") %></span>
+            </i>
+            <i class="icon-minimize in_progress_icon"
+              data-tooltip
+              title="<%= t('In Progress') %>"
+            >
+              <span class="screenreader-only"><%= t("Module In Progress") %></span>
+            </i>
+            <i class="icon-lock locked_icon"
+              data-tooltip
+              title="<%= if context_module&.to_be_unlocked
+                           t('Locked until %{unlock_date}', unlock_date: datetime_string(context_module.try_rescue(:unlock_at)) || nbsp)
+                         else
+                           t('Locked')
+                         end %>"
+            >
+              <span class="screenreader-only"><%= t("Module Locked") %></span>
+            </i>
+          </div>
         <% end %>
 
         <% if @can_edit %>

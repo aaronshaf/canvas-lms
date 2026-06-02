@@ -279,7 +279,8 @@
     </tr>
   </thead>
 <% @pseudonyms.each do |p| %>
-  <% if p.first? || p.account_id %>
+  <% next unless p.first? || p.account_id %>
+
   <tr id="pseudonym_<%= p.id %>" class="pseudonym">
     <td><%= p.account.name %></td>
     <td>
@@ -289,7 +290,6 @@
       </div>
     </td>
   </tr>
-  <% end %>
 <% end %>
 </table>
 <div style="text-align: center; display: none;">

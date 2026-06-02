@@ -1,9 +1,9 @@
 <% define_content :link do %>
-  <%=
-    asset.submission.assignment.anonymous_peer_reviews? ?
-      polymorphic_url([asset.submission.assignment.context, asset.submission.assignment, :anonymous_submission], anonymous_id: asset.submission.anonymous_id) :
-      polymorphic_url([asset.submission.assignment.context, asset.submission.assignment, :submission], id: asset.submission.user_id)
-  %>
+  <%= if asset.submission.assignment.anonymous_peer_reviews?
+        polymorphic_url([asset.submission.assignment.context, asset.submission.assignment, :anonymous_submission], anonymous_id: asset.submission.anonymous_id)
+      else
+        polymorphic_url([asset.submission.assignment.context, asset.submission.assignment, :submission], id: asset.submission.user_id)
+      end %>
 <% end %>
 
 <% define_content :subject do %>

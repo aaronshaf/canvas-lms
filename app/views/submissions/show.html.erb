@@ -137,8 +137,8 @@
           <% else %>
             <%= render partial: "grade_values_can_read", locals: { presenter: } %>
           <% end %>
-        <% if can_do(@submission, @current_user, :view_turnitin_report) %>
-          <% if (turnitin_score = @submission.turnitin_data[@submission.asset_string]) &&
+          <% if can_do(@submission, @current_user, :view_turnitin_report) &&
+                (turnitin_score = @submission.turnitin_data[@submission.asset_string]) &&
                 @submission.turnitin_data[:provider].nil? && turnitin_score[:similarity_score] %>
             <% if show_updated_plagiarism_icons %>
               <%=
@@ -154,7 +154,6 @@
               </span>
             <% end %>
           <% end %>
-        <% end %>
         <% elsif @submission.hide_grade_from_student? %>
           <p style="width: 200px"><%= t(:student_mute_notification, "Grades are unavailable because the instructor is working on them.") %></p>
         <% end %>
@@ -294,10 +293,10 @@
             <% end %>
           </option>
         <% end %>
-        <% if can_do(@context, @current_user, :manage_grades) && @submission.user != @current_user %>
-        <% unless @visible_rubric_assessments.map(&:assessor_id).include?(@current_user.id) %>
+        <% if can_do(@context, @current_user, :manage_grades) &&
+              @submission.user != @current_user &&
+              !@visible_rubric_assessments.map(&:assessor_id).include?(@current_user.id) %>
           <option value="new" id="new_rubric_assessment_option"><%= t('options.new_assessment', '[New Assessment]') %></option>
-        <% end %>
         <% end %>
       </select>
     </div>
@@ -346,11 +345,12 @@
               <br/><br/>
             <% end %>
             <% submission_comments.each do |comment| %>
-              <% if can_do(comment, @current_user, :read) %>
-                <%
-                  author_name = comment_author_name_for(comment)
-                  created_at = datetime_string(comment.created_at)
-                %>
+              <% next unless can_do(comment, @current_user, :read) %>
+
+              <%
+                author_name = comment_author_name_for(comment)
+                created_at = datetime_string(comment.created_at)
+              %>
               <div class="comment <%= 'draft' if comment.draft? %>" id="submission_comment_<%= comment.id %>" style="margin-bottom: 10px;">
                 <div class="comment" style="color: #444;">
                   <span class="comment_content" data-content="<%= comment.comment %>" style="white-space: pre-wrap;"></span>
@@ -380,7 +380,6 @@
                   <span class="posted_at"><%= created_at %></span>
                 </div>
               </div>
-              <% end %>
             <% end %>
           </div>
           <div class="comment_media" id="comment_media_blank" style="display: none; white-space: normal;">

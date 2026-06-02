@@ -10,16 +10,16 @@
 
 <%= before_label :details, "Appointment details" %>
 <%= before_label :dates, "Date(s)" %> <%= date_string(asset.start_at, asset.end_at, :no_words) %>
-<%= before_label :signup_type, "Signup Type" %> <%=
-                                                  (asset.participant_type == 'Group') ?
-    t(:group_signup, "Group (%{group_category})", group_category: asset.sub_contexts.first.name) :
-    t(:individual_signup, "Individual")
-                                                %>
-<%= before_label :course, "Course" %> <%=
-                                        (asset.participant_type == 'Group') ?
-    asset.contexts.first.name :
-    asset.contexts_for_user(user).map(&:name).join(", ")
-                                      %>
+<%= before_label :signup_type, "Signup Type" %> <%= if asset.participant_type == 'Group'
+                                                      t(:group_signup, "Group (%{group_category})", group_category: asset.sub_contexts.first.name)
+                                                    else
+                                                      t(:individual_signup, "Individual")
+                                                    end %>
+<%= before_label :course, "Course" %> <%= if asset.participant_type == 'Group'
+                                            asset.contexts.first.name
+                                          else
+                                            asset.contexts_for_user(user).map(&:name).join(", ")
+                                          end %>
 <% if asset.available_slots -%>
 <%= before_label :slots_remaining, "Available time slots" %> <%= asset.available_slots(current_only: true) %>
 <% end -%>

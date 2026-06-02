@@ -16,9 +16,11 @@
 <% else -%>
 <%= before_label :attendee, "Attendee" %> <%= asset.context.name %>
 <% end -%>
-<%= before_label :course, "Course" %> <%= (asset.appointment_group.participant_type == 'Group') ?
-                                           asset.appointment_group.contexts.first.name :
-                                           asset.appointment_group.contexts_for_user(user).map(&:name).join(", ") %>
+<%= before_label :course, "Course" %> <%= if asset.appointment_group.participant_type == 'Group'
+                                            asset.appointment_group.contexts.first.name
+                                          else
+                                            asset.appointment_group.contexts_for_user(user).map(&:name).join(", ")
+                                          end %>
 <% if asset.grants_right?(user, :read) -%>
 <% if asset.appointment_group.available_slots -%>
 <%= before_label :slots_remaining, "Available time slots" %> <%= asset.appointment_group.available_slots(current_only: true) %>

@@ -61,13 +61,11 @@
 
       <div id="gradebook-actions">
         <%# EVAL-3711 Remove ICE Evaluate feature flag %>
-        <% unless instui_nav? %>
-          <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
-            <button id="keyboard-shortcuts" class="Button--icon-action Button--active" type="button" style="margin-right: 12px">
-              <span class="screenreader-only"><%= t('Keyboard Shortcuts') %></span>
-              <i class="icon-keyboard-shortcuts"></i>
-            </button>
-          <% end %>
+        <% unless instui_nav? && @current_user.try(:prefers_no_keyboard_shortcuts?) %>
+          <button id="keyboard-shortcuts" class="Button--icon-action Button--active" type="button" style="margin-right: 12px">
+            <span class="screenreader-only"><%= t('Keyboard Shortcuts') %></span>
+            <i class="icon-keyboard-shortcuts"></i>
+          </button>
         <% end %>
 
         <span data-component="EnhancedActionMenu"></span>

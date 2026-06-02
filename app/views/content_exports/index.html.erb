@@ -49,31 +49,29 @@
 
   <div id="export_files">
     <% @exports.each do |export| %>
-      <% unless export.running? %>
-        <% if export.workflow_state == 'exported' %>
-          <p>
-            <% date = tag.span(datetime_string(export.created_at), class: %i[created_at time_ago_date], data: { timestamp: export.created_at.iso8601 }) %>
-            <% if !export.attachment %>
-              <% wrapper = link_to('\1', nil) %>
-            <% elsif Account.site_admin.feature_enabled?(:disable_verified_content_export_links) %>
-              <% wrapper = link_to('\1', file_download_url(export.attachment)) %>
-            <% else %>
-              <% wrapper = link_to('\1', verified_file_download_url(export.attachment)) %>
-            <% end %>
-            <% if export.expired? %>
-              <%= t "Course Export from %{date} (file not available)", date: %>
-            <% elsif export.export_type == ContentExport::COMMON_CARTRIDGE %>
-              <%= t "*Course Export from %{date}*", date:, wrapper: %>
-            <% elsif export.export_type == ContentExport::QTI %>
-              <%= t "*QTI Export from %{date}*", date:, wrapper: %>
-            <% elsif export.export_type == ContentExport::USER_DATA %>
-              <%= t "*User Data Export from %{date}*", date:, wrapper: %>
-            <% elsif export.export_type == ContentExport::ZIP %>
-              <%= t "*File Export from %{date}*", date:, wrapper: %>
-            <% end %>
-          </p>
+      <% next unless !export.running? && export.workflow_state == 'exported' %>
+
+      <p>
+        <% date = tag.span(datetime_string(export.created_at), class: %i[created_at time_ago_date], data: { timestamp: export.created_at.iso8601 }) %>
+        <% wrapper = if !export.attachment
+                       link_to('\1', nil)
+                     elsif Account.site_admin.feature_enabled?(:disable_verified_content_export_links)
+                       link_to('\1', file_download_url(export.attachment))
+                     else
+                       link_to('\1', verified_file_download_url(export.attachment))
+                     end %>
+        <% if export.expired? %>
+          <%= t "Course Export from %{date} (file not available)", date: %>
+        <% elsif export.export_type == ContentExport::COMMON_CARTRIDGE %>
+          <%= t "*Course Export from %{date}*", date:, wrapper: %>
+        <% elsif export.export_type == ContentExport::QTI %>
+          <%= t "*QTI Export from %{date}*", date:, wrapper: %>
+        <% elsif export.export_type == ContentExport::USER_DATA %>
+          <%= t "*User Data Export from %{date}*", date:, wrapper: %>
+        <% elsif export.export_type == ContentExport::ZIP %>
+          <%= t "*File Export from %{date}*", date:, wrapper: %>
         <% end %>
-      <% end %>
+      </p>
     <% end %>
   </div>
 

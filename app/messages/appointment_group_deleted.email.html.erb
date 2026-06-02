@@ -26,11 +26,11 @@
     <% end %>
     <tr>
         <td style="padding-right: 10px;" valign="top"><%= t :course, 'Course' %>:</td>
-        <td valign="top"><%=
-                           (asset.participant_type == 'Group') ?
-                asset.contexts.first.name :
-                asset.contexts_for_user(user).map(&:name).join(", ")
-                         %></td>
+        <td valign="top"><%= if asset.participant_type == 'Group'
+                               asset.contexts.first.name
+                             else
+                               asset.contexts_for_user(user).map(&:name).join(", ")
+                             end %></td>
     </tr>
 </table>
 <p style="font-weight: bold;"><%= t :cancel_reason, 'Reason for canceling' %></p>
