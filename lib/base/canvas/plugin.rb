@@ -147,7 +147,7 @@ module Canvas
     def validate_settings(plugin_setting, settings)
       if validator
         begin
-          validator_module = Canvas::Plugins::Validators.const_get(validator)
+          validator_module = Canvas::Plugins::Validators.const_get(validator, false)
         rescue NameError
           plugin_setting.errors.add(:base, "provided validator #{validator} failed to load")
           return false

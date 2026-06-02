@@ -41,4 +41,36 @@ describe Canvas::Plugin do
       expect(Canvas::Plugin.value_to_boolean(value)).to be_nil
     end
   end
+
+  describe "#validate_settings" do
+    let(:plugin) do
+      p = Canvas::Plugin.new("test_plugin")
+      p.meta[:validator] = validator_name
+      p
+    end
+    let(:plugin_setting) { PluginSetting.new(name: "test_plugin", settings: {}) }
+
+    context "when the validator is defined directly under Canvas::Plugins::Validators" do
+      let(:validator_name) { "FakeNamespacedValidator" }
+
+      before do
+        stub_const("Canvas::Plugins::Validators::FakeNamespacedValidator",
+                   Module.new { def self.validate(settings, _unused) = settings })
+      end
+
+      it "calls the namespaced validator" do
+        expect(plugin.validate_settings(plugin_setting, { foo: "bar" })).to be_truthy
+        expect(plugin_setting.settings[:foo]).to eq "bar"
+      end
+    end
+
+    context "when the validator name resolves only via inherited constant lookup" do
+      let(:validator_name) { "Kernel" }
+
+      it "rejects top-level constants and records an error" do
+        expect(plugin.validate_settings(plugin_setting, { foo: "bar" })).to be false
+        expect(plugin_setting.errors[:base].join).to include("provided validator Kernel failed to load")
+      end
+    end
+  end
 end
