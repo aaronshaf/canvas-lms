@@ -48,10 +48,17 @@ module CanvasOperations
       @root_account = root_account
     end
 
-    # Override run_later to wrap execution in PluginSetting.with_account context.
-    # This ensures that plugin settings are resolved in the context of the root account.
+    # Override run_later to activate the root account's shard before enqueueing.
+    # This ensures the delayed job's shard_id is set to the root account's shard
+    # so the worker activates the correct shard when executing the job, regardless
+    # of which shard the caller scheduled from. Plugin settings are also resolved
+    # in the context of the root account via PluginSetting.with_account.
     def run_later(run_at: nil)
-      PluginSetting.with_account(root_account) { super }
+      PluginSetting.with_account(root_account) do
+        root_account.shard.activate do
+          super
+        end
+      end
     end
 
     # Override singleton to include the root account's global ID.

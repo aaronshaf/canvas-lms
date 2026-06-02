@@ -103,6 +103,25 @@ RSpec.describe CanvasOperations::RootAccountOperation do
         expect(job.run_at).to be_within(1.second).of(scheduled_time)
       end
     end
+
+    context "when the current shard is not the root account's shard" do
+      let(:root_account) { @shard2.activate { account_model } }
+
+      around do |example|
+        @shard1.activate { example.run }
+      end
+
+      it "sets shard_id to the root account's shard regardless of scheduling shard" do
+        operation_instance.run_later
+
+        job = Delayed::Job.find_by(
+          singleton: "operations/my_root_account_operation/shards/#{root_account.shard.id}/accounts/#{root_account.global_id}"
+        )
+
+        expect(job).to be_present
+        expect(job.shard_id).to eql(root_account.shard.id)
+      end
+    end
   end
 
   describe "#singleton" do
