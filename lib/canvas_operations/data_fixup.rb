@@ -128,6 +128,16 @@ module CanvasOperations
       def run_on_default_shard?
         @run_on_default_shard.nil? || @run_on_default_shard
       end
+
+      # A hint to schema consumers that data fixups are generally intended to run on each
+      # shard in the database.
+      #
+      # For example, some schema consumers may show differing shard selection form elements
+      # based on this value.
+      #
+      # Override in a subclass's `class << self` block with `def supports_shards? = false`
+      # if your DataFixup is intended to only run on a single shard.
+      def supports_shards? = true
     end
 
     protected

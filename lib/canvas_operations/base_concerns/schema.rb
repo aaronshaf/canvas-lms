@@ -56,6 +56,7 @@ module CanvasOperations
         @operation_schema ||= {
           id: operation_name,
           title: operation_title,
+          supports_shards: supports_shards?,
           description:,
           schema: json_schema,
           ui_schema:,
@@ -88,6 +89,13 @@ module CanvasOperations
       end
 
       private
+
+      # True for subclasses where the operation is intended to run on each shard.
+      #
+      # This value has no impact on the behavior of the operation in Canvas. Instead it
+      # is a hint to schema consumers what form elements for shard selection should
+      # be presented to the user.
+      def supports_shards? = false
 
       def description(value = nil)
         @description = value unless value.nil?

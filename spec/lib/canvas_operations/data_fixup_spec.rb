@@ -118,6 +118,30 @@ RSpec.describe CanvasOperations::DataFixup do
     end
   end
 
+  describe ".supports_shards?" do
+    it "returns true by default for DataFixup subclasses" do
+      expect(described_class.send(:supports_shards?)).to be(true)
+    end
+
+    it "can be overridden to return false" do
+      stub_const("SingleShardFixup", Class.new(described_class) do
+        class << self
+          def supports_shards? = false
+        end
+      end)
+
+      expect(SingleShardFixup.send(:supports_shards?)).to be(false)
+    end
+
+    it "is reflected in operation_schema" do
+      stub_const("ShardedFixup", Class.new(described_class) do
+        def execute; end
+      end)
+
+      expect(ShardedFixup.operation_schema[:supports_shards]).to be(true)
+    end
+  end
+
   describe "settings" do
     it "includes settings for batching and sleeping" do
       expect(described_class.range_batch_size).to eq(5_000)

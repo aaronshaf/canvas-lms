@@ -758,6 +758,10 @@ RSpec.describe CanvasOperations::BaseOperation do
         { type: "boolean", title: "Skip Admins", default: false }
       )
     end
+
+    it "sets supports_shards to false for base operations" do
+      expect(schema[:supports_shards]).to be(false)
+    end
   end
 
   describe ".resolve_args" do
