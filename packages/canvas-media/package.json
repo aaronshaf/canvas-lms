@@ -72,7 +72,6 @@
     "@types/react": "*",
     "@types/react-dom": "*",
     "jsdom": "*",
-    "shelljs": "^0.8.4",
     "vitest": "*"
   }
 }
