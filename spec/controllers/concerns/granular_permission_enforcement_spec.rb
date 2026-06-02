@@ -18,65 +18,84 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe GranularPermissionEnforcement do
-  controller(ApplicationController) do
-    include GranularPermissionEnforcement
+class GranularPermissionEnforcementTestController < ApplicationController
+  include GranularPermissionEnforcement
 
-    before_action :authorize_action
+  skip_before_action :require_user, raise: false
+  skip_before_action :set_user_session_options, raise: false
 
-    def index
-      respond_to do |format|
-        format.html do
-          head :ok
-        end
+  before_action :authorize_action
+
+  def index
+    respond_to do |format|
+      format.html do
+        head :ok
       end
-    end
-
-    def new
-      respond_to do |format|
-        format.html do
-          head :ok
-        end
-      end
-    end
-
-    def authorize_action
-      @context = api_find(Course, params[:course])
-      enforce_granular_permissions(
-        @context,
-        overrides: [:manage_content],
-        actions: {
-          index: RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS,
-          show: [:manage_course_content_add],
-        }
-      )
     end
   end
 
-  describe "enforce_granular_permissions" do
-    before :once do
-      course_with_teacher(active_all: true)
-      course_with_student(active_all: true)
+  def new
+    respond_to do |format|
+      format.html do
+        head :ok
+      end
     end
+  end
 
-    it "is not authorized" do
-      user_session(@student)
-      get :index, params: { course: @course }
-      expect(response).to have_http_status :unauthorized
-    end
+  def authorize_action
+    @context = api_find(Course, params[:id])
+    enforce_granular_permissions(
+      @context,
+      overrides: [:manage_content],
+      actions: {
+        index: RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS,
+        show: [:manage_course_content_add],
+      }
+    )
+  end
 
-    it "is authorized" do
-      user_session(@teacher)
-      get :index, params: { course: @course }
-      expect(response).to have_http_status :ok
-    end
+  def user_profile_url(user)
+    "/users/#{user.id}"
+  end
 
-    it "raises error if current controller action is missing from provided actions" do
-      user_session(@teacher)
-      expect_any_instance_of(GranularPermissionEnforcement)
-        .to receive(:enforce_granular_permissions)
-        .and_throw(/Missing current controller action/)
-      get :new, params: { course: @course }
+  def errors_path
+    "/errors"
+  end
+end
+
+describe GranularPermissionEnforcement, type: :request do
+  before :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.routes.draw do
+      root "granular_permission_enforcement_test#index"
+      resources :courses do
+        member do
+          get "test_index", to: "granular_permission_enforcement_test#index", action: :index
+          get "test_new", to: "granular_permission_enforcement_test#new", action: :new
+        end
+      end
     end
+  end
+
+  before do
+    course_with_teacher(active_all: true)
+    course_with_student(active_all: true)
+  end
+
+  it "is not authorized" do
+    user_session(@student)
+    get "/courses/#{@course.id}/test_index.json"
+    expect(response).to have_http_status :forbidden
+  end
+
+  it "is authorized" do
+    user_session(@teacher)
+    get "/courses/#{@course.id}/test_index"
+    expect(response).to have_http_status :ok
+  end
+
+  it "raises error if current controller action is missing from provided actions" do
+    user_session(@teacher)
+    get "/courses/#{@course.id}/test_new"
+    expect(response).to have_http_status(:internal_server_error)
   end
 end

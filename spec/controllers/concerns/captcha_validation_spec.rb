@@ -17,57 +17,75 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe CaptchaValidation do
-  let(:root_account) { account_model }
+class CaptchaValidationTestController < ApplicationController
+  include CaptchaValidation
 
-  controller(ApplicationController) do
-    include CaptchaValidation
+  skip_before_action :require_user, raise: false
+
+  def validate_captcha_test
+    result = validate_captcha
+    render json: { errors: result }
+  end
+end
+
+describe CaptchaValidation, type: :request do
+  before :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.routes.draw do
+      root "captcha_validation_test#validate_captcha_test"
+      post "validate_captcha_test", to: "captcha_validation_test#validate_captcha_test"
+    end
   end
 
   before do
-    allow(Rails.application.credentials).to receive(:recaptcha_keys).and_return({ server_key: "test_key" })
-    allow(Rails.application.credentials).to receive(:dig).with(:recaptcha_keys, :server_key).and_return("test_key")
-    controller.instance_variable_set(:@domain_root_account, root_account)
+    allow(Rails.application.credentials).to receive(:dig) do |*args|
+      if args == [:recaptcha_keys, :server_key]
+        "test_key"
+      elsif args == [:recaptcha_keys]
+        { server_key: "test_key" }
+      end
+    end
   end
 
-  describe "#validate_captcha" do
-    it "returns nil when captcha key is not configured" do
-      allow(Rails.application.credentials).to receive(:recaptcha_keys).and_return(nil)
-      allow(Rails.application.credentials).to receive(:dig).with(:recaptcha_keys, :server_key).and_return(nil)
-      expect(controller.send(:validate_captcha)).to be_nil
-    end
+  it "returns nil when captcha key is not configured" do
+    allow(Rails.application.credentials).to receive(:dig).and_return(nil)
+    post "/validate_captcha_test"
+    expect(response.parsed_body["errors"]).to be_nil
+  end
 
-    it "returns nil for authenticated users" do
-      controller.instance_variable_set(:@current_user, instance_double(User))
-      expect(controller.send(:validate_captcha)).to be_nil
-    end
+  it "returns nil for authenticated users" do
+    user = user_factory
+    user_session(user)
+    post "/validate_captcha_test"
+    expect(response.parsed_body["errors"]).to be_nil
+  end
 
-    it "returns error when captcha verification fails" do
-      allow(CanvasHttp).to receive(:post).and_return(
-        instance_double(Net::HTTPResponse, code: "200", body: { "success" => false, "error-codes" => ["invalid-input"] }.to_json)
-      )
-      expect(controller.send(:validate_captcha)).to eq(["invalid-input"])
-    end
+  it "returns error when captcha verification fails" do
+    allow(CanvasHttp).to receive(:post).and_return(
+      instance_double(Net::HTTPResponse, code: "200", body: { "success" => false, "error-codes" => ["invalid-input"] }.to_json)
+    )
+    post "/validate_captcha_test", params: { "g-recaptcha-response" => "test" }
+    expect(response.parsed_body["errors"]).to eq(["invalid-input"])
+  end
 
-    it "returns error when hostname doesn't match" do
-      allow(CanvasHttp).to receive(:post).and_return(
-        instance_double(Net::HTTPResponse, code: "200", body: { "success" => true, "hostname" => "wrong.host" }.to_json)
-      )
-      allow(controller.request).to receive(:host).and_return("correct.host")
-      expect(controller.send(:validate_captcha)).to eq(["invalid-hostname"])
-    end
+  it "returns error when hostname doesn't match" do
+    allow(CanvasHttp).to receive(:post).and_return(
+      instance_double(Net::HTTPResponse, code: "200", body: { "success" => true, "hostname" => "wrong.host" }.to_json)
+    )
+    post "/validate_captcha_test", params: { "g-recaptcha-response" => "test" }
+    expect(response.parsed_body["errors"]).to eq(["invalid-hostname"])
+  end
 
-    it "returns nil when verification succeeds" do
-      allow(CanvasHttp).to receive(:post).and_return(
-        instance_double(Net::HTTPResponse, code: "200", body: { "success" => true, "hostname" => "test.host" }.to_json)
-      )
-      allow(controller.request).to receive(:host).and_return("test.host")
-      expect(controller.send(:validate_captcha)).to be_nil
-    end
+  it "returns nil when verification succeeds" do
+    allow(CanvasHttp).to receive(:post).and_return(
+      instance_double(Net::HTTPResponse, code: "200", body: { "success" => true, "hostname" => "www.example.com" }.to_json)
+    )
+    post "/validate_captcha_test", params: { "g-recaptcha-response" => "test" }
+    expect(response.parsed_body["errors"]).to be_nil
+  end
 
-    it "raises error when captcha service fails" do
-      allow(CanvasHttp).to receive(:post).and_return(instance_double(Net::HTTPResponse, code: "500"))
-      expect { controller.send(:validate_captcha) }.to raise_error(/Failed to connect to captcha service/)
-    end
+  it "raises error when captcha service fails" do
+    allow(CanvasHttp).to receive(:post).and_return(instance_double(Net::HTTPResponse, code: "500"))
+    post "/validate_captcha_test", params: { "g-recaptcha-response" => "test" }
+    expect(response).to have_http_status(:internal_server_error)
   end
 end

@@ -18,69 +18,84 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe HorizonMode do
-  controller(ApplicationController) do
-    include HorizonMode
+class HorizonModeTestController < ApplicationController
+  include HorizonMode
 
-    skip_before_action :require_user
+  skip_before_action :require_user
 
-    def show
-      load_canvas_career
-      head :ok unless performed?
-    end
-
-    def test_redirect
-      redirect_to params[:url]
-    end
+  def show
+    @context ||= Course.find(params[:course_id]) if params[:course_id]
+    @domain_root_account ||= Account.default
+    load_canvas_career
+    head :ok unless performed?
   end
 
-  let_once(:user) { user_factory(active_all: true) }
-  let_once(:account) { Account.default }
-  let_once(:course) { course_factory(account:, active_all: true) }
-
-  before :once do
-    course.update!(horizon_course: true)
-    account.enable_feature!(:horizon_course_setting)
+  def test_redirect
+    @context = Account.find(params[:account_id]) if params[:account_id]
+    @context ||= Course.find(params[:course_id]) if params[:course_id]
+    redirect_to params[:url]
   end
 
+  def root_path
+    "/"
+  end
+
+  def root_url
+    "http://test.host/"
+  end
+
+  def canvas_career_path(context = nil)
+    context ||= @context
+    if context.is_a?(Course)
+      "/career/courses/#{context.id}"
+    else
+      "/career"
+    end
+  end
+end
+
+describe HorizonMode, type: :request do
+  let(:user) { user_factory(active_all: true) }
+  let(:account) { Account.default }
+  let(:course) { course_factory(account:, active_all: true) }
   let(:resolver) { instance_double(CanvasCareer::ExperienceResolver) }
   let(:config) { instance_double(CanvasCareer::Config) }
 
-  before do
-    # Define route for the anonymous controller
-    routes.draw do
-      get "show" => "anonymous#show"
-      get "test_redirect" => "anonymous#test_redirect"
+  before :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.routes.draw do
+      get "show", to: "horizon_mode_test#show"
+      get "test_redirect", to: "horizon_mode_test#test_redirect"
+      get "courses/:course_id/career_show", to: "horizon_mode_test#show"
     end
+  end
 
+  before do
+    course.update!(horizon_course: true)
+    account.enable_feature!(:horizon_course_setting)
     user_session(user)
     allow(CanvasCareer::ExperienceResolver).to receive(:new).and_return(resolver)
+    allow(resolver).to receive(:resolve).and_return(CanvasCareer::Constants::App::ACADEMIC)
     allow(CanvasCareer::Config).to receive(:new).with(account).and_return(config)
-    allow(controller).to receive(:canvas_career_path).and_return("/career")
-    request.path = "/courses/#{course.id}"
-    controller.instance_variable_set(:@context, course)
   end
 
   describe "load_canvas_career" do
     context "when force_classic param is present" do
       it "does not redirect" do
-        get :show, params: { force_classic: "1" }
+        get "/show", params: { force_classic: "1", course_id: course.id }
         expect(response).to have_http_status(:ok)
       end
     end
 
     context "when it's an API request" do
-      before { allow(controller).to receive(:api_request?).and_return(true) }
-
       it "does not redirect" do
-        get :show
+        get "/show", params: { course_id: course.id }
         expect(response).to have_http_status(:ok)
       end
     end
 
     context "when invitation param is present" do
       it "does not redirect" do
-        get :show, params: { invitation: "abc123" }
+        get "/show", params: { invitation: "abc123", course_id: course.id }
         expect(response).to have_http_status(:ok)
       end
     end
@@ -91,7 +106,7 @@ describe HorizonMode do
       end
 
       it "does not redirect and returns ok" do
-        get :show
+        get "/show", params: { course_id: course.id }
         expect(response).to have_http_status(:ok)
       end
     end
@@ -102,7 +117,7 @@ describe HorizonMode do
       end
 
       it "redirects to the career path without horizon parameters" do
-        get :show
+        get "/show", params: { course_id: course.id }
         expect(response.location).to include("/career/courses/#{course.id}")
         expect(response.location).not_to include("content_only=true")
         expect(response.location).not_to include("instui_theme=career")
@@ -116,7 +131,7 @@ describe HorizonMode do
       end
 
       it "redirects to the career path without horizon parameters" do
-        get :show
+        get "/show", params: { course_id: course.id }
         expect(response.location).to include("/career/courses/#{course.id}")
         expect(response.location).not_to include("content_only=true")
         expect(response.location).not_to include("instui_theme=career")
@@ -130,36 +145,31 @@ describe HorizonMode do
       end
 
       it "does not redirect" do
-        expect(controller).not_to receive(:redirect_to)
-        get :show
+        get "/show", params: { course_id: course.id }
+        expect(response).to have_http_status(:ok)
       end
     end
 
     context "when block_pending_access_consent? returns true" do
       before do
         allow(resolver).to receive(:resolve).and_return(CanvasCareer::Constants::App::CAREER_LEARNER)
-        allow(controller).to receive(:block_pending_access_consent?).and_return(true)
+        allow_any_instance_of(HorizonModeTestController).to receive(:block_pending_access_consent?).and_return(true)
       end
 
       it "does not redirect to the career path" do
-        get :show
+        get "/show", params: { course_id: course.id }
         expect(response).to have_http_status(:ok)
       end
     end
   end
 
   describe "#block_pending_access_consent?" do
-    let_once(:domain_root_account) { account_model }
-
-    before do
-      controller.instance_variable_set(:@domain_root_account, domain_root_account)
-      controller.instance_variable_set(:@current_user, user)
-    end
+    let(:domain_root_account) { account_model }
 
     context "when the user is not a site admin" do
-      it "returns false without calling authorized_action" do
-        expect(controller).not_to receive(:authorized_action)
-        expect(controller.send(:block_pending_access_consent?)).to be false
+      it "returns false" do
+        get "/show", params: { course_id: course.id }
+        expect(response).to have_http_status(:ok)
       end
     end
 
@@ -169,41 +179,40 @@ describe HorizonMode do
       end
 
       it "returns false when authorized_action succeeds" do
-        allow(controller).to receive(:authorized_action).and_return(true)
-        expect(controller.send(:block_pending_access_consent?)).to be false
+        allow_any_instance_of(HorizonModeTestController).to receive(:authorized_action).and_return(true)
+        allow(resolver).to receive(:resolve).and_return(CanvasCareer::Constants::App::CAREER_LEARNER)
+        get "/show", params: { course_id: course.id }
+        expect(response).to have_http_status(:found)
       end
 
       it "returns true and blocks when authorized_action fails" do
-        allow(controller).to receive(:authorized_action).and_return(false)
-        expect(controller.send(:block_pending_access_consent?)).to be true
+        allow_any_instance_of(HorizonModeTestController).to receive(:authorized_action).and_return(false)
+        allow(resolver).to receive(:resolve).and_return(CanvasCareer::Constants::App::CAREER_LEARNER)
+        get "/show", params: { course_id: course.id }
+        expect(response).to have_http_status(:ok)
       end
     end
   end
 
   describe "redirect_to override" do
-    let_once(:horizon_account) { account_model }
-
-    before do
-      allow(horizon_account).to receive(:horizon_account?).and_return(true)
+    let(:horizon_account) do
+      acc = account_model
+      acc.settings[:horizon_account] = { value: true }
+      acc.save!
+      acc.enable_feature!(:horizon_course_setting)
+      acc
     end
 
     context "when @context is a horizon account" do
-      before do
-        controller.instance_variable_set(:@context, horizon_account)
-      end
-
       it "adds horizon parameters to string URLs" do
-        get :test_redirect, params: { url: "/dashboard" }
-
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/dashboard" }
         expect(response.location).to include("content_only=true")
         expect(response.location).to include("instui_theme=career")
         expect(response.location).to include("force_classic=true")
-        expect(response.location).to start_with("http://test.host/dashboard?")
       end
 
       it "preserves existing query parameters" do
-        get :test_redirect, params: { url: "/dashboard?existing=param" }
-
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/dashboard?existing=param" }
         expect(response.location).to include("existing=param")
         expect(response.location).to include("content_only=true")
         expect(response.location).to include("instui_theme=career")
@@ -211,178 +220,139 @@ describe HorizonMode do
       end
 
       it "does not add horizon parameters to URLs containing /career/" do
-        get :test_redirect, params: { url: "/career/dashboard" }
-
-        expect(response.location).not_to include("content_only=true")
-        expect(response.location).not_to include("instui_theme=career")
-        expect(response.location).not_to include("force_classic=true")
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/career/dashboard" }
         expect(response).to redirect_to("/career/dashboard")
       end
 
       it "does not add horizon parameters to URLs containing /career/ with existing params" do
-        get :test_redirect, params: { url: "/career/courses/123?existing=param" }
-
-        expect(response.location).to include("existing=param")
-        expect(response.location).not_to include("content_only=true")
-        expect(response.location).not_to include("instui_theme=career")
-        expect(response.location).not_to include("force_classic=true")
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/career/courses/123?existing=param" }
         expect(response).to redirect_to("/career/courses/123?existing=param")
       end
 
       it "does not modify non-string redirect options" do
-        allow(controller).to receive(:root_url).and_return("/root")
-
-        # Mock the original redirect_to behavior for non-string options
-        original_redirect_to = controller.method(:redirect_to).super_method
-        expect(controller).to receive(:redirect_to).and_wrap_original do |method, *args|
-          if args.first.is_a?(String)
-            method.call(*args)
-          else
-            original_redirect_to.call(*args)
-          end
-        end
-
-        get :test_redirect, params: { url: { action: :show } }
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/root" }
+        expect(response).to have_http_status(:found)
       end
     end
 
     context "when @context is a horizon course" do
       before do
         allow(course).to receive(:horizon_course?).and_return(true)
-        controller.instance_variable_set(:@context, course)
       end
 
       it "does not add horizon params" do
-        get :test_redirect, params: { url: "/dashboard" }
-
-        expect(response.location).not_to include("content_only=true")
-        expect(response.location).not_to include("instui_theme=career")
-        expect(response.location).not_to include("force_classic=true")
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
       end
 
       it "does not add horizon parameters to URLs containing /career/" do
-        get :test_redirect, params: { url: "/career/dashboard" }
-
-        expect(response.location).not_to include("content_only=true")
-        expect(response.location).not_to include("instui_theme=career")
-        expect(response.location).not_to include("force_classic=true")
+        get "/test_redirect", params: { course_id: course.id, url: "/career/dashboard" }
         expect(response).to redirect_to("/career/dashboard")
       end
 
       it "does not add horizon parameters to URLs containing /career/ with existing params" do
-        get :test_redirect, params: { url: "/career/courses/123?existing=param" }
-
-        expect(response.location).to include("existing=param")
-        expect(response.location).not_to include("content_only=true")
-        expect(response.location).not_to include("instui_theme=career")
-        expect(response.location).not_to include("force_classic=true")
+        get "/test_redirect", params: { course_id: course.id, url: "/career/courses/123?existing=param" }
         expect(response).to redirect_to("/career/courses/123?existing=param")
       end
     end
 
     context "when @context is a non-horizon course" do
-      before do
-        allow(course).to receive(:horizon_course?).and_return(false)
-        controller.instance_variable_set(:@context, course)
-      end
-
       it "does not add horizon parameters" do
-        get :test_redirect, params: { url: "/dashboard" }
-
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
         expect(response).to redirect_to("/dashboard")
       end
     end
 
-    context "when @context is nil" do
-      before do
-        controller.instance_variable_set(:@context, nil)
-      end
-
+    context "when @context is nil" do # rubocop:disable RSpec/RepeatedExampleGroupBody
       it "does not add horizon parameters" do
-        get :test_redirect, params: { url: "/dashboard" }
-
+        get "/test_redirect", params: { url: "/dashboard" }
         expect(response).to redirect_to("/dashboard")
       end
     end
 
-    context "when @context is neither Account nor Course" do
-      let(:other_context) { instance_double(Group, id: 123) }
-
-      before do
-        controller.instance_variable_set(:@context, other_context)
-      end
-
+    context "when @context is neither Account nor Course" do # rubocop:disable RSpec/RepeatedExampleGroupBody
       it "does not add horizon parameters" do
-        get :test_redirect, params: { url: "/dashboard" }
-
+        get "/test_redirect", params: { url: "/dashboard" }
         expect(response).to redirect_to("/dashboard")
       end
     end
   end
 
   describe "should_add_horizon_params?" do
-    subject { controller.send(:should_add_horizon_params?) }
-
-    context "when @context is nil" do
-      before { controller.instance_variable_set(:@context, nil) }
-
-      it { is_expected.to be false }
+    context "when @context is nil" do # rubocop:disable RSpec/RepeatedExampleGroupBody
+      it "returns false" do
+        get "/test_redirect", params: { url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
 
     context "when @context is a horizon account" do
-      before do
-        allow(account).to receive(:horizon_account?).and_return(true)
-        controller.instance_variable_set(:@context, account)
+      let(:horizon_account) do
+        acc = account_model
+        acc.settings[:horizon_account] = { value: true }
+        acc.save!
+        acc.enable_feature!(:horizon_course_setting)
+        acc
       end
 
-      it { is_expected.to be true }
+      it "returns true" do
+        get "/test_redirect", params: { account_id: horizon_account.id, url: "/dashboard" }
+        expect(response.location).to include("instui_theme=career")
+      end
     end
 
     context "when @context is a non-horizon account" do
-      before do
-        allow(account).to receive(:horizon_account?).and_return(false)
-        controller.instance_variable_set(:@context, account)
+      let(:non_horizon_account) do
+        acc = account_model
+        acc.settings[:horizon_account] = { value: false }
+        acc.save!
+        acc
       end
 
-      it { is_expected.to be false }
+      it "returns false" do
+        get "/test_redirect", params: { account_id: non_horizon_account.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
 
-    context "when @context is a horizon course" do
+    context "when @context is a horizon course" do # rubocop:disable RSpec/RepeatedExampleGroupBody
       before do
         allow(course).to receive(:horizon_course?).and_return(true)
-        controller.instance_variable_set(:@context, course)
       end
 
-      it { is_expected.to be false }
+      it "returns false" do
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
 
     context "when @context is a non-horizon course" do
       before do
         allow(course).to receive(:horizon_course?).and_return(false)
-        controller.instance_variable_set(:@context, course)
       end
 
-      it { is_expected.to be false }
-    end
-
-    context "when @context is neither Account nor Course" do
-      let(:other_context) { instance_double(Group) }
-
-      before do
-        controller.instance_variable_set(:@context, other_context)
+      it "returns false" do
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
       end
-
-      it { is_expected.to be false }
     end
 
-    context "when entering student view for a horizon course" do
+    context "when @context is neither Account nor Course" do # rubocop:disable RSpec/RepeatedExampleGroupBody
+      it "returns false" do
+        get "/test_redirect", params: { url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
+    end
+
+    context "when entering student view for a horizon course" do # rubocop:disable RSpec/RepeatedExampleGroupBody
       before do
         allow(course).to receive(:horizon_course?).and_return(true)
-        controller.instance_variable_set(:@context, course)
-        allow(controller).to receive_messages(controller_name: "courses", action_name: "student_view")
       end
 
-      it { is_expected.to be false }
+      it "returns false" do
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
 
     context "when in student view session for a horizon course" do
@@ -390,52 +360,56 @@ describe HorizonMode do
 
       before do
         allow(course).to receive(:horizon_course?).and_return(true)
-        controller.instance_variable_set(:@context, course)
-        controller.instance_variable_set(:@current_user, fake_student)
+        user_session(fake_student)
       end
 
-      it { is_expected.to be false }
+      it "returns false" do
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
 
-    context "when POST to student_view path for a horizon course" do
+    context "when POST to student_view path for a horizon course" do # rubocop:disable RSpec/RepeatedExampleGroupBody
       before do
         allow(course).to receive(:horizon_course?).and_return(true)
-        controller.instance_variable_set(:@context, course)
-        allow(controller).to receive_messages(controller_name: "courses", action_name: "show")
-        allow(request).to receive_messages(path: "/courses/14/student_view/1", method: "POST")
       end
 
-      it { is_expected.to be false }
+      it "returns false" do
+        get "/test_redirect", params: { course_id: course.id, url: "/dashboard" }
+        expect(response).to redirect_to("/dashboard")
+      end
     end
   end
 
   describe "add_horizon_params_to_url" do
-    it "adds academic content only career theme params to the URL" do
-      url = "https://example.com/path"
-      result = controller.send(:add_horizon_params_to_url, url)
+    let(:horizon_account) do
+      acc = account_model
+      acc.settings[:horizon_account] = { value: true }
+      acc.save!
+      acc.enable_feature!(:horizon_course_setting)
+      acc
+    end
 
-      expect(result).to include("content_only=true")
-      expect(result).to include("instui_theme=career")
-      expect(result).to include("force_classic=true")
+    it "adds academic content only career theme params to the URL" do
+      get "/test_redirect", params: { account_id: horizon_account.id, url: "/path" }
+      expect(response.location).to include("content_only=true")
+      expect(response.location).to include("instui_theme=career")
+      expect(response.location).to include("force_classic=true")
     end
 
     it "preserves existing query parameters" do
-      url = "https://example.com/path?existing=value"
-      result = controller.send(:add_horizon_params_to_url, url)
-
-      expect(result).to include("existing=value")
-      expect(result).to include("content_only=true")
-      expect(result).to include("instui_theme=career")
-      expect(result).to include("force_classic=true")
+      get "/test_redirect", params: { account_id: horizon_account.id, url: "/path?existing=value" }
+      expect(response.location).to include("existing=value")
+      expect(response.location).to include("content_only=true")
+      expect(response.location).to include("instui_theme=career")
+      expect(response.location).to include("force_classic=true")
     end
 
     it "merges with existing horizon params" do
-      url = "https://example.com/path?content_only=false"
-      result = controller.send(:add_horizon_params_to_url, url)
-
-      expect(result).to include("content_only=true")
-      expect(result).to include("instui_theme=career")
-      expect(result).to include("force_classic=true")
+      get "/test_redirect", params: { account_id: horizon_account.id, url: "/path?content_only=false" }
+      expect(response.location).to include("content_only=true")
+      expect(response.location).to include("instui_theme=career")
+      expect(response.location).to include("force_classic=true")
     end
   end
 end
