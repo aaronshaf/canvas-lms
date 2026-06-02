@@ -31,6 +31,7 @@ import {
 } from '../../../../__tests__/testHelpers'
 import {WidgetLayoutProvider} from '../../../../hooks/useWidgetLayout'
 import {WidgetDashboardEditProvider} from '../../../../hooks/useWidgetDashboardEdit'
+import {WidgetDashboardProvider} from '../../../../hooks/useWidgetDashboardContext'
 
 const tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
@@ -745,5 +746,209 @@ describe('CourseWorkCombinedWidget', () => {
     const lastPayload = mutationPayloads[mutationPayloads.length - 1]
     expect(lastPayload.widgetId).toBe('course-work-combined-widget')
     expect((lastPayload.filters as Record<string, unknown>).showSummaryCounts).toBe(false)
+  })
+
+  it('filters work items by course and then by status, updating the stat counts', async () => {
+    global.event = undefined // workaround bug in SimpleSelect that accesses the global event
+    const user = userEvent.setup()
+
+    // Course 102 has nothing not-submitted, but has 2 missing and 2 submitted items.
+    // Course 101 carries the only "due" work so the initial (All Courses) view is non-empty.
+    server.use(
+      graphql.query('GetUserCourseStatistics', () => {
+        return HttpResponse.json({
+          data: {
+            legacyNode: {
+              _id: '123',
+              enrollments: [
+                {
+                  course: {
+                    _id: '101',
+                    name: 'Course 1',
+                    submissionStatistics: {
+                      submissionsDueCount: 3,
+                      missingSubmissionsCount: 0,
+                      submissionsSubmittedCount: 0,
+                    },
+                  },
+                },
+                {
+                  course: {
+                    _id: '102',
+                    name: 'Course 2',
+                    submissionStatistics: {
+                      submissionsDueCount: 0,
+                      missingSubmissionsCount: 2,
+                      submissionsSubmittedCount: 2,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        })
+      }),
+      http.post('/api/graphql', async ({request}) => {
+        const body = (await request.json()) as {query: string; variables: any}
+        if (body.query.includes('GetUserCourseWork')) {
+          const {courseFilter, onlySubmitted, includeOverdue} = body.variables
+
+          const buildNode = (
+            id: string,
+            name: string,
+            courseId: string,
+            courseName: string,
+            statusFlags: {missing?: boolean; state?: string; submittedAt?: string | null},
+          ) => ({
+            _id: `sub-${id}`,
+            cachedDueDate: tomorrow.toISOString(),
+            submittedAt: statusFlags.submittedAt ?? null,
+            late: false,
+            missing: statusFlags.missing ?? false,
+            excused: false,
+            state: statusFlags.state ?? 'unsubmitted',
+            assignment: {
+              _id: id,
+              name,
+              dueAt: tomorrow.toISOString(),
+              pointsPossible: 10,
+              htmlUrl: `/courses/${courseId}/assignments/${id}`,
+              submissionTypes: ['online_text_entry'],
+              state: 'published',
+              published: true,
+              quiz: null,
+              discussion: null,
+              course: {_id: courseId, name: courseName},
+            },
+          })
+
+          let nodes: ReturnType<typeof buildNode>[] = []
+
+          if (courseFilter === '102') {
+            if (onlySubmitted) {
+              nodes = [
+                buildNode('201', 'C2 Submitted A', '102', 'Course 2', {
+                  state: 'submitted',
+                  submittedAt: tomorrow.toISOString(),
+                }),
+                buildNode('202', 'C2 Submitted B', '102', 'Course 2', {
+                  state: 'submitted',
+                  submittedAt: tomorrow.toISOString(),
+                }),
+              ]
+            } else if (includeOverdue) {
+              nodes = [
+                buildNode('203', 'C2 Missing A', '102', 'Course 2', {missing: true}),
+                buildNode('204', 'C2 Missing B', '102', 'Course 2', {missing: true}),
+              ]
+            } else {
+              // not_submitted for course 102 -> empty
+              nodes = []
+            }
+          } else {
+            // All courses (or course 101) default view has the due item from course 101
+            nodes = [buildNode('101', 'C1 Due Work', '101', 'Course 1', {})]
+          }
+
+          return HttpResponse.json({
+            data: {
+              legacyNode: {
+                _id: '1',
+                courseWorkSubmissionsConnection: {
+                  nodes,
+                  pageInfo: {
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    endCursor: null,
+                    startCursor: null,
+                    totalCount: nodes.length,
+                  },
+                },
+              },
+            },
+          })
+        }
+        return new Response('Query not handled', {status: 404})
+      }),
+    )
+
+    const sharedCourseData = [
+      {
+        courseId: '101',
+        courseCode: 'C1',
+        courseName: 'Course 1',
+        currentGrade: 95,
+        gradingScheme: 'percentage' as const,
+        lastUpdated: '2025-01-01T00:00:00Z',
+      },
+      {
+        courseId: '102',
+        courseCode: 'C2',
+        courseName: 'Course 2',
+        currentGrade: 88,
+        gradingScheme: 'percentage' as const,
+        lastUpdated: '2025-01-01T00:00:00Z',
+      },
+    ]
+
+    const queryClient = new QueryClient({
+      defaultOptions: {queries: {retry: false}, mutations: {retry: false}},
+    })
+
+    render(
+      <PlatformTestWrapper>
+        <QueryClientProvider client={queryClient}>
+          <WidgetDashboardProvider sharedCourseData={sharedCourseData}>
+            <WidgetDashboardEditProvider>
+              <WidgetLayoutProvider>
+                <CourseWorkCombinedWidget {...buildDefaultProps()} />
+              </WidgetLayoutProvider>
+            </WidgetDashboardEditProvider>
+          </WidgetDashboardProvider>
+        </QueryClientProvider>
+      </PlatformTestWrapper>,
+    )
+
+    // Initial (All Courses, Not submitted): the combined "Due" stat sums both courses (3 + 0)
+    const dueCardInitial = await screen.findByTestId('statistics-card-Due')
+    expect(dueCardInitial).toHaveTextContent('3')
+    expect(dueCardInitial).toHaveTextContent('Due')
+    expect(await screen.findByText('C1 Due Work')).toBeInTheDocument()
+
+    // Filter to Course 2 -> only that course's stats, and no not-submitted work for it
+    await user.click(screen.getByTestId('course-filter-select'))
+    await user.click(await screen.findByRole('option', {name: 'Course 2'}))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('statistics-card-Due')).toHaveTextContent('0Due')
+    })
+    expect(await screen.findByTestId('no-course-work-message')).toHaveTextContent(
+      'No upcoming course work for selected course',
+    )
+    expect(screen.queryByText('C1 Due Work')).not.toBeInTheDocument()
+
+    // Apply the Missing status filter on top of the course filter
+    await user.click(screen.getByTestId('submission-status-filter-select'))
+    await user.click(await screen.findByRole('option', {name: 'Missing'}))
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/^listed-course-work-item-/)).toHaveLength(2)
+    })
+    expect(screen.getByText('C2 Missing A')).toBeInTheDocument()
+    expect(screen.getByText('C2 Missing B')).toBeInTheDocument()
+    const missingCard = screen.getByTestId('statistics-card-Missing')
+    expect(missingCard).toHaveTextContent('2Missing')
+
+    // Switch the status filter to Submitted (course filter stays on Course 2)
+    await user.click(screen.getByTestId('submission-status-filter-select'))
+    await user.click(await screen.findByRole('option', {name: 'Submitted'}))
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/^listed-course-work-item-/)).toHaveLength(2)
+    })
+    expect(screen.getByText('C2 Submitted A')).toBeInTheDocument()
+    expect(screen.getByText('C2 Submitted B')).toBeInTheDocument()
+    const submittedCard = screen.getByTestId('statistics-card-Submitted')
+    expect(submittedCard).toHaveTextContent('2Submitted')
   })
 })
