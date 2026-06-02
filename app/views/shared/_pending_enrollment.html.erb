@@ -36,15 +36,15 @@
 <%=
   case enrollment.type
   when 'TeacherEnrollment'
-    t :teacher, "%{course} as a teacher.", :course => enrollment.course.name
+    t :teacher, "%{course} as a teacher.", course: enrollment.course.name
   when 'TaEnrollment'
-    t :ta, "%{course} as a TA.", :course => enrollment.course.name
+    t :ta, "%{course} as a TA.", course: enrollment.course.name
   when 'ObserverEnrollment'
-    t :observer, "%{course} as an observer.", :course => enrollment.course.name
+    t :observer, "%{course} as an observer.", course: enrollment.course.name
   when 'DesignerEnrollment'
-    t :designer, "%{course} as a designer.", :course => enrollment.course.name
+    t :designer, "%{course} as a designer.", course: enrollment.course.name
   else
-    t :student, "%{course} as a student.", :course => enrollment.course.name
+    t :student, "%{course} as a student.", course: enrollment.course.name
   end
 %>
 </a></li>

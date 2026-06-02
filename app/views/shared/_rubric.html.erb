@@ -195,7 +195,7 @@
       <div class="total_points_holder toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>"
         style="<%= hidden if rubric_association&.hide_score_total %>">
         <span role="text"><%= before_label :total_points, "Total Points" %>
-          <% ot(:out_of, "%{points} *out of %{total}*", :points => capture do %>
+          <% ot(:out_of, "%{points} *out of %{total}*", points: capture do %>
             <span class="rubric_total">
               <%=
                 assessment ? n(round_if_whole(assessment.score)) : n(round_if_whole((rubric.points_possible rescue 5)))

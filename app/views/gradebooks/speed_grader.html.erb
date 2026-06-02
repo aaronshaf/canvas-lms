@@ -211,11 +211,11 @@
                 <h2><%= t("Grading") %></h2>
                 <div id="rubric_holder">
                   <%= if @assignment.try_rescue(:rubric_association).try_rescue(:rubric)
-                        render :partial => "shared/rubric",
-                               :object => @assignment.try_rescue(:rubric_association).try_rescue(:rubric),
-                               :locals => {
-                                 :assessing => can_do(@context, @current_user, :manage_grades),
-                                 :rubric_association => @assignment.rubric_association
+                        render partial: "shared/rubric",
+                               object: @assignment.try_rescue(:rubric_association).try_rescue(:rubric),
+                               locals: {
+                                 assessing: can_do(@context, @current_user, :manage_grades),
+                                 rubric_association: @assignment.rubric_association
                                }
                       end %>
                   <div class="button-container">

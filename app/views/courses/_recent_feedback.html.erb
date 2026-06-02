@@ -48,20 +48,20 @@
     end
     if recent_feedback.assignment.a2_enabled?
       context_symbol = :context_assignment_url
-      context_params = {:id => assignment_id}
+      context_params = {id: assignment_id}
     else
       context_symbol = :context_assignment_submission_url
-      context_params = {:assignment_id => assignment_id, :id => @user&.id || @current_user.id}
+      context_params = {assignment_id:, id: @user&.id || @current_user.id}
     end
     url = context_url(context, context_symbol, context_params)
     grade = readable_grade(recent_feedback)
     score = recent_feedback.score
-    comment_text = HtmlTextHelper.strip_and_truncate(comment.comment, :max_length => 120) if comment
-    _icon_explanation, _, icon_class = icon_data(:context => context,
-                                                 :current_user => @current_user,
-                                                 :recent_event => assignment,
-                                                 :submission => recent_feedback,
-                                                 :student_only => true)
+    comment_text = HtmlTextHelper.strip_and_truncate(comment.comment, max_length: 120) if comment
+    _icon_explanation, _, icon_class = icon_data(context:,
+                                                 current_user: @current_user,
+                                                 recent_event: assignment,
+                                                 submission: recent_feedback,
+                                                 student_only: true)
   %>
 
   <a

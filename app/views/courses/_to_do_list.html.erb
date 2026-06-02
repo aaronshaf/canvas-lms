@@ -28,7 +28,7 @@ additional_title_context ||= false
 %>
 <% unless @context&.account&.limited_access_for_user?(@current_user) %>
   <% if show_legacy_todo_list
-     cache_opts = (contexts.present? ? {} : { :expires_in => 3.minutes })
+     cache_opts = (contexts.present? ? {} : { expires_in: 3.minutes })
      cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do
        presenter = ToDoListPresenter.new(self, @current_user, contexts)
   %>

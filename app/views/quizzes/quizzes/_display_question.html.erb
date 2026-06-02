@@ -291,7 +291,7 @@
         </div>
       </div>
       <div class="multiple_answer_sets_holder" style="<%= hidden unless question && ['multiple_dropdowns_question', 'fill_in_multiple_blanks_question'].include?(hash_get(question, :question_type)) %>">
-        <% ot(:show_ansers_for_variable, "Show Answers for %{variable}", :variable => capture do %>
+        <% ot(:show_ansers_for_variable, "Show Answers for %{variable}", variable: capture do %>
         <select class="blank_id_select">
           <% hash_get(question, :answers, []).map{|a| hash_get(a, :blank_id) }.uniq.compact.each do |variable| %>
             <option value="<%= variable %>"><%= variable %></option>
