@@ -181,7 +181,7 @@ class Assignment < AbstractAssignment
   # Returns the IDs of assignments that have completed peer review submissions.
   def self.assignment_ids_with_peer_review_submissions(assignment_ids)
     AssessmentRequest
-      .from(sanitize_sql(["unnest('{?}'::int8[]) as peer_review_assignments (assignment_id)", assignment_ids]))
+      .from(sanitize_sql(["unnest(ARRAY[?]::int8[]) as peer_review_assignments (assignment_id)", assignment_ids]))
       .where(
         AssessmentRequest
           .where(workflow_state: "completed")

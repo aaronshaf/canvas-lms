@@ -10461,15 +10461,8 @@ describe Assignment do
 
     describe ".assignment_ids_with_peer_review_submissions" do
       it "returns assignment IDs that have completed peer reviews" do
-        submission1 = @assignment.find_or_create_submission(@student1)
-        submission2 = @assignment.find_or_create_submission(@student2)
-        AssessmentRequest.create!(
-          user: @student1,
-          asset: submission1,
-          assessor_asset: submission2,
-          assessor: @student2,
-          workflow_state: "completed"
-        )
+        @assignment.assign_peer_review(@student2, @student1)
+        @assignment.submissions.find_by!(user: @student1).assessment_requests.first.complete!
 
         assignment2 = @course.assignments.create!(title: "Assignment 2", peer_reviews: true)
         ids = Assignment.assignment_ids_with_peer_review_submissions([@assignment.id, assignment2.id])
@@ -10477,18 +10470,26 @@ describe Assignment do
       end
 
       it "does not return assignments with only assigned peer reviews" do
-        submission1 = @assignment.find_or_create_submission(@student1)
-        submission2 = @assignment.find_or_create_submission(@student2)
-        AssessmentRequest.create!(
-          user: @student1,
-          asset: submission1,
-          assessor_asset: submission2,
-          assessor: @student2,
-          workflow_state: "assigned"
-        )
+        @assignment.assign_peer_review(@student2, @student1)
 
         ids = Assignment.assignment_ids_with_peer_review_submissions([@assignment.id])
         expect(ids).to be_empty
+      end
+
+      context "when given a malicious string id (SQL injection attempt)" do
+        it "binds the payload as a value and never executes it as SQL" do
+          expect do
+            Assignment.assignment_ids_with_peer_review_submissions([") UNION SELECT 31337 --"])
+          end.to raise_error(ActiveRecord::StatementInvalid, /invalid input syntax for type bigint/)
+        end
+
+        it "treats a stringified integer id as a value and matches the same row" do
+          @assignment.assign_peer_review(@student2, @student1)
+          @assignment.submissions.find_by!(user: @student1).assessment_requests.first.complete!
+
+          ids = Assignment.assignment_ids_with_peer_review_submissions([@assignment.id.to_s])
+          expect(ids).to eq([@assignment.id])
+        end
       end
     end
 
@@ -10509,6 +10510,42 @@ describe Assignment do
 
         expect(@assignment.peer_review_submissions?).to be true
         expect(assignment2.peer_review_submissions?).to be false
+      end
+    end
+  end
+
+  describe ".assignment_ids_with_submissions" do
+    let_once(:assignment_with_submission) do
+      @course.assignments.create!(assignment_valid_attributes).tap do |a|
+        a.submit_homework(@initial_student, submission_type: "online_text_entry", body: "done")
+      end
+    end
+    let_once(:assignment_without_submission) do
+      @course.assignments.create!(assignment_valid_attributes)
+    end
+
+    it "returns only the ids of assignments that have active submissions" do
+      ids = Assignment.assignment_ids_with_submissions(
+        [assignment_with_submission.id, assignment_without_submission.id]
+      )
+      expect(ids).to eq([assignment_with_submission.id])
+    end
+
+    it "returns an empty array when none of the given assignments have submissions" do
+      ids = Assignment.assignment_ids_with_submissions([assignment_without_submission.id])
+      expect(ids).to be_empty
+    end
+
+    context "when given a malicious string id (SQL injection attempt)" do
+      it "binds the payload as a value and never executes it as SQL" do
+        expect do
+          Assignment.assignment_ids_with_submissions([") UNION SELECT 31337 --"])
+        end.to raise_error(ActiveRecord::StatementInvalid, /invalid input syntax for type bigint/)
+      end
+
+      it "treats a stringified integer id as a value and matches the same row" do
+        ids = Assignment.assignment_ids_with_submissions([assignment_with_submission.id.to_s])
+        expect(ids).to eq([assignment_with_submission.id])
       end
     end
   end

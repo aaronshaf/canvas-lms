@@ -3957,7 +3957,7 @@ class AbstractAssignment < ApplicationRecord
   end
 
   def self.assignment_ids_with_submissions(assignment_ids)
-    Submission.from(sanitize_sql(["unnest('{?}'::int8[]) as subs (assignment_id)", assignment_ids]))
+    Submission.from(sanitize_sql(["unnest(ARRAY[?]::int8[]) as subs (assignment_id)", assignment_ids]))
               .where(Submission.active.having_submission.where("submissions.assignment_id=subs.assignment_id").arel.exists)
               .distinct.pluck("subs.assignment_id")
   end
