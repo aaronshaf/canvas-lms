@@ -73,19 +73,6 @@
   "browserslist": [
     "extends @instructure/browserslist-config-canvas-lms"
   ],
-  "nyc": {
-    "include": [
-      "shared/**/*.js",
-      "src/**/*.js"
-    ],
-    "exclude": [],
-    "require": [
-      "@babel/register",
-      "@instructure/canvas-theme"
-    ],
-    "sourceMap": false,
-    "instrument": false
-  },
   "dependencies": {
     "@instructure/canvas-media": "*",
     "@instructure/canvas-theme": "11.6.0",
@@ -215,12 +202,9 @@
     "jsdom": "^29.0.0",
     "mathjax": "^3.2.0",
     "msw": "^2.7",
-    "nyc": "^17",
     "proxyquire": "1.7.4",
     "shelljs": "^0.8.3",
     "skin-deep": "^1",
-    "source-map-support": "0.5.21",
-    "ts-node": "^10.9.2",
     "typescript": "*",
     "url-loader": "^4.1.1",
     "vitest": "*",
