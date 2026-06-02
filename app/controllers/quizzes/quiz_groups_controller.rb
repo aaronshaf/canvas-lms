@@ -130,9 +130,9 @@ class Quizzes::QuizGroupsController < ApplicationController
     if authorized_action(@quiz, current_principal, :update)
       @quiz.did_edit if @quiz.created?
 
-      quiz_group_params = params[:quiz_groups][0].permit(:name, :pick_count, :question_points, :assessment_question_bank_id)
-      bank_id = quiz_group_params.delete(:assessment_question_bank_id)
-      bank = find_bank(bank_id) if bank_id.present?
+      quiz_group_params = first_quiz_group_params.permit(:name, :pick_count, :question_points, :assessment_question_bank_id)
+      bank_id = Integer(quiz_group_params.delete(:assessment_question_bank_id), exception: false)
+      bank = find_bank(bank_id) if bank_id
       quiz_group_params[:assessment_question_bank_id] = bank_id if bank
 
       @group = @quiz.quiz_groups.build
@@ -167,7 +167,7 @@ class Quizzes::QuizGroupsController < ApplicationController
       @group = @quiz.quiz_groups.find(params[:id])
       @quiz.did_edit if @quiz.created?
 
-      quiz_group_params = params[:quiz_groups][0].permit(:name, :pick_count, :question_points)
+      quiz_group_params = first_quiz_group_params.permit(:name, :pick_count, :question_points)
       if update_api_quiz_group(@group, quiz_group_params)
         render json: quiz_groups_compound_json([@group], @context, @current_user, session)
       else
@@ -211,6 +211,16 @@ class Quizzes::QuizGroupsController < ApplicationController
   end
 
   private
+
+  def first_quiz_group_params
+    groups = params.require(:quiz_groups)
+    raise ActionController::ParameterMissing, :quiz_groups unless groups.is_a?(Array)
+
+    first = groups.first
+    raise ActionController::ParameterMissing, :quiz_groups unless first.is_a?(ActionController::Parameters)
+
+    first
+  end
 
   def format_errors(group)
     group.errors.each_with_object({ errors: {} }) do |e, json|

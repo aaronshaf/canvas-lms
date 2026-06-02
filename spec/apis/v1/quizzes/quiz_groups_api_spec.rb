@@ -57,6 +57,42 @@ describe Quizzes::QuizGroupsController, type: :request do
       expect(new_quiz_group.assessment_question_bank_id).to be_nil
     end
 
+    it "ignores a non-integer assessment_question_bank_id without crashing" do
+      api_create_quiz_group("name" => "testing", "assessment_question_bank_id" => "abc")
+      expect(new_quiz_group.name).to eq "testing"
+      expect(new_quiz_group.assessment_question_bank_id).to be_nil
+    end
+
+    context "with malformed quiz_groups payloads" do
+      def post_quiz_groups(body)
+        raw_api_call(:post,
+                     "/api/v1/courses/#{@course.id}/quizzes/#{@quiz.id}/groups",
+                     { controller: "quizzes/quiz_groups", action: "create", format: "json", course_id: @course.id.to_s, quiz_id: @quiz.id.to_s },
+                     body,
+                     { "Accept" => "application/vnd.api+json" })
+      end
+
+      it "returns 400 when quiz_groups is missing" do
+        post_quiz_groups({})
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups is not an array" do
+        post_quiz_groups(quiz_groups: "oops")
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups is an empty array" do
+        post_quiz_groups(quiz_groups: [])
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups[0] is not a hash" do
+        post_quiz_groups(quiz_groups: ["oops"])
+        assert_status 400
+      end
+    end
+
     it "doesn't allow setting fields not in the whitelist" do
       api_create_quiz_group("migration_id" => 123)
       expect(new_quiz_group.migration_id).to be_nil
@@ -154,6 +190,36 @@ describe Quizzes::QuizGroupsController, type: :request do
       json = api_update_quiz_group({ question_points: }, expected_status: 422)
       expect(json).to have_key "errors"
       expect(json["errors"]).to have_key "question_points"
+    end
+
+    context "with malformed quiz_groups payloads" do
+      def put_quiz_groups(body)
+        raw_api_call(:put,
+                     "/api/v1/courses/#{@course.id}/quizzes/#{@quiz.id}/groups/#{@group.id}",
+                     { controller: "quizzes/quiz_groups", action: "update", format: "json", course_id: @course.id.to_s, quiz_id: @quiz.id.to_s, id: @group.id.to_s },
+                     body,
+                     { "Accept" => "application/vnd.api+json" })
+      end
+
+      it "returns 400 when quiz_groups is missing" do
+        put_quiz_groups({})
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups is not an array" do
+        put_quiz_groups(quiz_groups: "oops")
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups is an empty array" do
+        put_quiz_groups(quiz_groups: [])
+        assert_status 400
+      end
+
+      it "returns 400 when quiz_groups[0] is not a hash" do
+        put_quiz_groups(quiz_groups: ["oops"])
+        assert_status 400
+      end
     end
   end
 
