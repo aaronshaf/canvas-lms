@@ -92,7 +92,7 @@ module Api::V1::StreamItem
         # anything that gets send to communication channels
         hash["title"] = data.subject
         hash["notification_category"] = data.notification_category
-        hash["html_url"] = hash["url"] = data.url
+        hash["html_url"] = hash["url"] = rewrite_url_host(data.url)
       when "Submission"
         submission = stream_item.asset
         assignment = submission.assignment
@@ -301,5 +301,19 @@ module Api::V1::StreamItem
       end
     end
     [total_counts, unread_counts]
+  end
+
+  private
+
+  def rewrite_url_host(url)
+    return url if url.blank?
+
+    uri = URI.parse(url)
+    uri.scheme = request.scheme
+    uri.host = request.host
+    uri.port = request.port unless [80, 443].include?(request.port)
+    uri.to_s
+  rescue URI::InvalidURIError
+    url
   end
 end

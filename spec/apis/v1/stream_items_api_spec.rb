@@ -595,6 +595,65 @@ describe UsersController, type: :request do
     }]
   end
 
+  it "uses the request host for Message html_url when accessed via an alternative domain" do
+    message_model(
+      user: @user,
+      to: "dashboard",
+      notification: notification_model,
+      url: "http://www.example.com/courses/#{@course.id}"
+    )
+    host! "alt.example.com"
+    json = api_call(:get,
+                    "/api/v1/users/activity_stream.json",
+                    { controller: "users", action: "activity_stream", format: "json" })
+    msg = json.find { |item| item["type"] == "Message" }
+    expect(msg["html_url"]).to eql("http://alt.example.com/courses/#{@course.id}")
+  end
+
+  it "returns the original url for Message html_url when the url is malformed" do
+    message_model(
+      user: @user,
+      to: "dashboard",
+      notification: notification_model,
+      url: "not a valid url"
+    )
+    json = api_call(:get,
+                    "/api/v1/users/activity_stream.json",
+                    { controller: "users", action: "activity_stream", format: "json" })
+    msg = json.find { |item| item["type"] == "Message" }
+    expect(msg["html_url"]).to eql("not a valid url")
+  end
+
+  it "uses the request scheme for Message html_url when accessed via https" do
+    message_model(
+      user: @user,
+      to: "dashboard",
+      notification: notification_model,
+      url: "http://www.example.com/courses/#{@course.id}"
+    )
+    https!
+    json = api_call(:get,
+                    "/api/v1/users/activity_stream.json",
+                    { controller: "users", action: "activity_stream", format: "json" })
+    msg = json.find { |item| item["type"] == "Message" }
+    expect(msg["html_url"]).to start_with("https://")
+  end
+
+  it "includes a non-standard port in Message html_url" do
+    message_model(
+      user: @user,
+      to: "dashboard",
+      notification: notification_model,
+      url: "http://www.example.com/courses/#{@course.id}"
+    )
+    host! "alt.example.com:3000"
+    json = api_call(:get,
+                    "/api/v1/users/activity_stream.json",
+                    { controller: "users", action: "activity_stream", format: "json" })
+    msg = json.find { |item| item["type"] == "Message" }
+    expect(msg["html_url"]).to eql("http://alt.example.com:3000/courses/#{@course.id}")
+  end
+
   it "formats graded Submission with comments" do
     # set @domain_root_account
     @domain_root_account = Account.default
