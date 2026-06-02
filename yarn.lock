@@ -6678,11 +6678,6 @@
   resolved "https://registry.yarnpkg.com/@types/aria-query/-/aria-query-5.0.4.tgz#1a31c3d378850d2778dabb6374d036dcba4ba708"
   integrity sha512-rfT93uj5s0PRL7EzccGMs3brplhcrghnDoV26NqKhCAS1hVo+WdNsPvE/yb6ilfr5hi2MEk6d5EWJTKdxg8jVw==
 
-"@types/b-spline@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/b-spline/-/b-spline-2.0.4.tgz#30f430d219fb947c8f27adb3baaf895741717e86"
-  integrity sha512-j5jj9ySHCHHRtaypR7Inax8Vusw8yE01TeUzYShWxTmztLeN00g9nLq5D+ppxgfVOzyXTr//9fQGnzk1O9dAHQ==
-
 "@types/babel__core@^7.20.5":
   version "7.20.5"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.20.5.tgz#3df15f27ba85319caa07ba08d0721889bb39c017"
@@ -8312,11 +8307,6 @@ axobject-query@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-4.1.0.tgz#28768c76d0e3cff21bc62a9e2d0b6ac30042a1ee"
   integrity sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==
-
-b-spline@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/b-spline/-/b-spline-2.0.2.tgz#964becb6e33de6b11bae1ba229c4477eab2e4426"
-  integrity sha512-RPhM4apTUkejCpKo9sQrOiMdy/rUua4n98oppafwAnT64ZwqJDDp+fUk9+5EBEQNtTS3CsWWFRPukqFM3sasZQ==
 
 babel-code-frame@^6.16.0:
   version "6.26.0"
