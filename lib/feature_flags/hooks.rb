@@ -154,12 +154,13 @@ module FeatureFlags
       return unless ["on", "allowed_on"].include? new_state
 
       root_account = context.root_account
+      provision_attempt = 1
       AiExperiences::Jobs::AiExperienceProvisionJob.delay(
         run_at: 10.seconds.from_now,
         singleton: "ai_experience_provision:#{root_account.uuid}",
         on_conflict: :overwrite, # Ensures that job launches 10 seconds after final feature flag flip
-        max_attempts: 3
-      ).provision_root_account_for_ai_experiences(root_account)
+        max_attempts: AiExperiences::MAX_PROVISION_ATTEMPTS
+      ).provision_root_account_for_ai_experiences(root_account, provision_attempt)
     end
 
     def self.assignment_enhancements_prereq_for_stickers_hook(_user, context, _old_state, new_state)

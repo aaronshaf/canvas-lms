@@ -774,7 +774,7 @@ describe FeatureFlags::Hooks do
         it "enqueues the provision job with the root account" do
           FeatureFlags::Hooks.provision_ai_experience_after_change_hook(nil, course, nil, state)
 
-          expect(AiExperiences::Jobs::AiExperienceProvisionJob).to have_received(:provision_root_account_for_ai_experiences).with(root_account)
+          expect(AiExperiences::Jobs::AiExperienceProvisionJob).to have_received(:provision_root_account_for_ai_experiences).with(root_account, 1)
         end
       end
     end

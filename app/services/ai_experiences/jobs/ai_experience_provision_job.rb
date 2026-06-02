@@ -18,19 +18,29 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-class AiExperiences::Jobs::AiExperienceProvisionJob
-  class << self
-    def provision_root_account_for_ai_experiences(root_account)
-      provision_root_account(root_account)
-    end
+module AiExperiences
+  module Jobs
+    class AiExperienceProvisionJob
+      class << self
+        def provision_root_account_for_ai_experiences(root_account, provision_attempt)
+          ProvisionService.new.initiate_provisioning(root_account)
 
-    private
+          launch_pine_status_job(root_account, provision_attempt)
+        rescue LlmConversation::Errors::ConflictError => e
+          Rails.logger.info("AiExperienceProvisionJob: root_account #{root_account.uuid} already provisioned: #{e.message}")
+        end
 
-    def provision_root_account(root_account)
-      AiExperiences::ProvisionService.new.provision(root_account)
-    rescue LlmConversation::Errors::ConflictError => e
-      # Already provisioned — not an error worth retrying
-      Rails.logger.info("AiExperienceProvisionJob: root_account #{root_account.uuid} already provisioned: #{e.message}")
+        private
+
+        def launch_pine_status_job(root_account, provision_attempt)
+          pine_status_attempt = 1
+
+          AiExperienceProvisionStatusJob.delay(
+            run_at: INITIAL_STATUS_FETCH_INTERVAL.seconds.from_now,
+            singleton: "ai_experience_provision_status:#{root_account.uuid}"
+          ).check_provision_status(root_account, provision_attempt, pine_status_attempt, INITIAL_STATUS_FETCH_INTERVAL)
+        end
+      end
     end
   end
 end

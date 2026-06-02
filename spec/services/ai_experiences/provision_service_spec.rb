@@ -24,13 +24,9 @@ describe AiExperiences::ProvisionService do
   let(:service) { described_class.new }
   let(:enc_key) { LlmConversation::TokenCache::ENCRYPTION_KEY }
   let(:provision_response) do
-    {
-      "data" => {
-        "api_token" => "test-api-token",
-        "refresh_token" => "test-refresh-token"
-      }
-    }
+    { "api_token" => "test-api-token", "refresh_token" => "test-refresh-token" }
   end
+  let(:status_complete_response) { { "provision_status" => "COMPLETE" } }
 
   before do
     allow(LlmConversation::HttpClient).to receive(:new)
@@ -38,66 +34,44 @@ describe AiExperiences::ProvisionService do
       .and_return(http_client)
   end
 
-  describe "#provision" do
+  describe "#initiate_provisioning" do
     before do
       allow(http_client).to receive(:post)
         .with("/provision", payload: { root_account_id: account.root_account.uuid, audience: "canvas" })
         .and_return(provision_response)
     end
 
-    it "saves the api_token and refresh_token to account settings encrypted" do
-      service.provision(account)
-
-      account.reload
-      settings = account.settings[:llm_conversation_service]
-
-      expect(Canvas::Security.decrypt_password(
-               settings[:encrypted_api_jwt_token],
-               settings[:encrypted_api_jwt_token_salt],
-               enc_key
-             )).to eql("test-api-token")
-
-      expect(Canvas::Security.decrypt_password(
-               settings[:encrypted_refresh_jwt_token],
-               settings[:encrypted_refresh_jwt_token_salt],
-               enc_key
-             )).to eql("test-refresh-token")
-    end
-
-    it "handles a flat response without a data envelope" do
-      flat_response = { "api_token" => "flat-token", "refresh_token" => "flat-refresh" }
-      allow(http_client).to receive(:post).and_return(flat_response)
-
-      service.provision(account)
-
-      account.reload
-      settings = account.settings[:llm_conversation_service]
-      expect(Canvas::Security.decrypt_password(
-               settings[:encrypted_api_jwt_token],
-               settings[:encrypted_api_jwt_token_salt],
-               enc_key
-             )).to eql("flat-token")
-    end
-
     it "uses the initial token http client" do
-      service.provision(account)
+      service.initiate_provisioning(account)
 
       expect(LlmConversation::HttpClient).to have_received(:new).with(account:, use_initial_token: true)
-    end
-
-    it "writes the new api token to the cache" do
-      allow(LlmConversation::TokenCache).to receive(:set_api_token)
-
-      service.provision(account)
-
-      expect(LlmConversation::TokenCache).to have_received(:set_api_token).with(account, "test-api-token")
     end
 
     it "raises ConversationError on API failure" do
       allow(http_client).to receive(:post)
         .and_raise(LlmConversation::Errors::ConversationError, "Service unavailable")
 
-      expect { service.provision(account) }
+      expect { service.initiate_provisioning(account) }
+        .to raise_error(LlmConversation::Errors::ConversationError, "Service unavailable")
+    end
+  end
+
+  describe "#fetch_provision_status" do
+    before do
+      allow(http_client).to receive(:get)
+        .with("/provision/status?root_account_id=#{account.uuid}")
+        .and_return(status_complete_response)
+    end
+
+    it "returns the provision_status string from the response" do
+      expect(service.fetch_provision_status(account)).to eq("COMPLETE")
+    end
+
+    it "raises ConversationError on API failure" do
+      allow(http_client).to receive(:get)
+        .and_raise(LlmConversation::Errors::ConversationError, "Service unavailable")
+
+      expect { service.fetch_provision_status(account) }
         .to raise_error(LlmConversation::Errors::ConversationError, "Service unavailable")
     end
   end

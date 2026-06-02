@@ -24,21 +24,29 @@ describe AiExperiences::Jobs::AiExperienceProvisionJob do
 
   before do
     allow(AiExperiences::ProvisionService).to receive(:new).and_return(provision_service)
-    allow(provision_service).to receive(:provision)
+    allow(provision_service).to receive(:initiate_provisioning)
   end
 
   describe ".provision_root_account_for_ai_experiences" do
-    it "calls the provision service with the root account" do
-      described_class.provision_root_account_for_ai_experiences(root_account)
+    it "initiates provisioning for the root account" do
+      described_class.provision_root_account_for_ai_experiences(root_account, 1)
 
-      expect(provision_service).to have_received(:provision).with(root_account)
+      expect(provision_service).to have_received(:initiate_provisioning).with(root_account)
+    end
+
+    it "schedules check_provision_status with a 60 second delay" do
+      expect(AiExperiences::Jobs::AiExperienceProvisionStatusJob).to receive(:delay).with(
+        hash_including(run_at: be_within(2.seconds).of(60.seconds.from_now))
+      ).and_call_original
+
+      described_class.provision_root_account_for_ai_experiences(root_account, 1)
     end
 
     it "does not raise when the root account is already provisioned" do
-      allow(provision_service).to receive(:provision)
+      allow(provision_service).to receive(:initiate_provisioning)
         .and_raise(LlmConversation::Errors::ConflictError, "already provisioned")
 
-      expect { described_class.provision_root_account_for_ai_experiences(root_account) }.not_to raise_error
+      expect { described_class.provision_root_account_for_ai_experiences(root_account, 1) }.not_to raise_error
     end
   end
 end

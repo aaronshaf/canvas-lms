@@ -75,6 +75,7 @@ class AiExperiencesController < ApplicationController
 
   before_action :require_context
   before_action :check_ai_experiences_feature_flag
+  before_action :check_provision_complete, only: %i[index show new edit]
   before_action :require_access_right, only: [:index, :show]
   before_action :require_manage_rights, except: [:index, :show]
   before_action :load_experience, only: %i[show edit update destroy ai_conversations_index ai_conversation_show]
@@ -438,6 +439,21 @@ class AiExperiencesController < ApplicationController
       render_404
       false
     end
+  end
+
+  def check_provision_complete
+    return if @context.root_account.settings.dig(:llm_conversation_service, :provision_complete)
+
+    respond_to do |format|
+      format.html do
+        set_active_tab "ai_experiences"
+        add_crumb t("#crumbs.knowledge_checks", "Knowledge Checks")
+        js_bundle :knowledge_check_not_ready
+        render html: content_tag(:div, nil, id: "ai-experiences-not-ready"), layout: true
+      end
+      format.json { render json: { error: "Knowledge Checks are not yet ready" }, status: :service_unavailable }
+    end
+    false
   end
 
   def require_access_right

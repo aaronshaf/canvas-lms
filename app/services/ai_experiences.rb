@@ -18,5 +18,10 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module AiExperiences
+  MAX_PROVISION_ATTEMPTS = 3
+  INITIAL_STATUS_FETCH_INTERVAL = 1.minute.to_i
+  MAX_STATUS_FETCH_INTERVAL = 8.minutes.to_i
+  MAX_STATUS_ATTEMPTS = 10
+
   class AiExperienceProvisionError < StandardError; end
 end

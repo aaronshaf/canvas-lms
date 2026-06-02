@@ -24,6 +24,8 @@ describe AiExperiencesController, type: :request do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
     @course.root_account.enable_feature!(:ai_experiences)
+    @course.root_account.settings[:llm_conversation_service] = { provision_complete: true }
+    @course.root_account.save!
     @ai_experience = @course.ai_experiences.create!(
       title: "Customer Service Training",
       description: "Practice customer service scenarios",
@@ -31,6 +33,31 @@ describe AiExperiencesController, type: :request do
       learning_objectives: ["Students will learn to handle customer complaints professionally"],
       pedagogical_guidance: "A customer calls about incorrect billing"
     )
+  end
+
+  describe "provision not complete" do
+    before do
+      @course.root_account.settings[:llm_conversation_service] = { provision_complete: false }
+      @course.root_account.save!
+      user_session(@teacher)
+    end
+
+    after do
+      @course.root_account.settings[:llm_conversation_service] = { provision_complete: true }
+      @course.root_account.save!
+    end
+
+    it "renders html with Knowledge Checks breadcrumb" do
+      get "/courses/#{@course.id}/ai_experiences"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Knowledge Checks")
+    end
+
+    it "renders json error with Knowledge Checks message" do
+      get "/courses/#{@course.id}/ai_experiences.json"
+      expect(response).to have_http_status(:service_unavailable)
+      expect(json_parse(response.body)["error"]).to eq "Knowledge Checks are not yet ready"
+    end
   end
 
   describe "GET #index" do

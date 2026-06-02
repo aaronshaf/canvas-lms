@@ -77,12 +77,14 @@ module LlmConversation
       api_enc, api_salt = Canvas::Security.encrypt_password(new_api_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
       refresh_enc, refresh_salt = Canvas::Security.encrypt_password(new_refresh_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
 
-      @root_account.settings[:llm_conversation_service] = {
+      existing_settings = @root_account.settings[:llm_conversation_service] || {}
+      updated_keys = {
         encrypted_api_jwt_token: api_enc,
         encrypted_api_jwt_token_salt: api_salt,
         encrypted_refresh_jwt_token: refresh_enc,
         encrypted_refresh_jwt_token_salt: refresh_salt
       }
+      @root_account.settings[:llm_conversation_service] = existing_settings.merge(updated_keys)
       @root_account.save!
 
       LlmConversation::TokenCache.set_api_token(@root_account, new_api_token)

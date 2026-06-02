@@ -20,14 +20,17 @@
 
 module AiExperiences
   class ProvisionService
-    def provision(root_account)
+    def initiate_provisioning(root_account)
       @client = LlmConversation::HttpClient.new(account: root_account, use_initial_token: true)
-      result = call_provision_api(root_account)
+      api_refresh_tokens = call_provision_api(root_account)
 
-      # TODO: We will wait and poll here when we get to PINE Provisioning
-      # If that times out then we throw an error and must restart the entire provision
+      save_to_account_settings(root_account, api_refresh_tokens)
+    end
 
-      save_to_account_settings(root_account, result)
+    def fetch_provision_status(root_account)
+      @client ||= LlmConversation::HttpClient.new(account: root_account, use_initial_token: true)
+      response = @client.get("/provision/status?root_account_id=#{root_account.uuid}")
+      response["provision_status"]
     end
 
     private
@@ -37,22 +40,23 @@ module AiExperiences
         root_account_id: root_account.uuid,
         audience: "canvas"
       }
-      response = @client.post("/provision", payload:)
-      response["data"] || response
+      @client.post("/provision", payload:)
     end
 
-    def save_to_account_settings(root_account, provision_result)
-      api_enc, api_salt = Canvas::Security.encrypt_password(provision_result["api_token"], LlmConversation::TokenCache::ENCRYPTION_KEY)
-      refresh_enc, refresh_salt = Canvas::Security.encrypt_password(provision_result["refresh_token"], LlmConversation::TokenCache::ENCRYPTION_KEY)
+    def save_to_account_settings(root_account, api_refresh_tokens)
+      api_enc, api_salt = Canvas::Security.encrypt_password(api_refresh_tokens["api_token"], LlmConversation::TokenCache::ENCRYPTION_KEY)
+      refresh_enc, refresh_salt = Canvas::Security.encrypt_password(api_refresh_tokens["refresh_token"], LlmConversation::TokenCache::ENCRYPTION_KEY)
 
       root_account.settings[:llm_conversation_service] = {
         encrypted_api_jwt_token: api_enc,
         encrypted_api_jwt_token_salt: api_salt,
         encrypted_refresh_jwt_token: refresh_enc,
-        encrypted_refresh_jwt_token_salt: refresh_salt
+        encrypted_refresh_jwt_token_salt: refresh_salt,
+        provision_complete: false
       }
       root_account.save!
-      LlmConversation::TokenCache.set_api_token(root_account, provision_result["api_token"])
+
+      LlmConversation::TokenCache.set_api_token(root_account, api_refresh_tokens["api_token"])
     end
   end
 end

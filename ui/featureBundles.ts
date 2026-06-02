@@ -37,6 +37,7 @@ const featureBundles: {
   announcements: () => import('./features/announcements/index'),
   ai_experiences_index: () => import('./features/ai_experiences_index/index'),
   ai_experiences_edit: () => import('./features/ai_experiences_edit/index'),
+  knowledge_check_not_ready: () => import('./features/knowledge_check_not_ready/index'),
   assignment_grade_summary: () => import('./features/assignment_grade_summary/index'),
   assignment_index: () => import('./features/assignment_index/index'),
   assignment_show: () => import('./features/assignment_show/index'),
