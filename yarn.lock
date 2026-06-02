@@ -3925,29 +3925,6 @@
     "@instructure/ui-react-utils" "11.6.0"
     "@instructure/ui-utils" "11.6.0"
 
-"@instructure/ui-navigation@11.6.0":
-  version "11.6.0"
-  resolved "https://registry.yarnpkg.com/@instructure/ui-navigation/-/ui-navigation-11.6.0.tgz#f99e5793b5c58f1bbee0a6049e345bd0b29f418c"
-  integrity sha512-fBf27EoLm9qrWGQPR1FWS642/1rv5S5if0AKHzAcfYCtiRKbIgI6Wdmzn9Gkhok9cHkmiOLpam/ZoyNL4e/6kg==
-  dependencies:
-    "@babel/runtime" "^7.27.6"
-    "@instructure/console" "11.6.0"
-    "@instructure/debounce" "11.6.0"
-    "@instructure/emotion" "11.6.0"
-    "@instructure/shared-types" "11.6.0"
-    "@instructure/ui-a11y-content" "11.6.0"
-    "@instructure/ui-a11y-utils" "11.6.0"
-    "@instructure/ui-badge" "11.6.0"
-    "@instructure/ui-dom-utils" "11.6.0"
-    "@instructure/ui-focusable" "11.6.0"
-    "@instructure/ui-icons" "11.6.0"
-    "@instructure/ui-menu" "11.6.0"
-    "@instructure/ui-react-utils" "11.6.0"
-    "@instructure/ui-tooltip" "11.6.0"
-    "@instructure/ui-truncate-list" "11.6.0"
-    "@instructure/ui-utils" "11.6.0"
-    "@instructure/ui-view" "11.6.0"
-
 "@instructure/ui-number-input@11.6.0":
   version "11.6.0"
   resolved "https://registry.yarnpkg.com/@instructure/ui-number-input/-/ui-number-input-11.6.0.tgz#03190fbca8fb99aea068e55d7815cd68623b6750"
