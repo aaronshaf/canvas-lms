@@ -119,8 +119,6 @@
     "@peculiar/x509": "^1.9.3",
     "@pendo/agent": "^2.278.0",
     "@popperjs/core": "^2.9.2",
-    "@react-dnd/invariant": "^4.0.1",
-    "@react-dnd/shallowequal": "^4.0.1",
     "@sentry/cli": "^2.21.5",
     "@sentry/react": "^7.81.0",
     "@swc/core": "^1.15",
