@@ -745,7 +745,7 @@ export const quiz = (window.quiz = {
           const _fatd = document.createElement('td')
           _fatd.className = 'final_answer'
           var $td = $(_fatd)
-          let answerHtml = I18n.n(data.answer)
+          let answerHtml = htmlEscape(I18n.n(data.answer))
           if (question.answerDecimalPoints || question.answer_tolerance) {
             let tolerance = parseFloatOrPercentage(question.answer_tolerance)
             tolerance = tolerance || Math.pow(0.1, question.answerDecimalPoints)
@@ -2966,7 +2966,7 @@ ready(function () {
           )
           _ctr.appendChild(_vtd)
         }
-        let html = I18n.n(question.answers[idx].answer_text)
+        let html = htmlEscape(I18n.n(question.answers[idx].answer_text))
         if (question.answer_tolerance) {
           html =
             html +

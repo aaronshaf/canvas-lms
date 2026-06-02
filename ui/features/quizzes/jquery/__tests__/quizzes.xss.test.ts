@@ -441,3 +441,69 @@ describe('calculated question edit — $tr rename regression', () => {
     expect($insertedForm.find('.combinations tbody tr').length).toBe(1)
   })
 })
+
+// Regression coverage for the calculated-question "final answer" sink in
+// quiz.updateDisplayQuestion. The answer is rendered with $td.html(), so it
+// must be escaped. I18n.n returns its input verbatim when the value contains
+// the letter "e" (it treats it as scientific notation), so an answer string
+// like '1e<img onerror=...>' slips past number formatting unchanged — it must
+// still be html-escaped before being written to the DOM.
+describe('quiz.updateDisplayQuestion — calculated question answer XSS', () => {
+  let $fixture: ReturnType<typeof $>
+
+  const renderCalculatedQuestion = (answer: unknown) => {
+    $fixture = buildQuestionFixture()
+    const {quiz} = quizModule
+
+    quiz.updateDisplayQuestion(
+      $fixture,
+      {
+        question_type: 'calculated_question',
+        question_text: 'compute the value',
+        variables: [{name: 'x', min: 1, max: 10, scale: 0}],
+        formulas: [{formula: 'x'}],
+        formula_decimal_places: 2,
+        answers: [{answer, variables: [{name: 'x', value: 5}]}],
+        points_possible: 1,
+      },
+      true,
+    )
+
+    return $fixture.find('.equation_combinations .final_answer')[0]
+  }
+
+  beforeEach(() => {
+    delete (window as any).__xss_fired
+  })
+
+  afterEach(() => {
+    $fixture?.remove()
+    document.body.innerHTML = ''
+    delete (window as any).__xss_fired
+  })
+
+  it('escapes an <img onerror> answer that bypasses I18n.n via scientific notation', () => {
+    const $cell = renderCalculatedQuestion('1e<img src=x onerror="window.__xss_fired = true">')
+
+    expectNoXss($cell)
+    expect($cell.querySelector('img')).toBeNull()
+    expect((window as any).__xss_fired).toBeUndefined()
+    // the payload survives as inert text, not as a live element
+    expect($cell.textContent).toContain('<img')
+  })
+
+  it('escapes a <script> answer that bypasses I18n.n via scientific notation', () => {
+    const $cell = renderCalculatedQuestion('1e<script>window.__xss_fired = true</script>')
+
+    expectNoXss($cell)
+    expect((window as any).__xss_fired).toBeUndefined()
+    expect($cell.innerHTML.toLowerCase()).not.toContain('<script')
+  })
+
+  it('renders a legitimate scientific-notation answer as plain text', () => {
+    const $cell = renderCalculatedQuestion('1.5e-7')
+
+    expectNoXss($cell)
+    expect($cell.textContent).toBe('1.5e-7')
+  })
+})
