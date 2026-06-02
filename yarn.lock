@@ -14454,18 +14454,6 @@ jquery.cookie@^1.4.1:
   resolved "https://registry.yarnpkg.com/jquery.cookie/-/jquery.cookie-1.4.1.tgz#d63dce209eab691fe63316db08ca9e47e0f9385b"
   integrity sha1-1j3OIJ6raR/mMxbbCMqeR+D5OFs=
 
-jquery.elastic@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/jquery.elastic/-/jquery.elastic-1.0.0.tgz#351c99e443344d47b437a6ee8d0b5aab888ccfe8"
-  integrity sha1-NRyZ5EM0TUe0N6bujQtaq4iMz+g=
-  dependencies:
-    jquery ">=1.5"
-
-"jquery3@npm:jquery@^3.7.1":
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.7.1.tgz#083ef98927c9a6a74d05a6af02806566d16274de"
-  integrity sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==
-
 js-beautify@1.15.4:
   version "1.15.4"
   resolved "https://registry.yarnpkg.com/js-beautify/-/js-beautify-1.15.4.tgz#f579f977ed4c930cef73af8f98f3f0a608acd51e"
