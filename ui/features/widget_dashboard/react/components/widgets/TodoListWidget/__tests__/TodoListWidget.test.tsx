@@ -18,12 +18,18 @@
 
 import React from 'react'
 import {render, screen, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {http, HttpResponse} from 'msw'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
 import TodoListWidget from '../TodoListWidget'
 import type {BaseWidgetProps, Widget} from '../../../../types'
-import {plannerItemsHandlers, plannerNoteHandlers} from './mocks/handlers'
+import {
+  plannerItemsHandlers,
+  plannerNoteHandlers,
+  emptyPlannerItemsHandler,
+  widgetConfigHandlers,
+} from './mocks/handlers'
 import {WidgetLayoutProvider} from '../../../../hooks/useWidgetLayout'
 import {WidgetDashboardEditProvider} from '../../../../hooks/useWidgetDashboardEdit'
 import {WidgetDashboardProvider} from '../../../../hooks/useWidgetDashboardContext'
@@ -44,7 +50,7 @@ const buildDefaultProps = (overrides: Partial<BaseWidgetProps> = {}): BaseWidget
   }
 }
 
-const server = setupServer(...plannerItemsHandlers, ...plannerNoteHandlers)
+const server = setupServer(...plannerItemsHandlers, ...plannerNoteHandlers, ...widgetConfigHandlers)
 
 const mockSharedCourseData = [
   {
@@ -266,6 +272,41 @@ describe('TodoListWidget', () => {
 
       const quizGroup = await screen.findByTestId('todo-item-2')
       expect(quizGroup).toHaveAttribute('aria-label', 'Chapter 5 Quiz')
+    })
+  })
+
+  describe('empty state across filters', () => {
+    it('shows empty state for all todo filter options when no items exist', async () => {
+      global.event = undefined // workaround bug in SimpleSelect that accesses the global event
+      server.use(emptyPlannerItemsHandler)
+      const user = userEvent.setup()
+      renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
+
+      // Default (Incomplete) filter: empty state is shown
+      await screen.findByTestId('no-todos-message')
+      expect(screen.getByText('No upcoming items')).toBeInTheDocument()
+      expect(screen.getByTestId('todo-filter-select')).toHaveValue('Incomplete')
+
+      // Switch to Complete: empty state remains shown
+      const filterSelect = screen.getByTestId('todo-filter-select')
+      await user.click(filterSelect)
+      await user.click(await screen.findByText('Complete'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('todo-filter-select')).toHaveValue('Complete')
+      })
+      expect(screen.getByTestId('no-todos-message')).toBeInTheDocument()
+      expect(screen.getByText('No upcoming items')).toBeInTheDocument()
+
+      // Switch to All: empty state remains shown
+      await user.click(screen.getByTestId('todo-filter-select'))
+      await user.click(await screen.findByText('All'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('todo-filter-select')).toHaveValue('All')
+      })
+      expect(screen.getByTestId('no-todos-message')).toBeInTheDocument()
+      expect(screen.getByText('No upcoming items')).toBeInTheDocument()
     })
   })
 })
