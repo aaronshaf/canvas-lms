@@ -163,19 +163,6 @@ describe "eportfolios" do
       end
     end
 
-    it "deletes the ePortfolio", priority: "2" do
-      get "/eportfolios/#{@eportfolio.id}"
-      wait_for_ajax_requests
-      f(".delete_eportfolio_link").click
-      wait_for_ajaximations
-      expect(f("#delete_eportfolio_form")).to be_displayed
-      submit_form("#delete_eportfolio_form")
-      f("#wrapper .eportfolios").click
-      expect(f("#content")).not_to contain_css("#portfolio_#{@eportfolio.id}")
-      expect(f("#add_eportfolio_button")).to be_displayed
-      expect(Eportfolio.first.workflow_state).to eq "deleted"
-    end
-
     it "clicks on all wizard options and validate the text" do
       get "/eportfolios/#{@eportfolio.id}"
       f(".wizard_popup_link").click

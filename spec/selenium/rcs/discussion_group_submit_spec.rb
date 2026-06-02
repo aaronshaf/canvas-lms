@@ -40,30 +40,6 @@ describe "discussion assignments" do
     stub_rcs_config
   end
 
-  context "create group discussion" do
-    before do
-      skip "Will be fixed in VICE-5634 2025-11-11"
-      get "/courses/#{@course.id}/discussion_topics/new"
-      f("#discussion-title").send_keys("New Discussion Title")
-      type_in_tiny("textarea[name=message]", "Discussion topic message body")
-      f("#has_group_category").click
-      click_option("#assignment_group_category_id", "category 1")
-    end
-
-    it "creates a group discussion ungraded", priority: "1" do
-      expect_new_page_load { submit_form(".form-actions") }
-      expect(f('[data-testid="groups-menu-btn"]')).to be_displayed
-    end
-
-    it "creates a group discussion graded", priority: "1" do
-      fxpath("//span[text()='Graded']").click
-      f("#discussion_topic_assignment_points_possible").send_keys("10")
-      click_option("#assignment_group_id", "Assignment Group")
-      expect_new_page_load { submit_form(".form-actions") }
-      expect(f('[data-testid="groups-menu-btn"]')).to be_displayed
-    end
-  end
-
   context "student reply and total count" do
     before do
       @discussion_topic = @course.discussion_topics.create!(user: @teacher,

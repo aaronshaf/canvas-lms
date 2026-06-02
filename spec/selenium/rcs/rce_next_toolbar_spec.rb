@@ -347,30 +347,6 @@ describe "RCE Next toolbar features", :ignore_js_errors do
     end
 
     context "math equations" do
-      it "renders math equation from math modal" do
-        skip("RCX-2486 2024-10-10")
-        page_title = "math_rendering"
-        create_wiki_page_with_text(page_title)
-        visit_existing_wiki_edit(@course, page_title)
-        equation_editor_button.click
-        advanced_editor_toggle.click
-        advanced_editor_textarea.send_keys '\sqrt{81}'
-        equation_editor_done_button.click
-
-        in_frame rce_page_body_ifr_id do
-          expect(wiki_body).to contain_css("img.equation_image")
-          expect(math_image.attribute("title")).to eq '\sqrt{81}'
-          click_repeat(math_image)
-        end
-        edit_math_image_button.click
-        expect(advanced_editor_textarea.text).to eq '\sqrt{81}'
-
-        equation_editor_done_button.click
-        save_button.click
-        wait_for_ajaximations
-        f("#MathJax-Element-1-Frame").displayed?
-      end
-
       it "renders inline LaTeX in the equation editor" do
         page_title = "math_rendering"
         body = "<p>\\(\\LaTeX\\)</p>"
