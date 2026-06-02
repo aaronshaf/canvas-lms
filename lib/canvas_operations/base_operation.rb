@@ -166,6 +166,10 @@ module CanvasOperations
       end
     end
 
+    def delayed_job
+      Delayed::Job.shard(switchman_shard).find_by(singleton: "operations/#{name}/#{singleton}")
+    end
+
     protected
 
     def log_message(...)

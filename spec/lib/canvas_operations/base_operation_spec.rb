@@ -411,6 +411,35 @@ RSpec.describe CanvasOperations::BaseOperation do
     end
   end
 
+  describe "#delayed_job" do
+    include_context "no progress operation"
+
+    let(:operation_instance) { NoProgressOperation.new }
+
+    before do
+      allow(Rails.env).to receive(:production?).and_return(true)
+      allow(operation_instance).to receive(:log_message)
+    end
+
+    it "returns nil when no job exists for this operation" do
+      expect(operation_instance.delayed_job).to be_nil
+    end
+
+    context "after run_later" do
+      before { operation_instance.run_later }
+
+      it "returns the enqueued Delayed::Job" do
+        expect(operation_instance.delayed_job).to be_a(Delayed::Job)
+      end
+
+      it "returns the job matching the operation's singleton" do
+        expect(operation_instance.delayed_job.singleton).to eql(
+          "operations/no_progress_operation/shards/#{Shard.current.id}"
+        )
+      end
+    end
+  end
+
   describe "#job_options" do
     context "when progress tracking is enabled" do
       include_context "progress operation"
