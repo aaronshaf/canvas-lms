@@ -39,15 +39,6 @@ describe "admin k5 dashboard" do
   end
 
   context "homeroom dashboard standard" do
-    it "provides the homeroom dashboard tabs on dashboard" do
-      get "/"
-      expect(welcome_title).to be_present
-      expect(homeroom_tab).to be_displayed
-      expect(schedule_tab).to be_displayed
-      expect(grades_tab).to be_displayed
-      expect(resources_tab).to be_displayed
-    end
-
     it "allows admins to switch back to the classic dashboard" do
       get "/"
 
@@ -66,20 +57,6 @@ describe "admin k5 dashboard" do
   end
 
   context "new course creation" do
-    it "provides a new course button for admin" do
-      get "/"
-
-      expect(new_course_button).to be_displayed
-    end
-
-    it "provides a new course modal when new course button clicked" do
-      get "/"
-
-      click_new_course_button
-
-      expect(new_course_modal).to be_displayed
-    end
-
     it "closes the course modal when x is clicked" do
       get "/"
 

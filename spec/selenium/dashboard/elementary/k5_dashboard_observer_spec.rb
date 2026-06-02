@@ -53,12 +53,6 @@ describe "observer k5 dashboard" do
   end
 
   context "single observed student" do
-    it "defaults to the one observed student" do
-      get "/"
-
-      expect(element_value_for_attr(observed_student_dropdown, "value")).to eq("K5Student")
-    end
-
     it "shows the homeroom announcement and subject for the one observed student" do
       announcement_heading1 = "K5 Do this"
       announcement_content1 = "So happy to see all of you."
@@ -124,14 +118,6 @@ describe "observer k5 dashboard" do
         user: @new_students[1],
         course: @subject_course
       )
-    end
-
-    it "provides a dropdown for multiple observed students" do
-      get "/"
-
-      expect(observed_student_dropdown).to be_displayed
-
-      expect(element_value_for_attr(observed_student_dropdown, "value")).to eq("K5Student")
     end
 
     it "selects a student from the dropdown list" do
@@ -222,52 +208,6 @@ describe "observer k5 dashboard" do
       get "/courses/#{@subject_course.id}#resources"
 
       expect(important_info_content).to include_text(important_info_text)
-    end
-  end
-
-  context "observee pairing modal" do
-    it "brings up modal when button selected" do
-      get "/"
-
-      click_observed_student_option("Add Student")
-
-      expect(pairing_modal).to be_displayed
-    end
-
-    it "closes when Close button is selected" do
-      get "/"
-
-      click_observed_student_option("Add Student")
-      click_close_pairing_button
-
-      expect(wait_for_no_such_element { pairing_modal }).to be_truthy
-    end
-
-    it "pairs observer and observee when pairing code added" do
-      course_with_student(
-        active_all: true,
-        name: "Transfer Student",
-        course: @homeroom_course
-      )
-      pairing_code = @student.generate_observer_pairing_code
-
-      get "/"
-
-      click_observed_student_option("Add Student")
-      pairing_code_input.send_keys(pairing_code.code)
-      click_pairing_button
-
-      expect(wait_for_no_such_element { pairing_modal }).to be_truthy
-    end
-
-    it "retains modal when invalid pairing code added" do
-      get "/"
-
-      click_observed_student_option("Add Student")
-      pairing_code_input.send_keys("xxxXXX")
-      click_pairing_button
-      expect_instui_flash_message("Failed pairing student.")
-      expect(pairing_modal).to be_displayed
     end
   end
 

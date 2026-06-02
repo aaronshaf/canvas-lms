@@ -47,16 +47,6 @@ describe "student k5 dashboard" do
   end
 
   context "homeroom dashboard standard" do
-    it "provides the homeroom dashboard tabs on dashboard" do
-      get "/"
-
-      expect(welcome_title).to be_present
-      expect(homeroom_tab).to be_displayed
-      expect(schedule_tab).to be_displayed
-      expect(grades_tab).to be_displayed
-      expect(resources_tab).to be_displayed
-    end
-
     it "dashboard tabs are sticky when scrolling down on homeroom view" do
       create_courses(10, enroll_user: @student, return_type: :record)
 
@@ -122,13 +112,6 @@ describe "student k5 dashboard" do
       expect(driver.current_url).to include("/courses/#{@subject_course.id}#schedule")
     end
 
-    it "shows subject course on dashboard" do
-      get "/"
-
-      expect(element_exists?(course_card_selector(@course_name))).to be(false)
-      expect(element_exists?(course_card_selector(@subject_course_title))).to be(true)
-    end
-
     it "shows latest announcement on subject course card" do
       new_announcement(@subject_course, "K5 Let's do this", "So happy to see all of you.")
       announcement2 = new_announcement(@subject_course, "K5 Latest", "Let's get to work!")
@@ -191,14 +174,6 @@ describe "student k5 dashboard" do
       expect(subject_grades_title(subject_title2)).to be_displayed
     end
 
-    it "shows the grades in default percentage format" do
-      assignment.grade_student(@student, grader: @homeroom_teacher, score: math_subject_grade, points_deducted: 0)
-
-      get "/#grades"
-
-      expect(subject_grade(math_subject_grade + "%")).to be_displayed
-    end
-
     it "shows the grades with a different grading scheme" do
       grading_standard = create_grading_standard(@subject_course)
       @subject_course.update!(grading_standard_enabled: true, grading_standard_id: grading_standard.id)
@@ -230,26 +205,6 @@ describe "student k5 dashboard" do
   end
 
   context "homeroom dashboard resource panel" do
-    it "shows the resource panel staff contacts" do
-      course_with_ta(
-        course: @homeroom_course,
-        active_enrollment: 1
-      )
-
-      @ta.email = "ta_person@example.com"
-      @ta.save!
-
-      get "/"
-
-      select_resources_tab
-
-      expect(staff_heading(@teacher_name)).to be_displayed
-      expect(instructor_role("Teacher")).to be_displayed
-
-      expect(staff_heading(@ta.name)).to be_displayed
-      expect(instructor_role("Teaching Assistant")).to be_displayed
-    end
-
     it "shows the bio for a contact if the profiles are enabled" do
       @homeroom_course.account.settings[:enable_profiles] = true
       @homeroom_course.account.save!

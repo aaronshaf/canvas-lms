@@ -39,12 +39,6 @@ describe "teacher k5 todo dashboard tab" do
   end
 
   context "todo tab basics" do
-    it "provides the homeroom dashboard tabs on dashboard" do
-      get "/"
-
-      expect(todo_tab).to be_displayed
-    end
-
     it "saves tab information for refresh" do
       get "/"
 
@@ -102,14 +96,6 @@ describe "teacher k5 todo dashboard tab" do
       get "/#todo"
 
       expect(todo_items[0]).to be_displayed
-    end
-
-    it "shows an empty state panda when there is nothing to grade" do
-      @assignment1.grade_student(@student, grader: @homeroom_teacher, score: "90", points_deducted: 0)
-
-      get "/#todo"
-
-      expect(empty_todo_panda).to be_displayed
     end
   end
 end

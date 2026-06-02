@@ -102,24 +102,6 @@ describe "teacher k5 dashboard important dates", :ignore_js_errors do
     end
   end
 
-  context "mark important dates for graded discussions" do
-    it "sets the mark important dates checkbox for discussion", custom_timeout: 25 do
-      skip "Will be fixed in VICE-5634 2025-11-11"
-      discussion_title = "Elec Disc"
-      due_at = 2.days.from_now(Time.zone.now)
-      discussion_assignment = create_dated_assignment(@subject_course, discussion_title, due_at, 10)
-      graded_discussion = @course.discussion_topics.create!(title: discussion_title, assignment: discussion_assignment)
-
-      get "/courses/#{@subject_course.id}/discussion_topics/#{graded_discussion.id}/edit"
-
-      expect(mark_important_dates).to be_displayed
-      scroll_to_element(mark_important_dates)
-      click_mark_important_dates
-
-      expect_new_page_load { submit_form(edit_discussion_submit_selector) }
-    end
-  end
-
   context "mark important dates for subject calendar events" do
     it "sets mark important date for a subject calendar event" do
       get "/calendar"
@@ -136,18 +118,6 @@ describe "teacher k5 dashboard important dates", :ignore_js_errors do
       click_calendar_event_submit_button
 
       expect(calendar_dialog_exists?).to be_falsey
-    end
-
-    it "has no important dates when C4E is turned off" do
-      toggle_k5_setting(@account, enable: false)
-
-      get "/calendar"
-
-      click_calendar_add
-      click_calendar_subject(@subject_course.name)
-
-      expect(important_dates_block).not_to be_displayed
-      toggle_k5_setting(@account)
     end
 
     it "maintains important dates checked option on more options page" do

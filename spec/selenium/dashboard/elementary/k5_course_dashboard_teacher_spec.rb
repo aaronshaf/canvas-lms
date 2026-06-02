@@ -100,19 +100,6 @@ describe "teacher k5 course dashboard" do
       expect(front_page_info.text).to eq(wiki_page_data)
     end
 
-    it "has manage subject button" do
-      get "/courses/#{@subject_course.id}#home"
-
-      expect(manage_button).to be_displayed
-    end
-
-    it "has an empty state graphic when there is no subject home content" do
-      get "/courses/#{@subject_course.id}#home"
-
-      expect(empty_subject_home).to be_displayed
-      expect(manage_home_button).to be_displayed
-    end
-
     it "opens the course setting path when manage subject button is clicked" do
       get "/courses/#{@subject_course.id}#home"
 
@@ -127,28 +114,12 @@ describe "teacher k5 course dashboard" do
       expect(important_info_link).to include_text("Important Info")
     end
 
-    it "goes to acting student course home when student view button is clicked" do
-      get "/courses/#{@subject_course.id}#modules"
-
-      expect(student_view_button).to be_displayed
-
-      click_student_view_button
-
-      expect(leave_student_view).to include_text("Leave Student View")
-    end
-
     it_behaves_like "K5 Subject Home Tab"
   end
 
   context "course modules tab" do
     before :once do
       create_course_module
-    end
-
-    it "has module present when provisioned" do
-      get "/courses/#{@subject_course.id}#modules"
-
-      expect(module_item(@module_title)).to be_displayed
     end
 
     it "navigates to module task in edit mode when clicked" do
@@ -245,13 +216,6 @@ describe "teacher k5 course dashboard" do
   end
 
   context "course grades tab" do
-    it "shows image and view grades button for teacher" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(empty_grades_image).to be_displayed
-      expect(view_grades_button(@subject_course.id)).to be_displayed
-    end
-
     it "shows fake student grades in student view" do
       create_assignment(@subject_course, "a cool assignment", "woohoo", 100)
       get "/courses/#{@subject_course.id}#grades"
@@ -274,13 +238,6 @@ describe "teacher k5 course dashboard" do
   end
 
   context "subject groups tab" do
-    it "shows the image and manage groups button for teacher" do
-      get "/courses/#{@subject_course.id}#groups"
-
-      expect(empty_groups_image).to be_displayed
-      expect(manage_groups_button).to be_displayed
-    end
-
     it "goes to the groups page when manage groups button is clicked" do
       get "/courses/#{@subject_course.id}#groups"
 

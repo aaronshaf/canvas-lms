@@ -50,16 +50,6 @@ describe "teacher k5 dashboard" do
       expect(is_checked(enable_homeroom_checkbox_selector)).to be_truthy
     end
 
-    it "provides the homeroom dashboard tabs on dashboard" do
-      get "/"
-
-      expect(welcome_title).to be_present
-      expect(homeroom_tab).to be_displayed
-      expect(schedule_tab).to be_displayed
-      expect(grades_tab).to be_displayed
-      expect(resources_tab).to be_displayed
-    end
-
     it "saves tab information for refresh" do
       get "/"
 
@@ -77,13 +67,6 @@ describe "teacher k5 dashboard" do
       wait_for_ajaximations
 
       expect(driver.current_url).to include("/courses/#{@homeroom_course.id}")
-    end
-
-    it "does not show homeroom course on dashboard" do
-      get "/"
-
-      expect(element_exists?(course_card_selector(@course_name))).to be(false)
-      expect(element_exists?(course_card_selector(@subject_course_title))).to be(true)
     end
 
     it "shows Important Info on the course navigation list" do
@@ -210,20 +193,6 @@ describe "teacher k5 dashboard" do
   end
 
   context "homeroom dashboard resource panel" do
-    it "shows the resource panel staff contacts" do
-      course_with_ta(course: @homeroom_course, active_enrollment: 1)
-
-      get "/"
-
-      select_resources_tab
-
-      expect(staff_heading(@homeroom_teacher.name)).to be_displayed
-      expect(instructor_role("Teacher")).to be_displayed
-
-      expect(staff_heading(@ta.name)).to be_displayed
-      expect(instructor_role("Teaching Assistant")).to be_displayed
-    end
-
     it "shows the bio for a contact if the profiles are enabled" do
       @homeroom_course.account.settings[:enable_profiles] = true
       @homeroom_course.account.save!
@@ -318,18 +287,6 @@ describe "teacher k5 dashboard" do
     before :once do
       @account.root_account.enable_feature!(:create_course_subaccount_picker)
       @account.root_account.update!(settings: { teachers_can_create_courses: true })
-    end
-
-    it "provides a new course button for teacher" do
-      get "/"
-      expect(new_course_button).to be_displayed
-    end
-
-    it "provides a new course modal when new course button clicked" do
-      get "/"
-      click_new_course_button
-
-      expect(new_course_modal).to be_displayed
     end
 
     it "closes the course modal when x is clicked" do

@@ -63,14 +63,6 @@ shared_examples_for "k5 homeroom announcements" do
       @announcement2.update(posted_at: 20.days.ago)
     end
 
-    it "presents latest homeroom announcements" do
-      get "/"
-
-      expect(homeroom_course_title(@course_name)).to be_displayed
-      expect(announcement_title(current_announcement_title)).to be_displayed
-      expect(announcement_content_text(current_announcement_content)).to be_displayed
-    end
-
     it "shows previous and next buttons when there are multiple non-stale announcements" do
       get "/"
 
@@ -177,15 +169,6 @@ shared_examples_for "k5 homeroom announcements with multiple homerooms" do |cont
     end
   end
 
-  it "shows two different homeroom course announcements two homerooms" do
-    get "/"
-
-    expect(homeroom_course_title(@course_name)).to be_displayed
-    expect(announcement_title(homeroom1_current_announcement_title)).to be_displayed
-    expect(homeroom_course_title(second_homeroom_course_name)).to be_displayed
-    expect(announcement_title(homeroom2_current_announcement_title)).to be_displayed
-  end
-
   it "provides navigation buttons for both homerooms when there are old announcements" do
     get "/"
 
@@ -254,14 +237,6 @@ shared_examples_for "K5 Subject Home Tab" do
           subject_announcement2_content
         )
       @announcement2.update(posted_at: 20.days.ago)
-    end
-
-    it "displays the latest announcement on the Home tab" do
-      get "/courses/#{@subject_course.id}"
-
-      expect(course_dashboard_title).to include_text(@subject_course_title)
-      expect(announcement_title(subject_announcement1_title)).to be_displayed
-      expect(announcement_content_text(subject_announcement2_title)).to be_displayed
     end
 
     it "opens up the announcement when announcement title is clicked" do

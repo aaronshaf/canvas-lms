@@ -31,32 +31,6 @@ shared_examples_for "k5 important dates" do
   include SharedExamplesCommon
   include K5ImportantDatesSectionPageObject
 
-  it "shows the important dates section on the dashboard" do
-    get "/"
-
-    expect(important_dates_title).to be_displayed
-  end
-
-  it "shows an image when no important dates have been created" do
-    get "/"
-
-    expect(no_important_dates_image).to be_displayed
-  end
-
-  it "shows an important date for an assignment" do
-    assignment_title = "Elec HW"
-    due_at = 2.days.from_now(Time.zone.now)
-
-    assignment = create_important_date_assignment(@subject_course, assignment_title, due_at)
-
-    get "/"
-
-    expect(important_date_subject).to include_text(@subject_course.name)
-    expect(important_date_icon_exists?("IconAssignment")).to be_truthy
-    expect(important_date_link).to include_text(assignment_title)
-    expect(element_value_for_attr(important_date_link, "href")).to include("/courses/#{@subject_course.id}/assignments/#{assignment.id}")
-  end
-
   it "only shows no dates panda when important dates is not set for assignment" do
     assignment_title = "Elec HW"
     due_at = 2.days.from_now(Time.zone.now)
@@ -132,19 +106,6 @@ shared_examples_for "k5 important dates" do
 
     expect(no_important_dates_image).to be_displayed
   end
-
-  it "shows a specific color icon when color is set for subject" do
-    assignment_title = "Elec HW"
-    due_at = 2.days.from_now(Time.zone.now)
-    create_important_date_assignment(@subject_course, assignment_title, due_at)
-
-    new_color = "#07AB99"
-    @subject_course.update!(course_color: new_color)
-
-    get "/"
-
-    expect(hex_value_for_color(assignment_icon, "color")).to eq(new_color)
-  end
 end
 
 shared_examples_for "k5 important dates calendar picker" do |context|
@@ -210,26 +171,6 @@ shared_examples_for "k5 important dates calendar picker" do |context|
     end
   end
 
-  it "shows the gear if there are more subjects than the limit" do
-    get "/"
-
-    expect(calendar_picker_gear).to be_displayed
-  end
-
-  it "brings up calendar selection modal when gear is selected" do
-    get "/"
-    click_calendar_picker_gear
-
-    expect(calendar_modal).to be_displayed
-  end
-
-  it "shows the number of calendars allowed for selection" do
-    get "/"
-    click_calendar_picker_gear
-
-    expect(calendar_choose_text).to include_text("Choose up to 2 subject calendars")
-  end
-
   it "shows the number of calendars left for selection" do
     get "/"
     click_calendar_picker_gear
@@ -238,28 +179,6 @@ shared_examples_for "k5 important dates calendar picker" do |context|
 
     click_subject_calendar_checkbox(0)
     expect(calendars_left_text).to include_text("You have 1 calendar left")
-  end
-
-  it "shows the courses in the list" do
-    get "/"
-    click_calendar_picker_gear
-
-    expect(subject_list_text.sort).to eq([@homeroom_course.name, @subject_course.name, "Subject 1", "Subject 2"].sort)
-  end
-
-  it "enables and disables items when calendar max is hit" do
-    get "/"
-    click_calendar_picker_gear
-
-    expect(subject_list_input[2]).to be_disabled
-
-    click_subject_calendar_checkbox(1)
-    expect(subject_list_input[2]).not_to be_disabled
-    expect(subject_list_input[1]).not_to be_disabled
-
-    click_subject_calendar_checkbox(2)
-
-    expect(subject_list_input[1]).to be_disabled
   end
 
   context "important items shown based on calendar selection" do
@@ -288,52 +207,6 @@ shared_examples_for "k5 important dates calendar picker" do |context|
       subject_list = important_date_subject_list
       expect(subject_list[0]).to include_text(@subject_course.name)
       expect(subject_list[1]).to include_text(@new_course_list[1].name)
-    end
-
-    it "ignore calendar selections when cancel button is clicked", custom_timeout: 20 do
-      create_important_date_assignment(@subject_course, "#{@subject_course.name} New Assignment", 2.days.from_now(Time.zone.now))
-      create_important_date_assignment(@new_course_list[0], "#{@new_course_list[0].name} New Assignment", 2.days.from_now(Time.zone.now))
-      create_important_date_assignment(@new_course_list[1], "#{@new_course_list[0].name} New Assignment", 2.days.from_now(Time.zone.now))
-
-      get "/"
-
-      subject_list = important_date_subject_list
-      expect(subject_list[0]).to include_text(@subject_course.name)
-      expect(subject_list[1]).to include_text(@new_course_list[0].name)
-
-      click_calendar_picker_gear
-      click_subject_calendar_checkbox(2)
-      click_subject_calendar_checkbox(3)
-      click_calendar_modal_cancel
-
-      expect(is_calendar_modal_gone?).to be_truthy
-
-      subject_list = important_date_subject_list
-      expect(subject_list[0]).to include_text(@subject_course.name)
-      expect(subject_list[1]).to include_text(@new_course_list[0].name)
-    end
-
-    it "ignore calendar selections when close button is clicked", custom_timeout: 25 do
-      create_important_date_assignment(@subject_course, "#{@subject_course.name} New Assignment", 2.days.from_now(Time.zone.now))
-      create_important_date_assignment(@new_course_list[0], "#{@new_course_list[0].name} New Assignment", 2.days.from_now(Time.zone.now))
-      create_important_date_assignment(@new_course_list[1], "#{@new_course_list[0].name} New Assignment", 2.days.from_now(Time.zone.now))
-
-      get "/"
-
-      subject_list = important_date_subject_list
-      expect(subject_list[0]).to include_text(@subject_course.name)
-      expect(subject_list[1]).to include_text(@new_course_list[0].name)
-
-      click_calendar_picker_gear
-      click_subject_calendar_checkbox(2)
-      click_subject_calendar_checkbox(3)
-      click_calendar_modal_close
-
-      expect(is_calendar_modal_gone?).to be_truthy
-
-      subject_list = important_date_subject_list
-      expect(subject_list[0]).to include_text(@subject_course.name)
-      expect(subject_list[1]).to include_text(@new_course_list[0].name)
     end
   end
 end

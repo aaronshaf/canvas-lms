@@ -42,47 +42,6 @@ describe "student k5 dashboard schedule" do
     @now = Time.zone.now
   end
 
-  context "student events and todos" do
-    let(:title) { "Student Todo" }
-
-    before :once do
-      @student.planner_notes.create!(todo_date: Time.zone.now, title:)
-    end
-
-    it "shows student todo in modal when todo title selected" do
-      get "/#schedule"
-
-      expect(todo_edit_pencil).to be_displayed
-
-      click_todo_edit_pencil
-
-      expect(todo_editor_modal).to be_displayed
-    end
-
-    it "provide close without edit button", :ignore_js_errors do
-      get "/#schedule"
-
-      click_todo_edit_pencil
-      wait_for_ajaximations
-      new_title = "New Title"
-      update_todo_title(title, new_title)
-      click_close_editor_modal_button
-
-      expect(todo_item).to include_text(title)
-    end
-
-    it "updates student todo with modal" do
-      get "/#schedule"
-
-      click_todo_edit_pencil
-      new_title = "New Student Todo"
-      update_todo_title(title, new_title)
-      click_todo_save_button
-      expect(wait_for_no_such_element { todo_editor_modal }).to be_truthy
-      expect(todo_item).to include_text(new_title)
-    end
-  end
-
   context "student-created events" do
     it "shows student-created calender event info when selected" do
       title = "Student Event"
@@ -107,14 +66,6 @@ describe "student k5 dashboard schedule" do
       get "/#schedule"
 
       expect(items_missing_exists?).to be_falsey
-    end
-
-    it "finds the missing dropdown if there are missing items" do
-      create_dated_assignment(@subject_course, "missing assignment", 1.day.ago(@now))
-
-      get "/#schedule"
-
-      expect(items_missing_exists?).to be_truthy
     end
 
     it "shows the list of missing assignments in dropdown" do

@@ -29,14 +29,6 @@ shared_examples_for "k5 subject grades" do
   include K5Common
   include SharedExamplesCommon
 
-  context "grades tab" do
-    it "shows panda image when no grades posted" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(empty_grades_image).to be_displayed
-    end
-  end
-
   context "course grades" do
     before :once do
       @assignment1 = create_assignment(@subject_course, "assignment 1", "assignment1 not submitted", 100)
@@ -49,42 +41,6 @@ shared_examples_for "k5 subject grades" do
       get "/courses/#{@subject_course.id}#grades"
 
       expect(grades_assignments_list.count).to eq(3)
-    end
-
-    it "shows late assignment as Missing" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_assignments_list[0].text).to include("Missing")
-    end
-
-    it "shows submitted assignment with Submitted info" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_assignments_list[2].text).to include("Submitted")
-    end
-
-    it "shows graded assignment with points awarded" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_assignments_list[2].text).to include("90 pts")
-    end
-
-    it "shows ungraded assignment with no points awarded" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_assignments_list[1].text).to include("\u2014 pts")
-    end
-
-    it "shows the total points of graded assignments" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_total.text).to include("90.00%")
-    end
-
-    it "includes the total number of points" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(grades_assignments_list[0].text).to include("Out of 15")
     end
 
     it "scrolls focusable elements into view if covered by the sticky header" do

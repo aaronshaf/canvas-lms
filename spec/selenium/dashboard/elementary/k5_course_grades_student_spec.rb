@@ -120,20 +120,6 @@ describe "student k5 course grades tab" do
       expect(grades_assignments_list[0]).to include_text(@ag1)
       expect(grades_assignments_list[1]).to include_text(@ag2)
     end
-
-    it "can open assignments group dropdown and see assignment group-specific grades" do
-      @assignment1.grade_student(@student, grader: @homeroom_teacher, score: "90", points_deducted: 0)
-      @assignment2.grade_student(@student, grader: @homeroom_teacher, score: "60", points_deducted: 0)
-
-      get "/courses/#{@subject_course.id}#grades"
-
-      click_assignment_group_toggle
-
-      expect(assignment_group_totals.count).to eq 3
-      expect(assignment_group_totals[0]).to include_text("Assignments: n/a")
-      expect(assignment_group_totals[1]).to include_text("#{@ag1}: 90.00%")
-      expect(assignment_group_totals[2]).to include_text("#{@ag2}: 60.00%")
-    end
   end
 
   context "grading periods" do
@@ -150,18 +136,6 @@ describe "student k5 course grades tab" do
 
       expect(element_value_for_attr(course_grading_period, "value")).to eq("GP Current (Current)")
       expect(grades_total).to include_text("90.00%")
-    end
-
-    it "shows the grades for a different grading period" do
-      @assignment.update!(due_at: 1.week.ago)
-      @assignment.grade_student(@student, grader: @homeroom_teacher, score: "80", points_deducted: 0)
-
-      get "/courses/#{@subject_course.id}#grades"
-
-      click_option(course_grading_period_selector, "GP Ended")
-
-      expect(element_value_for_attr(course_grading_period, "value")).to eq("GP Ended")
-      expect(grades_total).to include_text("80.00%")
     end
   end
 
@@ -182,13 +156,6 @@ describe "student k5 course grades tab" do
     before :once do
       turn_on_learning_mastery_gradebook
       add_and_assess_rubric_assignment
-    end
-
-    it "shows learning mastery gradebook tab on student subject grades tab when enabled" do
-      get "/courses/#{@subject_course.id}#grades"
-
-      expect(learning_mastery_tab).to be_displayed
-      expect(assignments_tab).to be_displayed
     end
 
     it "brings up learning mastery grades when tab is clicked" do

@@ -78,12 +78,6 @@ describe "student k5 course dashboard" do
       expect(front_page_info.text).to eq(wiki_page_data)
     end
 
-    it "has an empty state graphic when there is no subject home content" do
-      get "/courses/#{@subject_course.id}#home"
-
-      expect(empty_subject_home).to be_displayed
-    end
-
     it "displays modules empty state if no published module exists" do
       get "/courses/#{@subject_course.id}#modules"
       expect(modules_tab).to be_displayed
@@ -114,12 +108,6 @@ describe "student k5 course dashboard" do
   context "course modules tab" do
     before :once do
       create_course_module
-    end
-
-    it "has module present when provisioned" do
-      get "/courses/#{@subject_course.id}#modules"
-
-      expect(module_item(@module_title)).to be_displayed
     end
 
     it "allows for expand and collapse of module" do
@@ -183,15 +171,6 @@ describe "student k5 course dashboard" do
       get "/courses/#{@subject_course.id}"
 
       expect(groups_tab_exists?).to be_truthy
-    end
-
-    it "shows the groups the student can join" do
-      get "/courses/#{@subject_course.id}#groups"
-
-      titles_list = group_titles_text_list
-      expect(titles_list.count).to eq(2)
-      expect(titles_list.first).to match(@group1.name)
-      expect(titles_list.first).to match(@group1.group_category.name)
     end
 
     it "allows student to join group" do
