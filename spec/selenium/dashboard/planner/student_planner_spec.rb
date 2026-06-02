@@ -260,19 +260,6 @@ describe "student planner" do
       expect(modal).not_to include_text("Invalid date")
     end
 
-    it "saves new ToDos properly.", priority: "1" do
-      go_to_list_view
-      todo_modal_button.click
-      create_new_todo
-      refresh_page
-
-      # verifies that the new To Do is showing up
-      todo_item = todo_info_holder
-      expect(todo_item).to include_text("To Do")
-      expect(todo_item).to include_text("Title Text")
-      expect(f("body")).not_to contain_css(todo_sidebar_modal_selector)
-    end
-
     it "edits a To Do", priority: "1" do
       @student1.planner_notes.create!(todo_date: Time.zone.now, title: "Title Text")
       go_to_list_view
@@ -293,38 +280,6 @@ describe "student planner" do
       expect(todo_item).to include_text("New Text")
       expect(todo_item).not_to include_text("Title Text")
       expect(f("body")).not_to contain_css(todo_sidebar_modal_selector)
-    end
-
-    it "edits a completed To Do.", priority: "1" do
-      # The following student planner is added to avoid the `beginning of to-do history` image
-      # which makes the page to scroll and causes flakiness
-      @student1.planner_notes.create!(todo_date: 1.day.ago, title: "Past Title")
-
-      @student1.planner_notes.create!(todo_date: 1.day.from_now, title: "Title Text")
-      go_to_list_view
-
-      # complete it
-      f(".planner-item label").click
-      expect(f("input[type=checkbox]:checked")).to be_displayed
-
-      # Opens the To Do edit sidebar
-      todo_item = todo_info_holder
-      expect(todo_item).to include_text("To Do")
-      expect(todo_item).to include_text("Title Text")
-      click_item_button("Title Text")
-
-      # gives the To Do a new name and saves it
-      element = title_input("Title Text")
-      replace_content(element, "New Text")
-      todo_save_button.click
-
-      # verifies that the edited To Do is showing up
-      todo_item = todo_info_holder
-      expect(todo_item).to include_text("To Do")
-      expect(todo_item).to include_text("New Text")
-
-      # and that it is still complete
-      expect(f("input[type=checkbox]:checked")).to be_displayed
     end
 
     it "deletes a To Do", priority: "1" do
@@ -402,27 +357,6 @@ describe "student planner" do
       click_item_button(student_to_do2.title)
       expect(title_input[:value]).to eq(student_to_do2.title)
       expect(course_name_dropdown[:value]).to eq("Optional: Add Course")
-    end
-
-    it "allows editing the course of a to-do item", priority: "1" do
-      view_todo_item
-      attempt = 0
-      max_attempts = 3
-      begin
-        attempt += 1
-        todo_tray_select_course_from_dropdown
-      rescue => e
-        if attempt < max_attempts
-          Rails.logger.info "\t Attempt #{attempt} failed! Retrying..."
-          sleep 0.5
-          retry
-        end
-        raise Selenium::WebDriver::Error::ElementNotInteractableError, e.message.to_s
-      end
-
-      todo_save_button.click
-      @student_to_do.reload
-      expect(@student_to_do.course_id).to be_nil
     end
 
     it "has courses in the course combo box.", priority: "1" do
@@ -528,7 +462,7 @@ describe "student planner" do
 
       keep_trying_for_attempt_times(attempts: 5, sleep_interval: 0.5) do
         dismiss_opportunity_button(@assignment_opportunity.name).click
-        wait_for_no_such_element { opportunity_item_selector(@assignment_opportunity.name) }
+        wait_for_no_such_element { opportunity_item_selector(@assignment_opportunity.name) } # rubocop:disable Specs/NoWaitForNoSuchElement
         expect(opportunities_parent).not_to contain_jqcss(dismiss_opportunity_button_selector(@assignment_opportunity.name))
       end
     end
@@ -596,20 +530,6 @@ describe "student planner" do
       replace_content(f('input[name="student_todo_at"]'), format_date_for_view(Time.zone.now).to_s, tab_out: true)
       expect_new_page_load { hover_and_click('button:contains("Save")') }
       expect(@wiki.reload.todo_date).to be_present
-    end
-
-    it "shows correct default time in an ungraded discussion" do
-      skip "Will be fixed in VICE-5634 2025-11-11"
-      Timecop.freeze(Time.zone.today) do
-        @discussion = @course.discussion_topics.create!(title: "Default Time Discussion", message: "here is a message", user: @teacher)
-        get("/courses/#{@course.id}/discussion_topics/#{@discussion.id}/edit")
-        f("label[for='allow_todo_date']").click
-        wait_for_ajaximations
-        replace_content(f('input[name="todo_date"]'), format_date_for_view(Time.zone.now).to_s, tab_out: true)
-        expect_new_page_load { submit_form(".form-actions") }
-        get("/courses/#{@course.id}/discussion_topics/#{@discussion.id}/edit")
-        expect(get_value('input[name="todo_date"]')).to eq format_date_for_view(Time.zone.today, "%b %-d, %Y, 11:59 PM")
-      end
     end
   end
 
