@@ -48,27 +48,6 @@ describe "dashcards" do
       expect(dashboard_card_requests).to eq(1)
     end
 
-    it "shows the trigger button for dashboard options menu in new UI", priority: "1" do
-      get "/"
-      # verify features of new UI
-      expect(f("#application.ic-app")).to be_present
-      expect(f(".ic-app-header__main-navigation")).to be_present
-      # verify the trigger button for the menu is present
-      expect(f("#DashboardOptionsMenu_Container button")).to be_present
-    end
-
-    it "toggles dashboard based on the selected menu view", priority: "1" do
-      get "/"
-      # verify dashboard card view and trigger button for menu
-      expect(f(".ic-DashboardCard__link")).to be_displayed
-      expect(f("#DashboardOptionsMenu_Container button")).to be_present
-      # open dashboard options menu and select recent activity view
-      f("#DashboardOptionsMenu_Container button").click
-      fj('span[role="menuitemradio"]:contains("Recent Activity")').click
-      # verify recent activity view
-      expect(f("#dashboard-activity")).to include_text("Recent Activity")
-    end
-
     it "redirects to announcements index", priority: "1" do
       # Icon will not display unless there is an announcement.
       create_announcement

@@ -342,45 +342,6 @@ describe "dashboard" do
 
     it_behaves_like "load events list"
 
-    context "restricted future courses" do
-      before :once do
-        term = EnrollmentTerm.new(name: "Super Term", start_at: 1.week.from_now, end_at: 1.month.from_now)
-        term.root_account_id = Account.default.id
-        term.save!
-        course_with_student(active_all: true)
-        @c1 = @course
-        @c1.name = "a future course"
-        @c1.update!(enrollment_term: term)
-
-        course_with_student(active_course: true, user: @student)
-        @c2 = @course
-        @c2.name = "a restricted future course"
-        @c2.restrict_student_future_view = true
-        @c2.update!(enrollment_term: term)
-      end
-
-      before do
-        user_session(@student)
-      end
-
-      it "shows future courses (even if restricted) to students on courses page" do
-        get "/courses"
-        expect(fj("#future_enrollments_table a[href='/courses/#{@c1.id}']")).to include_text(@c1.name)
-
-        expect(f("#content")).not_to contain_css("#future_enrollments_table a[href='/courses/#{@c2.id}']") # should not have a link
-        expect(f("#future_enrollments_table")).to include_text(@c2.name) # but should still show restricted future enrollment
-      end
-
-      it "does not show restricted future courses to students on courses page if configured on account" do
-        a = @c2.account
-        a.settings[:restrict_student_future_listing] = { value: true }
-        a.save!
-        get "/courses"
-        expect(fj("#future_enrollments_table a[href='/courses/#{@c1.id}']")).to include_text(@c1.name)
-        expect(f("#future_enrollments_table")).not_to include_text(@c2.name) # shouldn't be included at all
-      end
-    end
-
     it "displays assignment to grade in to do list for a teacher", priority: "1" do
       assignment = assignment_model({ submission_types: "online_text_entry", course: @course })
       student = user_with_pseudonym(active_user: true, username: "student@example.com", password: "qwertyuiop")

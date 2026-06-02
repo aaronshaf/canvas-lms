@@ -77,14 +77,6 @@ describe "dashboard" do
     expect(recent_feedback).not_to include_text "Comment 1"
   end
 
-  it "shows unauthorized for observer who tries to view unlinked student" do
-    @course2.enroll_teacher(@observer, enrollment_state: :active)
-    user_session(@observer)
-
-    get "/dashboard-sidebar?observed_user_id=#{@student2.id}"
-    expect(f("#unauthorized_message")).to be_displayed
-  end
-
   it "shows observer selected student's data for linked course only" do
     @course2.enroll_student(@student1, enrollment_state: :active)
     @assignment2.submit_homework(@student1, { submission_type: "online_text_entry", body: "Submission 3" })

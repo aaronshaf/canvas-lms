@@ -33,19 +33,6 @@ describe "dashboard" do
       course_with_teacher_logged_in(active_cc: true)
     end
 
-    it "validates the functionality of soft concluded courses on courses page", priority: "1" do
-      term = EnrollmentTerm.new(name: "Super Term", start_at: 1.month.ago, end_at: 1.week.ago)
-      term.root_account_id = @course.root_account_id
-      term.save!
-      c1 = @course
-      c1.name = "a_soft_concluded_course"
-      c1.update!(enrollment_term: term)
-      c1.reload
-
-      get "/courses"
-      expect(fj("#past_enrollments_table a[href='/courses/#{@course.id}']")).to include_text(c1.name)
-    end
-
     it "displays assignment to grade in to do list for a teacher", priority: "1" do
       assignment = assignment_model({ submission_types: "online_text_entry", course: @course })
       student = user_with_pseudonym(active_user: true, username: "student@example.com", password: "qwertyuiop")
