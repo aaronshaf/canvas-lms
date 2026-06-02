@@ -82,10 +82,10 @@ module Canvas::Builders
         add_enrollment_dates(@enrollment)
       elsif section_is_restricted?
         add_enrollment_dates(@section)
-        add_term_dates if @enrollment.admin?
+        add_term_dates if @enrollment.admin? && !term_ended?
       elsif course_is_restricted?
         add_enrollment_dates(@course)
-        add_term_dates if @enrollment.admin?
+        add_term_dates if @enrollment.admin? && !term_ended?
       elsif @term
         add_term_dates
       else
@@ -126,6 +126,10 @@ module Canvas::Builders
 
     def enrollment_is_restricted?
       @enrollment.start_at && @enrollment.end_at
+    end
+
+    def term_ended?
+      @term&.end_at && @term.end_at < Time.zone.now
     end
   end
 end

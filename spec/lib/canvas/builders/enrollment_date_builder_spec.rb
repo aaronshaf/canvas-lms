@@ -113,6 +113,29 @@ describe Canvas::Builders::EnrollmentDateBuilder do
       end
     end
 
+    context "course dates set with a past term (LX-4101)" do
+      append_before do
+        @course.restrict_enrollments_to_course_dates = true
+        @course.start_at = 2.days.from_now
+        @course.conclude_at = 5.days.from_now
+        @course.save!
+
+        @term.start_at = 10.days.ago
+        @term.end_at   = 5.days.ago
+        @term.save!
+        @teacher_enrollment.reload
+        @student_enrollment.reload
+      end
+
+      it "does not layer the past term onto a teacher enrollment" do
+        test_builder @teacher_enrollment, [[@course.start_at, @course.end_at]]
+      end
+
+      it "still returns only the course dates for a student" do
+        test_builder @student_enrollment, [[@course.start_at, @course.end_at]]
+      end
+    end
+
     context "has enrollment dates from term" do
       append_before do
         @term.start_at = 2.days.from_now

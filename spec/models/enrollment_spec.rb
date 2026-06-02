@@ -2333,7 +2333,7 @@ describe Enrollment do
       @term.end_at = 2.days.ago
       @term.save!
 
-      expect(@teacher_enrollment.reload.state_based_on_date).to eq :completed
+      expect(@teacher_enrollment.reload.state_based_on_date).to eq :inactive
       expect(@student_enrollment.reload.state_based_on_date).to eq :inactive
 
       # Now after both dates
