@@ -680,6 +680,29 @@ describe MasterCourses::MasterTemplatesController, type: :request do
       expect(json).to eq([])
     end
 
+    it "skips child_tags whose content_type is not in the allowlist" do
+      minion_assignment_migration_id = @template.migration_id_for(@assignment)
+      tainted_tag = @minions.last
+                            .master_course_subscriptions.active.first
+                            .content_tags
+                            .find_by(migration_id: minion_assignment_migration_id)
+      tainted_tag.update_column(:content_type, "DoesNotExistConstant")
+
+      json = api_call_as_user(@admin,
+                              :get,
+                              "/api/v1/courses/#{@master.id}/blueprint_templates/default/migrations/#{@migration.id}/details",
+                              controller: "master_courses/master_templates",
+                              format: "json",
+                              template_id: "default",
+                              id: @migration.to_param,
+                              course_id: @master.to_param,
+                              action: "migration_details")
+      expect(response).to be_successful
+
+      assignment_change = json.find { |c| c["asset_type"] == "assignment" && c["asset_id"] == @assignment.id }
+      expect(assignment_change["exceptions"]).to eq([])
+    end
+
     it "is not tripped up by subscriptions created after the sync" do
       @template.add_child_course!(course_factory(name: "Minion 3"))
       api_call_as_user(@admin,

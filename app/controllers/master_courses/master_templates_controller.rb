@@ -734,6 +734,8 @@ class MasterCourses::MasterTemplatesController < ApplicationController
 
       get_syllabus_exception!(skipped_items, sub, exceptions)
       sub.content_tags.where(migration_id: skipped_items).each do |child_tag|
+        next unless MasterCourses::ALLOWED_CONTENT_TYPES.include?(child_tag.content_type)
+
         exceptions[child_tag.migration_id] ||= []
         exceptions[child_tag.migration_id] << { course_id: sub.child_course_id,
                                                 conflicting_changes: change_classes(
