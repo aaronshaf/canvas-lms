@@ -2223,6 +2223,35 @@ describe "Module Items API", type: :request do
                           asset_id: @quiz.to_param)
           expect(json["items"][0]["mastery_path"]).to be_present
         end
+
+        it "omits tags whose module is assigned only to other students" do
+          other_student = user_factory(active_all: true)
+          @course.enroll_student(other_student, enrollment_state: "active")
+          @user = @student
+
+          shared_assignment = @course.assignments.create!(title: "shared")
+          mine = @course.context_modules.create!(name: "mine")
+          theirs = @course.context_modules.create!(name: "theirs")
+          my_tag = mine.add_item(type: "assignment", id: shared_assignment.id)
+          their_tag = theirs.add_item(type: "assignment", id: shared_assignment.id)
+
+          mine.assignment_overrides.create!(set_type: "ADHOC").assignment_override_students.create!(user: @student)
+          theirs.assignment_overrides.create!(set_type: "ADHOC").assignment_override_students.create!(user: other_student)
+
+          json = api_call(:get,
+                          "/api/v1/courses/#{@course.id}/module_item_sequence?asset_type=Assignment&asset_id=#{shared_assignment.id}",
+                          controller: "context_module_items_api",
+                          action: "item_sequence",
+                          format: "json",
+                          course_id: @course.to_param,
+                          asset_type: "Assignment",
+                          asset_id: shared_assignment.to_param)
+
+          current_ids = json["items"].map { |item| item["current"]["id"] }
+          expect(current_ids).to include(my_tag.id)
+          expect(current_ids).not_to include(their_tag.id)
+          expect(json["modules"].pluck("id")).not_to include(theirs.id)
+        end
       end
 
       describe "caching CYOE data" do

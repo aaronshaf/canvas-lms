@@ -812,6 +812,74 @@ describe ContentTag do
       end
     end
 
+    context "same item in multiple modules with per-student overrides" do
+      before do
+        @student_a = @student
+        @student_b = user_factory(active_all: true)
+        @course.enroll_student(@student_b, enrollment_state: "active")
+
+        @shared_assignment = @course.assignments.create!(title: "shared assignment")
+        @module_a = @course.context_modules.create!(name: "module a")
+        @module_b = @course.context_modules.create!(name: "module b")
+        @tag_a = @module_a.add_item(type: "assignment", id: @shared_assignment.id)
+        @tag_b = @module_b.add_item(type: "assignment", id: @shared_assignment.id)
+
+        @module_a.assignment_overrides.create!(set_type: "ADHOC").assignment_override_students.create!(user: @student_a)
+        @module_b.assignment_overrides.create!(set_type: "ADHOC").assignment_override_students.create!(user: @student_b)
+      end
+
+      it "only returns the tag in the module assigned to that student" do
+        tags_for_a = ContentTag.visible_to_students_in_course_with_da([@student_a.id], [@course.id])
+        tags_for_b = ContentTag.visible_to_students_in_course_with_da([@student_b.id], [@course.id])
+        expect(tags_for_a).to include(@tag_a)
+        expect(tags_for_a).not_to include(@tag_b)
+        expect(tags_for_b).to include(@tag_b)
+        expect(tags_for_b).not_to include(@tag_a)
+      end
+
+      it "filters tags for quizzes the same way" do
+        quiz = @course.quizzes.create!(title: "shared quiz")
+        quiz.publish!
+        quiz_tag_a = @module_a.add_item(type: "quiz", id: quiz.id)
+        quiz_tag_b = @module_b.add_item(type: "quiz", id: quiz.id)
+
+        tags_for_a = ContentTag.visible_to_students_in_course_with_da([@student_a.id], [@course.id])
+        expect(tags_for_a).to include(quiz_tag_a)
+        expect(tags_for_a).not_to include(quiz_tag_b)
+      end
+
+      it "filters tags for graded discussions the same way" do
+        graded_assignment = @course.assignments.create!(title: "graded discussion assignment", submission_types: "discussion_topic")
+        topic = @course.discussion_topics.create!(message: "graded", assignment: graded_assignment)
+        topic_tag_a = @module_a.add_item(type: "discussion_topic", id: topic.id)
+        topic_tag_b = @module_b.add_item(type: "discussion_topic", id: topic.id)
+
+        tags_for_a = ContentTag.visible_to_students_in_course_with_da([@student_a.id], [@course.id])
+        expect(tags_for_a).to include(topic_tag_a)
+        expect(tags_for_a).not_to include(topic_tag_b)
+      end
+
+      it "filters tags for ungraded discussions the same way" do
+        topic = @course.discussion_topics.create!(message: "ungraded")
+        topic_tag_a = @module_a.add_item(type: "discussion_topic", id: topic.id)
+        topic_tag_b = @module_b.add_item(type: "discussion_topic", id: topic.id)
+
+        tags_for_a = ContentTag.visible_to_students_in_course_with_da([@student_a.id], [@course.id])
+        expect(tags_for_a).to include(topic_tag_a)
+        expect(tags_for_a).not_to include(topic_tag_b)
+      end
+
+      it "filters tags for wiki pages the same way" do
+        page = @course.wiki_pages.create!(title: "shared page")
+        page_tag_a = @module_a.add_item(type: "WikiPage", id: page.id)
+        page_tag_b = @module_b.add_item(type: "WikiPage", id: page.id)
+
+        tags_for_a = ContentTag.visible_to_students_in_course_with_da([@student_a.id], [@course.id])
+        expect(tags_for_a).to include(page_tag_a)
+        expect(tags_for_a).not_to include(page_tag_b)
+      end
+    end
+
     context "external urls in modules with section overrides" do
       before do
         @other_student = user_factory(active_all: true)

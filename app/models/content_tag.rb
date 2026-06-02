@@ -629,14 +629,15 @@ class ContentTag < ApplicationRecord
             .where(context_module_id: visible_module_ids)
 
     visible_page_ids = WikiPage.visible_to_students_in_course_with_da(user_ids, course_ids).select(:id)
-    scope = scope.union(where(content_id: visible_page_ids, context_id: course_ids, context_type: "Course", content_type: "WikiPage"))
+    scope = scope.union(where(content_id: visible_page_ids, context_id: course_ids, context_type: "Course", content_type: "WikiPage", context_module_id: visible_module_ids))
 
     scope.union(
       for_non_differentiable_discussions(course_ids)
+        .where(context_module_id: visible_module_ids)
         .merge(DiscussionTopic.visible_to_ungraded_discussion_student_visibilities(user_ids)),
-      for_differentiable_assignments(user_ids, course_ids),
-      for_differentiable_discussions(user_ids, course_ids),
-      for_differentiable_quizzes(user_ids, course_ids)
+      for_differentiable_assignments(user_ids, course_ids).where(context_module_id: visible_module_ids),
+      for_differentiable_discussions(user_ids, course_ids).where(context_module_id: visible_module_ids),
+      for_differentiable_quizzes(user_ids, course_ids).where(context_module_id: visible_module_ids)
     )
   }
 
