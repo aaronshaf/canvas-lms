@@ -65,7 +65,6 @@
   <% deferred_js_bundle :take_quiz %>
 
   <%= form_tag @quiz_presenter.form_action(session, @current_user), id: "submit_quiz_form", class: @quiz_presenter.form_class, method: "post" do %>
-
   <div id="questions" class="assessing">
     <input type="hidden" name="attempt" value="<%= @submission.attempt %>"/>
     <% if @submission.validation_token.present? %>
@@ -127,7 +126,6 @@
       <%= t('buttons.submit_quiz', "Submit Quiz") %>
     </button>
   </div>
-
   <% end %>
 
   <form id="deauthorized_dialog"

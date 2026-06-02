@@ -19,7 +19,6 @@
 <% add_crumb t(:page_title, 'Profile Pictures') %>
 <% provide(:page_title, t(:page_title, "Profile Pictures")) %>
 
-
 <style>
 .views .selected {
   font-weight: bold;
@@ -55,12 +54,12 @@
   <h2 style="padding-top: 20px;"><%= t(:no_avatars_message, "No Profile Pics to Show") %></h2>
 <% end %>
 <table id="avatars">
-<% @users.each do |user| %>
-  <tr class="<%= user.avatar_state %>">
-    <td style="width: 54px;">
+  <% @users.each do |user| %>
+    <tr class="<%= user.avatar_state %>">
+      <td style="width: 54px;">
       <%= avatar user, url: nil %>
     </td>
-    <td class="avatar_state">
+      <td class="avatar_state">
       <% if user.avatar_state == :reported %>
         <span class="screenreader-only"><%= t('Reported') %></span>
         <i class="icon-warning" aria-hidden="true"></i>
@@ -78,11 +77,11 @@
         <i class="icon-check" aria-hidden="true"></i>
       <% end %>
     </td>
-    <td>
+      <td>
       <div class="name"><a href="<%= user_url(user.id) %>"><%= user.name %></a></div>
       <div class="email"><%= user.email %></div>
     </td>
-    <td class="link_holder">
+      <td class="link_holder">
       <div class="links">
         <a href="#" class="update_avatar_link approve_avatar_link" data-state="approved" style="<%= hidden unless user.avatar_approvable? %>"><%= t(:approve_link, "approve") %></a>
         <a href="#" class="update_avatar_link lock_avatar_link" data-state="locked" style="<%= hidden if user.avatar_state == :locked %>"><%= t(:lock_link, "lock") %></a>
@@ -96,8 +95,8 @@
         <%= t(:saving, "Saving...") %>"
       </div>
     </td>
-  </tr>
-<% end %>
+    </tr>
+  <% end %>
 </table>
 
 <%= will_paginate(@users, style: "margin-bottom: 1em;") %>

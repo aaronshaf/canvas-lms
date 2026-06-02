@@ -1,9 +1,6 @@
 inherit_from:
   - ../../.rubocop.yml
 
-Layout:
-  Enabled: false
-
 Style/PercentLiteralDelimiters:
   Enabled: false
 Style/QuotedSymbols:

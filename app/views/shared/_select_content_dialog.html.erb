@@ -35,7 +35,8 @@
     <div style="margin-bottom: 5px; <%= hidden if only && only.size == 1 %>">
       <a href="<%= context_url(@context, :context_external_tool_resource_selection_url, "{{ id }}") %>" id="select_content_resource_selection_url" style="display: none;">&nbsp;</a>
       <% ot :add_to_module,
-            "Add %{item} to *module*", item: capture { %>
+            "Add %{item} to *module*",
+            item: capture { %>
       <select style="margin-bottom: 0px" id="add_module_item_select" aria-label="<%= t 'select_item_type_label', "Select the type of content to add." %>">
         <% if !only || only.include?(:assignments) %>
         <option value="assignment"><%= t :assignment_item, "Assignment" %></option>
@@ -62,7 +63,8 @@
         <option value="context_external_tool" class="context_module_content"><%= t :external_tool_item, "External Tool" %></option>
         <% end %>
       </select>
-      <% }, wrapper: '<span class="holder_name">\1</span>' %>
+          <% },
+            wrapper: '<span class="holder_name">\1</span>' %>
     </div>
       <% if !only || only.include?(:sub_headers) %>
       <div id="context_module_sub_headers_select" class="module_item_option">

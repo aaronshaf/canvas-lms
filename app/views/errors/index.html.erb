@@ -83,6 +83,7 @@
       <% end %>
       <% (report.data || {}).to_a.sort.each do |k, v| %>
         <% next if k.to_s == "exception_message" %>
+
         <br><%= before_label k.to_s %> <%= v %>
       <% end %>
       <br />

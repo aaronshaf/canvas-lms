@@ -29,7 +29,6 @@
   </a>
 <% end %>
 
-
 <h2><%= t('headers.quiz_details', "Quiz Details") %></h2>
 <div style="display: none;" id="quiz_urls">
   <a href="<%= context_url(@context, :context_quiz_url, @quiz.id) %>" class="update_quiz_url">&nbsp;</a>
@@ -37,7 +36,6 @@
   <a href="<%= context_url(@context, :api_v1_context_quiz_reorder_url, @quiz.id) %>" class="reorder_questions_url">&nbsp;</a>
   <a href="<%= context_url(@context, :context_quiz_quiz_groups_url, @quiz.id) %>" class="add_group_url">&nbsp;</a>
 </div>
-
 
 <div style="margin-bottom: 25px;">
   <%= before_label(:quiz_instructions, "Quiz Instructions") %>

@@ -34,7 +34,6 @@
 
 <% provide :right_side, render(partial: "lti/conditional_submission_sidebar") %>
 
-
 <% if @lti_launch.resource_url.start_with?('http://') %>
     <div class="alert alert-error" id="insecure_content_msg">
         <p><%= t('You are trying to launch insecure content from within a secure site (canvas).  Some web browsers may prevent this content from loading.') %></p>

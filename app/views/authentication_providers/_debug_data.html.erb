@@ -20,6 +20,7 @@
   <% section_seen = false %>
   <% provider.class.debugging_keys[index].each do |(key, description)| %>
     <% next unless (value = provider.debug_get(key)) %>
+
     <% if !section_seen && section_description %>
       <% section_seen = true %>
       <h5>

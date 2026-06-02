@@ -9,11 +9,10 @@
 
 <%= t :body, "A course, %{course}, has been added for the account %{account}", course: asset.name, account: asset.root_account.name %>
 <% unless asset.teachers.empty? %>
-<%= before_label :teachers, "Teachers" %>
-<% asset.teachers.each do |teacher| %>
+  <%= before_label :teachers, "Teachers" %>
+  <% asset.teachers.each do |teacher| %>
   - <%= teacher.name %> (<%= teacher.email %>)
     <%= course_user_url(asset, teacher) %>
-
-<% end %><% end %>
+  <% end %><% end %>
 
 <%= content :link %>

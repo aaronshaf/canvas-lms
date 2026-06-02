@@ -196,7 +196,8 @@
         style="<%= hidden if rubric_association&.hide_score_total %>">
         <span role="text"><%= before_label :total_points, "Total Points" %>
           <% ot(:out_of,
-                "%{points} *out of %{total}*", points: capture do %>
+                "%{points} *out of %{total}*",
+                points: capture do %>
             <span class="rubric_total">
               <%=
                 assessment ? n(round_if_whole(assessment.score)) : n(round_if_whole((rubric.points_possible rescue 5)))
@@ -204,8 +205,8 @@
             </span>
             <%
               end,
-                                               wrapper: '<span class="assessing">\1</span>',
-                                               total: n(round_if_whole((rubric.points_possible rescue 5))))
+                wrapper: '<span class="assessing">\1</span>',
+                total: n(round_if_whole((rubric.points_possible rescue 5))))
             %>
         </span>
       </div>

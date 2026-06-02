@@ -51,9 +51,13 @@
       <div class="displaying">
         <span class="nobr x_out_of_x">
           <% ot(:out_of_points,
-                "%{points}/%{total} pts", points: capture do %>
-            <span class="criterion_points" style="<%= hidden if brief %>"><%= assessing ? (assessment_rating ? I18n.n(assessment_rating.points) : "") : (criterion ? I18n.n(criterion.points) : I18n.n(5)) %></span><% end, total: capture do %>
-            <span class="criterion_points_possible"><%= criterion ? I18n.n(criterion.points) : I18n.n(5) %></span><% end) %>
+                "%{points}/%{total} pts",
+                points: capture do %>
+            <span class="criterion_points" style="<%= hidden if brief %>"><%= assessing ? (assessment_rating ? I18n.n(assessment_rating.points) : "") : (criterion ? I18n.n(criterion.points) : I18n.n(5)) %></span>
+          <% end,
+                total: capture do %>
+            <span class="criterion_points_possible"><%= criterion ? I18n.n(criterion.points) : I18n.n(5) %></span>
+             <% end) %>
         </span>
       </div>
       <div class="ignoring">

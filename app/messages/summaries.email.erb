@@ -14,13 +14,12 @@
 <% delayed_messages.each do |delayed_message| %>
 --------------------------------
 
-<%= delayed_message.name_of_topic %>
+  <%= delayed_message.name_of_topic %>
 
-    <%= CanvasTextHelper.indent(html_to_text(delayed_message.summary, base_url: content(:link)), 4) %>
+  <%= CanvasTextHelper.indent(html_to_text(delayed_message.summary, base_url: content(:link)), 4) %>
 
-    <%= delayed_message.link %>
+  <%= delayed_message.link %>
 <% end %>
-
 
 <%= t :notifications_link, "You can change your notification settings by visiting the following page:" %>
 <%= communication_profile_url %>
