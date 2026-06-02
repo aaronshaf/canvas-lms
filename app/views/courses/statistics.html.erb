@@ -29,7 +29,7 @@
   <% active_students = @context.participating_students.where("enrollments.type<>'StudentViewEnrollment'").distinct.count %>
   <% inactive_students = @context.student_enrollments.invited_by_date.distinct.count(:user_id) %>
 
-  <% active_topics =  @context.discussion_topics.active.pluck(:id) %>
+  <% active_topics = @context.discussion_topics.active.pluck(:id) %>
   <% total_topics = active_topics.length %>
   <%
     active_assignments = @context.assignments.active
@@ -108,7 +108,7 @@
 
         <tr>
           <td class="indent"><%= t('Quiz Questions') %></td>
-          <td class="indent quiz_question_count"><%= @context.quizzes.active.sum{|q| (q.quiz_data || []).length} %></td>
+          <td class="indent quiz_question_count"><%= @context.quizzes.active.sum { |q| (q.quiz_data || []).length } %></td>
         </tr>
 
         <tr>

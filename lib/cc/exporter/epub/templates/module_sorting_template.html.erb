@@ -5,7 +5,7 @@
   <%= style %>
 </head>
   <body>
-    <h1 id="<%= content[:identifier]%>"><%= HtmlTextHelper.escape_html(title) %></h1>
+    <h1 id="<%= content[:identifier] %>"><%= HtmlTextHelper.escape_html(title) %></h1>
     <ol>
     <% content[:items].each do |item| %>
       <li>
@@ -22,7 +22,7 @@
 
     <div style="page-break-before:always;"></div>
     <% if content[:locked] %>
-      <% if content[:time_lock]%>
+      <% if content[:time_lock] %>
         <p>
           <%= I18n.t(<<~TEXT, datetime: friendly_date(Time.zone.at(content[:unlock_at]).to_s))
             This module is locked until %{datetime}

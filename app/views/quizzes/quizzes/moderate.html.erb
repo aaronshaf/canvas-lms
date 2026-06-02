@@ -70,8 +70,8 @@
         </td>
         <td class="name">
           <%= t(:student_gets_extra_time,
-              {one: "*%{student_name}* **gets 1 extra minute on each attempt**",
-                other:"*%{student_name}* **gets %{count} extra minutes on each attempt**" },
+              { one: "*%{student_name}* **gets 1 extra minute on each attempt**",
+                other: "*%{student_name}* **gets %{count} extra minutes on each attempt**" },
               {
                student_name:,
                count: (submission && submission.extra_time) || '0',
@@ -169,7 +169,7 @@
 <div id="moderate_student_dialog" class="student_extension_dialog" style="display: none;">
   <h2><%= t('headers.student_extensions', "Student Extensions") %></h2>
 
-  <%= form_for :quiz, url: "", html: {id: "moderate_student_form", method: :post} do %>
+  <%= form_for :quiz, url: "", html: { id: "moderate_student_form", method: :post } do %>
 
     <% if @quiz.allowed_attempts > 0 %>
       <div class="field extra_attempts">
@@ -197,7 +197,7 @@
       </div>
       <div class="field cutoff_warning">
         <span class="cutoff_warning">
-          <p class="note"><%= t('Quiz attempts whose availability dates have passed will still auto-submit even if the extended time has not expired.')%></p>
+          <p class="note"><%= t('Quiz attempts whose availability dates have passed will still auto-submit even if the extended time has not expired.') %></p>
         </span>
       </div>
     <% end %>
@@ -230,7 +230,7 @@
 
 <div class="student-extension-dialog" id="autosubmit_form" tabindex="0" style="display: none;">
   <div id="autosubmit_content_description_things_to_do" style="display: none">
-    <%=t("outstanding_autosubmission_description", "These quiz submissions are outstanding, likely because a student left the quiz page prior to submission.  If you would like to grade them, please press 'Submit' below. ") %>
+    <%= t("outstanding_autosubmission_description", "These quiz submissions are outstanding, likely because a student left the quiz page prior to submission.  If you would like to grade them, please press 'Submit' below. ") %>
   </div>
 
   <div id="autosubmit_content" class="autosubmit_form_dialog_content with-scrolling-right-side">

@@ -27,7 +27,7 @@
   <h2><%= t('headings.service_types', %{Service Types}) %></h2>
   <div>
     <ul class="service_types">
-    <% @services_hash.sort_by{|t, _| UserService.sort_position(t) }.each do |service_type, services| %>
+    <% @services_hash.sort_by { |t, _| UserService.sort_position(t) }.each do |service_type, services| %>
       <li>
         <%= image_tag "#{service_type}_icon.png", alt: "" %>
         <a href="#service_<%= service_type %>"><%= service_type.titleize %></a>
@@ -84,7 +84,7 @@
 <p>
   <%= t 'help.user_services', %{If other members choose, they can let you see which outside services they've linked to their Canvas account.  This can make it easier to coordinate group projects and also link up outside of class.} %>
 </p>
-<% if @current_user&.user_services&.none?{|s| feature_and_service_enabled?(s.service)} %>
+<% if @current_user&.user_services&.none? { |s| feature_and_service_enabled?(s.service) } %>
   <p>
     <%= t 'help.no_services', %{You haven't linked your user profile to any external services.  You can link your Canvas account to services like X.com.} %>
   </p>
@@ -100,7 +100,7 @@
   </p>
 <% end %>
 
-<% @services_hash.sort_by{|t, _| UserService.sort_position(t) }.each do |service_type, services| %>
+<% @services_hash.sort_by { |t, _| UserService.sort_position(t) }.each do |service_type, services| %>
 <a name="service_<%= service_type %>"></a>
 <h2 class="service_type"><%= image_tag "#{service_type}_icon.png", alt: "" %><%= service_type.titleize %></h2>
 <div class="short_description"><%= UserService.short_description(service_type) %></div>

@@ -56,18 +56,18 @@
     <div class="pull-left" style="width: 40%; margin-top: 10px;">
       <% if user_answer %>
         <% if hash_get(user_answer, "answer_#{hash_get(answer, :id)}").to_i == hash_get(answer, :match_id).to_i %>
-          <%= hash_get(answer, :right) || hash_get(question, :matches, []).find{|a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i}[:text] rescue '' %>
+          <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue '' %>
         <% else %>
           <%= hash_get(answer, :match_id) %>
           <%= hash_get(user_answer, "answer_#{hash_get(answer, :id)}") %>
-          You put: <%= hash_get(question, :answers, []).find{|a| hash_get(a, :match_id) == hash_get(user_answer, "answer_#{hash_get(answer, :id)}")} %><br/>
-          It was really: <%= hash_get(answer, :right) || hash_get(question, :matches, []).find{|a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i}[:text] rescue '' %>
+          You put: <%= hash_get(question, :answers, []).find { |a| hash_get(a, :match_id) == hash_get(user_answer, "answer_#{hash_get(answer, :id)}") } %><br/>
+          It was really: <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue '' %>
         <% end %>
       <% else %>
         <select name="question_<%= hash_get(question, :id) %>_answer_<%= hash_get(answer, :id) %>" id="question_<%= hash_get(question, :id) %>_answer_<%= hash_get(answer, :id) %>" class="question_input mathjax_ignore" style="max-width: 90%;">
           <option value="" <%= "selected" unless @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"] %>>[ <%= t :choose_answer, "Choose" %> ]</option>
-          <% right_answers.uniq{|a| hash_get(a, :right) || hash_get(question, :matches, []).find{|aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i}[:text] rescue '' }.each do |a| %>
-            <option value="<%= hash_get(a, :match_id) %>" <%= "selected" if @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"].to_s == hash_get(a, :match_id).to_s %>><%= hash_get(a, :right) || hash_get(question, :matches).find{|aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i}[:text] rescue '' %></option>
+          <% right_answers.uniq { |a| hash_get(a, :right) || hash_get(question, :matches, []).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue '' }.each do |a| %>
+            <option value="<%= hash_get(a, :match_id) %>" <%= "selected" if @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"].to_s == hash_get(a, :match_id).to_s %>><%= hash_get(a, :right) || hash_get(question, :matches).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue '' %></option>
           <% end %>
         </select>
       <% end %>

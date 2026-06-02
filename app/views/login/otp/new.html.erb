@@ -25,7 +25,7 @@
 
 <div id="modal-box" class="ic-Login-confirmation">
   <header class="ic-Login-confirmation__header">
-    <%= image_tag("login/canvas-logo@2x.png", class:"ic-Login-confirmation__logo", alt:"Canvas by Instructure") %>
+    <%= image_tag("login/canvas-logo@2x.png", class: "ic-Login-confirmation__logo", alt: "Canvas by Instructure") %>
   </header>
   <div class="ic-Login-confirmation__content">
     <h2 class="ic-Login-confirmation__headline"><%= t("Multi-Factor Authentication") %></h2>
@@ -72,7 +72,7 @@
                 <% ccs = @current_user.communication_channels.sms.unretired.map { |cc| [cc.path, cc.id] } %>
                 <% unless ccs.empty? %>
                   <% ccs << ["<< #{t("a new mobile number")} >>", "{{id}}"] %>
-                  <%= form_for :otp_login, url: send_otp_via_sms_path, html: {id: "select_phone_form", class: "ic-Form-group ic-Form-group--horizontal"} do |f| %>
+                  <%= form_for :otp_login, url: send_otp_via_sms_path, html: { id: "select_phone_form", class: "ic-Form-group ic-Form-group--horizontal" } do |f| %>
                     <div class="ic-Form-control">
                       <%= f.blabel :otp_communication_channel_id, en: "US Mobile Number", class: "ic-Label" %>
                       <div class="controls">

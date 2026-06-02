@@ -139,7 +139,7 @@ h3 .tally {
 }
 </style>
 
-<%= form_for @section, url: context_url(@context, :context_section_url, @section), html: {id: "edit_section_form", style: "display: none;"} do |f| %>
+<%= form_for @section, url: context_url(@context, :context_section_url, @section), html: { id: "edit_section_form", style: "display: none;" } do |f| %>
 <table class="formtable">
   <tr>
     <td><label for="course_section_name">Section Name<abbr>*</abbr>:</label></td>
@@ -221,17 +221,17 @@ h3 .tally {
     <table id="enrollment_table">
     <% if @pending_enrollments_count > 0 %>
           <tr>
-            <td class="pending_enrollments"><%= t('pending_enrollment', {one: '1 Pending Enrollment', other: '%{count} Pending Enrollments'}, count: @pending_enrollments_count) %></td>
+            <td class="pending_enrollments"><%= t('pending_enrollment', { one: '1 Pending Enrollment', other: '%{count} Pending Enrollments' }, count: @pending_enrollments_count) %></td>
           </tr>
     <% end %>
     <% if @enrollments_count > 0 %>
       <tr>
-        <td class="active_enrollments"><%= t('active_enrollment', {one: '1 Active Enrollment', other: '%{count} Active Enrollments'}, count: @enrollments_count) %></td>
+        <td class="active_enrollments"><%= t('active_enrollment', { one: '1 Active Enrollment', other: '%{count} Active Enrollments' }, count: @enrollments_count) %></td>
       </tr>
     <% end %>
     <% if @completed_enrollments_count > 0 %>
           <tr>
-            <td class="completed_enrollments"><%= t('completed_enrollment', {one: '1 Completed Enrollment', other: '%{count} Completed Enrollments'}, count: @completed_enrollments_count) %></td>
+            <td class="completed_enrollments"><%= t('completed_enrollment', { one: '1 Completed Enrollment', other: '%{count} Completed Enrollments' }, count: @completed_enrollments_count) %></td>
           </tr>
     <% end %>
     </table>

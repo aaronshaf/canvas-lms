@@ -54,11 +54,11 @@
     </ul>
     <button type="button" class="btn button-sidebar-wide add_outcome_link"><i class="icon-paperclip"></i> <span class="add_outcome_text"><%= t 'links.align_outcome', "Align Outcome" %></span></button>
   </div>
-  <%= render partial: 'shared/find_outcome', locals: {purpose: 'question_bank'}  %>
+  <%= render partial: 'shared/find_outcome', locals: { purpose: 'question_bank' } %>
 <% end %>
 
 <div class="quiz-header">
-  <%= form_for @bank, url: context_url(@context, :context_question_bank_url, @bank), html: {id: "edit_bank_form", method: :put} do |f| %>
+  <%= form_for @bank, url: context_url(@context, :context_question_bank_url, @bank), html: { id: "edit_bank_form", method: :put } do |f| %>
     <div class="displaying">
       <h1><%= @bank.title %></h1>
     </div>
@@ -99,10 +99,10 @@
 
 <%= render partial: "question_teaser" %>
 <%= render partial: "question_bank" %>
-<%= render partial: "quizzes/quizzes/display_question", object: nil, locals: {question_bank_id: @bank.id, editing: true} %>
+<%= render partial: "quizzes/quizzes/display_question", object: nil, locals: { question_bank_id: @bank.id, editing: true } %>
 <%= render partial: "quizzes/quizzes/display_answer", object: nil %>
 <%= render partial: "quizzes/quizzes/form_answer", object: nil %>
-<%= render partial: "quizzes/quizzes/form_question", object: nil, locals: {question_bank_id: @bank.id} %>
+<%= render partial: "quizzes/quizzes/form_question", object: nil, locals: { question_bank_id: @bank.id } %>
 <span class="question_bank_id" style="display: none;"><%= @bank.id %></span>
 <div style="display: none;">
   <div id="move_question_dialog">

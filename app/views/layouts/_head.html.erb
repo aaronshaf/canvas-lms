@@ -34,7 +34,7 @@
   <%= preload_link_tag(font_path("/fonts/lato/extended/Lato-Italic.woff2"), { as: "font", type: "font/woff2", crossorigin: 'anonymous' }) %>
   <%= stylesheet_link_tag(css_url_for('fonts')) %>
   <%= stylesheet_link_tag(active_brand_config_url('css'), media: "all") %>
-  <% unless params && (params[:controller]&.starts_with?('login/') || params[:controller]&.starts_with?('oauth'))  # some windows apps need to do the oauth login dance from an ie11 webview %>
+  <% unless params && (params[:controller]&.starts_with?('login/') || params[:controller]&.starts_with?('oauth')) # some windows apps need to do the oauth login dance from an ie11 webview %>
   <% end %>
   <%= yield :head %>
   <%= benchmark("include_css_bundles") { include_css_bundles } %>

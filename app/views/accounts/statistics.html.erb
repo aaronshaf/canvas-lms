@@ -145,7 +145,7 @@
   <% @recently_started_courses.each do |course| %>
     <li>
       <a href="<%= course_path(course.id) %>" class="header"><%= course.name %></a>
-      <div class="sub_header"><%= t(:started_at, "started %{at}", at: datetime_string(course.start_at) ) %></div>
+      <div class="sub_header"><%= t(:started_at, "started %{at}", at: datetime_string(course.start_at)) %></div>
     </li>
   <% end %>
   <% if @recently_started_courses.empty? %>
@@ -158,7 +158,7 @@
   <% @recently_ended_courses.each do |course| %>
     <li>
       <a href="<%= course_path(course.id) %>" class="header"><%= course.name %></a>
-      <div class="sub_header"><%= t(:concluded_at, "concluded %{at}", at: datetime_string(course.conclude_at) ) %></div>
+      <div class="sub_header"><%= t(:concluded_at, "concluded %{at}", at: datetime_string(course.conclude_at)) %></div>
     </li>
   <% end %>
   <% if @recently_ended_courses.empty? %>
@@ -173,7 +173,7 @@
   <% @recently_logged_users.each do |user| %>
     <li>
       <a href="<%= user_path(user.id) %>" class="header"><%= user.name %></a>
-      <div class="sub_header"><%= t(:last_logged_in_at, "last logged in %{at}", at: datetime_string(user.pseudonyms.map{|p| [p.current_login_at, p.last_login_at]}.flatten.compact.max) ) %></div>
+      <div class="sub_header"><%= t(:last_logged_in_at, "last logged in %{at}", at: datetime_string(user.pseudonyms.map { |p| [p.current_login_at, p.last_login_at] }.flatten.compact.max)) %></div>
     </li>
   <% end %>
   <% if @recently_logged_users.empty? %>

@@ -17,7 +17,7 @@
 %>
 
 <%
-  provide :page_title,  @event.title || t(:page_title, "New Calendar Event")
+  provide :page_title, @event.title || t(:page_title, "New Calendar Event")
   return_to_url = return_to_calendar(context: @context, event: @event)
 
   event_attrs = {

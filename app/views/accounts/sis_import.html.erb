@@ -55,7 +55,7 @@
   <% if pending_batch_count > 0 %>
     <div class="pending_batches" style="margin-top: 20px">
       <h2><%= t(:pending_batches_title, "Pending Batches") %></h2>
-      <p><%= t(:pending_batches_count, {one: "%{count} batch waiting to be processed.", other: "%{count} batches waiting to be processed."}, count: pending_batch_count) %></p>
+      <p><%= t(:pending_batches_count, { one: "%{count} batch waiting to be processed.", other: "%{count} batches waiting to be processed." }, count: pending_batch_count) %></p>
     </div>
   <% end %>
 

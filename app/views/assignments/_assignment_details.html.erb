@@ -47,7 +47,7 @@
     <span class="title"><%= t("Due") %></span>
     <span class="value">
       <% if @assignment.multiple_due_dates_apply_to?(@current_user) %>
-        <%=  t("Multiple Due Dates") %>
+        <%= t("Multiple Due Dates") %>
       <% elsif (due_at = @assignment.overridden_for(@current_user).due_at) %>
         <span <%= context_sensitive_datetime_title(due_at, @assignment.context) %>>
           <%= datetime_string(due_at) %>
@@ -63,5 +63,5 @@
     <span class="value"><%= render_score(@assignment.points_possible) || 0 %></span>
   </li>
 
-  <%= render partial: "shared/available_dates", locals: {association: @assignment} %>
+  <%= render partial: "shared/available_dates", locals: { association: @assignment } %>
 </ul>

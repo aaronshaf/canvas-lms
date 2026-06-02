@@ -25,7 +25,7 @@
 <div id="questions_tab">
   <div id="show_question_details_wrap">
     <input type="checkbox" id="show_question_details"
-           <%= "disabled='disabled'" if @quiz.active_quiz_questions.size> Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT %>
+           <%= "disabled='disabled'" if @quiz.active_quiz_questions.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT %>
     />
     <label for="show_question_details"> <%= t("Show Question Details") %></label>
     <br/>
@@ -41,7 +41,7 @@
       <% if question[:entry_type] == "quiz_group" %>
         <%= render partial: "question_group", object: question %>
       <% else %>
-        <%= render partial: ((@quiz.quiz_questions.active.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question['id']}"} %>
+        <%= render partial: ((@quiz.quiz_questions.active.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question['id']}" } %>
       <% end %>
     <% end %>
   </div>

@@ -18,7 +18,7 @@
 
 <%
   modules = @modules || []
-  modules_to_show = @module_show_setting ?  modules.select { |m| m.id == @module_show_setting } : modules
+  modules_to_show = @module_show_setting ? modules.select { |m| m.id == @module_show_setting } : modules
   preload_modules_content(modules_to_show)
 %>
 

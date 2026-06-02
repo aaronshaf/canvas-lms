@@ -41,11 +41,11 @@
 <tbody>
   <% if rubric&.criteria %>
     <% rubric.criteria_object.each do |criterion| %>
-      <% rating = assessment.ratings.find{|r| r.criterion_id == criterion.id} rescue nil %>
-      <%= render partial: "shared/rubric_summary_criterion", object: criterion, locals: {assessing:, assessment_rating: rating, brief:} %>
+      <% rating = assessment.ratings.find { |r| r.criterion_id == criterion.id } rescue nil %>
+      <%= render partial: "shared/rubric_summary_criterion", object: criterion, locals: { assessing:, assessment_rating: rating, brief: } %>
     <% end %>
   <% else %>
-    <%= render partial: "shared/rubric_summary_criterion", locals: {assessing:, brief:} %>
+    <%= render partial: "shared/rubric_summary_criterion", locals: { assessing:, brief: } %>
   <% end %>
   <tr class="summary" style="<%= hidden if rubric_association&.hide_score_total %>">
     <td colspan="2" style="padding-<%= direction('right') %>: 10px; text-align: <%= direction('right') %>;">

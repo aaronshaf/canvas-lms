@@ -19,7 +19,7 @@
 <% provide(:page_title, join_title(@group.name, @context.full_name)) %>
 <% css_bundle :dashboard %>
 <% js_bundle :dashboard %>
-<%  set_active_tab "home" %>
+<% set_active_tab "home" %>
 
 <% provide :right_side do %>
   <% unless @domain_root_account.feature_enabled?(:instui_nav) %>
@@ -27,7 +27,7 @@
       <div>
         <a href="#" id="edit_group" title="Edit Group" class="Button button-sidebar-wide">
           <i class="icon-edit" role="presentation"></i>
-          <%= t 'edit_group',"Edit Group" %>
+          <%= t 'edit_group', "Edit Group" %>
         </a>
       </div>
       <div id="student-group-dialog-mount-point"></div>
@@ -41,9 +41,9 @@
       </div>
     <% end %>
   <% end %>
-  <% locals = {title: t('coming_up', "Coming Up"), contexts_to_link_to: @context, upcoming: true, period: :one_week} %>
+  <% locals = { title: t('coming_up', "Coming Up"), contexts_to_link_to: @context, upcoming: true, period: :one_week } %>
   <% if @current_user %>
-    <% cache([@current_user, @context, 'group_upcoming_events' ]) do %>
+    <% cache([@current_user, @context, 'group_upcoming_events']) do %>
       <%= render partial: "shared/event_list", object: @current_user.upcoming_events(contexts: @context), locals: %>
     <% end %>
   <% else %>
@@ -61,4 +61,4 @@
   student_mode: true,
   group: @group.as_json[:group],
   group_category: @group.group_category.try(:[], :group_category)
-})%>
+}) %>

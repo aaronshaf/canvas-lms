@@ -38,9 +38,9 @@
       discussion_topic = parent_assignment.discussion_topic || DiscussionTopic.find_by(old_assignment_id: parent_assignment.id)
       num_replies = discussion_topic&.reply_to_entry_required_count || 1
       title = if assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC
-                t('%{title} Reply to Topic', {title:})
+                t('%{title} Reply to Topic', { title: })
               elsif assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY
-                t('%{title} Required Replies (%{num_replies})', {title:, num_replies:})
+                t('%{title} Required Replies (%{num_replies})', { title:, num_replies: })
               end
     else
       assignment_id = recent_feedback.assignment_id
@@ -48,10 +48,10 @@
     end
     if recent_feedback.assignment.a2_enabled?
       context_symbol = :context_assignment_url
-      context_params = {id: assignment_id}
+      context_params = { id: assignment_id }
     else
       context_symbol = :context_assignment_submission_url
-      context_params = {assignment_id:, id: @user&.id || @current_user.id}
+      context_params = { assignment_id:, id: @user&.id || @current_user.id }
     end
     url = context_url(context, context_symbol, context_params)
     grade = readable_grade(recent_feedback)

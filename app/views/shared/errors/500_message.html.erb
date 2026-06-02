@@ -32,6 +32,6 @@
   <p><%= t("Something broke unexpectedly.") %>
   <br><%= t("If you have a moment, *click here to tell us what happened*.", wrapper: '<a href="#" class="submit_error_link">\1</a>') %></p>
   <div class="ic-Error-form">
-    <%= render partial: "shared/errors/error_form", locals: {error_category: '500'} %>
+    <%= render partial: "shared/errors/error_form", locals: { error_category: '500' } %>
   </div>
 </div>

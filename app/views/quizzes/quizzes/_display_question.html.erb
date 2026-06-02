@@ -56,15 +56,15 @@
       matching_question
       multiple_dropdowns_question
       fill_in_multiple_blanks_question
-    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.none? {|k, v| k.to_s.include?('answer_') && v.to_s != '' }) ||
-    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.none? {|k, v| k.to_s.include?('answer_') && v.to_s != '0' }) ||
+    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.none? { |k, v| k.to_s.include?('answer_') && v.to_s != '' }) ||
+    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.none? { |k, v| k.to_s.include?('answer_') && v.to_s != '0' }) ||
     (hash_get(question, 'question_type') == 'file_upload_question' && hash_get(user_answer, 'attachment_ids').blank?) ||
     (hash_get(question, 'question_type') == 'essay_question' && hash_get(user_answer, 'text').blank?) ||
     false
   partial_credit = user_answer && hash_get(user_answer, :correct) == 'partial'
   if question_type.display_answers == "multiple" && hash_get(question, :question_type) != "missing_word_question"
     right_answers = hash_get(question, :answers, {})
-    right_answers = hash_get(question, :matches) || hash_get(question, :answers).sort_by{ rand } if question_type.entry_type == "matching" rescue {}
+    right_answers = hash_get(question, :matches) || hash_get(question, :answers).sort_by { rand } if question_type.entry_type == "matching" rescue {}
   end
   object_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
                      !!js_env.dig(:MASTER_COURSE_DATA, "restricted_by_master_course")
@@ -80,7 +80,7 @@
     <% if assessing && @quiz_presenter.can_go_back? %>
       <a href="#" class="flag_question" role="checkbox" aria-checked="<%= marked ? "true" : "false" %>">
         <span class="screenreader-only">
-          <%= t(:flag_question, "Flag question: %{question_name}", question_name: hash_get(question, :question_name) ) %>
+          <%= t(:flag_question, "Flag question: %{question_name}", question_name: hash_get(question, :question_name)) %>
         </span>
       </a>
     <% end %>
@@ -109,14 +109,14 @@
               autocomplete='off'/>
           <% elsif hash_get(user_answer, :correct) == "undefined" %>
             <%= t(:not_yet_graded, 'Not yet graded') %>
-          <% elsif hash_get(user_answer,:score_before_regrade)%>
+          <% elsif hash_get(user_answer, :score_before_regrade) %>
             <%= t('original_score', 'Original Score:') %>
             <%= render_score(hash_get(user_answer, :score_before_regrade)) %>
           <% else %>
             <%= render_score(hash_get(user_answer, :points)) %>
           <% end %>
           <% question[:points_possible] = 0 if question_type.answer_type == 'none' %>
-          <%= t(:points_possible, "%{points_possible} pts", points_possible: tag.span(" / #{render_score(hash_get(question, :points_possible, "0"))}", class: %i[points question_points]) ) %>
+          <%= t(:points_possible, "%{points_possible} pts", points_possible: tag.span(" / #{render_score(hash_get(question, :points_possible, "0"))}", class: %i[points question_points])) %>
           <% if hash_get(user_answer, :score_before_regrade) %>
             <span class=user-regrade-points>
               <%= t('regraded_score', 'Regraded Score:') %>
@@ -130,7 +130,7 @@
       <% end %>
     </span>
     </div>
-    <% unless content_is_locked  %>
+    <% unless content_is_locked %>
       <div class="links" style="<%= hidden if user_answer || assessing %>">
         <% edit_question_title = t('links.edit_question', 'Edit this Question') %>
         <a href="#" class="edit_question_link no-hover" title="<%= edit_question_title %>"><i class="icon-edit standalone-icon"><span class="screenreader-only"><%= edit_question_title %></span></i></a>
@@ -205,8 +205,8 @@
         <% elsif question && hash_get(question, :question_type) == "multiple_dropdowns_question" %>
           <% answer_list = []
              if assessment_results
-               variables = hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq
-               variables.each {|var| answer_list << hash_get(user_answer, "answer_id_for_#{var}") }
+               variables = hash_get(question, :answers, []).filter_map { |a| hash_get(a, :blank_id) }.uniq
+               variables.each { |var| answer_list << hash_get(user_answer, "answer_id_for_#{var}") }
              end
           %>
           <%= multiple_dropdowns_question({
@@ -293,7 +293,7 @@
       <div class="multiple_answer_sets_holder" style="<%= hidden unless question && ['multiple_dropdowns_question', 'fill_in_multiple_blanks_question'].include?(hash_get(question, :question_type)) %>">
         <% ot(:show_ansers_for_variable, "Show Answers for %{variable}", variable: capture do %>
         <select class="blank_id_select">
-          <% hash_get(question, :answers, []).map{|a| hash_get(a, :blank_id) }.uniq.compact.each do |variable| %>
+          <% hash_get(question, :answers, []).map { |a| hash_get(a, :blank_id) }.uniq.compact.each do |variable| %>
             <option value="<%= variable %>"><%= variable %></option>
           <% end %>
         </select>
@@ -309,22 +309,22 @@
                   <%= t(:group_of_answer_choices, "Group of answer choices") %>
                 </legend>
                 <% list = hash_get(question, :answers, []) %>
-                <%= render partial: "quizzes/quizzes/multi_answer", collection: list, locals:                     {question:, right_answers:, question_type:, user_answer:, asset_string:} %>
+                <%= render partial: "quizzes/quizzes/multi_answer", collection: list, locals: { question:, right_answers:, question_type:, user_answer:, asset_string: } %>
               </fieldset>
             <% elsif question_type.display_answers == "single" %>
-              <%= render partial: "quizzes/quizzes/single_answer", locals:                     {question:, right_answers:, question_type:, user_answer:, editable: assessing, asset_string:} %>
+              <%= render partial: "quizzes/quizzes/single_answer", locals: { question:, right_answers:, question_type:, user_answer:, editable: assessing, asset_string: } %>
             <% end %>
           <% end %>
         <% elsif user_answer && question && question_type.multiple_sets %>
           <% variables = hash_get(question, :original_question_text, "").scan(/\[[A-Za-z0-9_\-.]+\]/).to_a.compact.pluck(1..-2) %>
-          <% variables &= hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq %>
+          <% variables &= hash_get(question, :answers, []).filter_map { |a| hash_get(a, :blank_id) }.uniq %>
           <% variables.each_with_index do |variable, idx| %>
-            <% answers = hash_get(question, :answers, []).select{|a| hash_get(a, :blank_id) == variable } %>
+            <% answers = hash_get(question, :answers, []).select { |a| hash_get(a, :blank_id) == variable } %>
             <% user_answer[:text] = hash_get(user_answer, "answer_for_#{variable}")
                 user_answer[:text] = nil if user_answer[:text].blank?
                 user_answer[:answer_id] = hash_get(user_answer, "answer_id_for_#{variable}")
                 user_answer[:answer_id] = nil if user_answer[:answer_id].blank?
-                matched_answer = answers.find{|a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) }
+                matched_answer = answers.find { |a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) }
             %>
             <div class="answer_group">
               <b class="answer-group-heading"><%= before_label(:for_answer_number, "Answer %{answer_number}", answer_number: idx + 1) %></b>
@@ -366,7 +366,7 @@
                 <%= t('Your Answer:') %>
                 <div class="user_content quiz_response_text"><%= user_content(hash_get(user_answer, :text), location: asset_string) %></div>
               <% else %>
-                <% matched_answer = hash_get(question, :answers, []).find{|a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) } %>
+                <% matched_answer = hash_get(question, :answers, []).find { |a| hash_get(a, :text) == hash_get(user_answer, :text) || hash_get(a, :id) == hash_get(user_answer, :answer_id) } %>
                 <% hash_get(question, :answers, []).each do |a|
                   # Temporary workaround until we can figure out why the
                   # "answers" aren't getting cleared out when switching
@@ -384,13 +384,13 @@
                   end
                 end %>
                 <% answer_classes = ['selected_answer']
-                  if display_correct_answers && hash_get(question,:question_type) != 'file_upload_question'
+                  if display_correct_answers && hash_get(question, :question_type) != 'file_upload_question'
                     answer_classes << ((hash_get(user_answer, :correct) == true) ? 'correct_answer' : 'wrong_answer')
                   end
                   answer_classes << 'no_answer' if hash_get(user_answer, :text).blank? || hash_get(user_answer, :attachment_ids).blank?
                 %>
                 <div class='answer <%= answer_classes.compact.join(' ') %>'>
-                  <%= render partial: "quizzes/quizzes/single_answer", locals:                       {question:, right_answers:, question_type:, user_answer:} %>
+                  <%= render partial: "quizzes/quizzes/single_answer", locals:                       { question:, right_answers:, question_type:, user_answer: } %>
                 </div>
                 <% if matched_answer && comment_get(matched_answer, :comments).present? %>
                   <div class="hide_right_arrow <%= "correct_answer" if display_correct_answers %>">
@@ -416,7 +416,7 @@
       </div>
       <div class="after_answers">
         <% if question && hash_get(question, :question_type) == 'matching_question' && !assessing && ((@quiz && display_correct_answers) || (!user_answer && !assessment_results)) && !@quiz.try(:survey?) %>
-          <% other_matches = (hash_get(question, :matches) || hash_get(question, :answers, [])).reject{|a| hash_get(question, :answers, []).map{|an| hash_get(an, :match_id) }.include?(hash_get(a, :match_id)) } %>
+          <% other_matches = (hash_get(question, :matches) || hash_get(question, :answers, [])).reject { |a| hash_get(question, :answers, []).map { |an| hash_get(an, :match_id) }.include?(hash_get(a, :match_id)) } %>
           <% unless other_matches.empty? %>
             <%= t('Other Incorrect Match Options:') %>
             <ul class="matching_answer_incorrect_matches_list">

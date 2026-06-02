@@ -17,7 +17,7 @@
 %>
 
 <%= form_for :account_notification,
-  url: {controller: 'account_notifications', action: 'update', id: announcement.id},
+  url: { controller: 'account_notifications', action: 'update', id: announcement.id },
   html: {
     id: "edit_notification_form_#{announcement.id}",
     class: 'edit_notification_form hidden_form',
@@ -41,11 +41,11 @@
           <%= t("Announcement type") %>
         </label>
         <select id="<%= "account_notification_icon_#{announcement.id}" %>" class="ic-Input" name="account_notification[icon]">
-          <%= options_for_select([[t("information"), "information", {class: "information"}],
-            [t("error"), "error", {class: "error"}],
-            [t("warning"), "warning", {class: "warning"}],
-            [t("question"), "question", {class: "question"}],
-            [t("calendar"), "calendar", {class: "calendar"}]], announcement.icon) %>
+          <%= options_for_select([[t("information"), "information", { class: "information" }],
+            [t("error"), "error", { class: "error" }],
+            [t("warning"), "warning", { class: "warning" }],
+            [t("question"), "question", { class: "question" }],
+            [t("calendar"), "calendar", { class: "calendar" }]], announcement.icon) %>
         </select>
       </div>
     </div>
@@ -87,7 +87,7 @@
               <label class="ic-Label" for="<%= "account_notification_role_#{r[:id]}_cbx_#{announcement.id}" %>">
                 <%= r[:label] %>
                 <span class="screenreader-only">
-                  <%=t "Send this announcement to users with the course role of %{role}", role: r[:label] %>
+                  <%= t "Send this announcement to users with the course role of %{role}", role: r[:label] %>
                 </span>
               </label>
             </div>
@@ -99,7 +99,7 @@
               <label class="ic-Label" for="<%= "account_notification_role_NilEnrollment_cbx_#{announcement.id}" %>">
                 <%= t "Unenrolled users" %>
                 <span class="screenreader-only">
-                  <%=t "Send this announcement to unenrolled users" %>
+                  <%= t "Send this announcement to unenrolled users" %>
                 </span>
               </label>
             </div>
@@ -116,7 +116,7 @@
               <label class="ic-Label" for="<%= "account_notification_role_#{r[:id]}_cbx_#{announcement.id}" %>">
                 <%= r[:label] %>
                 <span class="screenreader-only">
-                  <%=t "Send this announcement to users with the account role of %{role}", role: r[:label] %>
+                  <%= t "Send this announcement to users with the account role of %{role}", role: r[:label] %>
                 </span>
               </label>
             </div>

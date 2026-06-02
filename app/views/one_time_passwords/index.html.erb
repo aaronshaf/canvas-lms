@@ -12,7 +12,7 @@
     <p><%= t("These backup codes can be used if your multi-factor authentication device is unavailable. Please print them out and keep them in a safe location, like your wallet.") %></p>
     <ul class="unstyled row-fluid text-center">
       <% 2.times do |i| %>
-        <% otps = @otps[(@otps.length/2*i)..((@otps.length/(2-i)) - 1)] %>
+        <% otps = @otps[(@otps.length / 2 * i)..((@otps.length / (2 - i)) - 1)] %>
         <div class="span6">
           <% otps.each do |otp| %>
             <li<%= " class='used_otp'".html_safe if otp.used? %>><%= otp.code %></li>

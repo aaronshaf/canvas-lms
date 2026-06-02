@@ -33,7 +33,7 @@
       reviews assigned. To enable and configure automatically assigning peer reviews, click the button below." %></p>
       <div id="redirect_to_edit_button" class="redirect_to_edit_button" data-courseid="<%= @context.id %>" data-assignmentid="<%= @assignment.id %>"></div>
     <% else %>
-      <%= form_tag context_url(@context, :context_assignment_assign_peer_reviews_url, @assignment.id), {id: "assign_peer_reviews_form" } do %>
+      <%= form_tag context_url(@context, :context_assignment_assign_peer_reviews_url, @assignment.id), { id: "assign_peer_reviews_form" } do %>
         <h3 style="margin-bottom: 0;" id="automatically_assign_reviews"><%= t 'titles.automatically_assign_reviews', "Automatically Assign Reviews" %></h3>
         <p><%= t 'descriptions.automatically_assign_reviews', "You can assign peer reviews to those users who have submitted but don't already have
         reviews assigned by clicking the button below." %></p>
@@ -71,7 +71,7 @@
 <ul class="unstyled_list" style="margin-<%= direction('left') %>: 20px;">
   <li style="<%= hidden unless @students.empty? %>" class="no_students_message"><%= t 'messages.no_students_found', "No Students Found" %></li>
   <% @students.each do |student| %>
-    <% submission = @submissions.to_a.find{|s| s.user_id == student.id} %>
+    <% submission = @submissions.to_a.find { |s| s.user_id == student.id } %>
     <li style="font-size: 1.2em; margin-bottom: 10px;" class="student_reviews">
       <a
         title="<%= submission&.has_submission? ? h(t(:submitted, "submitted")) : h(t(:not_yet_submitted, "not yet submitted")) %>"
@@ -83,9 +83,9 @@
       <ul class="unstyled_list peer_reviews" style="padding-<%= direction('left') %>: 21px; font-size: 0.8em; width: 50%;">
         <li class="peer_review no_requests_message" style="<%= hidden unless !submission || submission.assigned_assessments.for_active_users(@context).empty? %>"><%= t :none_assigned, "None Assigned" %></li>
         <% if submission %>
-          <% Canvas::ICU.collate_by(submission.assigned_assessments.for_active_users(@context)) {|r| r.asset.user.sortable_name }.each do |request| %>
+          <% Canvas::ICU.collate_by(submission.assigned_assessments.for_active_users(@context)) { |r| r.asset.user.sortable_name }.each do |request| %>
             <% if request&.asset&.user %>
-              <%= render partial: 'peer_review_assignment', locals: {request:} %>
+              <%= render partial: 'peer_review_assignment', locals: { request: } %>
             <% end %>
           <% end %>
         <% end %>
@@ -100,7 +100,7 @@
     </li>
   <% end %>
 </ul>
-<%= form_tag ".", {id: "assign_peer_review_form", style: "display: none;"} do %>
+<%= form_tag ".", { id: "assign_peer_review_form", style: "display: none;" } do %>
   <select name="reviewee_id" id="reviewee_id" style="margin:0px;">
     <option value=""><%= t 'options.select_student', "[ Select Student ]" %></option>
     <% @students_dropdown_list.each do |student| %>
@@ -112,6 +112,6 @@
 <% end %>
 <a href="<%= context_url(@context, :context_assignment_assign_peer_review_url, @assignment.id, '{{ reviewer_id }}') %>" style="display: none;" class="assign_peer_review_url">&nbsp;</a>
 <ul style="display: none;">
-<%= render partial: 'peer_review_assignment', locals: {request: nil} %>
+<%= render partial: 'peer_review_assignment', locals: { request: nil } %>
 </ul>
 <%= will_paginate(@students, style: "margin-bottom: 1em;") %>

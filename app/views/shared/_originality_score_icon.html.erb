@@ -43,7 +43,7 @@
 <% if icon_class.present? %>
   <%
       tag_name = report_url.present? ? :a : :span
-      tag_params = {class: "turnitin_score_container tooltip"}
+      tag_params = { class: "turnitin_score_container tooltip" }
       tag_params[:href] = report_url if report_url.present?
       tag_params[:title] = report_title if report_title.present?
   %>

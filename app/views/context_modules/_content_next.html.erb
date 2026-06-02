@@ -78,7 +78,7 @@ context_modules_header_props = {
   },
 }
 %>
-<div id="context-modules-header-root" data-props='<%=context_modules_header_props.to_json%>'></div>
+<div id="context-modules-header-root" data-props='<%= context_modules_header_props.to_json %>'></div>
 
 <% else %>
 
@@ -124,8 +124,8 @@ context_modules_header_props = {
           </a>
 
           <ul id="toolbar-1" class="al-options" role="menu" aria-hidden="true" aria-expanded="false">
-            <%= external_tools_menu_items(@menu_tools[:module_index_menu], {link_class: "menu_tray_tool_link", settings_key: :module_index_menu, in_list: true}) %>
-            <%= external_tools_menu_items(@menu_tools[:module_index_menu_modal], {link_class: "menu_tray_tool_link", settings_key: :module_index_menu_modal, in_list: true}) %>
+            <%= external_tools_menu_items(@menu_tools[:module_index_menu], { link_class: "menu_tray_tool_link", settings_key: :module_index_menu, in_list: true }) %>
+            <%= external_tools_menu_items(@menu_tools[:module_index_menu_modal], { link_class: "menu_tray_tool_link", settings_key: :module_index_menu_modal, in_list: true }) %>
           </ul>
         </div>
       <% end %>
@@ -221,9 +221,9 @@ context_modules_header_props = {
 
 <% if @can_add || @can_edit %>
 
-  <%= render partial: "shared/select_content_dialog", locals: {for_modules: true, lti_app_placements: [Lti::ResourcePlacement::LINK_SELECTION, Lti::ResourcePlacement::RESOURCE_SELECTION] }  %>
+  <%= render partial: "shared/select_content_dialog", locals: { for_modules: true, lti_app_placements: [Lti::ResourcePlacement::LINK_SELECTION, Lti::ResourcePlacement::RESOURCE_SELECTION] } %>
   <div id="edit_item_dialog" style="display: none;">
-    <%= form_for :content_tag, url: "", html: {id: "edit_item_form", method: :put, style: "margin: 20px 10px;"} do |f| %>
+    <%= form_for :content_tag, url: "", html: { id: "edit_item_form", method: :put, style: "margin: 20px 10px;" } do |f| %>
       <p tabindex="0"> </p>
       <table class="formtable">
         <tr>
@@ -365,5 +365,5 @@ context_modules_header_props = {
 </div>
 
 <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
-  <%=  render partial: "context_modules/keyboard_navigation" %>
+  <%= render partial: "context_modules/keyboard_navigation" %>
 <% end %>

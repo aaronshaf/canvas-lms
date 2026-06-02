@@ -24,7 +24,7 @@
 
   <% if @can_manage || @can_create_announcements || @course_home_view != 'feed' || @course_home_sub_navigation_tools.present? %>
   <div class="course-options">
-    <%= external_tools_menu_items(@course_home_sub_navigation_tools, {link_id: "import_from_commons_btn", link_class: "btn button-sidebar-wide course-home-sub-navigation-lti", settings_key: :course_home_sub_navigation}) %>
+    <%= external_tools_menu_items(@course_home_sub_navigation_tools, { link_id: "import_from_commons_btn", link_class: "btn button-sidebar-wide course-home-sub-navigation-lti", settings_key: :course_home_sub_navigation }) %>
     <% if can_do(@context, @current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) && !@context.elementary_homeroom_course? %>
     <div id="choose_home_page"></div>
     <div id="choose_home_page_not_modules"></div>
@@ -135,7 +135,7 @@
       types when determining which to-do list to display. Needs team discussion before changing.
       see https://instructure.atlassian.net/browse/EGG-2364
     %>
-    <%= render partial: '/courses/to_do_list', locals: {contexts: [@context], show_legacy_todo_list: !@context_enrollment&.student?} %>
-    <%= render partial: "/courses/group_list", locals: {group_list: @user_groups} %>
+    <%= render partial: '/courses/to_do_list', locals: { contexts: [@context], show_legacy_todo_list: !@context_enrollment&.student? } %>
+    <%= render partial: "/courses/group_list", locals: { group_list: @user_groups } %>
     <%= nbsp unless @current_user %>
   </div>

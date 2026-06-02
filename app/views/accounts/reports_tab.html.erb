@@ -14,7 +14,7 @@
     <th class="reports"><%= t 'headers.report_last_run', 'Last Run' %></th>
     <th class="reports"><%= t 'Run Report' %></th>
   </tr>
-  <% @available_reports.sort_by {|_, details| details.title}.each do |report, details|
+  <% @available_reports.sort_by { |_, details| details.title }.each do |report, details|
     title = details.title
     description_partial = details[:description_partial]
     description_partial = report + '_description' if description_partial == true
@@ -23,7 +23,7 @@
     last_complete = @last_complete_reports[report]
     last_report = @last_reports[report]
     in_progress = last_report&.in_progress?
-    #the extra text is added so that you can give more than the date for the last run report
+    # the extra text is added so that you can give more than the date for the last run report
     extra_text = last_complete.try(:parameters).try(:[], "extra_text")
 %>
     <tr id="<%= report %>" class="reports">
@@ -45,7 +45,7 @@
       <td class="last-run reports">
         <% if last_complete %>
           <%= datetime_string(last_complete.created_at) %>
-          <%#the extra text is added so that you can give more than the date for the last run report %>
+          <%# the extra text is added so that you can give more than the date for the last run report %>
           <% if extra_text %>
             (<%= extra_text %>)
           <% end %>

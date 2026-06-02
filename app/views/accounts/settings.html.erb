@@ -114,7 +114,7 @@
   <% if can_do(@context, @current_user, :manage_account_settings) %>
     <div  tabindex="0" id="tab-settings-mount">
       <h2 class="screenreader-only"><%= t('headings.settings', "Account Settings") %></h2>
-      <%= form_for :account, url: account_url(@account), html: {novalidate: true, method: :put, id: "account_settings", class: "account_settings"} do |f| %>
+      <%= form_for :account, url: account_url(@account), html: { novalidate: true, method: :put, id: "account_settings", class: "account_settings" } do |f| %>
         <fieldset>
           <legend><%= t(:account_settings_title, "Account Settings") %></legend>
           <table class="formtable narrow">
@@ -143,7 +143,7 @@
                 <% no_language = t(:no_language_preference, "Not set (defaults to %{language})", language: available_locales[infer_locale(context: @context.parent_account)]) %>
                 <%= f.select :default_locale,
                              [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
-                             {selected: @context.default_locale}, {class: 'locale'} %>
+                             { selected: @context.default_locale }, { class: 'locale' } %>
                 <%= render partial: 'shared/locale_warning' %>
                 <p class="aside"><%= t(:default_language_description, "This will override any browser/OS language settings. Preferred languages can still be set at the course/user level.") %></p>
               </td>
@@ -254,7 +254,7 @@
                   </tr>
                   <% if @account.grants_right?(@current_user, :manage_site_settings) %>
                     <tr>
-                      <td colspan="2"><%= settings.check_box :include_students_in_global_survey, checked: @account.include_students_in_global_survey?%>
+                      <td colspan="2"><%= settings.check_box :include_students_in_global_survey, checked: @account.include_students_in_global_survey? %>
                         <%= settings.label :include_students_in_global_survey, en: "Include students in global surveys" %>
                       </td>
                     </tr>
@@ -274,7 +274,7 @@
                   <% disabled = hash[:locked] && hash[:inherited] %>
                   <tr>
                     <td colspan="2"><%= r.check_box :value, checked: hash[:value], disabled: %>
-                      <%= r.label :value , t("Restrict students from accessing courses before start date") %>
+                      <%= r.label :value, t("Restrict students from accessing courses before start date") %>
                     </td>
                   </tr>
                   <% unless disabled %>
@@ -506,7 +506,7 @@
                       <%= settings.label :restrict_personal_access_tokens_from_students, t("Restrict students and observers from creating personal access tokens.") %>
                     </td>
                   </tr>
-                <% end%>
+                <% end %>
               <% end %>
             <% end %>
           </table>
@@ -514,7 +514,7 @@
 
         <%= render partial: 'additional_settings', locals: { f: } %>
 
-        <% if !@account.site_admin? && @account.primary_settings_root_account? && @account.feature_enabled?(:slack_notifications)%>
+        <% if !@account.site_admin? && @account.primary_settings_root_account? && @account.feature_enabled?(:slack_notifications) %>
           <% slack_api_key = @account.root_account.settings[:encrypted_slack_key] ? Canvas::Security.decrypt_password(@account.root_account.settings[:encrypted_slack_key], @account.root_account.settings[:encrypted_slack_key_salt], 'instructure_slack_encrypted_key') : '' %>
           <fieldset>
             <legend><%= t("Slack Api Key") %></legend>
@@ -523,8 +523,8 @@
               <span id="current_slack_api_key"><%= (slack_api_key.length > 4) ? "#{slack_api_key[0..3]}#{'*' * (slack_api_key.length - 4)}" : '****' %></span>
             </div>
             <%= f.fields_for :slack do |slack| %>
-              <%= slack.label :slack_api_key , t("New Slack Api Key") %>
-              <%= slack.text_field :slack_api_key, placeholder: t("New Slack Api Key"), value:''%>
+              <%= slack.label :slack_api_key, t("New Slack Api Key") %>
+              <%= slack.text_field :slack_api_key, placeholder: t("New Slack Api Key"), value: '' %>
             <% end %>
           </fieldset>
         <% end %>
@@ -542,7 +542,7 @@
                 <div>
                   <%= settings.check_box :enable_name_pronunciation, checked: @account.enable_name_pronunciation?, class: "element_toggler", "aria-controls": "name_pronunciation_options" %>
                   <%= settings.label :enable_name_pronunciation, en: "Enable name pronunciation" %>
-                  <div id="name_pronunciation_options" <%= hidden(include_style: true) unless @account.settings[:enable_name_pronunciation]%>>
+                  <div id="name_pronunciation_options" <%= hidden(include_style: true) unless @account.settings[:enable_name_pronunciation] %>>
                     <div style="font-size: 0.8em;"><%= t(:pronunciation_change_description, "Limit name pronunciation editing by base role") %></div>
                       <div>
                         <%= settings.check_box :allow_name_pronunciation_edit_for_admins, checked: @account.allow_name_pronunciation_edit_for_admins? %>
@@ -559,7 +559,7 @@
                   </div>
                 </div>
               <% end %>
-              <% unless @account.site_admin?  %>
+              <% unless @account.site_admin? %>
                 <%= settings.check_box :can_add_pronouns, checked: @account.settings[:can_add_pronouns], class: "element_toggler", "aria-controls": "personal_pronouns_options" %>
                 <%= settings.label :can_add_pronouns, en: "Enable Personal Pronouns" %>
                 <div id="personal_pronouns_options" <%= hidden(include_style: true) unless @account.settings[:can_add_pronouns] %>>
@@ -601,18 +601,18 @@
             <%= f.fields_for :settings do |settings| %>
               <div>
                 <%= settings.check_box :has_underage_users, checked: @account.settings[:has_underage_users] %>
-                <%= settings.label :has_underage_users, t("This account has underage users")%>
+                <%= settings.label :has_underage_users, t("This account has underage users") %>
               </div>
               <div>
                 <%= settings.check_box :only_impact_guide_events, checked: @account.settings[:only_impact_guide_events] %>
-                <%= settings.label :only_impact_guide_events, t("Send only Impact guide events")%>
+                <%= settings.label :only_impact_guide_events, t("Send only Impact guide events") %>
               </div>
             <% end %>
           </fieldset>
         <% end %>
         <% if !@account.site_admin? && @account.root_account? && @account.grants_right?(@current_user, :manage_site_settings) %>
           <% TermsOfService.ensure_terms_for_account(@account) %>
-          <% js_bundle :terms_of_service_modal%>
+          <% js_bundle :terms_of_service_modal %>
           <fieldset>
             <legend><%= t("Acceptable Use Policy") %></legend>
             <%= f.fields_for :terms_of_service do |tos| %>
@@ -623,7 +623,7 @@
               <%= tos.select :terms_type, options_for_select(TermsOfService.type_dropdown_options_for_account(@account), @account.terms_of_service.terms_type) %>
               <br>
               <%= tos.check_box :passive, checked: @account.terms_of_service.passive %>
-              <%= tos.label :passive, t("Allow passive acceptance of Terms of Service")%>
+              <%= tos.label :passive, t("Allow passive acceptance of Terms of Service") %>
             <% end %>
           </fieldset>
           <div id="custom_tos_rce_container" style="<%= hidden %>">
@@ -698,7 +698,7 @@
                 <i class='icon-warning-borderless'></i>
                 <div class="account_settings__k5-help-text-container">
                   <p>
-                    <%= t("This setting significantly changes the Canvas experience for students and teachers.")%>
+                    <%= t("This setting significantly changes the Canvas experience for students and teachers.") %>
                   </p>
                   <p>
                     <%= t do %>
@@ -752,7 +752,7 @@
               </div>
             <% end %>
 
-            <% if @account.grants_right?(@current_user, :manage_account_settings) && @account.root_account.feature_enabled?(:allow_limited_access_for_students)%>
+            <% if @account.grants_right?(@current_user, :manage_account_settings) && @account.root_account.feature_enabled?(:allow_limited_access_for_students) %>
               <div>
                 <%= settings.check_box :enable_limited_access_for_students, checked: @account.enable_limited_access_for_students? %>
                 <%= settings.label :enable_limited_access_for_students, en: "Enable Limited Access for Students for this account" %>
@@ -810,7 +810,7 @@
                   <%= settings.label :global_includes, en: "Custom CSS/JavaScript overrides" %>
                   <div id="global_includes_warning_message" class="account_settings__help-text">
                     <p>
-                      <%= t("Custom CSS and Javascript may cause accessibility issues or conflicts with future Canvas updates!")%>
+                      <%= t("Custom CSS and Javascript may cause accessibility issues or conflicts with future Canvas updates!") %>
                     </p>
                     <p>
                       <%= t do %>
@@ -983,7 +983,7 @@
               <tr>
                 <td><label for="account_turnitin_originality"><%= I18n.t('Students can see originality score') %></label></td>
                 <td>
-                  <%= f.select :turnitin_originality, options_for_select(turnitin_originality_options(@account), @account.turnitin_originality)%>
+                  <%= f.select :turnitin_originality, options_for_select(turnitin_originality_options(@account), @account.turnitin_originality) %>
                 </td>
               </tr>
             </table>
@@ -1023,7 +1023,7 @@
                 <tr>
                   <td><%= f.blabel :originality_report_visibility, en: "Students can see the originality report" %></td>
                   <td>
-                    <%= f.select :turnitin_originality, options_for_select(turnitin_originality_options(@account), @account.turnitin_originality)%>
+                    <%= f.select :turnitin_originality, options_for_select(turnitin_originality_options(@account), @account.turnitin_originality) %>
                   </td>
                 </tr>
               </table>
@@ -1126,7 +1126,7 @@ acknowledge that you have read and agreed to the
               options << [t("No Template Selected"), nil]
               disabled << nil unless @account.course_template_id.nil? || @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
             else
-              options << [t("Inherit (%{course_name})", course_name: @account.parent_account.effective_course_template&.name || t("No Template Selected")), nil ]
+              options << [t("Inherit (%{course_name})", course_name: @account.parent_account.effective_course_template&.name || t("No Template Selected")), nil]
               options << [t("No Template Selected"), 0]
               disabled.push(0, nil) unless @account.course_template_id == 0 || @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
             end
@@ -1134,7 +1134,7 @@ acknowledge that you have read and agreed to the
             visible_templates = @account.root_account.all_courses.templates
                                         .order(Course.best_unicode_collation_key('courses.name'))
                                         .pluck(:name, :id)
-            if @account.course_template_id && !@account.course_template_id.zero?  && !visible_templates.find { |_, id| @account.course_template_id == id }
+            if @account.course_template_id && !@account.course_template_id.zero? && !visible_templates.find { |_, id| @account.course_template_id == id }
               visible_templates.unshift([@account.course_template.name, @account.course_template_id])
             end
             options.concat(visible_templates)
@@ -1195,7 +1195,7 @@ acknowledge that you have read and agreed to the
                     <%= settings.select :smart_alerts_threshold,
                       options_for_select(
                         # ref: KNO-231
-                        %w[ 12 24 36 48 ].map { |x| [ x, x ] },
+                        %w[12 24 36 48].map { |x| [x, x] },
                         @account.settings.fetch(:smart_alerts_threshold, '36')
                       )
                     %>
@@ -1249,7 +1249,7 @@ acknowledge that you have read and agreed to the
     <% unless available_roles.empty? %>
       <% js_bundle :user_lists %>
       <button type="button" class="add_users_link Button Button--primary"><i class="icon-plus"></i> <%= t('links.add_admins', %{Account Admins}) %></button>
-      <%= form_tag account_add_account_user_url(@account), {id: "enroll_users_form", style: "display: none;"} do  %>
+      <%= form_tag account_add_account_user_url(@account), { id: "enroll_users_form", style: "display: none;" } do %>
         <h2><%= t(:add_admin_title, "Add Account Admins") %></h2>
         <div style="margin-top: 5px;">
           <div>
@@ -1307,11 +1307,11 @@ acknowledge that you have read and agreed to the
                 class="ic-Input"
                 name="account_notification[icon]"
               >
-                <%= options_for_select([[t("information"), "information", {class: "information"}],
-                  [t("error"), "error", {class: "error"}],
-                  [t("warning"), "warning", {class: "warning"}],
-                  [t("question"), "question", {class: "question"}],
-                  [t("calendar"), "calendar", {class: "calendar"}]]) %>
+                <%= options_for_select([[t("information"), "information", { class: "information" }],
+                  [t("error"), "error", { class: "error" }],
+                  [t("warning"), "warning", { class: "warning" }],
+                  [t("question"), "question", { class: "question" }],
+                  [t("calendar"), "calendar", { class: "calendar" }]]) %>
               </select>
             </div>
           </div>
@@ -1365,7 +1365,7 @@ acknowledge that you have read and agreed to the
                     <label class="ic-Label" for="<%= "account_notification_role_#{r[:id]}_cbx" %>">
                       <%= r[:label] %>
                       <span class="screenreader-only">
-                        <%=t "Send this announcement to users with the course role of %{role}", role: r[:label] %>
+                        <%= t "Send this announcement to users with the course role of %{role}", role: r[:label] %>
                       </span>
                     </label>
                   </div>
@@ -1376,7 +1376,7 @@ acknowledge that you have read and agreed to the
                     <label class="ic-Label" for="<%= "account_notification_role_NilEnrollment_cbx" %>">
                       <%= t "Unenrolled users" %>
                       <span class="screenreader-only">
-                        <%=t "Send this announcement to unenrolled users" %>
+                        <%= t "Send this announcement to unenrolled users" %>
                       </span>
                     </label>
                   </div>
@@ -1392,7 +1392,7 @@ acknowledge that you have read and agreed to the
                     <label class="ic-Label" for="<%= "account_notification_role_#{r[:id]}_cbx" %>">
                       <%= r[:label] %>
                       <span class="screenreader-only">
-                        <%=t "Send this announcement to users with the account role of %{role}", role: r[:label] %>
+                        <%= t "Send this announcement to users with the account role of %{role}", role: r[:label] %>
                       </span>
                     </label>
                   </div>
@@ -1455,7 +1455,7 @@ acknowledge that you have read and agreed to the
       <% end %>
     <% end %>
     <ul class="announcements_list unstyled_list">
-      <%= will_paginate(@announcements, params: {anchor: "tab-announcements"}) %>
+      <%= will_paginate(@announcements, params: { anchor: "tab-announcements" }) %>
       <% @announcements.each do |announcement| %>
         <li class="announcements_list_item">
           <div class="ic-notification ic-notification--admin-created ic-notification--<%= notification_container_classname(announcement) %>">
@@ -1542,15 +1542,15 @@ acknowledge that you have read and agreed to the
                 <%= roles_message(@account) %>
                 <ul>
                   <% announcement.account_notification_roles.each do |r| %>
-                    <% @course_roles.select {|rt| rt[:id] == r.role_id }.each do |rt| %>
+                    <% @course_roles.select { |rt| rt[:id] == r.role_id }.each do |rt| %>
                       <li><%= rt[:label] %></li>
                     <% end %>
                     <% # NilEnrollment is a special case %>
                     <% if r.role_id.nil? %>
                       <li><%= t :no_enrollment_roles, "Unenrolled users" %></li>
                     <% end %>
-                    <% @account_roles.select {|rt| rt[:id] == r.role_id }.each do |rt| %>
-                      <li><%= rt[:label]  %></li>
+                    <% @account_roles.select { |rt| rt[:id] == r.role_id }.each do |rt| %>
+                      <li><%= rt[:label] %></li>
                     <% end %>
                   <% end %>
                 </ul>
@@ -1562,7 +1562,7 @@ acknowledge that you have read and agreed to the
               </div>
             <% end %>
             <% if can_do(@account, @current_user, :manage_alerts) %>
-              <%= render(partial: "edit_account_notification", locals: {announcement:}) %>
+              <%= render(partial: "edit_account_notification", locals: { announcement: }) %>
             <% end %>
           </div>
         </li>

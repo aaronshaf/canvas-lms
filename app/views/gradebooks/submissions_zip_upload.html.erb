@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% provide(:page_title, t(:submissions_upload, "%{assignment} Submissions Upload", assignment: @assignment.title) + ": " + t(:comments_made, {one: "1 Comment Made", other: "%{count} Comments Made"}, count: @comments.length) + ", " + t(:files_ignored, {one: "1 File Ignored", other: "%{count} Files Ignored"}, count: @failures.length)) %>
+<% provide(:page_title, t(:submissions_upload, "%{assignment} Submissions Upload", assignment: @assignment.title) + ": " + t(:comments_made, { one: "1 Comment Made", other: "%{count} Comments Made" }, count: @comments.length) + ", " + t(:files_ignored, { one: "1 File Ignored", other: "%{count} Files Ignored" }, count: @failures.length)) %>
 
 <% provide :right_side do %>
   <p><%= t(:done, <<~TEXT)

@@ -22,7 +22,7 @@
   item_data ||= { published_status: 'unpublished' }
   completion_criteria ||= nil
   can_direct_share = can_do(@context, @current_user, :direct_share)
-  criterion = completion_criteria&.find{|c| c[:id] == module_item.id}
+  criterion = completion_criteria&.find { |c| c[:id] == module_item.id }
   show_checkpoints = @context.discussion_checkpoints_enabled? && module_item && module_item.content_type == 'DiscussionTopic' && module_item.content.checkpoints?
   item_restrictions ||= nil
   @module_item_image_tags ||= {
@@ -55,7 +55,7 @@
     context_module_item
     <%= 'student-view' if @is_student %>
     <% if module_item&.content.respond_to?(:can_duplicate?) %>
-      <%= 'cannot-duplicate' unless module_item&.content&.can_duplicate?%>
+      <%= 'cannot-duplicate' unless module_item&.content&.can_duplicate? %>
     <% end %>
     <% if module_item&.content.is_a?(Assignment) %>
       <% if !module_item.content.quiz_lti? || Account.site_admin.feature_enabled?(:commons_new_quizzes) %>
@@ -166,14 +166,14 @@
         <% if !@is_student && show_checkpoints %>
             <div class="ig-details__item reply_to_topic_display"></div>
             <div class="ig-details__item reply_to_entry_display"></div>
-        <%end%>
+        <% end %>
         <% show_peer_review_info = !@is_student && module_item && module_item.content_type == 'Assignment' && module_item.content&.peer_reviews? && module_item.content.peer_review_sub_assignment && @context.feature_enabled?(:peer_review_allocation_and_grading) %>
         <% render_peer_review_container = !@is_student && @context.feature_enabled?(:peer_review_allocation_and_grading) && (!module_item || (module_item.content_type == 'Assignment' && module_item.content&.peer_review_sub_assignment)) %>
         <% unless show_peer_review_info %>
           <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-due-date" class="due_date_display ig-details__item"></div>
-          <% if (!module_item && !@is_student) || (module_item&.graded? && !module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true))%>
+          <% if (!module_item && !@is_student) || (module_item&.graded? && !module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true)) %>
             <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-points" class="points_possible_display ig-details__item"></div>
-          <%end%>
+          <% end %>
         <% end %>
         <% if render_peer_review_container %>
           <div class="peer-review-info-container" id="module_teacher_peer_review_info_<%= module_item ? module_item.content_id : "{{ content_id }}" %>_<%= module_item ? module_item.context_module_id : "{{ context_module_id }}" %>" style="<%= 'display: none;' unless show_peer_review_info %>"></div>
@@ -291,7 +291,7 @@
         <div class="inline-block cog-menu-container">
           <a class="al-trigger al-trigger-gray" role="button" tabindex="0">
             <i class="icon-more" aria-hidden="true"></i>
-            <span class="screenreader-only"><%= t('Manage %{item_name}', {item_name: (module_item && module_item.title) ? module_item.title : 'item'})  %></span>
+            <span class="screenreader-only"><%= t('Manage %{item_name}', { item_name: (module_item && module_item.title) ? module_item.title : 'item' }) %></span>
           </a>
           <% if Account.site_admin.feature_enabled?(:additional_speedgrader_links) %>
             <ul class="al-options">
@@ -301,15 +301,15 @@
               <% if @can_add || module_item.nil? %>
                 <% if module_item&.quiz_lti %>
                   <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>?build=true" title="<%= t('Build quiz') %>"><%= @module_item_image_tags['quiz'] %> <%= t('Build') %></a></li>
-                <%end%>
+                <% end %>
               <% end %>
-              <% if @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)%>
+              <% if @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades) %>
                 <% speed_grader_id = module_item ? "#{module_item.content_type_class}-#{module_item.content_id}" : "blank" %>
-                <li id="<%="speed-grader-container-#{speed_grader_id}"%>" role='presentation' class="speed-grader-link-container <%= (module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == 'published') ? '' : 'hidden' %>">
-                  <a href="<%= context_url(@context, :context_url) %>/gradebook/speed_grader?assignment_id=<%= module_item&.assignment.present? ? module_item.assignment.id : "{{ assignment_id }}" %>" target="_blank" rel="noopener" title="<%= t('SpeedGrader')%>"><%= @module_item_image_tags['speed_grader'] %> <%= t('SpeedGrader') %></a>
+                <li id="<%= "speed-grader-container-#{speed_grader_id}" %>" role='presentation' class="speed-grader-link-container <%= (module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == 'published') ? '' : 'hidden' %>">
+                  <a href="<%= context_url(@context, :context_url) %>/gradebook/speed_grader?assignment_id=<%= module_item&.assignment.present? ? module_item.assignment.id : "{{ assignment_id }}" %>" target="_blank" rel="noopener" title="<%= t('SpeedGrader') %>"><%= @module_item_image_tags['speed_grader'] %> <%= t('SpeedGrader') %></a>
                 </li>
               <% end %>
-                <li class="assign-to-option <%= (module_item.present? && module_item.show_assign_to? && module_item.content&.grants_right?(@current_user, :manage_assign_to) ) ? "" : "hidden" %>" role="presentation">
+                <li class="assign-to-option <%= (module_item.present? && module_item.show_assign_to? && module_item.content&.grants_right?(@current_user, :manage_assign_to)) ? "" : "hidden" %>" role="presentation">
                   <a
                     class="module-item-assign-to-link"
                     href="#<%= module_item ? module_item.id : "{{ id }}" %>"
@@ -336,13 +336,13 @@
                     aria-label="<%= t('Move this item') %>"
                     class="move_module_item_link"
                     title="<%= t('Move this item') %>"
-                  ><%= @module_item_image_tags["move_to"]%> <%= t("Move to...") %></a>
+                  ><%= @module_item_image_tags["move_to"] %> <%= t("Move to...") %></a>
                 </li>
                 <% unless @context.horizon_course? %>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="outdent_item_link" title="<%= t('Decrease indent') %>"><%= @module_item_image_tags['outdent'] %> <%= t('Decrease indent') %></a></li>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="indent_item_link" title="<%= t('Increase indent') %>"><%= @module_item_image_tags['indent'] %> <%= t('Increase indent') %></a></li>
                 <% end %>
-              <%end%>
+              <% end %>
               <% if can_direct_share && (!module_item || module_item.direct_shareable?) %>
                 <li role="presentation">
                   <a
@@ -378,7 +378,7 @@
                         launch_options[:module_items] = [module_item ? module_item.id : "{{ id }}"]
                       end
                     %>
-                    <%= external_tools_menu_items(@menu_tools[menu_type], {link_class: "menu_tool_link", settings_key: menu_type, in_list: true, url_params: launch_options}) %>
+                    <%= external_tools_menu_items(@menu_tools[menu_type], { link_class: "menu_tool_link", settings_key: menu_type, in_list: true, url_params: launch_options }) %>
                   <% end %>
                 <% end %>
               <% end %>
@@ -401,13 +401,13 @@
                 </li>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="outdent_item_link" title="<%= t('Decrease indent') %>"><%= @module_item_image_tags['outdent'] %> <%= t('Decrease indent') %></a></li>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="indent_item_link" title="<%= t('Increase indent') %>"><%= @module_item_image_tags['indent'] %> <%= t('Increase indent') %></a></li>
-              <%end%>
+              <% end %>
               <% if @can_add || module_item.nil? %>
                 <% if module_item&.quiz_lti %>
                   <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>?build=true" title="<%= t('Build quiz') %>"><%= @module_item_image_tags['quiz'] %> <%= t('Build') %></a></li>
-                <%end%>
+                <% end %>
                 <li class="dupe-option" role="presentation"><a href="/api/v1<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>/duplicate" class="duplicate_item_link" title="<%= t('Duplicate Item') %>"><%= @module_item_image_tags['duplicate'] %> <%= t('Duplicate') %></a></li>
-              <%end%>
+              <% end %>
               <% if @can_delete || module_item.nil? %>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="delete_item_link delete_link" title="<%= t('Remove this item from the module') %>"><i class="icon-trash"></i> <%= t('Remove') %></a></li>
               <% end %>
@@ -446,7 +446,7 @@
                         launch_options[:module_items] = [module_item ? module_item.id : "{{ id }}"]
                       end
                     %>
-                    <%= external_tools_menu_items(@menu_tools[menu_type], {link_class: "menu_tool_link", settings_key: menu_type, in_list: true, url_params: launch_options}) %>
+                    <%= external_tools_menu_items(@menu_tools[menu_type], { link_class: "menu_tool_link", settings_key: menu_type, in_list: true, url_params: launch_options }) %>
                   <% end %>
                 <% end %>
               <% end %>
@@ -477,7 +477,7 @@
             <span class="ig-type-icon" aria-hidden="true" style="display: inline-block; max-width: 1rem; font-size: 1.125rem;">
               <i class='icon-complete'></i>
             </span>
-            <span class="screenreader-only"><%= t("submitted")%></span>
+            <span class="screenreader-only"><%= t("submitted") %></span>
           <% end %>
           <div style="display: inline-block">
             <div class="module-item-title" style="display: block; margin-left: 10px;">

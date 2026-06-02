@@ -89,7 +89,7 @@
     <% if rubric && !rubric.free_form_criterion_comments && assessment_rating && assessment_rating[:comments] %>
       <div class="assessment-comments">
         <h6><%= t('Instructor Comments') %></h6>
-        <div><%= format_message( assessment_rating[:comments] ).first %></div>
+        <div><%= format_message(assessment_rating[:comments]).first %></div>
       </div>
     <% end %>
   </td>
@@ -121,7 +121,7 @@
           <% rating = ratings[idx];
             last_rating = idx == ratings.length - 1
             edge = idx == 0 || last_rating;
-            next_rating = ratings[idx+1];
+            next_rating = ratings[idx + 1];
             rating_min = next_rating&.points || 0;
             rating_match = assessment_rating && assessment_rating[:points] == rating.points
             use_range = criterion.try(:criterion_use_range) && rating_min.try(:to_f) != rating.points.try(:to_f) && range_rating_enabled;
@@ -147,7 +147,7 @@
                     <a href="#" class="edit_rating_link" role="button" aria-label="<%= t 'Edit rating' %>">
                       <i class="icon-edit standalone-icon" aria-hidden="true"></i>
                     </a>
-                    <a href="#" class="delete_rating_link" role="button" aria-label="<%= t 'Delete rating' %>" <%= "aria-hidden=true" if edge%> >
+                    <a href="#" class="delete_rating_link" role="button" aria-label="<%= t 'Delete rating' %>" <%= "aria-hidden=true" if edge %> >
                       <i class="icon-trash standalone-icon" aria-hidden="true"></i>
                     </a>
                   </div>

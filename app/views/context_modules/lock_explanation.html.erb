@@ -23,6 +23,6 @@
    js_bundle 'module_sequence_footer'
 %>
 <h2><%= @tag.title %></h2>
-<%= lock_explanation({context_module: @tag.context_module, asset_string: "content_tag_#{@tag.id}"}, nil, @context) %>
+<%= lock_explanation({ context_module: @tag.context_module, asset_string: "content_tag_#{@tag.id}" }, nil, @context) %>
 
-<%= render partial: 'shared/sequence_footer', locals: {asset: @tag} %>
+<%= render partial: 'shared/sequence_footer', locals: { asset: @tag } %>

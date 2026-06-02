@@ -42,9 +42,9 @@
     <% end %>
     <%= before_label(:started, "Started") %>
     <%= datetime_string(@submission.started_at) %>
-    <h2><%= t('quiz_instructions','Quiz Instructions') %></h2>
+    <h2><%= t('quiz_instructions', 'Quiz Instructions') %></h2>
     <div id="quiz-instructions" class="user_content">
-      <%= user_content(@quiz.description, location: "quiz_submission_#{@submission.id}")  %>
+      <%= user_content(@quiz.description, location: "quiz_submission_#{@submission.id}") %>
     </div>
 
     <% if @quiz.time_limit %>

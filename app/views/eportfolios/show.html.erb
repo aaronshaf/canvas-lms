@@ -38,7 +38,7 @@
     <div id="section_pages">
       <% if @portfolio.grants_right?(@current_user, :moderate) %>
         <% if @portfolio.spam? %>
-          <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'mark_eportfolio_safe_form', class: 'ic-Form-group' }  do %>
+          <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'mark_eportfolio_safe_form', class: 'ic-Form-group' } do %>
             <input type="hidden" name="eportfolio[spam_status]" value="marked_as_safe"/>
             <button type="submit" class="Button Button--default button-sidebar-wide">
               <i class="icon-check"></i>&nbsp;
@@ -47,7 +47,7 @@
           <% end %>
 
           <% if @portfolio.flagged_as_possible_spam? %>
-            <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'mark_eportfolio_spam_form' }  do %>
+            <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'mark_eportfolio_spam_form' } do %>
               <input type="hidden" name="eportfolio[spam_status]" value="marked_as_spam"/>
               <button type="submit" class="Button Button--default button-sidebar-wide">
                 <i class="icon-flag"></i>&nbsp;
@@ -56,7 +56,7 @@
             <% end %>
           <% end %>
         <% else %>
-          <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'edit_eportfolio_spam_form' }  do %>
+          <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: 'edit_eportfolio_spam_form' } do %>
             <input type="hidden" name="eportfolio[spam_status]" value="marked_as_spam"/>
             <button type="submit" class="Button button-sidebar-wide">
               <i class="icon-flag"></i>&nbsp;
@@ -179,7 +179,7 @@
   <% if can_do(@portfolio, @current_user, :manage) %>
   <div style="float: <%= direction('right') %>; display: none;"><a href="#" class="edit_content_link icon-edit"><%= edit_link_text %></a></div>
   <% end %>
-  <% if @portfolio.spam? && @portfolio.grants_right?(@current_user, :moderate)%>
+  <% if @portfolio.spam? && @portfolio.grants_right?(@current_user, :moderate) %>
     <% if @portfolio.flagged_as_possible_spam? %>
       <p>
         <div class="ic-flash-warning eportfolio_spam_message">
@@ -219,14 +219,14 @@
     </p>
   <% end %>
   <h2 id="eportfolio_entry_<%= @page.id %>"><span class="name"><%= @page.name %></span></h2>
-  <%= form_for @page, url: eportfolio_entry_url(@portfolio, @page), html: {id: "edit_page_form" } do |f| %>
+  <%= form_for @page, url: eportfolio_entry_url(@portfolio, @page), html: { id: "edit_page_form" } do |f| %>
   <div id="page_name_mount"></div>
   <div class="form_content">
     <%= f.hidden_field :name, id: "page_name_field" %>
   </div>
   <div id="page_content">
     <% @page.content_sections.each_with_index do |c, idx| %>
-      <%= render partial: "eportfolios/page_section", object: c, locals: {idx:} %>
+      <%= render partial: "eportfolios/page_section", object: c, locals: { idx: } %>
     <% end %>
   </div>
   <div class="form_content">
@@ -251,7 +251,7 @@
     </tr>
   </table>
   <% end %>
-  <%= render partial: "eportfolios/page_section", object: nil, locals: {idx: "blank"} %>
+  <%= render partial: "eportfolios/page_section", object: nil, locals: { idx: "blank" } %>
   <% if can_do(@portfolio, @current_user, :manage) %>
   <div id="edit_content_templates" style="display: none;">
     <div class="edit_rich_text_content form_content" style="display: none;">
@@ -278,7 +278,7 @@
             <span role="button" class="Button Button--link" style="font-size: 1.2em;" tabindex="0">
               <%= submission.assignment.title %>, <%= submission.assignment.context.name %>
               <span class="screenreader-only">
-                <%=t "click to select" %>
+                <%= t "click to select" %>
               </span>
             </span>
             <div style="float: <%= direction('right') %>; font-size: 0.8em; color: #aaa; margin-<%= direction('right') %>: 20px; margin-top: 0.5em;"><%= datetime_string(submission.submitted_at || submission.updated_at) %></div>
@@ -305,11 +305,11 @@
         <div class="file_list" style="margin-<%= direction('left') %>: 50px; max-height: 200px; overflow: auto;">
           <b><%= t(:no_files, "No Files Uploaded") if @portfolio.user.attachments.active.empty? %></b>
           <% unless @portfolio.user.attachments.active.empty? %>
-            <%= render partial: "files/nested_content", object: @folders.reject(&:parent_folder_id), locals: {folders: @folders} %>
+            <%= render partial: "files/nested_content", object: @folders.reject(&:parent_folder_id), locals: { folders: @folders } %>
           <% end %>
         </div><br/>
         <%= before_label(:file_upload, "Or upload a new file") %><br/>
-        <%= file_field :attachment, :uploaded_data, class: "file_upload", style: "padding-#{ direction('left') }: 50px;" %>
+        <%= file_field :attachment, :uploaded_data, class: "file_upload", style: "padding-#{direction('left')}: 50px;" %>
         <div style="font-size: 0.8em; margin-<%= direction('left') %>: 20px;">
           <%= t("%{file_size_limit} user file quota applies",
                 file_size_limit: number_to_human_size(@current_user.quota)) %>
@@ -328,7 +328,7 @@
       <%= image_tag "ajax-loader-bar.gif", alt: '' %><br/>
       <%= before_label(:uploading_file, "Uploading") %><span class="file_name">&nbsp;</span>...
     </div>
-    <%= form_for :attachment, url: '#', html: {id: "upload_file_form"} do |f| %>
+    <%= form_for :attachment, url: '#', html: { id: "upload_file_form" } do |f| %>
     <% end %>
     <iframe class="submission_preview" style="border: 1px solid #aaa; width: 95%; height: 300px; display: block; margin-<%= direction('left') %>: auto; margin-<%= direction('right') %>: auto;" src="about:blank" title="<%= t("Preview") %>">
     </iframe>
@@ -365,7 +365,7 @@
     %></p>
   <% end %>
   <% if @page.allow_comments %>
-    <%= form_for :page_comment, url: eportfolio_entry_page_comments_path(@portfolio.id, @page.id), html: {id: "add_page_comment_form", style: "margin-top: 20px;"} do |f| %>
+    <%= form_for :page_comment, url: eportfolio_entry_page_comments_path(@portfolio.id, @page.id), html: { id: "add_page_comment_form", style: "margin-top: 20px;" } do |f| %>
       <h3><%= before_label(:add_comment, "Add a New Comment") %></h3>
       <% if @current_user %>
         <%= f.text_area :message, style: "width: 400px; height: 75px;" %>
@@ -397,7 +397,7 @@
   <div style="text-align: <%= direction('left') %>; font-size: 1.2em; margin: 30px 10px 0;">
     <a href="<%= eportfolio_url(@portfolio.id) %>" class="delete_eportfolio_link icon-trash"><%= t('links.delete', "Delete this ePortfolio") %></a>
   </div>
-  <%= form_tag eportfolio_url(@portfolio.id), {method: :delete, id: "delete_eportfolio_form", style: "margin-top: 20px; margin-#{direction('left')}: 20px; display: none;"} do %>
+  <%= form_tag eportfolio_url(@portfolio.id), { method: :delete, id: "delete_eportfolio_form", style: "margin-top: 20px; margin-#{direction('left')}: 20px; display: none;" } do %>
     <%= t(:delete_confirm, {
         one: "You currently have 1 page in this ePortfolio. Are you sure you want to delete the entire ePortfolio?",
         other: "You currently have %{count} pages in this ePortfolio. Are you sure you want to delete the entire ePortfolio?"

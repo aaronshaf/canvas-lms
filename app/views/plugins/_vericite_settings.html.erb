@@ -89,7 +89,7 @@
     </tr>
     <tr>
       <td><%= f.blabel :type, en: "Students Can See the Originality Report" %></td>
-      <td><%= f.select :release_to_students, {"Immediately"=>'immediate', "After the assignment is graded"=>'after_grading', "After the Due Date"=>'after_due_date', "Never"=>'never'}, selected: settings[:release_to_students] %>
+      <td><%= f.select :release_to_students, { "Immediately" => 'immediate', "After the assignment is graded" => 'after_grading', "After the Due Date" => 'after_due_date', "Never" => 'never' }, selected: settings[:release_to_students] %>
     </tr>
     <tr>
       <td><%= f.blabel :exclude_quotes, en: "Exclude Quotes" %></td>

@@ -23,13 +23,13 @@
   (current_enrollment.course.created? || current_enrollment.course.claimed?) && is_current_term
 %>
 <% unless dashboard %>
-  <tr class="course-list-table-row <%='course-list-unpublished-course-row' if unpublished_course_redesign %>">
+  <tr class="course-list-table-row <%= 'course-list-unpublished-course-row' if unpublished_course_redesign %>">
 <% end %>
 <% if current_enrollment.workflow_state == "invited" && !current_enrollment.inactive? %>
   <div class="<%= dashboard ? 'communication_message dashboard_notification alert alert-info' : 'reminder' %>">
     <h2><a href="<%= course_path(current_enrollment.course_id, invitation: current_enrollment.uuid) %>"><%= current_enrollment.long_name %></a></h2>
     <div class="body">
-      <%=  render partial: 'shared/invitation', object: current_enrollment %>
+      <%= render partial: 'shared/invitation', object: current_enrollment %>
     </div>
   </div>
 <% else %>
@@ -129,7 +129,7 @@
           <% else %>
             <% issues_count = accessibility_issues_count(current_enrollment.course) %>
             <% if issues_count > 0 %>
-              <span class="status-pill"><%= t('issue_count', {one: "%{count} issue", other: "%{count} issues"}, count: issues_count) %></span>
+              <span class="status-pill"><%= t('issue_count', { one: "%{count} issue", other: "%{count} issues" }, count: issues_count) %></span>
             <% else %>
                 <i class="icon-publish icon-Solid"></i>
                 <span class="message"><%= t('no_issues', "No issues") %></span>

@@ -4,7 +4,7 @@
       <input type="text" name="parameters[start_at]" class="datetime_field" value="<%= date_string(@term.try(:start_at)) %>" />
     </td>
   </tr>
-<%end%>
+<% end %>
 <% if end_at_option %>
   <tr>
     <td>
@@ -12,4 +12,4 @@
       <input type="text" name="parameters[end_at]" class="datetime_field" value="<%= date_string(@term.try(:end_at)) %>" />
     </td>
   </tr>
-<%end%>
+<% end %>

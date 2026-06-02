@@ -17,7 +17,7 @@
 %>
 <% provide :right_side do %>
   <div class="rs-margin-bottom">
-    <% chain = (@context.account_chain rescue [@domain_root_account]).select{|a| can_do(a, @current_user, :manage) }; %>
+    <% chain = (@context.account_chain rescue [@domain_root_account]).select { |a| can_do(a, @current_user, :manage) }; %>
     <% unless chain.empty? %>
       <%= before_label :see_results, "See %{user_name}'s results for", user_name: @user.short_name %>
       <ul>
@@ -91,7 +91,7 @@
     <tr class=" <%= 'js_unassessed_outcome' if results.empty? %>">
       <td class="short_description"><%= outcome.short_description %></td>
       <td class="attempts">
-        <%= t :attempts_from_artifacts, "%{attempts} *from %{artifacts}*", wrapper: '<div class="sub_attempt">\1</div>', attempts: t(:attempts, "attempt", count: results.sum{|r| [1, r.attempt || 0].max }), artifacts: t(:artifacts, "artifact", count: results.length) %>
+        <%= t :attempts_from_artifacts, "%{attempts} *from %{artifacts}*", wrapper: '<div class="sub_attempt">\1</div>', attempts: t(:attempts, "attempt", count: results.sum { |r| [1, r.attempt || 0].max }), artifacts: t(:artifacts, "artifact", count: results.length) %>
       </td>
       <td class="latest_score <%= 'mastery' if results[-1]&.mastery %>" title="<%= results[-1]&.mastery ? t(:mastery, "Mastery on latest attempt") : t(:no_mastery, "No Mastery on latest attempt") %>">
         <% if results.empty? %>

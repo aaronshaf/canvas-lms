@@ -10,11 +10,11 @@
         count: n(data.count),
         name: asset.context.name) %>
 
-<%= data.display_names.first(Attachment::NOTIFICATION_MAX_DISPLAY).map { |title| title }.join(', ') %><%= '.'%>
+<%= data.display_names.first(Attachment::NOTIFICATION_MAX_DISPLAY).map { |title| title }.join(', ') %><%= '.' %>
 
 <% if data.count > Attachment::NOTIFICATION_MAX_DISPLAY %>
   <%= t('The first %{max_displayed} files are listed.',
-  max_displayed: Attachment::NOTIFICATION_MAX_DISPLAY)%>
+  max_displayed: Attachment::NOTIFICATION_MAX_DISPLAY) %>
 <% end %>
 
 <%= t 'link', 'You can view them here' %>

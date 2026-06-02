@@ -20,6 +20,6 @@
   provide :page_title, t(:page_title, 'Shared Content')
   css_bundle :content_shares
   js_bundle :content_shares
-  add_crumb(@user.short_name, user_profile_path(@current_user) )
-  add_crumb(t('Shared Content'), content_shares_profile_path )
+  add_crumb(@user.short_name, user_profile_path(@current_user))
+  add_crumb(t('Shared Content'), content_shares_profile_path)
 %>

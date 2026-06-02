@@ -22,7 +22,7 @@
     <span class="title"><%= t('headers.due', 'Due') %></span>
     <span class="value">
       <% if @quiz.multiple_due_dates_apply_to?(@current_user) %>
-        <%=  t(:multiple_due_dates, 'Multiple Due Dates') %>
+        <%= t(:multiple_due_dates, 'Multiple Due Dates') %>
       <% elsif (due_at = @quiz.overridden_for(@current_user).due_at) %>
         <span <%= context_sensitive_datetime_title(due_at, @quiz.context) %>>
           <%= datetime_string(due_at) %>
@@ -42,7 +42,7 @@
     <span class="title"><%= t('headers.questions', "Questions") %></span>
     <span class="value"><%= @question_count || 0 %></span>
   </li>
-  <%= render partial: "shared/available_dates", locals: {association: @quiz} %>
+  <%= render partial: "shared/available_dates", locals: { association: @quiz } %>
   <li>
     <span class="title"><%= t('headers.time_limit', "Time Limit") %></span>
     <span class="value">

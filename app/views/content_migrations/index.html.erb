@@ -18,7 +18,7 @@
 
 <%
   folders = @context.active_folders.by_position.select(%i[id name parent_folder_id]).to_a
-  root_folders = folders.select{|f| f.parent_folder_id.nil?}
+  root_folders = folders.select { |f| f.parent_folder_id.nil? }
 
   provide :page_title, join_title(t(:page_title, "Import Content"), @context.name)
   deferred_js_bundle :content_migrations

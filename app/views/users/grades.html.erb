@@ -29,7 +29,7 @@
     <td style="display: none;"><a href="#" title="<%= t('send_teacher_message', 'Send a Message to the Teacher') %>" class="no-hover"><%= image_tag "email.png", alt: t('Send a Message to the Teacher') %></a></td>
     <td class="grading_period_dropdown">
       <% if @grading_periods[course.id] %>
-          <%= render partial: "shared/grading_periods_selector", locals: {selected_period_id: @grading_periods[course.id][:selected_period_id], enrollment_id: enrollment.global_id, grading_periods: @grading_periods[course.id][:periods], all_grading_periods_option: course.display_totals_for_all_grading_periods?} %>
+          <%= render partial: "shared/grading_periods_selector", locals: { selected_period_id: @grading_periods[course.id][:selected_period_id], enrollment_id: enrollment.global_id, grading_periods: @grading_periods[course.id][:periods], all_grading_periods_option: course.display_totals_for_all_grading_periods? } %>
       <% end %>
     </td>
   </tr>
@@ -43,7 +43,7 @@
   <tr>
     <td class="course"><a href="<%= course_student_grades_path(enrollment.course_id, enrollment.user_id) %>"><%= context_user_name(enrollment.course, enrollment.user_id) %>, <%= enrollment.course.name %></a></td>
     <td class="percent">
-      <% if enrollment.course.hide_final_grades? || (@grading_periods[enrollment.course_id] && @grading_periods[enrollment.course_id][:selected_period_id] == 0 && !enrollment.course.display_totals_for_all_grading_periods?)%>
+      <% if enrollment.course.hide_final_grades? || (@grading_periods[enrollment.course_id] && @grading_periods[enrollment.course_id][:selected_period_id] == 0 && !enrollment.course.display_totals_for_all_grading_periods?) %>
         --
       <% elsif @grades&.dig(:observed_enrollments, enrollment.course_id, enrollment.user_id) %>
         <% if enrollment.course.restrict_quantitative_data?(@current_user) %>
@@ -58,7 +58,7 @@
     <td style="display: none;"><a href="#" title="<%= t('send_teacher_message', 'Send a Message to the Teacher') %>" class="no-hover"><%= image_tag "email.png", alt: t('Send a Message to the Teacher') %></a></td>
     <td class="grading_period_dropdown">
       <% if @grading_periods[enrollment.course_id] %>
-          <%= render partial: "shared/grading_periods_selector", locals: {selected_period_id: @grading_periods[enrollment.course_id][:selected_period_id], enrollment_id: enrollment.global_id, grading_periods: @grading_periods[enrollment.course_id][:periods], all_grading_periods_option: enrollment.course.display_totals_for_all_grading_periods?} %>
+          <%= render partial: "shared/grading_periods_selector", locals: { selected_period_id: @grading_periods[enrollment.course_id][:selected_period_id], enrollment_id: enrollment.global_id, grading_periods: @grading_periods[enrollment.course_id][:periods], all_grading_periods_option: enrollment.course.display_totals_for_all_grading_periods? } %>
       <% end %>
     </td>
   </tr>
@@ -73,12 +73,12 @@
     <td class="course" style="vertical-align: middle;"><a href="<%= course_grades_path(enrollment.course_id) %>"><%= enrollment.course.name %></a></td>
     <td class="percent">
       <% if @presenter.course_grade_summaries[enrollment.course_id][:score] %>
-        <% if enrollment.course.restrict_quantitative_data?(@current_user)%>
-          <%= enrollment.course.score_to_grade(@presenter.course_grade_summaries[enrollment.course_id][:score], user: @current_user)%>
-        <%else%>
+        <% if enrollment.course.restrict_quantitative_data?(@current_user) %>
+          <%= enrollment.course.score_to_grade(@presenter.course_grade_summaries[enrollment.course_id][:score], user: @current_user) %>
+        <% else %>
           <%= n(@presenter.course_grade_summaries[enrollment.course_id][:score], percentage: true, precision: 2) %>
-        <%end%>
-        <div style="font-size: 0.6em; font-weight: normal;"><%= t('average_grades', {one: "average for 1 student", other: "average for %{count} students"}, count: @presenter.course_grade_summaries[enrollment.course_id][:students]) %></div>
+        <% end %>
+        <div style="font-size: 0.6em; font-weight: normal;"><%= t('average_grades', { one: "average for 1 student", other: "average for %{count} students" }, count: @presenter.course_grade_summaries[enrollment.course_id][:students]) %></div>
       <% else %>
         <span style="font-weight: normal; font-size: 0.9em;"><%= t('no_grades', 'no grades') %></span>
       <% end %>

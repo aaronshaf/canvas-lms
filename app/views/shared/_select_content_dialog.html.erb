@@ -113,7 +113,7 @@
           <i class="icon-link"></i>
           <%= t :external_tool_notice, "Select a tool from the list below, or enter a URL for an external tool you already know is configured with Basic LTI to add a link to it to this *module*.", wrapper: '<span class="holder_type">\1</span>' %>
         </div>
-        <a href="<%= context_url(@context, controller:'lti/lti_apps', action:'launch_definitions', placements: lti_app_placements, per_page: '100') %>" class="external_tools_url" style="display: none;">&nbsp;</a>
+        <a href="<%= context_url(@context, controller: 'lti/lti_apps', action: 'launch_definitions', placements: lti_app_placements, per_page: '100') %>" class="external_tools_url" style="display: none;">&nbsp;</a>
         <input type="hidden" name="custom_params" id="external_tool_create_custom_params" />
         <input type="hidden" name="assignment_id" id="external_tool_create_assignment_id" />
         <input type="hidden" name="iframe_width" id="external_tool_create_iframe_width"/>
@@ -170,7 +170,7 @@
         <select class="module_item_select mathjax_ignore" aria-label="<%= page_label %>" multiple>
           <%# cache on the context.wiki instead of just the context because even though it will require a db query, we will get a much better cache hit rate %>
           <option value="new"><%= t :create_page_option, "[ Create Page ]" %></option>
-          <% cache([@context.wiki, 'non_deleted_wiki_pages_1']) do  %>
+          <% cache([@context.wiki, 'non_deleted_wiki_pages_1']) do %>
             <% @context.wiki_pages.not_deleted.reorder(WikiPage.best_unicode_collation_key('title')).select(:id, :title).each do |page| %>
               <% if page && !page.new_record? %>
                 <option value="<%= page.id %>"><%= page.title %></option>
@@ -214,7 +214,7 @@
               <td>
                 <% Folder.root_folders(@context) %>
                 <% folders = @context.active_folders.select(%i[id name parent_folder_id]).to_a %>
-                <% root_folders = folders.select{|f| f.parent_folder_id.nil?} %>
+                <% root_folders = folders.select { |f| f.parent_folder_id.nil? } %>
                 <select name="attachment[folder_id]" id="attachment_folder_id">
                   <%= folders_as_options(root_folders, all_folders: folders, max_depth: 1) %>
                 </select>

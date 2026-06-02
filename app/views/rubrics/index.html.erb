@@ -33,19 +33,19 @@
   </style>
 
 <% js_bundle 'rubrics_index' %>
-<% if @context.root_account.feature_enabled?(:instui_nav)%>
+<% if @context.root_account.feature_enabled?(:instui_nav) %>
   <div class="rubric-header">
     <div class="rubric-header-left">
       <h1 class="rubric-title"><%= t('#crumbs.rubrics', "Rubrics") %></h1>
     </div>
-    <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics)%>
+    <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics) %>
         <a href="<%= context_url(@context, :context_rubrics_url) %>" role="button" class="Button Button--primary add_rubric_link">
           <i class="icon-add" style="margin-right: 7px;"></i>
           <%= t('buttons.add_rubric', 'Add Rubric') %>
         </a>
     <% end %>
   </div>
-<% elsif js_env.dig(:PERMISSIONS, :manage_rubrics)%>
+<% elsif js_env.dig(:PERMISSIONS, :manage_rubrics) %>
   <% provide :right_side do %>
     <a href="<%= context_url(@context, :context_rubrics_url) %>" role="button" class="btn button-sidebar-wide add_rubric_link">
       <i class="icon-add"></i>
@@ -82,8 +82,8 @@
         <% end %>
       </span>
       <span class="details">
-        <%= t({one: "1 criterion", other: "%{count} criteria"}, count: rubric.criteria.length) %><br/>
-        <%= t('points_possible', {one: "1 point possible", other: "%{count} points possible"}, count: round_if_whole(rubric.points_possible)) unless rubric.points_possible.nil? %>
+        <%= t({ one: "1 criterion", other: "%{count} criteria" }, count: rubric.criteria.length) %><br/>
+        <%= t('points_possible', { one: "1 point possible", other: "%{count} points possible" }, count: round_if_whole(rubric.points_possible)) unless rubric.points_possible.nil? %>
       </span>
     </li>
   <% end %>
@@ -98,5 +98,5 @@
 </div>
 <div id="rubric_attic" style="display: none;"></div>
 <%= render partial: "shared/find_outcome" %>
-<%= render partial: "shared/rubric", object: nil, locals: {for_context: true} %>
+<%= render partial: "shared/rubric", object: nil, locals: { for_context: true } %>
 <%= render partial: "shared/rubric_criterion_dialog" %>

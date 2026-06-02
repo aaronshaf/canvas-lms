@@ -37,15 +37,15 @@
   if is_sub_assignment
     num_replies = recent_event&.parent_assignment&.discussion_topic&.reply_to_entry_required_count || 1
     title = if recent_event.sub_assignment_tag == 'reply_to_topic'
-              t('%{title} Reply to Topic', {title: recent_event.title})
+              t('%{title} Reply to Topic', { title: recent_event.title })
             else
-              t('%{title} Required Replies (%{num_replies})', {title: recent_event.title, num_replies:})
+              t('%{title} Required Replies (%{num_replies})', { title: recent_event.title, num_replies: })
             end
   else
     title = recent_event.title
   end
 
-  cache([ 'recent_event_render3',
+  cache(['recent_event_render3',
           @current_user&.course_nickname_hash,
           submission || 'no_submission',
           recent_event || 'blank_event',
@@ -55,7 +55,7 @@
           recent_event.context.short_name,
           recent_event.context.grants_right?(@current_user, :manage_grades),
           recent_event.context.grants_right?(@current_user, :participate_as_student)
-        ].cache_key) do
+].cache_key) do
     _icon_explanation, icon_aria_label, icon_class = icon_data(context: @context,
                                                                contexts: @contexts,
                                                                current_user: @current_user,
@@ -87,7 +87,7 @@
             <%= readable_grade(submission) %>
             &bullet;
           <% elsif recent_event.points_possible %>
-            <%= t({one: '1 point', other: '%{count} points'}, count: round_if_whole(recent_event.points_possible)) %>
+            <%= t({ one: '1 point', other: '%{count} points' }, count: round_if_whole(recent_event.points_possible)) %>
             &bullet;
           <% end %>
           <%= due_at(recent_event, @current_user) %>

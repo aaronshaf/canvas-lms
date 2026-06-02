@@ -29,7 +29,7 @@
   skip_sub_entries ||= false
   read_state = entry ? entry.read_state(@current_user) : "read"
   link_to_headless ||= false
-  headless_param = {headless: 1, embed: true, hide_student_names:, student_id: user_id} if link_to_headless
+  headless_param = { headless: 1, embed: true, hide_student_names:, student_id: user_id } if link_to_headless
   hide_student_names ||= nil
   use_discussion_toggle_link ||= false
   discussion_checkpoints_enabled = entry_context.discussion_checkpoints_enabled?
@@ -111,7 +111,7 @@
       <% entries ||= []; @grouped_entries ||= {} %>
       <% if entry && !skip_sub_entries %>
         <% entries = @grouped_entries[entry.id] %>
-        <% entries ||= [] #entry.discussion_subentries.active %>
+        <% entries ||= [] # entry.discussion_subentries.active %>
         <% if entries.length > 3 %>
           <div class="communication_sub_message">
             <div class="content behavior_content">
@@ -120,7 +120,7 @@
           </div>
         <% end %>
         <% entries.each_with_index do |entry, idx| %>
-          <%= render partial: "discussion_topics/sub_entry", locals: {entry:, hide_entry: entries.length > 3 && idx < entries.length - 2} %>
+          <%= render partial: "discussion_topics/sub_entry", locals: { entry:, hide_entry: entries.length > 3 && idx < entries.length - 2 } %>
         <% end %>
       <% end %>
       <% if entry&.editor_id && entry.editor_id != entry.user_id %>
@@ -133,7 +133,7 @@
           <a href="#" class="add_entry_link textarea"><%= t :make_side_comment, "Make a Side Comment..." %></a>
         </div>
       </div>
-      <%= render partial: 'discussion_topics/sub_entry', locals: {entry: nil, parent_entry: entry || topic} %>
+      <%= render partial: 'discussion_topics/sub_entry', locals: { entry: nil, parent_entry: entry || topic } %>
     </div>
   </div>
   <div style="display: none;">

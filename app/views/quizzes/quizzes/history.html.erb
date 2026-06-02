@@ -41,14 +41,14 @@
 <div class='<%= quiz_nav_class %> pagination'>
   <ul class='nav'>
     <li class='nav-arrow' id='nav-prev'>
-      <a href='#' id='nav-link-prev' title='<%= t(:prev_questions_arrow_title, "Previous questions")%>'>&lt;</a>
+      <a href='#' id='nav-link-prev' title='<%= t(:prev_questions_arrow_title, "Previous questions") %>'>&lt;</a>
     </li>
     <li>
       <div id='quiz-nav-inner-wrapper'>
         <ul>
           <% @submission.questions.each_with_index do |question, i| %>
             <% index = i + 1 %>
-            <li id='quiz_nav_<%= question['id'] %>' class="q<%= index %> quiz-nav-li" data-id='<%= question['id'] %>' data-index='<%=i%>'>
+            <li id='quiz_nav_<%= question['id'] %>' class="q<%= index %> quiz-nav-li" data-id='<%= question['id'] %>' data-index='<%= i %>'>
               <a class='question_<%= question['id'] %> question-nav-link' data-id='<%= question['id'] %>' href="#question_<%= question['id'] %>">
                 <%= index %>
               </a>
@@ -58,7 +58,7 @@
       </div>
     </li>
     <li class='nav-arrow' id='nav-next'>
-      <a href='#' id='nav-link-next' title='<%= t(:next_questions_arrow_title, "Next questions")%>'>&gt;</a>
+      <a href='#' id='nav-link-next' title='<%= t(:next_questions_arrow_title, "Next questions") %>'>&gt;</a>
     </li>
   </ul>
 </div>
@@ -115,10 +115,10 @@
             <% if @current_submission.attempts_left <= 0 %>
               <%= t(:no_more_attempts, "%{user} has no attempts left", user: user_name) %>
             <% else %>
-              <%= t(:count_attempts_left, {one: "%{user} has 1 attempt left", other: "%{user} has %{count} attempts left"}, user: user_name, count: @current_submission.attempts_left) %>
+              <%= t(:count_attempts_left, { one: "%{user} has 1 attempt left", other: "%{user} has %{count} attempts left" }, user: user_name, count: @current_submission.attempts_left) %>
             <% end %>
             <% if can_do(@submission, @current_user, :add_attempts) %>
-              <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: {method: :post} do %>
+              <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: { method: :post } do %>
                 <input type="hidden" name="extra_attempts" value="<%= (@current_submission.extra_attempts || 0) + 1 %>"/>
                 <button type="submit" class="btn"><%= t('buttons.allow_extra_attempt', "Allow this student an extra attempt") %></button>
               <% end %>
@@ -145,7 +145,7 @@
       <%= t(:unnamed_quiz_results, "Quiz Results for %{user}", user: user_name) %>
     <% end %>
 
-    <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, @current_user, :view_log)%>
+    <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, @current_user, :view_log) %>
       <%= link_to t(:view_log, 'View Log'),
         course_quiz_quiz_submission_events_url(@context, @quiz, @submission),
         { "class" => "pull-right" }
@@ -168,7 +168,7 @@
     <%= t(:quiz_not_yet_taken_or_in_progress, "Quiz hasn't been taken yet or is currently in progress") %>
   <% end %>
 <% else %>
-  <%= form_tag context_url(@context, :context_quiz_quiz_submission_url, @quiz.id, @submission.id), {method: :put, id: "update_history_form"} do %>
+  <%= form_tag context_url(@context, :context_quiz_quiz_submission_url, @quiz.id, @submission.id), { method: :put, id: "update_history_form" } do %>
     <input type="hidden" name="override_scores" value="true"/>
     <input type="hidden" name="hide_student_name" value="<%= params[:hide_student_name] || 0 %>"/>
 
@@ -176,7 +176,7 @@
       <input type="hidden" name="headless" value="1"/>
     <% end %>
     <input type="hidden" name="submission_version_number" value="<%= @submission.version_number %>"/>
-    <%= render partial: "quiz_submission", locals: {editable: can_do(@quiz, @current_user, :grade)} %>
+    <%= render partial: "quiz_submission", locals: { editable: can_do(@quiz, @current_user, :grade) } %>
   <% end %>
 <% end %>
 

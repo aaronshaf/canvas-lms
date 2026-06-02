@@ -15,9 +15,9 @@
 <p>
 <%=
     if data.user_id == user.id
-      t('body_student', {one: "An alert has been triggered for you because the following condition has been met:", other: "An alert has been triggered for you because the following conditions have been met:"}, count: asset.criteria.length)
+      t('body_student', { one: "An alert has been triggered for you because the following condition has been met:", other: "An alert has been triggered for you because the following conditions have been met:" }, count: asset.criteria.length)
     else
-      t('body', {one: "An alert has been triggered for %{student} because the following condition has been met:", other: "An alert has been triggered for %{student} because the following conditions have been met:"}, count: asset.criteria.length, student: data.student_name)
+      t('body', { one: "An alert has been triggered for %{student} because the following condition has been met:", other: "An alert has been triggered for %{student} because the following conditions have been met:" }, count: asset.criteria.length, student: data.student_name)
     end
 %>
 </p>

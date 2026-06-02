@@ -77,7 +77,7 @@
           </div>
         <% end %>
       </div>
-      <% if @presenter.editable? && !@context.restrict_quantitative_data?(@current_user)%>
+      <% if @presenter.editable? && !@context.restrict_quantitative_data?(@current_user) %>
         <div id="whatif-score-description">
           <%= whatif_instructions %>
         </div>
@@ -192,7 +192,7 @@
                         <% if @presenter.student_is_user? || @presenter.user_an_observer_of_student? %>
                           <a href="<%= context_url(@context, :context_assignment_url, link_assignment) %>"><%= assignment.title %></a>
                         <% else %>
-                          <a href="<%= speed_grader_course_gradebook_url({course_id: link_assignment.context_id, assignment_id: link_assignment}.merge({student_id: submission.user_id, only_path: true})) %>" target="_blank" rel="noopener"><%= assignment.title %></a>
+                          <a href="<%= speed_grader_course_gradebook_url({ course_id: link_assignment.context_id, assignment_id: link_assignment }.merge({ student_id: submission.user_id, only_path: true })) %>" target="_blank" rel="noopener"><%= assignment.title %></a>
                         <% end %>
                       <% else %>
                         <a href="<%= context_url(@context, :context_assignment_submission_url, link_assignment, @presenter.student_id) %>"><%= assignment.title %></a>
@@ -206,17 +206,17 @@
                   <% end %>
                 </th>
                 <td class="due">
-                  <% if assignment_presenter.has_no_group_weight?  %>
+                  <% if assignment_presenter.has_no_group_weight? %>
                     <%= datetime_string(assignment.due_at, :due_date) rescue "" %>
                   <% end %>
                 </td>
                 <td class="submitted">
-                  <% if assignment_presenter.has_no_group_weight?  %>
+                  <% if assignment_presenter.has_no_group_weight? %>
                     <%= datetime_string(submission.submitted_at, :submitted_at) rescue "" %>
                   <% end %>
                 </td>
                 <td class="status" scope="row">
-                  <% if assignment_presenter.custom_grade_status?%>
+                  <% if assignment_presenter.custom_grade_status? %>
                     <span class="submission-custom-grade-status-pill-<%= assignment_presenter.custom_grade_status_id %>">
                   <% elsif assignment_presenter.missing? %>
                     <span class="submission-missing-pill"></span>
@@ -229,7 +229,7 @@
 
                 <td class="assignment_score" title="<%= t(:click_to_change, "Click to test a different score") unless assignment_presenter.unchangeable? %>">
                   <div style="position: relative; height: 100%;" class="score_holder">
-                    <% if assignment_presenter.upload_status.blank?  %>
+                    <% if assignment_presenter.upload_status.blank? %>
                       <% js_bundle :progress_pill %>
                       <span class="assignment_presenter_for_submission" style="display: none;"><%= assignment_presenter.upload_status %></span>
                       <span class="react_pill_container"></span>
@@ -410,7 +410,7 @@
                             url = context_url(@context, :context_assignment_submission_turnitin_report_url, assignment.id, @presenter.student_id, submission.asset_string)
                           elsif assignment_presenter.originality_report? && turnitin
                             asset_string = assignment_presenter.file&.asset_string || assignment_presenter.submission&.asset_string
-                            url = polymorphic_url([ @context, assignment, submission, :originality_report], asset_string:, attempt: submission.attempt, only_path: true)
+                            url = polymorphic_url([@context, assignment, submission, :originality_report], asset_string:, attempt: submission.attempt, only_path: true)
                             anchor_title = turnitin[:error_message] || t('Originality Report')
                             alt_text = turnitin[:error_message] || t('Originality Report')
                           elsif assignment_presenter.is_online_upload? && assignment_presenter.file
@@ -477,35 +477,35 @@
                 <% end %>
                 <% if assignment.special_class %>
                   <span class="possible points_possible"></span>
-                <%end%>
+                <% end %>
                 </td>
                 <td></td>
               </tr>
               <% if assignment.has_sub_assignments? %>
-                <% assignment.sub_assignments.map{ |sa| sa.overridden_for(@current_user) }.sort_by{ |sa| (sa.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC) ? 0 : 1 }.each do |sub_assignment| %>
+                <% assignment.sub_assignments.map { |sa| sa.overridden_for(@current_user) }.sort_by { |sa| (sa.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC) ? 0 : 1 }.each do |sub_assignment| %>
                   <%
-                    sa_submission = @presenter.submissions.detect{ |s| s.assignment_id == sub_assignment.id }
+                    sa_submission = @presenter.submissions.detect { |s| s.assignment_id == sub_assignment.id }
                     sub_assignment_presenter = GradeSummaryAssignmentPresenter.new(@presenter, @current_user, sub_assignment, sa_submission)
                     last_row = (sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY) ? "last_sub_assignment_row" : ""
                   %>
                   <tr id="sub_assignment_<%= sub_assignment.id %>" class="sub_assignment_row parent_assignment_id_<%= "#{assignment.id} #{last_row}".strip %>" style="display: none;" aria-label="<%= t("discussion checkpoint row") %>">
                     <% if sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC %>
                       <td class="title" scope="row"> <%= t "Reply To Topic" %> </td>
-                    <% else%>
-                      <td> <%=t("Reply To Entry (%{required_count})", required_count: assignment.discussion_topic&.reply_to_entry_required_count || 0) %> </td>
-                    <% end%>
+                    <% else %>
+                      <td> <%= t("Reply To Entry (%{required_count})", required_count: assignment.discussion_topic&.reply_to_entry_required_count || 0) %> </td>
+                    <% end %>
                     <td class="due">
-                      <% if sub_assignment_presenter.has_no_group_weight?  %>
+                      <% if sub_assignment_presenter.has_no_group_weight? %>
                         <%= datetime_string(sa_submission.cached_due_date, :due_date) rescue "" %>
                       <% end %>
                     </td>
                     <td class="submitted">
-                      <% if sub_assignment_presenter.has_no_group_weight?  %>
+                      <% if sub_assignment_presenter.has_no_group_weight? %>
                         <%= datetime_string(sa_submission.submitted_at, :submitted_at) rescue "" %>
                       <% end %>
                     </td>
                     <td class="status" scope="row">
-                      <% if sub_assignment_presenter.custom_grade_status?%>
+                      <% if sub_assignment_presenter.custom_grade_status? %>
                         <span class="submission-custom-grade-status-pill-<%= sub_assignment_presenter.custom_grade_status_id %>"></span>
                       <% elsif sub_assignment_presenter.missing? %>
                         <span class="submission-missing-pill"></span>
@@ -517,7 +517,7 @@
                     </td>
                     <td class="assignment_score">
                       <div style="position: relative; height: 100%;" class="score_holder">
-                        <% if sub_assignment_presenter.upload_status.blank?  %>
+                        <% if sub_assignment_presenter.upload_status.blank? %>
                           <% js_bundle :progress_pill %>
                           <span class="assignment_presenter_for_submission" style="display: none;"><%= sub_assignment_presenter.upload_status %></span>
                           <span class="react_pill_container"></span>
@@ -751,7 +751,7 @@
                         <% end %>
                       </div>
                       <div class="rubric-toggle"><a href="#" data-aria="rubric_<%= assignment.id %>" class="screenreader-toggle pull-left"><%= t(:close_rubric, 'Close Rubric') %></a></div>
-                      <% if @domain_root_account.feature_enabled?(:non_scoring_rubrics)%>
+                      <% if @domain_root_account.feature_enabled?(:non_scoring_rubrics) %>
                         <div
                           class="react_rubric_container rubric <%= "for_grading" if assessment.active_rubric_association? && assessment.rubric_association.try(:use_for_grading) %>"
                           id="<%= assessment.rubric ? "rubric_#{assessment.rubric&.id}" : "default_rubric" %>"

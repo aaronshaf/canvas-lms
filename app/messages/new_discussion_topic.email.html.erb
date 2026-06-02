@@ -4,7 +4,7 @@
 
 <% define_content :subject do %>
   <%= t :subject, "New Discussion - %{discussion_topic}: %{course}", discussion_topic: asset.title, course: asset.context.name %>
-<%end%>
+<% end %>
 
 <% define_content :footer_link do %>
   <a href="<%= content(:link) %>">

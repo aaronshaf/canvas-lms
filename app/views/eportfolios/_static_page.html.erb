@@ -48,7 +48,7 @@
     <h2><%= @page.name %></h2>
     <div id="page_content">
       <% @page.content_sections.each_with_index do |c, idx| %>
-        <%= render partial: "eportfolios/page_section_static", object: c, locals: {idx:, read_only: true} %>
+        <%= render partial: "eportfolios/page_section_static", object: c, locals: { idx:, read_only: true } %>
       <% end %>
     </div>
   </div>

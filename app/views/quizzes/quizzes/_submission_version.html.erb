@@ -25,7 +25,7 @@
     <% end %>
   </th>
   <td>
-    <a href="<%= course_quiz_history_path(@context, @quiz, version: version.version_number)%>">
+    <a href="<%= course_quiz_history_path(@context, @quiz, version: version.version_number) %>">
       <%= t 'attempt_number', 'Attempt %{att_no}', att_no: index %>
     </a>
   </td>
@@ -37,20 +37,20 @@
 
   <% if submission_has_regrade?(@submission) && version.score_before_regrade.present? %>
     <td>
-      <%= render partial: 'submission_version_score', locals: {version:, before_regrade: true} %>
+      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: true } %>
     </td>
     <td class="regraded">
-      <%= render partial: 'submission_version_score', locals: {version:, before_regrade: false} %>
+      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
     </td>
 
   <% elsif submission_has_regrade?(@submission) %>
     <td>
-      <%= render partial: 'submission_version_score', locals: {version:, before_regrade: false} %>
+      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
     </td>
     <td class="regraded">-</td>
   <% else %>
     <td>
-      <%= render partial: 'submission_version_score', locals: {version:, before_regrade: false} %>
+      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
     </td>
   <% end %>
 </tr>

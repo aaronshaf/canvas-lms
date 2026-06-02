@@ -53,7 +53,7 @@
   </a>
   <span style="float: <%= direction('right') %>; margin-<%= direction('right') %>: 5px; margin-top: 3px;">
     <% if enrollment.can_be_deleted_by(@current_user, enrollment.course, session) %>
-      <a href="#" rel="<%= api_v1_destroy_enrollment_url(enrollment.course_id, enrollment.id, {task: "delete"}) %>" class="unenroll_link" role="button">
+      <a href="#" rel="<%= api_v1_destroy_enrollment_url(enrollment.course_id, enrollment.id, { task: "delete" }) %>" class="unenroll_link" role="button">
         <i class="icon-end standalone-icon"></i>
         <span class="screenreader-only"><%= t("Unenroll") %></span>
       </a>

@@ -18,7 +18,7 @@
 <% current_or_submission = @current_submission || @submission %>
 <% submission_location_tag = "quiz_submission_#{current_or_submission[:id]}" %>
 <div class="quiz-submission <%= "headless" unless @headers %>">
-<% unless current_or_submission.results_visible?(user: @current_user)%>
+<% unless current_or_submission.results_visible?(user: @current_user) %>
   <h4><%= render_result_protection(@quiz, current_or_submission) %></h4>
 <% end %>
 
@@ -63,10 +63,10 @@
     editable ||= false
     submission_data = @submission.data
     submission_data_hash = {}
-    submission_data.each{|d| submission_data_hash[d[:question_id]] = d }
+    submission_data.each { |d| submission_data_hash[d[:question_id]] = d }
     submission_questions = @submission.questions
     submission_questions_hash = {}
-    submission_questions.each{|q| submission_questions_hash[q[:id]] = q }
+    submission_questions.each { |q| submission_questions_hash[q[:id]] = q }
 %>
 <% if @submission.pending_review? %>
   <% if editable %>
@@ -111,7 +111,7 @@
     *
     <% if can_do(@quiz, @current_user, :grade) && !@quiz.survey? %>
       <%= link_to t(:questions_not_graded, 'Some questions not yet graded'), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
-    <% elsif !@quiz.survey?  %>
+    <% elsif !@quiz.survey? %>
       <%= t(:questions_not_graded, 'Some questions not yet graded') %>
     <% end %>
   </div>

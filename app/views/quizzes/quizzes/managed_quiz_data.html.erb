@@ -32,7 +32,7 @@
           student = @submitted_students[index]
           unsubmitted_student = @unsubmitted_students[index]
           submission = student.present? ? @submissions_from_users[student.id] : nil
-          #logged out users are displayed after all students
+          # logged out users are displayed after all students
           anon_index = index - @submitted_students.size
           logged_out = @submissions_from_logged_out[anon_index] if anon_index >= 0
       %>

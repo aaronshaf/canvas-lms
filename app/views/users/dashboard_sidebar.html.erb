@@ -25,11 +25,11 @@
 <%# Use the legacy to do list for non-students until it works for those roles %>
 <% render_student_to_do = Account.site_admin.feature_enabled?(:render_both_to_do_lists) ? @user.has_student_enrollment? : !@user.non_student_enrollment? %>
 <% render_teacher_to_do = Account.site_admin.feature_enabled?(:render_both_to_do_lists) ? @user.non_student_enrollment? : !(planner_enabled? && render_student_to_do) %>
-<% if planner_enabled? && render_student_to_do  %>
+<% if planner_enabled? && render_student_to_do %>
   <div class="Sidebar__TodoListContainer"></div>
 <% end %>
 <% if render_teacher_to_do %>
-  <%= render partial: 'courses/to_do_list', locals: {contexts: nil, show_legacy_todo_list: true, additional_title_context: @user.has_student_enrollment? } %>
+  <%= render partial: 'courses/to_do_list', locals: { contexts: nil, show_legacy_todo_list: true, additional_title_context: @user.has_student_enrollment? } %>
   <% locals = {
       title: t('coming_up', "Coming Up"),
       period: :one_week,
@@ -40,7 +40,7 @@
   <%= render partial: "shared/event_list", object: @upcoming_events, locals: %>
 <% end %>
 <% if @show_recent_feedback %>
-<%= render partial: "shared/event_list", object: @recent_feedback, locals: {title: t('recent_feedback', "Recent Feedback"), period: :two_weeks, show_context: true, is_recent_feedback: true} %>
+<%= render partial: "shared/event_list", object: @recent_feedback, locals: { title: t('recent_feedback', "Recent Feedback"), period: :two_weeks, show_context: true, is_recent_feedback: true } %>
 <% end %>
 
 <% unless Account.site_admin.feature_enabled?(:instui_header) %>

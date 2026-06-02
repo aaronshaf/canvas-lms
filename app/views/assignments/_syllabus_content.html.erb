@@ -72,7 +72,7 @@ To add some comments, click the "Edit" link at the top.
 <div id="course_syllabus_details" style="<%= hidden unless can_do(@context, @current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) && (!@context.syllabus_body || @context.syllabus_body.strip.empty?) %>">
   <%= help_text %>
 </div>
-<%= form_for @context.class.to_s.underscore.to_sym, url: context_url(@context, :context_url), html: {id: 'edit_course_syllabus_form', style: 'display: none; margin-bottom: 10px;', method: :put} do |f| %>
+<%= form_for @context.class.to_s.underscore.to_sym, url: context_url(@context, :context_url), html: { id: 'edit_course_syllabus_form', style: 'display: none; margin-bottom: 10px;', method: :put } do |f| %>
   <% if @context.elementary_enabled? %>
     <%= f.blabel :syllabus_body, :important_info_description, en: "Important Info Description" %>
   <% else %>

@@ -25,7 +25,7 @@
         <%= page_section["content"] ? html_sanitize(page_section["content"]) : t('rich_text.default_content', "Nothing Entered Yet") %>
       <% elsif page_section["section_type"] == "attachment" %>
         <div style="text-align: center;" class="attachment">
-          <% attachment = @static_attachments.find{|a| a.id == page_section["attachment_id"]} %>
+          <% attachment = @static_attachments.find { |a| a.id == page_section["attachment_id"] } %>
           <% if attachment&.content_type&.start_with?('image') %>
             <a href="<%= attachment.unencoded_filename %>"><img src="<%= attachment.unencoded_filename %>" alt="<%= attachment.unencoded_filename %>"/></a>
           <% elsif attachment %>
@@ -51,7 +51,7 @@
           <% elsif submission.submission_type == 'online_upload' %>
             <ul>
             <% submission.attachments.each do |a| %>
-              <% attachment = @static_attachments.find{|att| att.id == a.id } %>
+              <% attachment = @static_attachments.find { |att| att.id == a.id } %>
               <% if attachment %>
                 <li><a href="<%= attachment.unencoded_filename %>">
                   <%= t('links.download_attachment', "Click here to Download *%{attachment}*",

@@ -35,7 +35,7 @@
       <%= settings.label :include_integration_ids_in_gradebook_exports, t("Include Integration IDs in the gradebook exports.") %>
     <% end %>
   </div>
-  <% if @account.feature_allowed?(:post_grades)%>
+  <% if @account.feature_allowed?(:post_grades) %>
     <%= f.fields_for :settings do |settings| %>
       <%= settings.fields_for :sis_syncing do |ff_syncing| %>
         <%
@@ -95,8 +95,8 @@
                 </div>
                 <fieldset id="account_settings_sis_assignment_name_length_value_settings" class="nested sis_name_length_nested_cleanup">
                   <div class="name-length-wrapper">
-                    <%= settings.fields_for :sis_assignment_name_length_input do |ff_name_input|%>
-                      <%= ff_name_input.label :value, en: "Characters"%>
+                    <%= settings.fields_for :sis_assignment_name_length_input do |ff_name_input| %>
+                      <%= ff_name_input.label :value, en: "Characters" %>
                       <%= ff_name_input.text_field :value,
                                                    type: "number",
                                                    value: @account.sis_assignment_name_length_input[:value],
@@ -104,7 +104,7 @@
                                                    max: 255,
                                                    min: 0,
                                                    disabled: name_length_disabled,
-                                                   placeholder: "255"%>
+                                                   placeholder: "255" %>
                     <% end %>
                   </div>
                 </fieldset>
@@ -125,4 +125,4 @@
   <% end %>
 </fieldset>
 
-<%= render partial: 'sis_agent_token_auth', locals: {f:} %>
+<%= render partial: 'sis_agent_token_auth', locals: { f: } %>

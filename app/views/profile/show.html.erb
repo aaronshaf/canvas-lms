@@ -18,7 +18,7 @@
 <% provide :page_title, "User Profile" %>
 <% css_bundle :profile_show %>
 <% if flash.key?(:success) %>
-  <div id="profile_alert_holder_<%= flash[:success] ? 'success' : 'failed'%>"></div>
+  <div id="profile_alert_holder_<%= flash[:success] ? 'success' : 'failed' %>"></div>
 <% end %>
 <div class="ic-Profile-layout">
   <h1><%= t("User Profile") %></h1>

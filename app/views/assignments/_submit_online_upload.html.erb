@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= form_tag(context_url(@context, controller: :submissions, assignment_id: @assignment.id, action: :create), {id: "submit_online_upload_form", class: "submit_assignment_form", multipart: true }) do %>
+<%= form_tag(context_url(@context, controller: :submissions, assignment_id: @assignment.id, action: :create), { id: "submit_online_upload_form", class: "submit_assignment_form", multipart: true }) do %>
     <%= hidden_field :submission, :submission_type, value: "online_upload" %>
     <%= hidden_field :submission, :attachment_ids, value: "", id: "submission_attachment_ids" %>
     <%= hidden_field :submission, :eula_agreement_timestamp, id: "eula_agreement_timestamp" %>
@@ -35,7 +35,7 @@
           </button>
           <div id="submission_attachment_blank" class="submission_attachment" style="display: none; margin-bottom: 1em;">
           <div class="attachment_wrapper" style="display: inline-block;"></div>
-            <a href="#" class="remove_attachment_link no-hover" style="display: none;"><i class="icon-end" aria-hidden="true"></i><span class="screenreader-only"><%= t('remove empty attachment')%></span></a>
+            <a href="#" class="remove_attachment_link no-hover" style="display: none;"><i class="icon-end" aria-hidden="true"></i><span class="screenreader-only"><%= t('remove empty attachment') %></span></a>
             <% if @assignment.allowed_extensions.present? -%>
               <div class='bad_ext_msg error_message' style="display: none">
                 <%= t 'errors.unacceptable_file_type', "This file type is not allowed. Accepted file types are: %{allowed_extensions_list}", allowed_extensions_list: @assignment.allowed_extensions.to_sentence %>

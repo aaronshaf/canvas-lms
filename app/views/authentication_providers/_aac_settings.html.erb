@@ -41,7 +41,7 @@
         <% end %>
 
         <%= render partial: "#{aac.auth_type}_fields",
-                 locals: {aac:, presenter:, f:}%>
+                 locals: { aac:, presenter:, f: } %>
 
         <%= render partial: "additional_settings", locals: { f:, presenter:, provider: aac } %>
 
@@ -79,14 +79,14 @@
                 <%= f.label :mfa_option, t('Provider enforces MFA *When logging in through this Provider, Canvas will explicitly skip MFA enforcement. This should only be used if the Provider has already guaranteed MFA before SSO into Canvas.*',
                                           wrappers: ['<br/><span class="ic-Form-help-text">\1</span>']), for: "mfa_option_bypass_#{presenter.id_suffix(aac)}", class: 'ic-Label' %>
               </div>
-            <%end%>
+            <% end %>
             <% if aac.account.mfa_settings != :required %>
               <div class="ic-Radio">
                 <%= f.radio_button :mfa_option, 'optional', id: "mfa_option_optional_#{presenter.id_suffix(aac)}", checked: !aac.mfa_required? && !aac.skip_internal_mfa? %>
                 <%= f.label :mfa_option, t('User can opt in to MFA *Canvas will only challenge the user with MFA if they have configured it previously.*',
                                            wrappers: ['<br/><span class="ic-Form-help-text">\1</span>']), for: "mfa_option_optional_#{presenter.id_suffix(aac)}", class: 'ic-Label' %>
               </div>
-            <%end%>
+            <% end %>
           </div>
         <% end %>
 
@@ -115,7 +115,7 @@
                 <%= link_to(account_authentication_provider_refresh_metadata_url(account, aac),
                   method: "get",
                   id: "refresh-metadata-#{aac.id}",
-                  data: { disable_with: t('refreshing...')},
+                  data: { disable_with: t('refreshing...') },
                   class: 'Button') do %>
                   <%= t("Refresh Metadata") %>
                 <% end %>

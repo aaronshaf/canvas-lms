@@ -22,13 +22,13 @@
   <%= @page_title %>
 <% end %>
 <% can_manage = @account.manage_authentication_provider_permissions.any? { |perm| can_do(@account, @current_user, perm) } %>
-<% js_env({'MANAGE_AUTHENTICATION_PROVIDER' => can_manage}) %>
+<% js_env({ 'MANAGE_AUTHENTICATION_PROVIDER' => can_manage }) %>
 
 <% provide :right_side do %>
   <div id="auth-config-right-side">
 
     <% if @presenter.ldap_config? && can_manage %>
-      <% js_env({LDAP_SETTINGS_TEST: { ldap_ips: @presenter.ldap_ips}}) %>
+      <% js_env({ LDAP_SETTINGS_TEST: { ldap_ips: @presenter.ldap_ips } }) %>
       <div id="ldap_settings_test_mount_point"></div>
     <% end %>
 
@@ -67,7 +67,7 @@
 </p>
 
 <%= render partial: 'sso_settings_form',
-           locals: { presenter: @presenter, account: @account, can_manage: }%>
+           locals: { presenter: @presenter, account: @account, can_manage: } %>
 
 <h2><%= t("Current Provider") %></h2>
 
@@ -77,7 +77,7 @@
 
 <% if @presenter.configs.empty? %>
   <div id="no_auth">
-    <%= t(:no_auth_type_description, "This account does not currently integrate "\
+    <%= t(:no_auth_type_description, "This account does not currently integrate " \
                                      "with an identity provider.") %>
   </div>
 <% else %>

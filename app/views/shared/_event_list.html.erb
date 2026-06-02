@@ -58,7 +58,7 @@
     </li>
   <% else %>
     <% (event_list || []).each_with_index do |e, i| %>
-      <%= render partial:, object: e, locals: {show_context:, is_hidden: i >= display_count, upcoming: } %>
+      <%= render partial:, object: e, locals: { show_context:, is_hidden: i >= display_count, upcoming: } %>
     <% end %>
     <% if event_list.length > display_count && show_more %>
     <li>

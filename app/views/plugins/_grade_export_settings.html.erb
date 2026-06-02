@@ -38,7 +38,7 @@ MD
     </tr>
     <tr>
       <td><%= f.blabel :format_type, en: "Output format type" %></td>
-      <td><%= f.select :format_type, Course.valid_grade_export_types.keys.map{|k| [Course.valid_grade_export_types[k][:name], k]}, { selected: settings[:format_type] } %>
+      <td><%= f.select :format_type, Course.valid_grade_export_types.keys.map { |k| [Course.valid_grade_export_types[k][:name], k] }, { selected: settings[:format_type] } %>
     </tr>
     <tr>
       <td><%= f.blabel :publish_endpoint, en: "Endpoint to publish to" %></td>

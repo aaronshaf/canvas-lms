@@ -49,14 +49,14 @@
       <span aria-live="assertive" id="screenreader-errormsg"></span>
     </span>
   </div>
-<%= form_for :pseudonym_session, url: url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), html: {id: "login_form", class: "front face", novalidate: 'novalidate', autocomplete: "off" } do %>
+<%= form_for :pseudonym_session, url: url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), html: { id: "login_form", class: "front face", novalidate: 'novalidate', autocomplete: "off" } do %>
 
   <div class="ic-Form-control">
     <input
       class="ic-Input"
       autocomplete="off"
       autocorrect="off"
-      placeholder="<%= @login_handle_name%>"
+      placeholder="<%= @login_handle_name %>"
       type="<%= @login_handle_is_email ? 'email' : 'text' %>"
       name="pseudonym_session[unique_id]"
       value="<%= unique_id %>" />
@@ -87,7 +87,7 @@
     <% end %>
   </div>
 <% end %>
-<%= form_for :pseudonym_session, url: forgot_password_path, html: {id: "forgot_password_form", class: 'back face', autocomplete: "off" } do %>
+<%= form_for :pseudonym_session, url: forgot_password_path, html: { id: "forgot_password_form", class: 'back face', autocomplete: "off" } do %>
   <div class="ic-Form-control">
     <label for="pseudonym_session_unique_id_forgot" class="screenreader-only"><%= t('login_handle', "Enter your %{login_handle_name} and we'll send you a link to change your password.", login_handle_name: @login_handle_name) %></label>
     <input
@@ -126,7 +126,7 @@
       </div>
       <%= link_to '#',
           class: "ic-Login__link ic-Login__register-banner ic-Login__banner-subtitle",
-          data: reg_link_data(nil)  do %>
+          data: reg_link_data(nil) do %>
         <%= t('Create Account') %>
       <% end %>
     </div>

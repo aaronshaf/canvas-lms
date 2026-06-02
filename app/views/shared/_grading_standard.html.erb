@@ -27,7 +27,7 @@
            class="find_grading_standard_link no-hover"
            aria-label="<%= t('Find an Existing Grading Scheme') %>"
            title="<%= t('Find an Existing Grading Scheme') %>">
-          <%= image_tag "find.png", alt: t('find', "Find") %> <%= t('select_another_scheme','Select Another Scheme') %>
+          <%= image_tag "find.png", alt: t('find', "Find") %> <%= t('select_another_scheme', 'Select Another Scheme') %>
         </a>
         <a
           aria-label="<%= t('Edit Grading Scheme %{title}', title: grading_standard.title) %>"
@@ -131,11 +131,11 @@
           </td>
           <td class="editing_box" style="padding: 2px 5px 2px 15px; width: 25%;">
             <a
-              aria-label="<%= t('Remove row %{row}', row: row[0])%>"
+              aria-label="<%= t('Remove row %{row}', row: row[0]) %>"
               class="delete_row_link no-hover"
               href="#"
               tabindex="0"
-              title="<%= t('Remove row')%>"
+              title="<%= t('Remove row') %>"
             >
               <i class="icon-end standalone-icon"></i>
             </a>

@@ -42,11 +42,11 @@
   submission_comments = @submission.visible_submission_comments_for(@current_user)
 
   if presenter.anonymize_submission_owner?
-    submission_owner_param = {anonymous_id: @submission.anonymous_id}
-    rubric_assessment_user_param = {anonymous_id: @submission.anonymous_id}
+    submission_owner_param = { anonymous_id: @submission.anonymous_id }
+    rubric_assessment_user_param = { anonymous_id: @submission.anonymous_id }
   else
-    submission_owner_param = {user_id: @submission.user_id}
-    rubric_assessment_user_param = {assessment_user_id: @submission.user_id}
+    submission_owner_param = { user_id: @submission.user_id }
+    rubric_assessment_user_param = { assessment_user_id: @submission.user_id }
   end
 
   assessment_type = if !presenter.currently_peer_reviewing? && can_do(@submission, @current_user, :grade)
@@ -208,7 +208,7 @@
         <h2 class="submission-details-header__heading h3"><%= @assignment.title %></h2>
         <div class="submission-details-header__info">
         <div>
-          <span class="submission-details-header__time <%='late' if @submission.late? %> <%= 'hidden' unless @submission.submitted_at %>">
+          <span class="submission-details-header__time <%= 'late' if @submission.late? %> <%= 'hidden' unless @submission.submitted_at %>">
             <%= submission_author_name_for @assessment_request %> <%= t('submitted_at', 'submitted %{submit_date}', submit_date: datetime_string(@submission.submitted_at)) %>
           </span>
           <% if @submission.proxy_submitter %>
@@ -310,7 +310,7 @@
           anonymize_student: presenter.anonymize_submission_owner?,
           assessing: @submission.grants_right?(@current_user, :grade) || presenter.currently_peer_reviewing?,
           rubric_association: @assignment.rubric_association
-        }}) %>
+        } }) %>
     <% end %>
     <%= render partial: "shared/rubric_criterion_dialog" %>
     <div class="button-container">
@@ -340,7 +340,7 @@
             <% unless @submission.user_can_read_grade?(@current_user, session) %>
               <% if @submission.hide_grade_from_student? %>
                 <i><%= t('only_see_your_own_comments_muted', "You may not see all comments right now because the assignment is currently being graded") %></i>
-              <% elsif @submission.peer_reviewer?(@current_user)%>
+              <% elsif @submission.peer_reviewer?(@current_user) %>
                   <i><%= t('only_see_your_own_comments_peer', "As a peer reviewing student, you will only see comments written by you.") %></i>
               <% end %>
               <br/><br/>
@@ -464,4 +464,4 @@
       </div>
     </div>
   </div>
-<% js_env({ rubricAssessments: @visible_rubric_assessments.as_json(include: :assessor, permissions: {user: @current_user, session:}) }) %>
+<% js_env({ rubricAssessments: @visible_rubric_assessments.as_json(include: :assessor, permissions: { user: @current_user, session: }) }) %>

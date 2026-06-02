@@ -52,8 +52,8 @@
         <%= t('student_view.reset_explanation', "Resetting the test student will clear all history for this student, allowing you to view the course as a brand new student.") %>
       </div>
       <div class="buttons ic-alert-masquerade-student-view-module ic-alert-masquerade-student-view-module--buttons">
-        <%= link_to t('student_view.reset', "Reset Student"), course_test_student_path(student_view_course), 'data-method' => :delete, :rel => 'nofollow', :class => 'Button reset_test_student'%>
-        <%= link_to t('student_view.leave', "Leave Student View"), course_student_view_path(student_view_course), 'data-method' => :delete, :rel => 'nofollow', :class => 'Button leave_student_view'%>
+        <%= link_to t('student_view.reset', "Reset Student"), course_test_student_path(student_view_course), 'data-method' => :delete, :rel => 'nofollow', :class => 'Button reset_test_student' %>
+        <%= link_to t('student_view.leave', "Leave Student View"), course_student_view_path(student_view_course), 'data-method' => :delete, :rel => 'nofollow', :class => 'Button leave_student_view' %>
       </div>
     </div>
   <% else %>

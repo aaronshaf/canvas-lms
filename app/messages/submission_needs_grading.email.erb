@@ -14,7 +14,7 @@
 
 <%= t :body, "%{user_name} has completed the quiz %{quiz_title}, and it requires manual grading.", user_name: asset.user.name, quiz_title: asset.quiz.title %>
 
-<%= t :submitted_date, "submitted: %{date}", date: datetime_string(force_zone(asset.finished_at))  %>
+<%= t :submitted_date, "submitted: %{date}", date: datetime_string(force_zone(asset.finished_at)) %>
 
 <%= t :link_message, "You can review the submission here:" %>
 <%= content :link %>

@@ -46,8 +46,8 @@
         <% end %>
       </span>
       <span class="details">
-        <%= t({one: "1 criterion", other: "%{count} criteria"}, count: rubric.criteria.length) %><br/>
-        <%= t('points_possible', {one: "1 point possible", other: "%{count} points possible"}, count: round_if_whole(rubric.points_possible)) %>
+        <%= t({ one: "1 criterion", other: "%{count} criteria" }, count: rubric.criteria.length) %><br/>
+        <%= t('points_possible', { one: "1 point possible", other: "%{count} points possible" }, count: round_if_whole(rubric.points_possible)) %>
       </span>
     </li>
   <% end %>
@@ -60,6 +60,6 @@
   <span class="current_user_id" style="display: none;"><%= @current_user.id %></span>
   <a href="<%= context_url(@context, :context_rubrics_url) %>" class="add_rubric_association_url" style="display: none;">&nbsp;</a>
 </div>
-<%= render partial: "shared/find_outcome", locals: {context: @domain_root_account} %>
+<%= render partial: "shared/find_outcome", locals: { context: @domain_root_account } %>
 <%= render partial: "shared/rubric", object: nil %>
 <%= render partial: "shared/rubric_criterion_dialog" %>

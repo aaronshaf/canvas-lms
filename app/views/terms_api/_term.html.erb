@@ -42,7 +42,7 @@
         <%= t(:course_count, "Course", count: @course_counts_by_term[term&.id] || 0) %>
       </a><br/>
     </div>
-    <%= form_for (term || EnrollmentTerm.new), url: (term ? context_url(@context, :context_term_url, term.id) : context_url(@context, :context_terms_url)), html: {class: "enrollment_term_form", method: (term ? :put : :post)} do |f| %>
+    <%= form_for (term || EnrollmentTerm.new), url: (term ? context_url(@context, :context_term_url, term.id) : context_url(@context, :context_terms_url)), html: { class: "enrollment_term_form", method: (term ? :put : :post) } do |f| %>
         <div class="control-group edit_term">
           <label class="control-label" for=<%= "enrollment_term_name_#{term&.id || 'new'}" %>><%= t :name, 'Term Name:' %></label>
           <div class="controls">
@@ -80,7 +80,7 @@
       <% override ||= EnrollmentDatesOverride.new %>
       <% type_string = type.to_s.underscore %>
       <% start_whenever = true %>
-      <tr class="<%= "#{type_string}_dates"%>">
+      <tr class="<%= "#{type_string}_dates" %>">
         <td>
           <% case type_string
               when 'student_enrollment'

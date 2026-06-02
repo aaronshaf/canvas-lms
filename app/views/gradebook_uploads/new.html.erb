@@ -19,7 +19,7 @@
 <% title = join_title t("Upload Gradebook"), @context.name %>
 <% provide :page_title, title %>
 <% if @domain_root_account.feature_enabled?(:instui_nav) %>
-  <% add_crumb t('Grades'), context_url(@context, :context_grades_url ) %>
+  <% add_crumb t('Grades'), context_url(@context, :context_grades_url) %>
   <% add_crumb t("Import") %>
 <% end %>
 

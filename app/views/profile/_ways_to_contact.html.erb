@@ -35,7 +35,7 @@
     <tr class="channel <%= "default" if c == @default_email_channel %> <%= "unconfirmed" if c.state == :unconfirmed %> pseudonym_<%= c.pseudonym&.id %>" id="channel_<%= c.id %>">
       <th scope="row">
         <% if c.state == :unconfirmed %>
-          <a href="#" class="path email_channel contact_channel_path ellipsis" title="<%=h c.path %>"><%= c.path %></a>
+          <a href="#" class="path email_channel contact_channel_path ellipsis" title="<%= h c.path %>"><%= c.path %></a>
         <% else %>
           <p class="path email_channel contact_channel_path ellipsis"><%= c.path %></p>
         <% end %>

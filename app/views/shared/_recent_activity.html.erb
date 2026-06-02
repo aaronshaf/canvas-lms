@@ -35,7 +35,7 @@
         <% if can_do(@context, @current_user, :update) %>
           <a href="#" id="edit_group" title="Edit Group" class="Button Button--primary button-sidebar-wide">
             <i class="icon-edit" role="presentation"></i>
-            <%= t 'edit_group',"Edit Group" %>
+            <%= t 'edit_group', "Edit Group" %>
           </a>
           <div id="student-group-dialog-mount-point"></div>
          <% end %>
@@ -74,7 +74,7 @@
 %>
 <% %w(Announcement Conversation Assignment DiscussionTopic AssessmentRequest).each do |category| %>
   <% items = categorized_items[category] %>
-  <% items = items.to_a + categorized_items['DiscussionEntry'].to_a if category == 'DiscussionTopic'%>
+  <% items = items.to_a + categorized_items['DiscussionEntry'].to_a if category == 'DiscussionTopic' %>
   <% category_class = category.underscore %>
   <% if items.present? %>
     <li class="stream-category stream-<%= category_class %>" data-category="<%= category %>">

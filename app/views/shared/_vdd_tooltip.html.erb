@@ -18,11 +18,11 @@
 
 <span id="vdd_tooltip_mount"></span>
 <a title class="vdd_tooltip_link"
-  data-tooltip-selector="#vdd_tooltip_content_<%=presenter.selector%>"
+  data-tooltip-selector="#vdd_tooltip_content_<%= presenter.selector %>"
   <% if presenter.link_href.present? %>href="<%= presenter.link_href %>"<% end %>
   ><%= presenter.link_text %></a>
 
-<div id="vdd_tooltip_content_<%=presenter.selector%>" style="display:none">
+<div id="vdd_tooltip_content_<%= presenter.selector %>" style="display:none">
   <dl class="vdd_tooltip_content dl-horizontal">
     <% presenter.due_date_summary.each do |due_date| %>
       <div class="clearfix">

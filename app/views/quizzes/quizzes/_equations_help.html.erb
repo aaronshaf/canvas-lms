@@ -25,7 +25,7 @@
     </ul>
     <div id="intro">
       <% concat(t(:equation_intro, <<~TEXT,
-Calculated questions are based on a set of one or more formulas computed 
+Calculated questions are based on a set of one or more formulas computed
 in order.  You can define intermediate variables in these formulas, but the
 numerical result of the last formula is what is used to generate the
 correct answer.  For example:
@@ -55,18 +55,18 @@ TEXT
     <div id="variables">
 
       <% concat(t(:equation_variables2, <<~TEXT,
-You can also define variables in your question text using brackets 
+You can also define variables in your question text using brackets
 ("What is [a] + [b]?").  For every variable, you'll see an "Example Value"
 based on the variable settings.  This allows you to check your math and
 make sure the formulas work.
 
 For example, if your question was "What is [a] + 5?" then you'd
-be asked to define the variable "a".  If the example value for "a" 
+be asked to define the variable "a".  If the example value for "a"
 were 5.2, you could write:
 
 %{example}
 
-With this formula you can generate any number of solution sets, with a 
+With this formula you can generate any number of solution sets, with a
 different value of "a" in each set.  One student might see the question,
 "What is 5.2 + 5?" and another might see "What is 9 + 5?".
 TEXT

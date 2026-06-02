@@ -1,89 +1,89 @@
 <table>
-    <%=  render partial: 'terms_parameters', locals: { all_terms_option: true } %>
+    <%= render partial: 'terms_parameters', locals: { all_terms_option: true } %>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[users]"   %>
-                <%= t('account_reports.default.users.check_box','Users CSV') %>
+                <%= check_box_tag "parameters[users]" %>
+                <%= t('account_reports.default.users.check_box', 'Users CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[accounts]"   %>
-                <%= t('account_reports.default.accounts.check_box','Accounts CSV') %>
+                <%= check_box_tag "parameters[accounts]" %>
+                <%= t('account_reports.default.accounts.check_box', 'Accounts CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[terms]"   %>
-                <%= t('account_reports.default.terms.check_box','Terms CSV') %>
+                <%= check_box_tag "parameters[terms]" %>
+                <%= t('account_reports.default.terms.check_box', 'Terms CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[courses]"   %>
-                <%= t('account_reports.default.courses.check_box','Courses CSV') %>
+                <%= check_box_tag "parameters[courses]" %>
+                <%= t('account_reports.default.courses.check_box', 'Courses CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[sections]"   %>
-                <%= t('account_reports.default.sections.check_box','Sections CSV') %>
+                <%= check_box_tag "parameters[sections]" %>
+                <%= t('account_reports.default.sections.check_box', 'Sections CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[enrollments]"   %>
-                <%= t('account_reports.default.enrollments.check_box','Enrollments CSV') %>
+                <%= check_box_tag "parameters[enrollments]" %>
+                <%= t('account_reports.default.enrollments.check_box', 'Enrollments CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[groups]"   %>
-                <%= t('account_reports.default.groups.check_box','Groups CSV') %>
+                <%= check_box_tag "parameters[groups]" %>
+                <%= t('account_reports.default.groups.check_box', 'Groups CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[group_membership]"   %>
-                <%= t('account_reports.default.group_membership.login.check_box','Group Membership CSV') %>
+                <%= check_box_tag "parameters[group_membership]" %>
+                <%= t('account_reports.default.group_membership.login.check_box', 'Group Membership CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[group_categories]"   %>
-                <%= t('account_reports.default.group_categories.login.check_box','Group Categories CSV') %>
+                <%= check_box_tag "parameters[group_categories]" %>
+                <%= t('account_reports.default.group_categories.login.check_box', 'Group Categories CSV') %>
             </label>
         </td>
     </tr>
     <tr>
         <td>
             <label class="checkbox">
-                <%= check_box_tag "parameters[xlist]"   %>
-                <%= t('account_reports.default.xlist.check_box','X list CSV') %>
+                <%= check_box_tag "parameters[xlist]" %>
+                <%= t('account_reports.default.xlist.check_box', 'X list CSV') %>
             </label>
         </td>
     </tr>
   <tr>
     <td>
       <label class="checkbox">
-        <%= check_box_tag "parameters[user_observers]"   %>
+        <%= check_box_tag "parameters[user_observers]" %>
         <%= t('User Observer CSV') %>
       </label>
     </td>
@@ -91,7 +91,7 @@
   <tr>
     <td>
       <label class="checkbox">
-        <%= check_box_tag "parameters[admins]"   %>
+        <%= check_box_tag "parameters[admins]" %>
         <%= t('Admin CSV') %>
       </label>
     </td>
@@ -142,7 +142,7 @@
       <td>
         <label class="checkbox">
           <%= check_box_tag "parameters[include_deleted]", 1, false, disabled: true %>
-          <%= t('account_reports.default.include_deleted.check_box','Include Deleted/Concluded Objects') %>
+          <%= t('account_reports.default.include_deleted.check_box', 'Include Deleted/Concluded Objects') %>
         </label>
       </td>
     </tr>

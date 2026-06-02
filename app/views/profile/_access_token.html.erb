@@ -22,7 +22,7 @@
   <td class="workflow_state">
     <%= access_token&.localized_workflow_state %>
   <% if access_token&.pending? && @real_current_user.nil? %>
-    (<a href="#" class="activate_token_link" rel="<%= activate_profile_token_url(access_token)%>"><%= t("activate") %></a>)
+    (<a href="#" class="activate_token_link" rel="<%= activate_profile_token_url(access_token) %>"><%= t("activate") %></a>)
   <% end %>
   </td>
   <td class="purpose"><%= access_token&.purpose || nbsp %></td>

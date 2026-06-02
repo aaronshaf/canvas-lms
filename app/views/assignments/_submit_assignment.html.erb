@@ -72,7 +72,7 @@
     <% end %>
 
     <% if @assignment.submission_types&.include?('online_url') %>
-      <%= form_tag(submission_create_url, {id: "submit_online_url_form", class: "submit_assignment_form"}) do %>
+      <%= form_tag(submission_create_url, { id: "submit_online_url_form", class: "submit_assignment_form" }) do %>
         <%= hidden_field :submission, :submission_type, value: "online_url" %>
         <table class="formtable" style="width: 100%;">
           <% if @assignment.has_group_category? %>
@@ -121,7 +121,7 @@
     <% end %>
 
     <% if @assignment.annotated_document? %>
-      <%= form_tag(submission_create_url, id: "submit_annotated_document_form" , class: "submit_assignment_form" ) do %>
+      <%= form_tag(submission_create_url, id: "submit_annotated_document_form", class: "submit_assignment_form") do %>
         <%= hidden_field :submission, :submission_type, value: "student_annotation" %>
         <%= hidden_field :submission, :annotatable_attachment_id, value: @assignment.annotatable_attachment_id %>
             <table class="formtable" style="width: 100%;">
@@ -135,7 +135,7 @@
               <tr>
                 <td colspan="2" class='button-container'>
                   <button type="button" class="cancel_button btn">
-                    <%= t '#buttons.cancel' , "Cancel" %>
+                    <%= t '#buttons.cancel', "Cancel" %>
                   </button>
                   <button type="submit" class="btn btn-primary">
                     <%= t "Submit Assignment" %>
@@ -176,7 +176,7 @@
 
     <% if @assignment.submission_types&.include?('media_recording') %>
       <% if feature_enabled?(:kaltura) %>
-        <%= form_tag(submission_create_url, {id: "submit_media_recording_form", class: "submit_assignment_form", multipart: true }) do %>
+        <%= form_tag(submission_create_url, { id: "submit_media_recording_form", class: "submit_assignment_form", multipart: true }) do %>
         <%= hidden_field :submission, :submission_type, value: "media_recording" %>
         <%= hidden_field :submission, :media_comment_id, value: "", class: "media_comment_id" %>
         <%= hidden_field :submission, :media_comment_type, value: "video" %>
@@ -190,7 +190,7 @@
             <td>
               <div id="media_media_recording_submission_holder" style="font-size: 1.2em; font-weight: bold;">
                 <div id="media_media_recording_ready" style="display: none; font-size: 1.5em;">
-                  <%= t 'messages.media_recording_ready', "Ready to Submit!  Click 'Submit Assignment' button to finish."%>
+                  <%= t 'messages.media_recording_ready', "Ready to Submit!  Click 'Submit Assignment' button to finish." %>
                   <div id="media_media_recording_thumbnail">
                     <%= image_tag "media_comment.png", alt: '' %>
                   </div>

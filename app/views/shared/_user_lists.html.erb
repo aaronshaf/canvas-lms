@@ -25,7 +25,7 @@
     <label for="user_list">
       <% if root_account.login_handle_name_is_customized? %>
         <%= t(:copy_and_paste_notice_with_login_handle,
-              "Copy and paste a list of users. "\
+              "Copy and paste a list of users. " \
               "You can use their email address or %{login_handle_name}.",
               login_handle_name: root_account.login_handle_name_with_inference) %>
       <% else %>
@@ -34,7 +34,7 @@
       <% end %>
       <textarea name="user_list" class="user_list" id="user_list"></textarea>
       <%= t :user_list_explanation,
-            'Sample format: "Example Student" <student@example.com>, '\
+            'Sample format: "Example Student" <student@example.com>, ' \
             '"Lastname, Firstname" <firstlast@example.com>, justAnEmailAddress@example.com' %>
     </label>
   </div>
@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <div class="person ui-helper-reset ui-state-default ui-corner-all" id="user_lists_processed_person_template" title="<%= t 'titles.new_user','New user' %>" style="display:none;" tabindex="0">
+      <div class="person ui-helper-reset ui-state-default ui-corner-all" id="user_lists_processed_person_template" title="<%= t 'titles.new_user', 'New user' %>" style="display:none;" tabindex="0">
         <div class="name"></div>
         <div class="address"></div>
       </div>

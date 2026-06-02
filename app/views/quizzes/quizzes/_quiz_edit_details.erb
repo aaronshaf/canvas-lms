@@ -22,12 +22,12 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                       js_env.dig(:MASTER_COURSE_DATA, "master_course_restrictions", :content)
 %>
 <div id="options_tab">
-  <%= form_tag context_url(@context, :context_quiz_url, @quiz.id), {method: :put, id: "quiz_options_form", class: 'form-horizontal-quiz'} do %>
+  <%= form_tag context_url(@context, :context_quiz_url, @quiz.id), { method: :put, id: "quiz_options_form", class: 'form-horizontal-quiz' } do %>
     <div style="position: relative;">
       <div class="form-control title" id="quiz-title-container">
         <% if content_is_locked %>
           <h1 id="quiz_title" class="title"><%= @quiz.title %></h1>
-          <input type="hidden" name="quiz[title]" value="<%=@quiz.title%>"/>
+          <input type="hidden" name="quiz[title]" value="<%= @quiz.title %>"/>
         <% else %>
           <label for="quiz_title" class="bold form-control__label"><%= t('Quiz Title') %><span aria-hidden="true" class="asterisk"> *</span></label>
           <%= text_field :quiz, :title, :maxlength => "254", :autofocus => true, :required => true,
@@ -44,7 +44,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
           <div id="quiz_description" class="quiz_description">
             <%= html_sanitize @quiz.description %>
           </div>
-          <input type="hidden" name="description" value="<%=@quiz.description%>"/>
+          <input type="hidden" name="description" value="<%= @quiz.description %>"/>
         <% else %>
           <label for="quiz_description" class="bold"><%= t("Quiz Instructions") %></label>
           <textarea id="quiz_description" style="display: none;width: 100%;margin: 0px auto;height: 125px"><%= @quiz.description %></textarea>
@@ -70,7 +70,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
               <% current_group_id = @quiz.assignment&.assignment_group_id || @quiz.assignment_group_id
                  @context.require_assignment_group %>
               <% @context.assignment_groups.active.each do |g| %>
-                <option value="<%= g.id %>" <%= 'selected' if g.id == current_group_id%>><%= g.name %></option>
+                <option value="<%= g.id %>" <%= 'selected' if g.id == current_group_id %>><%= g.name %></option>
               <% end %>
             </select>
           </div>
@@ -252,7 +252,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                             :type => "text",
                             :value => @quiz.show_correct_answers_at.as_json,
                             "aria-labelledby" => "show_correct_answers_accessible_label",
-                            "data-tooltip" =>"",
+                            "data-tooltip" => "",
                             :title => accessible_date_format,
                             "aria-describedby" => "hide_correct_answers_at_message"
                           %>
@@ -278,7 +278,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                           :type => "text",
                           :value => @quiz.hide_correct_answers_at.as_json,
                           "aria-labelledby" => "hide_correct_answers_accessible_label",
-                          "data-tooltip" =>"",
+                          "data-tooltip" => "",
                           :title => accessible_date_format,
                           "aria-describedby" => "hide_correct_answers_at_message" %>
 
@@ -298,7 +298,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
             <div class="option-group">
               <label class="checkbox" for="quiz_one_question_at_a_time">
                 <%= hidden_field_tag "quiz[one_question_at_a_time]", "0", id: nil %>
-                <%= check_box_tag "quiz[one_question_at_a_time]", "1", @quiz.one_question_at_a_time?, class: "element_toggler"  %>
+                <%= check_box_tag "quiz[one_question_at_a_time]", "1", @quiz.one_question_at_a_time?, class: "element_toggler" %>
                 <%= t('Show one question at a time') %>
               </label>
               <div id="one_question_at_a_time_options" style="<%= 'display:none;' unless @quiz.one_question_at_a_time? %>" class="options">

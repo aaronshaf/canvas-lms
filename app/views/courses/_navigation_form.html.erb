@@ -23,7 +23,7 @@ navigation_help_text =
   end
 %>
 
-<%= form_tag context_url(@context, :context_update_nav_url), {id: "nav_form", title: t('titles.edit_navigation', "Edit Course Navigation") } do %>
+<%= form_tag context_url(@context, :context_update_nav_url), { id: "nav_form", title: t('titles.edit_navigation', "Edit Course Navigation") } do %>
   <input type="hidden" name="tabs_json" id="tabs_json" value="[]" />
   <% tabs = sortable_tabs %>
   <div style="width: 400px; padding-top: 10px">
@@ -41,7 +41,7 @@ navigation_help_text =
     <li class="disabled" aria-hidden="true" style="height: 1px">
       <%# This item is just here to serve as an anchor for dragging/dropping if all tabs are disabled %>
     </li>
-    <% tabs.reject {|t| t[:hidden] }.each do |tab|  %>
+    <% tabs.reject { |t| t[:hidden] }.each do |tab| %>
       <li aria-label="<%= tab[:label] %>" class="navitem <%= 'enabled' if @context.tab_enabled?(tab) %>"
           id="nav_edit_tab_id_<%= tab[:id] %>"
       >
@@ -61,7 +61,7 @@ navigation_help_text =
             <a class="al-trigger al-trigger-gray" role="button" href="#">
               <i class="icon-more" aria-hidden="true"></i>
               <span class="screenreader-only">
-                <%= t('Settings for %{tab_label}', { tab_label: tab[:label]}) %>
+                <%= t('Settings for %{tab_label}', { tab_label: tab[:label] }) %>
               </span>
             </a>
             <ul class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false" aria-activedescendant="content-2">
@@ -88,7 +88,7 @@ navigation_help_text =
         <% end %>
       </div>
     </li>
-    <% tabs.select {|t| t[:hidden] }.each do |tab|  %>
+    <% tabs.select { |t| t[:hidden] }.each do |tab| %>
       <li aria-label="<%= tab[:label] %>"
           class="navitem enabled"
           id="nav_edit_tab_id_<%= tab[:id] %>"
@@ -103,7 +103,7 @@ navigation_help_text =
         <div class="admin-links">
             <a class="al-trigger al-trigger-gray" role="button" href="#">
               <i class="icon-more" aria-hidden="true"></i>
-              <span class="screenreader-only"><%= t('Settings for %{tab_label}', { tab_label: tab[:label]}) %>
+              <span class="screenreader-only"><%= t('Settings for %{tab_label}', { tab_label: tab[:label] }) %>
               </span>
             </a>
 

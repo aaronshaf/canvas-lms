@@ -92,7 +92,7 @@
       </div>
 
       <div style="<%= hidden unless editable && edit_view %>" class="links displaying pull-right" >
-        <% hash = rubric_association ? {rubric_association_id: rubric_association.id} : {} %>
+        <% hash = rubric_association ? { rubric_association_id: rubric_association.id } : {} %>
         <a
           href="<%= context_url(context, :context_rubric_url, rubric ? rubric.id : "{{ id }}", hash) %>"
           class="<%= 'copy_edit' if rubric && !can_do(rubric, @current_user, :update) %> edit_rubric_link no-print no-hover"
@@ -179,9 +179,9 @@
         <% if rubric&.criteria %>
           <% learning_outcome_ids = edit_view ? rubric.learning_outcome_ids_from_results : [] %>
           <% rubric.criteria_object.each do |criterion| %>
-            <% rating = assessment.ratings.find{|r| r[:criterion_id] == criterion.id} rescue nil %>
-            <% friendly_description = outcome_friendly_descriptions.detect {|x| x["learning_outcome_id"] == criterion[:learning_outcome_id]}.description rescue '' %>
-            <%= render partial: "shared/rubric_criterion", object: criterion, locals: {assessing:, assessment_rating: rating, rubric:, rubric_association:, edit_view:, friendly_description:, learning_outcome_ids:} %>
+            <% rating = assessment.ratings.find { |r| r[:criterion_id] == criterion.id } rescue nil %>
+            <% friendly_description = outcome_friendly_descriptions.detect { |x| x["learning_outcome_id"] == criterion[:learning_outcome_id] }.description rescue '' %>
+            <%= render partial: "shared/rubric_criterion", object: criterion, locals: { assessing:, assessment_rating: rating, rubric:, rubric_association:, edit_view:, friendly_description:, learning_outcome_ids: } %>
           <% end %>
         <% end %>
         <%= render partial: "shared/rubric_criterion", object: nil %>

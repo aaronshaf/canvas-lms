@@ -42,7 +42,7 @@
       <h1 class="rubric-title"><%= @actual_rubric.title %></h1>
     </div>
     <div class="rubric-header-right" id="rubric-action-buttons">
-      <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics)%>
+      <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics) %>
         <% if can_do(@actual_rubric, @current_user, :update) %>
           <a href="#" class="edit_rubric_link Button button-sidebar-wide"><i class="icon-edit" aria-hidden="true" style="margin-right: 7px;"></i> <%= t('titles.edit_rubric', 'Edit Rubric') %></a>
         <% else %>
@@ -58,7 +58,7 @@
 <% else %>
   <% provide :right_side do %>
     <div id="rubric-action-buttons">
-      <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics)%>
+      <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics) %>
         <% if can_do(@actual_rubric, @current_user, :update) %>
           <a href="#" class="edit_rubric_link Button button-sidebar-wide"><i class="icon-edit" aria-hidden="true"></i> <%= t('titles.edit_rubric', 'Edit Rubric') %></a>
         <% else %>
@@ -74,7 +74,7 @@
 <% end %>
 <div id="rubrics" class="raw_listing">
   <% [@actual_rubric].each do |rubric| %>
-    <%= render partial: "shared/rubric", object: rubric, locals: {association: @account, editable: can_do(rubric, @current_user, :update), edit_view: true, for_context: true} %>
+    <%= render partial: "shared/rubric", object: rubric, locals: { association: @account, editable: can_do(rubric, @current_user, :update), edit_view: true, for_context: true } %>
   <% end %>
   <div style="display: none;" id="rubric_parameters">
     <input type="hidden" name="rubric_association[association_type]" value="<%= @context.class.to_s %>"/>

@@ -119,7 +119,7 @@
     <div class="form-control form-control--with-bottom-margin pick">
       <label class="bold form-control__label" for="found_question_group_pick"><%= t('Pick') %><span aria-hidden="true" class="asterisk"> *</span></label>
       <div>
-        <%= t(:group_pick_count, "%{pick_count} questions", pick_count: tag.input(class: "form-control__input form-control__input--without-margin",  required: true, id: "found_question_group_pick", "aria-describedby": "question_group_pick_message", type: "text", style: "width: 50px; margin-bottom: 0px;", name: "quiz_group[pick_count]")) %>
+        <%= t(:group_pick_count, "%{pick_count} questions", pick_count: tag.input(class: "form-control__input form-control__input--without-margin", required: true, id: "found_question_group_pick", "aria-describedby": "question_group_pick_message", type: "text", style: "width: 50px; margin-bottom: 0px;", name: "quiz_group[pick_count]")) %>
       </div>
       <div class="form-control__message input-message__container hidden">
         <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>

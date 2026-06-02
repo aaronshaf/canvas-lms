@@ -68,14 +68,14 @@
       </li>
       <li>
         <span style="padding:0" class="ui-listview-text">
-          <%= iframe(@tag.url, id: 'file_content', title: @tag.title, style: "width:100%; height: 400px; float:#{ direction('left') };") %>
+          <%= iframe(@tag.url, id: 'file_content', title: @tag.title, style: "width:100%; height: 400px; float:#{direction('left')};") %>
           <div class="clear"></div>
         </span>
       </li>
     </ul>
   <% end %>
 
-<%= render partial: 'shared/sequence_footer', locals: {asset: @tag} %>
+<%= render partial: 'shared/sequence_footer', locals: { asset: @tag } %>
 <% if @tag.try(:new_tab) %>
 <script>
   document.getElementById('open_url_button').click();

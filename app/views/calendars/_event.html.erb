@@ -37,9 +37,9 @@
       <%= t :due, "due" %>
     </span>
   <% if is_assignment %>
-    <a href="<%= context_url(event.context, :context_assignment_url, event.id) %>" class="title"><%= event.title rescue ""%></a>
+    <a href="<%= context_url(event.context, :context_assignment_url, event.id) %>" class="title"><%= event.title rescue "" %></a>
   <% else %>
-    <a href="<%= context_url(event.context, :context_calendar_event_url, event.id) rescue '#' %>" class="title"><%= event.title rescue ""%></a>
+    <a href="<%= context_url(event.context, :context_calendar_event_url, event.id) rescue '#' %>" class="title"><%= event.title rescue "" %></a>
   <% end %>
   </div>
 </div>

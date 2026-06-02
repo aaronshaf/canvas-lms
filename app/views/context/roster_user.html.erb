@@ -32,7 +32,7 @@
         <%= t 'links.message_user', "Send Message" %>
       </a>
     <% end %>
-    <% if @context.is_a?(Course)%>
+    <% if @context.is_a?(Course) %>
       <% if @context.user_is_instructor?(@user) && can_do(@user, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
         <a href="<%= user_course_teacher_activity_url(@user, @context) %>">
           <i class="icon-chat" aria-hidden="true"></i>
@@ -78,7 +78,7 @@
   <a href="<%= user_profile_path(@current_user) %>" class="profile_url" style="display: none;">&nbsp;</a>
   <h2><%= t 'headings.user_services', "Registered Web Services" %></h2>
   <div>
-    <% services = @membership.user.user_services.to_a.select{|s| feature_and_service_enabled?(s.service)} %>
+    <% services = @membership.user.user_services.to_a.select { |s| feature_and_service_enabled?(s.service) } %>
     <% if can_do(@membership, @current_user, :read_services) && !services.empty? %>
       <p>
       <% services.each do |service| %>
@@ -86,7 +86,7 @@
         <a href="<%= service.service_user_link %>" title="<%= service_name %>" class="no-hover"><%= image_tag "#{service.service}_icon.png", alt: service_name %></a>
       <% end %>
       </p>
-    <% elsif !services.empty?  %>
+    <% elsif !services.empty? %>
       <p>
         <%= t 'services_not_visible', "%{user}'s registered services are not visible to you at this time.", user: @user.short_name %>
       </p>
@@ -95,7 +95,7 @@
         <%= t 'no_services', "%{user} hasn't linked any external services to their account yet.", user: @user.short_name %>
       </p>
     <% end %>
-    <% if @current_user && @current_user == @user && @current_user.user_services.none?{|s| feature_and_service_enabled?(s.service)} %>
+    <% if @current_user && @current_user == @user && @current_user.user_services.none? { |s| feature_and_service_enabled?(s.service) } %>
       <p>
         <%= t 'help.services', %{You haven't linked your user profile to any external services. You can link your Canvas account to services like X.com. This will make it easier for fellow course and group members to link up with you outside of class.} %>
       </p>
@@ -180,13 +180,13 @@
                 <%= before_label('user_privileges', %{Privileges}) %>
               </td>
               <td>
-                <div class="elevate_enrollment_link_holder" style="<%= hidden if @enrollments.any?{|e| !e.limit_privileges_to_course_section } %>">
+                <div class="elevate_enrollment_link_holder" style="<%= hidden if @enrollments.any? { |e| !e.limit_privileges_to_course_section } %>">
                   <%= t('user_only_view_section', %{this user can only view students in their assigned course section(s)}) %>
                   <div style="margin-<%= direction('left') %>: 10px; font-size: 0.8em;">
                     <a href="<%= context_url(@context, :context_limit_user_grading_url, @user.id) %>" class="elevate_enrollment_link"><%= t('links.user_view_all_sections', %{let this user see all course users}) %></a>
                   </div>
                 </div>
-                <div class="restrict_enrollment_link_holder" style="<%= hidden unless @enrollments.any?{|e| !e.limit_privileges_to_course_section } %>">
+                <div class="restrict_enrollment_link_holder" style="<%= hidden unless @enrollments.any? { |e| !e.limit_privileges_to_course_section } %>">
                   <%= t('user_view_all_sections', %{this user can view students in any course section}) %>
                   <div style="margin-<%= direction('left') %>: 10px; font-size: 0.8em;">
                     <a href="<%= context_url(@context, :context_limit_user_grading_url, @user.id) %>" class="restrict_enrollment_link"><%= t('links.user_only_view_section', %{limit this user to only see fellow section users}) %></a>
@@ -226,6 +226,6 @@
   <h2><%= t('headings.recent_messages', %{Recent Messages}) %></h2>
   <%= t('no_messages', "No Messages") if @messages.empty? %>
   <% @messages.each do |message| %>
-    <%= render partial: 'discussion_topics/entry', object: message, locals: {out_of_context: true, show_context: true, assignment_visible_to_user: message.discussion_topic.visible_for?(@current_user)} %>
+    <%= render partial: 'discussion_topics/entry', object: message, locals: { out_of_context: true, show_context: true, assignment_visible_to_user: message.discussion_topic.visible_for?(@current_user) } %>
   <% end %>
 <% end %>

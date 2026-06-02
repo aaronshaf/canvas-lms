@@ -37,13 +37,13 @@
         </p>
       <% end %>
 
-      <%# even if @domain_root_account.settings[:can_add_pronouns] is false, we still want to let someone that has pronouns set to see this so they can unset them  %>
+      <%# even if @domain_root_account.settings[:can_add_pronouns] is false, we still want to let someone that has pronouns set to see this so they can unset them %>
       <% if @user.pronouns || @domain_root_account.settings[:can_add_pronouns] %>
         <label for="pronouns" class="show-if-editing ic-Label"><%= t('Pronouns') %></label>
         <%= select_tag :pronouns,
                         options_for_select(([[t("None"), '']] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns),
-                        class:"show-if-editing",
-                        disabled:!@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(@current_user, :manage_courses_admin))
+                        class: "show-if-editing",
+                        disabled: !@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(@current_user, :manage_courses_admin))
         %>
       <% end %>
 
@@ -99,7 +99,7 @@
           <div class="social-instructions">
             <p>
               <%= t(:social_instructions, "Check the contact methods you'd like to be visible to others on your profile.") %><br>
-              <%= link_to(t(:manage_settings, "Manage Registered Services"), settings_profile_path)  %>
+              <%= link_to(t(:manage_settings, "Manage Registered Services"), settings_profile_path) %>
             </p>
           </div>
         <% else %>
@@ -117,7 +117,7 @@
               <li><a href="<%= message_user_path(@user) %>" class="social hide-text message" title="<%= t :message_title, 'Message' %>" data-tooltip><%= t :message_user_canvas, 'Message %{user} in Canvas', user: @user_data[:short_name] %></a></li>
             <% end %>
             <% if @user_data[:user_services].present? && @user.show_user_services %>
-              <% @user_data[:user_services].select{|s| s[:visible] }.each do |s| %>
+              <% @user_data[:user_services].select { |s| s[:visible] }.each do |s| %>
                 <% service_name = s[:service_name] || s[:service].to_s.titleize %>
                 <li><a href="<%= s[:service_user_link] %>" class="social hide-text <%= s[:service] %>" title="<%= service_name %>" data-tooltip><%= t :service_contact, 'contact %{user} with %{service}', user: @user_data[:short_name], service: service_name %></a></li>
               <% end %>
@@ -165,7 +165,7 @@
         <h3 class="profileHeader"><%= t :links, "Links" %></h3>
         <div class="hide-if-editing">
           <% if @user_data[:links].empty? %>
-            <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
+            <p id="links_empty_message"><%= t :no_links, "No links have been added" %></p>
           <% else %>
             <ul class="profileLink">
               <% @user_data[:links].each do |link| %>
@@ -194,7 +194,7 @@
         <% else %>
           <div class="show-if-editing">
             <% if @user_data[:links].empty? %>
-              <p id="links_empty_message"><%= t  :no_links, "No links have been added" %></p>
+              <p id="links_empty_message"><%= t :no_links, "No links have been added" %></p>
             <% else %>
               <ul class="profileLink">
                 <% @user_data[:links].each do |link| %>

@@ -77,7 +77,7 @@
       <div style="margin-<%= direction('left') %>: 20px; margin-top: 20px; line-height: 1.3em;">
         <% if (@submission.attempt > 1 || (@submission.attempt == 1 && can_do(@quiz, @current_user, :update))) &&
             (can_do(@quiz, @current_user, :grade) || @submission.posted?) %>
-          <%= t(:attempts_so_far, {one: "1 Attempt so far", other: "%{count} Attempts so far"}, count: @submission.attempt) %><br/>
+          <%= t(:attempts_so_far, { one: "1 Attempt so far", other: "%{count} Attempts so far" }, count: @submission.attempt) %><br/>
           <a href="<%= context_url(@context, :context_quiz_history_url, @quiz) %>" class="icon-clock"><%= t(:view_previous_attempts, "View Previous Attempts") %></a>
           <br/>
         <% end %>
@@ -87,7 +87,7 @@
           <% if @submission.attempts_left <= 0 %>
             <%= t(:no_more_attempts, "No More Attempts available") %><br/>
           <% elsif can_do(@quiz, @current_user, :submit) %>
-            <%= t(:attempts_left, {one: "1 More Attempt available", other: "%{count} More Attempts available"}, count: @submission.attempts_left) %><br/>
+            <%= t(:attempts_left, { one: "1 More Attempt available", other: "%{count} More Attempts available" }, count: @submission.attempts_left) %><br/>
           <% end %>
         <% end %>
       </div>

@@ -193,7 +193,7 @@
               <% if @assignment.has_non_migrated_tool? %>
                 <div id='plagiarism_platform_info_container'>
                   <a href="#" id="plagiarism_resubmit_button" class="btn btn-small" title="<%= I18n.t('Resubmit to the associated tool for plagiarism analysis.') %>">
-                    <%= I18n.t("Resubmit to %{tool_name}", tool_name: @assignment.tool_settings_tool_name ) %>
+                    <%= I18n.t("Resubmit to %{tool_name}", tool_name: @assignment.tool_settings_tool_name) %>
                   </a>
                 </div>
               <% end %>
@@ -240,7 +240,7 @@
                     <h2 class="gradebookHeader--rightside"><%= t('headers.assessment', "Assessment") %></h2>
                     <% if can_do(@context, @current_user, :manage_grades) || (@context.concluded? && can_do(@context, @current_user, :read_as_admin)) %>
                     <div id="grade_container">
-                      <%= render partial: "grading_box_extended", locals: {assignment: @assignment} %>
+                      <%= render partial: "grading_box_extended", locals: { assignment: @assignment } %>
                       <span class="turnitin_score_container"></span>
                       <a href="#" id="submit_same_score"><br><%= t('links.submit_same_score', "Use this same grade for the resubmission") %></a>
                       <div class="turnitin_info_container"></div>
@@ -298,7 +298,7 @@
                 <div class="comment" id="comment_blank" style="display: none;">
                   <div class="comment_flex">
                     <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" class="avatar" alt="" style="display: none;"/>
-                    <span class="draft-marker" aria-label="<%= t('Draft comment') %>"><%=t('DRAFT')%></span>
+                    <span class="draft-marker" aria-label="<%= t('Draft comment') %>"><%= t('DRAFT') %></span>
                     <span class="comment"></span>
                     <a href="javascript:void 0;" class="edit_comment_link icon-edit">
                       <span class="screenreader-only"><%= t('Edit Draft comment') %></span>
@@ -454,13 +454,13 @@
 
   <% if @assignment.anonymize_students? %>
     <a style="display:none;" id="assignment_submission_turnitin_report_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_turnitin_report_url, @assignment.id, "{{ anonymous_id }}", "{{ asset_string }}") %>"></a>
-    <a style="display:none;" id="assignment_submission_originality_report_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_originality_report_url, @assignment.id, "{{ anonymous_id }}", "{{ asset_string }}")%>"></a>
+    <a style="display:none;" id="assignment_submission_originality_report_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_originality_report_url, @assignment.id, "{{ anonymous_id }}", "{{ asset_string }}") %>"></a>
     <a style="display:none;" id="assignment_submission_resubmit_to_turnitin_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_resubmit_to_turnitin_url, @assignment.id, "{{ anonymous_id }}") %>"></a>
     <a style="display:none;" id="assignment_submission_vericite_report_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_vericite_report_url, @assignment.id, "{{ anonymous_id }}", "{{ asset_string }}") %>"></a>
     <a style="display:none;" id="assignment_submission_resubmit_to_vericite_url" href="<%= context_url(@context, :context_assignment_anonymous_submission_resubmit_to_vericite_url, @assignment.id, "{{ anonymous_id }}") %>"></a>
   <% else %>
     <a style="display:none;" id="assignment_submission_turnitin_report_url" href="<%= context_url(@context, :context_assignment_submission_turnitin_report_url, @assignment.id, "{{ user_id }}", "{{ asset_string }}") %>"></a>
-    <a style="display:none;" id="assignment_submission_originality_report_url" href="<%= context_url(@context, :context_assignment_submission_originality_report_url, @assignment.id, "{{ user_id }}", "{{ asset_string }}")%>"></a>
+    <a style="display:none;" id="assignment_submission_originality_report_url" href="<%= context_url(@context, :context_assignment_submission_originality_report_url, @assignment.id, "{{ user_id }}", "{{ asset_string }}") %>"></a>
     <a style="display:none;" id="assignment_submission_resubmit_to_turnitin_url" href="<%= context_url(@context, :context_assignment_submission_resubmit_to_turnitin_url, @assignment.id, "{{ user_id }}") %>"></a>
     <a style="display:none;" id="assignment_submission_vericite_report_url" href="<%= context_url(@context, :context_assignment_submission_vericite_report_url, @assignment.id, "{{ user_id }}", "{{ asset_string }}") %>"></a>
     <a style="display:none;" id="assignment_submission_resubmit_to_vericite_url" href="<%= context_url(@context, :context_assignment_submission_resubmit_to_vericite_url, @assignment.id, "{{ user_id }}") %>"></a>
@@ -555,11 +555,11 @@
   <span id="aria_name_alert" class="screenreader-only" aria-live="polite"></span>
   <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
     <% keyboard_navigation([
-      {key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student')},
-      {key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student')},
-      {key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment')},
-      {key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade')},
-      {key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric')}
+      { key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student') },
+      { key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student') },
+      { key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment') },
+      { key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade') },
+      { key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric') }
     ]) %>
   <% end %>
 

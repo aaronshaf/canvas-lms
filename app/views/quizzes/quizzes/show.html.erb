@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% js_env({ context_rubric_associations_url: context_url(@context, :context_rubric_associations_url)}) rescue nil %>
+<% js_env({ context_rubric_associations_url: context_url(@context, :context_rubric_associations_url) }) rescue nil %>
 
 <% provide(:page_title, join_title(@quiz.quiz_title || @quiz.readable_type, @context.name)) %>
 
@@ -111,9 +111,9 @@
           </a>
         </li>
       </ul>
-      <%= render partial: "quiz_right_side", locals: {allow_take: false} %>
+      <%= render partial: "quiz_right_side", locals: { allow_take: false } %>
     <% elsif @submission&.completed? %>
-      <%= render partial: "quiz_right_side", locals: {allow_take: !@locked} %>
+      <%= render partial: "quiz_right_side", locals: { allow_take: !@locked } %>
     <% end %>
   <% end %>
 <% else %>
@@ -232,7 +232,7 @@
                   <span id="quiz_details_text">
                     <%= @quiz.survey? ? t('links.show_student_survey_results', "Show Student Survey Results") : t('links.show_student_quiz_results', "Show Student Quiz Results") %>
                   </span>
-                  <div style="font-size: 0.8em; padding-<%= direction('left') %>: 20px;">(<%= t(:students_submitted_so_far, {one: "1 student submitted so far", other: "%{count} students submitted so far"}, count: @submitted_student_count) %>)</div>
+                  <div style="font-size: 0.8em; padding-<%= direction('left') %>: 20px;">(<%= t(:students_submitted_so_far, { one: "1 student submitted so far", other: "%{count} students submitted so far" }, count: @submitted_student_count) %>)</div>
                 </a>
               </li>
             <% end %>
@@ -264,7 +264,7 @@
               <%= render partial: 'direct_share_buttons' %>
             <% end %>
 
-            <%= external_tools_menu_items(@quiz_menu_tools || [], {link_class: "menu_tool_link", settings_key: :quiz_menu, in_list: true, url_params: {quizzes: [@quiz.id]}}) %>
+            <%= external_tools_menu_items(@quiz_menu_tools || [], { link_class: "menu_tool_link", settings_key: :quiz_menu, in_list: true, url_params: { quizzes: [@quiz.id] } }) %>
           </ul>
         </div>
 
@@ -297,8 +297,8 @@
       <i class="icon-warning" aria-label="<%= t("labels.warning_icon", "Warning") %>"></i>
       <strong>
       <% if score_affected_by_regrade?(@submission) %>
-        <%= t 'quiz_regraded_your_score_affected', {one: "This quiz has been regraded; your score was affected.",
-                                                    other: "This quiz has been regraded; your new score reflects %{count} questions that were affected."},
+        <%= t 'quiz_regraded_your_score_affected', { one: "This quiz has been regraded; your score was affected.",
+                                                    other: "This quiz has been regraded; your new score reflects %{count} questions that were affected." },
                                                     count: @submission.questions_regraded_since_last_attempt %>
       <% else %>
         <%= t 'quiz_regraded_your_score_not_affected', 'This quiz has been regraded; your score was not affected.' %>
