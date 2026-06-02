@@ -2116,7 +2116,7 @@ ja:
       process_data_button: データの処理
       select_file_instructions: |-
           インポートしたいCSVまたはZIPファイルを選択してください。
-          これらのファイルの生成方法については、[このドキュメント](%{url})を確認してください。
+          これらのファイルの生成方法については、[このドキュメントを参照してください](%{url})。
       sis_import_crumb: "SIS インポート"
       started_at_message: "開始日時: %{started_at}"
       title: "SIS インポート"
