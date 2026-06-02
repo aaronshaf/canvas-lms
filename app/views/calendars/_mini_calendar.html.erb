@@ -17,13 +17,13 @@
 %>
 
 <%# cache expires at the top of the next hour %>
-<% cache(['mini_calendar_render', current.to_s, first_day.to_s].cache_key, expires_in: (3600 - (Time.now.to_i % 3600)).seconds) do %>
+<% cache(["mini_calendar_render", current.to_s, first_day.to_s].cache_key, expires_in: (3600 - (Time.now.to_i % 3600)).seconds) do %>
 <div class="mini_month">
   <div class="mini-cal-header">
-    <button class="prev_month_link Button Button--icon-action"><i class="icon-arrow-open-left"></i><span class="screenreader-only"><%= t 'Prev month' %></span></button>
-    <button class="next_month_link Button Button--icon-action"><i class="icon-arrow-open-right"></i><span class="screenreader-only"><%= t 'Next month' %></span></button>
+    <button class="prev_month_link Button Button--icon-action"><i class="icon-arrow-open-left"></i><span class="screenreader-only"><%= t "Prev month" %></span></button>
+    <button class="next_month_link Button Button--icon-action"><i class="icon-arrow-open-right"></i><span class="screenreader-only"><%= t "Next month" %></span></button>
     <span class="mini-cal-month-and-year">
-      <span class="month_name"><%= I18n.t('date.month_names')[current.month] %></span>
+      <span class="month_name"><%= I18n.t("date.month_names")[current.month] %></span>
       <span class="year_number"><%= current.year %></span>
     </span>
   </div>
@@ -32,14 +32,14 @@
   </div>
   <% today = Time.zone.today %>
   <table class="mini_calendar" cellspacing="0">
-    <caption class="screenreader-only"><%= I18n.t 'Calendar' %></caption>
+    <caption class="screenreader-only"><%= I18n.t "Calendar" %></caption>
     <% day = first_day %>
     <thead>
       <tr>
         <% 7.times do |day_number| %>
           <th scope="col">
             <span class="screenreader-only">
-              <%= I18n.t('date.day_names')[day_number] %>
+              <%= I18n.t("date.day_names")[day_number] %>
             </span>
           </th>
         <% end %>
@@ -50,19 +50,19 @@
       <tr class="mini_calendar_week">
         <% 7.times do %>
           <td id="<%= day.strftime("mini_day_%Y_%m_%d") %>" class="mini_calendar_day day <%= if day.month == current.month
-                                                                                               'current_month'
+                                                                                               "current_month"
                                                                                              else
-                                                                                               "other_month #{(day.month == (current.month + 1) % 12) ? 'next_month' : 'previous_month'}"
-                                                                                             end %><%= (day == today) ? ' today' : '' %> <%= day.strftime("date_%m_%d_%Y") %>">
+                                                                                               "other_month #{(day.month == (current.month + 1) % 12) ? "next_month" : "previous_month"}"
+                                                                                             end %><%= (day == today) ? " today" : "" %> <%= day.strftime("date_%m_%d_%Y") %>">
             <div class="day_wrapper">
               <span class="screenreader-only"><%= day.strftime("%e %B %Y") %></span>
               <span class="day_number" aria-hidden="true">
                 <%= day.day %>
               </span>
-              <span class="screenreader-only previous_month_text"><%= I18n.t 'Previous month' %></span>
-              <span class="screenreader-only next_month_text"><%= I18n.t 'Next month' %></span>
-              <span class="screenreader-only today_text"><%= I18n.t 'Today' %></span>
-              <span class="screenreader-only event_link_text"><%= I18n.t 'Click to view event details' %></span>
+              <span class="screenreader-only previous_month_text"><%= I18n.t "Previous month" %></span>
+              <span class="screenreader-only next_month_text"><%= I18n.t "Next month" %></span>
+              <span class="screenreader-only today_text"><%= I18n.t "Today" %></span>
+              <span class="screenreader-only event_link_text"><%= I18n.t "Click to view event details" %></span>
             </div>
           </td>
           <% day = day.next %>

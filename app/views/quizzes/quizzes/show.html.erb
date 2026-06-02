@@ -24,17 +24,17 @@
   # These titles are used in different elements/scopes below
   #
   # Quiz or Survey title
-  qos_statistics_title = @quiz.survey? ? t('links.survey_statistics', "Survey Statistics") : t('links.quiz_statistics', "Quiz Statistics")
+  qos_statistics_title = @quiz.survey? ? t("links.survey_statistics", "Survey Statistics") : t("links.quiz_statistics", "Quiz Statistics")
 
   # Quiz or Survey moderate title
-  qos_moderate_title = @quiz.survey? ? t('links.moderate_this_survey', "Moderate This Survey") : t('links.moderate_this_quiz', "Moderate This Quiz")
+  qos_moderate_title = @quiz.survey? ? t("links.moderate_this_survey", "Moderate This Survey") : t("links.moderate_this_quiz", "Moderate This Quiz")
 
   # these titles are used in more than one spot below
-  admin_edit_title = t('links.edit', 'Edit')
-  admin_manage_title = t('manage', 'Manage')
-  admin_delete_title = t('titles.delete', "Delete")
-  admin_preview_title = t('links.preview', "Preview")
-  admin_show_rubric_title = t('links.show_assignment_rubric', "Show Rubric")
+  admin_edit_title = t("links.edit", "Edit")
+  admin_manage_title = t("manage", "Manage")
+  admin_delete_title = t("titles.delete", "Delete")
+  admin_preview_title = t("links.preview", "Preview")
+  admin_show_rubric_title = t("links.show_assignment_rubric", "Show Rubric")
   is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
               !!js_env.dig(:MASTER_COURSE_DATA, "restricted_by_master_course")
   can_direct_share = can_do(@context, @current_user, :direct_share)
@@ -44,7 +44,7 @@
   <% provide :right_side do %>
     <div id="sidebar_content" class="rs-margin-bottom">
       <ul class="page-action-list" style="display:none;">
-        <h2><%= t 'titles.related_items', "Related Items" %></h2>
+        <h2><%= t "titles.related_items", "Related Items" %></h2>
 
         <% if can_do(@quiz, @current_user, :update) %>
           <% if can_do(@quiz, @current_user, :manage) %>
@@ -74,7 +74,7 @@
           <% end %>
 
           <li>
-            <% see_full_quiz_title = t('links.see_full_quiz', "See Full Quiz") %>
+            <% see_full_quiz_title = t("links.see_full_quiz", "See Full Quiz") %>
             <a href="<%= context_url(@context, :context_quiz_read_only_url, @quiz.id) %>">
               <i class="icon-quiz"><span class="screenreader-only"><%= see_full_quiz_title %></span></i> <%= see_full_quiz_title %>
             </a>
@@ -82,7 +82,7 @@
         <% end %>
 
         <% if can_do(@quiz, @current_user, :review_grades) %>
-          <%= render partial: 'download_file_upload_submissions' %>
+          <%= render partial: "download_file_upload_submissions" %>
         <% end %>
 
         <% if (can_do(@quiz, @current_user, :grade) || can_do(@quiz, @current_user, :review_grades)) && @quiz.available? &&
@@ -103,7 +103,7 @@
     </div>
 
     <% if @submission && params[:preview] %>
-      <% qos_keep_editing_title = @quiz.survey? ? t('links.keep_editing_this_survey', "Keep Editing This Survey") : t('links.keep_editing_this_quiz', "Keep Editing This Quiz") %>
+      <% qos_keep_editing_title = @quiz.survey? ? t("links.keep_editing_this_survey", "Keep Editing This Survey") : t("links.keep_editing_this_quiz", "Keep Editing This Quiz") %>
       <ul class="page-action-list">
         <li>
           <a href="<%= context_url(@context, :edit_context_quiz_url, @quiz) %>">
@@ -127,9 +127,9 @@
       <div class="header-group-left">
         <button id="quiz-publish-link"
           class='btn quiz-publish-button <%= "disabled" if @context.horizon_course? || !@quiz.can_unpublish? %>'
-          <%= 'data-tooltip' unless @quiz.can_unpublish? %>>
+          <%= "data-tooltip" unless @quiz.can_unpublish? %>>
         </button>
-        <%= link_to_preview_quiz('class' => "btn", 'id' => "preview_quiz_button", 'preview' => 1) %>
+        <%= link_to_preview_quiz("class" => "btn", "id" => "preview_quiz_button", "preview" => 1) %>
       <% if @quiz.grants_right?(@current_user, session, :manage_assign_to) %>
           <button class='btn assign-to-link'>
           <span class='assign-to-link-resources'
@@ -138,7 +138,7 @@
             data-quiz-context-id="<%= @quiz.context_id %>"
             data-quiz-id="<%= @quiz.id %>"
             data-quiz-points-possible="<%= @quiz.points_possible %>"></span>
-            <i class='icon-permissions'></i> <%= t('Assign To') %>
+            <i class='icon-permissions'></i> <%= t("Assign To") %>
           </button>
         <% end %>
       </div>
@@ -178,16 +178,16 @@
 
             <% if can_do(@quiz, @current_user, :update) && !editing_restricted?(@quiz) %>
               <% if @quiz.locked? %>
-                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: 'quiz_unlock_form' } do |f| %>
-                  <%= hidden_field_tag 'quiz[locked]', false %>
-                  <div id="unlock_for_how_long_dialog" title="<%= t('titles.unlock_for_how_long', "How long would you like to unlock the quiz for?") %>" style="display:none;">
+                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: "quiz_unlock_form" } do |f| %>
+                  <%= hidden_field_tag "quiz[locked]", false %>
+                  <div id="unlock_for_how_long_dialog" title="<%= t("titles.unlock_for_how_long", "How long would you like to unlock the quiz for?") %>" style="display:none;">
                     <label class="pull-left" for="no_time_limit">
-                      <%= f.radio_button('do_lock_at', false, checked: true) %>
-                      <%= f.label('do_lock_at_false', :no_time_limit, en: 'No time limit') %>
+                      <%= f.radio_button("do_lock_at", false, checked: true) %>
+                      <%= f.label("do_lock_at_false", :no_time_limit, en: "No time limit") %>
                     </label>
-                    <label id="how_long_to_unlock_wrapper" style="float: <%= direction('left') %>; margin-<%= direction('left') %>: 30px;" for="until">
-                      <%= f.radio_button('do_lock_at', true, checked: false) %>
-                      <%= f.label('do_lock_at', :available_until, en: 'Until', value: true) %>
+                    <label id="how_long_to_unlock_wrapper" style="float: <%= direction("left") %>; margin-<%= direction("left") %>: 30px;" for="until">
+                      <%= f.radio_button("do_lock_at", true, checked: false) %>
+                      <%= f.label("do_lock_at", :available_until, en: "Until", value: true) %>
                       <label class="screenreader-only" id="quiz_lock_at_label">
                         <%= t("Available Until Date") %>
                         <%= datepicker_screenreader_prompt %>
@@ -202,17 +202,17 @@
                     </label>
                   </div>
                 <% end %>
-                <% qos_unlock_quiz_title = @quiz.survey? ? t('buttons.unlock_survey', "Let Students Take this Survey Now") : t('buttons.unlock_quiz', "Let Students Take this Quiz Now") %>
+                <% qos_unlock_quiz_title = @quiz.survey? ? t("buttons.unlock_survey", "Let Students Take this Survey Now") : t("buttons.unlock_quiz", "Let Students Take this Quiz Now") %>
                 <li role="presentation">
                   <a href="#" id="let_students_take_this_quiz_button" tabindex="-1" role="menuitem">
                     <i class="icon-unlock"><span class="screenreader-only"><%= qos_unlock_quiz_title %></span></i> <%= qos_unlock_quiz_title %>
                   </a>
                 </li>
               <% else %>
-                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: 'quiz_lock_form' } do %>
-                  <%= hidden_field_tag 'quiz[locked]', true %>
+                <%= form_for @quiz, as: :quiz, method: :put, url: context_url(@context, :context_quiz_url, @quiz.id), html: { id: "quiz_lock_form" } do %>
+                  <%= hidden_field_tag "quiz[locked]", true %>
                 <% end %>
-                <% qos_lock_quiz_title = @quiz.survey? ? t('buttons.lock_survey', "Lock this Survey Now") : t('buttons.lock_quiz', "Lock this Quiz Now") %>
+                <% qos_lock_quiz_title = @quiz.survey? ? t("buttons.lock_survey", "Lock this Survey Now") : t("buttons.lock_quiz", "Lock this Quiz Now") %>
                 <li role="presentation">
                   <a href="#" id="lock_this_quiz_now_link" tabindex="-1" role="menuitem">
                     <i class="icon-lock"><span class="screenreader-only"><%= qos_lock_quiz_title %></span></i> <%= qos_lock_quiz_title %>
@@ -230,9 +230,9 @@
                   <% end %>
                   <i class="icon-group"></i>
                   <span id="quiz_details_text">
-                    <%= @quiz.survey? ? t('links.show_student_survey_results', "Show Student Survey Results") : t('links.show_student_quiz_results', "Show Student Quiz Results") %>
+                    <%= @quiz.survey? ? t("links.show_student_survey_results", "Show Student Survey Results") : t("links.show_student_quiz_results", "Show Student Quiz Results") %>
                   </span>
-                  <div style="font-size: 0.8em; padding-<%= direction('left') %>: 20px;">(<%= t(:students_submitted_so_far, { one: "1 student submitted so far", other: "%{count} students submitted so far" }, count: @submitted_student_count) %>)</div>
+                  <div style="font-size: 0.8em; padding-<%= direction("left") %>: 20px;">(<%= t(:students_submitted_so_far, { one: "1 student submitted so far", other: "%{count} students submitted so far" }, count: @submitted_student_count) %>)</div>
                 </a>
               </li>
             <% end %>
@@ -261,7 +261,7 @@
             <% end %>
 
             <% if can_direct_share %>
-              <%= render partial: 'direct_share_buttons' %>
+              <%= render partial: "direct_share_buttons" %>
             <% end %>
 
             <%= external_tools_menu_items(@quiz_menu_tools || [], { link_class: "menu_tool_link", settings_key: :quiz_menu, in_list: true, url_params: { quizzes: [@quiz.id] } }) %>
@@ -283,7 +283,7 @@
               <span class="screenreader-only"><%= admin_manage_title %></span>
             </button>
             <ul id="toolbar-1" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false">
-              <%= render partial: 'direct_share_buttons' %>
+              <%= render partial: "direct_share_buttons" %>
             </ul>
           </div>
         </div>
@@ -297,12 +297,12 @@
       <i class="icon-warning" aria-label="<%= t("labels.warning_icon", "Warning") %>"></i>
       <strong>
       <% if score_affected_by_regrade?(@submission) %>
-        <%= t 'quiz_regraded_your_score_affected',
+        <%= t "quiz_regraded_your_score_affected",
               { one: "This quiz has been regraded; your score was affected.",
                 other: "This quiz has been regraded; your new score reflects %{count} questions that were affected." },
               count: @submission.questions_regraded_since_last_attempt %>
       <% else %>
-        <%= t 'quiz_regraded_your_score_not_affected', 'This quiz has been regraded; your score was not affected.' %>
+        <%= t "quiz_regraded_your_score_not_affected", "This quiz has been regraded; your score was not affected." %>
       <% end %>
       </strong>
     </div>
@@ -320,11 +320,11 @@
 
               <%= form_for @quiz,
                            url: context_url(@context, :context_quiz_url, @quiz.id),
-                           style: 'display: inline',
+                           style: "display: inline",
                            method: :put do |f| %>
-                <%= hidden_field_tag 'quizzes[]', @quiz.id %>
+                <%= hidden_field_tag "quizzes[]", @quiz.id %>
                 <img src='/images/ajax-loader-black-on-white.gif' class='hidden loading' alt=""/>
-                <%= f.submit 'Save It Now', class: 'btn btn-primary' %>
+                <%= f.submit "Save It Now", class: "btn btn-primary" %>
               <% end %>
 
             </div>
@@ -342,7 +342,7 @@
       <p>
         <div class="alert">
           <i class="icon-warning" aria-hidden="true"></i>
-          <%= t 'This is a preview of the draft version of the quiz' %>
+          <%= t "This is a preview of the draft version of the quiz" %>
         </div>
       </p>
     <% end %>
@@ -354,9 +354,9 @@
     </div>
     <div class="row-fluid">
       <% if can_do(@quiz, @current_user, :update) || can_do(@quiz, @current_user, :manage) %>
-        <%= render partial: 'quiz_show_teacher' %>
+        <%= render partial: "quiz_show_teacher" %>
       <% else %>
-        <%= render partial: 'quiz_show_student' %>
+        <%= render partial: "quiz_show_student" %>
       <% end %>
     </div>
 
@@ -364,13 +364,13 @@
 
     <% if preview_mode %>
       <div class="preview_quiz_button">
-        <%= link_to_preview_quiz('class' => "btn btn-primary", 'id' => "preview_quiz_button", 'preview' => 1) %>
+        <%= link_to_preview_quiz("class" => "btn btn-primary", "id" => "preview_quiz_button", "preview" => 1) %>
       </div>
     <% elsif @quiz.available? %>
       <% if @can_take %>
         <% if @submission&.untaken? %>
           <div class="take_quiz_button">
-            <%= link_to_resume_poll('class' => "btn btn-primary") %>
+            <%= link_to_resume_poll("class" => "btn btn-primary") %>
           </div>
         <% elsif @assignment&.submission_for_student(@current_user)&.excused? %>
           <div class="lock_explanation">
@@ -378,7 +378,7 @@
           </div>
         <% elsif can_do(@quiz, @current_user, :submit) && !@lockdown_browser_authorized_to_view %>
           <div class="take_quiz_button">
-            <%= link_to_take_or_retake_poll('class' => "btn btn-primary", 'id' => "take_quiz_link") %>
+            <%= link_to_take_or_retake_poll("class" => "btn btn-primary", "id" => "take_quiz_link") %>
           </div>
         <% end %>
       <% elsif !@current_user && @quiz.graded? %>
@@ -393,7 +393,7 @@
         </div>
       <% elsif @locked && !can_do(@quiz, @current_user, :update) %>
         <div class="lock_explanation">
-          <%= lock_explanation(@locked_reason, 'quiz', @context) %>
+          <%= lock_explanation(@locked_reason, "quiz", @context) %>
         </div>
       <% end %>
     <% elsif !can_do(@quiz, @current_user, :update) %>
@@ -415,7 +415,7 @@
   <% end %>
 
   <% if @quiz.cant_go_back? %>
-    <%= render 'cant_go_back_warning', preview: preview_mode %>
+    <%= render "cant_go_back_warning", preview: preview_mode %>
   <% end %>
 
   <%= prefetch_assignment_external_tools %>

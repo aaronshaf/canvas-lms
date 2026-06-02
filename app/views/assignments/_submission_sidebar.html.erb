@@ -17,7 +17,7 @@
 %>
 
 <% cache([
-     'submission_sidebar_render2',
+     "submission_sidebar_render2",
      @current_user.id,
      @current_user_submission,
      Time.zone.utc_offset,
@@ -26,7 +26,7 @@
      @assignment.anonymous_peer_reviews ? 1 : 0
    ].cache_key) do %>
 <div class="details">
-  <h2><%= t 'titles.submission', "Submission" %></h2>
+  <h2><%= t "titles.submission", "Submission" %></h2>
   <% if @current_user_submission.excused? %>
     <div class="header">
       <%= t "Excused!" %>
@@ -35,10 +35,10 @@
     <div class="header">
       <% if @current_user_submission.has_submission? %>
         <i class="icon-check" aria-hidden="true"></i>
-        <%= t 'titles.submission_turned_in', "Submitted!" %>
+        <%= t "titles.submission_turned_in", "Submitted!" %>
       <% else %>
         <i class="icon-x" aria-hidden="true"></i>
-        <%= t 'titles.submission_not_turned_in', "Not Submitted!" %>
+        <%= t "titles.submission_not_turned_in", "Not Submitted!" %>
       <% end %>
     </div>
   <% end %>
@@ -49,7 +49,7 @@
     <% end %>
     <span class="<%= "late" if @current_user_submission.late? %>">
       <% if @current_user_submission.late? %>
-        <%= t 'messages.submission_late_timestamp', "%{submitted_at} (late)", submitted_at: datetime_string(@current_user_submission.submitted_at) %>
+        <%= t "messages.submission_late_timestamp", "%{submitted_at} (late)", submitted_at: datetime_string(@current_user_submission.submitted_at) %>
       <% else %>
         <%= datetime_string(@current_user_submission.submitted_at) %>
       <% end %>
@@ -57,21 +57,21 @@
 
     <div>
       <a href="<%= context_url(@assignment.context, :context_assignment_submission_url, @assignment.id, @current_user.id) %>">
-        <%= t 'links.submission.details', "Submission Details" %>
+        <%= t "links.submission.details", "Submission Details" %>
       </a>
     </div>
 
     <% if @current_user_submission.submission_type == "online_url" %>
       <div>
         <a href="<%= @current_user_submission.url %>" target="_new" id="view-original-link">
-          <%= t 'links.submission.view_original_page', "View the Original Page" %>
+          <%= t "links.submission.view_original_page", "View the Original Page" %>
         </a>
       </div>
     <% elsif @current_user_submission.submission_type == "online_upload" %>
       <% @current_user_submission.attachments.each do |attachment| %>
         <div>
           <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id, download: attachment.id) %>">
-            <%= t 'links.submission.download_attachment', "Download %{attachment_display_name}", {
+            <%= t "links.submission.download_attachment", "Download %{attachment_display_name}", {
                   attachment_display_name: attachment.display_name
                 } %>
           </a>
@@ -84,9 +84,9 @@
       <a href="<%= context_url(@assignment.context, :context_quiz_url, @assignment.quiz.id) %>" target="_new">
         <i class="icon-quiz" aria-hidden="true"></i>
         <%= if @assignment.quiz.survey?
-              t('links.submission.view_survey', "View the Survey Submission")
+              t("links.submission.view_survey", "View the Survey Submission")
             else
-              t('links.submission.view_quiz', "View the Quiz Submission")
+              t("links.submission.view_quiz", "View the Quiz Submission")
             end %>
       </a>
     <% end %>
@@ -97,19 +97,19 @@
           <span><%= t "This assignment has been excused." %></span>
         <% else %>
          <% if @assignment.restrict_quantitative_data?(@current_user, check_extra_permissions: true) %>
-          <div><%= t 'labels.rqd_grade', "Grade: %{grade}", {
+          <div><%= t "labels.rqd_grade", "Grade: %{grade}", {
                      grade: replace_dash_with_minus(@assignment.score_to_grade(@current_user_submission.score, @current_user_submission.grade, force_letter_grade: true)),
                      wrapper: '<span style="font-size: 0.8em;">\1</span>'
                    } %></div>
         <% else %>
-          <div><%= t 'labels.grade', "Grade: %{grade} *(%{points_possible} pts possible)*", {
+          <div><%= t "labels.grade", "Grade: %{grade} *(%{points_possible} pts possible)*", {
                      grade: i18n_grade(@current_user_submission.grade, @assignment.grading_type),
                      points_possible: n(round_if_whole(@assignment.points_possible)),
                      wrapper: '<span style="font-size: 0.8em;">\1</span>'
                    } %></div>
         <% end %>
-          <div><%= t 'labels.graded_anonymously', "Graded Anonymously: %{value}", {
-                     value: @current_user_submission.graded_anonymously ? t('labels.yes', "yes") : t('labels.no', "no")
+          <div><%= t "labels.graded_anonymously", "Graded Anonymously: %{value}", {
+                     value: @current_user_submission.graded_anonymously ? t("labels.yes", "yes") : t("labels.no", "no")
                    } %></div>
         <% end %>
       <% end %>
@@ -117,16 +117,16 @@
       <% if @current_user_submission.rubric_assessment %>
         <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id) %>#rubric" class='Submission__Link--has-icon'>
           <i class="icon-rubric" aria-hidden="true"></i>
-          <%= t 'links.view_rubric_evaluation', "View Rubric Evaluation" %>
+          <%= t "links.view_rubric_evaluation", "View Rubric Evaluation" %>
         </a>
       <% end %>
     </div>
 
     <% if @assignment.has_peer_reviews? && @current_user_submission.user == @current_user %>
-      <h3><%= t 'titles.assigned_peer_reviews', "Assigned Peer Reviews" %></h3>
+      <h3><%= t "titles.assigned_peer_reviews", "Assigned Peer Reviews" %></h3>
 
       <ul class="unstyled_list Submission__List">
-        <li style="<%= hidden unless @assigned_assessments.empty? %>"><%= t 'labels.none_assigned', "None Assigned" %></li>
+        <li style="<%= hidden unless @assigned_assessments.empty? %>"><%= t "labels.none_assigned", "None Assigned" %></li>
         <% @assigned_assessments.each do |assessment| %>
           <li><%= student_peer_review_link_for @context, @assignment, assessment %></li>
         <% end %>
@@ -135,12 +135,12 @@
 
     <div class="comments module">
       <% if @current_user_submission.hide_grade_from_student? %>
-        <p><%= t 'You may not see all comments right now because the assignment is currently being graded.' %></p>
+        <p><%= t "You may not see all comments right now because the assignment is currently being graded." %></p>
       <% else %>
-        <h3><%= t 'titles.comments', "Comments:" %> </h3>
+        <h3><%= t "titles.comments", "Comments:" %> </h3>
 
         <% visible_comments = @current_user_submission.visible_submission_comments -%>
-        <%= t('messages.no_comments', "No Comments") if visible_comments.empty? %>
+        <%= t("messages.no_comments", "No Comments") if visible_comments.empty? %>
         <% visible_comments.each do |comment| %>
           <div id="comment-<%= comment.id %>" class="comment">
             <div class="comment_content" data-content="<%= comment.comment %>"></div>
@@ -151,7 +151,7 @@
                 </div>
               <% end %>
             </div>
-            <div class="signature" style="font-size: 0.8em; text-align: <%= direction('right') %>;">
+            <div class="signature" style="font-size: 0.8em; text-align: <%= direction("right") %>;">
               <%= t :comment_signature, "%{author}, %{created_at}", {
                     author: comment_author_name_for(comment),
                     created_at: datetime_string(comment.created_at)

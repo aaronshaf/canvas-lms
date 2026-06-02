@@ -21,14 +21,14 @@
   default_number_of_fake_dashcards_to_show = 5
 
   number_of_fake_published_cards_to_show =
-    Rails.cache.read(['last_known_dashboard_cards_published_count', @current_user.global_id].cache_key) ||
+    Rails.cache.read(["last_known_dashboard_cards_published_count", @current_user.global_id].cache_key) ||
     default_number_of_fake_dashcards_to_show
 
   number_of_fake_unpublished_cards_to_show =
-    Rails.cache.read(['last_known_dashboard_cards_unpublished_count', @current_user.global_id].cache_key) ||
+    Rails.cache.read(["last_known_dashboard_cards_unpublished_count", @current_user.global_id].cache_key) ||
     default_number_of_fake_dashcards_to_show
 
-  render_on_pageload = user_dashboard_view == 'cards'
+  render_on_pageload = user_dashboard_view == "cards"
 %>
 <% if render_on_pageload %>
   <%# fire off these `fetch` requests now so they are ready sooner %>
@@ -44,7 +44,7 @@
     <%= prefetch_xhr("/dashboard-sidebar") %>
   <% end %>
 <% end %>
-<div id="DashboardCard_Container" style="display: <%= render_on_pageload ? 'block' : 'none' %>">
+<div id="DashboardCard_Container" style="display: <%= render_on_pageload ? "block" : "none" %>">
   <div class="ic-DashboardCard__box">
     <% number_of_fake_published_cards_to_show.times do %>
       <div class="ic-DashboardCard">

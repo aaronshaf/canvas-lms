@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<li class="peer_review <%= request.try_rescue(:workflow_state) || 'assigned' %>" id="review_request_<%= request ? request.id : 'blank' %>" style="<%= hidden unless request %>">
+<li class="peer_review <%= request.try_rescue(:workflow_state) || "assigned" %>" id="review_request_<%= request ? request.id : "blank" %>" style="<%= hidden unless request %>">
   <span class="pull-left">
     <% if request&.completed? %>
       <i class="icon-check" aria-hidden="true"></i>
@@ -26,28 +26,28 @@
       <i class="icon-warning" aria-hidden="true"></i>
       <span class="screenreader-only"><%= I18n.t("Assessment not yet Completed") %></span>
     <% end %>
-    <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, request ? request.asset.user_id : '{{ user_id }}') %>">
+    <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, request ? request.asset.user_id : "{{ user_id }}") %>">
       <span class="asset_user_name"><%= request.try_rescue(:asset).try_rescue(:user).try_rescue(:last_name_first) || nbsp %> <% if request.try_rescue(:asset).try_rescue(:user).try_rescue(:pronouns) %> <i>(<%= request.try_rescue(:asset).try_rescue(:user).try_rescue(:pronouns) %>)</i><% end %></span>
     </a>
   </span>
   <span class="user_id" style="display: none;"><%= request.try_rescue(:asset).try_rescue(:user_id) || nbsp %></span>
-  <div style="float: <%= direction('right') %>;" class="review_links">
+  <div style="float: <%= direction("right") %>;" class="review_links">
     <% user = request.try_rescue(:assessor).try_rescue(:name)
-       user ||= t 'titles.user_default', "User"
-       reminder = t('titles.remind_reviewer', "Remind %{user} about Assessment", user:)
-       reminder = t 'titles.remind_reviewier_with_last_notification', "Remind %{user} about Assessment, last notified %{at}", user: user, at: datetime_string(request.updated_at) if request&.assigned? %>
+       user ||= t "titles.user_default", "User"
+       reminder = t("titles.remind_reviewer", "Remind %{user} about Assessment", user:)
+       reminder = t "titles.remind_reviewier_with_last_notification", "Remind %{user} about Assessment, last notified %{at}", user: user, at: datetime_string(request.updated_at) if request&.assigned? %>
     <a
       class="remind_peer_review_link no-hover"
       style="<%= hidden if request&.completed? %>"
-      href="<%= context_url(@context, :context_assignment_remind_peer_review_url, @assignment.id, request ? request.id : '{{ id }}') %>">
+      href="<%= context_url(@context, :context_assignment_remind_peer_review_url, @assignment.id, request ? request.id : "{{ id }}") %>">
       <span class="screenreader-only"><%= reminder %></span>
       <i class="icon-alerts" aria-hidden="true" title="<%= reminder %>"></i>
     </a>
     <a
       class="delete_review_link no-hover"
-      href="<%= context_url(@context, :context_assignment_delete_peer_review_url, @assignment.id, request ? request.id : '{{ id }}') %>">
-      <span class="screenreader-only"><%= t('Delete') %></span>
-      <i class="icon-trash" aria-hidden="true" title="<%= t('Delete') %>"></i>
+      href="<%= context_url(@context, :context_assignment_delete_peer_review_url, @assignment.id, request ? request.id : "{{ id }}") %>">
+      <span class="screenreader-only"><%= t("Delete") %></span>
+      <i class="icon-trash" aria-hidden="true" title="<%= t("Delete") %>"></i>
     </a>
   </div>
   <div class="clear"></div>

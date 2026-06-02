@@ -16,12 +16,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% title = @media_object.try(:title) || t('titles.media_playback', "Media Playback")
+<% title = @media_object.try(:title) || t("titles.media_playback", "Media Playback")
    provide :page_title, title
-   add_crumb t('#crumbs.media', "Media")
+   add_crumb t("#crumbs.media", "Media")
    add_crumb title %>
 <div style="margin: 10px auto; width: 500px;">
   <div id="media_comment">
   </div>
 </div>
-<% js_bundle 'context_media_object_inline' %>
+<% js_bundle "context_media_object_inline" %>

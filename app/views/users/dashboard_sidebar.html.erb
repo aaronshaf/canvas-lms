@@ -29,9 +29,9 @@
   <div class="Sidebar__TodoListContainer"></div>
 <% end %>
 <% if render_teacher_to_do %>
-  <%= render partial: 'courses/to_do_list', locals: { contexts: nil, show_legacy_todo_list: true, additional_title_context: @user.has_student_enrollment? } %>
+  <%= render partial: "courses/to_do_list", locals: { contexts: nil, show_legacy_todo_list: true, additional_title_context: @user.has_student_enrollment? } %>
   <% locals = {
-       title: t('coming_up', "Coming Up"),
+       title: t("coming_up", "Coming Up"),
        period: :one_week,
        show_context: true,
        upcoming: true
@@ -39,7 +39,7 @@
   <%= render partial: "shared/event_list", object: @upcoming_events, locals: %>
 <% end %>
 <% if @show_recent_feedback %>
-<%= render partial: "shared/event_list", object: @recent_feedback, locals: { title: t('recent_feedback', "Recent Feedback"), period: :two_weeks, show_context: true, is_recent_feedback: true } %>
+<%= render partial: "shared/event_list", object: @recent_feedback, locals: { title: t("recent_feedback", "Recent Feedback"), period: :two_weeks, show_context: true, is_recent_feedback: true } %>
 <% end %>
 
 <% unless Account.site_admin.feature_enabled?(:instui_header) %>
@@ -48,16 +48,16 @@
     <button type="button"
             id="start_new_course"
             class="element_toggler element_toggler_inst_focus_ring btn button-sidebar-wide"
-            aria-controls="new_course_form"><%= t('start_new_course', 'Start a New Course') %></button>
+            aria-controls="new_course_form"><%= t("start_new_course", "Start a New Course") %></button>
     <% if @domain_root_account.feature_enabled?(:create_course_subaccount_picker) %>
       <div id="create_course_modal_container"></div>
     <% else %>
-      <%= render partial: 'shared/new_course_form' %>
+      <%= render partial: "shared/new_course_form" %>
     <% end %>
   <% end %>
 
   <a href="<%= grades_path %>" class="Button button-sidebar-wide element_toggler_inst_focus_ring">
-  <%= t('View Grades') %>
+  <%= t("View Grades") %>
   </a>
 </div>
 <% end %>

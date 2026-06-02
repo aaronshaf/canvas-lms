@@ -19,18 +19,18 @@
 <%
   # from https://github.com/instructure/color-slicer, start:270
   colors = [
-    'rgb(74,118,178)',
-    'rgb(79,128,69)',
-    'rgb(203,63,119)',
-    'rgb(26,127,147)',
-    'rgb(146,112,5)',
-    'rgb(131,102,180)',
-    'rgb(47,130,106)',
-    'rgb(203,71,64)',
-    'rgb(43,123,169)',
-    'rgb(103,125,43)',
-    'rgb(184,76,150)',
-    'rgb(29,129,133)'
+    "rgb(74,118,178)",
+    "rgb(79,128,69)",
+    "rgb(203,63,119)",
+    "rgb(26,127,147)",
+    "rgb(146,112,5)",
+    "rgb(131,102,180)",
+    "rgb(47,130,106)",
+    "rgb(203,71,64)",
+    "rgb(43,123,169)",
+    "rgb(103,125,43)",
+    "rgb(184,76,150)",
+    "rgb(29,129,133)"
   ]
 %>
 <% if @courses.any? %>
@@ -44,9 +44,9 @@
         <p class="pad-box-mini"><%= c.public_description %></p>
         <% if @current_user && c.open_enrollment && c.self_enrollment_enabled? %>
           <p>
-            <button class="btn course_enrollment_link" aria-label="<%= t('Join %{course}', course: c.name) %>" data-href="/enroll/<%= c.self_enrollment_code %>">
+            <button class="btn course_enrollment_link" aria-label="<%= t("Join %{course}", course: c.name) %>" data-href="/enroll/<%= c.self_enrollment_code %>">
               <i class="icon-user-add"></i>
-              <%= t(:join_course, 'Join this Course') %>
+              <%= t(:join_course, "Join this Course") %>
             </button>
           </p>
         <% end %>
@@ -145,12 +145,12 @@
         />
       </g>
     </svg>
-    <h2 class="not_found__heading"><%= t(:no_courses_found, 'No courses found') %></h2>
+    <h2 class="not_found__heading"><%= t(:no_courses_found, "No courses found") %></h2>
   </div>
 <% end %>
 <% if @prevPage %>
-  <a class="pull-left" id="previous-link" href="<%= @prevPage %>"><%= t(:previous, 'Previous') %></a>
+  <a class="pull-left" id="previous-link" href="<%= @prevPage %>"><%= t(:previous, "Previous") %></a>
 <% end %>
 <% if @nextPage %>
-  <a class="pull-right" id="next-link" href="<%= @nextPage %>"><%= t(:next, 'Next') %></a>
+  <a class="pull-right" id="next-link" href="<%= @nextPage %>"><%= t(:next, "Next") %></a>
 <% end %>

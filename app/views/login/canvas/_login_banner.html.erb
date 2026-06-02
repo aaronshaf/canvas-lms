@@ -19,28 +19,28 @@
 <% hide_self_reg_banner ||= false %>
 
 <% if @domain_root_account&.self_registration? && !hide_self_reg_banner %>
-  <% if @domain_root_account.self_registration_type == 'observer' %>
+  <% if @domain_root_account.self_registration_type == "observer" %>
     <% js_env({
-                ACCOUNT: account_json(@domain_root_account, nil, session, ['registration_settings']),
+                ACCOUNT: account_json(@domain_root_account, nil, session, ["registration_settings"]),
                 PASSWORD_POLICY: @domain_root_account.password_policy
               }) %>
-    <%= link_to '#',
-                id: 'coenrollment_link',
+    <%= link_to "#",
+                id: "coenrollment_link",
                 class: "ic-Login__link ic-Login__register-banner",
                 data: reg_link_data(nil) do %>
       <div class="ic-Login__banner-title">
-        <%= t('Parent of a Canvas User?') %>
+        <%= t("Parent of a Canvas User?") %>
       </div>
       <div class="ic-Login__banner-subtitle">
-        <%= t('Click Here For an Account') %>
+        <%= t("Click Here For an Account") %>
       </div>
     <% end %>
   <% else %>
     <%= link_to "/register_from_website",
-                id: 'register_link',
+                id: "register_link",
                 class: "ic-Login__link ic-Login__register-banner" do %>
       <div class="ic-Login__banner-title">
-        <%= t('Need a Canvas Account?') %>
+        <%= t("Need a Canvas Account?") %>
       </div>
       <div class="ic-Login__banner-subtitle">
         <%= t("Click Here, It's Free!") %>

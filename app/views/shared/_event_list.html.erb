@@ -18,7 +18,7 @@
 
 <%
   event_list ||= []
-  title ||= t('titles.events', "Events")
+  title ||= t("titles.events", "Events")
   display_count ||= 3
   display_count += 1 if event_list.length == display_count + 1
   period ||= nil
@@ -26,11 +26,11 @@
   show_more ||= true
   upcoming ||= false
   is_recent_feedback ||= false
-  partial = is_recent_feedback ? 'courses/recent_feedback' : 'courses/recent_event'
+  partial = is_recent_feedback ? "courses/recent_feedback" : "courses/recent_event"
   contexts_to_link_to ||= nil
 %>
 <div class="events_list
-  <%= is_recent_feedback ? 'recent_feedback' : 'coming_up' %>"
+  <%= is_recent_feedback ? "recent_feedback" : "coming_up" %>"
 >
   <div class="h2 shared-space">
     <h2><%= title %></h2>
@@ -39,7 +39,7 @@
         class='event-list-view-calendar icon-calendar-day standalone-icon element_toggler_inst_focus_ring'
         href='<%= calendar_url_for(contexts_to_link_to) %>'
       >
-        <%= t 'links.view_calendar', "View Calendar" %>
+        <%= t "links.view_calendar", "View Calendar" %>
       </a>
     <% end %>
   </div>
@@ -48,11 +48,11 @@
     <li>
       <small>
         <% if period == :one_week %>
-          <%= t('nothing_one_week', 'Nothing for the next week') %>
+          <%= t("nothing_one_week", "Nothing for the next week") %>
         <% elsif period == :two_weeks && !is_recent_feedback %>
-          <%= t('nothing_two_weeks', 'Nothing for the next two weeks') %>
+          <%= t("nothing_two_weeks", "Nothing for the next two weeks") %>
         <% else %>
-          <%= t('nothing_for_now', 'Nothing for now') %>
+          <%= t("nothing_for_now", "Nothing for now") %>
         <% end %>
       </small>
     </li>
@@ -66,33 +66,33 @@
       <% if event_list.length >= 20 %>
         <% if upcoming %>
           <% if period == :one_week %>
-            <%= t('at_least_more_events_one_week_future', 'at least %{count_of_events} more in the next week', count_of_events: (event_list.length - display_count)) %>
+            <%= t("at_least_more_events_one_week_future", "at least %{count_of_events} more in the next week", count_of_events: (event_list.length - display_count)) %>
           <% elsif period == :two_weeks %>
-            <%= t('at_least_more_events_two_weeks_future', 'at least %{count_of_events} more in the next two weeks', count_of_events: (event_list.length - display_count)) %>
+            <%= t("at_least_more_events_two_weeks_future", "at least %{count_of_events} more in the next two weeks", count_of_events: (event_list.length - display_count)) %>
           <% else %>
-            <%= t('at_least_more_events', 'at least %{count_of_events} more', count_of_events: (event_list.length - display_count)) %>
+            <%= t("at_least_more_events", "at least %{count_of_events} more", count_of_events: (event_list.length - display_count)) %>
           <% end %>
         <% elsif period == :one_week %>
-          <%= t('at_least_more_events_one_week', 'at least %{count_of_events} more in the past week', count_of_events: (event_list.length - display_count)) %>
+          <%= t("at_least_more_events_one_week", "at least %{count_of_events} more in the past week", count_of_events: (event_list.length - display_count)) %>
         <% elsif period == :two_weeks %>
-          <%= t('at_least_more_events_two_weeks', 'at least %{count_of_events} more in the past two weeks', count_of_events: (event_list.length - display_count)) %>
+          <%= t("at_least_more_events_two_weeks", "at least %{count_of_events} more in the past two weeks", count_of_events: (event_list.length - display_count)) %>
         <% else %>
-          <%= t('at_least_more_events', 'at least %{count_of_events} more', count_of_events: (event_list.length - display_count)) %>
+          <%= t("at_least_more_events", "at least %{count_of_events} more", count_of_events: (event_list.length - display_count)) %>
         <% end %>
       <% elsif upcoming %>
         <% if period == :one_week %>
-          <%= t('more_events_one_week_future', '%{count_of_events} more in the next week', count_of_events: (event_list.length - display_count)) %>
+          <%= t("more_events_one_week_future", "%{count_of_events} more in the next week", count_of_events: (event_list.length - display_count)) %>
         <% elsif period == :two_weeks %>
-          <%= t('more_events_two_weeks_future', '%{count_of_events} more in the next two weeks', count_of_events: (event_list.length - display_count)) %>
+          <%= t("more_events_two_weeks_future", "%{count_of_events} more in the next two weeks", count_of_events: (event_list.length - display_count)) %>
         <% else %>
-          <%= t('more_events', '%{count_of_events} more', count_of_events: (event_list.length - display_count)) %>
+          <%= t("more_events", "%{count_of_events} more", count_of_events: (event_list.length - display_count)) %>
         <% end %>
       <% elsif period == :one_week %>
-        <%= t('more_events_one_week', '%{count_of_events} more in the past week', count_of_events: (event_list.length - display_count)) %>
+        <%= t("more_events_one_week", "%{count_of_events} more in the past week", count_of_events: (event_list.length - display_count)) %>
       <% elsif period == :two_weeks %>
-        <%= t('more_events_two_weeks', '%{count_of_events} more in the past two weeks', count_of_events: (event_list.length - display_count)) %>
+        <%= t("more_events_two_weeks", "%{count_of_events} more in the past two weeks", count_of_events: (event_list.length - display_count)) %>
       <% else %>
-        <%= t('more_events', '%{count_of_events} more', count_of_events: (event_list.length - display_count)) %>
+        <%= t("more_events", "%{count_of_events} more", count_of_events: (event_list.length - display_count)) %>
       <% end %>
         &hellip;</a>
     </li>

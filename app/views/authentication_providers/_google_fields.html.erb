@@ -24,7 +24,7 @@
          After you create your app, make a note of the Client ID and Client Secret, and enter them here.
        MD
      %></p>
-  <%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
+  <%= render partial: "oauth2_fields", locals: { aac:, presenter:, f: } %>
 <% end %>
 <p><%=
      t(<<~TEXT)
@@ -33,8 +33,8 @@
      TEXT
    %></p>
 <div class="ic-Form-control">
-  <%= f.label :hosted_domain, t('Google Apps Domain'), class: 'ic-Label', for: "hosted_domain_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :hosted_domain, placeholder: 'school.edu', class: 'ic-Input', id: "hosted_domain_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :hosted_domain, t("Google Apps Domain"), class: "ic-Label", for: "hosted_domain_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :hosted_domain, placeholder: "school.edu", class: "ic-Input", id: "hosted_domain_#{presenter.id_suffix(aac)}" %>
 </div>
-<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>
+<%= render partial: "login_attribute_dropdown", locals: { aac:, presenter:, f: } %>
+<%= render partial: "jit_provisioning_field", locals: { aac:, presenter:, f: } %>

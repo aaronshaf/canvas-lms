@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
-<% user_name = @assignment.anonymize_students? ? I18n.t(:anonymous_user, 'Anonymous User') : @submission.user.name %>
+<% user_name = @assignment.anonymize_students? ? I18n.t(:anonymous_user, "Anonymous User") : @submission.user.name %>
 
 <!DOCTYPE html>
 <html>

@@ -1,5 +1,5 @@
 <div class="tool_content_wrapper
-  <%= 'custom_height' unless full_height? %>"
+  <%= "custom_height" unless full_height? %>"
   data-tool-wrapper-id="<%= @lti_launch.post_message_token %>"
   <% unless full_height? %> data-height_overridden="true" <% end %>
 >
@@ -43,7 +43,7 @@
           tabindex: "0",
           title: @lti_launch.link_text,
           style: "height:#{@lti_launch.tool_dimensions[:selection_height]};width:#{@lti_launch.tool_dimensions[:selection_width]};",
-          allow: Lti::Launch.iframe_allowances.join('; '),
+          allow: Lti::Launch.iframe_allowances.join("; "),
           data: { "lti-launch": true }
         ) %>
   <% end %>

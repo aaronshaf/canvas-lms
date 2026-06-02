@@ -24,25 +24,25 @@
   <%= render partial: "ways_to_contact" %>
   <div>
     <hr />
-    <a href="#" class="edit_settings_link btn button-sidebar-wide"><i class="icon-edit" aria-hidden="true"></i> <%= t('links.edit_settings', "Edit Settings") %></a>
+    <a href="#" class="edit_settings_link btn button-sidebar-wide"><i class="icon-edit" aria-hidden="true"></i> <%= t("links.edit_settings", "Edit Settings") %></a>
     <% if @js_env && @js_env[:ONETRUST_CONSENT_DOMAIN_ID].present? %>
-    <a id="ot-sdk-link" class="ot-sdk-show-settings btn button-sidebar-wide" href="#"><%= t('cookie_consent_settings', 'Consent Settings') %></a>
+    <a id="ot-sdk-link" class="ot-sdk-show-settings btn button-sidebar-wide" href="#"><%= t("cookie_consent_settings", "Consent Settings") %></a>
     <% end %>
       <% if current_mfa_settings != :disabled %>
-      <a href="<%= otp_login_path %>" class="btn button-sidebar-wide"><i class="icon-lock" aria-hidden="true"></i> <%= @user.otp_secret_key ? t('links.reconfigure_mfa', "Reconfigure Multi-Factor Authentication") : t('links.configure_mfa', "Set Up Multi-Factor Authentication") %></a>
+      <a href="<%= otp_login_path %>" class="btn button-sidebar-wide"><i class="icon-lock" aria-hidden="true"></i> <%= @user.otp_secret_key ? t("links.reconfigure_mfa", "Reconfigure Multi-Factor Authentication") : t("links.configure_mfa", "Set Up Multi-Factor Authentication") %></a>
       <% end %>
     <% if current_mfa_settings == :optional && @user.otp_secret_key %>
-      <a href="<%= disable_mfa_path('self') %>" class="btn button-sidebar-wide" id="disable_mfa_link"><i class="icon-unlock" aria-hidden="true"></i> <%= t('links.disable_mfa', "Disable Multi-Factor Authentication") %></a>
+      <a href="<%= disable_mfa_path("self") %>" class="btn button-sidebar-wide" id="disable_mfa_link"><i class="icon-unlock" aria-hidden="true"></i> <%= t("links.disable_mfa", "Disable Multi-Factor Authentication") %></a>
       <% end %>
     <% if current_mfa_settings != :disabled && @user.otp_secret_key %>
-        <a href="<%= one_time_passwords_path %>" class="btn button-sidebar-wide" id="otp_backup_codes_link" target="_blank"><i class="icon-lock" aria-hidden="true"></i> <%= t('links.otp_backup_codes', "Multi-Factor Authentication Backup Codes") %></a>
+        <a href="<%= one_time_passwords_path %>" class="btn button-sidebar-wide" id="otp_backup_codes_link" target="_blank"><i class="icon-lock" aria-hidden="true"></i> <%= t("links.otp_backup_codes", "Multi-Factor Authentication Backup Codes") %></a>
     <% end %>
     <a href="<%= dashboard_content_exports_path %>" class="btn button-sidebar-wide"><i class="icon-download" aria-hidden="true"></i> <%= t("Download Submissions") %></a>
     <% if @user.has_student_enrollment? && @domain_root_account&.self_registration? && @user.grants_right?(@current_user, :generate_observer_pairing_code) %>
       <div id="pairing-code"></div>
     <% end %>
     <% if @domain_root_account.feature_allowed?(:epub_export) && !@domain_root_account.enable_offline_web_export? %>
-        <%= link_to epub_exports_path, class: 'btn button-sidebar-wide' do %>
+        <%= link_to epub_exports_path, class: "btn button-sidebar-wide" do %>
           <i class="icon-download" aria-hidden="true"></i> <%= t("Download Course Content") %>
         <% end %>
     <% end %>
@@ -62,10 +62,10 @@
 <% if service_enabled?(:avatars) %>
   <% if @user_data[:can_edit_avatar] %>
     <%= avatar(@user,
-               url: '#',
+               url: "#",
                edit: true,
                class: "profile_pic_link #{@user.avatar_state}",
-               sr_content: t('Click to change profile picture for %{display_name}', display_name: @user.short_name)) %>
+               sr_content: t("Click to change profile picture for %{display_name}", display_name: @user.short_name)) %>
     <div id="avatar-modal-mount"></div>
   <% else %>
     <%= avatar(@user, url: nil, edit: false, class: "profile_pic") %>
@@ -73,30 +73,30 @@
 <% end %>
 <h1 style="padding-top: 0.3em;"><%= t("%{user_with_genitive} Settings", user: @user.short_name, user_with_genitive: I18n.form_proper_noun_singular_genitive(@user.short_name)) %></h1>
 <div class="clear"></div>
-<%= form_for @user, url: profile_path, html: { id: "update_profile_form", style: "margin-bottom: 20px;", class: 'form-inline' } do |f| %>
+<%= form_for @user, url: profile_path, html: { id: "update_profile_form", style: "margin-bottom: 20px;", class: "form-inline" } do |f| %>
 <table class="profile_table">
   <tr>
     <% editable_name = @user.user_can_edit_name? %>
     <th scope="row"><%= f.blabel :name, en: "Full Name" %></th>
     <td><span <% unless editable_name %>id="name"<% end %>
-              class="full_name <%= editable_name ? 'display_data' : 'edit_or_show_data' %>"><%= h @user.name %></span>
+              class="full_name <%= editable_name ? "display_data" : "edit_or_show_data" %>"><%= h @user.name %></span>
       <%= f.text_field :name, :class => "edit_data", :maxlength => 255, :size => 30, "aria-describedby" => "hints_name" if editable_name %>
-      <span id="hints_name" class="edit_or_show_data data_description"><br/><%= t('hints.name', "This name will be used for grading.") %></span>
+      <span id="hints_name" class="edit_or_show_data data_description"><br/><%= t("hints.name", "This name will be used for grading.") %></span>
   </tr>
   <tr>
     <th scope="row"><%= f.blabel :short_name, en: "Display Name" %></th>
     <td><span <% unless editable_name %>id="short_name"<% end %>
-              class="short_name <%= editable_name ? 'display_data' : 'edit_or_show_data' %>"><%= h @user.short_name %></span>
+              class="short_name <%= editable_name ? "display_data" : "edit_or_show_data" %>"><%= h @user.short_name %></span>
       <%= f.text_field :short_name, :class => "edit_data", :maxlength => 255, :size => 30, "aria-describedby" => "hints_short_name" if editable_name %>
-      <span id="hints_short_name" class="edit_or_show_data data_description"><br/><%= t('hints.short_name', "People will see this name in discussions, messages and comments.") %></span>
+      <span id="hints_short_name" class="edit_or_show_data data_description"><br/><%= t("hints.short_name", "People will see this name in discussions, messages and comments.") %></span>
     </td>
   </tr>
   <tr>
     <th scope="row"><%= f.blabel :sortable_name, en: "Sortable Name" %></th>
     <td><span <% unless editable_name %>id="sortable_name"<% end %>
-              class="sortable_name <%= editable_name ? 'display_data' : 'edit_or_show_data' %>"><%= h @user.sortable_name %></span>
+              class="sortable_name <%= editable_name ? "display_data" : "edit_or_show_data" %>"><%= h @user.sortable_name %></span>
       <%= f.text_field :sortable_name, :class => "edit_data", :maxlength => 255, :size => 30, "aria-describedby" => "hints_sortable_name" if editable_name %>
-      <span id="hints_sortable_name" class="edit_or_show_data data_description"><br/><%= t('hints.sortable_name', "This name appears in sorted lists.") %></span>
+      <span id="hints_sortable_name" class="edit_or_show_data data_description"><br/><%= t("hints.sortable_name", "This name appears in sorted lists.") %></span>
     </td>
   </tr>
   <%# even if @domain_root_account.settings[:can_add_pronouns] is false, we still want to let someone that has pronouns set to see this so they can unset them %>
@@ -105,22 +105,22 @@
       <th scope="row"><%= f.blabel :pronouns, en: "Pronouns" %></th>
       <td>
         <% if @domain_root_account.grants_right?(@current_user, :manage_courses_admin) %>
-          <span id="pronouns" class="<%= @domain_root_account.can_add_pronouns? ? 'display_data' : 'edit_or_show_data' %>"><%= @user.pronouns || t("None") %></span>
+          <span id="pronouns" class="<%= @domain_root_account.can_add_pronouns? ? "display_data" : "edit_or_show_data" %>"><%= @user.pronouns || t("None") %></span>
           <% if @domain_root_account.can_add_pronouns? %>
             <span class="edit_data">
               <%= f.select(
                     :pronouns,
-                    options_for_select(([[t("None"), '']] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns)
+                    options_for_select(([[t("None"), ""]] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns)
                   ) %>
             </span>
           <% end %>
         <% else %>
-          <span id="pronouns" class="<%= @domain_root_account.can_change_pronouns? ? 'display_data' : 'edit_or_show_data' %>"><%= @user.pronouns || t("None") %></span>
+          <span id="pronouns" class="<%= @domain_root_account.can_change_pronouns? ? "display_data" : "edit_or_show_data" %>"><%= @user.pronouns || t("None") %></span>
           <% if @domain_root_account.can_change_pronouns? %>
             <span class="edit_data">
               <%= f.select(
                     :pronouns,
-                    options_for_select(([[t("None"), '']] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns)
+                    options_for_select(([[t("None"), ""]] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns)
                   ) %>
             </span>
           <% end %>
@@ -150,14 +150,14 @@
   <tr>
     <th scope="row"><%= f.blabel :locale, en: "Language" %></th>
     <td>
-      <% no_language = t("System Default (%{language})", language: available_locales[infer_locale(root_account: @domain_root_account, accept_language: request.headers['Accept-Language'])]) %>
+      <% no_language = t("System Default (%{language})", language: available_locales[infer_locale(root_account: @domain_root_account, accept_language: request.headers["Accept-Language"])]) %>
       <span class="locale display_data"><%= @user.locale ? available_locales[@user.locale] : no_language %></span>
       <span class="edit_data"><%= f.select :locale,
                                            [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
                                            { selected: @user.locale },
-                                           { :class => 'locale', "aria-describedby" => "hints_language" } %>
-      <%= render partial: 'shared/locale_warning' %>
-      <span id="hints_language" class="data_description"><br/><%= t('hints.language', "This will override any browser or account settings.") %></span>
+                                           { :class => "locale", "aria-describedby" => "hints_language" } %>
+      <%= render partial: "shared/locale_warning" %>
+      <span id="hints_language" class="data_description"><br/><%= t("hints.language", "This will override any browser or account settings.") %></span>
       </span>
     </td>
   </tr>
@@ -178,7 +178,7 @@
   <% if @user.shard.database_server.maintenance_window_start_hour %>
   <tr>
     <td></td>
-    <td> <%= render partial: 'shared/maintenance_window', locals: { database_server: @user.shard.database_server, local_zone: Time.zone } %> </td>
+    <td> <%= render partial: "shared/maintenance_window", locals: { database_server: @user.shard.database_server, local_zone: Time.zone } %> </td>
   </tr>
   <% end %>
   <% if @domain_root_account == Account.default %>
@@ -196,7 +196,7 @@
   <% unless @password_pseudonyms.empty? %>
   <tr class="edit_data_row select_change_password_row" style="display: none;">
     <th scope="row"><%= before_label(:password, "Password") %></th>
-    <td><label for="change_password_checkbox" class="checkbox"><input type="checkbox" id="change_password_checkbox" name="pseudonym[change_password]" value="1"/><%= t('labels.change_password', "Change Password") %></label></td>
+    <td><label for="change_password_checkbox" class="checkbox"><input type="checkbox" id="change_password_checkbox" name="pseudonym[change_password]" value="1"/><%= t("labels.change_password", "Change Password") %></label></td>
   </tr>
     <% @domain_root_account.password_policy.each do |key, value| %>
       <% if key == :minimum_character_length %>
@@ -255,14 +255,14 @@
     <td><%= password_field :pseudonym, :password_confirmation, value: "", style: "width: 150px;" %></td>
   </tr>
   <tr class="edit_data_row more_options_link_row" style="display: none;">
-    <th scope="row" colspan="2"><a href="#" class="more_options_link" style="display: none;"><%= t('links.more_options', "more options") %></a></th>
+    <th scope="row" colspan="2"><a href="#" class="more_options_link" style="display: none;"><%= t("links.more_options", "more options") %></a></th>
   </tr>
 
   <tr class="edit_data_row" style="display: none;">
     <td colspan="2">
       <div class="form-actions">
-        <button type="button" class="btn cancel_button"><%= t('#buttons.cancel', "Cancel") %></button>
-        <button type="submit" class="btn btn-primary"><%= t('buttons.update_settings', "Update Settings") %></button>
+        <button type="button" class="btn cancel_button"><%= t("#buttons.cancel", "Cancel") %></button>
+        <button type="submit" class="btn btn-primary"><%= t("buttons.update_settings", "Update Settings") %></button>
       </div>
     </td>
   </tr>
@@ -270,12 +270,12 @@
 <% end %>
 <% if @current_user.registered? %>
 <div style="<%= hidden unless @pseudonyms.length > 1 %> margin-bottom: 20px;">
-<h2><%= t('headers.ways_to_log_in', "Ways to Log In") %></h2>
+<h2><%= t("headers.ways_to_log_in", "Ways to Log In") %></h2>
 <table class="summary pseudonym_list">
   <thead>
     <tr>
-      <th scope="col"><%= t('headers.organization', "Organization") %></th>
-      <th scope="col"><%= t('headers.login', "Login") %></th>
+      <th scope="col"><%= t("headers.organization", "Organization") %></th>
+      <th scope="col"><%= t("headers.login", "Login") %></th>
     </tr>
   </thead>
 <% @pseudonyms.each do |p| %>
@@ -286,28 +286,28 @@
     <td>
       <div style="display: flex; flex-direction: row; justify-content: space-between;">
         <a style="margin-right: 6px" href="<%= login_url(host: HostUrl.context_host(p.account)) %>" class="not_external"><%= p.unique_id %></a>
-        <a class="delete_pseudonym_link no-hover" href="<%= profile_pseudonym_url(p.id) %>" style="<%= hidden unless can_do(p, @current_user, :delete) %>" title="<%= t('titles.remove_account_from_profile', "Remove account from this profile") %>"><%= image_tag "delete.png", alt: t('Remove account from this profile') %></a>
+        <a class="delete_pseudonym_link no-hover" href="<%= profile_pseudonym_url(p.id) %>" style="<%= hidden unless can_do(p, @current_user, :delete) %>" title="<%= t("titles.remove_account_from_profile", "Remove account from this profile") %>"><%= image_tag "delete.png", alt: t("Remove account from this profile") %></a>
       </div>
     </td>
   </tr>
 <% end %>
 </table>
 <div style="text-align: center; display: none;">
-  <a href="#" class="add"><%= t('links.add_account', "Add Account") %></a>
+  <a href="#" class="add"><%= t("links.add_account", "Add Account") %></a>
 </div>
 </div>
 
 <% if @user.associated_root_accounts.any? { |a| a.feature_enabled?(:allow_opt_out_of_inbox) } %>
-<h2><%= t('headers.inbox_opt_out', "Conversations Inbox Opt-out") %></h2>
+<h2><%= t("headers.inbox_opt_out", "Conversations Inbox Opt-out") %></h2>
 <p>
-  <label for="disable_inbox"><input type="checkbox" id="disable_inbox" <%= 'checked' if @user.disabled_inbox? %>/>
-  <%= t('labels.disable_inbox', "Disable the Conversation's Inbox unread messages badge and send all conversation messages and notifications via email, ASAP.") %></label>
+  <label for="disable_inbox"><input type="checkbox" id="disable_inbox" <%= "checked" if @user.disabled_inbox? %>/>
+  <%= t("labels.disable_inbox", "Disable the Conversation's Inbox unread messages badge and send all conversation messages and notifications via email, ASAP.") %></label>
 </p>
 <% end %>
 
 <% unless @domain_root_account&.service_enabled?(:none) %>
 <a name="registered_web_services"></a>
-<h2><%= t('headers.web_services', "Web Services") %></h2>
+<h2><%= t("headers.web_services", "Web Services") %></h2>
 <p><%=
      t(:web_services, <<~TEXT)
        Canvas can make your life a lot easier by tying itself in with the web tools
@@ -315,26 +315,26 @@
      TEXT
    %></p>
 <p>
-<input type="checkbox" id="show_user_services" <%= 'checked' if @user.show_user_services %>/> <label for="show_user_services"><%= t('labels.show_user_services', "Let fellow course/group members see which services I've linked to my profile") %></label>
+<input type="checkbox" id="show_user_services" <%= "checked" if @user.show_user_services %>/> <label for="show_user_services"><%= t("labels.show_user_services", "Let fellow course/group members see which services I've linked to my profile") %></label>
 </p>
 <table role="presentation" style="width: 100%;"><tr>
   <td class="services-cell">
     <div>
-      <h3><%= t('headers.registered_services', "Registered Services") %></h3>
-      <div style="margin-<%= direction('left') %>: 20px; margin-bottom: 20px;">
+      <h3><%= t("headers.registered_services", "Registered Services") %></h3>
+      <div style="margin-<%= direction("left") %>: 20px; margin-bottom: 20px;">
       <ul id="registered_services" class="unstyled_list">
         <% @user.user_services.select { |s| feature_and_service_enabled?(s.service) }.each do |service| %>
           <li class="service clearfix" id="service_<%= service.service %>">
-            <a href="<%= profile_user_service_url(service.id) %>" class="delete_service_link no-hover" style="float: <%= direction('right') %>; padding-top: 0.5em; padding-<%= direction('right') %>: 10px;" title="<%= t('titles.unregister_service', "Unregister Service") %>"><%= image_tag "delete_circle.png", alt: t('Unregister Service') %></a>
+            <a href="<%= profile_user_service_url(service.id) %>" class="delete_service_link no-hover" style="float: <%= direction("right") %>; padding-top: 0.5em; padding-<%= direction("right") %>: 10px;" title="<%= t("titles.unregister_service", "Unregister Service") %>"><%= image_tag "delete_circle.png", alt: t("Unregister Service") %></a>
             <a href="<%= service.service_user_link %>">
-              <%= image_tag "#{service.service}.png", style: "vertical-align: middle; float: #{direction('left')};", alt: '' %>
+              <%= image_tag "#{service.service}.png", style: "vertical-align: middle; float: #{direction("left")};", alt: "" %>
             </a>
-            <div style="float: <%= direction('left') %>; padding-<%= direction('left') %>: 5px;">
+            <div style="float: <%= direction("left") %>; padding-<%= direction("left") %>: 5px;">
               <%= service.service.titleize rescue t(:unknown_service, "Unknown") %>
               <div style="font-size: 0.6em; line-height: 0.5em;">
                 <% if service.has_profile_link? %>
                   <a href="<%= service.service_user_link %>">
-                    <%= t('links.view_your_profile', "view your profile") %>
+                    <%= t("links.view_your_profile", "view your profile") %>
                     <% if service.has_readable_user_name? %>
                         <span><%= service.service_user_name %></span>
                     <% end %>
@@ -348,7 +348,7 @@
           </li>
         <% end %>
         <li id="service_blank" class="service clearfix" style="display: none;">
-          <a href="<%= profile_user_service_url("{{ id }}") %>" class="delete_service_link no-hover" style="float: <%= direction('right') %>;" title="<%= t('titles.unregister_service', "Unregister Service") %>"><%= image_tag "delete_circle.png", alt: t('Unregister Service') %></a>
+          <a href="<%= profile_user_service_url("{{ id }}") %>" class="delete_service_link no-hover" style="float: <%= direction("right") %>;" title="<%= t("titles.unregister_service", "Unregister Service") %>"><%= image_tag "delete_circle.png", alt: t("Unregister Service") %></a>
           <span class="service">&nbsp;</span>
         </li>
       </ul>
@@ -357,16 +357,16 @@
     </div>
   </td>
   <td class="services-cell">
-    <h3><%= t('headers.other_services', "Other Services") %></h3>
-    <div style="margin-<%= direction('left') %>: 20px;">
+    <h3><%= t("headers.other_services", "Other Services") %></h3>
+    <div style="margin-<%= direction("left") %>: 20px;">
     <%= before_label(:other_services, "Click any service below to register") %>
     <% services = @user.user_services.map(&:service) %>
     <ul id="unregistered_services" class="unstyled_list">
       <li id="unregistered_service_google_drive" class="service" style="<%= hidden if !feature_and_service_enabled?(:google_drive) || services.include?("google_drive") %>">
-        <a href="#" class="btn btn-small"><%= image_tag "google_drive_icon.png", alt: '' %> <%= t('links.google_drive', "Google Drive") %></a>
+        <a href="#" class="btn btn-small"><%= image_tag "google_drive_icon.png", alt: "" %> <%= t("links.google_drive", "Google Drive") %></a>
       </li>
       <li id="unregistered_service_diigo" class="service" style="<%= hidden if services.include?("diigo") || !feature_and_service_enabled?(:diigo) %>">
-        <a href="#" class="btn btn-small"><%= image_tag "diigo_icon.png", alt: '' %> <%= t('links.diigo', "Diigo") %></a>
+        <a href="#" class="btn btn-small"><%= image_tag "diigo_icon.png", alt: "" %> <%= t("links.diigo", "Diigo") %></a>
       </li>
     </ul>
     <div id="register_service_mount_point"></div>
@@ -375,7 +375,7 @@
 </tr></table>
 <% end %>
 <h2><%= before_label(:"headers.approved_integrations", "Approved Integrations") %></h2>
-<div style="margin-<%= direction('left') %>: 20px;">
+<div style="margin-<%= direction("left") %>: 20px;">
   <% if AccessToken.visible_tokens(@user.access_tokens).empty? %>
     <div id="no_approved_integrations"><%=
                                          t(:no_approved_integrations, <<~TEXT)
@@ -395,12 +395,12 @@
     <table id="access_tokens" class="summary" style="margin-top: 10px;">
       <thead>
         <tr>
-          <th scope="col"><%= t('headers.application_abbrev', "App") %></th>
-          <th scope="col"><%= t('headers.state', "Status") %></th>
-          <th scope="col"><%= t('headers.purpose', "Purpose") %></th>
-          <th scope="col"><%= t('headers.dates', "Dates") %></th>
-          <th scope="col"><%= t('headers.action', "Details") %></th>
-          <th scope="col"><%= t('headers.remove', "Remove") %></th>
+          <th scope="col"><%= t("headers.application_abbrev", "App") %></th>
+          <th scope="col"><%= t("headers.state", "Status") %></th>
+          <th scope="col"><%= t("headers.purpose", "Purpose") %></th>
+          <th scope="col"><%= t("headers.dates", "Dates") %></th>
+          <th scope="col"><%= t("headers.action", "Details") %></th>
+          <th scope="col"><%= t("headers.remove", "Remove") %></th>
         </tr>
       </thead>
       <tbody>
@@ -413,7 +413,7 @@
   <% prohibit_info_text = t("Your Canvas administrators have chosen to limit your ability to generate your own access token. Please reach out to your Canvas administrators to have them generate an access token on your behalf.") %>
   <div style="margin-top: 10px;">
     <a href="#" class="btn btn-primary add_access_token_link" <%= "disabled" unless allow_token_creation %> >
-      <i class="icon-plus" aria-hidden="true"></i> <%= t('buttons.new_access_token', "New Access Token") %>
+      <i class="icon-plus" aria-hidden="true"></i> <%= t("buttons.new_access_token", "New Access Token") %>
     </a>
     <% unless allow_token_creation %>
       <a class="icon-info"
@@ -428,7 +428,7 @@
   <div id='new_access_token_mount_point'></div>
 </div>
 
-<h2 aria-hidden=true><%= t('Feature Options') %></h2>
+<h2 aria-hidden=true><%= t("Feature Options") %></h2>
 <div class="feature-flag-wrapper">
   <!-- this is populated by FeatureFlagAdminView -->
 </div>
@@ -437,25 +437,25 @@
   <a href="<%= profile_pics_url %>" class="profile_pics_url" style="display: none;">&nbsp;</a>
   <%= t(:profile_pictures, "Select the image you'd like to use as your profile pic, or upload a new image:") %>
   <div class="profile_pic_list" style="background: #eee; padding: 5px; -moz-border-radius: 5px; margin: 5px 10px;">
-    <h3 style="padding-<%= direction('left') %>: 10px; padding-top: 10px;"><%= t('headers.loading_images', "Loading Images...") %></h3>
+    <h3 style="padding-<%= direction("left") %>: 10px; padding-top: 10px;"><%= t("headers.loading_images", "Loading Images...") %></h3>
     <div class="clear"></div>
   </div>
-  <a href="#" class="add_pic_link add"><%= t('links.upload_new_image', "Upload a new Image") %></a>
-  <%= form_for :attachment, url: context_url(@user, :context_files_url, format: 'json'), html: { id: "add_pic_form", style: "display: none;" } do |f| %>
+  <a href="#" class="add_pic_link add"><%= t("links.upload_new_image", "Upload a new Image") %></a>
+  <%= form_for :attachment, url: context_url(@user, :context_files_url, format: "json"), html: { id: "add_pic_form", style: "display: none;" } do |f| %>
     <input type="hidden" name="format" value="text" />
     <%= f.file_field :uploaded_data %>
-    <button type="submit" class="btn btn-small"><%= t('buttons.add_picture_file', "Add File") %></button>
+    <button type="submit" class="btn btn-small"><%= t("buttons.add_picture_file", "Add File") %></button>
   <% end %>
   <div class="form-actions">
-    <button type="button" class="btn cancel_button button-secondary"><%= t('#buttons.cancel', "Cancel") %></button>
-    <button type="button" class="btn select_button btn-primary"><%= t('buttons.select_image', "Select Image") %></button>
+    <button type="button" class="btn cancel_button button-secondary"><%= t("#buttons.cancel", "Cancel") %></button>
+    <button type="button" class="btn select_button btn-primary"><%= t("buttons.select_image", "Select Image") %></button>
   </div>
 </div>
 <% else %>
   <% js_bundle :confirm_email %>
   <p class="alert alert-info">
     <%=
-      t <<~TEXT, email: @current_user.email, wrapper: { '*' => '<a href="' + re_send_confirmation_path(@current_user, @current_user.communication_channel) + '" class="re_send_confirmation_link">\1</a>' }
+      t <<~TEXT, email: @current_user.email, wrapper: { "*" => '<a href="' + re_send_confirmation_path(@current_user, @current_user.communication_channel) + '" class="re_send_confirmation_link">\1</a>' }
         Before you can edit your profile, you need to verify your email address (%{email}) by clicking the link in the email we sent you.
         If you don't see it, *click to re-send the email*, and make sure to check your spam box.
       TEXT

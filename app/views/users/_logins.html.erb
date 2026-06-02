@@ -40,13 +40,13 @@
   >
     <legend>
       <h4 class="profileHeader">
-        <%= t('titles.logins', 'Login Information') %>
+        <%= t("titles.logins", "Login Information") %>
       </h4>
     </legend>
     <table class="ic-Table">
       <% pseudonyms = @user.pseudonyms_visible_to(@current_user) + [nil] %>
       <% pseudonyms.each do |pseudonym| %>
-        <tr class="login<%= ' blank' unless pseudonym %>" <%= hidden(include_style: true) unless pseudonym %>>
+        <tr class="login<%= " blank" unless pseudonym %>" <%= hidden(include_style: true) unless pseudonym %>>
           <td class="sso-icon" <%= tag.attributes(data: { pseudonym_id: pseudonym&.id }) %>>
             <% if (partial = sso_icon_exists?(pseudonym)) %>
               <%= render(partial:, formats: [:svg]) %>
@@ -59,42 +59,42 @@
             <b class='unique_id'><%= pseudonym&.unique_id %></b>
             <% if pseudonym&.passwordable? %>
               <div style="display:none" class="must_reset_password"><%= pseudonym.must_reset_password %></div>
-              <div class="must-reset-password-indicator" style="<%= 'display:none' unless pseudonym.must_reset_password? %>">
-                <%= t('must_reset_password', "Password reset required") %>
+              <div class="must-reset-password-indicator" style="<%= "display:none" unless pseudonym.must_reset_password? %>">
+                <%= t("must_reset_password", "Password reset required") %>
               </div>
             <% end %>
             <% if (pseudonym&.sis_user_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
               <div>
-                <%= before_label('sis_id', 'SIS ID') %> <span id="sis_user_id_<%= pseudonym.id %>" class="sis_user_id"><%= pseudonym.sis_user_id %></span>
+                <%= before_label("sis_id", "SIS ID") %> <span id="sis_user_id_<%= pseudonym.id %>" class="sis_user_id"><%= pseudonym.sis_user_id %></span>
               </div>
               <div style="display:none" class="can_edit_sis_user_id"><%= can_do(pseudonym, @current_user, :manage_sis) %></div>
             <% end %>
             <% if (pseudonym&.integration_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
                 <div>
-                  <%= before_label('integration_id', 'Integration ID') %> <span id="integration_id_<%= pseudonym.id %>" class="integration_id"><%= pseudonym.integration_id %></span>
+                  <%= before_label("integration_id", "Integration ID") %> <span id="integration_id_<%= pseudonym.id %>" class="integration_id"><%= pseudonym.integration_id %></span>
                 </div>
             <% end %>
           </th>
           <td class='account'>
             <% if pseudonym&.account == @domain_root_account %>
-              <%= link_to(pseudonym.account.name, account_url(pseudonym.account), class: 'account_name') %>
+              <%= link_to(pseudonym.account.name, account_url(pseudonym.account), class: "account_name") %>
             <% elsif pseudonym %>
               <% pseudonym.shard.activate do %>
                 <%= link_to(pseudonym.account.name,
                             account_user_url(pseudonym.account,
                                              pseudonym.user,
                                              host: HostUrl.context_host(pseudonym.account)),
-                            class: 'account_name') %>
+                            class: "account_name") %>
               <% end %>
             <% else %>
-              <%= link_to(nbsp, account_url("{{ account_id }}"), class: 'account_name') %>
+              <%= link_to(nbsp, account_url("{{ account_id }}"), class: "account_name") %>
             <% end %>
           </td>
           <td class='details'>
-            <%= render partial: 'users/last_login', locals: { pseudonym: } if pseudonyms.length > 2 && pseudonym %>
+            <%= render partial: "users/last_login", locals: { pseudonym: } if pseudonyms.length > 2 && pseudonym %>
           </td>
           <% if !pseudonym || can_do(pseudonym, @current_user, :update) %>
-            <td class='links <%= 'passwordable' if pseudonym && can_do(pseudonym, @current_user, :change_password) %> <%= 'delegated-auth' if pseudonym && !pseudonym.account.canvas_authentication? %>'
+            <td class='links <%= "passwordable" if pseudonym && can_do(pseudonym, @current_user, :change_password) %> <%= "delegated-auth" if pseudonym && !pseudonym.account.canvas_authentication? %>'
                 data-passwordable="<%= pseudonym&.passwordable? %>">
               <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="edit_pseudonym_link" data-account-id="<%= pseudonym&.account&.id %>"><i class="icon-edit standalone-icon"></i></a>
               <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="delete_pseudonym_link" style="<%= hidden if pseudonyms.length <= 2 || (pseudonym && !can_do(pseudonym, @current_user, :delete)) %>"><i class="icon-end standalone-icon"></i></a>
@@ -112,12 +112,12 @@
         <tr class="add_holder">
           <td colspan="5">
             <% if can_add_pseudonym %>
-              <a href="#" rel="<%= user_pseudonyms_url(@user.id) %>" data-can-manage-sis="<%= can_do(new_pseudonym, @current_user, :manage_sis) %>"  class="add_pseudonym_link"><%= t('add_login', 'Add Login') %></a>
+              <a href="#" rel="<%= user_pseudonyms_url(@user.id) %>" data-can-manage-sis="<%= can_do(new_pseudonym, @current_user, :manage_sis) %>"  class="add_pseudonym_link"><%= t("add_login", "Add Login") %></a>
               <div id="add_pseudonym_mount_point"></div>
             <% end %>
             <% if can_add_pseudonym && can_reset_mfa %> | <% end %>
             <% if can_reset_mfa %>
-              <a href="<%= disable_mfa_path(@user) %>" class="reset_mfa_link"><%= t('reset_mfa', "Reset Multi-Factor Authentication") %></a>
+              <a href="<%= disable_mfa_path(@user) %>" class="reset_mfa_link"><%= t("reset_mfa", "Reset Multi-Factor Authentication") %></a>
             <% end %>
           </td>
         </tr>

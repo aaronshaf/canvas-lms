@@ -17,14 +17,14 @@
 %>
 
 <%
-  set_active_tab 'settings'
+  set_active_tab "settings"
   css_bundle :statistics
-  add_crumb t('#crumbs.stats', "Statistics")
+  add_crumb t("#crumbs.stats", "Statistics")
 %>
 
 <% provide :page_title, join_title(t(:page_title, "Course Statistics"), @context.name) %>
 <div style="padding: 0 20px;" id="stats">
-  <h1><%= t 'Statistics for %{course}', course: @context.name %></h1>
+  <h1><%= t "Statistics for %{course}", course: @context.name %></h1>
 
   <% active_students = @context.participating_students.where("enrollments.type<>'StudentViewEnrollment'").distinct.count %>
   <% inactive_students = @context.student_enrollments.invited_by_date.distinct.count(:user_id) %>
@@ -35,7 +35,7 @@
     active_assignments = @context.assignments.active
     assignment_counts_by_type = active_assignments.group(:submission_types).except(:order).count
     assignment_counts = assignment_counts_by_type.each_with_object(Hash.new(0)) do |(types, count), counts|
-      split_types = (types || '').split(',')
+      split_types = (types || "").split(",")
       if split_types.length == 1
         counts[types] += count
       else
@@ -53,84 +53,84 @@
   %>
   <div id="reports-tabs" style="display:none;">
     <ul>
-      <li><a href="#tab-totals"><%= t('Totals') %></a></li>
-      <li><a href="#tab-assignments"><%= t('Assignments') %></a></li>
-      <li><a href="#tab-students" id="students_stats_tab"><%= t('Students') %></a></li>
-      <li><a href="#tab-files"><%= t('File Storage') %></a></li>
+      <li><a href="#tab-totals"><%= t("Totals") %></a></li>
+      <li><a href="#tab-assignments"><%= t("Assignments") %></a></li>
+      <li><a href="#tab-students" id="students_stats_tab"><%= t("Students") %></a></li>
+      <li><a href="#tab-files"><%= t("File Storage") %></a></li>
     </ul>
     <div class="stats" id="tab-totals">
-      <h2><%= t('Running Totals') %></h2>
+      <h2><%= t("Running Totals") %></h2>
       <table>
         <tr>
-          <td><%= t('Discussions') %></td>
+          <td><%= t("Discussions") %></td>
           <td><%= total_topics %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Discussion Posts') %></td>
+          <td class="indent"><%= t("Discussion Posts") %></td>
           <td class="indent"><%= total_entries %></td>
         </tr>
 
         <tr>
-          <td><%= t('Assignments') %></td>
+          <td><%= t("Assignments") %></td>
           <td><%= assignment_counts_by_type.values.sum %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Assignment Groups') %></td>
+          <td class="indent"><%= t("Assignment Groups") %></td>
           <td class="indent"><%= @context.assignment_groups.active.count %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Course Rubrics') %></td>
+          <td class="indent"><%= t("Course Rubrics") %></td>
           <td class="indent"><%= rubric_associations.count %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('All Rubrics') %></td>
+          <td class="indent"><%= t("All Rubrics") %></td>
           <td class="indent"><%= @context.rubrics.active.count %></td>
         </tr>
 
         <tr>
-          <td><%= t('Active Students') %></td>
+          <td><%= t("Active Students") %></td>
           <td><%= active_students %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Unaccepted Students') %></td>
+          <td class="indent"><%= t("Unaccepted Students") %></td>
           <td class="indent"><%= inactive_students %></td>
         </tr>
 
         <tr>
-          <td><%= t('Quizzes') %></td>
+          <td><%= t("Quizzes") %></td>
           <td class="quiz_count"><%= @context.quizzes.active.count %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Quiz Questions') %></td>
+          <td class="indent"><%= t("Quiz Questions") %></td>
           <td class="indent quiz_question_count"><%= @context.quizzes.active.sum { |q| (q.quiz_data || []).length } %></td>
         </tr>
 
         <tr>
-          <td class="indent"><%= t('Quiz Submissions') %></td>
+          <td class="indent"><%= t("Quiz Submissions") %></td>
           <td class="indent quiz_submission_count"><%= Quizzes::QuizSubmission.where(quiz_id: @context.quizzes.active).count %></td>
         </tr>
       </table>
     </div>
     <div class="stats" id="tab-assignments">
-      <h2><%= t('Assignments Usage Report') %></h2>
+      <h2><%= t("Assignments Usage Report") %></h2>
       <table>
         <thead>
           <tr>
-            <th><%= t('Submission Type') %></th>
-            <th><%= t('# Assignments') %></th>
-            <th><%= t('# Submissions') %></th>
+            <th><%= t("Submission Type") %></th>
+            <th><%= t("# Assignments") %></th>
+            <th><%= t("# Submissions") %></th>
           </tr>
         </thead>
 
         <tfoot>
           <tr>
-            <th><%= t('All Assignments') %></th>
+            <th><%= t("All Assignments") %></th>
             <th><%= total_assignments %></th>
             <th><%= total_submissions %></th>
           </tr>
@@ -138,69 +138,69 @@
 
         <tbody>
           <tr>
-            <td><%= t('File Upload') %></td>
-            <td><%= assignment_counts.fetch('online_upload', 0) %></td>
-            <td><%= submission_counts.fetch('online_upload', 0) %></td>
+            <td><%= t("File Upload") %></td>
+            <td><%= assignment_counts.fetch("online_upload", 0) %></td>
+            <td><%= submission_counts.fetch("online_upload", 0) %></td>
           </tr>
 
           <tr>
-            <td><%= t('Text Entry') %></td>
-            <td><%= assignment_counts.fetch('online_text_entry', 0) %></td>
-            <td><%= submission_counts.fetch('online_text_entry', 0) %></td>
+            <td><%= t("Text Entry") %></td>
+            <td><%= assignment_counts.fetch("online_text_entry", 0) %></td>
+            <td><%= submission_counts.fetch("online_text_entry", 0) %></td>
           </tr>
 
           <tr>
-            <td><%= t('Website URL') %></td>
-            <td><%= assignment_counts.fetch('online_url', 0) %></td>
-            <td><%= submission_counts.fetch('online_url', 0) %></td>
+            <td><%= t("Website URL") %></td>
+            <td><%= assignment_counts.fetch("online_url", 0) %></td>
+            <td><%= submission_counts.fetch("online_url", 0) %></td>
           </tr>
 
           <tr>
-            <td><%= t('Quiz') %></td>
-            <td><%= assignment_counts.fetch('online_quiz', 0) %></td>
-            <td><%= submission_counts.fetch('online_quiz', 0) %></td>
+            <td><%= t("Quiz") %></td>
+            <td><%= assignment_counts.fetch("online_quiz", 0) %></td>
+            <td><%= submission_counts.fetch("online_quiz", 0) %></td>
           </tr>
 
           <tr>
-            <td><%= t('Discussion Topic') %></td>
-            <td><%= assignment_counts.fetch('discussion_topic', 0) %></td>
-            <td><%= submission_counts.fetch('discussion_topic', 0) %></td>
+            <td><%= t("Discussion Topic") %></td>
+            <td><%= assignment_counts.fetch("discussion_topic", 0) %></td>
+            <td><%= submission_counts.fetch("discussion_topic", 0) %></td>
           </tr>
 
           <tr>
-            <td><%= t('Student Annotation') %></td>
-            <td id="student-annotation-assignment-count"><%= assignment_counts.fetch('student_annotation', 0) %></td>
-            <td id="student-annotation-submission-count"><%= submission_counts.fetch('student_annotation', 0) %></td>
+            <td><%= t("Student Annotation") %></td>
+            <td id="student-annotation-assignment-count"><%= assignment_counts.fetch("student_annotation", 0) %></td>
+            <td id="student-annotation-submission-count"><%= submission_counts.fetch("student_annotation", 0) %></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div id="tab-students">
-      <h2><%= t('headings.students', %{Recently Logged-In Users}) %></h2>
+      <h2><%= t("headings.students", %(Recently Logged-In Users)) %></h2>
       <ul class="item_list"></ul>
     </div>
 
     <div class="stats" id="tab-files">
-      <h2><%= t('File Storage') %></h2>
+      <h2><%= t("File Storage") %></h2>
       <table>
         <tr>
-          <td><%= before_label('allotted_storage', 'Allotted Storage') %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= number_to_human_size_mb(@context.quota) %></td>
+          <td><%= before_label("allotted_storage", "Allotted Storage") %></td>
+          <td style="padding-<%= direction("left") %>: 10px; text-align: <%= direction("right") %>;"><%= number_to_human_size_mb(@context.quota) %></td>
           <td></td>
         </tr>
 
         <tr>
-          <td><%= before_label('uploaded_files', 'Uploaded Files') %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= number_to_human_size_mb(@files_size) %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', count: @file_count %></td>
+          <td><%= before_label("uploaded_files", "Uploaded Files") %></td>
+          <td style="padding-<%= direction("left") %>: 10px; text-align: <%= direction("right") %>;"><%= number_to_human_size_mb(@files_size) %></td>
+          <td style="padding-<%= direction("left") %>: 10px; text-align: <%= direction("right") %>;"><%= t "file_count", "file", count: @file_count %></td>
         </tr>
 
         <% if @media_file_count && @media_file_count > 0 %>
         <tr>
-          <td><%= before_label('media_files', 'Media Files') %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= number_to_human_size_mb(@media_files_size) %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', count: @media_file_count %></td>
+          <td><%= before_label("media_files", "Media Files") %></td>
+          <td style="padding-<%= direction("left") %>: 10px; text-align: <%= direction("right") %>;"><%= number_to_human_size_mb(@media_files_size) %></td>
+          <td style="padding-<%= direction("left") %>: 10px; text-align: <%= direction("right") %>;"><%= t "file_count", "file", count: @media_file_count %></td>
         </tr>
         <% end %>
       </table>

@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% add_body_class 'assessing' %>
+<% add_body_class "assessing" %>
 <% provide(:page_title, join_title(@quiz.readable_type, @quiz.quiz_title)) %>
 
 <% provide :right_side do %>
@@ -33,16 +33,16 @@
         <div class="alert">
           <i class="icon-warning" aria-hidden="true"></i>
           <% if @quiz.published? %>
-            <%= t 'This is a preview of the published version of the quiz' %>
+            <%= t "This is a preview of the published version of the quiz" %>
           <% else %>
-            <%= t 'This is a preview of the draft version of the quiz' %>
+            <%= t "This is a preview of the draft version of the quiz" %>
           <% end %>
         </div>
       </p>
     <% end %>
     <%= before_label(:started, "Started") %>
     <%= datetime_string(@submission.started_at) %>
-    <h2><%= t('quiz_instructions', 'Quiz Instructions') %></h2>
+    <h2><%= t("quiz_instructions", "Quiz Instructions") %></h2>
     <div id="quiz-instructions" class="user_content">
       <%= user_content(@quiz.description, location: "quiz_submission_#{@submission.id}") %>
     </div>
@@ -50,7 +50,7 @@
     <% if @quiz.time_limit %>
       <div class="screenreader-only" role="note">
         <%=
-          t 'audible_quiz_timer_shortcut_description', <<~TEXT
+          t "audible_quiz_timer_shortcut_description", <<~TEXT
             Note: this is a timed quiz. You may check the remaining time you have
             at any point while taking the quiz by pressing the keyboard combination
             SHIFT, ALT, and T...
@@ -90,7 +90,7 @@
     <div class="button-container clearfix">
       <% if @quiz_presenter.one_question_at_a_time? %>
         <% if @quiz_presenter.previous_question_viewable? %>
-          <% previous_question_button_title = t('buttons.previous', "Previous") %>
+          <% previous_question_button_title = t("buttons.previous", "Previous") %>
           <button type="submit" class="Button submit_button previous-question" data-action="<%= @quiz_presenter.previous_question_form_action(session, @current_user) %>" aria-label="<%= t("Previous Question") %>" disabled>
             <i class="icon-mini-arrow-left"></i>
             <%= previous_question_button_title %>
@@ -98,7 +98,7 @@
         <% end %>
 
         <% if @quiz_presenter.next_question %>
-          <% next_question_button_title = t('buttons.next', "Next") %>
+          <% next_question_button_title = t("buttons.next", "Next") %>
           <%= hidden_field_tag :last_question_id, @quiz_presenter.current_question[:id] %>
 
           <button type="submit" class="Button submit_button  next-question" data-action="<%= @quiz_presenter.next_question_form_action(session, @current_user) %>" aria-label="<%= t("Next Question") %>" disabled>
@@ -115,7 +115,7 @@
     <div style="text-align: center; font-size: 1.2em; margin: 10px;" class="countdown_seconds"></div>
     <div class="button-container">
       <button type="submit" class="submit_quiz_button btn quiz_submit">
-        <%= t('buttons.out_of_time_submit', "Ok, fine") %>
+        <%= t("buttons.out_of_time_submit", "Ok, fine") %>
       </button>
     </div>
   </div>
@@ -123,7 +123,7 @@
   <div class=form-actions>
     <span id="last_saved_indicator"><%= t("not_saved", "Not saved") %></span>
     <button type="submit" class="btn submit_button quiz_submit btn-secondary" id="submit_quiz_button" data-action="<%= @quiz_presenter.submit_form_action(session, @current_user) %>">
-      <%= t('buttons.submit_quiz', "Submit Quiz") %>
+      <%= t("buttons.submit_quiz", "Submit Quiz") %>
     </button>
   </div>
   <% end %>

@@ -30,16 +30,16 @@
     color: red;
   }
   dl#job-attributes dt {
-    float:<%= direction('left') %>;
+    float:<%= direction("left") %>;
     clear:left;
   }
   dl#job-attributes dd {
-    padding-<%= direction('left') %>: 2em;
-    float:<%= direction('left') %>;
+    padding-<%= direction("left") %>: 2em;
+    float:<%= direction("left") %>;
   }
   #show-job {
-    margin-<%= direction('left') %>: 25px;
-    float:<%= direction('left') %>;
+    margin-<%= direction("left") %>: 25px;
+    float:<%= direction("left") %>;
   }
   #show-job dt {
     font-weight: bold;
@@ -54,11 +54,11 @@
     border: 2px solid #ccc;
     margin-bottom: 10px;
   }
-  #tags-wrapper h2 { float:<%= direction('left') %>; }
+  #tags-wrapper h2 { float:<%= direction("left") %>; }
   #tags-flavor {
-    float:<%= direction('right') %>;
+    float:<%= direction("right") %>;
   }
-  #jobs-grid { float:<%= direction('left') %>; margin-top: 6px; }
+  #jobs-grid { float:<%= direction("left") %>; margin-top: 6px; }
   .slick-row.ui-state-active {
     color: black;
     font-weight: normal;
@@ -74,48 +74,48 @@
 <% css_bundle :slickgrid %>
 <% deferred_js_bundle :jobs %>
 
-<div id="running-wrapper" style="float:<%= direction('left') %>">
-  <h2><%= t 'headings.running_jobs', "Running Jobs" %></h2>
+<div id="running-wrapper" style="float:<%= direction("left") %>">
+  <h2><%= t "headings.running_jobs", "Running Jobs" %></h2>
   <div id="running-grid" style="width:700px; height:250px;" class='grid'>
   </div>
 </div>
-<div id="tags-wrapper" style="float:<%= direction('right') %>">
-  <h2><%= t 'headings.popular_tags', "Popular Tags" %></h2>
+<div id="tags-wrapper" style="float:<%= direction("right") %>">
+  <h2><%= t "headings.popular_tags", "Popular Tags" %></h2>
   <select id="tags-flavor">
-    <%= options_for_select([[t('job_options.current', "Current"), 'current'],
-                            [t('job_options.all', "All"), 'all']],
+    <%= options_for_select([[t("job_options.current", "Current"), "current"],
+                            [t("job_options.all", "All"), "all"]],
                            @flavor) %>
   </select>
   <div id="tags-grid" style="clear:both; width:250px; height:250px" class='grid'>
   </div>
 </div>
 <div style="clear:both">
-  <h2><%= t 'headings.jobs_list', "Jobs List" %></h2>
+  <h2><%= t "headings.jobs_list", "Jobs List" %></h2>
   <div id="jobs-grid-controls">
     <select id="jobs-flavor">
-      <%= options_for_select([[t('job_options.current', "Current"), 'current'],
-                              [t('job_options.future', "Future"), 'future'],
-                              [t('job_options.failed', "Failed"), 'failed'],
-                              [t('job_options.id', "ID"), 'id'],
-                              [t('job_options.strand', "Strand"), 'strand'],
-                              [t('job_options.tag', "Tag"), 'tag'],],
+      <%= options_for_select([[t("job_options.current", "Current"), "current"],
+                              [t("job_options.future", "Future"), "future"],
+                              [t("job_options.failed", "Failed"), "failed"],
+                              [t("job_options.id", "ID"), "id"],
+                              [t("job_options.strand", "Strand"), "strand"],
+                              [t("job_options.tag", "Tag"), "tag"],],
                              @flavor) %>
     </select>
     <input type='search' results='15' placeholder='<%= t :search_jobs, "Search Jobs" %>' autosave='canvas-jobs-search' id='jobs-search' name='q' value="<%= params[:q].presence %>" />
-    <button id='jobs-refresh'><%= t '#buttons.refresh', "refresh" %></button>
+    <button id='jobs-refresh'><%= t "#buttons.refresh", "refresh" %></button>
     <%= before_label :total_jobs, "Total" %> <span id='jobs-total'><%= @jobs_count %></span>
     <% if Account.site_admin.grants_right?(@current_user, :manage_jobs) %>
-      <button id='select-all-jobs'><%= t 'buttons.select_all', 'select all' %></button>
+      <button id='select-all-jobs'><%= t "buttons.select_all", "select all" %></button>
       <%= before_label :with_selection, "With Selection" %>
-      <button id='hold-jobs'><%= t 'buttons.hold', 'hold' %></button>
-      <button id='un-hold-jobs'><%= t 'buttons.un_hold', 'un-hold' %></button>
-      <button id='delete-jobs'><%= t 'buttons.delete', 'delete' %></button>
+      <button id='hold-jobs'><%= t "buttons.hold", "hold" %></button>
+      <button id='un-hold-jobs'><%= t "buttons.un_hold", "un-hold" %></button>
+      <button id='delete-jobs'><%= t "buttons.delete", "delete" %></button>
     <% end %>
   </div>
   <div id="jobs-grid" style="width:700px; height:300px;" class='grid'>
   </div>
 <div id="show-job">
-  <h2><%= t 'headings.selected_job', "Selected Job" %></h2>
+  <h2><%= t "headings.selected_job", "Selected Job" %></h2>
   <h4><%= before_label :id, "id" %> <a href="#" id="job-id-link"><span id="job-id" class="show-field">&nbsp;</span></a></h4>
   <h4><%= before_label :tag, "tag" %> <span id='job-tag' class='show-field'>&nbsp;</span></h4>
   <h4><%= before_label :strand, "strand" %> <span id='job-strand' class='show-field'>&nbsp;</span></h4>

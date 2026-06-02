@@ -17,7 +17,7 @@
 %>
 
 <p><%=
-     mt(<<~MD, wrap: { '*' => '<pre>\1</pre>' })
+     mt(<<~MD, wrap: { "*" => '<pre>\1</pre>' })
               Provide the URL to your SAML IdP Discovery Service that conforms to the
        *urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol* protocol.
        Additional SAML providers must also be configured to follow the response
@@ -25,6 +25,6 @@
      MD
    %></p>
 <div class="ic-Form-control">
-  <%= f.label :discovery_service_url, t('Discovery Service URL'), class: 'ic-Label', for: "discovery_service_url_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :discovery_service_url, class: 'ic-Input', id: "discovery_service_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :discovery_service_url, t("Discovery Service URL"), class: "ic-Label", for: "discovery_service_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :discovery_service_url, class: "ic-Input", id: "discovery_service_url_#{presenter.id_suffix(aac)}" %>
 </div>

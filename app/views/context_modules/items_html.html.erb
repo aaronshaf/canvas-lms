@@ -21,11 +21,11 @@
   items = @items
   total_items = @items_count
   can_view = @can_view
-  module_data = context_module ? process_module_items_data(items, context_module, @current_user, @session, student: @is_student) : { published_status: 'unpublished' }
+  module_data = context_module ? process_module_items_data(items, context_module, @current_user, @session, student: @is_student) : { published_status: "unpublished" }
 %>
 
 <%# This part of code is copy of _context_module_next.html.erb as a temporary solution %>
-<ul class="ig-list items context_module_items <%= 'manageable' if can_view %>" data-total-items="<%= total_items %>">
+<ul class="ig-list items context_module_items <%= "manageable" if can_view %>" data-total-items="<%= total_items %>">
   <% if context_module && module_data[:items] %>
     <% module_data[:items].each do |item| %>
       <%
@@ -37,9 +37,9 @@
           viewable: can_view,
         }
       %>
-      <%= render partial: 'context_modules/module_item_next', object: item, as: :module_item, locals: %>
+      <%= render partial: "context_modules/module_item_next", object: item, as: :module_item, locals: %>
       <% if item_data[:show_cyoe_placeholder] %>
-        <%= render partial: 'context_modules/module_item_conditional_next', object: item, as: :module_item, locals: %>
+        <%= render partial: "context_modules/module_item_conditional_next", object: item, as: :module_item, locals: %>
       <% end %>
     <% end %>
   <% end %>

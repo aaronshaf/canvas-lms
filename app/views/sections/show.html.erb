@@ -20,7 +20,7 @@
 
 <% provide :right_side do %>
   <% if can_do(@section, @current_user, :update) %>
-    <a href="#" class="btn button-sidebar-wide edit_section_link"><i class="icon-edit"></i> <%= t('buttons.edit_section', 'Edit Section') %></a>
+    <a href="#" class="btn button-sidebar-wide edit_section_link"><i class="icon-edit"></i> <%= t("buttons.edit_section", "Edit Section") %></a>
     <% if @section.nonxlist_course_id && can_do(@section.nonxlist_course, @current_user, :manage_sections_edit) %>
       <div
         id="uncrosslist_link_button_container"
@@ -42,12 +42,12 @@
                         nonxlistCourseName: @section.nonxlist_course&.name,
                         enrollmentsCount: @student_enrollments_count,
                         manageableCoursesUrl: context_url(@current_user, :context_manageable_courses_url, format: :json),
-                        confirmCrosslistUrl: context_url(@context, :context_section_confirm_crosslist_url, @section.id, ':id'),
+                        confirmCrosslistUrl: context_url(@context, :context_section_confirm_crosslist_url, @section.id, ":id"),
                         crosslistUrl: context_url(@context, :context_section_crosslist_url, @section.id)
                       }.to_json %>"
     ></div>
   <% end %>
-  <a href="<%= context_url(@context, :context_settings_url) %>" class="btn button-sidebar-wide"><i class="icon-settings"></i> <%= t('buttons.back_to_course', 'Back to Course Settings') %></a>
+  <a href="<%= context_url(@context, :context_settings_url) %>" class="btn button-sidebar-wide"><i class="icon-settings"></i> <%= t("buttons.back_to_course", "Back to Course Settings") %></a>
 <% end %>
 
 <style>
@@ -70,12 +70,12 @@
 }
 ul.user_list {
   list-style: none;
-  padding-<%= direction('left') %>: 0px;
+  padding-<%= direction("left") %>: 0px;
   margin-top: 0px;
   max-width: 400px;
 }
 ul.user_list li.user {
-  padding-<%= direction('left') %>: 10px;
+  padding-<%= direction("left") %>: 10px;
   color: #444;
   line-height: 1.5em;
   -moz-border-radius: 5px;
@@ -100,8 +100,8 @@ ul.user_list li.user .enrollment_type {
   margin: -2px 10px 0px;
 }
 ul.user_list li.user .links {
-  float: <%= direction('right') %>;
-  padding-<%= direction('right') %>: 20px;
+  float: <%= direction("right") %>;
+  padding-<%= direction("right") %>: 20px;
   padding-top: 5px;
   visibility: hidden;
 }
@@ -109,8 +109,8 @@ ul.user_list li.user .links a {
   text-decoration: none;
 }
 ul.user_list li.user:hover .links {
-  float: <%= direction('right') %>;
-  padding-<%= direction('right') %>: 20px;
+  float: <%= direction("right") %>;
+  padding-<%= direction("right") %>: 20px;
   visibility: visible;
 }
 ul.user_list li.user.pending {
@@ -120,7 +120,7 @@ ul.user_list li.user.pending {
 h3 .tally {
   font-family: arial,sans-serif;
   font-size: 12px;
-  padding-<%= direction('left') %>: 5px;
+  padding-<%= direction("left") %>: 5px;
 }
 .associated_user {
   display: none;
@@ -133,7 +133,7 @@ h3 .tally {
   background: none;
   border: 0;
   padding: 0;
-  text-align: <%= direction('left') %>;
+  text-align: <%= direction("left") %>;
 }
 </style>
 
@@ -196,7 +196,7 @@ h3 .tally {
   <tr>
     <td></td>
     <td>
-      <%= f.check_box :restrict_enrollments_to_section_dates, 'aria-describedby' => 'restrict-enrollments-description' %>
+      <%= f.check_box :restrict_enrollments_to_section_dates, "aria-describedby" => "restrict-enrollments-description" %>
       <%= f.label :restrict_enrollments_to_section_dates, t("Students can only participate in the course between these dates") %>
       <div style="font-size: 0.8em;" id="restrict-enrollments-description">
         <%= t "When selected, the course section is in a read-only state outside these dates." %>
@@ -206,8 +206,8 @@ h3 .tally {
   <tr>
     <td colspan="2">
       <div class="form-actions">
-        <button type="button" class="btn cancel_button button-secondary"><%= t('buttons.cancel', 'Cancel') %></button>
-        <button type="submit" class="btn btn-primary submit_button"><%= t('buttons.update_section', 'Update Section') %></button>
+        <button type="button" class="btn cancel_button button-secondary"><%= t("buttons.cancel", "Cancel") %></button>
+        <button type="submit" class="btn btn-primary submit_button"><%= t("buttons.update_section", "Update Section") %></button>
       </div>
     </td>
   </tr>
@@ -219,46 +219,46 @@ h3 .tally {
     <table id="enrollment_table">
     <% if @pending_enrollments_count > 0 %>
           <tr>
-            <td class="pending_enrollments"><%= t('pending_enrollment', { one: '1 Pending Enrollment', other: '%{count} Pending Enrollments' }, count: @pending_enrollments_count) %></td>
+            <td class="pending_enrollments"><%= t("pending_enrollment", { one: "1 Pending Enrollment", other: "%{count} Pending Enrollments" }, count: @pending_enrollments_count) %></td>
           </tr>
     <% end %>
     <% if @enrollments_count > 0 %>
       <tr>
-        <td class="active_enrollments"><%= t('active_enrollment', { one: '1 Active Enrollment', other: '%{count} Active Enrollments' }, count: @enrollments_count) %></td>
+        <td class="active_enrollments"><%= t("active_enrollment", { one: "1 Active Enrollment", other: "%{count} Active Enrollments" }, count: @enrollments_count) %></td>
       </tr>
     <% end %>
     <% if @completed_enrollments_count > 0 %>
           <tr>
-            <td class="completed_enrollments"><%= t('completed_enrollment', { one: '1 Completed Enrollment', other: '%{count} Completed Enrollments' }, count: @completed_enrollments_count) %></td>
+            <td class="completed_enrollments"><%= t("completed_enrollment", { one: "1 Completed Enrollment", other: "%{count} Completed Enrollments" }, count: @completed_enrollments_count) %></td>
           </tr>
     <% end %>
     </table>
   </div>
   <% if (@section&.sis_source_id && can_do(@context, @current_user, :read_sis)) || (@section && can_do(@context, @current_user, :manage_sis)) %>
-    <div><%= before_label('sis_id', "SIS ID") %> <span class="sis_source_id"><%= @section.sis_source_id %></span></div>
+    <div><%= before_label("sis_id", "SIS ID") %> <span class="sis_source_id"><%= @section.sis_source_id %></span></div>
   <% end %>
   <% if @section.start_at || @section.end_at %>
     <div>
       <% if @section.start_at && @section.end_at %>
-        <%= t('run_dates', 'Runs from %{start_date} to %{end_date}', start_date: friendly_datetime(@section.start_at, context: @context), end_date: friendly_datetime(@section.end_at, context: @context)) %>
+        <%= t("run_dates", "Runs from %{start_date} to %{end_date}", start_date: friendly_datetime(@section.start_at, context: @context), end_date: friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.end_at %>
-        <%= t('runs_until', 'Runs until %{end_date}', end_date: friendly_datetime(@section.end_at, context: @context)) %>
+        <%= t("runs_until", "Runs until %{end_date}", end_date: friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.start_at %>
-        <%= t('run_from', 'Runs from %{start_date} with no end date', start_date: friendly_datetime(@section.start_at, context: @context)) %>
+        <%= t("run_from", "Runs from %{start_date} with no end date", start_date: friendly_datetime(@section.start_at, context: @context)) %>
       <% end %>
     </div>
-    <div style="margin-<%= direction('left') %>: 10px; font-size: 0.8em;">
-      <%= t('Students can only participate in the course between these dates') if @section.restrict_enrollments_to_section_dates %>
+    <div style="margin-<%= direction("left") %>: 10px; font-size: 0.8em;">
+      <%= t("Students can only participate in the course between these dates") if @section.restrict_enrollments_to_section_dates %>
     </div>
   <% end %>
 </div>
 <% if can_do @context, @current_user, :read_roster, :manage_students, :allow_course_admin_actions %>
   <div class="enrollments-lists">
-    <h3><%= t('titles.current_enrollments', 'Current Enrollments') %></h3>
+    <h3><%= t("titles.current_enrollments", "Current Enrollments") %></h3>
     <div class="user-list-wrapper" id="current-enrollment-list">
       <ul class="user_list"></ul>
     </div>
-    <h3><%= t('titles.completed_enrollments', 'Completed Enrollments') %></h3>
+    <h3><%= t("titles.completed_enrollments", "Completed Enrollments") %></h3>
     <div class="user-list-wrapper" id="completed-enrollment-list">
       <ul class="user_list"></ul>
     </div>

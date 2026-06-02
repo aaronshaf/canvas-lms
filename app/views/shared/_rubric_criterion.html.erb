@@ -24,7 +24,7 @@
   rubric_association ||= nil
   edit_view ||= false
   assessment_rating ||= nil
-  friendly_description ||= ''
+  friendly_description ||= ""
   range_rating_enabled = @domain_root_account.feature_enabled?(:rubric_criterion_range)
   learning_outcome_criterion = criterion.try(:learning_outcome_id)
   learning_outcome_ids ||= rubric.learning_outcome_ids_from_results if learning_outcome_criterion && edit_view
@@ -35,12 +35,12 @@
                        end
   range_rating_visible = range_rating_enabled && !learning_outcome_criterion
 
-  long_description_text = criterion.try(:long_description) || ''
+  long_description_text = criterion.try(:long_description) || ""
   long_description_text = html_sanitize(long_description_text) if long_description_text.present?
 
-  description = criterion.try(:description) || t('defaults.description', "Description of criterion")
+  description = criterion.try(:description) || t("defaults.description", "Description of criterion")
 %>
-<tr id="criterion_<%= criterion ? criterion.id : "blank" %>" class="criterion <%= "blank" unless criterion %> <%= 'ignore_criterion_for_scoring' if criterion&.ignore_for_scoring %> <%= 'learning_outcome_criterion' if learning_outcome_criterion %>" style="<%= hidden unless criterion %>">
+<tr id="criterion_<%= criterion ? criterion.id : "blank" %>" class="criterion <%= "blank" unless criterion %> <%= "ignore_criterion_for_scoring" if criterion&.ignore_for_scoring %> <%= "learning_outcome_criterion" if learning_outcome_criterion %>" style="<%= hidden unless criterion %>">
   <td class="criterion_description hover-container pad-box-micro"
       aria-label="<%= t "description of criterion" %>">
     <div class="criterion_description_container">
@@ -64,17 +64,17 @@
               <%= (@context.respond_to?(:user_is_student?) && @context.user_is_student?(@current_user, include_fake_student: true) && !friendly_description.empty?) ? friendly_description : long_description_text %>
             </div>
           <% end %>
-          <div role="text" class="threshold toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
+          <div role="text" class="threshold toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? "hidden" : "" %>">
             <%= before_label :threshold, "threshold" %>
             <%= t :points, "%{points} pts", points: tag.span(n((criterion.mastery_points rescue 5)), class: :mastery_points) %>
           </div>
         </span>
-        <div class="hide_when_learning_outcome <%= range_rating_visible ? '' : 'hidden' %>">
-          <div class="criterion_use_range_div editing toggle_for_hide_points <%= rubric_association&.hide_points ? 'hidden' : '' %>">
-            <label class="criterion_range_label" aria-label="<%= t 'Range' %>">
-              <input type="checkbox" class="criterion_use_range" <%= 'checked' if criterion.try(:criterion_use_range) && range_rating_enabled %>/>
+        <div class="hide_when_learning_outcome <%= range_rating_visible ? "" : "hidden" %>">
+          <div class="criterion_use_range_div editing toggle_for_hide_points <%= rubric_association&.hide_points ? "hidden" : "" %>">
+            <label class="criterion_range_label" aria-label="<%= t "Range" %>">
+              <input type="checkbox" class="criterion_use_range" <%= "checked" if criterion.try(:criterion_use_range) && range_rating_enabled %>/>
               <span aria-hidden="true">
-                <%= t 'Range' %>
+                <%= t "Range" %>
               </span>
             </label>
           </div>
@@ -83,16 +83,16 @@
 
       <div class="links editing">
         <% unless learning_outcome_criterion %>
-          <a href="#" class="edit_criterion_link" role="button"><i class="icon-edit standalone-icon"></i><span class="screenreader-only"><%= t 'Edit criterion description' %></span></a>
+          <a href="#" class="edit_criterion_link" role="button"><i class="icon-edit standalone-icon"></i><span class="screenreader-only"><%= t "Edit criterion description" %></span></a>
         <% end %>
         <% if should_show_delete || rubric.nil? %>
-          <a href="#" class="delete_criterion_link" role="button"><i class="icon-trash standalone-icon"></i><span class="screenreader-only"><%= t 'Delete criterion row' %></span></a>
+          <a href="#" class="delete_criterion_link" role="button"><i class="icon-trash standalone-icon"></i><span class="screenreader-only"><%= t "Delete criterion row" %></span></a>
         <% end %>
       </div>
     </div>
     <% if rubric && !rubric.free_form_criterion_comments && assessment_rating && assessment_rating[:comments] %>
       <div class="assessment-comments">
-        <h6><%= t('Instructor Comments') %></h6>
+        <h6><%= t("Instructor Comments") %></h6>
         <div><%= format_message(assessment_rating[:comments]).first %></div>
       </div>
     <% end %>
@@ -100,7 +100,7 @@
   <td style="padding: 0;" aria-label="<%= t "criterion ratings" %>">
     <% if !edit_view && criterion && rubric&.free_form_criterion_comments %>
       <div class="custom_ratings_entry assessing">
-        <div style="margin-<%= direction('left') %>: 5px; margin-top: 2px; <%= hidden unless rubric_association&.summary_data && rubric_association.summary_data[:saved_comments] && rubric_association.summary_data[:saved_comments][criterion.id.to_s] %>" class="saved_custom_rating_holder">
+        <div style="margin-<%= direction("left") %>: 5px; margin-top: 2px; <%= hidden unless rubric_association&.summary_data && rubric_association.summary_data[:saved_comments] && rubric_association.summary_data[:saved_comments][criterion.id.to_s] %>" class="saved_custom_rating_holder">
           <select class="saved_custom_rating">
             <option value=""><%= t "[ Select ]" %></option>
             <% (rubric_association.summary_data[:saved_comments][criterion.id.to_s] || [] rescue []).each do |comment| %>
@@ -138,9 +138,9 @@
             <div class="container">
               <div class="rating-main">
                 <span role="text" class="rating-content-wrapper">
-                  <span class="nobr toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
+                  <span class="nobr toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? "hidden" : "" %>">
                     <span class="points"><%= n(round_if_whole(rating.points)) %></span>
-                    <span class="range_rating" style="<%= hidden unless use_range %>"><%= t('to') %> ><span class="min_points"><%= n(rating_min) %></span></span> <%= t('pts') %>
+                    <span class="range_rating" style="<%= hidden unless use_range %>"><%= t("to") %> ><span class="min_points"><%= n(rating_min) %></span></span> <%= t("pts") %>
                   </span>
                   <span class="description rating_description_value"><%= rating.description %></span>
                   <span class="rating_long_description small_description"><%= rating.long_description %></span>
@@ -148,10 +148,10 @@
                 <span class="rating_id" style="display: none;"><%= rating&.id %></span>
                 <% unless learning_outcome_criterion %>
                   <div class="editing links">
-                    <a href="#" class="edit_rating_link" role="button" aria-label="<%= t 'Edit rating' %>">
+                    <a href="#" class="edit_rating_link" role="button" aria-label="<%= t "Edit rating" %>">
                       <i class="icon-edit standalone-icon" aria-hidden="true"></i>
                     </a>
-                    <a href="#" class="delete_rating_link" role="button" aria-label="<%= t 'Delete rating' %>" <%= "aria-hidden=true" if edge %> >
+                    <a href="#" class="delete_rating_link" role="button" aria-label="<%= t "Delete rating" %>" <%= "aria-hidden=true" if edge %> >
                       <i class="icon-trash standalone-icon" aria-hidden="true"></i>
                     </a>
                   </div>
@@ -159,7 +159,7 @@
               </div>
               <% if !learning_outcome_criterion && !last_rating %>
                 <div class="editing links add_rating_link">
-                  <a href="#" class="add_rating_link_after" aria-label="<%= t 'Add rating' %>" role="button"><i class="icon-add icon-Solid"></i></a>
+                  <a href="#" class="add_rating_link_after" aria-label="<%= t "Add rating" %>" role="button"><i class="icon-add icon-Solid"></i></a>
                 </div>
               <% end %>
             </div>
@@ -171,7 +171,7 @@
       </div>
     <% end %>
   </td>
-  <td class="nobr points_form toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>"
+  <td class="nobr points_form toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? "hidden" : "" %>"
       aria-label="<%= t "criterion points" %>">
     <div class="editing" style="white-space: normal">
       <span style="white-space: nowrap; font-size: 0.8em">
@@ -205,9 +205,9 @@
     <div class="criterion_comments">
       <% if !rubric || !rubric.free_form_criterion_comments %>
         <a href="#" class="no-hover criterion_comments_link" title="<%= t "Additional Comments" %>">
-          <%= image_tag "rubric_comment.png", alt: t('Additional Comments') %>
+          <%= image_tag "rubric_comment.png", alt: t("Additional Comments") %>
         </a>
-        <div class="custom_rating" style="display: none;"><%= assessment_rating ? assessment_rating[:comments] : '' %></div>
+        <div class="custom_rating" style="display: none;"><%= assessment_rating ? assessment_rating[:comments] : "" %></div>
       <% end %>
     </div>
   </td>

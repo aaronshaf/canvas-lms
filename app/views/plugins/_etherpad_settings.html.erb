@@ -35,14 +35,14 @@
           <li><a href="http://typewith.me/"><%= t(:typewithme, "TypeWith.me") %></a></li>
         </ul>
 
-        <p><%= mt(:host_your_own, "Or you can always [set up your own EtherPad site](%{etherpad_url}).", etherpad_url: 'http://etherpad.org/') %></p>
+        <p><%= mt(:host_your_own, "Or you can always [set up your own EtherPad site](%{etherpad_url}).", etherpad_url: "http://etherpad.org/") %></p>
       </td>
     </tr>
     <tr>
       <td><%= f.blabel :domain, en: "Domain" %></td>
       <td>
         <%= f.text_field :domain, value: settings[:domain] %>
-        <div class="hint"><%= t('hints.domain', "Don't include the \"http://\" part or any slashes") %>
+        <div class="hint"><%= t("hints.domain", "Don't include the \"http://\" part or any slashes") %>
       </td>
     </tr>
     <tr>

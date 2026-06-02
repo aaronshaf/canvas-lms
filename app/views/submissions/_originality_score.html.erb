@@ -17,7 +17,7 @@
 %>
 
 <% vericite_data = @submission.vericite_data(lookup_data: true) %>
-<% if @submission.can_view_plagiarism_report('vericite', @current_user, session) && vericite_data[:provider] == :vericite &&
+<% if @submission.can_view_plagiarism_report("vericite", @current_user, session) && vericite_data[:provider] == :vericite &&
       (vericite_score = vericite_data[attachment&.asset_string] || @submission.originality_data[OriginalityReport.submission_asset_key(@submission)]) &&
       vericite_score[:similarity_score] %>
   <% if show_updated_icons %>
@@ -48,7 +48,7 @@
   <% elsif can_do(@submission, @current_user, :view_turnitin_report) &&
            (turnitin_score = @submission.originality_data[attachment&.asset_string] || @submission.originality_data[OriginalityReport.submission_asset_key(@submission)]) &&
            (@submission.originality_data[:provider].nil? || @submission.originality_reports.present?) &&
-           (turnitin_score[:similarity_score] || turnitin_score[:state] == 'pending') %>
+           (turnitin_score[:similarity_score] || turnitin_score[:state] == "pending") %>
 
     <% if show_updated_icons %>
       <%
@@ -62,7 +62,7 @@
         else
           url = polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string:, attempt: @submission.attempt)
           # This should be I18n'ed but can't be in its current form
-          title = I18n.t('Similarity score')
+          title = I18n.t("Similarity score")
         end
       %>
 
@@ -95,7 +95,7 @@
             title="Similarity score"
             class="not_external turnitin_similarity_score <%= turnitin_score[:state] %>_score"
             data-tooltip="left">
-            <%= turnitin_score[:similarity_score].present? ? "#{turnitin_score[:similarity_score]}%" : ' ' %>
+            <%= turnitin_score[:similarity_score].present? ? "#{turnitin_score[:similarity_score]}%" : " " %>
           </a>
         <% end %>
       </span>

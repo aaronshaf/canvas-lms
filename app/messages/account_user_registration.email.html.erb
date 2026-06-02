@@ -24,16 +24,16 @@
     font-family: 'Open Sans', 'Lucida Grande', 'Segoe UI', Arial, Verdana, 'Lucida Sans Unicode', Tahoma, 'Sans Serif';
     border-collapse: collapse;">
   <tr>
-      <td style="padding-right: 10px;"><%= t(:name, 'Name') %>:</td>
+      <td style="padding-right: 10px;"><%= t(:name, "Name") %>:</td>
       <td style="font-weight: bold;"><%= asset.user.name %></td>
   </tr>
   <tr>
-      <td style="padding-right: 10px"><%= t(:email, 'Email') %>:</td>
+      <td style="padding-right: 10px"><%= t(:email, "Email") %>:</td>
       <td style="font-weight: bold;"><%= email %></td>
   </tr>
   <% if email != login %>
     <tr>
-        <td style="padding-right: 10px;"><%= t(:username, 'Username') %>:</td>
+        <td style="padding-right: 10px;"><%= t(:username, "Username") %>:</td>
         <td style="font-weight: bold;"><%= login %></td>
     </tr>
   <% end %>

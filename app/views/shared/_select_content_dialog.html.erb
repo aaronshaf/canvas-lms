@@ -25,19 +25,19 @@
   new_quizzes_enabled = NewQuizzesFeaturesHelper.new_quizzes_enabled?(@context)
   new_quizzes_by_default = new_quizzes_enabled && @context.feature_enabled?(:new_quizzes_by_default)
   newquizzes_engine_selected = @context.settings.dig(:engine_selected, :user_id, :newquizzes_engine_selected)
-  newquizzes_engine_selected = nil unless ['true', 'false'].include?(newquizzes_engine_selected)
-  newquizzes_engine_selected = 'true' if @context.horizon_course?
+  newquizzes_engine_selected = nil unless ["true", "false"].include?(newquizzes_engine_selected)
+  newquizzes_engine_selected = "true" if @context.horizon_course?
   module_links_default_new_tab = @current_user&.get_preference(:module_links_default_new_tab)
 %>
 <% js_env({ NEW_QUIZZES_BY_DEFAULT: new_quizzes_by_default }) %>
-<% cache([@context, 'select_context_content_dialog_1', only].cache_key) do %>
+<% cache([@context, "select_context_content_dialog_1", only].cache_key) do %>
   <div id="select_context_content_dialog" style="display: none;">
     <div style="margin-bottom: 5px; <%= hidden if only && only.size == 1 %>">
       <a href="<%= context_url(@context, :context_external_tool_resource_selection_url, "{{ id }}") %>" id="select_content_resource_selection_url" style="display: none;">&nbsp;</a>
       <% ot :add_to_module,
             "Add %{item} to *module*",
             item: capture { %>
-      <select style="margin-bottom: 0px" id="add_module_item_select" aria-label="<%= t 'select_item_type_label', "Select the type of content to add." %>">
+      <select style="margin-bottom: 0px" id="add_module_item_select" aria-label="<%= t "select_item_type_label", "Select the type of content to add." %>">
         <% if !only || only.include?(:assignments) %>
         <option value="assignment"><%= t :assignment_item, "Assignment" %></option>
         <% end %>
@@ -116,7 +116,7 @@
           <i class="icon-link"></i>
           <%= t :external_tool_notice, "Select a tool from the list below, or enter a URL for an external tool you already know is configured with Basic LTI to add a link to it to this *module*.", wrapper: '<span class="holder_type">\1</span>' %>
         </div>
-        <a href="<%= context_url(@context, controller: 'lti/lti_apps', action: 'launch_definitions', placements: lti_app_placements, per_page: '100') %>" class="external_tools_url" style="display: none;">&nbsp;</a>
+        <a href="<%= context_url(@context, controller: "lti/lti_apps", action: "launch_definitions", placements: lti_app_placements, per_page: "100") %>" class="external_tools_url" style="display: none;">&nbsp;</a>
         <input type="hidden" name="custom_params" id="external_tool_create_custom_params" />
         <input type="hidden" name="assignment_id" id="external_tool_create_assignment_id" />
         <input type="hidden" name="iframe_width" id="external_tool_create_iframe_width"/>
@@ -173,8 +173,8 @@
         <select class="module_item_select mathjax_ignore" aria-label="<%= page_label %>" multiple>
           <%# cache on the context.wiki instead of just the context because even though it will require a db query, we will get a much better cache hit rate %>
           <option value="new"><%= t :create_page_option, "[ Create Page ]" %></option>
-          <% cache([@context.wiki, 'non_deleted_wiki_pages_1']) do %>
-            <% @context.wiki_pages.not_deleted.reorder(WikiPage.best_unicode_collation_key('title')).select(:id, :title).each do |page| %>
+          <% cache([@context.wiki, "non_deleted_wiki_pages_1"]) do %>
+            <% @context.wiki_pages.not_deleted.reorder(WikiPage.best_unicode_collation_key("title")).select(:id, :title).each do |page| %>
               <% if page && !page.new_record? %>
                 <option value="<%= page.id %>"><%= page.title %></option>
               <% end %>
@@ -241,8 +241,8 @@
             <option value="new"><%= t :create_quiz_option, "[ Create Quiz ]" %></option>
           <% end %>
           <% @combined_active_quizzes.each do |id, title, type| %>
-            <% option_text = (@combined_active_quizzes_includes_both_types && type == 'quiz') ? "#{title} #{t :classic_quiz_identifier, '(classic)'}" : title %>
-            <option value="<%= type + '_' + id.to_s %>"><%= option_text %></option>
+            <% option_text = (@combined_active_quizzes_includes_both_types && type == "quiz") ? "#{title} #{t :classic_quiz_identifier, "(classic)"}" : title %>
+            <option value="<%= type + "_" + id.to_s %>"><%= option_text %></option>
           <% end %>
         </select>
         </div>
@@ -250,11 +250,11 @@
           <input type="hidden" name="quiz[quiz_type]" value="assignment" />
           <table>
             <% if new_quizzes_enabled && !new_quizzes_by_default %>
-              <tr style="<%= newquizzes_engine_selected ? 'display: none;' : '' %>">
+              <tr style="<%= newquizzes_engine_selected ? "display: none;" : "" %>">
                 <td><%= before_label :quiz_engine, "Quiz Engine" %></td>
                 <td>
                   <div class="ic-Radio">
-                    <% if newquizzes_engine_selected == 'false' %>
+                    <% if newquizzes_engine_selected == "false" %>
                       <input type="radio" name="quiz_engine_selection" id="new_quizzes_radio" value="assignment" />
                     <% else %>
                       <input type="radio" name="quiz_engine_selection" id="new_quizzes_radio" value="assignment" checked="checked" />
@@ -289,12 +289,12 @@
               <td>
                 <select name="quiz[assignment_group_id]" aria-label="<%= before_label :quiz_group, "Group" %>">
                   <% cnt = 0 %>
-                  <% @context.assignment_groups.active.reorder(AssignmentGroup.best_unicode_collation_key('name')).pluck(:id, :name).each do |id, name| %>
+                  <% @context.assignment_groups.active.reorder(AssignmentGroup.best_unicode_collation_key("name")).pluck(:id, :name).each do |id, name| %>
                     <% cnt += 1 %>
                     <option value="<%= id %>"><%= name %></option>
                   <% end %>
                   <% if cnt == 0 %>
-                    <option value=""><%= t 'options.assignments', "Assignments" %></option>
+                    <option value=""><%= t "options.assignments", "Assignments" %></option>
                   <% end %>
                 </select>
               </td>
@@ -310,17 +310,17 @@
         <div style="font-size: 0.8em;">
           <i class="icon-assignment"></i>
           <%= t :create_assignment_notice, 'Select the assignment you want to associate with this *module*, or add an assignment by selecting "Create Assignment".', wrapper: '<span class="holder_type">\1</span>' %>
-          <% assignment_label = t 'assignment_item_select_label_create', 'Select the assignment you want to associate, or add an assignment by selecting "Create Assignment".' %>
+          <% assignment_label = t "assignment_item_select_label_create", 'Select the assignment you want to associate, or add an assignment by selecting "Create Assignment".' %>
         </div>
         <div style="margin-top: 5px;">
         <select class="module_item_select mathjax_ignore" aria-label="<%= assignment_label %>" multiple>
           <% if @context.grants_right?(@current_user, session, :manage_assignments_add) %>
             <option value="new"><%= t :create_assignment_option, "[ Create Assignment ]" %></option>
           <% end %>
-          <% @context.assignment_groups.active.include_active_assignments.reorder(AssignmentGroup.best_unicode_collation_key('name')).each do |group| %>
+          <% @context.assignment_groups.active.include_active_assignments.reorder(AssignmentGroup.best_unicode_collation_key("name")).each do |group| %>
             <optgroup label="<%= group.name %>">
             <% assignments = group.active_assignments.no_submittables.not_type_quiz_lti %>
-            <% assignments.reorder(Assignment.best_unicode_collation_key('title')).limit(500).pluck(:id, :title).each do |id, title| %>
+            <% assignments.reorder(Assignment.best_unicode_collation_key("title")).limit(500).pluck(:id, :title).each do |id, title| %>
               <option value="<%= id %>"><%= title %></option>
             <% end %>
             </optgroup>
@@ -339,12 +339,12 @@
         <div style="font-size: 0.8em;">
           <i class="icon-discussion"></i>
           <%= t :create_topic_notice, 'Select the topic you want to associate with this *module*, or add a topic by selecting "Create Topic".', wrapper: '<span class="holder_type">\1</span>' %>
-          <% topic_label = t 'discussion_topic_select_label_create', 'Select the topic you want to associate, or add a topic by selecting "Create Topic".' %>
+          <% topic_label = t "discussion_topic_select_label_create", 'Select the topic you want to associate, or add a topic by selecting "Create Topic".' %>
         </div>
         <div style="margin-top: 5px;">
         <select class="module_item_select mathjax_ignore" aria-label="<%= topic_label %>" multiple>
           <option value="new"><%= t :create_topic_option, "[ Create Topic ]" %></option>
-          <% @context.discussion_topics.active.only_discussion_topics.reorder(DiscussionTopic.best_unicode_collation_key('title')).limit(200).pluck(:id, :title).each do |id, title| %>
+          <% @context.discussion_topics.active.only_discussion_topics.reorder(DiscussionTopic.best_unicode_collation_key("title")).limit(200).pluck(:id, :title).each do |id, title| %>
             <option value="<%= id %>"><%= title %></option>
           <% end %>
         </select>

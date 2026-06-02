@@ -35,7 +35,7 @@
   </div>
 <% end %>
 
-<div id="edit_assignment_header" class="<%= 'no-line' if @assignment.quiz_lti? %>"></div>
+<div id="edit_assignment_header" class="<%= "no-line" if @assignment.quiz_lti? %>"></div>
 
 <%= render "shared/select_content_dialog", only: [:external_tools], lti_app_placements: [Lti::ResourcePlacement::ASSIGNMENT_SELECTION, Lti::ResourcePlacement::RESOURCE_SELECTION] %>
 <div id="edit_letter_grades_form" style="display: none;">
@@ -46,7 +46,7 @@
 
 <% if @assignment.quiz_lti? && @assignment.persisted? %>
   <div class="ic-Label header-bar">
-  <%= t 'links.add_rubric', "Rubric" %>
+  <%= t "links.add_rubric", "Rubric" %>
   </div>
 
   <% if can_do(@assignment, @current_user, :update) && Rubric.enhanced_rubrics_assignments_enabled?(@context) %>
@@ -60,8 +60,8 @@
         class="add_rubric_link Button icon-plus"
         style="<%= hidden if @assignment.active_rubric_association? %>"
       >
-        <span aria-hidden="true"><%= t 'links.add_rubric', "Rubric" %></span>
-        <span class="screenreader-only"><%= t('Add Rubric') %></span>
+        <span aria-hidden="true"><%= t "links.add_rubric", "Rubric" %></span>
+        <span class="screenreader-only"><%= t("Add Rubric") %></span>
       </a>
     </div>
   <% end %>

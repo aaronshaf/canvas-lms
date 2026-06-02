@@ -23,22 +23,22 @@
    assessment ||= nil
    brief ||= false
    checkpointed ||= false %>
-<div class="rubric_container rubric rubric_summary <%= 'free_form' if rubric&.free_form_criterion_comments %>" id="<%= rubric ? "rubric_summary_#{rubric.id}" : "default_rubric_summary" %>" style="<%= 'hidden' unless brief %>">
-  <div class="screenreader-only"><h3><%= t 'rubric', "Rubric" %></h3></div>
+<div class="rubric_container rubric rubric_summary <%= "free_form" if rubric&.free_form_criterion_comments %>" id="<%= rubric ? "rubric_summary_#{rubric.id}" : "default_rubric_summary" %>" style="<%= "hidden" unless brief %>">
+  <div class="screenreader-only"><h3><%= t "rubric", "Rubric" %></h3></div>
   <div class="rubric_title" style="<%= hidden if brief %>">
-    <span class="title"><%= rubric.try(:title) || t('defaults.title', "Title") %></span>
+    <span class="title"><%= rubric.try(:title) || t("defaults.title", "Title") %></span>
     <span class="id" style="display: none;"><%= rubric.id rescue nbsp %></span>
   </div>
 <table class="rubric_table">
 <caption>
   <div class="screenreader-only">
-    <span class="title"><%= rubric.try(:title) || t('defaults.title', "Title") %></span>
+    <span class="title"><%= rubric.try(:title) || t("defaults.title", "Title") %></span>
   </div>
 </caption>
 <thead>
   <tr>
-    <th><%= t 'headers.criteria', "Criteria" %></th>
-    <th><%= t 'headers.assessment', "Assessment" %></th>
+    <th><%= t "headers.criteria", "Criteria" %></th>
+    <th><%= t "headers.assessment", "Assessment" %></th>
   </tr>
 </thead>
 <tbody>
@@ -51,14 +51,14 @@
     <%= render partial: "shared/rubric_summary_criterion", locals: { assessing:, brief: } %>
   <% end %>
   <tr class="summary" style="<%= hidden if rubric_association&.hide_score_total %>">
-    <td colspan="2" style="padding-<%= direction('right') %>: 10px; text-align: <%= direction('right') %>;">
+    <td colspan="2" style="padding-<%= direction("right") %>: 10px; text-align: <%= direction("right") %>;">
       <%= before_label :total_points, "Total Points" %>
       <%= t "*%{points}* out of **%{total}**",
             points: (assessing ? "0" : (I18n.n(rubric.points_possible) rescue 5)),
             total: (I18n.n(rubric.points_possible) rescue 5),
             wrapper: {
-              '*' => "<span class='rubric_total' style='#{hidden if brief}'>\\1</span>",
-              '**' => "<span class='points_possible'>\\1</span>"
+              "*" => "<span class='rubric_total' style='#{hidden if brief}'>\\1</span>",
+              "**" => "<span class='points_possible'>\\1</span>"
             } %>
     </td>
   </tr>
@@ -66,7 +66,7 @@
 </table>
 </div>
 <div class="button-container" style="<%= hidden if brief %>">
-  <button class="toggle_full_rubric edit btn"><%= t 'buttons.edit_assessment', "Edit Assessment" %></button>
+  <button class="toggle_full_rubric edit btn"><%= t "buttons.edit_assessment", "Edit Assessment" %></button>
   <% if checkpointed %>
     <div id="rubrics_checkpoints_info">
     </div>

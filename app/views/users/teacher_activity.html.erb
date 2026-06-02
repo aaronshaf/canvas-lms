@@ -18,9 +18,9 @@
 
 <% css_bundle :reports %>
 <% js_bundle :teacher_activity_report %>
-<% add_crumb(t('crumbs.interaction_report', "Student Interactions Report")) %>
+<% add_crumb(t("crumbs.interaction_report", "Student Interactions Report")) %>
 
-<% provide :page_title, t('title', 'Teacher Activity Report') %>
+<% provide :page_title, t("title", "Teacher Activity Report") %>
 
 <style type="text/css" media="screen">
   a.view_full_link {
@@ -31,21 +31,21 @@
   }
 </style>
 
-<h1><%= t('headings.teacher_activity', "Teacher Activity Report for %{teacher}", teacher: @teacher.name) %></h1>
+<h1><%= t("headings.teacher_activity", "Teacher Activity Report for %{teacher}", teacher: @teacher.name) %></h1>
 
 <% @courses.each do |course, students| %>
   <h2><%= course.name %></h2>
   <% if students.blank? %>
-    <%= t 'no_students', 'There are no students to report on.' %>
+    <%= t "no_students", "There are no students to report on." %>
   <% else %>
   <table class='report sortable'>
     <thead>
       <tr>
-        <th><%= t 'headings.student_name', %{Student} %></th>
-        <th><%= t 'headings.last_interaction', 'Last Student Interaction' %></th>
-        <th><%= t('headings.current_score', %{Current Score}) %></th>
-        <th><%= t('headings.final_score', %{Final Score}) %></th>
-        <th><%= t('headings.ungraded', %{Ungraded Assignments}) %></th>
+        <th><%= t "headings.student_name", %(Student) %></th>
+        <th><%= t "headings.last_interaction", "Last Student Interaction" %></th>
+        <th><%= t("headings.current_score", %(Current Score)) %></th>
+        <th><%= t("headings.final_score", %(Final Score)) %></th>
+        <th><%= t("headings.ungraded", %(Ungraded Assignments)) %></th>
         <% if course.user_has_been_instructor?(@current_user) %>
           <th>&nbsp;</th>
         <% end %>
@@ -59,9 +59,9 @@
           </td>
           <td>
             <% if student[:last_interaction] %>
-              <%= t 'last_time', { zero: "less than 1 day ago", one: "1 day ago", other: "%{count} days ago" }, count: (((Time.zone.now - student[:last_interaction]) / 60) / 1440).abs.to_i %>
+              <%= t "last_time", { zero: "less than 1 day ago", one: "1 day ago", other: "%{count} days ago" }, count: (((Time.zone.now - student[:last_interaction]) / 60) / 1440).abs.to_i %>
             <% else %>
-              <%= t 'last_time_never', 'never' %>
+              <%= t "last_time_never", "never" %>
             <% end %>
           </td>
           <td><%= n(student[:enrollment].computed_current_score, percentage: true, precision: 1) %></td>
@@ -69,16 +69,16 @@
           <td data-number="<%= (student[:ungraded].filter_map(&:submitted_at).min || 1.day.from_now).to_i / 3600 %>">
             <% student[:ungraded].each do |submission| %>
               <%= link_to(submission.assignment.title, speed_grader_course_gradebook_path(course, assignment_id: submission.assignment.id, student_id: student[:enrollment].user_id)) %><br/>
-              <div style="padding-bottom: 5px; margin-top: -2px; padding-<%= direction('left') %>: 20px; font-size: 0.8em; color: #888;">
+              <div style="padding-bottom: 5px; margin-top: -2px; padding-<%= direction("left") %>: 20px; font-size: 0.8em; color: #888;">
                 <% if submission.submitted_at %>
-                  <%= t 'submitted_time', { zero: "submitted less than 1 day ago", one: "submitted 1 day ago", other: "submitted %{count} days ago" }, count: (((Time.zone.now - submission.submitted_at) / 60) / 1440).abs.to_i %>
+                  <%= t "submitted_time", { zero: "submitted less than 1 day ago", one: "submitted 1 day ago", other: "submitted %{count} days ago" }, count: (((Time.zone.now - submission.submitted_at) / 60) / 1440).abs.to_i %>
                 <% end %>
               </div>
             <% end %>
           </td>
           <% if course.user_has_been_instructor?(@current_user) %>
           <td>
-            <a href="<%= message_user_path(student[:enrollment].user, course) %>" class="message_student_link" title="<%= t 'message_student', 'Message this student' %>"><i class="icon-email"></i></a>
+            <a href="<%= message_user_path(student[:enrollment].user, course) %>" class="message_student_link" title="<%= t "message_student", "Message this student" %>"><i class="icon-email"></i></a>
           </td>
           <% end %>
         </tr>
@@ -88,7 +88,7 @@
   <% end %>
   <% if params[:student_id] %>
     <div>
-      <%= link_to(t('links.view_full_course', 'View the full Student Interaction Report for %{course}', course: course.name), user_course_teacher_activity_url(@teacher, course), class: 'view_full_link') %>
+      <%= link_to(t("links.view_full_course", "View the full Student Interaction Report for %{course}", course: course.name), user_course_teacher_activity_url(@teacher, course), class: "view_full_link") %>
     </div>
   <% end %>
   <br/>

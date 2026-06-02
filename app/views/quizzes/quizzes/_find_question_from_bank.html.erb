@@ -17,11 +17,11 @@
 %>
 
 <div id="find_question_dialog" style="display: none;">
-  <a href="<%= context_url(@context, :context_question_banks_url, include_bookmarked: '1', inherited: '1') %>" class="find_question_banks_url" style="display: none;">&nbsp;</a>
+  <a href="<%= context_url(@context, :context_question_banks_url, include_bookmarked: "1", inherited: "1") %>" class="find_question_banks_url" style="display: none;">&nbsp;</a>
   <a href="/<%= @quiz.context_url_prefix %>/question_banks/{{ question_bank_id }}/questions?inherited=1" class="question_bank_questions_url" style="display: none;">&nbsp;</a>
   <a href="<%= context_url(@context, :context_quiz_quiz_questions_url, @quiz.id) %>" class="add_questions_url" style="display: none;">&nbsp;</a>
-  <div style="float: <%= direction('right') %>; padding-<%= direction('right') %>: 5px; line-height: 2.5em;">
-    <a href="<%= context_url(@context, :context_question_banks_url) %>"><%= t('links.view_question_banks', "View Course Question Banks") %></a>
+  <div style="float: <%= direction("right") %>; padding-<%= direction("right") %>: 5px; line-height: 2.5em;">
+    <a href="<%= context_url(@context, :context_question_banks_url) %>"><%= t("links.view_question_banks", "View Course Question Banks") %></a>
   </div>
   <div class="clear"></div>
   <div class="message" style="display: none;"></div>
@@ -32,7 +32,7 @@
         <ul class="side_tabs bank_list">
           <li class="bank blank" style="display: none;">
             <a href="#">
-              <span class="title"><%= t('headers.bank_name', "Bank Name") %></span>
+              <span class="title"><%= t("headers.bank_name", "Bank Name") %></span>
               <span class="id" style="display: none;">&nbsp;</span>
             </a>
             <div class="sub_content">
@@ -48,8 +48,8 @@
         <div class="side_tabs_content">
           <div class="question_message"></div>
           <div class="question_list_holder" style="display: none;">
-            <a href="#" class="select_all_link"><%= t('links.select_all_banks', "Select All") %></a> |
-            <a href="#" class="clear_all_link"><%= t('links.clear_all_banks', "Clear All") %></a>
+            <a href="#" class="select_all_link"><%= t("links.select_all_banks", "Select All") %></a> |
+            <a href="#" class="clear_all_link"><%= t("links.clear_all_banks", "Clear All") %></a>
             <ul class="question_list unstyled_list">
               <li class="found_question blank" style="display: none;">
                 <input type="checkbox"/>
@@ -58,17 +58,17 @@
                 <div class="question_text"></div>
               </li>
             </ul>
-            <a href="#" class="page_link"><%= t('links.more_questions', "more questions") %></a>
+            <a href="#" class="page_link"><%= t("links.more_questions", "more questions") %></a>
             <div class="button-container quiz_group_select_holder">
               <label for="quiz_group_select"><%= before_label(:add_questions_to_group, "Add questions to the question group") %></label>
               <select class="quiz_group_select" id="quiz_group_select">
-                <option value="none"><%= t('options.no_group', "[ No Group ]") %></option>
-                <option class="bottom" value="new"><%= t('options.create_group', "[ Create Group ]") %></option>
+                <option value="none"><%= t("options.no_group", "[ No Group ]") %></option>
+                <option class="bottom" value="new"><%= t("options.create_group", "[ Create Group ]") %></option>
               </select>
             </div>
             <div class="button-container" style="margin-bottom: 5px;">
-              <button type="button" class="btn submit_button"><%= t('buttons.add_questions', "Add Questions") %></button>
-              <button type="button" class="btn btn button-secondary cancel_button"><%= t('#buttons.cancel', "Cancel") %></button>
+              <button type="button" class="btn submit_button"><%= t("buttons.add_questions", "Add Questions") %></button>
+              <button type="button" class="btn btn button-secondary cancel_button"><%= t("#buttons.cancel", "Cancel") %></button>
             </div>
           </div>
         </div>
@@ -77,9 +77,9 @@
   </table>
 </div>
 <div id="find_bank_dialog" style="display: none;">
-  <a href="<%= context_url(@context, :context_question_banks_url, include_bookmarked: '1', inherited: '1') %>" class="find_question_banks_url" style="display: none;">&nbsp;</a>
-  <div style="float: <%= direction('right') %>; padding-<%= direction('right') %>: 5px; line-height: 2.5em;">
-    <a href="<%= context_url(@context, :context_question_banks_url) %>"><%= t('links.view_question_banks', "View Course Question Banks") %></a>
+  <a href="<%= context_url(@context, :context_question_banks_url, include_bookmarked: "1", inherited: "1") %>" class="find_question_banks_url" style="display: none;">&nbsp;</a>
+  <div style="float: <%= direction("right") %>; padding-<%= direction("right") %>: 5px; line-height: 2.5em;">
+    <a href="<%= context_url(@context, :context_question_banks_url) %>"><%= t("links.view_question_banks", "View Course Question Banks") %></a>
   </div>
   <div class="clear"></div>
   <div class="message" style="display: none;"></div>
@@ -87,7 +87,7 @@
     <%= t(:select_a_question_bank, "Select a question bank from the list below to link it to the this quiz as a question group.") %>
     <ul class="side_tabs bank_list unstyled_list">
       <li class="bank blank" style="display: none;" tabIndex="0" role="button">
-        <div class="title"><%= t('headers.bank_name', "Bank Name") %></div>
+        <div class="title"><%= t("headers.bank_name", "Bank Name") %></div>
         <span class="id" style="display: none;">&nbsp;</span>
         <div class="sub_content">
           <%= t(:bank_description,
@@ -98,17 +98,17 @@
       </li>
     </ul>
     <div class="button-container" style="margin-bottom: 5px;">
-      <button type="button" class="btn submit_button"><%= t('buttons.select_bank', "Select Bank") %></button>
-      <button type="button" class="btn btn button-secondary cancel_button"><%= t('#buttons.cancel', "Cancel") %></button>
+      <button type="button" class="btn submit_button"><%= t("buttons.select_bank", "Select Bank") %></button>
+      <button type="button" class="btn btn button-secondary cancel_button"><%= t("#buttons.cancel", "Cancel") %></button>
     </div>
   </div>
 </div>
-<div id="add_question_group_dialog" style="display: none;" title="<%= t('titles.add_new_question_group', "Add a New Question Group") %>">
-  <h2><%= t('titles.add_new_question_group', "Add a New Question Group") %></h2>
+<div id="add_question_group_dialog" style="display: none;" title="<%= t("titles.add_new_question_group", "Add a New Question Group") %>">
+  <h2><%= t("titles.add_new_question_group", "Add a New Question Group") %></h2>
   <a href="<%= context_url(@context, :context_quiz_quiz_groups_url, @quiz.id) %>" class="add_question_group_url" style="display: none;">&nbsp;</a>
   <div>
     <div class="form-control form-control--with-bottom-margin name">
-      <label class="bold form-control__label" for="found_question_group_name"><%= t('Group Name') %><span aria-hidden="true" class="asterisk"> *</span></label>
+      <label class="bold form-control__label" for="found_question_group_name"><%= t("Group Name") %><span aria-hidden="true" class="asterisk"> *</span></label>
       <div>
         <input class="form-control__input form-control__input--without-margin" id="found_question_group_name" aria-describedby="question_group_name_message" type="text" required="true" name="quiz_group[name]" />
       </div>
@@ -119,7 +119,7 @@
     </div>
 
     <div class="form-control form-control--with-bottom-margin pick">
-      <label class="bold form-control__label" for="found_question_group_pick"><%= t('Pick') %><span aria-hidden="true" class="asterisk"> *</span></label>
+      <label class="bold form-control__label" for="found_question_group_pick"><%= t("Pick") %><span aria-hidden="true" class="asterisk"> *</span></label>
       <div>
         <%= t(:group_pick_count, "%{pick_count} questions", pick_count: tag.input(class: "form-control__input form-control__input--without-margin", required: true, id: "found_question_group_pick", "aria-describedby": "question_group_pick_message", type: "text", style: "width: 50px; margin-bottom: 0px;", name: "quiz_group[pick_count]")) %>
       </div>
@@ -130,7 +130,7 @@
     </div>
 
     <div class="form-control points">
-      <label class="bold form-control__label" for="found_question_group_points"><%= t('Points per question') %><span aria-hidden="true" class="asterisk"> *</span></label>
+      <label class="bold form-control__label" for="found_question_group_points"><%= t("Points per question") %><span aria-hidden="true" class="asterisk"> *</span></label>
       <div>
         <input class="form-control__input form-control__input--without-margin float_value" required="true" id="found_question_group_points" aria-describedby="question_group_points_message" type="text" style="width: 50px; margin-bottom: 0px;" name="quiz_group[question_points]" />
       </div>
@@ -144,8 +144,8 @@
     <tr>
       <td colspan="2">
         <div class="button-container">
-          <button type="button" class="btn submit_button"><%= t('buttons.create_group', "Create Group") %></button>
-          <button type="button" class="btn btn button-secondary cancel_button"><%= t('#buttons.cancel', "Cancel") %></button>
+          <button type="button" class="btn submit_button"><%= t("buttons.create_group", "Create Group") %></button>
+          <button type="button" class="btn btn button-secondary cancel_button"><%= t("#buttons.cancel", "Cancel") %></button>
         </div>
       </td>
     </tr>

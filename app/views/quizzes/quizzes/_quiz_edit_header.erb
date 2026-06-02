@@ -18,7 +18,7 @@
 
 <%
   # these titles are used in more than one spot below
-  admin_manage_title = t('Manage')
+  admin_manage_title = t("Manage")
   admin_delete_title = t("Delete")
   admin_show_rubric_title = t("Show Rubric")
   is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
@@ -27,7 +27,7 @@
 <div class="header-bar-right">
   <div class="header-group-left">
     <span id="quiz_display_points_possible">
-      <%= t("Points %{n}", n: tag.span(render_score(@quiz.points_possible), style: "margin-#{direction('left')}:5px", class: "points_possible")) %>
+      <%= t("Points %{n}", n: tag.span(render_score(@quiz.points_possible), style: "margin-#{direction("left")}:5px", class: "points_possible")) %>
     </span>
 
     <% if @quiz.published? %>

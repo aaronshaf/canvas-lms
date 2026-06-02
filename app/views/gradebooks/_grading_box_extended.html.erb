@@ -23,10 +23,10 @@
 <label class="bold" for="grading-box-extended">
   <% unless assignment.has_sub_assignments? %>
     <div id="grading-box-points-possible">
-      <%= t('labels.grade', "Grade") %>
-      <% if assignment.grading_type == 'points' %>
+      <%= t("labels.grade", "Grade") %>
+      <% if assignment.grading_type == "points" %>
         <%= out_of_text %>
-      <% elsif assignment.grading_type != 'gpa_scale' %>
+      <% elsif assignment.grading_type != "gpa_scale" %>
         (<span class="score"></span> / <%= I18n.n(round_if_whole(assignment.points_possible)) %>)
       <% end %>
     </div>
@@ -43,9 +43,9 @@
     <% when "pass_fail" %>
       <select id="grading-box-extended" class="pass_fail_grading_type">
         <option value="">---</option>
-        <option value="complete"><%= t('#gradebooks.grades.complete', "Complete") %></option>
-        <option value="incomplete"><%= t('#gradebooks.grades.incomplete', "Incomplete") %></option>
-        <option value="EX"><%= t('Excused') %></option>
+        <option value="complete"><%= t("#gradebooks.grades.complete", "Complete") %></option>
+        <option value="incomplete"><%= t("#gradebooks.grades.incomplete", "Incomplete") %></option>
+        <option value="EX"><%= t("Excused") %></option>
       </select>
     <% end %>
   <% end %>
@@ -56,10 +56,10 @@
 <div id="deduction-box" class="hidden">
   <div class="deduction-box-labels">
     <div class="error">
-      <%= I18n.t('Late Penalty:') %>
+      <%= I18n.t("Late Penalty:") %>
     </div>
     <div class="primary">
-      <%= I18n.t('Final Grade:') %>
+      <%= I18n.t("Final Grade:") %>
     </div>
   </div>
   <div class="deduction-box-values">

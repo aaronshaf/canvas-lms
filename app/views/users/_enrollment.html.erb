@@ -16,16 +16,16 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<li class="<%= 'unpublished' if enrollment.course.created? || enrollment.course.claimed? %> <%= enrollment.state_based_on_date %> clearfix">
+<li class="<%= "unpublished" if enrollment.course.created? || enrollment.course.claimed? %> <%= enrollment.state_based_on_date %> clearfix">
 
-  <a href="<%= course_user_path(enrollment.course_id, enrollment.user_id) %>" style="float: <%= direction('left') %>; max-width: 800px;">
+  <a href="<%= course_user_path(enrollment.course_id, enrollment.user_id) %>" style="float: <%= direction("left") %>; max-width: 800px;">
     <span
       class="name"
       title="<%= enrollment.long_name(@current_user) %>"
       style="word-break: break-word">
       <%= enrollment.long_name(@current_user) %>
       <% if enrollment.course.created? || enrollment.course.claimed? %>
-        <i class="icon-unpublish" title="<%= t('course_not_published', "This course hasn't been published yet") %>"></i>
+        <i class="icon-unpublish" title="<%= t("course_not_published", "This course hasn't been published yet") %>"></i>
       <% end %>
     </span>
 
@@ -47,11 +47,11 @@
         <%= t("| %{provider}", provider: enrollment.temporary_enrollment_source_user.name) %>
       <% end %>
       <% if enrollment.associated_user %>
-        <%= t('linked_to_user', '(Linked to %{user_name})', user_name: enrollment.associated_user.name) %>
+        <%= t("linked_to_user", "(Linked to %{user_name})", user_name: enrollment.associated_user.name) %>
       <% end %>
     </span>
   </a>
-  <span style="float: <%= direction('right') %>; margin-<%= direction('right') %>: 5px; margin-top: 3px;">
+  <span style="float: <%= direction("right") %>; margin-<%= direction("right") %>: 5px; margin-top: 3px;">
     <% if enrollment.can_be_deleted_by(@current_user, enrollment.course, session) %>
       <a href="#" rel="<%= api_v1_destroy_enrollment_url(enrollment.course_id, enrollment.id, { task: "delete" }) %>" class="unenroll_link" role="button">
         <i class="icon-end standalone-icon"></i>
@@ -61,7 +61,7 @@
   </span>
   <% if enrollment.admin? && can_do(enrollment.user, @current_user, :read_reports) %>
     <div style='clear:left'>
-      <%= link_to(t('links.teacher_activity', 'See Student Interactions Report'), user_course_teacher_activity_url(enrollment.user_id, enrollment.course_id)) %>
+      <%= link_to(t("links.teacher_activity", "See Student Interactions Report"), user_course_teacher_activity_url(enrollment.user_id, enrollment.course_id)) %>
     </div>
   <% end %>
   <span class="clear"></span>

@@ -17,7 +17,7 @@
 %>
 
 <% provide :page_title, t(:page_title, "Rubrics") %>
-<% add_crumb t('#crumbs.rubrics', "Rubrics") %>
+<% add_crumb t("#crumbs.rubrics", "Rubrics") %>
 
 <% js_bundle :edit_rubric %>
 <% css_bundle :learning_outcomes %>
@@ -32,16 +32,16 @@
     }
   </style>
 
-<% js_bundle 'rubrics_index' %>
+<% js_bundle "rubrics_index" %>
 <% if @context.root_account.feature_enabled?(:instui_nav) %>
   <div class="rubric-header">
     <div class="rubric-header-left">
-      <h1 class="rubric-title"><%= t('#crumbs.rubrics', "Rubrics") %></h1>
+      <h1 class="rubric-title"><%= t("#crumbs.rubrics", "Rubrics") %></h1>
     </div>
     <% if !!js_env.dig(:PERMISSIONS, :manage_rubrics) %>
         <a href="<%= context_url(@context, :context_rubrics_url) %>" role="button" class="Button Button--primary add_rubric_link">
           <i class="icon-add" style="margin-right: 7px;"></i>
-          <%= t('buttons.add_rubric', 'Add Rubric') %>
+          <%= t("buttons.add_rubric", "Add Rubric") %>
         </a>
     <% end %>
   </div>
@@ -49,18 +49,18 @@
   <% provide :right_side do %>
     <a href="<%= context_url(@context, :context_rubrics_url) %>" role="button" class="btn button-sidebar-wide add_rubric_link">
       <i class="icon-add"></i>
-      <%= t('buttons.add_rubric', 'Add Rubric') %>
+      <%= t("buttons.add_rubric", "Add Rubric") %>
     </a>
   <% end %>
 <% end %>
 <h1 class="screenreader-only">
   <% case @context.class.to_s %>
-  <% when 'Course' %>
-      <%= t 'course_rubrics', "Course Rubrics" %>
-  <% when 'User' %>
-      <%= t 'user_rubrics', "User Rubrics" %>
-  <% when 'Account' %>
-      <%= t 'account_rubrics', "Account Rubrics" %>
+  <% when "Course" %>
+      <%= t "course_rubrics", "Course Rubrics" %>
+  <% when "User" %>
+      <%= t "user_rubrics", "User Rubrics" %>
+  <% when "Account" %>
+      <%= t "account_rubrics", "Account Rubrics" %>
   <% end %>
 </h1>
 <a href="<%= context_url(@context, :context_rubrics_url) %>" id="add_rubric_url" style="display: none;">&nbsp;</a>
@@ -75,15 +75,15 @@
       <a href="<%= context_url(@context, :context_rubric_url, association.rubric_id) %>" class="title"><%= rubric.title %></a>
       <span class="links">
         <% if can_do(rubric, @current_user, :update) %>
-          <a href="<%= context_url(@context, :context_rubric_url, association.rubric_id) %>#edit" class="hide-till-hover" title="<%= t('Edit Rubric: %{title}', title: rubric.title) %>" aria-label="<%= t('Edit Rubric: %{title}', title: rubric.title) %>"><i class="icon-edit standalone-icon"></i></a>
+          <a href="<%= context_url(@context, :context_rubric_url, association.rubric_id) %>#edit" class="hide-till-hover" title="<%= t("Edit Rubric: %{title}", title: rubric.title) %>" aria-label="<%= t("Edit Rubric: %{title}", title: rubric.title) %>"><i class="icon-edit standalone-icon"></i></a>
         <% end %>
         <% if can_do(association, @current_user, :delete) %>
-          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link hide-till-hover" title="<%= t('Delete Rubric: %{title}', title: rubric.title) %>" aria-label="<%= t('Delete Rubric: %{title}', title: rubric.title) %>"><i class="icon-end standalone-icon"></i></a>
+          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link hide-till-hover" title="<%= t("Delete Rubric: %{title}", title: rubric.title) %>" aria-label="<%= t("Delete Rubric: %{title}", title: rubric.title) %>"><i class="icon-end standalone-icon"></i></a>
         <% end %>
       </span>
       <span class="details">
         <%= t({ one: "1 criterion", other: "%{count} criteria" }, count: rubric.criteria.length) %><br/>
-        <%= t('points_possible', { one: "1 point possible", other: "%{count} points possible" }, count: round_if_whole(rubric.points_possible)) unless rubric.points_possible.nil? %>
+        <%= t("points_possible", { one: "1 point possible", other: "%{count} points possible" }, count: round_if_whole(rubric.points_possible)) unless rubric.points_possible.nil? %>
       </span>
     </li>
   <% end %>

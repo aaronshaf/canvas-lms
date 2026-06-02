@@ -39,7 +39,7 @@
   <% if show_publish_controls %>
     <div id="course_status">
       <h4>
-        <%= t('headers.course_status', %{Course Status}) %>
+        <%= t("headers.course_status", %(Course Status)) %>
       </h4>
       <div class="course_publish_button" id="course_publish_button"></div>
     </div>
@@ -47,14 +47,14 @@
 
   <%= external_tools_menu_items(@course_settings_sub_navigation_tools, { link_class: "Button Button--link Button--link--has-divider Button--course-settings course-settings-sub-navigation-lti", settings_key: :course_settings_sub_navigation, remove_space_between_icon_and_text: true }) %>
   <% if can_do(@context, @current_user, :read_reports) %>
-    <%= link_to context_url(@context, :context_statistics_url), class: ' Button Button--link Button--link--has-divider Button--course-settings' do %>
-      <i class="icon-stats"></i><%= t('links.stats', 'Course Statistics') %>
+    <%= link_to context_url(@context, :context_statistics_url), class: " Button Button--link Button--link--has-divider Button--course-settings" do %>
+      <i class="icon-stats"></i><%= t("links.stats", "Course Statistics") %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :read) %>
-    <%= link_to calendar_url_for(@context), class: 'Button Button--link Button--link--has-divider Button--course-settings', id: 'course_calendar_link' do %>
-      <i class="icon-calendar-day"></i><%= t('links.calendar', 'Course Calendar') %>
+    <%= link_to calendar_url_for(@context), class: "Button Button--link Button--link--has-divider Button--course-settings", id: "course_calendar_link" do %>
+      <i class="icon-calendar-day"></i><%= t("links.calendar", "Course Calendar") %>
     <% end %>
   <% end %>
 
@@ -62,55 +62,55 @@
     <% if @context.completed? %>
       <%= form_tag context_url(@context, :context_unconclude_url) do %>
         <button class="Button Button--link Button--link--has-divider Button--course-settings" type="submit">
-          <i class="icon-add"></i><%= t('buttons.unconclude', 'Un-Conclude Course') %>
+          <i class="icon-add"></i><%= t("buttons.unconclude", "Un-Conclude Course") %>
         </button>
       <% end %>
     <% elsif !@context.soft_concluded? %>
-      <%= link_to context_url(@context, :context_confirm_action_url, event: 'conclude'), class: 'Button Button--link Button--link--has-divider Button--course-settings' do %>
-        <i class="icon-lock"></i><%= t('links.conclude', 'Conclude this Course') %>
+      <%= link_to context_url(@context, :context_confirm_action_url, event: "conclude"), class: "Button Button--link Button--link--has-divider Button--course-settings" do %>
+        <i class="icon-lock"></i><%= t("links.conclude", "Conclude this Course") %>
       <% end %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :delete) && !@context.deleted? %>
-    <%= link_to context_url(@context, :context_confirm_action_url, event: 'delete'), class: 'Button Button--link Button--link--has-divider Button--course-settings' do %>
-      <i class="icon-trash"></i><%= t('links.delete', 'Delete this Course') %>
+    <%= link_to context_url(@context, :context_confirm_action_url, event: "delete"), class: "Button Button--link Button--link--has-divider Button--course-settings" do %>
+      <i class="icon-trash"></i><%= t("links.delete", "Delete this Course") %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :read) && show_user_create_course_button(@current_user, @context.account) %>
-    <%= link_to context_url(@context, :context_start_copy_url), class: 'Button Button--link Button--link--has-divider Button--course-settings copy_course_link' do %>
-      <i class="icon-copy-course"></i><%= t('links.copy', 'Copy this Course') %>
+    <%= link_to context_url(@context, :context_start_copy_url), class: "Button Button--link Button--link--has-divider Button--course-settings copy_course_link" do %>
+      <i class="icon-copy-course"></i><%= t("links.copy", "Copy this Course") %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :manage_course_content_add) %>
-    <%= link_to context_url(@context, :context_content_migrations_url), class: 'Button Button--link Button--link--has-divider Button--course-settings import_content' do %>
-      <i class="icon-upload"></i><%= t('links.import', 'Import Course Content') %>
+    <%= link_to context_url(@context, :context_content_migrations_url), class: "Button Button--link Button--link--has-divider Button--course-settings import_content" do %>
+      <i class="icon-upload"></i><%= t("links.import", "Import Course Content") %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :read) %>
-    <%= link_to context_url(@context, :course_content_exports_url), class: 'Button Button--link Button--link--has-divider Button--course-settings' do %>
-      <i class="icon-download"></i><%= t('links.export_content', 'Export Course Content') %>
+    <%= link_to context_url(@context, :course_content_exports_url), class: "Button Button--link Button--link--has-divider Button--course-settings" do %>
+      <i class="icon-download"></i><%= t("links.export_content", "Export Course Content") %>
     <% end %>
   <% end %>
 
   <% if can_do(@context, @current_user, :reset_content) && !MasterCourses::MasterTemplate.is_master_course?(@context) %>
-    <%= link_to context_url(@context, :course_reset_url), class: ' Button Button--link Button--link--has-divider Button--course-settings reset_course_content_button' do %>
-      <i class="icon-reset"></i><%= t('links.reset', 'Reset Course Content') %>
+    <%= link_to context_url(@context, :course_reset_url), class: " Button Button--link Button--link--has-divider Button--course-settings reset_course_content_button" do %>
+      <i class="icon-reset"></i><%= t("links.reset", "Reset Course Content") %>
     <% end %>
 
     <div <%= hidden(include_style: true) %> id="reset_course_content_dialog">
-      <p><%= mt('help.reset_course_content', 'Resetting course content will permanently delete all associated assignments, discussions, quizzes, modules, rubrics, pages, files, learning outcomes, question banks, collaborations, conferences, or any other content. This action is irreversible, and the data *cannot* be recovered. Are you sure you wish to continue?') %></p>
+      <p><%= mt("help.reset_course_content", "Resetting course content will permanently delete all associated assignments, discussions, quizzes, modules, rubrics, pages, files, learning outcomes, question banks, collaborations, conferences, or any other content. This action is irreversible, and the data *cannot* be recovered. Are you sure you wish to continue?") %></p>
 
       <%= form_for @context, url: context_url(@context, :course_reset_url), html: { method: :post } do %>
         <div class="button-container">
           <button type="button" class="btn cancel_button">
-            <%= t('#buttons.cancel', 'Cancel') %>
+            <%= t("#buttons.cancel", "Cancel") %>
           </button>
           <button type="submit" class="btn btn-danger submit_button">
-            <%= t('buttons.reset', 'Reset Course Content') %>
+            <%= t("buttons.reset", "Reset Course Content") %>
           </button>
         </div>
       <% end %>
@@ -118,20 +118,20 @@
   <% end %>
 
   <% if can_do(@context, @current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) %>
-    <%= link_to context_url(@context, :course_link_validator_url), class: 'Button Button--link Button--link--has-divider Button--course-settings validator_link' do %>
-      <i class="icon-link"></i><%= t('Validate Links in Content') %>
+    <%= link_to context_url(@context, :course_link_validator_url), class: "Button Button--link Button--link--has-divider Button--course-settings validator_link" do %>
+      <i class="icon-link"></i><%= t("Validate Links in Content") %>
     <% end %>
 
     <% if blueprint_subscription %>
-      <%= link_to "#", onclick: 'gotoBlueprintInfo()', class: 'Button Button--link Button--link--has-divider Button--course-settings blueprint_information_button' do %>
-        <i class="icon-blueprint"></i><%= t('Blueprint Information') %>
+      <%= link_to "#", onclick: "gotoBlueprintInfo()", class: "Button Button--link Button--link--has-divider Button--course-settings blueprint_information_button" do %>
+        <i class="icon-blueprint"></i><%= t("Blueprint Information") %>
       <% end %>
     <% end %>
   <% end %>
 
   <table class="summary">
     <caption>
-      <h3><%= t('headings.current_users', 'Current Users') %></h3>
+      <h3><%= t("headings.current_users", "Current Users") %></h3>
     </caption>
 
     <tbody>
@@ -144,7 +144,7 @@
              next if skip_custom_role?(cr) %>
           <tr>
             <th>
-              <%= cr[:label] %><% if cr[:workflow_state] == 'inactive' %> (<%= t('role.inactive', 'inactive') %>)<% end %>:
+              <%= cr[:label] %><% if cr[:workflow_state] == "inactive" %> (<%= t("role.inactive", "inactive") %>)<% end %>:
             </th>
             <td><%= n(user_count(cr[:count])) %></td>
           </tr>
@@ -154,7 +154,7 @@
   </table>
   <% if @context.account.feature_enabled?(:intelligent_insights_modernisation) %>
     <div class="course-criteria">
-      <h3><%= t('headings.course_criteria', 'Course Criteria') %></h3>
+      <h3><%= t("headings.course_criteria", "Course Criteria") %></h3>
       <div id="criteria-mount"></div>
     </div>
   <% end %>

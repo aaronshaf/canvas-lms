@@ -36,11 +36,11 @@
   <% end %>
   <a href="<%= context_url(@context, :context_assignment_url, @assignment.id) %>" class="btn button-sidebar-wide">
     <i class="icon-arrow-left"></i>
-    <%= t('links.back_to_assignment', "Back to Assignment Page") %>
+    <%= t("links.back_to_assignment", "Back to Assignment Page") %>
   </a>
   <a href="<%= context_url(@context, :context_gradebook_url) %>" class="btn button-sidebar-wide">
     <i class="icon-arrow-left"></i>
-    <%= t('links.back_to_gradebook', "Back to Gradebook") %>
+    <%= t("links.back_to_gradebook", "Back to Gradebook") %>
   </a>
 <% end %>
 
@@ -49,7 +49,7 @@
   list-style-type: none;
   margin: 0 0 20px;
   font-size: 1.5em;
-  padding-<%= direction('left') %>: 10px;
+  padding-<%= direction("left") %>: 10px;
 }
 #student_list li {
   padding: 2px 25px;
@@ -59,7 +59,7 @@
 }
 #student_list .file_list {
   list-style-type: none;
-  padding-<%= direction('left') %>: 5px;
+  padding-<%= direction("left") %>: 5px;
   font-size: 0.8em;
   margin-bottom: 5px;
 }
@@ -70,7 +70,7 @@
 #failure_list {
   list-style-type: none;
   margin: 0;
-  padding-<%= direction('left') %>: 10px;
+  padding-<%= direction("left") %>: 10px;
 }
 #failure_list li {
   padding: 3px 25px;
@@ -81,7 +81,7 @@
 </style>
 
 <h2><%= t(:submissions_upload, "%{assignment} Submissions Upload", assignment: @assignment.title) %></h2>
-<h3 style="margin-top: 5px;"><%= t('headers.attached_files', "Attached files to the following user submissions") %></h3>
+<h3 style="margin-top: 5px;"><%= t("headers.attached_files", "Attached files to the following user submissions") %></h3>
 <ul id="student_list" style="margin-top: 10px;">
 <% if @comments.empty? %>
   <li><%= t(:no_comments_added, "No Comments Added") %></li>
@@ -103,7 +103,7 @@
 <% end %>
 </ul>
 <% unless @failures.empty? %>
-  <h3 style="margin-top: 40px;"><%= t('header.ignored_files', "Ignored the following files") %></h3>
+  <h3 style="margin-top: 40px;"><%= t("header.ignored_files", "Ignored the following files") %></h3>
   <ul id="failure_list">
   <% @failures.each do |failure| %>
     <li><%= failure.match(%r{/([^/]*)\z})[1] %></li>

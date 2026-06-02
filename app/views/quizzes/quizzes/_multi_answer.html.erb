@@ -21,7 +21,7 @@
 <% question ||= {} %>
 <div class="answer">
   <% if %w[radio select checkbox].include?(question_type.entry_type) %>
-    <% answer_text = (hash_get(answer, :html).present? ? user_content(hash_get(answer, :html), location: asset_string) : hash_get(answer, :text)) || '' %>
+    <% answer_text = (hash_get(answer, :html).present? ? user_content(hash_get(answer, :html), location: asset_string) : hash_get(answer, :text)) || "" %>
     <% answer_label_id = "question_" + hash_get(question, :id).to_s + "_answer_" + hash_get(answer, :id).to_s + "_label" %>
     <label class="answer_row user_content">
       <span class="answer_input">
@@ -41,14 +41,14 @@
     </label>
   <% elsif question_type.entry_type == "matching" %>
     <% html_answer = hash_get(answer, :left_html) || hash_get(answer, :html) %>
-    <% text_answer = hash_get(answer, :left) || hash_get(answer, :text) || '' %>
+    <% text_answer = hash_get(answer, :left) || hash_get(answer, :text) || "" %>
     <% answer_text = html_answer.present? ? user_content(html_answer, location: asset_string) : text_answer %>
     <div class="pull-left" style="width: 40%; margin-top: 10px;">
       <% if answer %>
         <label for="question_<%= hash_get(question, :id) %>_answer_<%= hash_get(answer, :id) %>"><%= answer_text %></label>
         <% unless user_answer %>
           <br/>
-          <div style="margin-<%= direction('left') %>: 20px;">
+          <div style="margin-<%= direction("left") %>: 20px;">
           </div>
         <% end %>
       <% end %>
@@ -56,18 +56,18 @@
     <div class="pull-left" style="width: 40%; margin-top: 10px;">
       <% if user_answer %>
         <% if hash_get(user_answer, "answer_#{hash_get(answer, :id)}").to_i == hash_get(answer, :match_id).to_i %>
-          <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue '' %>
+          <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue "" %>
         <% else %>
           <%= hash_get(answer, :match_id) %>
           <%= hash_get(user_answer, "answer_#{hash_get(answer, :id)}") %>
           You put: <%= hash_get(question, :answers, []).find { |a| hash_get(a, :match_id) == hash_get(user_answer, "answer_#{hash_get(answer, :id)}") } %><br/>
-          It was really: <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue '' %>
+          It was really: <%= hash_get(answer, :right) || hash_get(question, :matches, []).find { |a| hash_get(a, :match_id).to_i == hash_get(answer, :match_id).to_i }[:text] rescue "" %>
         <% end %>
       <% else %>
         <select name="question_<%= hash_get(question, :id) %>_answer_<%= hash_get(answer, :id) %>" id="question_<%= hash_get(question, :id) %>_answer_<%= hash_get(answer, :id) %>" class="question_input mathjax_ignore" style="max-width: 90%;">
           <option value="" <%= "selected" unless @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"] %>>[ <%= t :choose_answer, "Choose" %> ]</option>
-          <% right_answers.uniq { |a| hash_get(a, :right) || hash_get(question, :matches, []).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue '' }.each do |a| %>
-            <option value="<%= hash_get(a, :match_id) %>" <%= "selected" if @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"].to_s == hash_get(a, :match_id).to_s %>><%= hash_get(a, :right) || hash_get(question, :matches).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue '' %></option>
+          <% right_answers.uniq { |a| hash_get(a, :right) || hash_get(question, :matches, []).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue "" }.each do |a| %>
+            <option value="<%= hash_get(a, :match_id) %>" <%= "selected" if @stored_params["question_#{hash_get(question, :id)}_answer_#{hash_get(answer, :id)}"].to_s == hash_get(a, :match_id).to_s %>><%= hash_get(a, :right) || hash_get(question, :matches).find { |aa| hash_get(aa, :match_id).to_i == hash_get(a, :match_id).to_i }[:text] rescue "" %></option>
           <% end %>
         </select>
       <% end %>

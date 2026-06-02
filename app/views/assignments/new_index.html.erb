@@ -17,9 +17,9 @@
 %>
 
 <%
-  add_body_class 'with_item_groups'
+  add_body_class "with_item_groups"
 
-  provide :page_title, join_title((t '#titles.assignments', 'Assignments'),
+  provide :page_title, join_title((t "#titles.assignments", "Assignments"),
                                   @context.name)
 
   js_bundle :assignment_index

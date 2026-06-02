@@ -15,12 +15,12 @@
   # You should have received a copy of the GNU Affero General Public License along
   # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
-<% provide :page_title, t('Launch Error') %>
+<% provide :page_title, t("Launch Error") %>
 
 <div class="ic-Error-page full-width">
   <img class="ic-Error-img" src="/images/500_pageerror.svg" role="presentation" aria-hidden="true">
 
-  <h1><%= t('Launch Error') %></h1>
+  <h1><%= t("Launch Error") %></h1>
   <p><%= t("We apologize for the inconvenience, but an error occurred while launching the tool. Please try launching the tool again. If the issue persists, please contact support. You can do so by reaching out to your institution or click on the 'Help' button in the Canvas sidebar for assistance.") %></p>
 
   <% if Rails.env.development? %>

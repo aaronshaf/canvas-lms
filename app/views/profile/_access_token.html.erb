@@ -17,7 +17,7 @@
 %>
 
 <% access_token ||= nil %>
-<tr class="access_token <%= 'blank' unless access_token %>" style="<%= hidden unless access_token %>">
+<tr class="access_token <%= "blank" unless access_token %>" style="<%= hidden unless access_token %>">
   <td class="app_name"><%= access_token&.app_name || t(:default_app_name, "No App") %></td>
   <td class="workflow_state">
     <%= access_token&.localized_workflow_state %>
@@ -30,19 +30,19 @@
     <table class="subtable" role="presentation">
       <tr>
         <td><%= before_label(:token_expires, "Expires") %></td>
-        <td class="expires nobr"><%= datetime_string(access_token&.permanent_expires_at) || t('profile.token_never_expires', 'never') %></td>
+        <td class="expires nobr"><%= datetime_string(access_token&.permanent_expires_at) || t("profile.token_never_expires", "never") %></td>
       </tr><tr>
         <td class="nobr"><%= before_label(:token_last_used, "Last Used") %></td>
-        <td class="used nobr"><%= datetime_string(access_token&.last_used_at) || '--' %></td>
+        <td class="used nobr"><%= datetime_string(access_token&.last_used_at) || "--" %></td>
       </tr>
     </table>
   </td>
   <td>
-    <a href="#" aria-label="<%= t('%{appName} Details', appName: access_token&.app_name) %>" rel="<%= api_v1_token_url("self", access_token || "{{ id }}") %>" class="show_token_link"><%= t('links.token_details', "details") %></a>
+    <a href="#" aria-label="<%= t("%{appName} Details", appName: access_token&.app_name) %>" rel="<%= api_v1_token_url("self", access_token || "{{ id }}") %>" class="show_token_link"><%= t("links.token_details", "details") %></a>
   </td>
   <td class="links">
     <% if access_token.nil? || access_token.grants_right?(logged_in_user, :delete) %>
-      <a href="#" aria-label="<%= t('Delete %{appName} Token', appName: access_token&.app_name) %>" class="delete_key_link" rel="<%= api_v1_token_url("self", access_token&.token_hint || "{{ id }}") %>" title="<%= t('titles.delete_this_token', "Delete this Token") %>"><i class="icon-trash" role="presentation"></i></a>
+      <a href="#" aria-label="<%= t("Delete %{appName} Token", appName: access_token&.app_name) %>" class="delete_key_link" rel="<%= api_v1_token_url("self", access_token&.token_hint || "{{ id }}") %>" title="<%= t("titles.delete_this_token", "Delete this Token") %>"><i class="icon-trash" role="presentation"></i></a>
     <% end %>
   </td>
 </tr>

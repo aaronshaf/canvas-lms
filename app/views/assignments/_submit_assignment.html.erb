@@ -29,7 +29,7 @@
   css_bundle :tinymce
   js_env({
            SUBMIT_ASSIGNMENT: {
-             ALLOWED_EXTENSIONS: ((@assignment.submission_types && @assignment.submission_types.include?('online_upload')) ? @assignment.allowed_extensions : []),
+             ALLOWED_EXTENSIONS: ((@assignment.submission_types && @assignment.submission_types.include?("online_upload")) ? @assignment.allowed_extensions : []),
              ID: @assignment.id,
              GROUP_ID_FOR_USER: @assignment.group_category.try(:group_for, @current_user).try(:id)
            }
@@ -42,19 +42,19 @@
   <div class="content" id="submit_assignment_tabs">
     <ul>
       <% if @assignment.submission_types && @assignment.annotated_document? %>
-        <li><a href="#submit_annotated_document_form" class="submit_annotated_document_option"><%= t 'Student Annotation' %></a></li>
+        <li><a href="#submit_annotated_document_form" class="submit_annotated_document_option"><%= t "Student Annotation" %></a></li>
       <% end %>
-      <% if @assignment.submission_types&.include?('online_upload') %>
-        <li><a href="#submit_online_upload_form" class="submit_online_upload_option"><%= t 'links.submit.file_upload', "File Upload" %></a></li>
+      <% if @assignment.submission_types&.include?("online_upload") %>
+        <li><a href="#submit_online_upload_form" class="submit_online_upload_option"><%= t "links.submit.file_upload", "File Upload" %></a></li>
       <% end %>
-      <% if @assignment.submission_types&.include?('online_text_entry') %>
-        <li><a href="#submit_online_text_entry_form" class="submit_online_text_entry_option"><%= t 'links.submit.text_entry', "Text Entry" %></a></li>
+      <% if @assignment.submission_types&.include?("online_text_entry") %>
+        <li><a href="#submit_online_text_entry_form" class="submit_online_text_entry_option"><%= t "links.submit.text_entry", "Text Entry" %></a></li>
       <% end %>
-      <% if @assignment.submission_types&.include?('online_url') %>
-        <li><a href="#submit_online_url_form" class="submit_online_url_option"><%= t 'links.submit.website', "Website URL" %></a></li>
+      <% if @assignment.submission_types&.include?("online_url") %>
+        <li><a href="#submit_online_url_form" class="submit_online_url_option"><%= t "links.submit.website", "Website URL" %></a></li>
       <% end %>
-      <% if @assignment.submission_types&.include?('media_recording') %>
-        <li><a href="#submit_media_recording_form" class="submit_media_recording_option"><%= t 'links.submit.media', "Media" %></a></li>
+      <% if @assignment.submission_types&.include?("media_recording") %>
+        <li><a href="#submit_media_recording_form" class="submit_media_recording_option"><%= t "links.submit.media", "Media" %></a></li>
       <% end %>
       <% (@external_tools || []).each do |external_tool| %>
         <li><a href="#submit_from_external_tool_form_<%= external_tool.id %>"
@@ -63,15 +63,15 @@
           data-name="<%= external_tool.name %>"><%= external_tool.label_for(:homework_submission, I18n.locale) %></a></li>
       <% end %>
     </ul>
-    <% if @assignment.submission_types&.include?('online_upload') %>
-      <%= render partial: 'assignments/submit_online_upload', locals: { eula_url: } %>
+    <% if @assignment.submission_types&.include?("online_upload") %>
+      <%= render partial: "assignments/submit_online_upload", locals: { eula_url: } %>
     <% end %>
 
-    <% if @assignment.submission_types&.include?('online_text_entry') %>
-      <%= render partial: 'assignments/submit_online_text_entry', locals: { eula_url: } %>
+    <% if @assignment.submission_types&.include?("online_text_entry") %>
+      <%= render partial: "assignments/submit_online_text_entry", locals: { eula_url: } %>
     <% end %>
 
-    <% if @assignment.submission_types&.include?('online_url') %>
+    <% if @assignment.submission_types&.include?("online_url") %>
       <%= form_tag(submission_create_url, { id: "submit_online_url_form", class: "submit_assignment_form" }) do %>
         <%= hidden_field :submission, :submission_type, value: "online_url" %>
         <table class="formtable" style="width: 100%;">
@@ -91,10 +91,10 @@
           <% unless @context.account.grants_right?(@current_user, :make_submission_comments) %>
             <tr>
               <td colspan="2" style="text-align: center;">
-                <div style="text-align: <%= direction('left') %>;">
+                <div style="text-align: <%= direction("left") %>;">
                   <div class="textarea-emoji-container">
                     <div class="textarea-container">
-                      <%= text_area :submission, :comment, class: 'submission_comment_textarea', placeholder: t('comments_placeholder', 'Comments...'), title: t('additional_comments', 'Additional comments') %>
+                      <%= text_area :submission, :comment, class: "submission_comment_textarea", placeholder: t("comments_placeholder", "Comments..."), title: t("additional_comments", "Additional comments") %>
                       <span class="emoji-picker-container" style="display: none;"></span>
                     </div>
                     <div class="emoji-quick-picker-container" style="display: none;"></div>
@@ -112,8 +112,8 @@
           <% end %>
           <tr>
             <td colspan="2" class='button-container'>
-              <button type="button" class='cancel_button btn'><%= t '#buttons.cancel', "Cancel" %></button>
-              <button type="submit" class="btn btn-primary"><%= t 'buttons.submit_assignment', "Submit Assignment" %></button>
+              <button type="button" class='cancel_button btn'><%= t "#buttons.cancel", "Cancel" %></button>
+              <button type="submit" class="btn btn-primary"><%= t "buttons.submit_assignment", "Submit Assignment" %></button>
             </td>
           </tr>
         </table>
@@ -127,7 +127,7 @@
             <table class="formtable" style="width: 100%;">
               <tr>
                 <div class="ef-file-preview-stretch">
-                  <iframe allowfullscreen title="<%= t 'Document to annotate' %>" src=""
+                  <iframe allowfullscreen title="<%= t "Document to annotate" %>" src=""
                     class="ef-file-preview-frame annotated-document-submission" style="width: 100%;">
                   </iframe>
                 </div>
@@ -135,7 +135,7 @@
               <tr>
                 <td colspan="2" class='button-container'>
                   <button type="button" class="cancel_button btn">
-                    <%= t '#buttons.cancel', "Cancel" %>
+                    <%= t "#buttons.cancel", "Cancel" %>
                   </button>
                   <button type="submit" class="btn btn-primary">
                     <%= t "Submit Assignment" %>
@@ -154,7 +154,7 @@
       cursor: pointer;
       -moz-border-radius: 3px;
       width: 80%;
-      padding-<%= direction('right') %>: 20px;
+      padding-<%= direction("right") %>: 20px;
     }
     #google_docs_tree li.file:hover {
       background-color: #eee;
@@ -166,15 +166,15 @@
       background-color: #ddd;
     }
     #google_docs_tree li.file .filename {
-      float: <%= direction('left') %>;
+      float: <%= direction("left") %>;
       max-width: 98%;
     }
     #google_docs_tree li.file .popout {
-      float: <%= direction('right') %>;
+      float: <%= direction("right") %>;
     }
     </style>
 
-    <% if @assignment.submission_types&.include?('media_recording') %>
+    <% if @assignment.submission_types&.include?("media_recording") %>
       <% if feature_enabled?(:kaltura) %>
         <%= form_tag(submission_create_url, { id: "submit_media_recording_form", class: "submit_assignment_form", multipart: true }) do %>
         <%= hidden_field :submission, :submission_type, value: "media_recording" %>
@@ -183,16 +183,16 @@
         <table class="formtable" style="width: 100%;">
           <tr>
             <td colspan="2" style="padding-bottom: 10px;">
-              <%= t 'instructions.media_recording', "Use the button below to record your submission." %>
+              <%= t "instructions.media_recording", "Use the button below to record your submission." %>
                 <%= render partial: "assignments/group_submission_reminder" if @assignment.has_group_category? %>
             </td>
           </tr><tr>
             <td>
               <div id="media_media_recording_submission_holder" style="font-size: 1.2em; font-weight: bold;">
                 <div id="media_media_recording_ready" style="display: none; font-size: 1.5em;">
-                  <%= t 'messages.media_recording_ready', "Ready to Submit!  Click 'Submit Assignment' button to finish." %>
+                  <%= t "messages.media_recording_ready", "Ready to Submit!  Click 'Submit Assignment' button to finish." %>
                   <div id="media_media_recording_thumbnail">
-                    <%= image_tag "media_comment.png", alt: '' %>
+                    <%= image_tag "media_comment.png", alt: "" %>
                   </div>
                 </div>
                 <div id="media_media_recording_submission" class="pull-left" style="display: none; width: auto; border: 2px solid #444;">
@@ -204,10 +204,10 @@
           <% unless @context.account.limited_access_for_user?(@current_user) %>
             <tr>
               <td colspan="2" style="text-align: center;">
-                <div style="text-align: <%= direction('left') %>;">
+                <div style="text-align: <%= direction("left") %>;">
                   <div class="textarea-emoji-container">
                     <div class="textarea-container">
-                      <%= text_area :submission, :comment, class: 'submission_comment_textarea', placeholder: t('comments_placeholder', 'Comments...'), title: t('additional_comments', 'Additional comments') %>
+                      <%= text_area :submission, :comment, class: "submission_comment_textarea", placeholder: t("comments_placeholder", "Comments..."), title: t("additional_comments", "Additional comments") %>
                       <span class="emoji-picker-container" style="display: none;"></span>
                     </div>
                     <div class="emoji-quick-picker-container" style="display: none;"></div>
@@ -219,21 +219,21 @@
           <% end %>
           <tr>
             <td colspan="2" class='button-container'>
-              <button type="button" class='cancel_button btn'><%= t '#buttons.cancel', "Cancel" %></button>
-              <button type="button" class="record_media_comment_link btn btn-primary"><i class="icon-Line icon-add-media"></i> <%= t 'buttons.record_media', "Record / Upload Media" %></button>
-              <button type="submit" class="btn btn-primary" style="display: none;" id="media_comment_submit_button"><%= t 'buttons.submit_assignment', "Submit Assignment" %></button>
+              <button type="button" class='cancel_button btn'><%= t "#buttons.cancel", "Cancel" %></button>
+              <button type="button" class="record_media_comment_link btn btn-primary"><i class="icon-Line icon-add-media"></i> <%= t "buttons.record_media", "Record / Upload Media" %></button>
+              <button type="submit" class="btn btn-primary" style="display: none;" id="media_comment_submit_button"><%= t "buttons.submit_assignment", "Submit Assignment" %></button>
             </td>
           </tr><tr style="display: none;">
             <td colspan="2" style="text-align: center;">
-              <%= t 'messages.submitting', "Submitting..." %> <img src=""/>
+              <%= t "messages.submitting", "Submitting..." %> <img src=""/>
             </td>
           </tr>
         </table>
         <% end %>
       <% else %>
         <div id="submit_media_recording_form">
-          <h3><%= t 'titles.media_recordings_disabled', "Media recordings are not enabled for this Canvas site" %></h3>
-          <p><%= t 'messages.media_recordings_disabled', "Media recordings are not enabled for this Canvas site, and you will not be able to submit these types of assignments.  Please contact your instructor about changing the settings for this assignment, or your system administrator about enabling media recordings." %></p>
+          <h3><%= t "titles.media_recordings_disabled", "Media recordings are not enabled for this Canvas site" %></h3>
+          <p><%= t "messages.media_recordings_disabled", "Media recordings are not enabled for this Canvas site, and you will not be able to submit these types of assignments.  Please contact your instructor about changing the settings for this assignment, or your system administrator about enabling media recordings." %></p>
         </div>
       <% end %>
     <% end %>

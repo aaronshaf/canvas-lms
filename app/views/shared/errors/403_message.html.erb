@@ -22,7 +22,7 @@
       instance_variable_set(name, nil)
     end
   end
-  add_body_class 'full-width'
+  add_body_class "full-width"
 %>
 <% provide :page_title, t("Access Denied") %>
 
@@ -31,7 +31,7 @@
   <h1><%= t("Access Denied") %></h1>
   <p><%= t("You don't have permission to access this resource.") %></p>
   <% if (defined? message) && message %>
-    <p><%= t('error', 'Error:') %> <%= message %></p>
+    <p><%= t("error", "Error:") %> <%= message %></p>
   <% end %>
   <% if send_broken_content! %>
     <p><%= I18n.t("We've let your instructor know to review this link as soon as possible.") %></p>

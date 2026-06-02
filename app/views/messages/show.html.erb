@@ -17,10 +17,10 @@
 %>
 
 <%
-  provide :page_title, t('Message')
+  provide :page_title, t("Message")
   css_bundle :messages
 %>
 
 <div id="messages_mount_point" data-user-name="<%= @context.name %>"></div>
 
-<%= render partial: 'message', collection: @messages %>
+<%= render partial: "message", collection: @messages %>

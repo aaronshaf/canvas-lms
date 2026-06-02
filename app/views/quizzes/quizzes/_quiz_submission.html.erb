@@ -46,14 +46,14 @@
     <% else %>
       <%= before_label(:score_for_quiz, "Score for this quiz") %>
     <% end %>
-    <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: 'score_value') %>
+    <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: "score_value") %>
     <% if current_or_submission.try(:pending_review?) %>
       *
       <div class='question-not-graded-text'>
         <% if can_do(@quiz, @current_user, :grade) && !@quiz.survey? %>
-          <%= link_to t(:questions_not_graded, 'Some questions not yet graded'), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
+          <%= link_to t(:questions_not_graded, "Some questions not yet graded"), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
         <% elsif !@quiz.survey? %>
-          <%= t(:questions_not_graded, 'Some questions not yet graded') %>
+          <%= t(:questions_not_graded, "Some questions not yet graded") %>
         <% end %>
       </div>
     <% end %>
@@ -69,11 +69,11 @@
    submission_questions.each { |q| submission_questions_hash[q[:id]] = q } %>
 <% if @submission.pending_review? && editable %>
   <% if @quiz.changed_significantly_since?(@submission.quiz_version) %>
-    <%= image_tag "pending_review.png", alt: '' %> <%= t(:quiz_submission_needs_review, "The quiz has changed significantly since this submission was made. This submission may need re-grading.") %><br/>
+    <%= image_tag "pending_review.png", alt: "" %> <%= t(:quiz_submission_needs_review, "The quiz has changed significantly since this submission was made. This submission may need re-grading.") %><br/>
   <% end %>
   <% questions_needing_review = submission_data.find_all do |answer|
        question_data = submission_questions_hash[answer[:question_id]]
-       answer[:correct] == "undefined" && question_data && question_data[:question_type] != 'text_only_question'
+       answer[:correct] == "undefined" && question_data && question_data[:question_type] != "text_only_question"
      end %>
   <% if questions_needing_review.present? %>
     <div class="alert">
@@ -100,16 +100,16 @@
   <% else %>
     <%= before_label(:score_for_quiz, "Score for this quiz") %>
   <% end %>
-  <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: 'score_value') %>
-  <%= '*' if @submission.pending_review? %>
+  <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: "score_value") %>
+  <%= "*" if @submission.pending_review? %>
     </div>
 <% if @submission.pending_review? %>
   <div class='question-not-graded-text'>
     *
     <% if can_do(@quiz, @current_user, :grade) && !@quiz.survey? %>
-      <%= link_to t(:questions_not_graded, 'Some questions not yet graded'), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
+      <%= link_to t(:questions_not_graded, "Some questions not yet graded"), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
     <% elsif !@quiz.survey? %>
-      <%= t(:questions_not_graded, 'Some questions not yet graded') %>
+      <%= t(:questions_not_graded, "Some questions not yet graded") %>
     <% end %>
   </div>
 <% end %>
@@ -125,12 +125,12 @@
 <p>
   <br /><br />
   <%= t(:requires_lockdown, "Respondus LockDown Browser is required to view your quiz results.") %>
-  <%= link_to t('links.click_to_view_results', "Click here to view the results."), { viewing: 1, version: params[:version] }, target: "_top" %>
+  <%= link_to t("links.click_to_view_results", "Click here to view the results."), { viewing: 1, version: params[:version] }, target: "_top" %>
 </p>
 <% else %>
 <% css_bundle :quizzes %>
-<% js_bundle 'quiz_submission' %>
-<div id="questions" class="assessment_results <%= 'survey_results' if @quiz.survey? %> <%= (show_correct_answers? ? 'show_correct_answers' : 'suppress_correct_answers') %>">
+<% js_bundle "quiz_submission" %>
+<div id="questions" class="assessment_results <%= "survey_results" if @quiz.survey? %> <%= (show_correct_answers? ? "show_correct_answers" : "suppress_correct_answers") %>">
   <%= render partial: "display_question", collection: submission_questions, locals: { assessment_results: true, user_answer_hash: submission_data_hash, editable:, asset_string: submission_location_tag } %>
 </div>
 <% if !@headers && editable && @current_user.preferences[:enable_speedgrader_grade_by_question] %>
@@ -143,12 +143,12 @@
   <div class="update_scores_fudge">
     <label for="fudge_points_entry"><%= before_label(:fudge_points, "Fudge Points") %></label>
     <input id="fudge_points_input" type="hidden" name="fudge_points" value="<%= @submission.fudge_points || 0 %>">
-    <input id="fudge_points_entry" type="text" value="<%= ((!@submission.fudge_points || @submission.fudge_points == 0) ? '' : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
+    <input id="fudge_points_entry" type="text" value="<%= ((!@submission.fudge_points || @submission.fudge_points == 0) ? "" : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
     <%
       fudge_text = if @submission.quiz_points_possible == @quiz.points_possible || !@submission.quiz_points_possible || !@quiz.points_possible
-                     t('labels.fudge_points_generic_explanation', "You can manually adjust the score by adding positive or negative points to this box.")
+                     t("labels.fudge_points_generic_explanation", "You can manually adjust the score by adding positive or negative points to this box.")
                    elsif @quiz.survey?
-                     t('labels.fudge_points_changed_points_survey',
+                     t("labels.fudge_points_changed_points_survey",
                        <<~TEXT,
                          Since %{user} took this survey, the number of points possible
                          has changed by %{difference}. You can adjust for this
@@ -158,7 +158,7 @@
                        user: @submission.user.name,
                        difference: render_score(@quiz.points_possible - @submission.quiz_points_possible))
                    else
-                     t('labels.fudge_points_changed_points_quiz',
+                     t("labels.fudge_points_changed_points_quiz",
                        <<~TEXT,
                          Since %{user} took this quiz, the number of points possible
                          has changed by %{difference}. You can adjust for this
@@ -184,23 +184,23 @@
   </div>
   <div class="update_scores">
     <div class="button-container">
-      <button type="submit" class="btn btn-primary update-scores"><%= t('buttons.update_scores', "Update Scores") %></button>
+      <button type="submit" class="btn btn-primary update-scores"><%= t("buttons.update_scores", "Update Scores") %></button>
     </div>
   </div>
   <div class="update_scores_final_score">
     <b><%= before_label(:final_score, "Final Score") %></b>
-      <%= score_out_of_points_possible(@submission.score || 0, @quiz.points_possible || 0, id: 'after_fudge_points_total', style: "font-size: 1.5em; padding-#{direction('left')}: 5px") %>
+      <%= score_out_of_points_possible(@submission.score || 0, @quiz.points_possible || 0, id: "after_fudge_points_total", style: "font-size: 1.5em; padding-#{direction("left")}: 5px") %>
   </div>
 <% end %>
 
 <% unless editable %>
-<div class="quiz_score" style="text-align: <%= direction('right') %>; font-size: 1.2em; <%= hidden if @quiz.ungraded? %>">
+<div class="quiz_score" style="text-align: <%= direction("right") %>; font-size: 1.2em; <%= hidden if @quiz.ungraded? %>">
   <% if @quiz.survey? %>
     <%= before_label(:survey_score, "Survey Score") %>
   <% else %>
     <%= before_label(:quiz_score, "Quiz Score") %>
   <% end %>
-  <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: 'score_value') %>
+  <%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible, class: "score_value") %>
   <% if @submission.fudge_points && @submission.fudge_points != 0 %>
     <div><small>
       <% if @quiz.survey? %>
@@ -220,9 +220,9 @@
     <div class='question-not-graded-text'>
       *
       <% if can_do(@quiz, @current_user, :grade) %>
-        <%= link_to t(:questions_not_graded, 'Some questions not yet graded'), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
+        <%= link_to t(:questions_not_graded, "Some questions not yet graded"), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
       <% else %>
-        <%= t(:questions_not_graded, 'Some questions not yet graded') %>
+        <%= t(:questions_not_graded, "Some questions not yet graded") %>
       <% end %>
     </div>
   <% end %>

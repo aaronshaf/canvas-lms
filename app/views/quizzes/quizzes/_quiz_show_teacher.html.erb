@@ -58,14 +58,14 @@
       </div>
       <div class="controls">
         <span class="value">
-          <%= @quiz.shuffle_answers ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+          <%= @quiz.shuffle_answers ? t("#options.yes", "Yes") : t("#options.no", "No") %>
         </span>
       </div>
     </div>
 
     <div class="control-group">
       <div class="control-label">
-        <%= t('label.time_limit', "Time Limit") %>
+        <%= t("label.time_limit", "Time Limit") %>
       </div>
       <div class="controls">
         <span class="value">
@@ -84,7 +84,7 @@
       </div>
       <div class="controls">
         <span class="value">
-          <%= @quiz.single_attempt? ? t('#options.no', "No") : t('#options.yes', "Yes") %>
+          <%= @quiz.single_attempt? ? t("#options.no", "No") : t("#options.yes", "Yes") %>
         </span>
       </div>
     </div>
@@ -124,10 +124,10 @@
       </div>
     </div>
 
-    <% if @quiz.hide_results != 'always' %>
+    <% if @quiz.hide_results != "always" %>
       <div class="control-group">
         <div class="control-label">
-          <%= t('show_correct_answers', "Show Correct Answers") %>
+          <%= t("show_correct_answers", "Show Correct Answers") %>
         </div>
         <div class="controls">
           <span class="value">
@@ -165,11 +165,11 @@
 
     <div class="control-group">
       <div class="control-label">
-        <%= t('one_question_at_a_time', 'One Question at a Time') %>
+        <%= t("one_question_at_a_time", "One Question at a Time") %>
       </div>
       <div class="controls">
         <span class="value">
-          <%= @quiz.one_question_at_a_time? ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+          <%= @quiz.one_question_at_a_time? ? t("#options.yes", "Yes") : t("#options.no", "No") %>
         </span>
       </div>
     </div>
@@ -181,7 +181,7 @@
         </div>
         <div class="controls">
           <span class="value">
-            <%= @quiz.require_lockdown_browser ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+            <%= @quiz.require_lockdown_browser ? t("#options.yes", "Yes") : t("#options.no", "No") %>
           </span>
         </div>
       </div>
@@ -192,7 +192,7 @@
         </div>
         <div class="controls">
           <span class="value">
-            <%= @quiz.require_lockdown_browser_for_results ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+            <%= @quiz.require_lockdown_browser_for_results ? t("#options.yes", "Yes") : t("#options.no", "No") %>
           </span>
         </div>
       </div>
@@ -203,7 +203,7 @@
           </div>
           <div class="controls">
             <span class="value">
-              <%= @quiz.require_lockdown_browser_monitor ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+              <%= @quiz.require_lockdown_browser_monitor ? t("#options.yes", "Yes") : t("#options.no", "No") %>
             </span>
           </div>
         </div>
@@ -213,11 +213,11 @@
     <% if @quiz.one_question_at_a_time %>
       <div class="control-group">
         <div class="control-label">
-          <%= t('cant_go_back', "Lock Questions After Answering") %>
+          <%= t("cant_go_back", "Lock Questions After Answering") %>
         </div>
         <div class="controls">
           <span class="value">
-            <%= @quiz.cant_go_back ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+            <%= @quiz.cant_go_back ? t("#options.yes", "Yes") : t("#options.no", "No") %>
           </span>
         </div>
       </div>
@@ -225,11 +225,11 @@
 
     <div class="control-group" style="<%= hidden unless @quiz.survey? %>">
       <div class="control-label">
-        <%= t('anonymous_submissions', "Anonymous Submissions") %>
+        <%= t("anonymous_submissions", "Anonymous Submissions") %>
       </div>
       <div class="controls">
         <span class="value">
-          <%= @quiz.anonymous_submissions ? t('#options.yes', "Yes") : t('#options.no', "No") %>
+          <%= @quiz.anonymous_submissions ? t("#options.yes", "Yes") : t("#options.no", "No") %>
         </span>
       </div>
     </div>
@@ -242,14 +242,14 @@
   <table class="ic-Table assignment_dates">
     <thead>
       <tr>
-        <th scope="col"><%= t(:due, 'Due') %></th>
-        <th scope="col"><%= t(:for, 'For') %></th>
-        <th scope="col"><%= t(:available_from, 'Available from') %></th>
-        <th scope="col"><%= t(:until, 'Until') %></th>
+        <th scope="col"><%= t(:due, "Due") %></th>
+        <th scope="col"><%= t(:for, "For") %></th>
+        <th scope="col"><%= t(:available_from, "Available from") %></th>
+        <th scope="col"><%= t(:until, "Until") %></th>
       </tr>
     </thead>
 
-    <%= render 'shared/override_list',
+    <%= render "shared/override_list",
                assignment: @quiz,
                user: @current_user %>
 

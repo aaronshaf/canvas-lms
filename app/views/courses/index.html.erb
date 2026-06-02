@@ -338,7 +338,7 @@
             <span class="name"><%= group.context.name %></span>
           </td>
           <td class="course-list-no-left-border">
-            <% if group.context_type == 'Course' && !group.context.enrollment_term.default_term? %>
+            <% if group.context_type == "Course" && !group.context.enrollment_term.default_term? %>
               <%= group.context.enrollment_term.name %>
             <% end %>
           </td>

@@ -18,12 +18,12 @@
 
 <% if Lti::QuizzesNextHelper.userless_launch?(@current_user, @tool) %>
   <div class="alert alert-danger lock_explanation" role="alert">
-    <%= t 'The quiz is unavailable if you are not logged in' %>
+    <%= t "The quiz is unavailable if you are not logged in" %>
   </div>
 <% elsif Lti::QuizzesNextHelper.unavailable_for_students?(@context, @current_user, @tool) %>
   <div class="alert alert-danger lock_explanation" role="alert">
-    <%= t 'This quiz is no longer available as your enrollment has been concluded.' %>
+    <%= t "This quiz is no longer available as your enrollment has been concluded." %>
   </div>
 <% else %>
-  <%= render 'lti/lti_message' %>
+  <%= render "lti/lti_message" %>
 <% end %>

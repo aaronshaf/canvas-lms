@@ -23,11 +23,11 @@
   <h2><%= @file.display_name %></h2>
   <div>
     <% if @file.folder&.locked? %>
-      <%= t 'messages.folder_locked', "The folder \"%{folder},\" which includes this file, has been locked.", folder: @file.folder.name %>
+      <%= t "messages.folder_locked", "The folder \"%{folder},\" which includes this file, has been locked.", folder: @file.folder.name %>
     <% else %>
-      <%= @lock_info.is_a?(Hash) ? lock_explanation(@lock_info, 'file', @context) : t('messages.file_locked', "This file has not been unlocked yet.") %>
+      <%= @lock_info.is_a?(Hash) ? lock_explanation(@lock_info, "file", @context) : t("messages.file_locked", "This file has not been unlocked yet.") %>
     <% end %>
   </div>
 </div>
-<%= render partial: 'layouts/foot', locals: { include_common_bundle: true } %>
+<%= render partial: "layouts/foot", locals: { include_common_bundle: true } %>
 </body>

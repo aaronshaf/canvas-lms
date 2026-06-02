@@ -46,7 +46,7 @@
     <h1 id="assignment_head"><%= @assignment.title %></h1>
     <%= render partial: "assignment_details" %>
     <div class="lock_explanation">
-      <%= @locked.is_a?(Hash) ? lock_explanation(@locked, 'assignment', @context) : t(:assignment_locked, "This assignment is currently locked.") %>
+      <%= @locked.is_a?(Hash) ? lock_explanation(@locked, "assignment", @context) : t(:assignment_locked, "This assignment is currently locked.") %>
     </div>
   </div>
 
@@ -82,12 +82,12 @@
             data-assignment-context-id="<%= @assignment.context_id %>"
             data-assignment-id="<%= @assignment.id %>"
             data-assignment-points-possible="<%= @assignment.points_possible %>"></span>
-            <i class='icon-permissions'></i> <%= t('Assign To') %>
+            <i class='icon-permissions'></i> <%= t("Assign To") %>
           </button>
         <% end %>
         <% if @context.grants_right?(@current_user, :manage_assignments_edit) %>
-          <a href="<%= edit_polymorphic_path([@context, @assignment]) %>" class='btn edit_assignment_link<%= ' disabled' unless can_do(@assignment, @current_user, :update) %>'>
-            <i class='icon-edit'></i> <%= t('links.edit', 'Edit') %>
+          <a href="<%= edit_polymorphic_path([@context, @assignment]) %>" class='btn edit_assignment_link<%= " disabled" unless can_do(@assignment, @current_user, :update) %>'>
+            <i class='icon-edit'></i> <%= t("links.edit", "Edit") %>
             <% unless can_do(@assignment, @current_user, :update) %>
               <span class="screenreader-only">You do not have permissions to edit this moderated assignment</span>
             <% end %>
@@ -101,14 +101,14 @@
             class='Button'
             style='<%= "display:none" unless @assignment.published? %>'
           >
-            <%= t('Moderate') %>
+            <%= t("Moderate") %>
           </a>
         <% end %>
 
         <% if @assignment_menu_tools.present? || @can_direct_share %>
           <button class="al-trigger btn" aria-haspopup="true" aria-owns="toolbar-1">
             <i class="icon-more" aria-hidden="true"></i>
-            <span class="screenreader-only"><%= t('manage', 'Manage') %></span>
+            <span class="screenreader-only"><%= t("manage", "Manage") %></span>
           </button>
           <ul id="toolbar-1" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false">
             <% if @can_link_to_speed_grader %>
@@ -158,7 +158,7 @@
   <div class="clear"></div>
 
   <% if @locked %>
-    <%= @locked.is_a?(Hash) ? lock_explanation(@locked, 'assignment', @context) : t('messages.locked', "This assignment is currently locked.") %>
+    <%= @locked.is_a?(Hash) ? lock_explanation(@locked, "assignment", @context) : t("messages.locked", "This assignment is currently locked.") %>
   <% end %>
 
   <div class="clear"></div>
@@ -172,7 +172,7 @@
   <% if @assignment.annotated_document? %>
     <div class="accessibility_warning">
       <span id="accessibility_warning" class="screenreader-only" tabindex="0">
-        <%= I18n.t('Warning: For improved accessibility with Annotated Assignments, please use File Upload or Text Entry to leave comments.') %>
+        <%= I18n.t("Warning: For improved accessibility with Annotated Assignments, please use File Upload or Text Entry to leave comments.") %>
       </span>
     </div>
   <% end %>
@@ -186,21 +186,21 @@
       <fieldset>
       <% unless @assignment.restrict_quantitative_data?(@current_user, check_extra_permissions: true) %>
         <div class="control-group">
-          <div class="control-label"><%= t(:points, 'Points') %></div>
+          <div class="control-label"><%= t(:points, "Points") %></div>
           <div class="controls">
-            <span class="value points_possible"><%= n(round_if_whole(@assignment.points_possible)) || t(:no_points, 'None') %></span>
+            <span class="value points_possible"><%= n(round_if_whole(@assignment.points_possible)) || t(:no_points, "None") %></span>
           </div>
         </div>
         <% end %>
         <div class="control-group">
-          <div class="control-label"><%= t :submitting, 'Submitting' %></div>
+          <div class="control-label"><%= t :submitting, "Submitting" %></div>
           <div class="controls">
-            <span class="value"><%= @assignment.readable_submission_types || t(:no_submission, 'Nothing') %></span>
+            <span class="value"><%= @assignment.readable_submission_types || t(:no_submission, "Nothing") %></span>
           </div>
         </div>
-        <% if @assignment.submission_types.include?('online_upload') && @assignment.allowed_extensions.present? -%>
+        <% if @assignment.submission_types.include?("online_upload") && @assignment.allowed_extensions.present? -%>
           <div class="control-group">
-            <div class="control-label"><%= t :submission_types, 'File Types' %></div>
+            <div class="control-label"><%= t :submission_types, "File Types" %></div>
             <div class="controls">
               <span class="value"><%= @assignment.allowed_extensions.to_sentence %></span>
             </div>
@@ -208,7 +208,7 @@
         <% end -%>
         <% if @assignment.allowed_attempts&.> 0 %>
           <div class="control-group">
-            <div class="control-label"><%= t :allowed_attempts, 'Allowed Attempts' %></div>
+            <div class="control-label"><%= t :allowed_attempts, "Allowed Attempts" %></div>
             <div class="controls">
               <span class="value"><%= @assignment.allowed_attempts %></span>
             </div>
@@ -216,17 +216,17 @@
         <% end -%>
         <% if turnitin_active? %>
           <div class="control-group">
-            <div class="control-label"><%= t :turnitin, 'Turnitin' %></div>
+            <div class="control-label"><%= t :turnitin, "Turnitin" %></div>
             <div class="controls">
-              <span class="value"><%= t :turnitin_enabled, 'Turnitin has been enabled for this assignment.' %></span>
+              <span class="value"><%= t :turnitin_enabled, "Turnitin has been enabled for this assignment." %></span>
             </div>
           </div>
         <% end %>
         <% if vericite_active? %>
           <div class="control-group">
-            <div class="control-label"><%= t :vericite, 'VeriCite' %></div>
+            <div class="control-label"><%= t :vericite, "VeriCite" %></div>
             <div class="controls">
-              <span class="value"><%= t :vericite_enabled, 'VeriCite has been enabled for this assignment.' %></span>
+              <span class="value"><%= t :vericite_enabled, "VeriCite has been enabled for this assignment." %></span>
             </div>
           </div>
         <% end %>
@@ -239,14 +239,14 @@
       <table class="ic-Table assignment_dates">
         <thead>
           <tr>
-            <th scope="col"><%= t(:due, 'Due') %></th>
-            <th scope="col"><%= t(:for, 'For') %></th>
-            <th scope="col"><%= t(:available_from, 'Available from') %></th>
-            <th scope="col"><%= t(:until, 'Until') %></th>
+            <th scope="col"><%= t(:due, "Due") %></th>
+            <th scope="col"><%= t(:for, "For") %></th>
+            <th scope="col"><%= t(:available_from, "Available from") %></th>
+            <th scope="col"><%= t(:until, "Until") %></th>
           </tr>
         </thead>
 
-        <%= render 'shared/override_list',
+        <%= render "shared/override_list",
                    assignment: @assignment,
                    user: @current_user %>
 
@@ -267,8 +267,8 @@
           class="add_rubric_link Button icon-plus"
           style="<%= hidden if @assignment.active_rubric_association? %>"
         >
-          <span aria-hidden="true"><%= t 'links.add_rubric', "Rubric" %></span>
-          <span class="screenreader-only"><%= t('Add Rubric') %></span>
+          <span aria-hidden="true"><%= t "links.add_rubric", "Rubric" %></span>
+          <span class="screenreader-only"><%= t("Add Rubric") %></span>
         </a>
       </div>
     <% end %>

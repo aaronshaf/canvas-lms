@@ -21,7 +21,7 @@
 <% js_bundle :collaborations %>
 
 <% provide :right_side do %>
-  <p><%= t 'collaborations.explanation',
+  <p><%= t "collaborations.explanation",
            "Free online web tools are an excellent place for students to work on group projects or papers, take shared notes, etc.
 Teachers or students can set up group collaborations." %>
   </p>
@@ -29,23 +29,23 @@ Teachers or students can set up group collaborations." %>
 <a href="#" class="external_link" target="_blank" style="display: none;">&nbsp;</a>
 <% if @domain_root_account.feature_enabled?(:instui_nav) %>
   <div class="page_header_container">
-    <h1 class="collab-page_header"><%= t 'titles.collaborations', "Current Collaborations" %></h1>
+    <h1 class="collab-page_header"><%= t "titles.collaborations", "Current Collaborations" %></h1>
     <div class="actions_buttons-container">
       <% if can_do(@context, @current_user, :create_collaborations) && !@hide_create_ui %>
         <a role="button" class="Button Button--primary add_collaboration_link" href="#">
           <i class="icon-add" aria-hidden="true"></i>
-          <%= t('links.add_collaboration', 'Add Collaboration') %>
+          <%= t("links.add_collaboration", "Add Collaboration") %>
         </a>
       <% end %>
     </div>
   </div>
 <% else %>
   <header class="collaborations-header clearfix">
-    <h1><%= t 'titles.current', "Current Collaborations" %></h1>
+    <h1><%= t "titles.current", "Current Collaborations" %></h1>
     <% if can_do(@context, @current_user, :create_collaborations) && !@hide_create_ui %>
       <a role="button" href="#" class="btn add_collaboration_link">
         <i class="icon-add" aria-hidden="true"></i>
-        <%= t('links.new', 'Start a new collaboration') %>
+        <%= t("links.new", "Start a new collaboration") %>
       </a>
     <% end %>
   </header>
@@ -80,5 +80,5 @@ Teachers or students can set up group collaborations." %>
   <%= @collaborations.map { |c| collaboration(c, @current_user, @user_has_google_drive) }.inject(&:<<) %>
 </div>
 <% if can_do(@context, @current_user, :create_collaborations) && !@hide_create_ui %>
-  <%= render partial: 'collaborations/forms' %>
+  <%= render partial: "collaborations/forms" %>
 <% end %>

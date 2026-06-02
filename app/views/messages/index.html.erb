@@ -17,11 +17,11 @@
 %>
 
 <%
-  provide :page_title, t('Messages')
+  provide :page_title, t("Messages")
   css_bundle :messages
 %>
 
 <div id="messages_mount_point" data-user-name="<%= @context.name %>"></div>
 
-<%= render partial: 'message', collection: @messages %>
+<%= render partial: "message", collection: @messages %>
 <%= will_paginate(@messages) %>

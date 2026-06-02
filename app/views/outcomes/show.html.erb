@@ -30,7 +30,7 @@
 
 <h2><%= t "#titles.aligned_items", "Aligned Items" %></h2>
 <%= t(:no_aligned_items, "No aligned items") if @alignments.empty? %>
-<ul id="alignments" class="<%= 'orderable' if @context.is_a?(Course) %>">
+<ul id="alignments" class="<%= "orderable" if @context.is_a?(Course) %>">
 <% @alignments.each do |alignment| %>
   <%= render partial: "outcome_alignment", object: alignment %>
 <% end %>
@@ -55,7 +55,7 @@
       being destroyed when a rubric with an outcome was removed from an
       assignment.
     %>
-    <% if result.artifact_type.present? && result.artifact_type != 'Submission' %>
+    <% if result.artifact_type.present? && result.artifact_type != "Submission" %>
       <%= render partial: "outcome_result", object: result %>
     <% end %>
   <% end %>

@@ -1,13 +1,5 @@
 inherit_from:
   - ../../.rubocop.yml
 
-Style/PercentLiteralDelimiters:
-  Enabled: false
-Style/QuotedSymbols:
-  EnforcedStyle: double_quotes # because Style/StringLiterals is disabled
 Style/RescueModifier:
   Severity: convention
-Style/StringLiterals:
-  Enabled: false
-Style/StringLiteralsInInterpolation:
-  Enabled: false

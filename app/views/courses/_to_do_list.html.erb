@@ -29,14 +29,14 @@
 <% unless @context&.account&.limited_access_for_user?(@current_user) %>
   <% if show_legacy_todo_list %>
     <% cache_opts = (contexts.present? ? {} : { expires_in: 3.minutes }) %>
-      <% cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, 'to_do_list_view']), cache_opts) do %>
+      <% cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, "to_do_list_view"]), cache_opts) do %>
         <% presenter = ToDoListPresenter.new(self, @current_user, contexts) %>
     <% if presenter.any_assignments? %>
       <h2 class="todo-list-header" tabindex="-1">
         <% if Account.site_admin.feature_enabled?(:render_both_to_do_lists) && additional_title_context %>
           <%= t("Teacher To Do") %>
         <% else %>
-          <%= t('headings.to_do', %{To Do}) %>
+          <%= t("headings.to_do", %(To Do)) %>
         <% end %>
       </h2>
       <ul class="right-side-list to-do-list">
@@ -58,12 +58,12 @@
               <div class="todo-details">
                 <% if assignment.sub_assignment? && assignment.context.discussion_checkpoints_enabled? %>
                   <% if assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC %>
-                    <b class="todo-details__title"><%= t('Grade %{assignment} Reply to Topic', assignment: assignment.title) %></b>
+                    <b class="todo-details__title"><%= t("Grade %{assignment} Reply to Topic", assignment: assignment.title) %></b>
                   <% elsif assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY %>
-                    <b class="todo-details__title"><%= t('Grade %{assignment} Required Replies (%{num})', assignment: assignment.title, num: assignment.required_replies) %></b>
+                    <b class="todo-details__title"><%= t("Grade %{assignment} Required Replies (%{num})", assignment: assignment.title, num: assignment.required_replies) %></b>
                   <% end %>
                 <% else %>
-                  <b class="todo-details__title"><%= t('Grade %{assignment}', assignment: assignment.title) %></b>
+                  <b class="todo-details__title"><%= t("Grade %{assignment}", assignment: assignment.title) %></b>
                 <% end %>
                 <% if presenter.show_context? %>
                   <p class="todo-details__context">
@@ -72,14 +72,14 @@
                 <% end %>
                 <p>
                   <% if assignment.points_possible %>
-                    <%= t({ one: '1 point', other: '%{count} points' }, count: round_if_whole(assignment.points_possible)) %>
+                    <%= t({ one: "1 point", other: "%{count} points" }, count: round_if_whole(assignment.points_possible)) %>
                     &bullet;
                   <% end %>
                   <%= assignment.formatted_due_date %>
                 </p>
               </div>
             </a>
-            <%= render partial: 'shared/ignore_option_list', locals: { presenter: assignment } %>
+            <%= render partial: "shared/ignore_option_list", locals: { presenter: assignment } %>
           </li>
         <% end %>
         <% presenter.needs_moderation.each_with_index do |assignment, i| %>
@@ -93,7 +93,7 @@
             >
               <i class="<%= icon_class %>" aria-label="<%= icon_aria_label %>"></i>
               <div class="todo-details">
-                <b class="todo-details__title"><%= t('Moderate %{assignment}', assignment: assignment.title) %></b>
+                <b class="todo-details__title"><%= t("Moderate %{assignment}", assignment: assignment.title) %></b>
                 <% if presenter.show_context? %>
                   <p class="todo-details__context">
                     <%= assignment.short_context_name %>
@@ -101,14 +101,14 @@
                 <% end %>
                 <p>
                   <% if assignment.points_possible %>
-                    <%= t({ one: '1 point', other: '%{count} points' }, count: round_if_whole(assignment.points_possible)) %>
+                    <%= t({ one: "1 point", other: "%{count} points" }, count: round_if_whole(assignment.points_possible)) %>
                     &bullet;
                   <% end %>
                   <%= assignment.formatted_due_date %>
                 </p>
               </div>
             </a>
-            <%= render partial: 'shared/ignore_option_list', locals: { presenter: assignment } %>
+            <%= render partial: "shared/ignore_option_list", locals: { presenter: assignment } %>
           </li>
         <% end %>
         <% presenter.needs_submitting.each_with_index do |assignment, i| %>
@@ -116,17 +116,17 @@
           <li class="todo" style="<%= hidden if i >= presenter.visible_limit %>">
             <a
               class="item"
-              href="<%= assignment.assignment_path %><%= '#submit' unless assignment.peer_review_sub_assignment? %>"
+              href="<%= assignment.assignment_path %><%= "#submit" unless assignment.peer_review_sub_assignment? %>"
               data-track-category="dashboard"
               data-track-label="todo needs submitting"
             >
               <i class="<%= icon_class %>" aria-label="<%= icon_aria_label %>"></i>
               <div class="todo-details">
                 <% if assignment.sub_assignment? && assignment.context.discussion_checkpoints_enabled? %>
-                  <% if assignment.sub_assignment_tag == 'reply_to_topic' %>
-                    <b  class="todo-details__title"><%= t('%{assignment} Reply to Topic', assignment: assignment.submission_action_string) %></b>
-                  <% elsif assignment.sub_assignment_tag == 'reply_to_entry' %>
-                    <b  class="todo-details__title"><%= t('%{assignment} Required Replies (%{num})', assignment: assignment.submission_action_string, num: assignment.required_replies) %></b>
+                  <% if assignment.sub_assignment_tag == "reply_to_topic" %>
+                    <b  class="todo-details__title"><%= t("%{assignment} Reply to Topic", assignment: assignment.submission_action_string) %></b>
+                  <% elsif assignment.sub_assignment_tag == "reply_to_entry" %>
+                    <b  class="todo-details__title"><%= t("%{assignment} Required Replies (%{num})", assignment: assignment.submission_action_string, num: assignment.required_replies) %></b>
                   <% end %>
                 <% else %>
                   <b  class="todo-details__title"><%= assignment.submission_action_string %></b>
@@ -138,14 +138,14 @@
                 <% end %>
                 <p>
                   <% if assignment.points_possible %>
-                    <%= t({ one: '1 point', other: '%{count} points' }, count: round_if_whole(assignment.points_possible)) %>
+                    <%= t({ one: "1 point", other: "%{count} points" }, count: round_if_whole(assignment.points_possible)) %>
                     &bullet;
                   <% end %>
                   <%= assignment.formatted_due_date %>
                 </p>
               </div>
             </a>
-            <%= render partial: 'shared/ignore_option_list', locals: { presenter: assignment } %>
+            <%= render partial: "shared/ignore_option_list", locals: { presenter: assignment } %>
           </li>
         <% end %>
         <% presenter.needs_reviewing.each_with_index do |assessment_request, i| %>
@@ -161,7 +161,7 @@
               <%# Don't need aria-label here because we say that this is a peer review in the text immediately following %>
               <i class="icon-peer-review"></i>
               <div class="todo-details">
-                <b class="todo-details__title"><%= t('Peer Review for %{assignment}', assignment: assignment.title) %></b>
+                <b class="todo-details__title"><%= t("Peer Review for %{assignment}", assignment: assignment.title) %></b>
                 <% if presenter.show_context? %>
                   <p class="todo-details__context">
                     <%= assessment_request.short_context_name %>
@@ -169,20 +169,20 @@
                 <% end %>
                 <p>
                   <% if assignment.try(:points_possible) %>
-                    <%= t({ one: '1 point', other: '%{count} points' }, count: round_if_whole(assignment.points_possible)) %>
+                    <%= t({ one: "1 point", other: "%{count} points" }, count: round_if_whole(assignment.points_possible)) %>
                     &bullet;
                   <% end %>
                   <%= assignment.formatted_peer_review_due_date %>
                 </p>
               </div>
             </a>
-            <%= render partial: 'shared/ignore_option_list', locals: { presenter: assessment_request } %>
+            <%= render partial: "shared/ignore_option_list", locals: { presenter: assessment_request } %>
           </li>
         <% end %>
         <% if presenter.hidden_count > 0 %>
           <li>
           <a href="#" class="more_link">
-            <%= t 'links.show_more', '%{count} more...', count: presenter.hidden_count %>
+            <%= t "links.show_more", "%{count} more...", count: presenter.hidden_count %>
           </a>
           </li>
         <% end %>

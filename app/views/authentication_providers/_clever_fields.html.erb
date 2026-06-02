@@ -24,7 +24,7 @@
          After you create your app, make a note of the Client ID and Client Secret, and enter them here.
        MD
      %></p>
-  <%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
+  <%= render partial: "oauth2_fields", locals: { aac:, presenter:, f: } %>
 <% end %>
 <p><%=
      t(<<~TEXT)
@@ -33,13 +33,13 @@
      TEXT
    %></p>
 <div class="ic-Form-control">
-  <%= f.label :district_id, t('District ID'), class: 'ic-Label', for: "district_id_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :district_id, class: 'ic-Input', id: "district_id_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :district_id, t("District ID"), class: "ic-Label", for: "district_id_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :district_id, class: "ic-Input", id: "district_id_#{presenter.id_suffix(aac)}" %>
 </div>
 <p><%=
      t <<~TEXT
        Note that some attributes may not be populated for all users at Clever.
      TEXT
    %></p>
-<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>
+<%= render partial: "login_attribute_dropdown", locals: { aac:, presenter:, f: } %>
+<%= render partial: "jit_provisioning_field", locals: { aac:, presenter:, f: } %>

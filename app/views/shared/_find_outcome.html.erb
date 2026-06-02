@@ -17,7 +17,7 @@
 %>
 
 <% context ||= @context
-   purpose ||= 'rubric' %>
+   purpose ||= "rubric" %>
 <div id="find_outcome_criterion_dialog" style="display: none;" class="find_outcome">
   <div class="loading_message" style="margin: 10px; text-align: center;">
   </div>
@@ -37,11 +37,11 @@
       </td>
       <td class="right">
         <div class="side_tabs_content outcomes_list" style="max-height: 350px;">
-          <div class="outcome blank" style="display: none; cursor: pointer;" title="<%= t 'titles.select_and_add_criterion', "Select and Add Criterion" %>">
+          <div class="outcome blank" style="display: none; cursor: pointer;" title="<%= t "titles.select_and_add_criterion", "Select and Add Criterion" %>">
             <div class="learning_outcome_id" style="display: none;"></div>
             <div class="header short_description" style="font-weight: bold; font-size: 1.2em;"></div>
             <div class="body description" style="margin: 10px 0; font-size: 0.8em;"></div>
-            <% if purpose == 'rubric' %>
+            <% if purpose == "rubric" %>
               <div><%= before_label :criterion_ratings, "Criterion Ratings" %></div>
               <table>
                 <tr>
@@ -57,17 +57,17 @@
               </div>
             <% end %>
             <div class="button-container">
-              <button type="button" class="btn select_outcome_link" style="float: <%= direction('right') %>; margin: 0 0.5em 0.5em 0.5em;">
-                <%= t 'buttons.add_outcome', "Add Outcome" %>
+              <button type="button" class="btn select_outcome_link" style="float: <%= direction("right") %>; margin: 0 0.5em 0.5em 0.5em;">
+                <%= t "buttons.add_outcome", "Add Outcome" %>
               </button>
-              <div style="float: <%= direction('right') %>; margin-top: 0.5em;">
-                <% if purpose == 'rubric' %>
-                  <input type="checkbox" class="criterion_for_scoring" checked /><label><%= t 'labels.use_for_scoring', "use this criterion for scoring" %></label>
-                <% elsif purpose == 'question_bank' %>
+              <div style="float: <%= direction("right") %>; margin-top: 0.5em;">
+                <% if purpose == "rubric" %>
+                  <input type="checkbox" class="criterion_for_scoring" checked /><label><%= t "labels.use_for_scoring", "use this criterion for scoring" %></label>
+                <% elsif purpose == "question_bank" %>
                   <label for="outcome_question_bank_mastery" class="mastery_level_text">
                     <%= before_label :master_level, "set mastery for any score at or above" %>
                   </label>
-                  <input type="text" class="mastery_level" id="outcome_question_bank_mastery" title="<%= t 'titles.mastery_level', "percent above which to set mastery" %>" style="width: 40px;"/>%
+                  <input type="text" class="mastery_level" id="outcome_question_bank_mastery" title="<%= t "titles.mastery_level", "percent above which to set mastery" %>" style="width: 40px;"/>%
                 <% end %>
               </div>
             </div>

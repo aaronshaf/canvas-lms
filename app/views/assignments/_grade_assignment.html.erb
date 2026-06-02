@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 <ul class='page-action-list'>
-  <h2><%= t 'titles.related_items', "Related Items" %></h2>
+  <h2><%= t "titles.related_items", "Related Items" %></h2>
   <% if @assignment_presenter.can_view_speed_grader_link?(@current_user) %>
     <li id="assignment-speedgrader-link">
       <div id="student_group_filter_mount_point"></div>
@@ -27,13 +27,13 @@
   <% if @current_student_submissions.present? &&
         @assignment.submission_types&.match(/(online_upload|online_text_entry|online_url)/) && @downloadable_submissions %>
     <li>
-      <%= render partial: 'submissions/submission_download' %>
+      <%= render partial: "submissions/submission_download" %>
       <a href="<%= context_url(@context, :context_assignment_submissions_url, @assignment.id, zip: 1) %>"
         id="download_submission_button"
-        class="download_submissions_link icon-download"><%= t 'links.download_submissions', "Download Submissions" %></a>
+        class="download_submissions_link icon-download"><%= t "links.download_submissions", "Download Submissions" %></a>
 
       <% if @can_grade %>
-        <a href="#" class="upload_submissions_link icon-upload" style="<%= hidden unless @assignment.submissions_downloaded? %>"><%= t 'links.reupload_submissions', "Re-Upload Submissions" %></a>
+        <a href="#" class="upload_submissions_link icon-upload" style="<%= hidden unless @assignment.submissions_downloaded? %>"><%= t "links.reupload_submissions", "Re-Upload Submissions" %></a>
         <%= form_tag context_url(@context, :submissions_upload_context_gradebook_url, @assignment.id), { id: "re_upload_submissions_form", multipart: true, style: "margin-top: 10px; margin-bottom: 0px; display: none;" } do %>
           <div style="font-size: 0.8em;">
             <%=
@@ -47,10 +47,10 @@
             %>
           </div>
           <div>
-            <button id="choose_file_button" class="btn"><%= t 'buttons.choose_file', "Choose File" %></button>
+            <button id="choose_file_button" class="btn"><%= t "buttons.choose_file", "Choose File" %></button>
             <div id="uploaded_file_tag"></div>
             <div class="button-container">
-              <button id="reuploaded_submissions_button" type="submit" class="btn btn-primary" style="display: none;"><%= t 'buttons.upload_files', "Re-Upload Files" %></button>
+              <button id="reuploaded_submissions_button" type="submit" class="btn btn-primary" style="display: none;"><%= t "buttons.upload_files", "Re-Upload Files" %></button>
             </div>
             <input type="file" name="submissions_zip" style="height:0;width:0;overflow:hidden;"/>
           </div>
@@ -68,7 +68,7 @@
   <% if show_legacy_peer_reviews_link? %>
     <li>
       <a href="<%= context_url(@context, :context_assignment_peer_reviews_url, @assignment.id) %>"
-        class="assignment_peer_reviews_link icon-peer-review"><%= t 'links.peer_reviews', "Peer Reviews" %></a>
+        class="assignment_peer_reviews_link icon-peer-review"><%= t "links.peer_reviews", "Peer Reviews" %></a>
     </li>
   <% end %>
 </ul>
@@ -80,7 +80,7 @@
     <% graded = subs.count(&:graded?) # this includes resubmissions that were previously graded %>
     <% resubmitted = subs.count(&:needs_regrading?) %>
     <% submitted = subs.length %>
-    <span class="graded_count" id="ratio_of_submissions_graded" style="<%= 'font-weight: bold;' if graded < submitted %>">
+    <span class="graded_count" id="ratio_of_submissions_graded" style="<%= "font-weight: bold;" if graded < submitted %>">
       <%= t :graded_count,
             "%{graded_count} *out of* %{total} Submissions Graded",
             graded_count: graded,

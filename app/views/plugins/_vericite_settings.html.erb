@@ -27,7 +27,7 @@
   <div class="ic-notification__content">
     <div class="ic-notification__message">
       <h2 class="ic-notification__title">
-        <%= t('plagiarism_compatibility', 'Plagiarism plugins compatibility notice:') %>
+        <%= t("plagiarism_compatibility", "Plagiarism plugins compatibility notice:") %>
       </h2>
       <span class="notification_message">
         Plagiarism plugins are mutually exclusive and do not work with other enabled plagiarism plugins. Please make sure only one plugin is enabled at a time.
@@ -65,7 +65,7 @@
     <tr>
       <td><%= f.blabel :comments, en: "Submission Comments" %></td>
       <td>
-        <%= f.text_area :comments, rows: '4', value: settings[:comments] %>
+        <%= f.text_area :comments, rows: "4", value: settings[:comments] %>
         <br/>
         <%= mt :default_comments_settings, "*Text entered here will be displayed to students when submitting for an assignment.*" %>
       </td>
@@ -74,7 +74,7 @@
     <tr>
       <td><%= f.blabel :pledge, en: "VeriCite Pledge" %></td>
       <td>
-        <%= f.text_area :pledge, rows: '4', value: settings[:pledge] %>
+        <%= f.text_area :pledge, rows: "4", value: settings[:pledge] %>
         <br/>
         <%= mt :pledge_description, "*Text entered here will be displayed to students when submitting for an assignment. The student will be required to check the box for the pledge before submitting. If left blank, no pledge is shown or required to submit.*" %>
       </td>
@@ -89,7 +89,7 @@
     </tr>
     <tr>
       <td><%= f.blabel :type, en: "Students Can See the Originality Report" %></td>
-      <td><%= f.select :release_to_students, { "Immediately" => 'immediate', "After the assignment is graded" => 'after_grading', "After the Due Date" => 'after_due_date', "Never" => 'never' }, selected: settings[:release_to_students] %>
+      <td><%= f.select :release_to_students, { "Immediately" => "immediate", "After the assignment is graded" => "after_grading", "After the Due Date" => "after_due_date", "Never" => "never" }, selected: settings[:release_to_students] %>
     </tr>
     <tr>
       <td><%= f.blabel :exclude_quotes, en: "Exclude Quotes" %></td>

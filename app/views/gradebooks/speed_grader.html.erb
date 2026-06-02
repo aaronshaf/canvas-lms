@@ -29,7 +29,7 @@
          })
   @show_left_side = false
   @show_embedded_chat = false
-  add_body_class 'ic-no-flex-layout full-width'
+  add_body_class "ic-no-flex-layout full-width"
   @can_edit_anything = !@context.completed?
   @emojis_enabled = @context.feature_enabled?(:submission_comment_emojis)
 %>
@@ -38,12 +38,12 @@
 <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;display: flex;flex-direction: column;" id="classic_speedgrader_container">
   <figure id="speed_grader_timeout_alert"></figure>
   <figure id="speed_grader_loading"></figure>
-  <h1 class="screenreader-only"><%= t('page_header_title', "SpeedGrader") %></h1>
+  <h1 class="screenreader-only"><%= t("page_header_title", "SpeedGrader") %></h1>
   <nav id="gradebook_header_container">
     <%= form_tag({ controller: :gradebooks, course_id: @context.id, action: :update_submission }, class: "speed_grader_nav_form") do %>
     <div id="gradebook_header" class="subheadContent" style="display:none;">
       <div id="speedgrader-icons" class="gradebookActions subheadContent subheadContent--flex-start">
-        <a href="<%= polymorphic_url([@context, :gradebook]) %>" id="speed_grader_gradebook_link" class="Button Button--icon-action-rev gradebookActions__Button gradebook-icon-link" title="<%= t('Gradebook') %>">
+        <a href="<%= polymorphic_url([@context, :gradebook]) %>" id="speed_grader_gradebook_link" class="Button Button--icon-action-rev gradebookActions__Button gradebook-icon-link" title="<%= t("Gradebook") %>">
           <i class="icon-gradebook" aria-hidden="true"></i>
           <span class="screenreader-only" aria-hidden="true"><%= t("Gradebook") %></span>
         </a>
@@ -111,19 +111,19 @@
           <%= t :no_annotation, "Annotations are not available for this document" %>
         </div>
         <div id="comment_saved" class="alert alert-success speedgrader_alert">
-          <button aria-label="<%= t 'Close' %>" class="dismiss_alert close">×</button>
+          <button aria-label="<%= t "Close" %>" class="dismiss_alert close">×</button>
           <div id="comment_saved_message">
-            <%= t 'Your comment was auto-saved as a draft.' %>
+            <%= t "Your comment was auto-saved as a draft." %>
           </div>
         </div>
         <div id="comment_submitted" class="alert alert-success speedgrader_alert">
-          <button aria-label="<%= t 'Close' %>" class="dismiss_alert close">×</button>
+          <button aria-label="<%= t "Close" %>" class="dismiss_alert close">×</button>
           <div id="comment_submitted_message">
             <%= t :comment_submitted, "Your comment has been submitted." %>
           </div>
         </div>
         <div id="reassignment_complete" class="alert alert-success speedgrader_alert">
-          <button aria-label="<%= t 'Close' %>" class="dismiss_alert close">×</button>
+          <button aria-label="<%= t "Close" %>" class="dismiss_alert close">×</button>
           <div id="reassignment_complete_message">
             <%= t "The assignment has been reassigned." %>
           </div>
@@ -132,16 +132,16 @@
           <div id="this_student_does_not_have_a_submission">
             <h3>
               <% if @assignment.grade_as_group? %>
-                <%= t('headers.no_group_submission', "This group does not have a submission for this assignment") %>
+                <%= t("headers.no_group_submission", "This group does not have a submission for this assignment") %>
               <% else %>
-                <%= t('headers.no_submission', "This student does not have a submission for this assignment") %>
+                <%= t("headers.no_submission", "This student does not have a submission for this assignment") %>
               <% end %>
             </h3>
           </div>
           <div id="this_student_has_a_submission">
             <h3>
-              <%= t('headers.submission', "This student has submitted the assignment") %>
-              <span class="subheader"><%= t('headers.anonymous_submission', "This student's responses are hidden because this assignment is anonymous.") %></span>
+              <%= t("headers.submission", "This student has submitted the assignment") %>
+              <span class="subheader"><%= t("headers.anonymous_submission", "This student's responses are hidden because this assignment is anonymous.") %></span>
             </h3>
           </div>
           <div id="iframe_holder" style="display:none;"></div>
@@ -165,7 +165,7 @@
               <div id="multiple_submissions" style="display:flex; flex: 1; gap: 3px;"></div>
               <div id="speed_grader_edit_status_mount_point"></div>
             </div>
-            <div id="submission_not_newest_notice" title='<%= t('titles.not_newest', "use the dropdown above to change which submission to look at") %>'><%= t(:not_newest_notice, "Note: This is not the most recent submission") %></div>
+            <div id="submission_not_newest_notice" title='<%= t("titles.not_newest", "use the dropdown above to change which submission to look at") %>'><%= t(:not_newest_notice, "Note: This is not the most recent submission") %></div>
             <div id="submission_attachment_viewed_at_container"></div>
             <div id="submission_word_count"></div>
             <div id="submission_files_container">
@@ -179,7 +179,7 @@
                     preview_url = context_url(@context, resource, @assignment.id, submission_id_or_anonymous_id, download: "{{attachmentId}}", inline: 1)
                   %>
                   <span class="turnitin_score_container"></span>
-                  <a class="display_name no-hover" href="<%= preview_url %>" title="<%= t('titles.preview_file', "Preview this File") %>">???</a>
+                  <a class="display_name no-hover" href="<%= preview_url %>" title="<%= t("titles.preview_file", "Preview this File") %>">???</a>
                   <span id="react_pill_container"></span>
                   <a role="button" class="submission-file-delete icon-trash" href="/api/v1/files/{{attachmentId}}?replace=1" style="display:none;">
                     <span class="screenreader-only"><%= t("Delete this file") %></span>
@@ -191,7 +191,7 @@
               </div>
               <% if @assignment.has_non_migrated_tool? %>
                 <div id='plagiarism_platform_info_container'>
-                  <a href="#" id="plagiarism_resubmit_button" class="btn btn-small" title="<%= I18n.t('Resubmit to the associated tool for plagiarism analysis.') %>">
+                  <a href="#" id="plagiarism_resubmit_button" class="btn btn-small" title="<%= I18n.t("Resubmit to the associated tool for plagiarism analysis.") %>">
                     <%= I18n.t("Resubmit to %{tool_name}", tool_name: @assignment.tool_settings_tool_name) %>
                   </a>
                 </div>
@@ -201,7 +201,7 @@
           </div>
 
           <div class="content_box">
-            <% if @assignment.context.discussion_checkpoints_enabled? && @assignment.submission_types == 'discussion_topic' %>
+            <% if @assignment.context.discussion_checkpoints_enabled? && @assignment.submission_types == "discussion_topic" %>
               <div id="speed_grader_discussions_navigation_mount_point"></div>
             <% end %>
             <div id="speed_grader_lti_asset_reports_mount_point"></div>
@@ -236,12 +236,12 @@
               <div id="grading" style="flex: 1;">
                 <div style="display: flex;">
                   <div style="flex: 1">
-                    <h2 class="gradebookHeader--rightside"><%= t('headers.assessment', "Assessment") %></h2>
+                    <h2 class="gradebookHeader--rightside"><%= t("headers.assessment", "Assessment") %></h2>
                     <% if can_do(@context, @current_user, :manage_grades) || (@context.concluded? && can_do(@context, @current_user, :read_as_admin)) %>
                     <div id="grade_container">
                       <%= render partial: "grading_box_extended", locals: { assignment: @assignment } %>
                       <span class="turnitin_score_container"></span>
-                      <a href="#" id="submit_same_score"><br><%= t('links.submit_same_score', "Use this same grade for the resubmission") %></a>
+                      <a href="#" id="submit_same_score"><br><%= t("links.submit_same_score", "Use this same grade for the resubmission") %></a>
                       <div class="turnitin_info_container"></div>
                     </div>
                   </div>
@@ -287,7 +287,7 @@
           <div class="content_box">
             <h2>
               <% if @assignment.a2_enabled? %>
-                <%= t('Comments for this Attempt') %>
+                <%= t("Comments for this Attempt") %>
               <% else %>
                 <%= t("Assignment Comments") %>
               <% end %>
@@ -297,20 +297,20 @@
                 <div class="comment" id="comment_blank" style="display: none;">
                   <div class="comment_flex">
                     <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" class="avatar" alt="" style="display: none;"/>
-                    <span class="draft-marker" aria-label="<%= t('Draft comment') %>"><%= t('DRAFT') %></span>
+                    <span class="draft-marker" aria-label="<%= t("Draft comment") %>"><%= t("DRAFT") %></span>
                     <span class="comment"></span>
                     <a href="javascript:void 0;" class="edit_comment_link icon-edit">
-                      <span class="screenreader-only"><%= t('Edit Draft comment') %></span>
+                      <span class="screenreader-only"><%= t("Edit Draft comment") %></span>
                     </a>
                     <button class="submit_comment_button">
-                      <span><%= t('Submit') %></span>
+                      <span><%= t("Submit") %></span>
                     </button>
                     <a href="javascript:void 0;" class="delete_comment_link icon-x">
-                      <span class="screenreader-only"><%= t('Delete comment') %></span>
+                      <span class="screenreader-only"><%= t("Delete comment") %></span>
                     </a>
                   </div>
                   <a href="#" class="play_comment_link media-comment" style="display:none;">
-                    <%= t('click here to view') %>
+                    <%= t("click here to view") %>
                   </a>
                   <div class="media_comment_content" style="display:none"></div>
                   <div class="comment_attachments"></div>
@@ -334,18 +334,18 @@
                 <% if @assignment.has_group_category? %>
                   <div id="group_comment_wrapper">
                     <% if @assignment.grade_as_group? %>
-                      <%= t('All comments are sent to the whole group') %>
+                      <%= t("All comments are sent to the whole group") %>
                       <input type="checkbox" name="submission[group_comment]" id="submission_group_comment" style="display:none" checked />
                     <% else %>
                       <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
                         <div class="ic-Form-control ic-Form-control--radio">
                           <div class="ic-Radio">
                             <input type="radio" name="submission[group_comment]" id="not_submission_group_comment" checked />
-                            <label for="not_submission_group_comment" class="ic-Label"><%= t('Send comment to this student only') %></label>
+                            <label for="not_submission_group_comment" class="ic-Label"><%= t("Send comment to this student only") %></label>
                           </div>
                           <div class="ic-Radio">
                             <input type="radio" name="submission[group_comment]" id="submission_group_comment" />
-                            <label for="submission_group_comment" class="ic-Label"><%= t('Send comment to the whole group') %></label>
+                            <label for="submission_group_comment" class="ic-Label"><%= t("Send comment to the whole group") %></label>
                           </div>
                         </div>
                       </fieldset>
@@ -359,7 +359,7 @@
                   <a href="#">
                     <i class="icon-end text-error"></i>
                     <span class="screenreader-only">
-                      <%= t('links.remove_attachment', "Remove Attachment") %>
+                      <%= t("links.remove_attachment", "Remove Attachment") %>
                     </span>
                   </a>
                 </div>
@@ -465,15 +465,15 @@
     <a style="display:none;" id="assignment_submission_resubmit_to_vericite_url" href="<%= context_url(@context, :context_assignment_submission_resubmit_to_vericite_url, @assignment.id, "{{ user_id }}") %>"></a>
   <% end %>
 
-  <form id="settings_form" style="display:none; width:400px;" title="<%= t('titles.speedgrader_options', "SpeedGrader Options") %>">
+  <form id="settings_form" style="display:none; width:400px;" title="<%= t("titles.speedgrader_options", "SpeedGrader Options") %>">
     <p>
-      <label for="eg_sort_by"><%= t('labels.sort_by', "Sort student list") %></label>
-      <%= select_tag 'eg_sort_by', options_for_select([
-                                                        [t('sort_by.student_name', "by student name (alphabetically)"), "alphabetically"],
-                                                        [t('sort_by.submitted_at', "the date they submitted the assignment"), "submitted_at"],
-                                                        [t('sort_by.status', "by submission status (needs grading, not submitted, etc)"), "submission_status"],
-                                                        [t('sort_by.randomize', "randomize students"), "randomize"],
-                                                        [t('sort_by.status_randomize', "randomize students within submission status"), "submission_status_randomize"],
+      <label for="eg_sort_by"><%= t("labels.sort_by", "Sort student list") %></label>
+      <%= select_tag "eg_sort_by", options_for_select([
+                                                        [t("sort_by.student_name", "by student name (alphabetically)"), "alphabetically"],
+                                                        [t("sort_by.submitted_at", "the date they submitted the assignment"), "submitted_at"],
+                                                        [t("sort_by.status", "by submission status (needs grading, not submitted, etc)"), "submission_status"],
+                                                        [t("sort_by.randomize", "randomize students"), "randomize"],
+                                                        [t("sort_by.status_randomize", "randomize students within submission status"), "submission_status_randomize"],
                                                       ],
                                                       cookies[:eg_sort_by]) %>
     </p>
@@ -484,7 +484,7 @@
           <% if force_anonymous_grading?(@assignment) %>disabled<% end %>
         />
         <label for="hide_student_names">
-          <%= t('labels.hide_names', "Hide student names in SpeedGrader") %>
+          <%= t("labels.hide_names", "Hide student names in SpeedGrader") %>
         </label>
         <% if force_anonymous_grading?(@assignment) %>
           <i class="icon-info" aria-hidden="true"
@@ -506,7 +506,7 @@
     <% if @context.feature_enabled?(:platform_service_speedgrader) %>
       <p>
         <button class="btn btn-primary submit_button" id="show_new_sg_ui" name="show_new_sg_ui">
-          <%= t('buttons.show_new_sg_ui', "Use new SpeedGrader UI") %>
+          <%= t("buttons.show_new_sg_ui", "Use new SpeedGrader UI") %>
         </button>
       </p>
     <% end %>
@@ -517,19 +517,19 @@
           <div class="ic-Form-control ic-Form-control--radio">
           <div class="ic-Radio">
             <input type="radio" id="discussion_view_no_context" name="default_discussion_view" value="discussion_view_no_context">
-            <label class="ic-Label" for="discussion_view_no_context"><%= t('buttons.discussion_view_no_context', "Show replies without discussion context") %></label>
+            <label class="ic-Label" for="discussion_view_no_context"><%= t("buttons.discussion_view_no_context", "Show replies without discussion context") %></label>
           </div>
           <div class="ic-Radio">
             <input type="radio" id="discussion_view_with_context" name="default_discussion_view" value="discussion_view_with_context">
-            <label class="ic-Label" for="discussion_view_with_context"><%= t('buttons.discussion_view_with_context', "Show replies in context") %></label>
+            <label class="ic-Label" for="discussion_view_with_context"><%= t("buttons.discussion_view_with_context", "Show replies in context") %></label>
           </div>
         </div>
       </fieldset>
     <% end %>
 
     <div class="button-container">
-      <button class="btn dialog_closer"><%= t('#buttons.cancel', "Cancel") %></button>
-      <button type="submit" class="btn btn-primary submit_button"><%= t('buttons.save_settings', "Save Settings") %></button>
+      <button class="btn dialog_closer"><%= t("#buttons.cancel", "Cancel") %></button>
+      <button type="submit" class="btn btn-primary submit_button"><%= t("buttons.save_settings", "Save Settings") %></button>
     </div>
   </form>
 
@@ -542,7 +542,7 @@
         <li>
           <div class="sg-sections-menu-item">
             <input type="checkbox" id="section-menu-box" name="section-menu" value="all" checked style="display:none;">
-            <a class="selected" data-section-id="all" href="#"><%= t('links.show_all_sections', "Show All Sections") %></a>
+            <a class="selected" data-section-id="all" href="#"><%= t("links.show_all_sections", "Show All Sections") %></a>
           </div>
         </li>
       </ul>
@@ -556,11 +556,11 @@
   <span id="aria_name_alert" class="screenreader-only" aria-live="polite"></span>
   <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
     <% keyboard_navigation([
-                             { key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student') },
-                             { key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student') },
-                             { key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment') },
-                             { key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade') },
-                             { key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric') }
+                             { key: t("keycodes.next_student", "j"), description: t("keycode_descriptions.next_student", "Next Student") },
+                             { key: t("keycodes.previous_student", "k"), description: t("keycode_descriptions.previous_student", "Previous Student") },
+                             { key: t("keycodes.leave_comment", "c"), description: t("keycode_descriptions.leave_comment", "Leave Comment") },
+                             { key: t("keycodes.change_grade", "g"), description: t("keycode_descriptions.change_grade", "Change Grade") },
+                             { key: t("keycodes.use_rubric", "r"), description: t("keycode_descriptions.use_rubric", "Use Rubric") }
                            ]) %>
   <% end %>
 

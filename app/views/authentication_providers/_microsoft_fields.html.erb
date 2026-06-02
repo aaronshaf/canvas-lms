@@ -25,12 +25,12 @@
        MD
      %></p>
   <div class="ic-Form-control">
-    <%= f.label :application_id, t('Application ID'), class: 'ic-Label', for: "application_id_#{presenter.id_suffix(aac)}" %>
-    <%= f.text_field :application_id, class: 'ic-Input', id: "application_id_#{presenter.id_suffix(aac)}" %>
+    <%= f.label :application_id, t("Application ID"), class: "ic-Label", for: "application_id_#{presenter.id_suffix(aac)}" %>
+    <%= f.text_field :application_id, class: "ic-Input", id: "application_id_#{presenter.id_suffix(aac)}" %>
   </div>
   <div class="ic-Form-control">
-    <%= f.label :application_secret, t('Application Secret'), class: 'ic-Label', for: "application_secret_#{presenter.id_suffix(aac)}" %>
-    <%= f.password_field :application_secret, class: 'ic-Input', id: "application_secret_#{presenter.id_suffix(aac)}" %>
+    <%= f.label :application_secret, t("Application Secret"), class: "ic-Label", for: "application_secret_#{presenter.id_suffix(aac)}" %>
+    <%= f.password_field :application_secret, class: "ic-Input", id: "application_secret_#{presenter.id_suffix(aac)}" %>
   </div><% end %>
 <p><%=
      mt(<<~MD, wrappers: { "*" => "<code>\\1</code>" })
@@ -40,8 +40,8 @@
      MD
    %></p>
 <div class="ic-Form-control">
-  <%= f.label :tenants, t('Tenants'), class: 'ic-Label', for: "tenants_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :tenants, class: 'ic-Input', id: "tenants_#{presenter.id_suffix(aac)}", value: aac.tenants.join(","), placeholder: '00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111' %>
+  <%= f.label :tenants, t("Tenants"), class: "ic-Label", for: "tenants_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :tenants, class: "ic-Input", id: "tenants_#{presenter.id_suffix(aac)}", value: aac.tenants.join(","), placeholder: "00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111" %>
 </div>
 <p><%=
      mt(<<~MD, wrappers: { "*" => "<code>\\1</code>" })
@@ -50,5 +50,5 @@
        it cannot be changed by users in all of your allowed Entra ID tenants.
      MD
    %></p>
-<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>
+<%= render partial: "login_attribute_dropdown", locals: { aac:, presenter:, f: } %>
+<%= render partial: "jit_provisioning_field", locals: { aac:, presenter:, f: } %>

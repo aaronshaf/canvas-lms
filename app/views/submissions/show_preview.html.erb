@@ -42,7 +42,7 @@
 %>
 
 <% css_bundle :submission %>
-<% js_bundle 'submissions_show_preview_asset_report_status' %>
+<% js_bundle "submissions_show_preview_asset_report_status" %>
 
 <script>
   window.addEventListener('message', function(event) {
@@ -74,8 +74,8 @@
 <% show_updated_plagiarism_icons = @context.root_account.feature_enabled?(:new_gradebook_plagiarism_indicator) %>
 
 <% provide(:page_title, join_title(@assignment.title, t("Submission Preview"))) %>
-<% if @assignment.submission_types == 'discussion_topic' && @assignment.discussion_topic %>
-    <% js_bundle 'submissions_show_preview_media' %>
+<% if @assignment.submission_types == "discussion_topic" && @assignment.discussion_topic %>
+    <% js_bundle "submissions_show_preview_media" %>
     <%
       @entries = @assignment.discussion_topic.for_group_discussion? ? @assignment.discussion_topic.all_child_entries_from_user(@user) : @assignment.discussion_topic.discussion_entries.active.for_user(@user)
       hidden_user_id = params[:hide_student_name] ? @user.id : nil
@@ -99,7 +99,7 @@
     <div class="ef-file-preview-stretch">
       <iframe
         id="discussion_preview_iframe"
-        title="<%= t 'Graded discussion submission' %>"
+        title="<%= t "Graded discussion submission" %>"
         src="<%= discussion_iframe_src %>"
         class="ef-file-preview-frame">
       </iframe>
@@ -110,53 +110,53 @@
         <% if (assignment_visible_to_user = @assignment.visible_to_user?(@current_user)) %>
           <% if @assignment.discussion_topic.for_group_discussion? && (group = @assignment.discussion_topic.group_category.group_for(@user)) %>
             <% if discussion_checkpoints_enabled && use_discussion_toggle_link %>
-              <%= t('group_discussion_submission_description_toggle',
+              <%= t("group_discussion_submission_description_toggle",
                     "The submissions for the assignment are posts in the assignment's discussion for this group. You can view the discussion posts for %{user} below, or you can *switch to viewing the full group discussion context.*",
                     user: user_name,
                     wrapper: "<button id='discussion_temporary_toggle' <b>\\1</b></button>") %>
             <% else %>
-              <%= t('group_discussion_submission_description',
+              <%= t("group_discussion_submission_description",
                     "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}, or you can *view the full group discussion*.",
                     user: user_name,
                     wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(group, :context_discussion_topics_url, root_discussion_topic_id: @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
             <% end %>
           <% elsif discussion_checkpoints_enabled && use_discussion_toggle_link %>
-            <%= t('discussion_submission_description_toggle',
+            <%= t("discussion_submission_description_toggle",
                   "The submissions for the assignment are posts in the assignment's discussion. You can view the discussion posts for %{user} below, or you can *switch to viewing the full discussion context.*",
                   user: user_name,
                   wrapper: "<button id='discussion_temporary_toggle'><b>\\1</b></button>") %>
             <% else %>
-              <%= t('discussion_submission_description',
+              <%= t("discussion_submission_description",
                     "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}, or you can *view the full discussion*.",
                     user: user_name,
                     wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
           <% end %>
         <% elsif @assignment.discussion_topic.for_group_discussion? && @assignment.discussion_topic.group_category.group_for(@user) %>
-          <%= t('group_discussion_submission_description_without_link',
+          <%= t("group_discussion_submission_description_without_link",
                 "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}.",
                 user: user_name) %>
         <% else %>
-          <%= t('discussion_submission_description_without_link',
+          <%= t("discussion_submission_description_without_link",
                 "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}.",
                 user: user_name) %>
         <% end %>
       </p>
         <% @entries.each do |entry| %>
-          <%= render partial: 'discussion_topics/entry', object: entry, locals: { out_of_context: true, skip_sub_entries: true, link_to_headless: true, hide_student_names: params[:hide_student_name], assignment_visible_to_user:, use_discussion_toggle_link: } %>
+          <%= render partial: "discussion_topics/entry", object: entry, locals: { out_of_context: true, skip_sub_entries: true, link_to_headless: true, hide_student_names: params[:hide_student_name], assignment_visible_to_user:, use_discussion_toggle_link: } %>
         <% end %>
         <div style="text-align: center; font-size: 1.2em; margin-top: 10px; display: none;">
-          <a href="<%= context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, headless: 1, combined: 1, embed: true) %>" class="forward"><%= t('show_entire_discussion', 'Show the Entire Discussion') %></a>
+          <a href="<%= context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, headless: 1, combined: 1, embed: true) %>" class="forward"><%= t("show_entire_discussion", "Show the Entire Discussion") %></a>
         </div>
     </div>
   <% end %>
 <% elsif @submission.submission_type == "online_url" %>
   <div style="text-align: center; width: 500px; margin: 10px auto; font-size: 0.8em;">
     <% image = @submission.attachment if @submission.processed? %>
-    <%= t('external_url_submission', 'This submission was a URL to an external page.') %>
+    <%= t("external_url_submission", "This submission was a URL to an external page.") %>
     <% if image %>
-      <%= t('entry_with_image', "We've included a snapshot of what the page looked like when it was submitted.") %>
+      <%= t("entry_with_image", "We've included a snapshot of what the page looked like when it was submitted.") %>
     <% else %>
-      <%= t('entry_no_image', 'Keep in mind that this page may have changed since the submission originally occurred.') %>
+      <%= t("entry_no_image", "Keep in mind that this page may have changed since the submission originally occurred.") %>
     <% end %>
     <div style="font-size: 1.4em; margin: 10px;">
       <%= link_to @submission.url,
@@ -164,14 +164,14 @@
                   class: "not_external" %>
     </div>
     <div style="font-size: 1.4em; margin: 10px;">
-      <%= link_to t('view_in_a_new_tab', '(View in a new tab)'),
+      <%= link_to t("view_in_a_new_tab", "(View in a new tab)"),
                   @submission.url,
                   class: "open_in_a_new_tab",
                   target: "_blank",
                   rel: "noopener" %>
 
       <span style="display: inline-block;" class="ui-icon ui-icon-extlink ui-icon-inline"
-        title="<%= t('titles.external_link', 'Links to an external site.') %>"/>
+        title="<%= t("titles.external_link", "Links to an external site.") %>"/>
     </div>
   </div>
   <div style="text-align: center;">
@@ -195,18 +195,18 @@
                       )
                     end
     %>
-    <img src="<%= preview_url %>" alt="<%= t('URL Preview') %>"/>
+    <img src="<%= preview_url %>" alt="<%= t("URL Preview") %>"/>
   <% end %>
   </div>
 <% elsif @submission.submission_type == "online_text_entry" %>
-  <% js_bundle 'submissions_show_preview_text' %>
-  <div style="text-align: <%= direction('right') %>; margin-top: 15px;">
-    <select class="data_view" aria-label="<%= t('Select submission view format') %>">
-      <option value="paper"><%= t('Paper View') %></option>
-      <option value="plain_text"><%= t('Plain Text View') %></option>
+  <% js_bundle "submissions_show_preview_text" %>
+  <div style="text-align: <%= direction("right") %>; margin-top: 15px;">
+    <select class="data_view" aria-label="<%= t("Select submission view format") %>">
+      <option value="paper"><%= t("Paper View") %></option>
+      <option value="plain_text"><%= t("Plain Text View") %></option>
     </select>
     <%=
-      render partial: 'submissions/originality_score', locals: {
+      render partial: "submissions/originality_score", locals: {
         attachment: nil,
         show_updated_icons: show_updated_plagiarism_icons
       }
@@ -219,14 +219,14 @@
   <% if @submission.versioned_attachments.empty? %>
     <div class="file-upload-submission">
       <span>
-        <%= t('no_files', 'No files were uploaded for this submission') %>
+        <%= t("no_files", "No files were uploaded for this submission") %>
       </span>
     </div>
   <% else %>
     <table class="file-upload-submission-table">
       <thead>
         <tr>
-          <th class="file-info-header"><%= t('Files') %></th>
+          <th class="file-info-header"><%= t("Files") %></th>
           <th class="originality-header"></th>
           <th class="asset-report-status-header" data-submission-id="<%= @submission.id %>" data-submission-type="<%= @submission.submission_type %>"></th>
           <th class="preview-header"></th>
@@ -262,7 +262,7 @@
             </td>
             <td class="file-upload-submission-turnitin">
               <%=
-                render partial: 'submissions/originality_score', locals: {
+                render partial: "submissions/originality_score", locals: {
                   attachment:,
                   show_updated_icons: show_updated_plagiarism_icons
                 }
@@ -277,14 +277,14 @@
               <% unread_annotations = @current_user&.unread_submission_annotations?(@submission) %>
               <% if attachment.canvadoc.try(:has_annotations?) %>
                   <% preview_document = if unread_annotations
-                                          t('Preview your submission and view teacher feedback. There are unread comments.')
+                                          t("Preview your submission and view teacher feedback. There are unread comments.")
                                         else
-                                          t('preview_crocodoc_document', 'Preview your submission and view teacher feedback, if available')
+                                          t("preview_crocodoc_document", "Preview your submission and view teacher feedback, if available")
                                         end
-                     button_text = t('view_feedback_button', 'View Feedback') %>
+                     button_text = t("view_feedback_button", "View Feedback") %>
               <% elsif attachment.canvadocable? %>
-                <% preview_document = t('preview_submission', 'Preview your submission')
-                   button_text = t('view_preview_button', 'Preview') %>
+                <% preview_document = t("preview_submission", "Preview your submission")
+                   button_text = t("view_preview_button", "Preview") %>
               <% end %>
               <% if attachment.canvadocable? %>
                 <a
@@ -310,13 +310,13 @@
     </table>
   <% end %>
 
-  <% js_bundle 'submissions_show_preview_upload' %>
+  <% js_bundle "submissions_show_preview_upload" %>
 <% elsif @submission.submission_type == "online_quiz" &&  @assignment&.quiz&.id %>
   <meta HTTP-EQUIV="REFRESH" content="0; url=<%= context_url(@context, :context_quiz_history_url, @assignment.quiz.id, user_id: @submission.user_id, hide_student_name: params[:hide_student_name], headless: 1, version: @submission.quiz_submission_version) %>"/>
   <div style="text-align: center;">
-    <%= t('quiz_submission', 'This submission was a quiz submission.  Redirecting to quiz page.') %>
+    <%= t("quiz_submission", "This submission was a quiz submission.  Redirecting to quiz page.") %>
   </div>
-<% elsif @submission.submission_type == 'media_recording' && @submission.media_comment_id %>
+<% elsif @submission.submission_type == "media_recording" && @submission.media_comment_id %>
   <% wrapper = tag.div do
        tag.a "\\1",
              href: "#",
@@ -324,15 +324,15 @@
              "data-media_comment_id": @submission.media_comment_id,
              "data-media_comment_type": @submission.media_comment_type
      end %>
-  <%= t('media_comment_link', "This submission is a media recording. *click here to view.*", wrapper:) %>
+  <%= t("media_comment_link", "This submission is a media recording. *click here to view.*", wrapper:) %>
   <div style="width: 400px; margin: 10px auto;" id="media_recording_box">
     <div id="box_content" class="box_content">
     </div>
   </div>
   <div class="media_comment_id" style="display: none;"><%= @submission.media_comment_id %></div>
 
-  <% js_bundle 'submissions_show_preview_media' %>
-<% elsif @submission.submission_type == 'basic_lti_launch' %>
+  <% js_bundle "submissions_show_preview_media" %>
+<% elsif @submission.submission_type == "basic_lti_launch" %>
   <meta HTTP-EQUIV="REFRESH" content="0; url=<%= presenter.submission_details_tool_launch_url %>"/>
 <% elsif @submission.submission_type == "student_annotation" %>
   <div class="ef-file-preview-stretch">
@@ -346,10 +346,10 @@
   </div>
 <% elsif @submission.has_submission? || @assignment.expects_external_submission? %>
   <div style="margin: 20px auto; width: 400px; height: 50px; font-size: 1.5em;  font-weight: bold;">
-    <%= t('no_preview_available', 'No Preview Available') %>
+    <%= t("no_preview_available", "No Preview Available") %>
   </div>
 <% else %>
   <div style="margin: 20px auto; width: 200px; height: 50px; font-size: 1.5em;  font-weight: bold;">
-    <%= t('no_submission', 'No Submission') %>
+    <%= t("no_submission", "No Submission") %>
   </div>
 <% end %>

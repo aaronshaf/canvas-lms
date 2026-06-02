@@ -23,7 +23,7 @@
     end
   end
 %>
-<% content_for :page_title, t('title', 'Page Not Found') %>
+<% content_for :page_title, t("title", "Page Not Found") %>
 
 <%
   js_bundle :not_found_index
@@ -34,7 +34,7 @@
   <div id="not_found_root"></div>
 
 <div class="ic-Error-page">
-  <h1><%= t('headings.page', %{Page Not Found}) %></h1>
+  <h1><%= t("headings.page", %(Page Not Found)) %></h1>
   <% if @not_found_message %>
     <p><%= @not_found_message %></p>
   <% end %>

@@ -17,7 +17,7 @@
 %>
 
 <h1>
-  <%= t('headers.requires_lockdown', "Respondus LockDown Browser Required") %>
+  <%= t("headers.requires_lockdown", "Respondus LockDown Browser Required") %>
 </h1>
 
 <p>
@@ -27,6 +27,6 @@
 <% unless @lockdown_browser_download_url.blank? %>
   <p>
     <%= before_label(:download_lockdown, "If you have not already installed the browser, please download it from here") %>
-    <%= link_to(t('links.download_lockdown', "[Download Respondus LockDown Browser]"), @lockdown_browser_download_url) %>
+    <%= link_to(t("links.download_lockdown", "[Download Respondus LockDown Browser]"), @lockdown_browser_download_url) %>
   </p>
 <% end %>

@@ -21,11 +21,11 @@
     <div class="span6 notify">
       <label for="quiz_notify_of_update" class="checkbox">
         <input type="checkbox" name="quiz[notify_of_update]" id="quiz_notify_of_update" value="1" />
-        <%= t('Notify users this quiz has changed') %>
+        <%= t("Notify users this quiz has changed") %>
       </label>
     </div>
     <div class="span6">
-      <%= link_to (clean_return_to(params[:return_to]) || context_url(@context, :context_quiz_url, @quiz)), role: 'button', class: 'btn', id: 'cancel_button' do %>
+      <%= link_to (clean_return_to(params[:return_to]) || context_url(@context, :context_quiz_url, @quiz)), role: "button", class: "btn", id: "cancel_button" do %>
         <%= t("Cancel") %>
       <% end %>
       <% unless @quiz.published || @context.horizon_course? %>

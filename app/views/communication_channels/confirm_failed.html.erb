@@ -30,15 +30,15 @@
   </header>
   <div class="ic-Login-confirmation__content">
     <h2 class="ic-Login-confirmation__headline">
-      <%= t 'titles.problems_with_registration', "Problem with Registration" %>
+      <%= t "titles.problems_with_registration", "Problem with Registration" %>
     </h2>
     <p><%= t :details,
-             %{It looks like you may have already confirmed your registration.  Try
+             %(It looks like you may have already confirmed your registration.  Try
     *logging in*
     with the email address and password you registered.  If you can't remember
     your password, click the "Forgot Password" link and you should get a new link
-    that you can use to log in and re-set your password.},
-             wrapper: %{<a href="#{login_url}"><b>\\1</b></a>} %></p>
+    that you can use to log in and re-set your password.),
+             wrapper: %(<a href="#{login_url}"><b>\\1</b></a>) %></p>
     <% if show_feedback_link? %>
       <p>
       <%= t "If you keep having problems, click the \"%{link}\" link below to search the guides

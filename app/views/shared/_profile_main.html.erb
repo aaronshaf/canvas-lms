@@ -19,7 +19,7 @@
 <%
   css_bundle :profile_show, :tinymce
   js_bundle :profile_show
-  add_body_class 'not-editing'
+  add_body_class "not-editing"
   js_env({ PROFILE: @user_data }) if @user_data[:can_edit]
   js_env({ folder_id: @user.profile_pics_folder.id }) if @user == @current_user
 
@@ -36,8 +36,8 @@
         <div class="image-block-image profile-avatar-wrapper">
           <% if @user_data[:can_edit_avatar] %>
             <%= avatar(@user_data[:id], size: image_size, url: nil, edit: true, class: "profile_pic_link") %>
-                <button id="profile-edit-link" class="btn btn-small profile-edit-link" aria-label="<%= t('Click to change profile picture for %{display_name}', display_name: @user.short_name) %>">
-                    <%= t('Edit Profile Picture') %>
+                <button id="profile-edit-link" class="btn btn-small profile-edit-link" aria-label="<%= t("Click to change profile picture for %{display_name}", display_name: @user.short_name) %>">
+                    <%= t("Edit Profile Picture") %>
                 </button>
                 <div id="avatar-modal-mount"></div>
           <% else %>
@@ -54,23 +54,23 @@
           </div>
         </div>
         <% elsif !inst_env_feature_enabled || (!inst_env_feature_enabled && is_roster_page) %>
-          <%= render 'shared/profile_form' %>
+          <%= render "shared/profile_form" %>
         <% end %>
     </div>
     <div  class="button-area-block">
       <% if @user_data[:can_edit] && !can_do(@domain_root_account, @current_user, :manage) %>
-        <button data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t('edit_profile', 'Edit Profile') %></button>
+        <button data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t("edit_profile", "Edit Profile") %></button>
         <button data-event="cancelEditProfile" class="show-if-editing Button">
           <% unless inst_env_feature_enabled %>
             <i class="icon-edit"></i>
           <% end %>
-          <%= t('cancel_editing', 'Cancel Editing') %></button>
+          <%= t("cancel_editing", "Cancel Editing") %></button>
       <% elsif @user_data[:can_edit] && can_do(@domain_root_account, @current_user, :manage) %>
         <% if inst_env_feature_enabled %>
-          <button tabindex="1" data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t('edit_profile', 'Edit Profile') %></button>
-          <button tabindex="1" data-event="cancelEditProfile" class="show-if-editing Button"><%= t('cancel_editing', 'Cancel Editing') %></button>
-          <%= button_to user_path(@user.id), method: :get, role: 'menuitem', class: 'btn', tabindex: '2' do %>
-            <i class="icon-info"></i> <%= t('links.user_account_details', %{Account Details}) %>
+          <button tabindex="1" data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t("edit_profile", "Edit Profile") %></button>
+          <button tabindex="1" data-event="cancelEditProfile" class="show-if-editing Button"><%= t("cancel_editing", "Cancel Editing") %></button>
+          <%= button_to user_path(@user.id), method: :get, role: "menuitem", class: "btn", tabindex: "2" do %>
+            <i class="icon-info"></i> <%= t("links.user_account_details", %(Account Details)) %>
           <% end %>
         <% else %>
           <div class="al-dropdown__container">
@@ -79,11 +79,11 @@
               <span class="screenreader-only">More</span>
             </a>
             <ul aria-labeledby="profileDropdown" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false" >
-              <li class="hide-if-editing"><a data-event="editProfile" role="menuitem"><%= t('edit_profile', 'Edit Profile') %></a></li>
-              <li class="show-if-editing"><a data-event="cancelEditProfile" role="menuitem"><%= t('cancel_editing', 'Cancel Editing') %></a></li>
-              <li><a href="<%= user_path(@user.id) %>" role="menuitem"><%= t('links.user_account_details', %{Account Details}) %></a></li>
+              <li class="hide-if-editing"><a data-event="editProfile" role="menuitem"><%= t("edit_profile", "Edit Profile") %></a></li>
+              <li class="show-if-editing"><a data-event="cancelEditProfile" role="menuitem"><%= t("cancel_editing", "Cancel Editing") %></a></li>
+              <li><a href="<%= user_path(@user.id) %>" role="menuitem"><%= t("links.user_account_details", %(Account Details)) %></a></li>
               <% if @user != @current_user %>
-                <li><a href="<%= user_profile_url(@user, become_user_id: @user) %>" role="menuitem"> <%= t('Act as User') %></a></li>
+                <li><a href="<%= user_profile_url(@user, become_user_id: @user) %>" role="menuitem"> <%= t("Act as User") %></a></li>
               <% end %>
             </ul>
           </div>
@@ -92,5 +92,5 @@
     </div>
   </div>
 <% if inst_env_feature_enabled %>
-  <%= render 'shared/profile_form' %>
+  <%= render "shared/profile_form" %>
 <% end %>

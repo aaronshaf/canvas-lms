@@ -22,16 +22,16 @@
       instance_variable_set(name, nil)
     end
   end
-  add_body_class 'full-width'
+  add_body_class "full-width"
 %>
-<% provide :page_title, t('title', 'Page Error') %>
+<% provide :page_title, t("title", "Page Error") %>
 
 <div class="ic-Error-page">
   <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/500_pageerror.svg">
-  <h1><%= t('headings.page', %{Page Error}) %></h1>
+  <h1><%= t("headings.page", %(Page Error)) %></h1>
   <p><%= t("Something broke unexpectedly.") %>
   <br><%= t("If you have a moment, *click here to tell us what happened*.", wrapper: '<a href="#" class="submit_error_link">\1</a>') %></p>
   <div class="ic-Error-form">
-    <%= render partial: "shared/errors/error_form", locals: { error_category: '500' } %>
+    <%= render partial: "shared/errors/error_form", locals: { error_category: "500" } %>
   </div>
 </div>

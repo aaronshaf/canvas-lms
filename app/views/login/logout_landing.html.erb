@@ -27,14 +27,14 @@
     <div class="ic-Login__content">
       <div class="ic-Login__innerContent">
         <div class="ic-Login__header">
-          <%= render partial: 'login/shared/header_logo' %>
+          <%= render partial: "login/shared/header_logo" %>
         </div>
         <div class="ic-Login__body">
           <h1 class="ic-Login__title">
-            <%= t 'Logged Out' %>
+            <%= t "Logged Out" %>
           </h1>
           <p class="ic-Login__text">
-            <%= t 'You are logged out of Canvas.' %>
+            <%= t "You are logged out of Canvas." %>
           </p>
           <div class="ic-Login__actions">
             <%= link_to(t("Click here to log in again"), login_url, class: "ic-Login__link") %>

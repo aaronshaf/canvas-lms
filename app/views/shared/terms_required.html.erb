@@ -17,7 +17,7 @@
 %>
 
 <%
-  provide :page_title, t('updated_terms_of_use', 'Updated Acceptable Use Policy')
+  provide :page_title, t("updated_terms_of_use", "Updated Acceptable Use Policy")
 
   js_bundle :terms_of_use
   css_bundle :login_confirm
@@ -32,7 +32,7 @@
     <%= image_tag("login/canvas-logo@2x.png", class: "ic-Login-confirmation__logo", alt: "Canvas by Instructure") %>
   </header>
   <div class="ic-Login-confirmation__content">
-    <h2 class="ic-Login-confirmation__headline"><%= t('Acceptable Use Policy') %></h2>
+    <h2 class="ic-Login-confirmation__headline"><%= t("Acceptable Use Policy") %></h2>
     <% if @domain_root_account.terms_required? %>
       <% js_bundle :terms_of_service_modal %>
     <% end %>

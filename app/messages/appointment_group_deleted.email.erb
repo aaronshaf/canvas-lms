@@ -3,14 +3,14 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t('subject', 'Appointments for "%{appointment_name}" have been canceled (%{course})', appointment_name: asset.title, course: asset.contexts_for_user(user).map(&:name).join(", ")) %>
+  <%= t("subject", 'Appointments for "%{appointment_name}" have been canceled (%{course})', appointment_name: asset.title, course: asset.contexts_for_user(user).map(&:name).join(", ")) %>
 <% end %>
 
 <%= t :message, 'All appointments for "%{appointment_name}" have been canceled.', appointment_name: asset.title %>
 
 <%= before_label :details, "Appointment details" %>
 <%= before_label :dates, "Date(s)" %> <%= date_string(asset.start_at, asset.end_at, :no_words) %>
-<%= before_label :course, "Course" %> <%= if asset.participant_type == 'Group'
+<%= before_label :course, "Course" %> <%= if asset.participant_type == "Group"
                                             asset.contexts.first.name
                                           else
                                             asset.contexts_for_user(user).map(&:name).join(", ")

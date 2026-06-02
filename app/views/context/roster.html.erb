@@ -17,10 +17,10 @@
 %>
 
 <%
-  set_active_tab 'people'
-  add_crumb t('People'), context_url(@context, :context_users_url)
+  set_active_tab "people"
+  add_crumb t("People"), context_url(@context, :context_users_url)
 
-  translated_title = @context.is_a?(Course) ? t('Course Roster') : t('Group Roster')
+  translated_title = @context.is_a?(Course) ? t("Course Roster") : t("Group Roster")
   provide :page_title, join_title(translated_title, @context.name)
 
   css_bundle :roster, :addpeople
@@ -29,10 +29,10 @@
 
 <div class="ic-Action-header">
   <div class="ic-Action-header__Primary">
-    <h1 class="screenreader-only"><%= t('People') %></h1>
+    <h1 class="screenreader-only"><%= t("People") %></h1>
   </div>
   <div class="ic-Action-header__Secondary">
-    <%= render partial: 'context/roster_right_side' %>
+    <%= render partial: "context/roster_right_side" %>
   </div>
 </div>
 <% if @context.is_a?(Course) %>

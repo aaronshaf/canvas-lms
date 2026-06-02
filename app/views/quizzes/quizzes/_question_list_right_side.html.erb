@@ -16,8 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<h3 style="margin: 0px;"><%= t('headers.questions', "Questions") %></h3>
-<ul id="question_list" style="max-height: 200px; overflow: auto;" class="<%= 'read_only' if @quiz_presenter.cant_go_back? %>">
+<h3 style="margin: 0px;"><%= t("headers.questions", "Questions") %></h3>
+<ul id="question_list" style="max-height: 200px; overflow: auto;" class="<%= "read_only" if @quiz_presenter.cant_go_back? %>">
   <% @quiz_presenter.all_questions.each do |q| %>
     <% icon   = @quiz_presenter.answered_icon(q) %>
     <% text   = @quiz_presenter.answered_text(q) %>

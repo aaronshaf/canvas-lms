@@ -18,7 +18,7 @@
 
 <ul class='student-assignment-overview'>
   <li>
-    <span class='title'><%= t :due_at, 'Due' %></span>
+    <span class='title'><%= t :due_at, "Due" %></span>
     <span class='value'>
           <span class="date_text">
             <% if @assignment.multiple_due_dates? %>
@@ -27,43 +27,43 @@
               <% ot(:date_time_by,
                     "%{date} by %{time}",
                     date: capture do %>
-                <span class="display_date"><%= date_string(@assignment.due_at) rescue '' %></span>
+                <span class="display_date"><%= date_string(@assignment.due_at) rescue "" %></span>
               <% end,
                     time: capture do %>
-                <span class="display_time"><%= time_string(@assignment.due_at) rescue '' %></span>
+                <span class="display_time"><%= time_string(@assignment.due_at) rescue "" %></span>
                     <% end) %>
             <% else %>
-              <%= t :no_due_date, 'No Due Date' %>
+              <%= t :no_due_date, "No Due Date" %>
             <% end %>
           </span><!--
         --></span>
   </li>
   <% unless @assignment.restrict_quantitative_data?(@current_user) %>
     <li>
-      <span class='title'><%= t :points, 'Points' %></span>
-      <span class='value'><%= n(round_if_whole(@assignment.points_possible)) || t(:no_points, 'None') %></span>
+      <span class='title'><%= t :points, "Points" %></span>
+      <span class='value'><%= n(round_if_whole(@assignment.points_possible)) || t(:no_points, "None") %></span>
     </li>
   <% end %>
   <% if @assignment.expects_submission? || @assignment.expects_external_submission? %>
-    <% turnitin_text = turnitin_active? ? ' ' + t(:turnitin_enabled_short, '(Turnitin enabled)') : '' %>
+    <% turnitin_text = turnitin_active? ? " " + t(:turnitin_enabled_short, "(Turnitin enabled)") : "" %>
     <li>
-      <span class='title'><%= t :submitting, 'Submitting' %></span>
+      <span class='title'><%= t :submitting, "Submitting" %></span>
       <span class='value'><%= @assignment.readable_submission_types + turnitin_text %></span>
     </li>
-    <% if @assignment.submission_types.include?('online_upload') && @assignment.allowed_extensions.present? -%>
+    <% if @assignment.submission_types.include?("online_upload") && @assignment.allowed_extensions.present? -%>
       <li>
-        <span class='title'><%= t :submission_types, 'File Types' %></span>
+        <span class='title'><%= t :submission_types, "File Types" %></span>
         <span class='value'><%= @assignment.allowed_extensions.to_sentence %></span>
       </li>
     <% end %>
   <% end %>
   <% if @assignment.allowed_attempts&.> 0 %>
     <li>
-      <span class='title'><%= t :attempts, 'Attempts' %></span>
+      <span class='title'><%= t :attempts, "Attempts" %></span>
       <span class='value'><%= @current_user_submission&.attempt || 0 %></span>
     </li>
     <li>
-      <span class='title'><%= t :allowed_attempts, 'Allowed Attempts' %></span>
+      <span class='title'><%= t :allowed_attempts, "Allowed Attempts" %></span>
       <span class='value'><%= @assignment.allowed_attempts + (@current_user_submission&.extra_attempts || 0) %></span>
     </li>
   <% end %>

@@ -19,20 +19,20 @@
 <%
   module_item_conditional_next ||= nil
   module_item ||= module_item_conditional_next
-  item_data ||= { published_status: 'unpublished' }
+  item_data ||= { published_status: "unpublished" }
 %>
 
 <li
-  id="context_module_item_<%= module_item ? module_item.id : 'blank' %>"
-  class="context_module_item context_module_item_conditional_info indent_<%= module_item.try_rescue(:indent) || '0' %>"
+  id="context_module_item_<%= module_item ? module_item.id : "blank" %>"
+  class="context_module_item context_module_item_conditional_info indent_<%= module_item.try_rescue(:indent) || "0" %>"
 >
   <div class="ig-row mastery_path_row">
 <%
   if item_data[:mastery_paths][:locked]
 %>
-    <span class="type_icon" title="<%= t('Locked Content') %>">
+    <span class="type_icon" title="<%= t("Locked Content") %>">
       <span class="ig-type-icon">
-        <i class="icon-lock" aria-label="<%= t('Item type: Locked') %>"></i>
+        <i class="icon-lock" aria-label="<%= t("Item type: Locked") %>"></i>
       </span>
     </span>
     <div class="ig-info">
@@ -47,29 +47,29 @@
 <%
   elsif item_data[:mastery_paths][:awaiting_choice]
 %>
-    <span class="type_icon" title="<%= t('Content Choice') %>">
+    <span class="type_icon" title="<%= t("Content Choice") %>">
       <span class="ig-type-icon">
-        <i class="icon-unlock" aria-label="<%= t('Item type: Choice') %>"></i>
+        <i class="icon-unlock" aria-label="<%= t("Item type: Choice") %>"></i>
       </span>
     </span>
     <div class="ig-info">
       <div class="module-item-title">
         <span class="item_name">
-          <a href="<%= item_data[:choose_url] %>" title="<%= t('Choose Assignment Group') %>" class="ig-title">
-            <%= t('Choose Assignment Group') %>
+          <a href="<%= item_data[:choose_url] %>" title="<%= t("Choose Assignment Group") %>" class="ig-title">
+            <%= t("Choose Assignment Group") %>
           </a>
         </span>
         <span class='conditional_options_count'>
-          <%= t({ one: '1 Option', other: '%{count} Options' }, { count: item_data[:mastery_paths][:assignment_sets].count }) %>
+          <%= t({ one: "1 Option", other: "%{count} Options" }, { count: item_data[:mastery_paths][:assignment_sets].count }) %>
         </span>
       </div>
     </div>
 <%
   elsif item_data[:mastery_paths][:still_processing]
 %>
-    <span class="type_icon" title="<%= t('Mastery path processing') %>">
+    <span class="type_icon" title="<%= t("Mastery path processing") %>">
       <span class="ig-type-icon">
-        <i class="icon-lock" aria-label="<%= t('Item type: Locked') %>"></i>
+        <i class="icon-lock" aria-label="<%= t("Item type: Locked") %>"></i>
       </span>
     </span>
     <div class="ig-info">

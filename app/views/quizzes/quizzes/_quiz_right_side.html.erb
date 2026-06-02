@@ -30,13 +30,13 @@
     <table class="summary" style="font-size: 1.1em;">
       <% if @submission.pending_review? %>
       <tfoot>
-        <tr style="<%= hidden if @quiz.quiz_type == 'survey' %>">
+        <tr style="<%= hidden if @quiz.quiz_type == "survey" %>">
           <td colspan="2" class="footnote">
             *
             <% if can_do(@quiz, @current_user, :grade) && !@quiz.survey? %>
-              <%= link_to t(:questions_not_graded, 'Some questions not yet graded'), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
+              <%= link_to t(:questions_not_graded, "Some questions not yet graded"), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
             <% else %>
-              <%= t(:questions_not_graded, 'Some questions not yet graded') %>
+              <%= t(:questions_not_graded, "Some questions not yet graded") %>
             <% end %>
           </td>
         </tr>
@@ -48,20 +48,20 @@
           <td><%= duration_in_minutes((@submission.finished_at || @submission.end_at || @submission.started_at) - @submission.started_at) %></td>
         </tr>
         <% if @submission.posted? %>
-        <tr style="<%= hidden if @quiz.quiz_type == 'survey' %>">
+        <tr style="<%= hidden if @quiz.quiz_type == "survey" %>">
           <th><%= before_label(:current_score, "Current Score") %></th>
           <td><%= score_out_of_points_possible(@submission.score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible) %>
                   <% if @submission.pending_review? %>
-                    <span aria-label="<%= t(:questions_not_graded, 'Some questions not yet graded') %>">*</span>
+                    <span aria-label="<%= t(:questions_not_graded, "Some questions not yet graded") %>">*</span>
                   <% end %></td>
         </tr>
-        <tr style="<%= hidden if @quiz.quiz_type == 'survey' %>">
+        <tr style="<%= hidden if @quiz.quiz_type == "survey" %>">
           <th><%= before_label(:kept_score, "Kept Score") %></th>
           <td><%= score_out_of_points_possible(@submission.kept_score, params[:preview] ? @submission.points_possible_at_submission_time : @quiz.points_possible) %></td>
         </tr>
           <% if @submission.manually_scored %>
             <tr>
-              <td colspan="2"><%= t('score_set_manually', 'This score was set by the teacher') %></td>
+              <td colspan="2"><%= t("score_set_manually", "This score was set by the teacher") %></td>
             </tr>
           <% end %>
         <% end %>
@@ -71,11 +71,11 @@
   </div>
     <% if @submission && params[:preview] %>
       <%= link_to context_url(@context, :context_quiz_take_url, @quiz.id, preview: 1), method: :post do %>
-        <%= @quiz.survey? ? t('links.preview_survey_again', "Preview the Survey Again") : t('links.preview_quiz_again', "Preview the Quiz Again") %>
+        <%= @quiz.survey? ? t("links.preview_survey_again", "Preview the Survey Again") : t("links.preview_quiz_again", "Preview the Quiz Again") %>
       <% end %>
       <br/>
     <% elsif !@quiz.single_attempt? || can_do(@quiz, @current_user, :update) %>
-      <div style="margin-<%= direction('left') %>: 20px; margin-top: 20px; line-height: 1.3em;">
+      <div style="margin-<%= direction("left") %>: 20px; margin-top: 20px; line-height: 1.3em;">
         <% if (@submission.attempt > 1 || (@submission.attempt == 1 && can_do(@quiz, @current_user, :update))) &&
               (can_do(@quiz, @current_user, :grade) || @submission.posted?) %>
           <%= t(:attempts_so_far, { one: "1 Attempt so far", other: "%{count} Attempts so far" }, count: @submission.attempt) %><br/>
@@ -96,7 +96,7 @@
         <div style="margin-top: 10px; font-size: 1.2em;">
         <% if (!@locked && (@quiz.unlimited_attempts? || @submission.attempts_left > 0)) || can_do(@quiz, @current_user, :update) %>
           <%= link_to_take_or_retake_poll %><br/>
-          <span style="font-size: 0.7em; padding-<%= direction('left') %>: 20px;">
+          <span style="font-size: 0.7em; padding-<%= direction("left") %>: 20px;">
             (<%= score_to_keep_message %>)
           </span>
         <% end %>

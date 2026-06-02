@@ -24,7 +24,7 @@
     sub_account_ids = Account.sub_account_ids_recursive(account.id)
 
     Account.where(id: sub_account_ids)
-           .order(Account.best_unicode_collation_key('name'))
+           .order(Account.best_unicode_collation_key("name"))
            .find_in_batches(batch_size: 1000) do |accounts|
       accounts.each do |acct|
         (preloaded_accounts[acct.parent_account_id] ||= []) << acct

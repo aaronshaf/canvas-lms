@@ -25,7 +25,7 @@
   grade = nil
   score = nil
 
-  cache(['recent_feedback_render3', @current_user&.course_nickname_hash, recent_feedback || 'blank_feedback', Time.zone.utc_offset].cache_key) do
+  cache(["recent_feedback_render3", @current_user&.course_nickname_hash, recent_feedback || "blank_feedback", Time.zone.utc_offset].cache_key) do
      assignment = recent_feedback.assignment
      preserve_grade = ["letter_grade", "pass_fail"].include?(recent_feedback.assignment.grading_type)
      context = recent_feedback.assignment.context
@@ -38,9 +38,9 @@
        discussion_topic = parent_assignment.discussion_topic || DiscussionTopic.find_by(old_assignment_id: parent_assignment.id)
        num_replies = discussion_topic&.reply_to_entry_required_count || 1
        title = if assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC
-                 t('%{title} Reply to Topic', { title: })
+                 t("%{title} Reply to Topic", { title: })
                elsif assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY
-                 t('%{title} Required Replies (%{num_replies})', { title:, num_replies: })
+                 t("%{title} Required Replies (%{num_replies})", { title:, num_replies: })
                end
      else
        assignment_id = recent_feedback.assignment_id
@@ -73,7 +73,7 @@
     <div class="event-details">
       <% if comment&.media_comment? %>
         <% kaltura_thumbnail_url = CanvasKaltura::ClientV3.new.thumbnail_url(comment.media_comment_id, width: 50, height: 35, bgcolor: "F3F4F5") %>
-        <img src="<%= kaltura_thumbnail_url %>" style="max-width: 50px; max-height: 35px; float: <%= direction('right') %>; padding-<%= direction('left') %>: 3px;" alt=""/>
+        <img src="<%= kaltura_thumbnail_url %>" style="max-width: 50px; max-height: 35px; float: <%= direction("right") %>; padding-<%= direction("left") %>: 3px;" alt=""/>
       <% end %>
       <b class="event-details__title recent_feedback_title">
         <%= title %>

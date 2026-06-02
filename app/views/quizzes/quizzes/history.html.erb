@@ -18,13 +18,13 @@
 <%
   hide_student_name = params[:hide_student_name]&.to_i&.nonzero?
   user_name = if hide_student_name || @quiz.anonymous_survey?
-                t('Student')
+                t("Student")
               else
                 context_user_name(@context, @user)
               end
 
   if !user_name && !@submission.user_id
-    user_name = t('Logged Out User %{index}', index: @logged_out_user_index)
+    user_name = t("Logged Out User %{index}", index: @logged_out_user_index)
   end
 %>
 <% provide :page_title, (if @quiz.survey?
@@ -33,9 +33,9 @@
                            join_title(t(:page_title_quiz, "%{user}'s Quiz History", user: user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", course_name: @context.name))
                          end) %>
 
-<% quiz_nav_class = 'quiz-nav' %>
+<% quiz_nav_class = "quiz-nav" %>
 <% unless params[:headless] %>
-  <% quiz_nav_class = 'quiz-nav-fullpage' %>
+  <% quiz_nav_class = "quiz-nav-fullpage" %>
 <% end %>
 
 <% if @current_user.preferences[:enable_speedgrader_grade_by_question] %>
@@ -49,8 +49,8 @@
         <ul>
           <% @submission.questions.each_with_index do |question, i| %>
             <% index = i + 1 %>
-            <li id='quiz_nav_<%= question['id'] %>' class="q<%= index %> quiz-nav-li" data-id='<%= question['id'] %>' data-index='<%= i %>'>
-              <a class='question_<%= question['id'] %> question-nav-link' data-id='<%= question['id'] %>' href="#question_<%= question['id'] %>">
+            <li id='quiz_nav_<%= question["id"] %>' class="q<%= index %> quiz-nav-li" data-id='<%= question["id"] %>' data-index='<%= i %>'>
+              <a class='question_<%= question["id"] %> question-nav-link' data-id='<%= question["id"] %>' href="#question_<%= question["id"] %>">
                 <%= index %>
               </a>
             </li>
@@ -87,9 +87,9 @@
     <% unless params[:headless] %>
         <h2>
           <% if @quiz.survey? %>
-            <%= t('headers.survey_submissions', "Survey Submissions") %>
+            <%= t("headers.survey_submissions", "Survey Submissions") %>
           <% else %>
-            <%= t('headers.quiz_submissions', "Quiz Submissions") %>
+            <%= t("headers.quiz_submissions", "Quiz Submissions") %>
           <% end %>
         </h2>
       <div>
@@ -98,11 +98,11 @@
           <li class="quiz_version <%= "selected" if version_instance.version_number == @submission.version_number %>">
             <a class="no-hover" href="?version=<%= version_instance.version_number %><%= "&user_id=#{@submission.user_id}" if @current_user.id != @submission.user_id %>">
               <% if version_instance.pending_review? %>
-                <% needs_review_title = t('titles.submission_needs_review', "This submission needs review") %>
+                <% needs_review_title = t("titles.submission_needs_review", "This submission needs review") %>
                 <% if can_do(@quiz, @current_user, :grade) %>
                   <i class="icon-warning" title="<%= needs_review_title %>"><span class="screenreader-only"><%= needs_review_title %></span></i>
                 <% else %>
-                  <% pending_review_title = t('titles.score_pending_review', "This score is pending review, and may change") %>
+                  <% pending_review_title = t("titles.score_pending_review", "This score is pending review, and may change") %>
                   <i class="icon-hour-glass" title="<%= pending_review_title %>"><span class="screenreader-only"><%= pending_review_title %></span></i>
                 <% end %>
               <% end %>
@@ -121,7 +121,7 @@
             <% if can_do(@submission, @current_user, :add_attempts) %>
               <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: { method: :post } do %>
                 <input type="hidden" name="extra_attempts" value="<%= (@current_submission.extra_attempts || 0) + 1 %>"/>
-                <button type="submit" class="btn"><%= t('buttons.allow_extra_attempt', "Allow this student an extra attempt") %></button>
+                <button type="submit" class="btn"><%= t("buttons.allow_extra_attempt", "Allow this student an extra attempt") %></button>
               <% end %>
             <% end %>
           <% elsif @quiz.survey? %>
@@ -130,7 +130,7 @@
             <%= t(:quiz_unlimited_attempts, "This quiz has unlimited attempts") %>
           <% end %>
         </div>
-        <a href="<%= context_url(@context, :context_quiz_url, @quiz) %>" class='no-hover icon-arrow-left'> <%= @quiz.survey? ? t('links.back_to_survey', "Back to Survey") : t('links.back_to_quiz', "Back to Quiz") %></a>
+        <a href="<%= context_url(@context, :context_quiz_url, @quiz) %>" class='no-hover icon-arrow-left'> <%= @quiz.survey? ? t("links.back_to_survey", "Back to Survey") : t("links.back_to_quiz", "Back to Quiz") %></a>
       </div>
     <% end %>
   <% end %>
@@ -147,7 +147,7 @@
     <% end %>
 
     <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, @current_user, :view_log) %>
-      <%= link_to t(:view_log, 'View Log'),
+      <%= link_to t(:view_log, "View Log"),
                   course_quiz_quiz_submission_events_url(@context, @quiz, @submission),
                   { "class" => "pull-right" } %>
     <% end %>

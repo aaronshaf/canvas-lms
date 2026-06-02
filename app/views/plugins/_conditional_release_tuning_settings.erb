@@ -20,7 +20,7 @@
   <table style="width: 500px;" class="formtable">
     <tr>
       <td><%= f.blabel :priority, en: "Conditional release handler priority" %></td>
-      <td><%= f.select :priority, [t('low'), t('medium'), t('high')], selected: settings[:priority] %></td>
+      <td><%= f.select :priority, [t("low"), t("medium"), t("high")], selected: settings[:priority] %></td>
     </tr>
   </table>
 <% end %>

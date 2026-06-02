@@ -31,8 +31,8 @@
         </div>
       </td><td>
         <div class="select_answer answer_type">
-          <label for="answer_text"><b><%= t 'possible_answer', 'Possible Answer' %></b></label>
-          <input type="text" class="disabled_answer" style="width: 200px;" name="answer_text" aria-label="<%= t 'possible_answer', 'Possible Answer' %>" placeholder="<%= t('Answer Text') %>" />
+          <label for="answer_text"><b><%= t "possible_answer", "Possible Answer" %></b></label>
+          <input type="text" class="disabled_answer" style="width: 200px;" name="answer_text" aria-label="<%= t "possible_answer", "Possible Answer" %>" placeholder="<%= t("Answer Text") %>" />
           <input type="hidden" name="answer_html"/>
           <span class="answer_html" style="display:inline-block;width:100%;"></span>
         </div>
@@ -40,12 +40,12 @@
           <b class="answer_text" tabindex="0"></b>
         </div>
         <div class="short_answer answer_type">
-          <label class="short_answer_header" for="answer_text"><b><%= t 'possible_answer', 'Possible Answer' %></b></label>
-          <input type="text" name="answer_text" aria-label="<%= t 'possible_answer', 'Possible Answer' %>" placeholder="<%= t('Answer Text') %>"/>
+          <label class="short_answer_header" for="answer_text"><b><%= t "possible_answer", "Possible Answer" %></b></label>
+          <input type="text" name="answer_text" aria-label="<%= t "possible_answer", "Possible Answer" %>" placeholder="<%= t("Answer Text") %>"/>
         </div>
         <div class="matching_answer answer_match answer_type">
           <div class="answer_match_left">
-            <% matching_left_text = t('Matching left side') %>
+            <% matching_left_text = t("Matching left side") %>
             <input type="text" style="width: 85%;" name="answer_match_left" placeholder="<%= matching_left_text %>" aria-label="<%= matching_left_text %>"/>
           </div>
           <input type="hidden" name="answer_match_left_html"/>
@@ -53,33 +53,33 @@
           <div class="answer_match_middle">&nbsp;
           </div>
           <div class="answer_match_right">
-            <% matching_right_text = t('Matching right side') %>
+            <% matching_right_text = t("Matching right side") %>
             <input type="text" style="width: 95%;" name="answer_match_right" placeholder="<%= matching_right_text %>" aria-label="<%= matching_right_text %>"/>
           </div>
           <div class="clear"></div>
         </div>
         <div class="numerical_answer answer_type">
-          <select style="font-weight: bold;" class="numerical_answer_type" name="numerical_answer_type" aria-label="<%= t 'numerical_answer', 'Numerical Answer' %>">
+          <select style="font-weight: bold;" class="numerical_answer_type" name="numerical_answer_type" aria-label="<%= t "numerical_answer", "Numerical Answer" %>">
             <option value="exact_answer"><%= before_label(:exact_answer, "Exact Answer") %></option>
             <option value="range_answer"><%= before_label(:answer_in_range, "Answer in the Range") %></option>
             <option value="precision_answer"><%= before_label(:answer_with_precision, "Answer with Precision") %></option>
           </select>
           <span class="exact_answer numerical_answer_text">
             <%= t(:exact_answer_with_error_margin_accessible, "*exact answer* with error margin #error margin#", wrapper: {
-                    '*' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_exact" aria-label="\1"/>',
-                    '#' => '<input class="float_value long" type="text" style="width: 70px;" name="answer_error_margin" aria-label="\1"/>'
+                    "*" => '<input class="float_value long" type="text" style="width: 50px;" name="answer_exact" aria-label="\1"/>',
+                    "#" => '<input class="float_value long" type="text" style="width: 70px;" name="answer_error_margin" aria-label="\1"/>'
                   }) %>
           </span>
           <span class="range_answer numerical_answer_text">
             <%= t(:answer_in_range_accessible, "between *range start* and #range end#", wrapper: {
-                    '*' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_start" aria-label="\1"/>',
-                    '#' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_end" aria-label="\1"/>'
+                    "*" => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_start" aria-label="\1"/>',
+                    "#" => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_end" aria-label="\1"/>'
                   }) %>
           </span>
           <span class="precision_answer numerical_answer_text">
             <%= t(:answer_with_precision_accessible, "*exact answer* with precision #precision#", wrapper: {
-                    '*' => '<input class="float_value precision" type="text" style="width: 50px;" name="answer_approximate" aria-label="\1"/>',
-                    '#' => '<input class="precision_value" type="text" style="width: 50px;" name="answer_precision" aria-label="\1" title="' + t('number between 1 and 16 inclusive') + '"/>'
+                    "*" => '<input class="float_value precision" type="text" style="width: 50px;" name="answer_approximate" aria-label="\1"/>',
+                    "#" => '<input class="precision_value" type="text" style="width: 50px;" name="answer_precision" aria-label="\1" title="' + t("number between 1 and 16 inclusive") + '"/>'
                   }) %>
           </span>
         </div>
@@ -88,7 +88,7 @@
           <span class="id">&nbsp;</span>
           <span class="match_id">&nbsp;</span>
         </div>
-      </td><td style="vertical-align: top; padding-top: 0.5em; text-align: <%= direction('right') %>; width: 40px;">
+      </td><td style="vertical-align: top; padding-top: 0.5em; text-align: <%= direction("right") %>; width: 40px;">
         <div class="question_actions">
           <% edit_html_text = t("Toggle editing answer text as HTML") %>
           <% delete_html_text = t("Delete this Answer") %>

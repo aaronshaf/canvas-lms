@@ -22,14 +22,14 @@
                       js_env.dig(:MASTER_COURSE_DATA, "master_course_restrictions", :content)
 %>
 <div id="options_tab">
-  <%= form_tag context_url(@context, :context_quiz_url, @quiz.id), { method: :put, id: "quiz_options_form", class: 'form-horizontal-quiz' } do %>
+  <%= form_tag context_url(@context, :context_quiz_url, @quiz.id), { method: :put, id: "quiz_options_form", class: "form-horizontal-quiz" } do %>
     <div style="position: relative;">
       <div class="form-control title" id="quiz-title-container">
         <% if content_is_locked %>
           <h1 id="quiz_title" class="title"><%= @quiz.title %></h1>
           <input type="hidden" name="quiz[title]" value="<%= @quiz.title %>"/>
         <% else %>
-          <label for="quiz_title" class="bold form-control__label"><%= t('Quiz Title') %><span aria-hidden="true" class="asterisk"> *</span></label>
+          <label for="quiz_title" class="bold form-control__label"><%= t("Quiz Title") %><span aria-hidden="true" class="asterisk"> *</span></label>
           <%= text_field :quiz,
                          :title,
                          :maxlength => "254",
@@ -62,7 +62,7 @@
           <div class="controls">
             <select name="quiz[quiz_type]" id="quiz_assignment_id">
               <% %w[practice_quiz assignment graded_survey survey].each do |type| %>
-                <option value='<%= type %>' <%= 'selected' if @quiz.quiz_type == type %> ><%= render_quiz_type(type) %></option>
+                <option value='<%= type %>' <%= "selected" if @quiz.quiz_type == type %> ><%= render_quiz_type(type) %></option>
               <% end %>
             </select>
           </div>
@@ -75,7 +75,7 @@
               <% current_group_id = @quiz.assignment&.assignment_group_id || @quiz.assignment_group_id
                  @context.require_assignment_group %>
               <% @context.assignment_groups.active.each do |g| %>
-                <option value="<%= g.id %>" <%= 'selected' if g.id == current_group_id %>><%= g.name %></option>
+                <option value="<%= g.id %>" <%= "selected" if g.id == current_group_id %>><%= g.name %></option>
               <% end %>
             </select>
           </div>
@@ -176,7 +176,7 @@
               <div class="options" id="multiple_attempts_suboptions">
                 <div>
                   <label for="keep_score_select" class="inline"><%= t("Quiz Score to Keep") %></label>
-                  <%= select(:quiz, :scoring_policy, [[render_score_to_keep('keep_highest'), 'keep_highest'], [render_score_to_keep('keep_latest'), 'keep_latest'], [render_score_to_keep('keep_average'), 'keep_average']], {}, id: 'keep_score_select') %>
+                  <%= select(:quiz, :scoring_policy, [[render_score_to_keep("keep_highest"), "keep_highest"], [render_score_to_keep("keep_latest"), "keep_latest"], [render_score_to_keep("keep_average"), "keep_average"]], {}, id: "keep_score_select") %>
                 </div>
                 <div style="display: flex; margin-top:10px">
                   <label for="limit_attempts_option" class="checkbox inline nowrap">
@@ -205,7 +205,7 @@
             <% if @quiz.restrict_answers_for_concluded_course? %>
             <div class="option-group disabled">
               <label class="checkbox" for="never_hide_results">
-                <span data-tooltip title="<%= t('Students cannot view quiz responses after course concludes') %>">
+                <span data-tooltip title="<%= t("Students cannot view quiz responses after course concludes") %>">
                   <input id="never_hide_results" type="checkbox" disabled="disable" />
                   <%= t("Let Students See Their Quiz Responses (Incorrect Questions Will Be Marked in Student Feedback)") %>
                 </span>
@@ -215,14 +215,14 @@
             <div class="option-group">
               <label class="checkbox" for="never_hide_results">
                 <input type="hidden" name="quiz[hide_results][never]" value="0"/>
-                <input type="checkbox" name="quiz[hide_results][never]" value="1" id="never_hide_results" <%= 'checked' if @quiz.hide_results != 'always' %> />
+                <input type="checkbox" name="quiz[hide_results][never]" value="1" id="never_hide_results" <%= "checked" if @quiz.hide_results != "always" %> />
                 <%= t("Let Students See Their Quiz Responses (Incorrect Questions Will Be Marked in Student Feedback)") %>
               </label>
               <div class="show_quiz_results_options options">
                 <div id="hide_results_only_after_last_holder">
                   <label class="checkbox" for="hide_results_only_after_last">
                     <input type="hidden" name="quiz[hide_results][last_attempt]" value="0"/>
-                    <input type="checkbox" name="quiz[hide_results][last_attempt]" value="1" id="hide_results_only_after_last" <%= 'checked' if @quiz.hide_results == 'until_after_last_attempt' %> />
+                    <input type="checkbox" name="quiz[hide_results][last_attempt]" value="1" id="hide_results_only_after_last" <%= "checked" if @quiz.hide_results == "until_after_last_attempt" %> />
                     <%= t("Only After Their Last Attempt") %>
                   </label>
                 </div>
@@ -254,7 +254,7 @@
                     <div class="show-correct-answers form-control">
                       <div class="form-control__wrapper date_field_container inline">
                         <label for="quiz_show_correct_answers_at" class="inline form-control__label">
-                          <%= t('Show Correct Answers at') %>
+                          <%= t("Show Correct Answers at") %>
                         </label>
 
                         <label class="screenreader-only form-control__label" id="show_correct_answers_accessible_label">
@@ -280,7 +280,7 @@
                   <div class="hide-correct-answers form-control">
                     <div class="form-control__wrapper date_field_container inline">
                       <label for="quiz_hide_correct_answers_at" class="inline form-control__label">
-                        <%= t('Hide Correct Answers at') %>
+                        <%= t("Hide Correct Answers at") %>
                       </label>
 
                       <label class="screenreader-only form-control__label" id="hide_correct_answers_accessible_label">
@@ -316,9 +316,9 @@
               <label class="checkbox" for="quiz_one_question_at_a_time">
                 <%= hidden_field_tag "quiz[one_question_at_a_time]", "0", id: nil %>
                 <%= check_box_tag "quiz[one_question_at_a_time]", "1", @quiz.one_question_at_a_time?, class: "element_toggler" %>
-                <%= t('Show one question at a time') %>
+                <%= t("Show one question at a time") %>
               </label>
-              <div id="one_question_at_a_time_options" style="<%= 'display:none;' unless @quiz.one_question_at_a_time? %>" class="options">
+              <div id="one_question_at_a_time_options" style="<%= "display:none;" unless @quiz.one_question_at_a_time? %>" class="options">
                 <label class="checkbox" for="quiz_cant_go_back">
                   <%= hidden_field_tag "quiz[cant_go_back]", "0", id: nil %>
                   <%= check_box_tag "quiz[cant_go_back]", "1", @quiz.cant_go_back? %>
@@ -332,7 +332,7 @@
             <!-- Quiz Restrictions -->
             <div class="option-group">
               <label class="checkbox" for="enable_quiz_access_code">
-                <input type="checkbox" <%= 'checked' if @quiz.access_code.present? %> id="enable_quiz_access_code">
+                <input type="checkbox" <%= "checked" if @quiz.access_code.present? %> id="enable_quiz_access_code">
                 <%= t("Require an access code") %>
               </label>
 
@@ -343,15 +343,15 @@
                 <input type="text" tabindex="-1" name="quiz[access_code]" id="quiz_access_code"
                        value="<%= @quiz.access_code %>" aria-describedby="access_code_message"
                        class="form-control__input" />
-                <div class="form-control__message input-message__container" data-original-text="<%= t('ex: Password85') %>">
+                <div class="form-control__message input-message__container" data-original-text="<%= t("ex: Password85") %>">
                   <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
-                  <span id="access_code_message" class="input-message__text"><%= t('ex: Password85') %></span>
+                  <span id="access_code_message" class="input-message__text"><%= t("ex: Password85") %></span>
                 </div>
               </div>
             </div>
             <div class="option-group">
               <label class="checkbox" for="enable_quiz_ip_filter">
-                <input type="checkbox" <%= 'checked' if @quiz.ip_filter.present? %> id="enable_quiz_ip_filter">
+                <input type="checkbox" <%= "checked" if @quiz.ip_filter.present? %> id="enable_quiz_ip_filter">
                 <%= t("Filter IP Addresses") %>
               </label>
               <div class="form-control ip-filter options control-group screenreader-only" aria-hidden="<%= @quiz.ip_filter.present? %>">
@@ -363,11 +363,11 @@
                          id="quiz_ip_filter" value="<%= @quiz.ip_filter %>" maxlength="255"
                          aria-describedby="filter_ip_message"
                     />
-                  <%= link_to(image_tag("find.png", alt: t('Find IP Address Filter')), '#', :class => 'ip_filtering_link', :title => t('Find IP Address Filter'), 'aria-label' => t('Find IP Address Filter'), :tabindex => -1) %>
+                  <%= link_to(image_tag("find.png", alt: t("Find IP Address Filter")), "#", :class => "ip_filtering_link", :title => t("Find IP Address Filter"), "aria-label" => t("Find IP Address Filter"), :tabindex => -1) %>
                 </div>
-                <div class="form-control__message input-message__container" data-original-text="<%= t('ex: 192.168.217.1') %>">
+                <div class="form-control__message input-message__container" data-original-text="<%= t("ex: 192.168.217.1") %>">
                   <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
-                  <span id="filter_ip_message" class="input-message__text"><%= t('ex: 192.168.217.1') %></span>
+                  <span id="filter_ip_message" class="input-message__text"><%= t("ex: 192.168.217.1") %></span>
                 </div>
               </div>
             </div>

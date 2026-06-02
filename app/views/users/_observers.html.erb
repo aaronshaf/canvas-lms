@@ -17,13 +17,13 @@
 %>
 
 <% if can_do(@user, @current_user, :manage, :manage_user_details) %>
-  <% linked_observers_scope = @user&.linked_observers&.active&.where(workflow_state: 'registered')&.linked_through_root_account(@domain_root_account) %>
+  <% linked_observers_scope = @user&.linked_observers&.active&.where(workflow_state: "registered")&.linked_through_root_account(@domain_root_account) %>
   <% if linked_observers_scope&.exists? %>
     <% observers = linked_observers_scope.preload(:pseudonyms) %>
     <fieldset>
-      <legend><%= t('Observers') %></legend>
+      <legend><%= t("Observers") %></legend>
       <table class="ic-Table">
-        <caption class="screenreader-only"><%= t('List of observers for %{student_name}', student_name: @user.name) %></caption>
+        <caption class="screenreader-only"><%= t("List of observers for %{student_name}", student_name: @user.name) %></caption>
         <thead>
           <tr>
             <th scope="col"><%= t("Name") %></th>

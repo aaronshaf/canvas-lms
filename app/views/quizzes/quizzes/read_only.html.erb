@@ -20,16 +20,16 @@
   css_bundle :quizzes
   js_bundle :quizzes
   js_env({ QUIZZES: { QUIZ: true } })
-  provide :page_title, ((@quiz.quiz_title || !@quiz.quiz_title.empty?) ? @quiz.quiz_title : t(:default_page_title, 'New Quiz'))
+  provide :page_title, ((@quiz.quiz_title || !@quiz.quiz_title.empty?) ? @quiz.quiz_title : t(:default_page_title, "New Quiz"))
 %>
 <% provide :right_side do %>
   <a href="<%= context_url(@context, :context_quiz_url, @quiz.id) %>" class="btn button-sidebar-wide">
     <i class="icon-arrow-left"></i>
-    <%= t('links.back_to_quiz_page', "Back to Quiz Page") %>
+    <%= t("links.back_to_quiz_page", "Back to Quiz Page") %>
   </a>
 <% end %>
 
-<h2><%= t('headers.quiz_details', "Quiz Details") %></h2>
+<h2><%= t("headers.quiz_details", "Quiz Details") %></h2>
 <div style="display: none;" id="quiz_urls">
   <a href="<%= context_url(@context, :context_quiz_url, @quiz.id) %>" class="update_quiz_url">&nbsp;</a>
   <a href="<%= context_url(@context, :context_quiz_quiz_questions_url, @quiz.id) %>" class="add_question_url">&nbsp;</a>
@@ -42,14 +42,14 @@
   <%= user_content(@quiz.description, location: "quiz_#{@quiz.id}") %>
 </div>
 <div style="margin-bottom: 5px;">
-  <input type="checkbox" id="show_question_details"/> <label for="show_question_details"><%= t('labels.question_details', "Show Question Details") %></label>
+  <input type="checkbox" id="show_question_details"/> <label for="show_question_details"><%= t("labels.question_details", "Show Question Details") %></label>
 </div>
 <div id="questions" class="brief">
   <% @quiz.root_entries.each do |question| %>
     <% if question[:entry_type] == "quiz_group" %>
       <%= render partial: "question_group", object: question %>
     <% else %>
-      <%= render partial: ((@quiz.active_quiz_questions.size > 25) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question['id']}" } %>
+      <%= render partial: ((@quiz.active_quiz_questions.size > 25) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question["id"]}" } %>
     <% end %>
   <% end %>
 </div>

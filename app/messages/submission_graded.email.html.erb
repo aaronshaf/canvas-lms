@@ -23,15 +23,15 @@
 <% end %>
 
 <%
-  tag = ''
+  tag = ""
   if asset.assignment.is_a?(SubAssignment)
     tag = case asset.assignment.sub_assignment_tag
           when CheckpointLabels::REPLY_TO_TOPIC
-            t('Reply To Topic')
+            t("Reply To Topic")
           when CheckpointLabels::REPLY_TO_ENTRY
-            t('Reply To Entry')
+            t("Reply To Entry")
           else
-            ''
+            ""
           end
   end
   assignment_title = "#{assignment.title} #{tag}".strip

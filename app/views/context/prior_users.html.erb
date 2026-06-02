@@ -17,28 +17,28 @@
 %>
 
 <%
-  add_crumb(t('#crumbs.people', "People"), context_url(@context, :context_users_url))
-  add_crumb(t('#crumbs.prior_users', "Prior Users"))
+  add_crumb(t("#crumbs.people", "People"), context_url(@context, :context_users_url))
+  add_crumb(t("#crumbs.prior_users", "Prior Users"))
   set_active_tab "people"
 %>
-<% provide :page_title, t('titles.prior_users', "Prior Users") %>
+<% provide :page_title, t("titles.prior_users", "Prior Users") %>
 
 <% provide :right_side do %>
   <a href="<%= context_url(@context, :context_users_url) %>" class="btn button-sidebar-wide">
     <i class="icon-arrow-left"></i>
-    <%= t('links.back_to_people', %{Back to People}) %>
+    <%= t("links.back_to_people", %(Back to People)) %>
   </a>
 <% end %>
 
 <% css_bundle :prior_users %>
 <% js_bundle :context_prior_users %>
-<h1><%= t('headings.prior_users', %{Prior Users}) %></h1>
+<h1><%= t("headings.prior_users", %(Prior Users)) %></h1>
 <table id="users">
   <thead>
     <tr>
-      <th scope="col"><%= t('#table_headings.name', %{Name}) %></th>
-      <th scope="col"><%= t('#table_headings.type', %{Type}) %></th>
-      <th scope="col"><%= t('#table_headings.total', %{Total}) %></th>
+      <th scope="col"><%= t("#table_headings.name", %(Name)) %></th>
+      <th scope="col"><%= t("#table_headings.type", %(Type)) %></th>
+      <th scope="col"><%= t("#table_headings.total", %(Total)) %></th>
     </tr>
   </thead>
   <tbody>
@@ -53,7 +53,7 @@
         <td class="type">
           <%= user.prior_enrollment.readable_type %>
         </td>
-        <td class="score"><%= link_to(user.prior_enrollment.computed_final_score || '--', context_url(@context, :context_student_grades_url, user.id)) if user.prior_enrollment.student? %></td>
+        <td class="score"><%= link_to(user.prior_enrollment.computed_final_score || "--", context_url(@context, :context_student_grades_url, user.id)) if user.prior_enrollment.student? %></td>
       </tr>
     <% end %>
   </tbody>

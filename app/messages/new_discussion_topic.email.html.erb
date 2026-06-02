@@ -20,7 +20,7 @@
   <%= html_to_simple_html(asset.message,
                           base_url: dashboard_url,
                           tags: %w[tr td table tbody caption],
-                          attributes: { 'table' => %w[border style cellspacing cellpadding] }) %>
+                          attributes: { "table" => %w[border style cellspacing cellpadding] }) %>
 <% else %>
   <%= t("Discussion content is locked or not yet available") %>
 <% end %>

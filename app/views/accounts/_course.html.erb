@@ -24,7 +24,7 @@
 <% student_count = course && !master_template && (course.student_count || course.students.where.not(enrollments: { type: "StudentViewEnrollment" }).count) %>
 
 <li class="course" id="course_<%= course ? course.id : "blank" %>" style="<%= hidden unless course %>">
-  <div class="course <%= 'unpublished' if course&.read_attribute(:workflow_state) && (course.created? || course.claimed?) %>">
+  <div class="course <%= "unpublished" if course&.read_attribute(:workflow_state) && (course.created? || course.claimed?) %>">
     <div class="name ellipsis">
       <a href="<%= course_path(course ? course.id : "{{ id }}") %>" class="name"><%= course&.name || nbsp %></a>
       <i class="icon-unpublished" title="<%= t(:course_unpublished_title, "This course hasn't been published yet") %>" style="<%= "display: none;" if course&.read_attribute(:workflow_state) && (course.created? || course.claimed?) %>"></i>
@@ -32,7 +32,7 @@
     <% if course %>
     <div class="details ellipsis">
       <div>
-        <span style="padding-<%= direction('right') %>: 30px;">
+        <span style="padding-<%= direction("right") %>: 30px;">
           <%= show_code_and_term_for(course) %>
         </span>
 
@@ -41,14 +41,14 @@
         <% end %>
       </div>
       <% if master_template %>
-        <strong><%= t('Blueprint Course') %></strong>
-        <% if master_template.last_export_completed_at %><br><%= t('Last Pushed Update: %{last_export_at}', last_export_at: datetime_string(master_template.last_export_completed_at)) %><% end %>
+        <strong><%= t("Blueprint Course") %></strong>
+        <% if master_template.last_export_completed_at %><br><%= t("Last Pushed Update: %{last_export_at}", last_export_at: datetime_string(master_template.last_export_completed_at)) %><% end %>
         <br><%= t(:associated_count, { one: "1 Associated Course", other: "%{count} Associated Courses" }, count: master_template.child_course_count) %>
       <% else %>
         <% teacher_names_new = teacher_names[0, 2] %>
         <% teacher_names_new << t(:more_count, { one: "1 more", other: "%{count} more" }, count: teacher_names.length - 2) if teacher_names.length > 2 %>
         <span style="display: inline-block; min-width: 80px;"><%= t(:student_count, { one: "1 Student", other: "%{count} Students" }, count: student_count || 0) %></span>
-        <%= before_label(t(:teachers_label, "Teachers")) %> <%= teacher_names.blank? ? t(:none, 'none') : teacher_names_new.to_sentence %>
+        <%= before_label(t(:teachers_label, "Teachers")) %> <%= teacher_names.blank? ? t(:none, "none") : teacher_names_new.to_sentence %>
       <% end %>
     </div>
     <% end %>

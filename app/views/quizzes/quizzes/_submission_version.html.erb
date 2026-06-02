@@ -16,41 +16,41 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<tr class="<%= 'kept' if kept %>">
+<tr class="<%= "kept" if kept %>">
   <th scope="row" class="ic-Table--header-row">
     <% if kept %>
-      <%= t 'kept', 'KEPT' %>
+      <%= t "kept", "KEPT" %>
     <% elsif version.version_number == @submission.version_number %>
-      <%= t 'latest', 'LATEST' %>
+      <%= t "latest", "LATEST" %>
     <% end %>
   </th>
   <td>
     <a href="<%= course_quiz_history_path(@context, @quiz, version: version.version_number) %>">
-      <%= t 'attempt_number', 'Attempt %{att_no}', att_no: index %>
+      <%= t "attempt_number", "Attempt %{att_no}", att_no: index %>
     </a>
   </td>
   <td>
     <% duration = duration_in_minutes((version.finished_at || version.end_at || version.started_at) - version.started_at) %>
-    <span class="screenreader-only"><%= t 'time', 'Time' %>:</span>
+    <span class="screenreader-only"><%= t "time", "Time" %>:</span>
     <span><%= duration %></span>
   </td>
 
   <% if submission_has_regrade?(@submission) && version.score_before_regrade.present? %>
     <td>
-      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: true } %>
+      <%= render partial: "submission_version_score", locals: { version:, before_regrade: true } %>
     </td>
     <td class="regraded">
-      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
+      <%= render partial: "submission_version_score", locals: { version:, before_regrade: false } %>
     </td>
 
   <% elsif submission_has_regrade?(@submission) %>
     <td>
-      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
+      <%= render partial: "submission_version_score", locals: { version:, before_regrade: false } %>
     </td>
     <td class="regraded">-</td>
   <% else %>
     <td>
-      <%= render partial: 'submission_version_score', locals: { version:, before_regrade: false } %>
+      <%= render partial: "submission_version_score", locals: { version:, before_regrade: false } %>
     </td>
   <% end %>
 </tr>

@@ -30,15 +30,15 @@
                    :read_prior_roster) %>
         <li role="presentation">
         <%= sidebar_button course_prior_users_path(@context),
-                           t('View Prior Enrollments'),
-                           'clock' %>
+                           t("View Prior Enrollments"),
+                           "clock" %>
         </li>
       <% end %>
       <% if @context.user_is_instructor?(@current_user) && can_do(@context, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
         <li role="presentation">
         <%= sidebar_button user_course_teacher_activity_url(@current_user, @context),
-                           t('Student Interactions Report'),
-                           'user' %>
+                           t("Student Interactions Report"),
+                           "user" %>
         </li>
       <% end %>
     <% end %>
@@ -46,15 +46,15 @@
     <% if can_do(@context, @current_user, :read_roster) %>
       <li role="presentation">
       <%= sidebar_button context_url(@context, :context_user_services_url),
-                         t('links.view_services', 'View Registered Services'),
-                         'link' %>
+                         t("links.view_services", "View Registered Services"),
+                         "link" %>
       </li>
     <% end %>
     <% if @context.root_account.self_registration? && @context.grants_right?(@current_user, :generate_observer_pairing_code) %>
       <li role="presentation">
       <%= sidebar_button course_observer_pairing_codes_url(@context),
-                         t('Export Pairing Codes'),
-                         'export' %>
+                         t("Export Pairing Codes"),
+                         "export" %>
       </li>
     <% end %>
   </ul>

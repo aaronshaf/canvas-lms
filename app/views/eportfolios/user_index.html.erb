@@ -29,7 +29,7 @@
   <%= t(:page_title, "My ePortfolios") %>
 <% end %>
 
-<h1 class="screenreader-only"><%= t('headers.eportfolios', "ePortfolios") %></h1>
+<h1 class="screenreader-only"><%= t("headers.eportfolios", "ePortfolios") %></h1>
 <% provide :right_side do %>
   <% if Eportfolio.new.grants_right?(@current_user, :create) %>
     <div id="create_portfolio_mount"></div>
@@ -38,9 +38,9 @@
 
 <% if @portfolios.empty? %>
   <div id="whats_an_eportfolio">
-  <h2><%= t('headers.what', "What's an ePortfolio?") %></h2>
+  <h2><%= t("headers.what", "What's an ePortfolio?") %></h2>
   <%=
-    mt('what.details', <<~MD)
+    mt("what.details", <<~MD)
       ePortfolios are a place where you can display and discuss the significant
       submissions and experiences that are happening during your learning
       process. You can use an ePortfolio to:
@@ -58,8 +58,8 @@
   %>
   </div>
 <% else %>
-  <h2><%= t('headers.my_eportfolios', "My ePortfolios") %></h2>
-  <ul class="unstyled_list" style="padding-<%= direction('left') %>: 20px;">
+  <h2><%= t("headers.my_eportfolios", "My ePortfolios") %></h2>
+  <ul class="unstyled_list" style="padding-<%= direction("left") %>: 20px;">
     <%= render partial: "eportfolio", collection: @portfolios %>
   </ul>
 <% end %>

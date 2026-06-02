@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= form_tag(redirect_uri, method: 'post', id: 'authorization_redirect_form') do %>
+<%= form_tag(redirect_uri, method: "post", id: "authorization_redirect_form") do %>
   <% parameters.each do |k, v| %>
     <%= hidden_field_tag(k, v) %>
   <% end %>

@@ -50,7 +50,7 @@
   display: none;
 }
 #file_content .context_module .header  {
-  margin-<%= direction('left') %>: 5px;
+  margin-<%= direction("left") %>: 5px;
 }
 #file_content .context_module {
   margin-bottom: 0;
@@ -73,7 +73,7 @@
   overflow: auto;
   width: 250px;
   position: relative;
-  border-<%= direction('right') %>: 1px solid #aaa;
+  border-<%= direction("right") %>: 1px solid #aaa;
 }
 #modules .context_module_item .move_item_link {
   display: none;
@@ -90,7 +90,7 @@
   white-space: inherit;
 }
 #modules .context_module_item .module_item_icons {
-  padding-<%= direction('left') %>: 20px;
+  padding-<%= direction("left") %>: 20px;
 }
 #modules .context_module {
   border: 0
@@ -129,15 +129,15 @@
 <div id="file_content_header">
   <div class="pull-left" id="file_display_name"><%= @attachment ? @attachment.display_name : @tag.title %>
   </div>
-  <div style="float: <%= direction('right') %>; padding-top:0.5em;">
-    <a href="#" id="frameless_link"><%= t 'links.exit_frame', "Lose the Frames" %></a>
+  <div style="float: <%= direction("right") %>; padding-top:0.5em;">
+    <a href="#" id="frameless_link"><%= t "links.exit_frame", "Lose the Frames" %></a>
   </div>
   <div id="current_item_id" style="display: none;"><%= @tag.try(:id) %></div>
   <div style="padding-top: 0.5em;">
-    <a href="<%= context_url(@context, :context_url) %>"><%= t 'links.course_home', "Course Home" %></a> |
-    <a href="<%= context_url(@context, :context_files_url) %>"><%= t 'links.files', "Files" %></a>
+    <a href="<%= context_url(@context, :context_url) %>"><%= t "links.course_home", "Course Home" %></a> |
+    <a href="<%= context_url(@context, :context_files_url) %>"><%= t "links.files", "Files" %></a>
     <% if @module %>
-      | <a href="<%= context_url(@context, :context_context_modules_url) %>"><%= t 'links.modules', "Modules" %></a>
+      | <a href="<%= context_url(@context, :context_context_modules_url) %>"><%= t "links.modules", "Modules" %></a>
     <% end %>
   </div>
   <div class="clear"></div>
@@ -147,22 +147,22 @@
     <td style="<%= hidden unless @module %>" class="modules_holder">
       <div id="modules">
         <%= render partial: "context_modules/context_module", object: @module %>
-        <div style="float: <%= direction('right') %>; margin-top: 5px;">
-          <a href="#" class="hide_sidebar_link no-hover" title="<%= t 'links.hide_sidebar', "Hide Sidebar" %>"><%= image_tag "delete_circle.png", alt: t('Hide Sidebar') %></a>
+        <div style="float: <%= direction("right") %>; margin-top: 5px;">
+          <a href="#" class="hide_sidebar_link no-hover" title="<%= t "links.hide_sidebar", "Hide Sidebar" %>"><%= image_tag "delete_circle.png", alt: t("Hide Sidebar") %></a>
         </div>
       </div>
     </td>
     
     <td id="content_holder">
       <% if @attachment %>
-        <iframe name="content_preview" frameborder="0" id="content_preview" src="<%= context_url(@context, :context_file_url, @attachment.id) %>/<%= @attachment.full_path %>" title="<%= t('Preview') %>">
+        <iframe name="content_preview" frameborder="0" id="content_preview" src="<%= context_url(@context, :context_file_url, @attachment.id) %>/<%= @attachment.full_path %>" title="<%= t("Preview") %>">
         </iframe>
       <% elsif @tag %>
-        <iframe name="content_preview" frameborder="0" id="content_preview" src="<%= @tag.url %>" title="<%= t('Preview') %>">
+        <iframe name="content_preview" frameborder="0" id="content_preview" src="<%= @tag.url %>" title="<%= t("Preview") %>">
         </iframe>
       <% end %>
     </td>
   </tr>
 </table>
 
-<% js_bundle 'inlined_preview' %>
+<% js_bundle "inlined_preview" %>

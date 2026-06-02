@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% js_bundle 'module_sequence_footer' %>
+<% js_bundle "module_sequence_footer" %>
 <% if @tag.context.is_a?(Assignment) %>
   <% provide :right_side do %>
     <% assignment = @tag.context %>
@@ -35,5 +35,5 @@
   <% end %>
 <% end %>
 <% if @module_tag %>
-  <%= render partial: 'shared/sequence_footer', locals: { asset: @module_tag } %>
+  <%= render partial: "shared/sequence_footer", locals: { asset: @module_tag } %>
 <% end %>

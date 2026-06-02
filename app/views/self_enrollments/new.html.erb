@@ -17,7 +17,7 @@
 %>
 
 <%
-  provide :page_title, t('titles.course_enrollment', 'Enroll in %{course}', course: @course.name)
+  provide :page_title, t("titles.course_enrollment", "Enroll in %{course}", course: @course.name)
   js_bundle :self_enrollment
   css_bundle :self_enrollment
   js_env({ SELF_ENROLLMENT_OPTIONS: { confirmEnrollmentUrl: @confirm_enrollment_url } })
@@ -40,24 +40,24 @@
     <div class="ic-Login-confirmation__content">
   <% end %>
     <h2 class="ic-Login-confirmation__headline">
-      <%= t('titles.course_enrollment', 'Enroll in %{course}', course: @course.name) %>
+      <%= t("titles.course_enrollment", "Enroll in %{course}", course: @course.name) %>
     </h2>
     <% if !@course.self_enrollment_enabled? || @course.concluded?("StudentEnrollment") || MasterCourses::MasterTemplate.is_master_course?(@course) %>
-      <%= render partial: 'enrollment_closed' %>
+      <%= render partial: "enrollment_closed" %>
     <% elsif @current_user && @course.user_is_student?(@current_user, include_future: true) %>
       <% if params[:enrolled] %>
-        <%= render partial: 'successfully_enrolled' %>
+        <%= render partial: "successfully_enrolled" %>
       <% else %>
-        <%= render partial: 'already_enrolled' %>
+        <%= render partial: "already_enrolled" %>
       <% end %>
     <% elsif @course.self_enrollment_limit_met? %>
-      <%= render partial: 'course_full' %>
+      <%= render partial: "course_full" %>
     <% elsif @current_user %>
-      <%= render partial: 'confirm_enrollments' %>
+      <%= render partial: "confirm_enrollments" %>
     <% elsif @domain_root_account.self_registration? %>
-      <%= render partial: 'authenticate_or_register' %>
+      <%= render partial: "authenticate_or_register" %>
     <% else %>
-      <%= render partial: 'authenticate' %>
+      <%= render partial: "authenticate" %>
     <% end %>
   <% if !@current_user && !@embedded_view %></div><% end %>
   <% if @embedded_view %></div><% end %>

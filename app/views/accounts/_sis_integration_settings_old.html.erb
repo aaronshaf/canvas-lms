@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= render partial: 'sis_agent_token_auth', locals: { f: } %>
+<%= render partial: "sis_agent_token_auth", locals: { f: } %>
 
 <% if Assignment.sis_grade_export_enabled?(@account) %>
   <fieldset id="sis_grade_export_settings">

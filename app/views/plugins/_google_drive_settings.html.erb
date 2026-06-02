@@ -53,7 +53,7 @@
 
     <tr>
       <td colspan="2"><%=
-                        mt(:description, <<~MD, google_url: 'https://console.developers.google.com/project')
+                        mt(:description, <<~MD, google_url: "https://console.developers.google.com/project")
                           Paste the contents of client_secrets.json below. The text boxes above will be automatically filled in based on the content given below.
                         MD
                       %></td>
@@ -62,7 +62,7 @@
     <tr>
       <td><%= f.blabel :client_secret_json, en: "Client secrets json" %></td>
       <td>
-        <%= f.text_area :client_secret_json, value: nil, rows: '4' %>
+        <%= f.text_area :client_secret_json, value: nil, rows: "4" %>
       </td>
     </tr>
   </table>

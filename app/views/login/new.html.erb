@@ -17,14 +17,14 @@
 %>
 
 <% provide :page_title do %>
-  <%= t 'Failed to Log In' %>
+  <%= t "Failed to Log In" %>
 <% end %>
 
 <div id="unauthorized_holder">
   <% css_bundle("unauthorized_message") %>
   <div id="unauthorized_message">
     <h2 class="ui-state-error">
-      <%= t 'Failed to Log In' %>
+      <%= t "Failed to Log In" %>
     </h2>
     <p>
       <%= flash[:delegated_message] %>

@@ -25,7 +25,7 @@
   topic ||= nil
   discussion_topic_id = entry.try_rescue(:discussion_topic_id) || topic&.id || "{{ discussion_topic_id }}"
   entry_key = entry.new_record? ? entry.try_rescue(:discussion_topic).try_rescue(:cache_key) : entry.try_rescue(:cache_key) if entry
-  entry_key ||= entry_context.try_rescue(:asset_string) || 'blank'
+  entry_key ||= entry_context.try_rescue(:asset_string) || "blank"
   skip_sub_entries ||= false
   read_state = entry ? entry.read_state(@current_user) : "read"
   link_to_headless ||= false
@@ -35,7 +35,7 @@
   discussion_checkpoints_enabled = entry_context.discussion_checkpoints_enabled?
 %>
 <% cache([
-     'entry_message_render_2_',
+     "entry_message_render_2_",
      entry_key,
      out_of_context,
      skip_sub_entries,
@@ -44,7 +44,7 @@
      read_state,
      link_to_headless,
      hide_student_names,
-   ].join('/')) do %>
+   ].join("/")) do %>
 <div class="discussion_entry communication_message can_be_marked_as_read <%= read_state %>" <%= hidden(include_style: true) unless entry %> id="entry_<%= entry ? entry.id : "blank" %>" data-mark-read-url="<%= entry && entry_id && context_url(entry_context, :api_v1_context_discussion_topic_discussion_entry_mark_read_url, discussion_topic_id, entry_id) %>">
   <div class="header clearfix">
     <% if entry&.new_record? && entry.new_record_header %>
@@ -52,12 +52,12 @@
     <% else %>
       <div class="header_title">
         <% if out_of_context %>
-          <span style="font-size: 0.8em; padding-<%= direction('left') %>: 20px;">from
+          <span style="font-size: 0.8em; padding-<%= direction("left") %>: 20px;">from
             <% if assignment_visible_to_user %>
               <% if discussion_checkpoints_enabled && use_discussion_toggle_link %>
                 <button id="discussion_link_entryId=<%= entry_id %>"><%= entry.discussion_topic.title %></button>
               <% else %>
-                <a role="button" href="<%= context_url(entry_context, :context_discussion_topic_url, (entry ? entry.discussion_topic_id : '{{ topic_id }}'), headless_param) %>" style="font-size: 1.2em; font-weight: bold;"><%= entry.discussion_topic.title %></a>
+                <a role="button" href="<%= context_url(entry_context, :context_discussion_topic_url, (entry ? entry.discussion_topic_id : "{{ topic_id }}"), headless_param) %>" style="font-size: 1.2em; font-weight: bold;"><%= entry.discussion_topic.title %></a>
               <% end %>
             <% else %>
               <b> <%= entry.discussion_topic.title %> </b>
@@ -68,7 +68,7 @@
             <button
               type="button"
               style="font-weight: bold;"
-              onclick="window.location.href='<%= context_url(entry_context, :context_discussion_topic_url, entry ? entry.discussion_topic_id : '{{ topic_id }}') %>'"
+              onclick="window.location.href='<%= context_url(entry_context, :context_discussion_topic_url, entry ? entry.discussion_topic_id : "{{ topic_id }}") %>'"
             >
               <%= entry.context.name %>
             </button>
@@ -94,7 +94,7 @@
   </div>
   <div class="content">
     <% unless hide_student_names %>
-      <div style="float: <%= direction('left') %>; margin: 0 5px 0 -10px;"><%= avatar(entry.try_rescue(:user_id), context_code: entry_context.asset_string) %></div>
+      <div style="float: <%= direction("left") %>; margin: 0 5px 0 -10px;"><%= avatar(entry.try_rescue(:user_id), context_code: entry_context.asset_string) %></div>
     <% end %>
     <div class="course_id" style="display: none;"><%= entry_context.id if entry_context.is_a?(Course) %></div>
     <div class="message user_content"><%= user_content(entry.try_rescue(:message)) || nbsp %></div>
@@ -129,12 +129,12 @@
           <%= t :edited_comment, "This comment was edited by %{user}.", user: link_to(context_user_name(entry_context, entry.editor_id), context_url(entry_context, :context_user_url, entry.editor_id)) %>
         </div>
       <% end %>
-      <div class="communication_sub_message reply_message <%= 'lonely_behavior_message' if entries.empty? %>" style="display: none;">
+      <div class="communication_sub_message reply_message <%= "lonely_behavior_message" if entries.empty? %>" style="display: none;">
         <div class="content behavior_content">
           <a href="#" class="add_entry_link textarea"><%= t :make_side_comment, "Make a Side Comment..." %></a>
         </div>
       </div>
-      <%= render partial: 'discussion_topics/sub_entry', locals: { entry: nil, parent_entry: entry || topic } %>
+      <%= render partial: "discussion_topics/sub_entry", locals: { entry: nil, parent_entry: entry || topic } %>
     </div>
   </div>
   <div style="display: none;">

@@ -17,18 +17,18 @@
 %>
 
 <% provide :page_title do %>
-  <%= t('titles.unauthorized_action', %{Unauthorized}) %>
+  <%= t("titles.unauthorized_action", %(Unauthorized)) %>
 <% end %>
 <% @show_left_side = false %>
 <% @show_embedded_chat = false %>
-<% add_body_class 'full-width' %>
+<% add_body_class "full-width" %>
 <div id="unauthorized_message" class="ic-Error-page">
     <% if @needs_cookies %>
       <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/500_pageerror.svg">
-      <h1><%= t('headings.needs_cookies', %{Cookies Required}) %></h1>
+      <h1><%= t("headings.needs_cookies", %(Cookies Required)) %></h1>
     <% elsif @unauthorized_reason == :unpublished %>
       <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/401_unpublished.svg">
-      <h1><%= t('headings.unpublished', %{Not Yet Available}) %></h1>
+      <h1><%= t("headings.unpublished", %(Not Yet Available)) %></h1>
     <% else %>
       <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/401_permissions.svg">
       <% if request.query_parameters[:embedded] %>
@@ -47,13 +47,13 @@
         </ul>
       <% end %>
     <% elsif @needs_cookies %>
-      <p><%= t('Please adjust your security preferences before continuing.') %></p>
+      <p><%= t("Please adjust your security preferences before continuing.") %></p>
     <% elsif @files_domain %>
-      <p><%= t('needs_login', %{Access to this page is limited to authorized users.  You do not currently have permission to view this page.}) %></p>
+      <p><%= t("needs_login", %(Access to this page is limited to authorized users.  You do not currently have permission to view this page.)) %></p>
     <% elsif @context %>
       <p>
         <% if @context.try_rescue(:is_public) %>
-          <%= mt 'public_course', 'This page is part of the content for the course, **%{course}**.', course: @context.name %>
+          <%= mt "public_course", "This page is part of the content for the course, **%{course}**.", course: @context.name %>
         <% end %>
         <%= t("You don't have access to view this resource.") %>
       </p>

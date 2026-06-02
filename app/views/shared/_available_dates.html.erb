@@ -18,7 +18,7 @@
 
 <% if (association.lock_at || association.unlock_at) && !@context.enable_course_paces? %>
   <li>
-    <span class="title"><%= t('headers.available', "Available") %></span>
+    <span class="title"><%= t("headers.available", "Available") %></span>
     <span class="value">
       <% if association.lock_at && association.unlock_at %>
         <% availability_window = association.lock_at - association.unlock_at %>

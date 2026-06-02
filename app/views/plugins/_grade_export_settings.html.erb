@@ -46,7 +46,7 @@
       <td><%= f.text_field :publish_endpoint, value: settings[:publish_endpoint] %></td>
     </tr>
     <tr>
-      <td colspan=2><%= f.check_box :wait_for_success, { checked: Canvas::Plugin.value_to_boolean(settings[:wait_for_success]) }, 'yes', 'no' %>
+      <td colspan=2><%= f.check_box :wait_for_success, { checked: Canvas::Plugin.value_to_boolean(settings[:wait_for_success]) }, "yes", "no" %>
       <%= f.label :wait_for_success, en: "Wait for success notifications" %></td>
     </tr>
     <tr>

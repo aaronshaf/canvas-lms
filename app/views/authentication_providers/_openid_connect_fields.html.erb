@@ -27,10 +27,10 @@
        `backchannel_logout_session_required` to `true` if the provider supports it.
      MD
    %></p>
-<%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
+<%= render partial: "oauth2_fields", locals: { aac:, presenter:, f: } %>
 <div class="ic-Form-control">
-  <%= f.label :discovery_url, 'Discovery URL', class: 'ic-Label', for: "discovery_url_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :discovery_url, class: 'ic-Input', id: "discovery_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :discovery_url, "Discovery URL", class: "ic-Label", for: "discovery_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :discovery_url, class: "ic-Input", id: "discovery_#{presenter.id_suffix(aac)}" %>
   <p><%=
        mt(<<~MD)
          The Discovery URL is a JSON document that contains the OpenID Connect provider's configuration.
@@ -41,28 +41,28 @@
      %></p>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :issuer, 'Issuer Identifier', class: 'ic-Label', for: "issuer_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :issuer, class: 'ic-Input', id: "issuer_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :issuer, "Issuer Identifier", class: "ic-Label", for: "issuer_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :issuer, class: "ic-Input", id: "issuer_#{presenter.id_suffix(aac)}" %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :authorize_url, 'Authorize URL', class: 'ic-Label', for: "authorize_url_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :authorize_url, class: 'ic-Input', id: "authorize_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :authorize_url, "Authorize URL", class: "ic-Label", for: "authorize_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :authorize_url, class: "ic-Input", id: "authorize_url_#{presenter.id_suffix(aac)}" %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :token_url, 'Token URL', class: 'ic-Label', for: "token_url_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :token_url, class: 'ic-Input', id: "token_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :token_url, "Token URL", class: "ic-Label", for: "token_url_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :token_url, class: "ic-Input", id: "token_url_#{presenter.id_suffix(aac)}" %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :token_endpoint_auth_method, 'Token Endpoint Authentication Method', class: 'ic-Label', for: "token_endpoint_auth_method_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :token_endpoint_auth_method, "Token Endpoint Authentication Method", class: "ic-Label", for: "token_endpoint_auth_method_#{presenter.id_suffix(aac)}" %>
   <%= f.select(:token_endpoint_auth_method,
                AuthenticationProvider::OpenIDConnect::VALID_AUTH_METHODS,
                {},
-               class: 'ic-Input',
+               class: "ic-Input",
                id: "token_endpoint_auth_method_#{presenter.id_suffix(aac)}") %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :end_session_endpoint, 'End Session Endpoint', class: 'ic-Label', for: "end_session_endpoint_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :end_session_endpoint, class: 'ic-Input', id: "end_session_endpoint_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :end_session_endpoint, "End Session Endpoint", class: "ic-Label", for: "end_session_endpoint_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :end_session_endpoint, class: "ic-Input", id: "end_session_endpoint_#{presenter.id_suffix(aac)}" %>
   <p><%=
        mt(<<~MD, post_logout_redirect_uri: AuthenticationProvider::OpenIDConnect.post_logout_redirect_uri(self))
          If the provider can configure valid `post_logout_redirect_uris`, use %{post_logout_redirect_uri}.
@@ -70,16 +70,16 @@
      %></p>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :userinfo_endpoint, 'UserInfo Endpoint', class: 'ic-Label', for: "userinfo_endpoint_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :userinfo_endpoint, class: 'ic-Input', id: "userinfo_endpoint_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :userinfo_endpoint, "UserInfo Endpoint", class: "ic-Label", for: "userinfo_endpoint_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :userinfo_endpoint, class: "ic-Input", id: "userinfo_endpoint_#{presenter.id_suffix(aac)}" %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :scope, 'Scope', class: 'ic-Label', for: "scope_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :scope, class: 'ic-Input', id: "scope_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :scope, "Scope", class: "ic-Label", for: "scope_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :scope, class: "ic-Input", id: "scope_#{presenter.id_suffix(aac)}" %>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :jwks_uri, 'JWKS URI', class: 'ic-Label', for: "jwks_uri_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :jwks_uri, class: 'ic-Input', id: "jwks_uri_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :jwks_uri, "JWKS URI", class: "ic-Label", for: "jwks_uri_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :jwks_uri, class: "ic-Input", id: "jwks_uri_#{presenter.id_suffix(aac)}" %>
   <p><%=
        mt(<<~MD)
          The JWKS URI provides the public keys used to verify the signature of ID tokens unless they are signed
@@ -88,7 +88,7 @@
      %></p>
 </div>
 <div class="ic-Form-control">
-  <%= f.label :login_attribute, 'Login Attribute', class: 'ic-Label', for: "login_attribute_#{presenter.id_suffix(aac)}" %>
-  <%= f.text_field :login_attribute, value: aac.raw_login_attribute, placeholder: 'sub', class: 'ic-Input', id: "login_attribute_#{presenter.id_suffix(aac)}" %>
+  <%= f.label :login_attribute, "Login Attribute", class: "ic-Label", for: "login_attribute_#{presenter.id_suffix(aac)}" %>
+  <%= f.text_field :login_attribute, value: aac.raw_login_attribute, placeholder: "sub", class: "ic-Input", id: "login_attribute_#{presenter.id_suffix(aac)}" %>
 </div>
-<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>
+<%= render partial: "jit_provisioning_field", locals: { aac:, presenter:, f: } %>

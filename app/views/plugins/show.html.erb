@@ -19,7 +19,7 @@
 <% provide(:page_title, join_title(t(:page_title, "Plugin Settings"), @plugin.name)) %>
 <%
   js_bundle :plugins
-  add_crumb(t('#crumbs.plugins', "Plugins"), plugins_path)
+  add_crumb(t("#crumbs.plugins", "Plugins"), plugins_path)
   add_crumb(@plugin.name)
 %>
 
@@ -55,8 +55,8 @@
       <%= partial %>
     </div>
     <div class='button-container'>
-      <button type="submit" class="btn save_button"><%= t '#buttons.apply', "Apply" %></button>
-      <%= link_to(t(:back_to_list, "Return to plugins list"), plugins_path, class: 'btn btn button-secondary') %>
+      <button type="submit" class="btn save_button"><%= t "#buttons.apply", "Apply" %></button>
+      <%= link_to(t(:back_to_list, "Return to plugins list"), plugins_path, class: "btn btn button-secondary") %>
     </div>
   <% end %>
 </div>

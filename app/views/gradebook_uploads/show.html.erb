@@ -28,9 +28,9 @@
 <div id="spinner" style="height:250px"></div>
 
 <form id="gradebook_importer_resolution_section" style="display:none;">
-  <h3><%= t('headers.import_error', "There was some stuff I couldn't figure out with the data that you uploaded:") %></h3>
+  <h3><%= t("headers.import_error", "There was some stuff I couldn't figure out with the data that you uploaded:") %></h3>
   <div class="student_section" style="display:none;">
-    <h4><%= t('headers.missing_student', "You uploaded rows for the following students, I couldn't decide which student in your class they are.  Please tell me which student they are.") %></h4>
+    <h4><%= t("headers.missing_student", "You uploaded rows for the following students, I couldn't decide which student in your class they are.  Please tell me which student they are.") %></h4>
     <table cellspacing="0" class="ui-widget ui-widget-content">
       <thead>
         <tr>
@@ -52,7 +52,7 @@
     </table>
   </div>
   <div class="assignment_section" style="display:none">
-    <h4><%= t('headers.missing_assignment', "You uploaded some assignments that don't appear to be in your gradebook before now.  Please tell me if it is a new assignment, or if it represents an existing assignment.") %></h4>
+    <h4><%= t("headers.missing_assignment", "You uploaded some assignments that don't appear to be in your gradebook before now.  Please tell me if it is a new assignment, or if it represents an existing assignment.") %></h4>
     <table cellspacing="0" class="ui-widget ui-widget-content">
       <thead>
         <tr>
@@ -79,14 +79,14 @@
     </table>
   </div>
   <div class="button-container">
-    <button type="submit" class="btn"><%= t('buttons.continue', "Continue %{icon}", icon: '&rarr;'.html_safe) %></button>
+    <button type="submit" class="btn"><%= t("buttons.continue", "Continue %{icon}", icon: "&rarr;".html_safe) %></button>
   </div>
 </form>
 
 <div id="no_changes_detected" style="display:none;">
-  <h2><%= t('headers.no_changes', "There were no changes detected in the gradebook you uploaded.") %></h2>
+  <h2><%= t("headers.no_changes", "There were no changes detected in the gradebook you uploaded.") %></h2>
   <p>
-  <%= link_to(t('links.back', "Go back to Gradebook"), polymorphic_url([@context, :gradebook])) %>
+  <%= link_to(t("links.back", "Go back to Gradebook"), polymorphic_url([@context, :gradebook])) %>
   </p>
 
 </div>
@@ -100,10 +100,10 @@
   </div>
 
   <input type="hidden" name="json_data_to_submit" value="" />
-  <div class="button-container" style="padding-<%= direction('left') %>:7px;">
-    <button type="submit" class="btn"><%= t('buttons.save_changes', "Save Changes") %></button>
-    <%= link_to t('#buttons.cancel', "Cancel"), :back, class: "btn btn button-secondary" %>
-    <span id="assignments_without_changes_alert" style="display:none; margin-<%= direction('left') %>: 50px;"><%= t('notices.unchanged', "Note: You uploaded some assignments that had no grade changes detected. They have been hidden.") %></span>
+  <div class="button-container" style="padding-<%= direction("left") %>:7px;">
+    <button type="submit" class="btn"><%= t("buttons.save_changes", "Save Changes") %></button>
+    <%= link_to t("#buttons.cancel", "Cancel"), :back, class: "btn btn button-secondary" %>
+    <span id="assignments_without_changes_alert" style="display:none; margin-<%= direction("left") %>: 50px;"><%= t("notices.unchanged", "Note: You uploaded some assignments that had no grade changes detected. They have been hidden.") %></span>
   </div>
 <% end -%>
 

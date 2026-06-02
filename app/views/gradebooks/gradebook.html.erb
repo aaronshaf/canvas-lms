@@ -17,7 +17,7 @@
 %>
 
 <%
-  provide :page_title, t('Gradebook - %{context_name}', context_name: @context.name)
+  provide :page_title, t("Gradebook - %{context_name}", context_name: @context.name)
   add_body_class "gradebook full-width"
   @show_left_side = true
   @collapse_course_menu = true
@@ -31,11 +31,11 @@
 <% end %>
 
 <div id="gradebook_wrapper">
-  <h1 class="screenreader-only"><%= t('Gradebook') %></h1>
+  <h1 class="screenreader-only"><%= t("Gradebook") %></h1>
 
   <div class="assignment-gradebook-container">
     <div class="accessibility_warning">
-      <%= link_to t('Warning: For improved accessibility, please click here to use the Individual View Gradebook.'),
+      <%= link_to t("Warning: For improved accessibility, please click here to use the Individual View Gradebook."),
                   context_url(@context, :change_gradebook_version_context_gradebook_url, version: "srgb"),
                   id: "accessibility_warning",
                   class: "screenreader-only" %>
@@ -46,7 +46,7 @@
     <% end %>
 
     <%# EVAL-3711 Remove ICE Evaluate feature flag, remove the class once feature flag is removed %>
-    <div id="<%= instui_nav? ? 'gradebook-toolbar' : 'gradebook-toolbar-instui-nav' %>" class="<%= instui_nav? ? '' : 'toolbar' %>">
+    <div id="<%= instui_nav? ? "gradebook-toolbar" : "gradebook-toolbar-instui-nav" %>" class="<%= instui_nav? ? "" : "toolbar" %>">
       <div class="gradebook-menus">
         <span data-component="GradebookMenu" data-variant="DefaultGradebook"></span>
         <span data-component="ViewOptionsMenu"></span>
@@ -63,7 +63,7 @@
         <%# EVAL-3711 Remove ICE Evaluate feature flag %>
         <% unless instui_nav? && @current_user.try(:prefers_no_keyboard_shortcuts?) %>
           <button id="keyboard-shortcuts" class="Button--icon-action Button--active" type="button" style="margin-right: 12px">
-            <span class="screenreader-only"><%= t('Keyboard Shortcuts') %></span>
+            <span class="screenreader-only"><%= t("Keyboard Shortcuts") %></span>
             <i class="icon-keyboard-shortcuts"></i>
           </button>
         <% end %>
@@ -82,7 +82,7 @@
     </div>
     <div style="display:none;">
       <%= render partial: "shared/message_students" %>
-      <%= render partial: 'submissions/submission_download' %>
+      <%= render partial: "submissions/submission_download" %>
     </div>
   </div>
 

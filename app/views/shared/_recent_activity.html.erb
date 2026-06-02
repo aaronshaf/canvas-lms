@@ -29,20 +29,20 @@
         <% if can_do(@context.announcements.temp_record, @current_user, :create) %>
           <a href="<%= group_announcements_path(@context) %>#new" title="Add Announcement" id="add-announcement" class="Button button-sidebar-wide hide-on-mobile">
             <i class="icon-plus" role="presentation"></i>
-            <%= t 'new_announcement', "Announcement" %>
+            <%= t "new_announcement", "Announcement" %>
           </a>
         <% end %>
         <% if can_do(@context, @current_user, :update) %>
           <a href="#" id="edit_group" title="Edit Group" class="Button Button--primary button-sidebar-wide">
             <i class="icon-edit" role="presentation"></i>
-            <%= t 'edit_group', "Edit Group" %>
+            <%= t "edit_group", "Edit Group" %>
           </a>
           <div id="student-group-dialog-mount-point"></div>
          <% end %>
          <% if can_do(@context.announcements.temp_record, @current_user, :create) %>
            <a href="<%= group_announcements_path(@context) %>#new" title="Add Announcement" id="add-announcement" class="Button button-sidebar-wide show-only-on-mobile">
              <i class="icon-plus" role="presentation"></i>
-             <%= t 'new_announcement', "Announcement" %>
+             <%= t "new_announcement", "Announcement" %>
            </a>
          <% end %>
        </div>
@@ -60,20 +60,20 @@
 
 <ul class="recent_activity unstyled_list">
 <% categorized_items =
-     Rails.cache.fetch(['categorized_stream_items', @user || @current_user, collection_cache_key(@stream_items)].cache_key, expires_in: 15.minutes) do
+     Rails.cache.fetch(["categorized_stream_items", @user || @current_user, collection_cache_key(@stream_items)].cache_key, expires_in: 15.minutes) do
        categorize_stream_items(@stream_items)
      end %>
 <%
   category_icons = {
-    'conversation' => 'icon-message',
-    'grading' => 'icon-check-plus',
-    'discussion_topic' => 'icon-discussion',
-    'assessment_request' => 'icon-peer-review'
+    "conversation" => "icon-message",
+    "grading" => "icon-check-plus",
+    "discussion_topic" => "icon-discussion",
+    "assessment_request" => "icon-peer-review"
   }.freeze
 %>
-<% %w(Announcement Conversation Assignment DiscussionTopic AssessmentRequest).each do |category| %>
+<% %w[Announcement Conversation Assignment DiscussionTopic AssessmentRequest].each do |category| %>
   <% items = categorized_items[category] %>
-  <% items = items.to_a + categorized_items['DiscussionEntry'].to_a if category == 'DiscussionTopic' %>
+  <% items = items.to_a + categorized_items["DiscussionEntry"].to_a if category == "DiscussionTopic" %>
   <% category_class = category.underscore %>
   <% if items.present? %>
     <li class="stream-category stream-<%= category_class %>" data-category="<%= category %>">
@@ -119,7 +119,7 @@
             </tr>
           </thead>
           <tbody>
-            <%= render partial: 'shared/recent_activity_item', collection: items %>
+            <%= render partial: "shared/recent_activity_item", collection: items %>
           </tbody>
         </table>
       </div>
@@ -129,5 +129,5 @@
 </ul>
 
 <% if categorized_items.values.sum(&:count) == 0 %>
-  <%= render partial: 'shared/no_recent_activity' %>
+  <%= render partial: "shared/no_recent_activity" %>
 <% end %>

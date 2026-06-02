@@ -18,7 +18,7 @@
 
 <%
   js_env({ QUIZZES: { QUIZ: true } })
-  provide :page_title, ((@quiz.quiz_title || !@quiz.quiz_title.empty?) ? @quiz.quiz_title : t(:default_page_title, 'New Quiz'))
+  provide :page_title, ((@quiz.quiz_title || !@quiz.quiz_title.empty?) ? @quiz.quiz_title : t(:default_page_title, "New Quiz"))
 %>
 
 <% if editing_restricted?(@quiz, :content) %>
@@ -35,9 +35,9 @@
   <div class="question_generated_description"></div>
   <textarea style="width: 600px; height: 400px;" id="copy_paste_box"></textarea>
 </div>
-<%= render partial: 'equations_help' %>
+<%= render partial: "equations_help" %>
 <div id="ip_filters_dialog" style="display: none;">
-  <h2><%= t('headers.ip_filters', "What are Quiz IP Filters?") %></h2>
+  <h2><%= t("headers.ip_filters", "What are Quiz IP Filters?") %></h2>
   <p class="explanation"><%=
                            t(:ip_filters, <<~TEXT)
                                                         Quiz IP filters are a way to limit access to quizzes to
@@ -49,7 +49,7 @@
   <p class="searching_message"><%= t(:retrieving_filters, "Retrieving Filters...") %></p>
   <table class="filters" style="display: none;">
     <tbody>
-      <tr class="ip_filter blank" style="display: none;" title="<%= t('titles.click_to_select_filter', "Click to select this filter") %>">
+      <tr class="ip_filter blank" style="display: none;" title="<%= t("titles.click_to_select_filter", "Click to select this filter") %>">
         <td class="name_and_account">
           <div class="name">&nbsp;</div>
           <div class="account">&nbsp;</div>

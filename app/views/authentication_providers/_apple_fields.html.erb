@@ -24,9 +24,9 @@
        MD
      %></p>
   <div class="ic-Form-control">
-    <%= f.label :client_id, 'Service ID', class: 'ic-Label', for: "client_id_#{presenter.id_suffix(aac)}" %>
-    <%= f.text_field :client_id, class: 'ic-Input', id: "client_id_#{presenter.id_suffix(aac)}" %>
+    <%= f.label :client_id, "Service ID", class: "ic-Label", for: "client_id_#{presenter.id_suffix(aac)}" %>
+    <%= f.text_field :client_id, class: "ic-Input", id: "client_id_#{presenter.id_suffix(aac)}" %>
   </div>
 <% end %>
-<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>
+<%= render partial: "login_attribute_dropdown", locals: { aac:, presenter:, f: } %>
+<%= render partial: "jit_provisioning_field", locals: { aac:, presenter:, f: } %>

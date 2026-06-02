@@ -17,7 +17,7 @@
 %>
 
 <%
-  provide :page_title, t('title', 'Broken Link Error')
+  provide :page_title, t("title", "Broken Link Error")
   js_bundle :file_not_found
 %>
 
@@ -25,7 +25,7 @@
   <% css_bundle("unauthorized_message") %>
   <div id="unauthorized_message">
     <h2 class="ui-state-error"> 
-      <%= t('headings.unauthorized_action', %{Oops you’ve found a broken link!}) %>
+      <%= t("headings.unauthorized_action", %(Oops you’ve found a broken link!)) %>
     </h2>
     <div id="sendMessageForm"></div>
   </div>

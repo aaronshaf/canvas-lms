@@ -1,2 +1,0 @@
-inherit_from:
- - ../../../../../app/views/.rubocop.yml

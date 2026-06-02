@@ -22,7 +22,7 @@
   <%= @page_title %>
 <% end %>
 <% can_manage = @account.manage_authentication_provider_permissions.any? { |perm| can_do(@account, @current_user, perm) } %>
-<% js_env({ 'MANAGE_AUTHENTICATION_PROVIDER' => can_manage }) %>
+<% js_env({ "MANAGE_AUTHENTICATION_PROVIDER" => can_manage }) %>
 
 <% provide :right_side do %>
   <div id="auth-config-right-side">
@@ -42,7 +42,7 @@
         <br/>
         <%= link_to(account_remove_all_authentication_providers_url(@account),
                     data: { confirm: t(:delete_auth_confirmation,
-                                       'Are you sure? Users may not be able to log in if this is removed.') },
+                                       "Are you sure? Users may not be able to log in if this is removed.") },
                     method: :delete,
                     class: "delete_auth_link Button Button--danger icon-trash button-sidebar-wide") do %>
             <%= t(:delete_auth_link, "Remove Authentication") %>
@@ -61,12 +61,12 @@
   logins, see the "Login Information" section on the user\'s profile page. (Found
   by searching for the user on the "Users" tab.)') %><br/>
   <%= mt(:profile_page_link_example,
-         'For example, here is your profile page: [%{friendlyname}](%{url})',
+         "For example, here is your profile page: [%{friendlyname}](%{url})",
          friendlyname: @current_user.last_name_first_or_unnamed,
          url: context_url(@account, :context_user_url, @current_user)) %>
 </p>
 
-<%= render partial: 'sso_settings_form',
+<%= render partial: "sso_settings_form",
            locals: { presenter: @presenter, account: @account, can_manage: } %>
 
 <h2><%= t("Current Provider") %></h2>

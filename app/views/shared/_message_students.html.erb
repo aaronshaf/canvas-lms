@@ -23,9 +23,9 @@
     <%= hidden_field_tag :bulk_message, "true" %>
     <%= hidden_field_tag :context_code, "" %>
     <%= hidden_field_tag :mode, "async" %>
-    <h2><%= t('Message students who...') %></h2>
+    <h2><%= t("Message students who...") %></h2>
     <div style="margin-bottom: 15px;">
-      <%= t('for %{title}', title: '<span class="asset_title">&nbsp;</span>'.html_safe) %>
+      <%= t("for %{title}", title: '<span class="asset_title">&nbsp;</span>'.html_safe) %>
     </div>
     <div style="margin-bottom: 10px;">
       <select class="message_types" aria-label="<%= t("Message Type") %>">
@@ -33,7 +33,7 @@
       <span class="cutoff_holder">
         <input type="text" class="cutoff_score" style="width: 3em;" aria-label="<%= t("cutoff score") %>" aria-describedby="out_of" />
         <span class="out_of" id="out_of">
-          <%= t('out of %{points_possible}', points_possible: '<span class="points_possible">&nbsp;</span>'.html_safe) %>
+          <%= t("out of %{points_possible}", points_possible: '<span class="points_possible">&nbsp;</span>'.html_safe) %>
         </span>
       </span>
     </div>
@@ -61,7 +61,7 @@
     </table>
     <div class="button-container">
       <button class="Button cancel_button"><%= t("Cancel") %></button>
-      <button type="submit" class="Button Button--primary send_button"><%= t('Send Message') %></button>
+      <button type="submit" class="Button Button--primary send_button"><%= t("Send Message") %></button>
     </div>
   <% end %>
 </div>
