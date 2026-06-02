@@ -38,9 +38,17 @@ module Lti
       private
 
       def next_page
-        if @membership_collator.next_page?
-          method = :"#{@membership_collator.context.class.to_s.downcase}_membership_service_url"
-          send method, @membership_collator.context, next_page_query_params.merge(host: @base_url)
+        return unless @membership_collator.next_page?
+
+        context = @membership_collator.context
+        url_params = next_page_query_params.merge(host: @base_url)
+        case context
+        when Course
+          course_membership_service_url(context, url_params)
+        when Group
+          group_membership_service_url(context, url_params)
+        else
+          raise "Unexpected context type for membership service: #{context.class}"
         end
       end
 

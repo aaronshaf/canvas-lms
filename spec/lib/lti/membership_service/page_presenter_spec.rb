@@ -165,6 +165,35 @@ module Lti::MembershipService
       end
     end
 
+    context "group with multiple members" do
+      before do
+        course_with_teacher(active_course: true)
+        @student1 = user_model
+        @course.enroll_user(@student1, "StudentEnrollment", enrollment_state: "active")
+        @student2 = user_model
+        @course.enroll_user(@student2, "StudentEnrollment", enrollment_state: "active")
+
+        @group_category = @course.group_categories.create!(name: "Membership")
+        @group = @course.groups.create!(name: "Group 1", group_category: @group_category)
+        @group.add_user(@student1)
+        @group.add_user(@student2)
+      end
+
+      describe "#as_json" do
+        it "provides the right next_page url for a group context" do
+          stub_const("Api::PER_PAGE", 1)
+          presenter = PagePresenter.new(@group, nil, base_url)
+          uri = URI(presenter.as_json.fetch(:nextPage))
+
+          expect(uri.scheme).to eq "https"
+          expect(uri.host).to eq "localhost"
+          expect(uri.port).to eq 3000
+          expect(uri.path).to eq "/api/lti/groups/#{@group.id}/membership_service"
+          expect(uri.query).to eq "page=2&per_page=1"
+        end
+      end
+    end
+
     context "course with multiple enrollments" do
       before do
         course_with_teacher(active_course: true)
