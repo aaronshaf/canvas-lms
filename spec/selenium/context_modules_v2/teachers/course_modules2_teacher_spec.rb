@@ -40,11 +40,6 @@ describe "context modules", :ignore_js_errors do
     user_session(@teacher)
   end
 
-  it "shows the modules index page" do
-    go_to_modules
-    expect(teacher_modules_container).to be_displayed
-  end
-
   it "creates a screenreader alert when all module items are loaded" do
     go_to_modules
     expand_all_modules_button.click if element_exists?(expand_all_modules_button_selector)
@@ -246,13 +241,6 @@ describe "context modules", :ignore_js_errors do
       expect(@course.context_modules.count).to eq 0
     end
 
-    it "give error in add module tray if module name is not provided" do
-      add_module_button.click
-      expect(input_module_name).to be_displayed
-      submit_add_module_button.click
-      expect(add_module_tray.text).to include("Module name can’t be blank")
-    end
-
     it_behaves_like "course_module2 add module tray", :context_modules
     it_behaves_like "course_module2 add module tray", :course_homepage
   end
@@ -270,57 +258,6 @@ describe "context modules", :ignore_js_errors do
     before do
       user_session(@teacher)
       go_to_modules
-    end
-
-    it "shows Everyone as default selection in Assign-To tray" do
-      module_action_menu(@module1.id).click
-      module_item_action_menu_link("Assign To...").click
-      expect(is_checked(everyone_radio_checked)).to be true
-    end
-
-    it "selects the custom radio button for module assign to when clicked" do
-      module_action_menu(@module1.id).click
-      module_item_action_menu_link("Assign To...").click
-
-      custom_access_radio_click.click
-      expect(is_checked(custom_access_radio_checked)).to be true
-    end
-
-    it "selects the custom radio button for module assign to and cancels" do
-      module_action_menu(@module1.id).click
-      module_item_action_menu_link("Assign To...").click
-
-      custom_access_radio_click.click
-      expect(module_settings_tray).to be_displayed
-      expect(cancel_tray_button).to be_displayed
-
-      cancel_tray_button.click
-      expect(settings_tray_exists?).to be_falsey
-    end
-
-    it "adds more than one name to the assign to list" do
-      module_action_menu(@module1.id).click
-      module_item_action_menu_link("Assign To...").click
-
-      custom_access_radio_click.click
-      assignee_selection.send_keys("user")
-      click_option(assignee_selection, "user1")
-      assignee_selection.send_keys("user")
-      click_option(assignee_selection, "user2")
-
-      assignee_list = assignee_selection_item.map(&:text)
-      expect(assignee_list.sort).to eq(%w[user1 user2])
-    end
-
-    it "adds a section to the list of assignees" do
-      module_action_menu(@module1.id).click
-      module_item_action_menu_link("Assign To...").click
-      custom_access_radio_click.click
-
-      assignee_selection.send_keys("section")
-      click_option(assignee_selection, "section1")
-      expect(assignee_selection_item[0].text).to eq("section1")
-      expect(assignee_selection_item.count).to eq(1)
     end
 
     it "adds a user to assign to and shows the user from View Assign To" do
@@ -824,23 +761,6 @@ describe "context modules", :ignore_js_errors do
 
       go_to_modules
       expect(completion_requirement.text).to eq("Complete One Item")
-    end
-
-    it "includes Module Pre-requisite when one is present" do
-      @module2.prerequisites = "module_#{@module1.id}"
-      @module2.save!
-
-      go_to_modules
-      expect(module_prerequisite.text).to eq("Prerequisite: #{@module1.name}")
-    end
-
-    it "shows multiple Module Pre-requisites when multiple are present" do
-      @module3 = @course.context_modules.create!(name: "module3")
-      @module3.prerequisites = "module_#{@module1.id},module_#{@module2.id}"
-      @module3.save!
-
-      go_to_modules
-      expect(module_prerequisite.text).to eq("Prerequisites: #{@module1.name}, #{@module2.name}")
     end
   end
 

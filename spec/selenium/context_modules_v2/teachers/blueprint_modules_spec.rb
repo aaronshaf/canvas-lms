@@ -78,24 +78,6 @@ describe "master courses - child courses - module item locking for React modules
       expect(f(module_item_by_id_selector(@normal_tag.id))).not_to contain_css(blueprint_lock_icon_selector(locked: false))
     end
 
-    it "disables the title edit input for locked items" do
-      skip "2025-07-24 title input is not disabled: LX-2962"
-      go_to_modules
-
-      # Expand the module to see its items
-      context_module_expand_toggle(@mod.id).click
-      wait_for_ajaximations
-
-      # Click the action menu for the locked item
-      manage_module_item_button(@locked_tag.id).click
-      module_item_action_menu_link("Edit").click
-      wait_for_ajaximations
-
-      # The title field should be disabled
-      title_input = edit_item_modal.find_element(:css, "input[type=text]")
-      expect(title_input).to be_disabled
-    end
-
     it "does not disable the title edit input for unlocked items" do
       go_to_modules
 

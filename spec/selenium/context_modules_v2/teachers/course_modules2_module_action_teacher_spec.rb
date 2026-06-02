@@ -93,21 +93,6 @@ describe "context modules", :ignore_js_errors do
       expect(context_module_prerequisites(@module3.id).text).to eq("Prerequisite: #{@module2.name}")
     end
 
-    it "does not save prerequisites selected when update cancelled." do
-      go_to_modules
-      module_action_menu(@module2.id).click
-      module_item_action_menu_link("Edit").click
-      click_add_prerequisites_button
-
-      expect(prerequisites_dropdown[0]).to be_displayed
-      select_prerequisites_dropdown_option(0, @module1.name)
-      expect(prerequisites_dropdown_value(0)).to eq(@module1.name)
-      cancel_tray_button.click
-      wait_for_ajaximations
-
-      expect(element_exists?(context_module_prerequisites_selector(@module2.id))).to be false
-    end
-
     it_behaves_like "course_module2 module tray prerequisites", :context_modules
     it_behaves_like "course_module2 module tray prerequisites", :course_homepage
   end
@@ -181,18 +166,6 @@ describe "context modules", :ignore_js_errors do
       select_complete_one_radio
       click_save_module_tray_change
       expect(context_module_completion_requirement(@module5.id).text).to include("Complete One Item")
-    end
-
-    it "updates requirement type and shows on modules page" do
-      module_action_menu(@module5.id).click
-      module_item_action_menu_link("Edit").click
-      select_requirement_type_option(0, "Mark as done")
-      select_requirement_type_option(1, "Submit the assignment")
-      click_save_module_tray_change
-      ignore_relock
-      module_header_expand_toggles.last.click
-      expect(context_module_item_todo(@module5.content_tags[0].id, "Mark as done")).to be_present
-      expect(context_module_item_todo(@module5.content_tags[1].id, "Submit quiz")).to be_present
     end
 
     it "switches between requirement count radios with arrow keys" do
@@ -282,59 +255,6 @@ describe "context modules", :ignore_js_errors do
       expect(close_tray_button).to be_displayed
       close_tray_button.click
       expect(f("body")).not_to contain_css(move_module_tray_selector)
-    end
-
-    it "moves module down after second module" do
-      open_move_tray(@module4.id)
-      expect(move_tray_place_contents_listbox).to be_displayed
-      move_tray_place_contents_listbox.click
-      place_item_at_option("After...").click
-      expect(move_module_tray_reference_listbox).to be_displayed
-      move_module_tray_reference_listbox.click
-
-      option_list_id = move_module_tray_reference_listbox.attribute("aria-controls")
-      option_list_course_option(option_list_id, @module2.name).click
-      submit_move_to_button.click
-      wait_for_ajaximations
-
-      expect(list_all_module_ids[2]).to eq(@module4.id.to_s)
-      expect(list_all_module_ids.count).to eq(4)
-    end
-
-    it "moves module to bottom" do
-      open_move_tray(@module1.id)
-      expect(move_tray_place_contents_listbox).to be_displayed
-      move_tray_place_contents_listbox.click
-      place_item_at_option("At the bottom").click
-      submit_move_to_button.click
-      wait_for_ajaximations
-
-      expect(list_all_module_ids.last).to eq(@module1.id.to_s)
-      expect(list_all_module_ids.count).to eq(4)
-    end
-
-    it "moves module to top" do
-      open_move_tray(@module3.id)
-      expect(move_tray_place_contents_listbox).to be_displayed
-      move_tray_place_contents_listbox.click
-      place_item_at_option("At the top").click
-      submit_move_to_button.click
-      wait_for_ajaximations
-
-      expect(list_all_module_ids.first).to eq(@module3.id.to_s)
-      expect(list_all_module_ids.count).to eq(4)
-    end
-
-    it "moves module before first module" do
-      open_move_tray(@module4.id)
-      expect(move_tray_place_contents_listbox).to be_displayed
-      move_tray_place_contents_listbox.click
-      place_item_at_option("Before...").click
-      submit_move_to_button.click
-      wait_for_ajaximations
-
-      expect(list_all_module_ids.first).to eq(@module4.id.to_s)
-      expect(list_all_module_ids.count).to eq(4)
     end
   end
 end

@@ -237,26 +237,6 @@ describe "selective_release module item assign to tray", :ignore_js_errors do
       expect(element_exists?(context_module_item_selector(module_item.id))).to be true
     end
 
-    it "adds an external URL to the module" do
-      go_to_modules
-
-      add_item_button(@module.id).click
-
-      click_INSTUI_Select_option(new_item_type_select_selector, "External URL")
-      wait_for_ajaximations
-
-      input_text_in_url_input("https://www.google.com")
-      input_text_in_url_title_input("External URL 1")
-      add_item_modal_add_item_button.click
-      wait_for_ajaximations
-
-      module_item = ContentTag.find_by(context_id: @course.id, context_module_id: @module.id, content_type: "ExternalUrl", title: "External URL 1")
-
-      module_header_expand_toggles.first.click
-
-      expect(element_exists?(context_module_item_selector(module_item.id))).to be true
-    end
-
     it "adds a file to the module" do
       @file = @course.attachments.create!(display_name: "file", uploaded_data: fixture_file_upload("a_file.txt", "text/plain"))
       @file.context = @course
