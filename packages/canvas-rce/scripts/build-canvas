@@ -16,3 +16,4 @@ rm -f tsconfig.tsbuildinfo
 yarn installTranslations
 yarn build:es
 yarn build:types
+cp src/rce_allowlist.json es/rce_allowlist.json
