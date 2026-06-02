@@ -524,6 +524,7 @@ class AssignmentOverride < ApplicationRecord
 
   def notify_change?
     assignment&.context&.available? &&
+      assignment.context.active_now? &&
       assignment.published? &&
       !assignment.context.concluded? &&
       assignment.created_at < 3.hours.ago &&
