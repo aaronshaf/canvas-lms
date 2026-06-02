@@ -5,8 +5,8 @@
 <% end %>
 
 <% if @deprecated_method.present? %>
-<%= hint("danger", "[DEPRECATED] This method is deprecated, effective #{ @deprecated_method.effective_date } (notice given #{ @deprecated_method.notice_date }):") %>
-<%= htmlify @deprecated_method.description  %>
+<%= hint("danger", "[DEPRECATED] This method is deprecated, effective #{@deprecated_method.effective_date} (notice given #{@deprecated_method.notice_date}):") %>
+<%= htmlify @deprecated_method.description %>
 <% end %>
 
 <% if @beta %>

@@ -1,4 +1,4 @@
-<h4><%= @label ? @label : YARD::Tags::Library.labels[@name] %>:</h4>
+<h4><%= @label || YARD::Tags::Library.labels[@name] %>:</h4>
 <ul class="<%= @name %>">
   <% object.tags(@name).each do |tag| %>
     <li>
@@ -11,7 +11,7 @@
       <% unless @no_names %>
         <span class='name'><%= h name %></span>
       <% end %>
-      <% if text && !text.empty? %>
+      <% if text.present? %>
         <%= htmlify_line(text) %>
       <% end %>
     </li>

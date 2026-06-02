@@ -40,10 +40,8 @@ module DocRedirect
 
         File.write(output_file, JSON.pretty_generate(mappings))
 
-        # rubocop:disable Rails/Output
         puts "✓ Generated #{mappings.count} URL mappings"
         puts "✓ Saved to: #{output_file}"
-        # rubocop:enable Rails/Output
       end
 
       private

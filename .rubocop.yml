@@ -107,6 +107,7 @@ Rails:
   Severity: error
   Exclude:
     - "bin/**/*"
+    - "doc/**/*"
     - "gems/google_drive/**/*"
 Rails/ActionControllerFlashBeforeRender:
   AutoCorrect: false # auto-correct just changes it to `flash.now`, when that may not be appropriate
@@ -163,6 +164,7 @@ Rails/SkipsModelValidations:
   Enabled: false # Canvas skips validations in many places for optimization reasons
 Rails/TimeZone:
   Exclude:
+    - "doc/**/*"
     - "gems/*/lib/**/*.rb"
     - "gems/*/spec/**/*.rb"
 Rails/WhereExists:

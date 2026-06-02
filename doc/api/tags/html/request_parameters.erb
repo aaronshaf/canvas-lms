@@ -13,7 +13,7 @@
   </thead>
   <tbody>
     <% @request_parameters.each do |param| %>
-    <tr class="request-param <%= param.deprecated? ? 'deprecated' : '' %>">
+    <tr class="request-param <%= param.deprecated? ? "deprecated" : "" %>">
       <td><%= h param.name(json: false) %></td>
       <td>
         <% if param.required? %>

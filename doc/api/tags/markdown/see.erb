@@ -2,7 +2,7 @@
 
 **See Also:**
 
-<% for tag in object.tags(:see) %>
+<% object.tags(:see).each do |tag| %>
 - <%= linkify(tag.name, tag.text) %>
 <% end %>
 <% end %>

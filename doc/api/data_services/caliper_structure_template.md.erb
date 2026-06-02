@@ -70,14 +70,14 @@ A web application user session. Expressed as an object.
 
 Not all Canvas assets properties are covered by the Caliper spec. We add extensions to many events and entities. See specific Message type for details around supported object extensions.
 
-
 ## Caliper Event Extensions
 
 **Description:** contain request details for user and system triggered events, extensions are listed in the `data[0].extensions["com.instructure.canvas"]`
 
 | Field | Description |
 |-|-|
-<% for @field, @description in content.dig('extensions', 'schema', 'data[0].extensions["com.instructure.canvas"]') %>| **<%= @field %>** | <%= @description %> |
+<% content.dig("extensions", "schema", 'data[0].extensions["com.instructure.canvas"]').each do |field, description| %>
+| **<%= field %>** | <%= description %> |
 <% end %>
 
 ## Caliper Event Actor Extensions
@@ -86,5 +86,6 @@ Not all Canvas assets properties are covered by the Caliper spec. We add extensi
 
 | Field | Description |
 |-|-|
-<% for @field, @description in content.dig('actor_extensions', 'schema', 'data[0].actor.extensions["com.instructure.canvas"]') %>| **<%= @field %>** | <%= @description %> |
+<% content.dig("actor_extensions", "schema", 'data[0].actor.extensions["com.instructure.canvas"]').each do |field, description| %>
+| **<%= field %>** | <%= description %> |
 <% end %>

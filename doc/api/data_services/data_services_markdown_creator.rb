@@ -19,10 +19,14 @@
 #
 
 class DataServicesMarkdownCreator
-  CALIPER_EVENT_TEMPLATE = File.read("doc/api/data_services/caliper_event_template.md.erb")
-  CALIPER_STRUCTURE_TEMPLATE = File.read("doc/api/data_services/caliper_structure_template.md.erb")
-  CANVAS_EVENT_TEMPLATE = File.read("doc/api/data_services/canvas_event_template.md.erb")
-  CANVAS_METADATA_TEMPLATE = File.read("doc/api/data_services/canvas_metadata_template.md.erb")
+  CALIPER_EVENT_TEMPLATE_FILENAME = "doc/api/data_services/caliper_event_template.md.erb"
+  CALIPER_EVENT_TEMPLATE = File.read(CALIPER_EVENT_TEMPLATE_FILENAME)
+  CALIPER_STRUCTURE_TEMPLATE_FILENAME = "doc/api/data_services/caliper_structure_template.md.erb"
+  CALIPER_STRUCTURE_TEMPLATE = File.read(CALIPER_STRUCTURE_TEMPLATE_FILENAME)
+  CANVAS_EVENT_TEMPLATE_FILENAME = "doc/api/data_services/canvas_event_template.md.erb"
+  CANVAS_EVENT_TEMPLATE = File.read(CANVAS_EVENT_TEMPLATE_FILENAME)
+  CANVAS_METADATA_TEMPLATE_FILENAME = "doc/api/data_services/canvas_metadata_template.md.erb"
+  CANVAS_METADATA_TEMPLATE = File.read(CANVAS_METADATA_TEMPLATE_FILENAME)
   MARKDOWN_PATH = "doc/api/data_services/md/dynamic"
 
   def self.run
@@ -31,23 +35,23 @@ class DataServicesMarkdownCreator
     DataServicesCanvasLoader.data.each do |content|
       file_name = "canvas_#{content[:event_category]}"
 
-      write_file(file_name, CANVAS_EVENT_TEMPLATE, content)
+      write_file(file_name, CANVAS_EVENT_TEMPLATE_FILENAME, CANVAS_EVENT_TEMPLATE, content)
     end
 
-    write_file("canvas_event_metadata", CANVAS_METADATA_TEMPLATE, DataServicesCanvasLoader.metadata)
+    write_file("canvas_event_metadata", CANVAS_METADATA_TEMPLATE_FILENAME, CANVAS_METADATA_TEMPLATE, DataServicesCanvasLoader.metadata)
 
     DataServicesCaliperLoader.data.each do |content|
       file_name = "caliper_#{content[:event_category]}"
 
-      write_file(file_name, CALIPER_EVENT_TEMPLATE, content)
+      write_file(file_name, CALIPER_EVENT_TEMPLATE_FILENAME, CALIPER_EVENT_TEMPLATE, content)
     end
 
-    write_file("caliper_structure", CALIPER_STRUCTURE_TEMPLATE, DataServicesCaliperLoader.extensions)
+    write_file("caliper_structure", CALIPER_STRUCTURE_TEMPLATE_FILENAME, CALIPER_STRUCTURE_TEMPLATE, DataServicesCaliperLoader.extensions)
   end
 
-  def self.write_file(file_name, template, content)
-    erb_renderer = ERB.new(template)
+  def self.write_file(file_name, template_filename, template, content)
+    erb_renderer = Erubi::Engine.new(template)
 
-    File.binwrite("#{MARKDOWN_PATH}/data_service_#{file_name}.md", erb_renderer.result(binding))
+    File.binwrite("#{MARKDOWN_PATH}/data_service_#{file_name}.md", eval(erb_renderer.src, binding, template_filename)) # rubocop:disable Security/Eval
   end
 end

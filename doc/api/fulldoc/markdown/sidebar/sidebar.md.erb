@@ -14,9 +14,10 @@
     * [OAuth2 Endpoints](file.oauth_endpoints.md)
     * [Developer Keys](file.developer_keys.md)
   * Resources
-    <% options[:resources].each do |(resource, controllers)|
-      next if resource.include?('Plagiarism')
-      link = url_for("#{DocumentationHelpers.topicize resource}.md") %>
+    <% options[:resources].each do |(resource, _controllers)|
+         next if resource.include?("Plagiarism")
+
+         link = url_for("#{DocumentationHelpers.topicize resource}.md") %>
     * [<%= resource %>](<%= link %>)
     <% end %>
   * Outcomes
@@ -53,9 +54,10 @@
     * [Canvas Roles](file.canvas_roles.md)
     * Plagiarism Detection Platform
       <% @plagiarism_file_list = [] %>
-      <% options[:resources].each do |(resource, controllers)| %>
+      <% options[:resources].each do |(resource, _controllers)| %>
         <%
-          next if resource.exclude?('Plagiarism')
+          next if resource.exclude?("Plagiarism")
+
           @plagiarism_file_list << resource
         %>
       <% end %>

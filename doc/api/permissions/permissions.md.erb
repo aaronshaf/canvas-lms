@@ -5,13 +5,13 @@ This document lists permissions that can be granted to account- and course-level
 
 ## For Account-level roles only
 
-<% account_perms.keys.each do |perm_group| %>
+<% account_perms.each_key do |perm_group| %>
  <% if perm_group.present? %>
-### <%= group_name_with_link.(perm_group) %>
+### <%= group_name_with_link.call(perm_group) %>
  <% end %>
 | Key | Permission |
 |-----|------------| <% account_perms[perm_group].each do |perm| %>
-| `<%= perm[:key] %>` | <%= perm_name_with_link.(perm[:key], perm[:label]) %> | <% end %>
+| `<%= perm[:key] %>` | <%= perm_name_with_link.call(perm[:key], perm[:label]) %> | <% end %>
 <% end %>
 
 ## For both Account-level and Course-level roles
@@ -22,11 +22,11 @@ This document lists permissions that can be granted to account- and course-level
    A missing letter indicates the permission cannot be enabled for the role
    or any derived custom roles.
 
-<% course_perms.keys.each do |perm_group| %>
+<% course_perms.each_key do |perm_group| %>
   <% if perm_group.present? %>
-### <%= group_name_with_link.(perm_group) %>
+### <%= group_name_with_link.call(perm_group) %>
   <% end %>
 | Key | Available To | Permission |
 |-----|--------------|------------|  <% course_perms[perm_group].each do |perm| %>
-| `<%= perm[:key] %>` | `<%= perm[:available_to] %>` | <%= perm_name_with_link.(perm[:key], perm[:label]) %> | <% end %>
+| `<%= perm[:key] %>` | `<%= perm[:available_to] %>` | <%= perm_name_with_link.call(perm[:key], perm[:label]) %> | <% end %>
 <% end %>

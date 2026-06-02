@@ -8,7 +8,7 @@
       <% if field.deprecated? %>
         <div class='response-field deprecated'>
           <strong>[DEPRECATED] This field is deprecated, effective <%= h field.effective_date %> (notice given <%= h field.notice_date %>):</strong>
-        <div>
+        </div>
       <% end %>
 
       <% if field.description.present? %>

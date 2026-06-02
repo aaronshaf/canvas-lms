@@ -29,12 +29,14 @@ Events triggered by system processes such as a course content migration or SIS i
 
 ## Examples
 
-<% for @example in @payload.fetch('examples') %>
-<% if @example.fetch('description', nil).present? %>**Description:** <%= @example.fetch('description') %><% end %>
+<% content.fetch("examples").each do |example| %>
+<%   if example.fetch("description", nil).present? %>
+**Description:** <%= example.fetch("description") %>
+<%   end %>
 ### Payload Example:
 
 ```json
-<%= JSON.pretty_generate(@example.fetch('payload')) %>
+<%= JSON.pretty_generate(example.fetch("payload")) %>
 ```
 
 <% end %>
@@ -43,5 +45,6 @@ Events triggered by system processes such as a course content migration or SIS i
 
 | Field | Description |
 |-|-|
-<% for @field, @description in @payload.fetch('schema') %>| **<%= @field %>** | <%= @description %> |
+<% content.fetch("schema").each do |field, description| %>
+| **<%= field %>** | <%= description %> |
 <% end %>

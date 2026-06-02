@@ -147,7 +147,7 @@ module YARD::Templates::Helpers::HtmlHelper
       link = url_for(key.to_s)
       anchors << "[#{val}](#{link})"
     end
-    anchors
+    anchors.join
   end
 
   def url_for_file(filename, anchor = nil)

@@ -25,8 +25,6 @@ class DataServicesCanvasLoader
   end
 
   def self.metadata
-    @@metadata ||= {
-      examples: JSON.parse(File.read("#{JSON_BASE_PATH}/metadata.json"))
-    }
+    @@metadata ||= JSON.parse(File.read("#{JSON_BASE_PATH}/metadata.json"))
   end
 end

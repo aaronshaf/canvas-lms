@@ -7,41 +7,41 @@
 
   <div class="ac-container">
     <% @basics_file_list = {
-      "file.graphql.html" => "GraphQL",
-      "file.changelog.html" => "API Change Log",
-      "file.object_ids.html" => "SIS IDs",
-      "file.pagination.html" => "Pagination",
-      "file.throttling.html" => "Throttling",
-      "file.compound_documents.html" => "Compound Documents",
-      "file.file_uploads.html" => "File Uploads",
-      "file.endpoint_attributes.html" => "API Endpoint Attributes",
-      "file.masquerading.html" => "Masquerading",
-      "file.permissions.html" => "Permissions",
-    } %>
+         "file.graphql.html" => "GraphQL",
+         "file.changelog.html" => "API Change Log",
+         "file.object_ids.html" => "SIS IDs",
+         "file.pagination.html" => "Pagination",
+         "file.throttling.html" => "Throttling",
+         "file.compound_documents.html" => "Compound Documents",
+         "file.file_uploads.html" => "File Uploads",
+         "file.endpoint_attributes.html" => "API Endpoint Attributes",
+         "file.masquerading.html" => "Masquerading",
+         "file.permissions.html" => "Permissions",
+       } %>
     <input name="header" class="ac-input" id="sidebar-basics" type="checkbox"
-      <%= if @basics_file_list.key?(options[:object]) || @all_checked then 'checked' end %>
+      <%= if @basics_file_list.key?(options[:object]) || @all_checked then "checked" end %>
     >
     <label class="ac-label" for="sidebar-basics">Basics</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <%= make_api_doc_anchors(@basics_file_list, options).join.html_safe %>
+        <%= make_api_doc_anchors(@basics_file_list, options) %>
       </div>
     </div>
   </div>
 
   <div class="ac-container">
     <% @oauth2_file_list = {
-      "file.oauth.html" => "OAuth2 Overview",
-      "file.oauth_endpoints.html" => "OAuth2 Endpoints",
-      "file.developer_keys.html" => "Developer Keys",
-    } %>
+         "file.oauth.html" => "OAuth2 Overview",
+         "file.oauth_endpoints.html" => "OAuth2 Endpoints",
+         "file.developer_keys.html" => "Developer Keys",
+       } %>
     <input name="header" class="ac-input" id="sidebar-oauth2" type="checkbox"
-      <%= if @oauth2_file_list.key?(options[:object]) then 'checked' end %>
+      <%= if @oauth2_file_list.key?(options[:object]) then "checked" end %>
     >
     <label class="ac-label" for="sidebar-oauth2">OAuth2</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <%= make_api_doc_anchors(@oauth2_file_list, options).join.html_safe %>
+        <%= make_api_doc_anchors(@oauth2_file_list, options) %>
       </div>
     </div>
   </div>
@@ -49,35 +49,35 @@
   <div class="ac-container">
 
     <% @resources_file_list = [] %>
-    <% options[:resources].each do |(resource, controllers)| %>
+    <% options[:resources].each do |(resource, _controllers)| %>
       <%
-        next if resource.include?('Plagiarism')
+        next if resource.include?("Plagiarism")
+
         @resources_file_list << resource
       %>
     <% end %>
 
     <input name="header" class="ac-input" id="sidebar-resources" type="checkbox"
       <%=
-        if
-          options[:object] == 'all_resources.html' ||
-          @resources_file_list.include?(options[:object])
-        then
-          'checked'
+        if options[:object] == "all_resources.html" ||
+           @resources_file_list.include?(options[:object])
+          "checked"
         end
       %>
     >
     <label class="ac-label" for="sidebar-resources">Resources</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <a href="all_resources.html" class="<%= 'current' if options[:all_resources] %>">All Resources Reference</a>
-        <% options[:resources].each do |(resource, controllers)| %>
+        <a href="all_resources.html" class="<%= "current" if options[:all_resources] %>">All Resources Reference</a>
+        <% options[:resources].each do |(resource, _controllers)| %>
           <%
-            next if resource.include?('Plagiarism')
+            next if resource.include?("Plagiarism")
+
             link = url_for("#{DocumentationHelpers.topicize resource}.html")
             klass = []
             klass << "current" if resource == options[:object]
           %>
-          <a class="<%= klass.join(' ') %>" href="<%= link %>"><%= resource %></a>
+          <a class="<%= klass.join(" ") %>" href="<%= link %>"><%= resource %></a>
         <% end %>
       </div>
     </div>
@@ -85,37 +85,37 @@
 
   <div class="ac-container">
     <input name="header" class="ac-input" id="sidebar-outcomes" type="checkbox"
-      <%= if options[:object] == 'file.outcomes_csv.html' then 'checked' end %>
+      <%= if options[:object] == "file.outcomes_csv.html" then "checked" end %>
     >
     <label class="ac-label" for="sidebar-outcomes">Outcomes</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <a href="<%= url_for("file.outcomes_csv.html") %>" class="<%= 'current' if options[:object] == 'file.outcomes_csv.html' %>">Outcomes CSV Format</a>
+        <a href="<%= url_for("file.outcomes_csv.html") %>" class="<%= "current" if options[:object] == "file.outcomes_csv.html" %>">Outcomes CSV Format</a>
       </div>
     </div>
   </div>
 
   <div class="ac-container">
     <input name="header" class="ac-input" id="sidebar-groupCategories" type="checkbox"
-      <%= if options[:object] == 'file.group_category_csv.html' then 'checked' end %>
+      <%= if options[:object] == "file.group_category_csv.html" then "checked" end %>
     >
     <label class="ac-label" for="sidebar-groupCategories">Group Categories</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <a href="<%= url_for("file.group_category_csv.html") %>" class="<%= 'current' if options[:object] == 'file.group_category_csv.html' %>">Group Categories CSV Format</a>
-        <a href="<%= url_for("file.differentiation_tags_csv.html") %>" class="<%= 'current' if options[:object] == 'file.differentiation_tags_csv.html' %>">Differentiation Tags CSV Format</a>
+        <a href="<%= url_for("file.group_category_csv.html") %>" class="<%= "current" if options[:object] == "file.group_category_csv.html" %>">Group Categories CSV Format</a>
+        <a href="<%= url_for("file.differentiation_tags_csv.html") %>" class="<%= "current" if options[:object] == "file.differentiation_tags_csv.html" %>">Differentiation Tags CSV Format</a>
       </div>
     </div>
   </div>
 
   <div class="ac-container">
     <input name="header" class="ac-input" id="sidebar-sis" type="checkbox"
-      <%= if options[:object] == 'file.sis_csv.html' then 'checked' end %>
+      <%= if options[:object] == "file.sis_csv.html" then "checked" end %>
     >
     <label class="ac-label" for="sidebar-sis">SIS</label>
     <div class="ac-text">
       <div class="ac-sub">
-        <a href="<%= url_for("file.sis_csv.html") %>" class="<%= 'current' if options[:object] == 'file.sis_csv.html' %>">SIS CSV Format</a>
+        <a href="<%= url_for("file.sis_csv.html") %>" class="<%= "current" if options[:object] == "file.sis_csv.html" %>">SIS CSV Format</a>
       </div>
     </div>
   </div>
@@ -123,50 +123,49 @@
   <div class="ac-container">
 
     <% @lti_file_list = {
-      "file.tools_intro.html" => "Introduction",
-      "file.registration.html" => "Registration",
-      "file.lti_launch_overview.html" => "Launch Overview",
-      "file.lti_dev_key_config.html" => "Configuring",
-      "file.tools_variable_substitutions.html" => "Variable Substitutions",
-      "file.content_item.html" => "Deep Linking",
-      "file.assignment_tools.html" => "Grading",
-      "file.provisioning.html" => "Provisioning",
-      "file.lti_window_post_message.html" => "PostMessage",
-      "file.pns.html" => "Platform Notification Service",
-      "file.document_processor.html" => "Document Processor",
-    } %>
+         "file.tools_intro.html" => "Introduction",
+         "file.registration.html" => "Registration",
+         "file.lti_launch_overview.html" => "Launch Overview",
+         "file.lti_dev_key_config.html" => "Configuring",
+         "file.tools_variable_substitutions.html" => "Variable Substitutions",
+         "file.content_item.html" => "Deep Linking",
+         "file.assignment_tools.html" => "Grading",
+         "file.provisioning.html" => "Provisioning",
+         "file.lti_window_post_message.html" => "PostMessage",
+         "file.pns.html" => "Platform Notification Service",
+         "file.document_processor.html" => "Document Processor",
+       } %>
 
     <% @placements_file_list = {
-      "file.placements_overview.html" => "Placements Overview",
-      "file.navigation_tools.html" => "Navigation",
-      "file.homework_submission_placement.html" => "Homework Submission",
-      "file.editor_button_placement.html" => "Editor Button",
-      "file.migration_selection_placement.html" => "Migration Selection",
-      "file.link_selection_placement.html" => "Link Selection (Modules)",
-      "file.assignment_selection_placement.html" => "Assignment Selection",
-      "file.collaborations_placement.html" => "Collaborations"
-    } %>
+         "file.placements_overview.html" => "Placements Overview",
+         "file.navigation_tools.html" => "Navigation",
+         "file.homework_submission_placement.html" => "Homework Submission",
+         "file.editor_button_placement.html" => "Editor Button",
+         "file.migration_selection_placement.html" => "Migration Selection",
+         "file.link_selection_placement.html" => "Link Selection (Modules)",
+         "file.assignment_selection_placement.html" => "Assignment Selection",
+         "file.collaborations_placement.html" => "Collaborations"
+       } %>
 
     <% @plagiarism_file_list = [] %>
-    <% options[:resources].each do |(resource, controllers)| %>
+    <% options[:resources].each do |(resource, _controllers)| %>
       <%
-        next if resource.exclude?('Plagiarism')
+        next if resource.exclude?("Plagiarism")
+
         @plagiarism_file_list << resource
       %>
     <% end %>
 
     <input name="header" class="ac-input" id="sidebar-externalTools" type="checkbox"
       <%=
-        if
-          @lti_file_list.key?(options[:object]) ||
-          @placements_file_list.key?(options[:object]) ||
-          options[:object] == 'file.plagiarism_platform.html' ||
-          @plagiarism_file_list.include?(options[:object]) ||
-          options[:object] == 'file.jwt_access_tokens.html' ||
-          options[:object] == 'file.xapi.html' ||
-          options[:object] == 'file.canvas_roles.html'
-        then
-          'checked'
+        if @lti_file_list.key?(options[:object]) ||
+           @placements_file_list.key?(options[:object]) ||
+           options[:object] == "file.plagiarism_platform.html" ||
+           @plagiarism_file_list.include?(options[:object]) ||
+           options[:object] == "file.jwt_access_tokens.html" ||
+           options[:object] == "file.xapi.html" ||
+           options[:object] == "file.canvas_roles.html"
+          "checked"
         end
       %>
     >
@@ -176,33 +175,31 @@
       <div class="ac-sub">
         <input name="header" class="ac-input" id="sidebar-externalTools-lti" type="checkbox"
           <%=
-            if
-              @lti_file_list.key?(options[:object]) ||
-              @placements_file_list.key?(options[:object])
-            then
-              'checked'
+            if @lti_file_list.key?(options[:object]) ||
+               @placements_file_list.key?(options[:object])
+              "checked"
             end
           %>
         >
         <label class="ac-label level1-label" for="sidebar-externalTools-lti">LTI</label>
         <div class="ac-sub-text">
-          <%= make_api_doc_anchors(@lti_file_list, options).join.html_safe %>
+          <%= make_api_doc_anchors(@lti_file_list, options) %>
 
           <div class="ac-sub">
             <input name="header" class="ac-input" id="sidebar-externalTools-lti-placements" type="checkbox"
-              <%= if @placements_file_list.key?(options[:object]) then 'checked' end %>
+              <%= if @placements_file_list.key?(options[:object]) then "checked" end %>
             >
             <label class="ac-label level2-label" for="sidebar-externalTools-lti-placements">Placements</label>
             <div class="ac-sub-text-nested">
-              <%= make_api_doc_anchors(@placements_file_list, options).join.html_safe %>
+              <%= make_api_doc_anchors(@placements_file_list, options) %>
             </div>
           </div>
 
         </div>
       </div>
 
-      <a href="<%= url_for("file.xapi.html") %>" class="<%= 'current' if options[:object] == 'file.xapi.html' %>">xAPI</a>
-      <a href="<%= url_for("file.canvas_roles.html") %>" class="<%= 'current' if options[:object] == 'file.canvas_roles.html' %>">Canvas Roles</a>
+      <a href="<%= url_for("file.xapi.html") %>" class="<%= "current" if options[:object] == "file.xapi.html" %>">xAPI</a>
+      <a href="<%= url_for("file.canvas_roles.html") %>" class="<%= "current" if options[:object] == "file.canvas_roles.html" %>">Canvas Roles</a>
 
     </div>
 
@@ -210,26 +207,24 @@
       <div class="ac-sub">
         <input name="header" class="ac-input" id="sidebar-externalTools-plagiarism" type="checkbox"
           <%=
-            if
-              options[:object] == 'file.plagiarism_platform.html' ||
-              @plagiarism_file_list.include?(options[:object]) ||
-              options[:object] == 'file.jwt_access_tokens.html'
-            then
-              'checked'
+            if options[:object] == "file.plagiarism_platform.html" ||
+               @plagiarism_file_list.include?(options[:object]) ||
+               options[:object] == "file.jwt_access_tokens.html"
+              "checked"
             end
           %>
         >
         <label class="ac-label level1-label" for="sidebar-externalTools-plagiarism">Plagiarism Detection Platform</label>
         <div class="ac-sub-text">
-          <a href="<%= url_for("file.plagiarism_platform.html") %>" class="<%= 'current' if options[:object] == 'file.plagiarism_platform.html' %>">Overview</a>
-          <% options[:resources].each do |(resource, controllers)| %>
-            <% next if resource.exclude?('Plagiarism')
-              link = url_for("#{DocumentationHelpers.topicize resource}.html")
-              klass = "current" if resource == options[:object]
-            %>
+          <a href="<%= url_for("file.plagiarism_platform.html") %>" class="<%= "current" if options[:object] == "file.plagiarism_platform.html" %>">Overview</a>
+          <% options[:resources].each do |(resource, _controllers)| %>
+            <% next if resource.exclude?("Plagiarism")
+
+               link = url_for("#{DocumentationHelpers.topicize resource}.html")
+               klass = "current" if resource == options[:object] %>
             <a class="<%= klass %>" href="<%= link %>"><%= resource %></a>
           <% end %>
-          <a href="<%= url_for("file.jwt_access_tokens.html") %>" class="<%= 'current' if options[:object] == 'file.jwt_access_tokens.html' %>">JWT Access Tokens</a>
+          <a href="<%= url_for("file.jwt_access_tokens.html") %>" class="<%= "current" if options[:object] == "file.jwt_access_tokens.html" %>">JWT Access Tokens</a>
         </div>
       </div>
     </div>
@@ -239,11 +234,11 @@
   <div class="ac-container">
 
     <% @overview_file_list = {
-      "file.data_service_introduction.html" => "Introduction",
-      "file.data_service_setup.html" => "Setup",
-      "file.data_service_caliper_structure.html" => "Caliper",
-      "file.data_service_canvas_event_metadata.html" => "Metadata",
-    } %>
+         "file.data_service_introduction.html" => "Introduction",
+         "file.data_service_setup.html" => "Setup",
+         "file.data_service_caliper_structure.html" => "Caliper",
+         "file.data_service_canvas_event_metadata.html" => "Metadata",
+       } %>
 
     <% @canvas_file_list = {} %>
     <% DataServicesCanvasLoader.data.each do |content| %>
@@ -257,12 +252,10 @@
 
     <input name="header" class="ac-input" id="sidebar-dataServices" type="checkbox"
       <%=
-        if
-          @overview_file_list.key?(options[:object]) ||
-          @canvas_file_list.key?(options[:object]) ||
-          @caliper_file_list.key?(options[:object])
-        then
-          'checked'
+        if @overview_file_list.key?(options[:object]) ||
+           @canvas_file_list.key?(options[:object]) ||
+           @caliper_file_list.key?(options[:object])
+          "checked"
         end
       %>
     >
@@ -272,12 +265,10 @@
       <div class="ac-sub">
         <input name="header" class="ac-input" id="sidebar-dataServices-liveEvents" type="checkbox"
           <%=
-            if
-              @overview_file_list.key?(options[:object]) ||
-              @canvas_file_list.key?(options[:object]) ||
-              @caliper_file_list.key?(options[:object])
-            then
-              'checked'
+            if @overview_file_list.key?(options[:object]) ||
+               @canvas_file_list.key?(options[:object]) ||
+               @caliper_file_list.key?(options[:object])
+              "checked"
             end
           %>
         >
@@ -286,11 +277,11 @@
         <div class="ac-sub-text">
           <div class="ac-sub">
             <input name="header" class="ac-input" id="sidebar-dataServices-liveEvents-overview" type="checkbox"
-              <%= if @overview_file_list.key?(options[:object]) then 'checked' end %>
+              <%= if @overview_file_list.key?(options[:object]) then "checked" end %>
             >
             <label class="ac-label level2-label" for="sidebar-dataServices-liveEvents-overview">Overview</label>
             <div class="ac-sub-text-nested">
-              <%= make_api_doc_anchors(@overview_file_list, options).join.html_safe %>
+              <%= make_api_doc_anchors(@overview_file_list, options) %>
             </div>
           </div>
           <span class="sub-label">Event Format</span>
@@ -299,11 +290,11 @@
         <div class="ac-sub-text">
           <div class="ac-sub">
             <input name="header" class="ac-input" id="sidebar-dataServices-liveEvents-eventFormat-canvas" type="checkbox"
-              <%= if @canvas_file_list.include?(options[:object]) then 'checked' end %>
+              <%= if @canvas_file_list.include?(options[:object]) then "checked" end %>
             >
             <label class="ac-label level2-label" for="sidebar-dataServices-liveEvents-eventFormat-canvas">Canvas</label>
             <div class="ac-sub-text-nested">
-              <%= make_api_doc_anchors(@canvas_file_list, options).join.html_safe %>
+              <%= make_api_doc_anchors(@canvas_file_list, options) %>
             </div>
           </div>
         </div>
@@ -311,11 +302,11 @@
         <div class="ac-sub-text">
           <div class="ac-sub">
             <input name="header" class="ac-input" id="sidebar-dataServices-liveEvents-eventFormat-caliper" type="checkbox"
-              <%= if @caliper_file_list.include?(options[:object]) then 'checked' end %>
+              <%= if @caliper_file_list.include?(options[:object]) then "checked" end %>
             >
             <label class="ac-label level2-label" for="sidebar-dataServices-liveEvents-eventFormat-caliper">Caliper IMS 1.1</label>
             <div class="ac-sub-text-nested">
-              <%= make_api_doc_anchors(@caliper_file_list, options).join.html_safe %>
+              <%= make_api_doc_anchors(@caliper_file_list, options) %>
             </div>
           </div>
         </div>

@@ -11,19 +11,19 @@
   if options[:url_mappings]
     current_object = options[:object].to_s
 
-    current_filename = if current_object.end_with?('.html')
-      current_object
-    else
-      "#{DocumentationHelpers.topicize(current_object)}.html"
-    end
+    current_filename = if current_object.end_with?(".html")
+                         current_object
+                       else
+                         "#{DocumentationHelpers.topicize(current_object)}.html"
+                       end
 
     mapping = options[:url_mappings].find do |m|
       # Extract filename from URL and compare exactly to avoid substring matches
-      m['old_url'].split('/').last == current_filename
+      m["old_url"].split("/").last == current_filename
     end
 
     if mapping
-      @redirect_url = mapping['new_url']
+      @redirect_url = mapping["new_url"]
     end
   end
 %>
