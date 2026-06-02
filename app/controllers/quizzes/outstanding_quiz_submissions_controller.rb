@@ -42,10 +42,9 @@ class Quizzes::OutstandingQuizSubmissionsController < ApplicationController
   def index
     if authorized_action(@context, current_principal, :manage_grades)
       api_route = api_v1_course_quizzes_url(@context)
-      quiz = Quizzes::Quiz.find(params[:quiz_id])
-      oqs = Quizzes::OutstandingQuizSubmissionManager.new(quiz).find_by_quiz
+      oqs = Quizzes::OutstandingQuizSubmissionManager.new(@quiz).find_by_quiz
       @quiz_submissions = Api.paginate(oqs, self, api_route)
-      json = quiz_submissions_json(@quiz_submissions, quiz, current_principal, session, @context, ["user"], {})
+      json = quiz_submissions_json(@quiz_submissions, @quiz, current_principal, session, @context, ["user"], {})
       render json:
     end
   end
@@ -61,8 +60,7 @@ class Quizzes::OutstandingQuizSubmissionsController < ApplicationController
   def grade
     if authorized_action(@context, current_principal, :manage_grades)
       sub_ids = params[:quiz_submission_ids]
-      quiz = Quizzes::Quiz.find(params[:quiz_id])
-      Quizzes::OutstandingQuizSubmissionManager.new(quiz).grade_by_ids(sub_ids)
+      Quizzes::OutstandingQuizSubmissionManager.new(@quiz).grade_by_ids(sub_ids)
       head :no_content
     end
   end

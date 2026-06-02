@@ -67,6 +67,19 @@ describe Quizzes::OutstandingQuizSubmissionsController, type: :request do
         json = api_index
         expect(json["users"].first["id"]).to eq @student.id
       end
+
+      it "returns 404 when quiz_id belongs to a different course" do
+        course_id = @course.id
+        other_quiz = Course.create!(name: "Other course").quizzes.create!(title: "Other course quiz")
+        url = "/api/v1/courses/#{course_id}/quizzes/#{other_quiz.id}/outstanding_quiz_submissions"
+        params = { controller: "quizzes/outstanding_quiz_submissions",
+                   action: "index",
+                   format: "json",
+                   course_id:,
+                   quiz_id: other_quiz.id }
+        raw_api_call(:get, url, params, {}, { "Accept" => "application/vnd.api+json" })
+        assert_status 404
+      end
     end
   end
 
@@ -125,6 +138,19 @@ describe Quizzes::OutstandingQuizSubmissionsController, type: :request do
         expect(@submission2.needs_grading?).to be false
         expect(Quizzes::OutstandingQuizSubmissionManager.new(@quiz).find_by_quiz.size).to eq 0
         assert_status 204
+      end
+
+      it "returns 404 when quiz_id belongs to a different course" do
+        course_id = @course.id
+        other_quiz = Course.create!(name: "Other course").quizzes.create!(title: "Other course quiz")
+        url = "/api/v1/courses/#{course_id}/quizzes/#{other_quiz.id}/outstanding_quiz_submissions"
+        params = { controller: "quizzes/outstanding_quiz_submissions",
+                   action: "grade",
+                   format: "json",
+                   course_id:,
+                   quiz_id: other_quiz.id }
+        raw_api_call(:post, url, params, { quiz_submission_ids: [@submission.id] }, { "Accept" => "application/vnd.api+json" })
+        assert_status 404
       end
     end
   end
