@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% provide :page_title do %><%= @actual_rubric.title %><% end %>
+<% provide(:page_title, @actual_rubric.title) %>
 <% add_crumb t('#crumbs.rubrics', 'Rubrics'), context_url(@context, :context_rubrics_url) %>
 <% add_crumb @actual_rubric.title %>
 

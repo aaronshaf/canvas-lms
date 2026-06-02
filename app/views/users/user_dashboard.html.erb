@@ -24,7 +24,7 @@
   end
 %>
 
-<% provide :page_title do %><%= dashboard_title %><% end %>
+<% provide(:page_title, dashboard_title) %>
 <%
   is_observer = @current_user&.roles(@domain_root_account)&.include?('observer')
   if show_planner?

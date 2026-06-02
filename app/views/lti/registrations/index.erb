@@ -20,7 +20,7 @@
   @show_left_side = true
 %>
 
-<% provide :page_title do %><%= t :title, "Apps" %><% end %>
+<% provide(:page_title, t(:title, "Apps")) %>
 
 <% js_bundle :lti_registrations %>
 

@@ -18,7 +18,7 @@
 
 <% js_env({ context_rubric_associations_url: context_url(@context, :context_rubric_associations_url)}) rescue nil %>
 
-<% provide :page_title do %><%= join_title(@quiz.quiz_title || @quiz.readable_type, @context.name) %><% end %>
+<% provide(:page_title, join_title(@quiz.quiz_title || @quiz.readable_type, @context.name)) %>
 
 <%
   # These titles are used in different elements/scopes below

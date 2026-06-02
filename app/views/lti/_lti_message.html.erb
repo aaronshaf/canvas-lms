@@ -25,7 +25,7 @@
   end
 %>
 
-<% provide :page_title do %><%= @lti_launch.link_text %><% end %>
+<% provide(:page_title, @lti_launch.link_text) %>
 
 <% js_bundle :external_tools_show %>
 <% js_bundle :external_tool_redirect if @redirect_return %>

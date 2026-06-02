@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% provide :page_title do %><%= @section.name %><% end %>
+<% provide(:page_title, @section.name) %>
 
 <% provide :right_side do %>
   <% if can_do(@section, @current_user, :update) %>

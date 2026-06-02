@@ -32,7 +32,7 @@
   end
 %>
 
-<% provide :page_title do %><%= @page_title %><% end %>
+<% provide(:page_title, @page_title) %>
 
 <div class="TopLinks">
   <a href="<%= context_url(@context, :context_assignment_url, @assignment.id) %>" class="btn">

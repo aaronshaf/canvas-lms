@@ -17,7 +17,7 @@
 %>
 
 <% add_body_class 'assessing' %>
-<% provide :page_title do %><%= join_title @quiz.readable_type, @quiz.quiz_title %><% end %>
+<% provide(:page_title, join_title(@quiz.readable_type, @quiz.quiz_title)) %>
 
 <% provide :right_side do %>
   <%= render "take_quiz_right_side" %>

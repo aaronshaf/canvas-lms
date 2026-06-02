@@ -21,7 +21,7 @@
   <div id="eportfolio_deprecation_notice_mount"></div>
 <% end %>
 
-<% provide :page_title do %><%= join_title @page.name, @category.name, @portfolio.name %><% end %>
+<% provide(:page_title, join_title(@page.name, @category.name, @portfolio.name)) %>
 
 <% provide :left_side do %>
   <div id='section_list_mount'></div>

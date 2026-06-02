@@ -73,7 +73,7 @@
 <% user_name = params[:hide_student_name] ? t(:anonymous_username, "This Student") : submission_author_name_for(@assessment_request) %>
 <% show_updated_plagiarism_icons = @context.root_account.feature_enabled?(:new_gradebook_plagiarism_indicator) %>
 
-<% provide :page_title do %><%= join_title @assignment.title, t("Submission Preview") %><% end %>
+<% provide(:page_title, join_title(@assignment.title, t("Submission Preview"))) %>
 <% if @assignment.submission_types == 'discussion_topic' && @assignment.discussion_topic %>
     <% js_bundle 'submissions_show_preview_media' %>
     <%
