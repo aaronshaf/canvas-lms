@@ -2114,7 +2114,7 @@ da:
       pending_batches_title: "Afventende batcher"
       process_data_button: "Behandling af data"
       select_file_instructions: |-
-          Vælg den CSV- eller zip-fil, du vil importere.  
+          Vælg den CSV- eller zip-fil, du vil importere.
           For en beskrivelse af, hvordan man genererer disse filer, [henvises der til denne dokumentation](%{url}).
       sis_import_crumb: SIS-import
       started_at_message: "Startet: %{started_at}"
