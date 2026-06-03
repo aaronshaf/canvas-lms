@@ -476,4 +476,62 @@ describe('AccessibilityCoursesPage', () => {
       })
     })
   })
+
+  describe('search clear and server-side sort (rendered order)', () => {
+    // The courses API returns a plain Course[] that the page renders in the
+    // exact order received; sorting is performed server-side. These tests mock
+    // the endpoint to (a) return a known, already-ordered payload and (b)
+    // capture the sort/order params sent on the initial page load, then assert
+    // BOTH that the correct params were requested and that rows render in the
+    // received order.
+
+    const makeCourses = (overrides: Array<Partial<ReturnType<typeof createMockCourses>[number]>>) =>
+      createMockCourses(overrides.length).map((course, i) => ({...course, ...overrides[i]}))
+
+    const renderedCourseNames = () =>
+      screen.getAllByTestId('course-name-cell').map(cell => cell.textContent ?? '')
+
+    it('re-renders both courses when the search is cleared', async () => {
+      const user = userEvent.setup()
+      const both = makeCourses([{name: 'Alpha Course'}, {name: 'Beta Course'}])
+      server.use(
+        http.get('/api/v1/accounts/123/courses', ({request}: {request: Request}) => {
+          const searchTerm = new URL(request.url).searchParams.get('search_term')
+          const courses = searchTerm ? both.filter(c => c.name.includes('Alpha')) : both
+          return HttpResponse.json(courses)
+        }),
+      )
+
+      renderPage(['/?search=Alpha'])
+      await waitFor(() => expect(screen.getByText('Alpha Course')).toBeInTheDocument())
+      expect(screen.queryByText('Beta Course')).not.toBeInTheDocument()
+
+      await user.click(screen.getByTestId('clear-search-button'))
+
+      await waitFor(() => expect(screen.getByText('Beta Course')).toBeInTheDocument())
+      expect(screen.getByText('Alpha Course')).toBeInTheDocument()
+    })
+
+    it('sorts courses by course name ascending (rendered alphabetical order)', async () => {
+      let lastParams: URLSearchParams | undefined
+      const ascending = makeCourses([
+        {name: 'Apple Course'},
+        {name: 'Mango Course'},
+        {name: 'Zebra Course'},
+      ])
+      server.use(
+        http.get('/api/v1/accounts/123/courses', ({request}: {request: Request}) => {
+          lastParams = new URL(request.url).searchParams
+          return HttpResponse.json(ascending)
+        }),
+      )
+
+      renderPage()
+
+      await waitFor(() => expect(screen.getByText('Apple Course')).toBeInTheDocument())
+      expect(lastParams?.get('sort')).toBe('course_name')
+      expect(lastParams?.get('order')).toBe('asc')
+      expect(renderedCourseNames()).toEqual(['Apple Course', 'Mango Course', 'Zebra Course'])
+    })
+  })
 })
