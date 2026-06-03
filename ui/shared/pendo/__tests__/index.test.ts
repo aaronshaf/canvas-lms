@@ -48,6 +48,7 @@ describe('pendo/index', () => {
     mockInitialize = vi.fn()
     vi.doMock('@pendo/agent', () => ({
       initialize: mockInitialize,
+      GuideMarkdown: {},
       Replay: {},
       VocPortal: {},
     }))

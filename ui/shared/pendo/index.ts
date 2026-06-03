@@ -148,7 +148,7 @@ function init(): Promise<any> | null {
   if (!ENV.PENDO_APP_ID) return null
 
   // Lazy-load Pendo only when needed (e.g., in browser)
-  return import('@pendo/agent').then(({initialize, Replay, VocPortal}) => {
+  return import('@pendo/agent').then(({initialize, GuideMarkdown, Replay, VocPortal}) => {
     let eNGA: boolean = false
     if (window.CANVAS_COOKIE_CONSENT_STATE !== true && pendoInImpactMode) {
       eNGA = true
@@ -161,7 +161,7 @@ function init(): Promise<any> | null {
       visitor: buildVisitorData(ENV),
       account: buildAccountData(ENV),
       globalKey: 'canvasUsageMetrics',
-      plugins: [Replay, VocPortal],
+      plugins: [GuideMarkdown, Replay, VocPortal],
       excludeNonGuideAnalytics: eNGA,
     }
 

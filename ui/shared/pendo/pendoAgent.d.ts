@@ -40,6 +40,7 @@ declare module '@pendo/agent' {
   }
 
   export function initialize(config: PendoConfig): Promise<any>
+  export const GuideMarkdown: any
   export const Replay: any
   export const VocPortal: any
 }
