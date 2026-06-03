@@ -8788,9 +8788,9 @@ el:
     assignment_changed: 
       email: 
         body: |-
-            <mrk mid="1691" mtype="seg">Η εργασία «%{title}» για το μάθημα %{course} έχει αλλάξει.</mrk>  
+            <mrk mid="1691" mtype="seg">Η εργασία «%{title}» για το μάθημα %{course} έχει αλλάξει.</mrk>
             
-            <mrk mid="1692" mtype="seg">Πατήστε εδώ να εμφανίσετε την εργασία:</mrk> 
+            <mrk mid="1692" mtype="seg">Πατήστε εδώ να εμφανίσετε την εργασία:</mrk>
             <mrk mid="1693" mtype="seg">%{url}</mrk>
         html: 
           body: "Η εργασία «%{title}» για το μάθημα %{course} έχει αλλάξει."
