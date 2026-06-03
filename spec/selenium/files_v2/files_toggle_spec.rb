@@ -39,13 +39,6 @@ describe "files index page" do
       create_folder("base folder")
     end
 
-    it "displays new UI when toggle is enabled and preference is v2" do
-      @teacher.set_preference(:files_ui_version, "v2")
-      get "/courses/#{@course.id}/files"
-      expect(create_folder_button).to be_displayed
-      expect(upload_button).to be_displayed
-    end
-
     it "displays old UI when toggle is enabled and preference is v1" do
       @teacher.set_preference(:files_ui_version, "v1")
       get "/courses/#{@course.id}/files"

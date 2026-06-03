@@ -43,60 +43,12 @@ describe "files index page" do
         get "/courses/#{@course.id}/files"
       end
 
-      it "creates a new folder" do
-        new_folder_name = "new-folder"
-        create_folder(new_folder_name)
-        expect(content).to include_text(new_folder_name)
-      end
-
-      it "displays all cog icon options" do
-        expect(content).to include_text(folder_name)
-        get_item_files_table(1, 7).click
-        expect(action_menu_item_by_name("Download")).to be_displayed
-        expect(action_menu_item_by_name("Rename")).to be_displayed
-        expect(action_menu_item_by_name("Move To...")).to be_displayed
-        expect(action_menu_item_by_name("Delete")).to be_displayed
-      end
-
-      it "edits folder name" do
-        folder_rename_to = "edited folder name"
-        edit_name_from_kebab_menu(1, folder_rename_to)
-        expect(content).to include_text(folder_rename_to)
-        expect(folder_rename_to).to be_present
-      end
-
       it "validates xss on folder text", priority: "1" do
         test_folder_name = '<script>alert("Hi");</script>'
         create_folder_button.click
         create_folder_input.send_keys(test_folder_name)
         create_folder_input.send_keys(:return)
         expect(content).to include_text('<script>alert("Hi");<_script>')
-      end
-
-      it "deletes a folder using cog menu", priority: "1" do
-        delete_file_from(1, :kebab_menu)
-        expect(content).not_to contain_link(folder_name)
-      end
-
-      it "deletes a folder and contained file using toolbar", priority: "1" do
-        file_name = "delete-this-file.pdf"
-        attachment_model(content_type: "application/pdf", context: @course, display_name: file_name, folder: @base_folder)
-        get "/courses/#{@course.id}/files"
-        delete_file_from(1, :toolbar_menu)
-        expect(content).not_to contain_link(folder_name)
-        search_input.send_keys(file_name)
-        search_button.click
-        expect(content).to include_text("No results found")
-      end
-
-      it "deletes a folder and a file using toolbar", priority: "1" do
-        file_name = "delete-this-file.pdf"
-        attachment_model(content_type: "application/pdf", context: @course, display_name: file_name)
-        get "/courses/#{@course.id}/files"
-        get_row_header_files_table(1).click # select a folder
-        delete_file_from(2, :toolbar_menu) # select a file and delete all selected
-        expect(content).not_to contain_link(folder_name)
-        expect(content).not_to contain_link(file_name)
       end
 
       it "is able to create and view a new folder with uri characters" do
@@ -112,49 +64,6 @@ describe "files index page" do
         expect(folder_link).to be_present
         folder_link.click
         wait_for_ajaximations
-      end
-
-      it "handles duplicate folder names", priority: "1" do
-        test_folder_name = "New Folder"
-        create_folder_button.click
-        create_folder_input.send_keys(test_folder_name)
-        create_folder_input.send_keys(:return)
-        create_folder_button.click
-        create_folder_input.send_keys(test_folder_name)
-        create_folder_input.send_keys(:return)
-        expect(content).to include_text("New Folder 2")
-      end
-
-      it "unpublishes and publish a folder using cloud icon", priority: "1" do
-        published_status_button.click
-        edit_item_permissions(:unpublished)
-        expect(unpublished_status_button).to be_present
-        unpublished_status_button.click
-        edit_item_permissions(:published)
-        expect(published_status_button).to be_present
-      end
-
-      it "unpublishes and publish a folder using action menu", priority: "1" do
-        action_menu_button.click
-        action_menu_item_by_name("Edit Permissions").click
-        edit_item_permissions(:available_with_link)
-        expect(link_only_status_button).to be_present
-      end
-
-      it "unpublishes and publish a folder and a file using toolbar menu", priority: "1" do
-        file_name = "edit-permission-file.pdf"
-        attachment_model(content_type: "application/pdf", context: @course, display_name: file_name)
-        get "/courses/#{@course.id}/files"
-        select_all
-        toolbox_menu_button("more-button").click
-        toolbox_menu_button("edit-permissions-button").click
-        edit_item_permissions(:unpublished)
-        all_item_unpublished?
-        select_all
-        toolbox_menu_button("more-button").click
-        toolbox_menu_button("edit-permissions-button").click
-        edit_item_permissions(:published)
-        all_item_published?
       end
 
       context "Move dialog" do

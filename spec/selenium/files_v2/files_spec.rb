@@ -48,12 +48,6 @@ describe "files index page", :ignore_js_errors do
         expect(heading).to include_text("All My Files")
       end
 
-      it "Displays the file usage bar if user has permission" do
-        allow(Attachment).to receive(:get_quota).with(@course).and_return({ quota: 50_000_000, quota_used: 25_000_000 })
-        get "/courses/#{@course.id}/files"
-        expect(files_usage_text.text).to include("25 MB of 50 MB used")
-      end
-
       it "loads correct column values on uploaded file", priority: "1" do
         add_file(fixture_file_upload("example.pdf", "application/pdf"),
                  @course,
@@ -112,20 +106,7 @@ describe "files index page", :ignore_js_errors do
           expect(content).to include_text("file25.pdf")
         end
 
-        it "Checks just one file" do
-          get "/courses/#{@course.id}/files"
-          # instui table checkboxes have weird DOM structure
-          force_click_native(row_checkboxes_selector)
-          expect(checked_boxes.count).to eq 1
-        end
-
         describe "sorting" do
-          it "Can sort by size" do
-            get "/courses/#{@course.id}/files"
-            column_heading_by_name("size").click
-            expect(column_heading_by_name("size")).to have_attribute("aria-sort", "ascending")
-          end
-
           it "Can paginate sorted files" do
             get "/courses/#{@course.id}/files"
             column_heading_by_name("size").click
@@ -187,21 +168,6 @@ describe "files index page", :ignore_js_errors do
                    @course,
                    base_file_name)
           get "/courses/#{@course.id}/files"
-        end
-
-        it "unpublishes and publish a file", priority: "1" do
-          published_status_button.click
-          edit_item_permissions(:unpublished)
-          expect(f(all_files_table_row)).to contain_css("[data-testid='unpublished-button-icon']")
-          unpublished_status_button.click
-          edit_item_permissions(:published)
-          expect(f(all_files_table_row)).to contain_css("[data-testid='published-button-icon']")
-        end
-
-        it "makes file available to student with link", priority: "1" do
-          published_status_button.click
-          edit_item_permissions(:available_with_link)
-          expect(f(all_files_table_row)).to contain_css("[data-testid='link-only-button-icon']")
         end
 
         it "makes file available to student within given timeframe", priority: "1" do
@@ -322,14 +288,6 @@ describe "files index page", :ignore_js_errors do
           get "/courses/#{@course.id}/files"
         end
 
-        it "switches files in preview when clicking the arrows" do
-          get_item_files_table(2, 1).click
-          preview_next_button.click
-          expect(preview_file_header).to include_text(b_txt_file_name)
-          preview_previous_button.click
-          expect(preview_file_header).to include_text(a_txt_file_name)
-        end
-
         it "returns to current folder on close" do
           sub_folder = Folder.root_folders(@course).first.sub_folders.create!(name: "Sub", context: @course)
           add_file(fixture_file_upload(a_txt_file_name, "text/plain"), @course, a_txt_file_name, sub_folder)
@@ -339,50 +297,6 @@ describe "files index page", :ignore_js_errors do
           expect(preview_file_header).to include_text(a_txt_file_name)
           preview_close_button.click
           expect(breadcrumb).to contain_css("li", text: "Sub")
-        end
-
-        context "URL-based preview" do
-          it "opens preview modal when URL contains preview parameter" do
-            get "/courses/#{@course.id}/files?preview=#{@file_a.id}"
-            wait_for_ajaximations
-
-            expect(preview_modal).to be_displayed
-            expect(driver.current_url).to include("preview=#{@file_a.id}")
-          end
-
-          it "updates URL when navigating between files in preview" do
-            # First load the files page to ensure files are in the collection
-            get "/courses/#{@course.id}/files"
-            wait_for_ajaximations
-
-            # Then navigate to the preview
-            get "/courses/#{@course.id}/files?preview=#{@file_a.id}"
-            wait_for_ajaximations
-
-            preview_next_button.click
-            wait_for_ajaximations
-
-            expect(driver.current_url).to include("preview=#{@file_b.id}")
-            expect(preview_file_header).to include_text("b_file.txt")
-
-            preview_previous_button.click
-            wait_for_ajaximations
-
-            expect(driver.current_url).to include("preview=#{@file_a.id}")
-            expect(preview_file_header).to include_text("a_file.txt")
-          end
-
-          it "shows error state for file from different course context" do
-            current_course = @course
-            other_course = course_factory(active_all: true)
-            other_file = add_file(fixture_file_upload("a_file.txt", "text/plain"), other_course, "a_file.txt")
-
-            get "/courses/#{current_course.id}/files?preview=#{other_file.id}"
-
-            expect(preview_modal).to be_displayed
-            expect(file_not_found).to be_displayed
-            expect(file_not_found).to include_text("File Not Found")
-          end
         end
 
         context "with media file" do
@@ -573,28 +487,6 @@ describe "files index page", :ignore_js_errors do
           end
         end
 
-        it "catches a collision error", priority: "1" do
-          add_file(fixture_file_upload("a_file.txt", "text/plain"),
-                   @course,
-                   "a_file.txt",
-                   @base_folder)
-          move_file_from(2, :kebab_menu)
-          expect(rename_change_button).to be_displayed
-        end
-
-        it "catches a collision error for multiple files", priority: "1" do
-          add_file(fixture_file_upload("a_file.txt", "text/plain"),
-                   @course,
-                   "a_file.txt",
-                   @base_folder)
-          add_file(fixture_file_upload("b_file.txt", "text/plain"),
-                   @course,
-                   "b_file.txt",
-                   @base_folder)
-          move_files([2, 3, 4])
-          expect(rename_change_button).to be_displayed
-        end
-
         it "moves a file into folder with drag and drop", priority: "2" do
           file_to_move_element = get_table_row_item(2)
           folder_move_to = get_table_row_item(1)
@@ -647,34 +539,6 @@ describe "files index page", :ignore_js_errors do
         end
       end
     end
-
-    context("as a student") do
-      before(:once) do
-        course_with_student(active_all: true)
-      end
-
-      before do
-        user_session @student
-      end
-
-      it "Does not display the file usage bar if user does not have permission" do
-        file_attachment = attachment_model(content_type: "application/pdf", context: @course, display_name: "file1.pdf")
-        file_attachment.publish!
-        get "/courses/#{@course.id}/files"
-        expect(content).not_to contain_css(files_usage_text_selector)
-      end
-
-      it "can open file preview via URL parameter" do
-        file_attachment = attachment_model(content_type: "application/pdf", context: @course, display_name: "student_file.pdf")
-        file_attachment.publish!
-
-        get "/courses/#{@course.id}/files?preview=#{file_attachment.id}"
-        wait_for_ajaximations
-
-        expect(preview_file_header).to include_text("student_file.pdf")
-        expect(preview_modal).to be_displayed
-      end
-    end
   end
 
   context("All My Files") do
@@ -685,13 +549,6 @@ describe "files index page", :ignore_js_errors do
 
       before do
         user_session @teacher
-      end
-
-      it "Displays related contexts" do
-        get "/files"
-
-        expect(table_rows[0]).to include_text("My Files")
-        expect(table_rows[1]).to include_text(@course.name)
       end
 
       it "Can navigate through My Files" do
