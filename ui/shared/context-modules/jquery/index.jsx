@@ -1262,6 +1262,7 @@ modules.initModuleManagement = async function (duplicate) {
           if (ENV.FEATURE_MODULES_PERF) {
             await modules.lazyLoadItems([parseInt(newModuleId, 10)])
           } else {
+            initContextModuleItems(newModuleId)
             modules.updateAssignmentData()
             modules.updateEstimatedDurations()
           }

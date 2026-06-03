@@ -19,9 +19,10 @@
 import {findByText, getAllByText, waitFor} from '@testing-library/dom'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
-import {updateModuleItem} from '../jquery/utils'
+import $ from 'jquery'
+import {updateModuleItem, initPublishButton} from '../jquery/utils'
 import publishOneModuleHelperModule from '../utils/publishOneModuleHelper'
-import {initBody, makeModuleWithItems} from './testHelpers'
+import {initBody, makeModule, makeModuleWithItems, makeRawModuleItem} from './testHelpers'
 import type {KeyedModuleItems} from '../react/types'
 import {type MockInstance} from 'vitest'
 
@@ -620,6 +621,50 @@ describe('publishOneModuleHelper', () => {
       expect(allModuleItems.assignment_119).toHaveLength(1)
       expect(allModuleItems.assignment_217).toHaveLength(1)
       expect(allModuleItems.assignment_219).toHaveLength(1)
+    })
+  })
+
+  describe('duplicate module publish regression', () => {
+    // Regression for: modules cannot be published after duplication without
+    // a hard refresh. The server-rendered HTML for a duplicate contains
+    // .publish-icon elements with data-* attributes but without an initialized
+    // Backbone view stored as jQuery data('view'). Without calling
+    // initContextModuleItems for the new module, getAllModuleItems skips those
+    // elements and updateModuleItemsPublishedStates crashes with
+    // "Cannot read properties of undefined (reading 'model')".
+
+    beforeEach(() => {
+      makeModule(3, false)
+      const moduleContent = document.getElementById('context_module_content_3')
+      moduleContent?.appendChild(
+        makeRawModuleItem(1, 3, {content_type: 'assignment', content_id: 301}),
+      )
+    })
+
+    it('getAllModuleItems skips items with no initialized view', () => {
+      const allModuleItems = getAllModuleItems()
+      expect(allModuleItems.assignment_301).toBeUndefined()
+    })
+
+    it('updateModuleItemsPublishedStates does not crash after initPublishButton initializes the view', () => {
+      const $el = document.querySelector('#context_module_item_3301 .publish-icon') as HTMLElement
+      expect($el).not.toBeNull()
+
+      initPublishButton($($el))
+
+      expect(() => {
+        updateModuleItemsPublishedStates(3, true, false)
+      }).not.toThrow()
+    })
+
+    it('getAllModuleItems finds the view after initPublishButton initializes it', () => {
+      const $el = document.querySelector('#context_module_item_3301 .publish-icon') as HTMLElement
+
+      initPublishButton($($el))
+
+      const allModuleItems = getAllModuleItems()
+      expect(allModuleItems.assignment_301).toBeDefined()
+      expect(allModuleItems.assignment_301).toHaveLength(1)
     })
   })
 })

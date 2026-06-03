@@ -70,6 +70,37 @@ export function makeModuleItem(
   return item
 }
 
+// Like makeModuleItem but does NOT inject data.view — mirrors what the server
+// returns for a duplicated module before initContextModuleItems runs.
+export function makeRawModuleItem(
+  courseId: number,
+  moduleId: number,
+  {content_type, content_id}: {content_type: string; content_id: number},
+) {
+  const module_item_id = 1000 * moduleId + content_id
+
+  const item = document.createElement('div')
+  item.id = `context_module_item_${module_item_id}`
+  const row = document.createElement('div')
+  row.className = 'ig-row'
+  item.appendChild(row)
+  const admin = document.createElement('div')
+  admin.className = 'ig-admin'
+  item.appendChild(admin)
+
+  const publishButton = document.createElement('span')
+  publishButton.setAttribute('data-course-id', courseId.toString())
+  publishButton.setAttribute('data-module-id', moduleId.toString())
+  publishButton.setAttribute('data-module-item-id', `${module_item_id}`)
+  publishButton.setAttribute('data-id', `${content_id}`)
+  publishButton.setAttribute('data-module-type', content_type)
+  publishButton.setAttribute('data-content-id', `${content_id}`)
+  publishButton.className = 'publish-icon'
+
+  admin.appendChild(publishButton)
+  return item
+}
+
 export function makeModule(moduleId: number, published = false): HTMLDivElement {
   const module = document.createElement('div')
   module.id = `context_module_${moduleId}`
