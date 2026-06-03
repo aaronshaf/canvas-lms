@@ -204,4 +204,191 @@ describe('AssociationsTable component', () => {
     expect(link).not.toBeInTheDocument()
     expect(firstCell).toHaveTextContent('Course Without ID')
   })
+
+
+  test('removes the course row from the Current section after it is removed', () => {
+    const props = defaultProps()
+    props.existingAssociations = getSampleData().courses as Course[]
+    const [course0, course1] = props.existingAssociations
+
+    const tree = render(<AssociationsTable {...props} />)
+
+    // Both associated courses are rendered as current rows initially
+    expect(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).toHaveLength(2)
+    expect(tree.container.querySelector(`#course_${course0.id}`)).toBeInTheDocument()
+    expect(tree.container.querySelector(`#course_${course1.id}`)).toBeInTheDocument()
+
+    // Parent reports the first course as removed (mirrors POST /associations result)
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={[course1]}
+        removedAssociations={[course0]}
+      />,
+    )
+
+    // The removed course is no longer in the Current list; only the survivor remains there.
+    // Current rows carry a remove button, whereas the removed course is re-rendered in the
+    // "To be Removed" section with an Undo link instead, so filter on the remove button to
+    // isolate the Current section.
+    const currentRows = Array.from(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).filter(row => row.querySelector('button[data-course-id]'))
+    const currentNames = currentRows.map(row => row.querySelectorAll('td')[0].textContent)
+    expect(currentNames).toContain(course1.name)
+    expect(currentNames).not.toContain(course0.name)
+  })
+
+  test('shows the removed course under "To be Removed" with an Undo control', () => {
+    const props = defaultProps()
+    props.existingAssociations = getSampleData().courses as Course[]
+    const [course0, course1] = props.existingAssociations
+
+    const tree = render(<AssociationsTable {...props} />)
+
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={[course1]}
+        removedAssociations={[course0]}
+      />,
+    )
+
+    // The "To be Removed" section header is now present
+    expect(tree.getByText('To be Removed')).toBeInTheDocument()
+
+    // The removed course is rendered (in the removed section) with an Undo restore action
+    const removedRow = tree.container.querySelector(`#course_${course0.id}`)
+    expect(removedRow).toBeInTheDocument()
+    expect(tree.getByText('Undo')).toBeInTheDocument()
+    expect(
+      tree.getByText(`Undo remove course association ${course0.name}`),
+    ).toBeInTheDocument()
+  })
+
+  test('updates the rendered row count when an association is removed', () => {
+    const props = defaultProps()
+    props.existingAssociations = getSampleData().courses as Course[]
+    const [course0, course1] = props.existingAssociations
+
+    const tree = render(<AssociationsTable {...props} />)
+    expect(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).toHaveLength(2)
+
+    // After removal, the Current list holds one course and the removed list holds one course,
+    // so there is still one removable row and one restorable (Undo) row.
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={[course1]}
+        removedAssociations={[course0]}
+      />,
+    )
+
+    const allRows = tree.container.querySelectorAll('tr[data-testid="associations-course-row"]')
+    expect(allRows).toHaveLength(2)
+
+    // The surviving current course still exposes a remove button...
+    const currentRow = tree.container.querySelector(`#course_${course1.id}`)
+    expect(currentRow?.querySelector('button[data-course-id]')).toBeInTheDocument()
+    // ...while the removed course exposes an Undo link instead of a remove button.
+    const removedRow = tree.container.querySelector(`#course_${course0.id}`)
+    expect(removedRow?.querySelector('button[data-course-id]')).not.toBeInTheDocument()
+  })
+
+  test('calls onRemoveAssociations with the clicked course id and reflects that removal in the UI', async () => {
+    const props = defaultProps()
+    props.existingAssociations = getSampleData().courses as Course[]
+    props.onRemoveAssociations = vi.fn()
+    const [course0, course1] = props.existingAssociations
+
+    const tree = render(<AssociationsTable {...props} />)
+
+    // Click the remove button for the second course specifically
+    const secondRow = tree.container.querySelector(`#course_${course1.id}`)
+    const removeButton = secondRow?.querySelector('button[data-course-id]') as HTMLButtonElement
+    await userEvent.click(removeButton)
+
+    expect(props.onRemoveAssociations).toHaveBeenCalledTimes(1)
+    expect(props.onRemoveAssociations).toHaveBeenCalledWith([course1.id])
+
+    // Simulate the parent applying that removal and confirm the UI drops the right course
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={[course0]}
+        removedAssociations={[course1]}
+      />,
+    )
+
+    const currentNames = Array.from(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    )
+      .filter(row => row.querySelector('button[data-course-id]'))
+      .map(row => row.querySelectorAll('td')[0].textContent)
+    expect(currentNames).toEqual([course0.name])
+  })
+
+  test('restores a removed course back to the Current section when Undo is clicked', async () => {
+    const props = defaultProps()
+    props.existingAssociations = getSampleData().courses as Course[]
+    props.onRestoreAssociations = vi.fn()
+    const [course0, course1] = props.existingAssociations
+
+    const tree = render(<AssociationsTable {...props} />)
+
+    // Start in the post-removal state: course0 is queued for removal
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={[course1]}
+        removedAssociations={[course0]}
+      />,
+    )
+    expect(tree.getByText('To be Removed')).toBeInTheDocument()
+
+    await userEvent.click(tree.getByText('Undo'))
+    expect(props.onRestoreAssociations).toHaveBeenCalledTimes(1)
+    expect(props.onRestoreAssociations).toHaveBeenCalledWith([course0.id])
+
+    // Parent restores the association; the course returns to Current and the removed section clears
+    tree.rerender(
+      <AssociationsTable
+        {...props}
+        existingAssociations={getSampleData().courses as Course[]}
+        removedAssociations={[]}
+      />,
+    )
+    expect(tree.queryByText('To be Removed')).not.toBeInTheDocument()
+    const currentNames = Array.from(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).map(row => row.querySelectorAll('td')[0].textContent)
+    expect(currentNames).toEqual([course0.name, course1.name])
+  })
+
+  test('shows the empty-state message after the last association is removed', () => {
+    const props = defaultProps()
+    props.existingAssociations = [getSampleData().courses[0] as Course]
+    const onlyCourse = props.existingAssociations[0]
+
+    const tree = render(<AssociationsTable {...props} />)
+    expect(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).toHaveLength(1)
+
+    // Removing the sole course leaves nothing in Current; with no removed/added rows the
+    // table is replaced by the empty-state copy.
+    tree.rerender(
+      <AssociationsTable {...props} existingAssociations={[]} removedAssociations={[]} />,
+    )
+
+    expect(
+      tree.container.querySelectorAll('tr[data-testid="associations-course-row"]'),
+    ).toHaveLength(0)
+    expect(tree.queryByText(onlyCourse.name)).not.toBeInTheDocument()
+    expect(tree.getByText('There are currently no associated courses.')).toBeInTheDocument()
+  })
 })

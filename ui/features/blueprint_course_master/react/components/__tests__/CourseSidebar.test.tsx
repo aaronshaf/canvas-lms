@@ -277,4 +277,54 @@ describe('Course Sidebar component', () => {
     expect(sidebar.querySelector('.bcs__migration-sync')).toBeFalsy()
     tree.unmount()
   })
+
+
+  test('Associations button exposes its label and association count to screen readers', async () => {
+    const tree = render(connect())
+    const button = tree.container.querySelector('button')
+    const user = userEvent.setup()
+    await user.click(button!)
+
+    await waitFor(() => {
+      expect(sidebarContentRef).toBeTruthy()
+    })
+
+    const sidebar = getSidebarContent()
+    const asscBtn = sidebar.querySelector('button#mcSidebarAsscBtn')
+    expect(asscBtn).toBeTruthy()
+    // visible label
+    expect(asscBtn?.textContent?.trim()).toEqual('Associations')
+    // pluralized accessible label reflects the number of existing associations
+    expect(asscBtn?.getAttribute('aria-label')).toEqual(
+      `There are ${initialState.existingAssociations.length} Associations`,
+    )
+    tree.unmount()
+  })
+
+  test('clicking the Associations button opens the Associations modal', async () => {
+    const tree = render(connect())
+    const button = tree.container.querySelector('button')
+    const user = userEvent.setup()
+    await user.click(button!)
+
+    await waitFor(() => {
+      expect(sidebarContentRef).toBeTruthy()
+    })
+
+    const sidebar = getSidebarContent()
+    const asscBtn = sidebar.querySelector<HTMLButtonElement>('button#mcSidebarAsscBtn')
+    expect(asscBtn).toBeTruthy()
+    // modal is not present until the button is clicked
+    expect(document.body.querySelector('[aria-label="Associations"]')).toBeFalsy()
+
+    await user.click(asscBtn!)
+
+    // the BlueprintModal opens with the Associations label (rendered into a portal)
+    await waitFor(() => {
+      expect(document.body.querySelector('[aria-label="Associations"]')).toBeTruthy()
+    })
+    // and the modal chrome (Done button from BlueprintModal) is rendered
+    expect(document.body.querySelector('[data-testid="done-button"]')).toBeTruthy()
+    tree.unmount()
+  })
 })

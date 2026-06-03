@@ -131,4 +131,91 @@ describe('CourseFilter', () => {
       await userEvent.click(option)
     })
   })
+
+  describe('CourseFilter > emitted filter payload', () => {
+    it('emits search payload with the exact text entered (filter by name)', async () => {
+      const props = defaultProps()
+      const onChangePromise = new Promise<{search?: string}>(resolve => {
+        props.onChange = (filter: {search?: string}) => resolve(filter)
+      })
+      const {getByPlaceholderText} = render(<CourseFilter {...props} />)
+      const input = getByPlaceholderText('Search by title, short name, or SIS ID')
+      fireEvent.change(input, {target: {value: 'alpha'}})
+      const filter = await onChangePromise
+      expect(filter.search).toBe('alpha')
+    })
+
+    it('emits search payload with the exact short-name/course-code text entered', async () => {
+      const props = defaultProps()
+      const onChangePromise = new Promise<{search?: string}>(resolve => {
+        props.onChange = (filter: {search?: string}) => resolve(filter)
+      })
+      const {getByPlaceholderText} = render(<CourseFilter {...props} />)
+      const input = getByPlaceholderText('Search by title, short name, or SIS ID')
+      fireEvent.change(input, {target: {value: 'ccc'}})
+      const filter = await onChangePromise
+      expect(filter.search).toBe('ccc')
+    })
+
+    it('emits search payload with the exact SIS ID text entered (lowercased)', async () => {
+      const props = defaultProps()
+      const onChangePromise = new Promise<{search?: string}>(resolve => {
+        props.onChange = (filter: {search?: string}) => resolve(filter)
+      })
+      const {getByPlaceholderText} = render(<CourseFilter {...props} />)
+      const input = getByPlaceholderText('Search by title, short name, or SIS ID')
+      fireEvent.change(input, {target: {value: 'SIS_B'}})
+      const filter = await onChangePromise
+      // the component trims + lowercases the search text before emitting it
+      expect(filter.search).toBe('sis_b')
+    })
+
+    it('does not emit a search payload below the 3-char minimum threshold', async () => {
+      const props = defaultProps()
+      props.onChange = vi.fn()
+      const {getByPlaceholderText} = render(<CourseFilter {...props} />)
+      const input = getByPlaceholderText('Search by title, short name, or SIS ID')
+      fireEvent.change(input, {target: {value: 'al'}})
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(props.onChange).not.toHaveBeenCalled()
+    })
+
+    it('emits a search payload at the 3-char minimum threshold', async () => {
+      const props = defaultProps()
+      const onChangeMock = vi.fn()
+      props.onChange = onChangeMock
+      const {getByPlaceholderText} = render(<CourseFilter {...props} />)
+      const input = getByPlaceholderText('Search by title, short name, or SIS ID')
+      fireEvent.change(input, {target: {value: 'sis'}})
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(onChangeMock).toHaveBeenCalledTimes(1)
+      expect(onChangeMock.mock.calls[0][0].search).toBe('sis')
+    })
+
+    it('emits term: "1" in the payload when the first term option is selected', async () => {
+      const props = defaultProps()
+      const onChangeMock = vi.fn()
+      props.onChange = onChangeMock
+      const {findByTitle, findByRole} = render(<CourseFilter {...props} />)
+      const button = await findByTitle('Any Term')
+      await userEvent.click(button)
+      const option = await findByRole('option', {name: 'Term One'})
+      await userEvent.click(option)
+      expect(onChangeMock).toHaveBeenCalledTimes(1)
+      expect(onChangeMock.mock.calls[0][0].term).toBe('1')
+    })
+
+    it('emits subAccount: "1" in the payload when the first sub-account option is selected', async () => {
+      const props = defaultProps()
+      const onChangeMock = vi.fn()
+      props.onChange = onChangeMock
+      const {findByTitle, findByRole} = render(<CourseFilter {...props} />)
+      const button = await findByTitle('Any Sub-Account')
+      await userEvent.click(button)
+      const option = await findByRole('option', {name: 'Account One'})
+      await userEvent.click(option)
+      expect(onChangeMock).toHaveBeenCalledTimes(1)
+      expect(onChangeMock.mock.calls[0][0].subAccount).toBe('1')
+    })
+  })
 })

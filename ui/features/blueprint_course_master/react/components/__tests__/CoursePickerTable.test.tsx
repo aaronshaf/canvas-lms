@@ -208,4 +208,165 @@ describe('CoursePickerTable component', () => {
     const pill = queryByText('Concluded')
     expect(pill).not.toBeInTheDocument()
   })
+
+
+  const fiveCourseProps = () => {
+    const props = defaultProps()
+    props.courses = [
+      {
+        id: '10',
+        name: 'Course Ten',
+        course_code: 'course_10',
+        term: {id: '1', name: 'Term One'},
+        teachers: [{display_name: 'Teacher Ten'}],
+        sis_course_id: '1010',
+      },
+      {
+        id: '11',
+        name: 'Course Eleven',
+        course_code: 'course_11',
+        term: {id: '1', name: 'Term One'},
+        teachers: [{display_name: 'Teacher Eleven'}],
+        sis_course_id: '1011',
+      },
+      {
+        id: '12',
+        name: 'Course Twelve',
+        course_code: 'course_12',
+        term: {id: '1', name: 'Term One'},
+        teachers: [{display_name: 'Teacher Twelve'}],
+        sis_course_id: '1012',
+      },
+      {
+        id: '13',
+        name: 'Course Thirteen',
+        course_code: 'course_13',
+        term: {id: '1', name: 'Term One'},
+        teachers: [{display_name: 'Teacher Thirteen'}],
+        sis_course_id: '1013',
+      },
+      {
+        id: '14',
+        name: 'Course Fourteen',
+        course_code: 'course_14',
+        term: {id: '1', name: 'Term One'},
+        teachers: [{display_name: 'Teacher Fourteen'}],
+        sis_course_id: '1014',
+      },
+    ]
+    return props
+  }
+
+  test('renders all five available courses with no initial selection', () => {
+    const props = fiveCourseProps()
+    const {container} = render(<CoursePickerTable {...props} />)
+    const rows = container.querySelectorAll('tr[data-testid="bca-table__course-row"]')
+
+    expect(rows).toHaveLength(5)
+    const checked = container.querySelectorAll(
+      '[data-testid="bca-table__course-row"] input[type="checkbox"]:checked',
+    )
+    expect(checked).toHaveLength(0)
+  })
+
+  test('reports the specific course id added when the first course is selected', async () => {
+    const props = fiveCourseProps()
+    props.onSelectedChanged = vi.fn()
+    const {container} = render(<CoursePickerTable {...props} />)
+
+    const checkboxes = container.querySelectorAll(
+      '[data-testid="bca-table__course-row"] input[type="checkbox"]',
+    )
+    await userEvent.click(checkboxes[0])
+
+    expect(props.onSelectedChanged).toHaveBeenCalledTimes(1)
+    expect(props.onSelectedChanged).toHaveBeenCalledWith({added: ['10'], removed: []})
+  })
+
+  test('reports each specific course id as additional courses are selected one at a time', async () => {
+    const props = fiveCourseProps()
+    props.onSelectedChanged = vi.fn()
+    const {container, rerender} = render(<CoursePickerTable {...props} />)
+
+    const checkboxes = container.querySelectorAll(
+      '[data-testid="bca-table__course-row"] input[type="checkbox"]',
+    )
+
+    // first click selects course 10 only
+    await userEvent.click(checkboxes[0])
+    expect(props.onSelectedChanged).toHaveBeenNthCalledWith(1, {added: ['10'], removed: []})
+
+    // the parent owns selection state; reflect the accepted selection back as props
+    props.selectedCourses = ['10']
+    rerender(<CoursePickerTable {...props} />)
+
+    // second click selects course 11; only the newly-added id is reported
+    await userEvent.click(checkboxes[1])
+    expect(props.onSelectedChanged).toHaveBeenNthCalledWith(2, {added: ['11'], removed: []})
+    expect(props.onSelectedChanged).toHaveBeenCalledTimes(2)
+  })
+
+  test('reports every available course id in order when "Select All" is checked', async () => {
+    const props = fiveCourseProps()
+    props.onSelectedChanged = vi.fn()
+    const {container} = render(<CoursePickerTable {...props} />)
+
+    const selectAll = container.querySelectorAll(
+      '.btps-table__header-wrapper input[type="checkbox"]',
+    )[0]
+    await userEvent.click(selectAll)
+
+    expect(props.onSelectedChanged).toHaveBeenCalledTimes(1)
+    expect(props.onSelectedChanged).toHaveBeenCalledWith({
+      added: ['10', '11', '12', '13', '14'],
+      removed: [],
+    })
+  })
+
+  test('reports the specific course id removed when an individual selected course is deselected', async () => {
+    const props = fiveCourseProps()
+    props.selectedCourses = ['10', '11']
+    props.onSelectedChanged = vi.fn()
+    const {container} = render(<CoursePickerTable {...props} />)
+
+    // both selected courses start checked
+    const checkboxes = container.querySelectorAll(
+      '[data-testid="bca-table__course-row"] input[type="checkbox"]',
+    ) as NodeListOf<HTMLInputElement>
+    expect(checkboxes[0].checked).toBe(true)
+    expect(checkboxes[1].checked).toBe(true)
+
+    // deselect only the first course
+    await userEvent.click(checkboxes[0])
+
+    expect(props.onSelectedChanged).toHaveBeenCalledTimes(1)
+    expect(props.onSelectedChanged).toHaveBeenCalledWith({added: [], removed: ['10']})
+  })
+
+  test('removing one of two selected courses leaves the other still checked', async () => {
+    const props = fiveCourseProps()
+    props.selectedCourses = ['10', '11']
+    props.onSelectedChanged = vi.fn()
+    const {container, rerender} = render(<CoursePickerTable {...props} />)
+
+    const checkboxes = () =>
+      container.querySelectorAll(
+        '[data-testid="bca-table__course-row"] input[type="checkbox"]',
+      ) as NodeListOf<HTMLInputElement>
+
+    // remove course 10
+    await userEvent.click(checkboxes()[0])
+    expect(props.onSelectedChanged).toHaveBeenCalledWith({added: [], removed: ['10']})
+
+    // parent commits the removal; course 11 remains the only selection
+    props.selectedCourses = ['11']
+    rerender(<CoursePickerTable {...props} />)
+
+    expect(checkboxes()[0].checked).toBe(false)
+    expect(checkboxes()[1].checked).toBe(true)
+    const stillChecked = container.querySelectorAll(
+      '[data-testid="bca-table__course-row"] input[type="checkbox"]:checked',
+    )
+    expect(stillChecked).toHaveLength(1)
+  })
 })
