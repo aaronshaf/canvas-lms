@@ -1,0 +1,24 @@
+# Integration test scoped rubocop config.
+#
+# Integration tests exercise full request pipelines with Arrange/Act/Assert
+# structure. They are naturally longer than unit tests, require multiple
+# assertions (response + DB state), and may group multiple endpoints in
+# one file when thematically linked.
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleDescribes:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false

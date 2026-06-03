@@ -73,16 +73,30 @@ And the student's final submission score is not yet updated
 And the student cannot view the score
 ```
 
-**Scenario NQ-1.6 — New Quizzes passback delivers outcome result and quiz grade in the same operation**
+**Scenario NQ-1.6a — Grade passback for an outcome-aligned New Quizzes quiz records the score on the aligned assignment**
 - **GUID:** `6c1f8b50`
-- **Reason:** Students receive a quiz score but no mastery credit, or mastery credit with no score, if NQ passback does not persist both the grade and the outcome result to Canvas.
+- **Reason:** Grade passback could silently fail or route the submission to a different assignment when outcome alignments (ContentTags) exist on the assignment, breaking the downstream link between the student's grade and their mastery credit in the Outcomes Service pipeline.
 ```
-Given a New Quizzes quiz worth 100 points with questions aligned to a learning outcome
-And a student has completed the quiz scoring 90 out of 100 with a passing mastery result
-When New Quizzes sends the passback for the student's submission
+Given a New Quizzes quiz worth 100 points
+And the quiz assignment is aligned to a learning outcome
+And a student is enrolled in the course
+When New Quizzes sends a grade passback with a score of 90 out of 100
 Then the student's Canvas submission score is 90
-And an outcome result for the aligned outcome is created in Canvas
-And both the submission score and the outcome result reference the same quiz assignment
+And the submission workflow state is "graded"
+And the submission belongs to the assignment aligned to the outcome
+```
+
+**Scenario NQ-1.6b — Canvas retrieves outcome results from the Outcomes Service for a New Quizzes quiz**
+- **GUID:** `a3e7d942`
+- **Reason:** Students receive a quiz score but no mastery credit if Canvas cannot retrieve or transform the authoritative outcome result that the Outcomes Service stores for the NQ quiz submission.
+```
+Given a New Quizzes quiz assignment aligned to a learning outcome
+And a student has a graded submission for the quiz
+And the Outcomes Service holds an authoritative result for the student with a passing mastery score
+When Canvas requests outcome results for the quiz assignment
+Then Canvas returns a learning outcome result for the aligned outcome
+And the outcome result references the same quiz assignment as the student's submission
+And the outcome result includes the mastery indicator from the Outcomes Service
 ```
 
 **Scenario NQ-1.7 — Fudge points applied in New Quizzes update the Canvas submission score**
@@ -98,11 +112,11 @@ And the submission workflow state is "graded"
 
 **Scenario NQ-1.8 — Second NQ attempt passback updates the Canvas submission score**
 - **GUID:** `c8d2e05f`
-- **Reason:** Students are permanently penalized with their first-attempt score even after earning a higher score on a permitted retake if NQ does not pass the updated score back to Canvas.
+- **Reason:** Students are permanently penalized with their first-attempt score if Canvas ignores or mishandles a subsequent-attempt grade passback from NQ.
 ```
-Given a New Quizzes quiz with two attempts allowed and a "keep highest" scoring policy
-And a student has completed the first attempt scoring 60 out of 100
-When the student completes the second attempt scoring 85
+Given a New Quizzes quiz worth 100 points
+And a student has a graded submission from a first attempt with a score of 60
+When New Quizzes sends a grade passback for the student's second attempt with a score of 85
 Then the student's Canvas submission score is updated to 85
 And the submission workflow state is "graded"
 ```
