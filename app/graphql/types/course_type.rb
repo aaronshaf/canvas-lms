@@ -324,6 +324,7 @@ module Types
           enrollment_state: filter[:enrollment_states],
           enrollment_type: filter[:enrollment_types],
           enrollment_role_id: filter[:enrollment_role_ids],
+          exclude_test_students: filter[:exclude_test_students],
           include_inactive_enrollments: true,
           sort: sort[:field],
           order: sort[:direction]
@@ -340,8 +341,6 @@ module Types
         if user_ids.present?
           scope = scope.where(users: { id: user_ids })
         end
-
-        scope = scope.not_fake_student if filter[:exclude_test_students]
 
         scope
       end

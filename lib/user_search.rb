@@ -50,6 +50,7 @@ module UserSearch
                                                                       :enrollment_role,
                                                                       :enrollment_role_id,
                                                                       :exclude_groups))
+        users_scope = exclude_test_students_scope(users_scope, context, options.slice(:exclude_test_students))
         differentiation_tag_scope(users_scope, context, principal, options.slice(:differentiation_tag_id))
       end
     end
@@ -74,6 +75,8 @@ module UserSearch
                                                                     :exclude_groups,
                                                                     :temporary_enrollment_recipients,
                                                                     :temporary_enrollment_providers))
+      users_scope = exclude_test_students_scope(users_scope, context, options.slice(:exclude_test_students))
+      users_scope = course_enrollment_semijoin(users_scope) if context.is_a?(Course)
       users_scope = order_scope(users_scope, context, options.slice(:order, :sort))
 
       differentiation_tag_scope(users_scope, context, principal, options.slice(:differentiation_tag_id))
@@ -95,6 +98,21 @@ module UserSearch
       else
         context.users_visible_to(principal&.user, include_inactive: include_inactive_enrollments).distinct
       end
+    end
+
+    # Reshape the joined Course user scope into an id semijoin so Postgres filters
+    # enrollments first rather than walking the users sortable_name index. The outer
+    # relation is pinned to the course's shard because scope_for runs outside shard.activate.
+    def course_enrollment_semijoin(users_scope)
+      users_scope.klass
+                 .shard(users_scope.primary_shard)
+                 .where(id: users_scope.except(:select, :order).select("users.id"))
+    end
+
+    def exclude_test_students_scope(users_scope, context, options = {})
+      return users_scope unless context.is_a?(Course) && value_to_boolean(options[:exclude_test_students])
+
+      users_scope.not_fake_student
     end
 
     def account_scope(account, include_deleted_users:)

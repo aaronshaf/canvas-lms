@@ -570,6 +570,51 @@ describe UserSearch do
       expect(UserSearch.scope_for(group, @admin.principal, enrollment_type: ["teacher"]).to_a).to be_empty
     end
 
+    context "with a course context" do
+      let(:other_course) { Course.create!(workflow_state: "available") }
+      let(:teacher) { User.create!.tap { |u| TeacherEnrollment.create!(user: u, course: other_course, workflow_state: "active") } }
+      let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
+      let(:enrolled_student) { User.create!.tap { |u| StudentEnrollment.create!(user: u, course: other_course, workflow_state: "active") } }
+
+      before do
+        teacher
+        enrolled_student
+      end
+
+      it "filters by enrollment type via an id semijoin instead of a top-level enrollments join" do
+        scope = UserSearch.scope_for(other_course, teacher_principal, enrollment_type: ["student"])
+        expect(scope.to_sql).to match(/"users"\."id" IN \(SELECT/i)
+      end
+
+      it "still returns the users matching the enrollment-type filter" do
+        scope = UserSearch.scope_for(other_course, teacher_principal, enrollment_type: ["student"])
+        expect(scope.to_a).to eq [enrolled_student]
+      end
+
+      it "excludes test students when exclude_test_students is set" do
+        test_student = other_course.student_view_student
+        scope = UserSearch.scope_for(other_course, teacher_principal, exclude_test_students: true)
+        expect(scope.to_a).to include(enrolled_student)
+        expect(scope.to_a).not_to include(test_student)
+      end
+
+      context "when the course lives on another shard" do
+        specs_require_sharding
+
+        it "runs the reshaped query on the course's shard" do
+          cross_shard_course = nil
+          cross_shard_teacher = nil
+          @shard1.activate do
+            cross_shard_course = Account.create!.courses.create!(workflow_state: "available")
+            cross_shard_teacher = User.create!
+            TeacherEnrollment.create!(user: cross_shard_teacher, course: cross_shard_course, workflow_state: "active")
+          end
+          principal = Canvas::AdheresToPolicy::UserPrincipal.new(cross_shard_teacher)
+          expect(UserSearch.scope_for(cross_shard_course, principal, enrollment_type: ["teacher"]).to_a).to eq [cross_shard_teacher]
+        end
+      end
+    end
+
     describe "account user list filtering by role" do
       subject { names }
 
