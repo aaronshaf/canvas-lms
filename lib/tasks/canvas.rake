@@ -54,12 +54,22 @@ unless $canvas_tasks_loaded
           ].compact
         end
 
+        # build:packages is a shared prerequisite for both webpack bundles.
+        # It is its own node so the graph runs it exactly once, ahead of the
+        # parallel webpack batch, instead of each webpack task rebuilding the
+        # packages concurrently and racing on packages/canvas-rce/es/.
+        if build_js && (build_dev_js || build_prod_js)
+          task "js:build_packages" => [
+            ("js:yarn_install" if npm_install)
+          ].compact
+        end
+
         if build_js && build_dev_js
-          task "js:webpack_development" => ["js:gulp_rev"]
+          task "js:webpack_development" => ["js:gulp_rev", "js:build_packages"]
         end
 
         if build_js && build_prod_js
-          task "js:webpack_production" => ["js:gulp_rev"]
+          task "js:webpack_production" => ["js:gulp_rev", "js:build_packages"]
         end
       end
 
