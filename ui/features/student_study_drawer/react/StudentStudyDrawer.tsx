@@ -25,6 +25,7 @@ import {platformExecuteQuery} from '@canvas/graphql'
 import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
 import {showFlashError} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {showFlashAlert} from '@instructure/platform-alerts'
 import {ContentWithNoteWrapper, NotebookProvider} from '@instructure/platform-notebook'
 import type {AssistRequest, AssistResponse} from '@instructure/platform-study-assist'
 import {
@@ -90,6 +91,31 @@ function StudentStudyDrawerInner({
 
   const handleDismiss = useCallback(() => setActivePanel(null), [])
   const handleOpenNotebook = useCallback(() => setActivePanel('notebook'), [])
+
+  const handleCreateError = useCallback(
+    (error: Error) => showFlashAlert({message: error.message, type: 'error', err: error}),
+    [],
+  )
+
+  const handleUpdateError = useCallback(
+    (error: Error) =>
+      showFlashAlert({
+        message: I18n.t('Your note could not be updated after the page changed.'),
+        type: 'error',
+        err: error,
+      }),
+    [],
+  )
+
+  const handleDeleteError = useCallback(
+    (error: Error) =>
+      showFlashAlert({
+        message: I18n.t('An outdated note could not be removed after the page changed.'),
+        type: 'error',
+        err: error,
+      }),
+    [],
+  )
 
   const handleHostRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -192,7 +218,13 @@ function StudentStudyDrawerInner({
         </DrawerLayout.Tray>
       </DrawerLayout>
       {showNotebook && containerReady && (
-        <ContentWithNoteWrapper containerRef={containerRef} highlightTheme={HIGHLIGHT_THEME} />
+        <ContentWithNoteWrapper
+          containerRef={containerRef}
+          highlightTheme={HIGHLIGHT_THEME}
+          onCreateError={handleCreateError}
+          onUpdateError={handleUpdateError}
+          onDeleteError={handleDeleteError}
+        />
       )}
     </View>
   )

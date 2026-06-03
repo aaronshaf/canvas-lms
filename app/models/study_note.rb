@@ -34,7 +34,7 @@ class StudyNote < ApplicationRecord
   validates :workflow_state, presence: true
   validates :reaction, length: { maximum: 20 }, allow_nil: true
   validates :redwood_uuid, uniqueness: true, allow_nil: true
-  validates :user_text, length: { maximum: maximum_text_length }, allow_nil: true
+  validates :user_text, length: { maximum: maximum_text_length, too_long: ->(_object, data) { t("Note text is too long (%{count} character maximum)", count: data[:count]) } }, allow_nil: true
   validate :highlight_data_size
   validate :note_limit_not_exceeded, on: :create
 
@@ -60,7 +60,9 @@ class StudyNote < ApplicationRecord
   def highlight_data_size
     return if highlight_data.blank?
 
-    errors.add(:highlight_data, t("is too large")) if highlight_data.to_json.bytesize > self.class.maximum_text_length
+    if highlight_data.to_json.bytesize > self.class.maximum_text_length
+      errors.add(:base, t("The selected text is too large to highlight"))
+    end
   end
 
   def note_limit_not_exceeded

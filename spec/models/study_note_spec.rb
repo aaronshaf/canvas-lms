@@ -134,6 +134,19 @@ describe StudyNote do
     end
   end
 
+  describe "user_text length validation" do
+    it "accepts text within the limit" do
+      @note.user_text = "a" * 100
+      expect(@note).to be_valid
+    end
+
+    it "rejects text over the limit" do
+      @note.user_text = "a" * (StudyNote.maximum_text_length + 1)
+      expect(@note).not_to be_valid
+      expect(@note.errors[:user_text].first).to match(/\ANote text is too long \([\d,]+ character maximum\)\z/)
+    end
+  end
+
   describe "reaction max size validation" do
     it "allows up to 20 reactions" do
       @note.reaction = Array.new(20, "Important")

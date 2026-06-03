@@ -20,6 +20,11 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {NotebookPanel} from '../NotebookPanel'
+import {showFlashAlert} from '@instructure/platform-alerts'
+
+vi.mock('@instructure/platform-alerts', () => ({
+  showFlashAlert: vi.fn(),
+}))
 
 const mockNotesListView = vi.fn((_props: object) => <div data-testid="notes-list-view" />)
 const mockUseNotesData = vi.fn()
@@ -137,21 +142,27 @@ describe('NotebookPanel', () => {
   it('handleDelete calls deleteNote with the note id', () => {
     renderPanel()
     getNotesListProps().onNoteDelete('note-1')
-    expect(mockDeleteNote).toHaveBeenCalledWith('note-1')
+    expect(mockDeleteNote).toHaveBeenCalledWith(
+      'note-1',
+      expect.objectContaining({onError: expect.any(Function)}),
+    )
   })
 
   it('handleSave calls updateNote preserving reaction and highlightData', () => {
     renderPanel()
     getNotesListProps().onNoteSave('note-1', 'new text')
-    expect(mockUpdateNote).toHaveBeenCalledWith({
-      id: 'note-1',
-      input: {
+    expect(mockUpdateNote).toHaveBeenCalledWith(
+      {
         id: 'note-1',
-        userText: 'new text',
-        reaction: NOTE_A.reaction,
-        highlightData: NOTE_A.highlightData,
+        input: {
+          id: 'note-1',
+          userText: 'new text',
+          reaction: NOTE_A.reaction,
+          highlightData: NOTE_A.highlightData,
+        },
       },
-    })
+      expect.objectContaining({onError: expect.any(Function)}),
+    )
   })
 
   it('handleSave does nothing when note id is not found', () => {
@@ -163,14 +174,53 @@ describe('NotebookPanel', () => {
   it('handleTypeChange calls updateNote with new reaction preserving other fields', () => {
     renderPanel()
     getNotesListProps().onNoteTypeChange('note-1', 'Confusing')
-    expect(mockUpdateNote).toHaveBeenCalledWith({
-      id: 'note-1',
-      input: {
+    expect(mockUpdateNote).toHaveBeenCalledWith(
+      {
         id: 'note-1',
-        userText: NOTE_A.userText,
-        reaction: ['Confusing'],
-        highlightData: NOTE_A.highlightData,
+        input: {
+          id: 'note-1',
+          userText: NOTE_A.userText,
+          reaction: ['Confusing'],
+          highlightData: NOTE_A.highlightData,
+        },
       },
+      expect.objectContaining({onError: expect.any(Function)}),
+    )
+  })
+
+  it('shows a flash error when deleteNote fails', () => {
+    renderPanel()
+    getNotesListProps().onNoteDelete('note-1')
+    const {onError} = mockDeleteNote.mock.calls[0][1] as {onError: (e: Error) => void}
+    onError(new Error('Note deletion failed'))
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Note deletion failed',
+      type: 'error',
+      err: expect.any(Error),
+    })
+  })
+
+  it('shows a flash error when updateNote fails on save', () => {
+    renderPanel()
+    getNotesListProps().onNoteSave('note-1', 'new text')
+    const {onError} = mockUpdateNote.mock.calls[0][1] as {onError: (e: Error) => void}
+    onError(new Error('Error updating note'))
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Error updating note',
+      type: 'error',
+      err: expect.any(Error),
+    })
+  })
+
+  it('shows a flash error when updateNote fails on type change', () => {
+    renderPanel()
+    getNotesListProps().onNoteTypeChange('note-1', 'Confusing')
+    const {onError} = mockUpdateNote.mock.calls[0][1] as {onError: (e: Error) => void}
+    onError(new Error('Error updating note'))
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Error updating note',
+      type: 'error',
+      err: expect.any(Error),
     })
   })
 

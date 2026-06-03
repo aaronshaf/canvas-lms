@@ -26,6 +26,7 @@ import {
   REACTION_TYPE,
 } from '@instructure/platform-notebook'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {showFlashAlert} from '@instructure/platform-alerts'
 import {HIGHLIGHT_THEME} from '../themes'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -108,45 +109,56 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
 
   const totalPages = pageInfo?.totalNrOfPages ?? undefined
 
+  const onMutationError = useCallback(
+    (error: Error) => showFlashAlert({message: error.message, type: 'error', err: error}),
+    [],
+  )
+
   const handleDelete = useCallback(
     (noteId: string) => {
-      deleteNote(noteId)
+      deleteNote(noteId, {onError: onMutationError})
     },
-    [deleteNote],
+    [deleteNote, onMutationError],
   )
 
   const handleSave = useCallback(
     (noteId: string, text: string) => {
       const note = notes.find(n => n.id === noteId)
       if (!note) return
-      updateNote({
-        id: noteId,
-        input: {
+      updateNote(
+        {
           id: noteId,
-          userText: text,
-          reaction: note.reaction,
-          highlightData: note.highlightData,
+          input: {
+            id: noteId,
+            userText: text,
+            reaction: note.reaction,
+            highlightData: note.highlightData,
+          },
         },
-      })
+        {onError: onMutationError},
+      )
     },
-    [notes, updateNote],
+    [notes, updateNote, onMutationError],
   )
 
   const handleTypeChange = useCallback(
     (noteId: string, type: REACTION_TYPE) => {
       const note = notes.find(n => n.id === noteId)
       if (!note) return
-      updateNote({
-        id: noteId,
-        input: {
+      updateNote(
+        {
           id: noteId,
-          userText: note.userText,
-          reaction: [type],
-          highlightData: note.highlightData,
+          input: {
+            id: noteId,
+            userText: note.userText,
+            reaction: [type],
+            highlightData: note.highlightData,
+          },
         },
-      })
+        {onError: onMutationError},
+      )
     },
-    [notes, updateNote],
+    [notes, updateNote, onMutationError],
   )
 
   return (

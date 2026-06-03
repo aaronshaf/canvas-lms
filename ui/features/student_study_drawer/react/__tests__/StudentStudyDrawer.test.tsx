@@ -20,6 +20,10 @@ import React from 'react'
 import {act, render, screen, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
+import StudentStudyDrawer from '../StudentStudyDrawer'
+import {_resetPageContentWrapper} from '@canvas/page-content-wrapper'
+import {ContentWithNoteWrapper, NotebookProvider} from '@instructure/platform-notebook'
+import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
 
 const server = setupServer()
 
@@ -42,7 +46,7 @@ vi.mock('@instructure/platform-notebook', () => ({
   NotebookProvider: vi.fn(({children}: {children: React.ReactNode}) => (
     <div data-testid="notebook-provider">{children}</div>
   )),
-  ContentWithNoteWrapper: () => <div data-testid="content-with-note-wrapper" />,
+  ContentWithNoteWrapper: vi.fn(() => <div data-testid="content-with-note-wrapper" />),
   NotesListView: () => <div data-testid="notes-list-view" />,
   useNotebook: () => ({
     api: {},
@@ -115,6 +119,7 @@ vi.mock('@canvas/study-assist', () => ({
 
 vi.mock('@instructure/platform-alerts', () => ({
   showFlashError: vi.fn(() => vi.fn()),
+  showFlashAlert: vi.fn(),
 }))
 
 vi.mock('@canvas/ai-information', () => ({
@@ -124,11 +129,6 @@ vi.mock('@canvas/ai-information', () => ({
 vi.mock('@canvas/pendo/react/hooks/usePendoTracking', () => ({
   usePendoTracking: () => ({trackEvent: vi.fn()}),
 }))
-
-import StudentStudyDrawer from '../StudentStudyDrawer'
-import {_resetPageContentWrapper} from '@canvas/page-content-wrapper'
-import {NotebookProvider} from '@instructure/platform-notebook'
-import {showFlashError} from '@instructure/platform-alerts'
 
 function makePageContent() {
   const el = document.createElement('section')
@@ -141,6 +141,8 @@ describe('StudentStudyDrawer', () => {
   beforeEach(() => {
     vi.mocked(NotebookProvider).mockClear()
     capturedFetchAssistResponse = undefined
+    vi.mocked(ContentWithNoteWrapper).mockClear()
+    vi.mocked(showFlashAlert).mockClear()
     window.ENV = {
       ...window.ENV,
       LOCALE: 'en',
@@ -338,6 +340,81 @@ describe('StudentStudyDrawer', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('content-with-note-wrapper')).toBeInTheDocument()
+    })
+  })
+
+  it('shows a flash error when note creation fails', () => {
+    const pageContent = makePageContent()
+    const contentEl = document.createElement('div')
+    contentEl.className = 'show-content user_content'
+    document.body.appendChild(contentEl)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={false} showNotebook={true} />,
+    )
+
+    const {onCreateError} = vi.mocked(ContentWithNoteWrapper).mock.calls[0][0] as {
+      onCreateError?: (error: Error) => void
+    }
+
+    act(() => {
+      onCreateError?.(new Error('Note limit of 1000 per course reached'))
+    })
+
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Note limit of 1000 per course reached',
+      type: 'error',
+      err: expect.any(Error),
+    })
+  })
+
+  it('shows a friendly flash error when note update fails after page change', () => {
+    const pageContent = makePageContent()
+    const contentEl = document.createElement('div')
+    contentEl.className = 'show-content user_content'
+    document.body.appendChild(contentEl)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={false} showNotebook={true} />,
+    )
+
+    const {onUpdateError} = vi.mocked(ContentWithNoteWrapper).mock.calls[0][0] as {
+      onUpdateError?: (error: Error) => void
+    }
+
+    act(() => {
+      onUpdateError?.(new Error('500 Internal Server Error'))
+    })
+
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Your note could not be updated after the page changed.',
+      type: 'error',
+      err: expect.any(Error),
+    })
+  })
+
+  it('shows a friendly flash error when an outdated note cannot be deleted after page change', () => {
+    const pageContent = makePageContent()
+    const contentEl = document.createElement('div')
+    contentEl.className = 'show-content user_content'
+    document.body.appendChild(contentEl)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={false} showNotebook={true} />,
+    )
+
+    const {onDeleteError} = vi.mocked(ContentWithNoteWrapper).mock.calls[0][0] as {
+      onDeleteError?: (error: Error) => void
+    }
+
+    act(() => {
+      onDeleteError?.(new Error('500 Internal Server Error'))
+    })
+
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'An outdated note could not be removed after the page changed.',
+      type: 'error',
+      err: expect.any(Error),
     })
   })
 

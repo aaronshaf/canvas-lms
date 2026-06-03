@@ -38,7 +38,7 @@ module NotebookPage
   end
 
   def note_card_selector
-    '[data-testid="note-card"]'
+    'div[data-testid^="note-card-"]'
   end
 
   def note_card_link_selector(note_id)
