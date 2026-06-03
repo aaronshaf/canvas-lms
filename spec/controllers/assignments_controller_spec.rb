@@ -418,6 +418,16 @@ describe AssignmentsController do
         get "index", params: { course_id: @course.id }
         expect(assignment_permissions[@assignment.id][:update]).to be(false)
       end
+
+      it "does not include soft-deleted assignments" do
+        deleted_assignment = @course.assignments.create!(title: "deleted assignment")
+        deleted_assignment.workflow_state = "deleted"
+        deleted_assignment.save!
+        user_session(@teacher)
+        get "index", params: { course_id: @course.id }
+        expect(assignment_permissions).to have_key(@assignment.id)
+        expect(assignment_permissions).not_to have_key(deleted_assignment.id)
+      end
     end
 
     context "assign to differentiation tags" do

@@ -3516,7 +3516,7 @@ class ApplicationController < ActionController::Base
     permissions = @context.rights_status(current_principal, *rights)
     permissions[:manage_course] = permissions[:manage]
     permissions[:manage] = permissions[:manage_assignments_edit]
-    permissions[:by_assignment_id] = @context.assignments.to_h do |assignment|
+    permissions[:by_assignment_id] = @context.assignments.active.to_h do |assignment|
       [assignment.id,
        {
          update: assignment.user_can_update?(@current_user, session),
