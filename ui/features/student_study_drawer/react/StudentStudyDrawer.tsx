@@ -22,7 +22,8 @@ import {DrawerLayout} from '@instructure/ui-drawer-layout'
 import {View} from '@instructure/ui-view'
 import {PlatformUiProvider} from '@instructure/platform-provider'
 import {platformExecuteQuery} from '@canvas/graphql'
-import doFetchApi from '@canvas/do-fetch-api-effect'
+import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
+import {showFlashError} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {ContentWithNoteWrapper, NotebookProvider} from '@instructure/platform-notebook'
 import type {AssistRequest, AssistResponse} from '@instructure/platform-study-assist'
@@ -45,12 +46,24 @@ type ActivePanel = 'study-assist' | 'notebook' | null
 async function fetchAssistResponse(request: AssistRequest): Promise<AssistResponse> {
   const courseId = window.ENV.COURSE_ID ?? request.state?.courseID
   if (!courseId) throw new Error('COURSE_ID is not configured')
-  const {json} = await doFetchApi<AssistResponse>({
-    path: `/api/v1/courses/${courseId}/study_assist`,
-    method: 'POST',
-    body: request,
-  })
-  return json ?? {}
+  try {
+    const {json} = await doFetchApi<AssistResponse>({
+      path: `/api/v1/courses/${courseId}/study_assist`,
+      method: 'POST',
+      body: request,
+    })
+    return json ?? {}
+  } catch (err) {
+    let message = I18n.t('Study tools are temporarily unavailable')
+    if (err instanceof FetchApiError) {
+      try {
+        const body = await err.response.json()
+        if (body?.error) message = body.error
+      } catch {}
+    }
+    showFlashError(message)()
+    return {error: message}
+  }
 }
 
 type StudentStudyDrawerInnerProps = {

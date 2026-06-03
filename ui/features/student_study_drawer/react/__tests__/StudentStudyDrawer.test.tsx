@@ -18,6 +18,14 @@
 
 import React from 'react'
 import {act, render, screen, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
+
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 vi.mock('@instructure/platform-provider', () => ({
   PlatformUiProvider: ({children}: {children: React.ReactNode}) => <>{children}</>,
@@ -80,23 +88,33 @@ vi.mock('@canvas/notebook', () => ({
   },
 }))
 
+let capturedFetchAssistResponse: ((req: unknown) => Promise<unknown>) | undefined
+
 vi.mock('@canvas/study-assist', () => ({
   StudyAssistPanel: ({
     closeButtonRef,
+    fetchAssistResponse,
   }: {
     onDismiss: () => void
     closeButtonRef: React.MutableRefObject<Element | null>
-    fetchAssistResponse: unknown
-  }) => (
-    <div data-testid="study-assist-panel">
-      <button
-        data-testid="study-assist-close-button"
-        ref={el => {
-          closeButtonRef.current = el
-        }}
-      />
-    </div>
-  ),
+    fetchAssistResponse: (req: unknown) => Promise<unknown>
+  }) => {
+    capturedFetchAssistResponse = fetchAssistResponse
+    return (
+      <div data-testid="study-assist-panel">
+        <button
+          data-testid="study-assist-close-button"
+          ref={el => {
+            closeButtonRef.current = el
+          }}
+        />
+      </div>
+    )
+  },
+}))
+
+vi.mock('@instructure/platform-alerts', () => ({
+  showFlashError: vi.fn(() => vi.fn()),
 }))
 
 vi.mock('@canvas/ai-information', () => ({
@@ -110,6 +128,7 @@ vi.mock('@canvas/pendo/react/hooks/usePendoTracking', () => ({
 import StudentStudyDrawer from '../StudentStudyDrawer'
 import {_resetPageContentWrapper} from '@canvas/page-content-wrapper'
 import {NotebookProvider} from '@instructure/platform-notebook'
+import {showFlashError} from '@instructure/platform-alerts'
 
 function makePageContent() {
   const el = document.createElement('section')
@@ -121,6 +140,7 @@ function makePageContent() {
 describe('StudentStudyDrawer', () => {
   beforeEach(() => {
     vi.mocked(NotebookProvider).mockClear()
+    capturedFetchAssistResponse = undefined
     window.ENV = {
       ...window.ENV,
       LOCALE: 'en',
@@ -372,5 +392,60 @@ describe('StudentStudyDrawer', () => {
     )
 
     expect(screen.queryByTestId('notebook-panel')).not.toBeInTheDocument()
+  })
+
+  it('shows a flash error with the backend message when the request fails', async () => {
+    server.use(
+      http.post(
+        '*/api/v1/courses/42/study_assist',
+        () =>
+          new HttpResponse(JSON.stringify({error: 'Study tools are temporarily unavailable.'}), {
+            status: 503,
+            headers: {'Content-Type': 'application/json'},
+          }),
+      ),
+    )
+
+    render(
+      <StudentStudyDrawer
+        pageContent={makePageContent()}
+        showStudyAssist={true}
+        showNotebook={false}
+      />,
+    )
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+
+    const result = await capturedFetchAssistResponse!({
+      prompt: 'Generate flashcards',
+      state: {pageID: 'test-page', courseID: '42'},
+    })
+    expect(showFlashError).toHaveBeenCalledWith('Study tools are temporarily unavailable.')
+    expect(result).toMatchObject({error: 'Study tools are temporarily unavailable.'})
+  })
+
+  it('falls back to a generic message when the error body is not parseable', async () => {
+    server.use(
+      http.post('*/api/v1/courses/42/study_assist', () => new HttpResponse(null, {status: 502})),
+    )
+
+    render(
+      <StudentStudyDrawer
+        pageContent={makePageContent()}
+        showStudyAssist={true}
+        showNotebook={false}
+      />,
+    )
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+
+    const result = await capturedFetchAssistResponse!({
+      prompt: 'Generate flashcards',
+      state: {pageID: 'test-page', courseID: '42'},
+    })
+    expect(showFlashError).toHaveBeenCalledWith('Study tools are temporarily unavailable')
+    expect(result).toMatchObject({error: 'Study tools are temporarily unavailable'})
   })
 })
