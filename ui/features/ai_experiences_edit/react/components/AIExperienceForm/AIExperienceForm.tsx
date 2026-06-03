@@ -29,9 +29,11 @@ import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {AIExperience, AIExperienceFormData, EvaluationMetric} from '../../../types'
 import FormHeader from './FormHeader'
 import ConfigurationSection from './ConfigurationSection'
-import EvaluationMetricsSection, {DEFAULT_METRICS} from './EvaluationMetricsSection'
+import EvaluationMetricsSection, {
+  DEFAULT_METRICS,
+} from '@canvas/ai-experiences/react/components/EvaluationMetricsSection'
 import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
-import {roundedTheme} from '../../../../../shared/ai-experiences/react/brand'
+import {roundedTheme} from '@canvas/ai-experiences/react/brand'
 
 declare const ENV: GlobalEnv & {AI_EXPERIENCES_FIELD_MAX_LENGTH?: number}
 

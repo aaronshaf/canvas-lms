@@ -65,10 +65,9 @@ describe('EvaluationInsights', () => {
     expect(screen.queryByText('Disabled metric')).not.toBeInTheDocument()
   })
 
-  it('shows "Visible to learners" badge only for metrics with visible_to_learners true', () => {
+  it('does not show "Visible to learners" badge (hidden until designed for release)', () => {
     render(<EvaluationInsights metrics={enabledMetrics} isLoading={false} />)
-    const badges = screen.getAllByText('Visible to learners')
-    expect(badges).toHaveLength(1)
+    expect(screen.queryByText('Visible to learners')).not.toBeInTheDocument()
   })
 
   it('shows empty evaluation state text per metric', () => {

@@ -33,11 +33,12 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
 import {AIExperience} from '../../types'
 import {FileList} from '@canvas/canvas-file-upload/react/FileList'
-import LLMConversationView from '../../../../shared/ai-experiences/react/components/LLMConversationView'
-import ConversationLanding from '../../../../shared/ai-experiences/react/components/ConversationLanding'
+import LLMConversationView from '@canvas/ai-experiences/react/components/LLMConversationView'
+import ConversationLanding from '@canvas/ai-experiences/react/components/ConversationLanding'
 import AIExperiencePublishButton from './AIExperiencePublishButton'
 import AIConversationsContainer from '@canvas/ai-experiences/react/components/AIConversationsContainer'
-import {navyButtonTheme, roundedTheme} from '../../../../shared/ai-experiences/react/brand'
+import EvaluationMetricsSection from '@canvas/ai-experiences/react/components/EvaluationMetricsSection'
+import {navyButtonTheme, roundedTheme} from '@canvas/ai-experiences/react/brand'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('ai_experiences_show')
@@ -347,6 +348,16 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                       )}
                       uploadingFileNames={new Set()}
                       failedFileNames={new Set(aiExperience.failed_context_file_names ?? [])}
+                    />
+                  </View>
+                )}
+
+                {(aiExperience.evaluation_metrics?.length ?? 0) > 0 && (
+                  <View as="div" margin="medium 0 0 0">
+                    <EvaluationMetricsSection
+                      metrics={aiExperience.evaluation_metrics ?? []}
+                      onChange={() => {}}
+                      readOnly
                     />
                   </View>
                 )}

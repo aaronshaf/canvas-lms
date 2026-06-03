@@ -19,7 +19,9 @@
 import '@instructure/canvas-theme'
 import React from 'react'
 import {render, screen, fireEvent, waitFor} from '@testing-library/react'
-import EvaluationMetricsSection, {DEFAULT_METRICS} from '../EvaluationMetricsSection'
+import EvaluationMetricsSection, {
+  DEFAULT_METRICS,
+} from '@canvas/ai-experiences/react/components/EvaluationMetricsSection'
 import {EvaluationMetric} from '../../../../types'
 
 function renderSection(metrics: EvaluationMetric[] = DEFAULT_METRICS, onChange = vi.fn()) {
@@ -85,17 +87,6 @@ describe('EvaluationMetricsSection', () => {
       expect(onChange).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({name: 'Learning targets met', enabled: false}),
-        ]),
-      )
-    })
-
-    it('calls onChange when visible_to_learners is toggled', () => {
-      const onChange = vi.fn()
-      renderSection(DEFAULT_METRICS, onChange)
-      fireEvent.click(screen.getByTestId('evaluation-metric-visible-0'))
-      expect(onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({name: 'Summary', visible_to_learners: false}),
         ]),
       )
     })

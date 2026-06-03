@@ -33,7 +33,7 @@ const LIGHT_GREY = '#C7CDD1'
 
 interface StatCardProps {
   label: string
-  value: number
+  value: number | string
   borderColor: string
   testId: string
 }
@@ -75,6 +75,9 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
 
   if (!snapshot) return null
 
+  const started = snapshot.completed + snapshot.in_progress
+  const avgMet = `${snapshot.completed}/${started}`
+
   return (
     <View as="div" margin="0 0 medium 0" data-testid="overall-snapshot">
       <Heading level="h3" margin="0 0 small 0">
@@ -87,6 +90,14 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
             value={snapshot.total_objectives}
             borderColor={BRAND_PURPLE}
             testId="snapshot-learning-targets"
+          />
+        </Flex.Item>
+        <Flex.Item shouldGrow>
+          <StatCard
+            label={I18n.t('Avg targets met')}
+            value={avgMet}
+            borderColor={BRAND_PURPLE}
+            testId="snapshot-avg-met"
           />
         </Flex.Item>
         <Flex.Item shouldGrow>

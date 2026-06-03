@@ -38,7 +38,7 @@ import ConversationHeader from './ConversationHeader'
 import ConversationProgressComponent from './ConversationProgress'
 import FocusMode from './FocusMode'
 import GradientBorder from './GradientBorder'
-import MessageThread from './MessageThread'
+import MessageThread, {ConversationMilestoneEntry, deriveMilestones} from './MessageThread'
 import {RADIUS_PILL, navyButtonTheme, roundedTheme} from '../brand'
 
 declare const ENV: GlobalEnv & {AI_EXPERIENCES_MESSAGE_MAX_LENGTH?: number}
@@ -279,6 +279,12 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
     }
   }
 
+  const milestones = deriveMilestones(progress, messagesRef.current.length)
+  const allObjectivesMet =
+    progress != null &&
+    progress.objectives.length > 0 &&
+    progress.objectives.every(o => o.status === 'covered')
+
   const renderConversationContent = (_inFocusMode = false) => (
     <View as="div" padding="medium" background="primary">
       {error && (
@@ -312,54 +318,58 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           aiExperienceId={aiExperienceId ?? ''}
           isLoading={isLoading}
           isInitializing={isInitializing}
+          milestones={milestones}
         />
       </div>
 
-      <GradientBorder>
-        <div style={{padding: '0.75rem'}}>
-          <div style={{marginBottom: '0.75rem'}}>
-            <Text weight="bold" size="small">
-              {I18n.t('Message')}
-            </Text>
+      {!allObjectivesMet && (
+        <GradientBorder>
+          <div style={{padding: '0.75rem'}}>
+            <div style={{marginBottom: '0.75rem'}}>
+              <Text weight="bold" size="small">
+                {I18n.t('Message')}
+              </Text>
+            </div>
+            <Flex gap="small" alignItems="center">
+              <Flex.Item shouldGrow shouldShrink>
+                <TextArea
+                  data-testid="llm-conversation-message-input"
+                  label={<span style={{display: 'none'}}>{I18n.t('Your answer...')}</span>}
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={I18n.t('Your answer...')}
+                  height="60px"
+                  disabled={isInitializing}
+                  messages={overCapMessages(inputValue)}
+                  textareaRef={(el: HTMLTextAreaElement | null) => {
+                    ;(textAreaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current =
+                      el
+                  }}
+                />
+              </Flex.Item>
+              <Flex.Item>
+                <Button
+                  data-testid="llm-conversation-send-message-button"
+                  onClick={handleSendMessage}
+                  color="primary"
+                  interaction={
+                    isLoading ||
+                    isInitializing ||
+                    !inputValue.trim() ||
+                    inputValue.length > USER_MESSAGE_MAX_LENGTH
+                      ? 'disabled'
+                      : 'enabled'
+                  }
+                  themeOverride={sendButtonTheme}
+                >
+                  {I18n.t('Send')}
+                </Button>
+              </Flex.Item>
+            </Flex>
           </div>
-          <Flex gap="small" alignItems="center">
-            <Flex.Item shouldGrow shouldShrink>
-              <TextArea
-                data-testid="llm-conversation-message-input"
-                label={<span style={{display: 'none'}}>{I18n.t('Your answer...')}</span>}
-                value={inputValue}
-                onChange={e => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={I18n.t('Your answer...')}
-                height="60px"
-                disabled={isInitializing}
-                messages={overCapMessages(inputValue)}
-                textareaRef={(el: HTMLTextAreaElement | null) => {
-                  ;(textAreaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el
-                }}
-              />
-            </Flex.Item>
-            <Flex.Item>
-              <Button
-                data-testid="llm-conversation-send-message-button"
-                onClick={handleSendMessage}
-                color="primary"
-                interaction={
-                  isLoading ||
-                  isInitializing ||
-                  !inputValue.trim() ||
-                  inputValue.length > USER_MESSAGE_MAX_LENGTH
-                    ? 'disabled'
-                    : 'enabled'
-                }
-                themeOverride={sendButtonTheme}
-              >
-                {I18n.t('Send')}
-              </Button>
-            </Flex.Item>
-          </Flex>
-        </div>
-      </GradientBorder>
+        </GradientBorder>
+      )}
     </View>
   )
 
@@ -507,6 +517,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                           isLoading={isLoading}
                           isInitializing={isInitializing}
                           bottomRef={focusModeBottomRef}
+                          milestones={milestones}
                         />
                       </div>
                       <GradientBorder>

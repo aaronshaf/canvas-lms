@@ -69,12 +69,7 @@ export interface ConversationMessage {
 
 export interface ConversationDetail extends StudentConversation {
   messages: ConversationMessage[]
-  progress?: {
-    current: number
-    total: number
-    percentage: number
-    objectives: Array<{objective: string; status: '' | 'covered'}>
-  }
+  progress?: ConversationProgress
 }
 
 export interface Snapshot {
@@ -108,6 +103,7 @@ export interface ConversationProgress {
   objectives: Array<{
     objective: string
     status: '' | 'covered'
+    met_at_turn?: number | null
   }>
 }
 

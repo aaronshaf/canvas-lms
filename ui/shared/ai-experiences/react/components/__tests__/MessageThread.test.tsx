@@ -174,4 +174,44 @@ describe('MessageThread', () => {
       expect(screen.getByTitle('Initializing conversation...')).toBeInTheDocument()
     })
   })
+
+  describe('milestones', () => {
+    it('renders a single objective milestone after the specified message', () => {
+      render(
+        <MessageThread
+          {...defaultProps}
+          messages={[systemMessage, assistantMessage({text: 'Hello'}), userMessage({text: 'Hi'})]}
+          milestones={[
+            {variant: 'single', objective: 'Who is the geologist?', afterMessageIndex: 0},
+          ]}
+        />,
+      )
+      expect(screen.getByTestId('conversation-milestone-single')).toBeInTheDocument()
+      expect(screen.getByText('Who is the geologist?')).toBeInTheDocument()
+    })
+
+    it('renders an all-objectives milestone', () => {
+      render(
+        <MessageThread
+          {...defaultProps}
+          messages={[systemMessage, assistantMessage({text: 'Hello'})]}
+          milestones={[{variant: 'all', afterMessageIndex: 0}]}
+        />,
+      )
+      expect(screen.getByTestId('conversation-milestone-all')).toBeInTheDocument()
+      expect(screen.getByText('All objectives met')).toBeInTheDocument()
+    })
+
+    it('renders no milestones when prop is empty', () => {
+      render(
+        <MessageThread
+          {...defaultProps}
+          messages={[systemMessage, assistantMessage()]}
+          milestones={[]}
+        />,
+      )
+      expect(screen.queryByTestId('conversation-milestone-single')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('conversation-milestone-all')).not.toBeInTheDocument()
+    })
+  })
 })

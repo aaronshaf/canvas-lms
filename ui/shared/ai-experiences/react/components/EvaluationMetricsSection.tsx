@@ -28,7 +28,7 @@ import {TextArea} from '@instructure/ui-text-area'
 import {Modal} from '@instructure/ui-modal'
 import {IconPlusLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {EvaluationMetric} from '../../../types'
+import {EvaluationMetric} from '../../types'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -59,6 +59,7 @@ export const DEFAULT_METRICS: EvaluationMetric[] = [
 interface EvaluationMetricsSectionProps {
   metrics: EvaluationMetric[]
   onChange: (metrics: EvaluationMetric[]) => void
+  readOnly?: boolean
 }
 
 interface AddMetricModalProps {
@@ -161,13 +162,7 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
             messages={descriptionError ? [{type: 'newError', text: descriptionError}] : []}
           />
         </View>
-        <Checkbox
-          data-testid="add-metric-visible-toggle"
-          label={I18n.t('Visible to learners')}
-          variant="toggle"
-          checked={visibleToLearners}
-          onChange={() => setVisibleToLearners(v => !v)}
-        />
+        {/* Visible to learners toggle — hidden until designed for release */}
       </Modal.Body>
       <Modal.Footer>
         <Button data-testid="add-metric-cancel-button" onClick={handleClose} margin="0 x-small 0 0">
@@ -184,7 +179,11 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
 const isDefaultMetric = (metric: EvaluationMetric) =>
   DEFAULT_METRICS.some(d => d.name === metric.name)
 
-const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({metrics, onChange}) => {
+const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
+  metrics,
+  onChange,
+  readOnly = false,
+}) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   const handleToggleEnabled = (index: number) => {
@@ -250,14 +249,14 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({metr
                     data-testid={`evaluation-metric-enabled-${index}`}
                     label=""
                     checked={locked ? true : metric.enabled}
-                    disabled={locked}
+                    disabled={locked || readOnly}
                     onChange={() => handleToggleEnabled(index)}
                   />
                 </Flex.Item>
                 <Flex.Item shouldGrow shouldShrink>
                   <Text weight="bold">{metric.name}</Text>
                 </Flex.Item>
-                {!isDefaultMetric(metric) && (
+                {!readOnly && !isDefaultMetric(metric) && (
                   <Flex.Item>
                     <Button
                       data-testid={`evaluation-metric-remove-${index}`}
@@ -277,20 +276,13 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({metr
                 {metric.description}
               </Text>
 
-              <Checkbox
-                data-testid={`evaluation-metric-visible-${index}`}
-                label={I18n.t('Visible to learners')}
-                variant="toggle"
-                size="small"
-                checked={metric.visible_to_learners}
-                onChange={() => handleToggleVisible(index)}
-              />
+              {/* Visible to learners toggle — hidden until designed for release */}
             </div>
           )
         })}
       </div>
 
-      {metrics.length < MAX_METRICS && (
+      {!readOnly && metrics.length < MAX_METRICS && (
         <Button
           data-testid="evaluation-metrics-add-button"
           renderIcon={<IconPlusLine />}

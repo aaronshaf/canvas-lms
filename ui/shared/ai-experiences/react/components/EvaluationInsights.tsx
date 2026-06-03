@@ -171,18 +171,7 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
                 </Flex.Item>
                 <Flex.Item>
                   <Flex gap="x-small">
-                    {metric.visible_to_learners && (
-                      <Flex.Item>
-                        <Pill
-                          data-testid={`evaluation-metric-visible-badge-${idx}`}
-                          themeOverride={{background: 'transparent'}}
-                        >
-                          <span style={{fontWeight: 'bold', color: '#000000'}}>
-                            {I18n.t('Visible to learners')}
-                          </span>
-                        </Pill>
-                      </Flex.Item>
-                    )}
+                    {/* Visible to learners badge — hidden until designed for release */}
                     <Flex.Item>
                       <Pill
                         data-testid={`evaluation-metric-ai-badge-${idx}`}

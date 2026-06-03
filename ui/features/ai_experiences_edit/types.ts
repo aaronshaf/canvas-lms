@@ -28,7 +28,7 @@ export interface ContextFile {
 
 export interface EvaluationMetric {
   name: string
-  description: string
+  description?: string
   enabled: boolean
   visible_to_learners: boolean
 }

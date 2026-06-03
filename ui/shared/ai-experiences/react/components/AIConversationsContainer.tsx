@@ -39,7 +39,7 @@ import {
   useConversationEvaluation,
 } from '../hooks/useAIConversations'
 import FocusMode from './FocusMode'
-import MessageThread from './MessageThread'
+import MessageThread, {deriveMilestones} from './MessageThread'
 import GradientBorder from './GradientBorder'
 import ConversationHeader from './ConversationHeader'
 import OverallSnapshot from './OverallSnapshot'
@@ -140,6 +140,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
 
   const aiMessageCount = messages.filter(m => m.role === 'Assistant').length
   const studentMessageCount = Math.max(0, messages.filter(m => m.role === 'User').length - 1)
+  const milestones = deriveMilestones(conversation?.progress, messages.length)
 
   const renderConversationMessages = () => {
     if (isLoadingConversation) {
@@ -155,6 +156,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
         conversationId={selectedConversationId ?? null}
         courseId={courseId}
         aiExperienceId={aiExperience.id}
+        milestones={milestones}
       />
     )
   }

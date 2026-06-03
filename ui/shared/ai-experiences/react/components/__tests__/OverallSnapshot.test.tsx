@@ -76,4 +76,16 @@ describe('OverallSnapshot', () => {
     expect(screen.queryByTestId('overall-snapshot')).not.toBeInTheDocument()
     expect(screen.getByTestId('overall-snapshot-loading')).toBeInTheDocument()
   })
+
+  it('renders avg met as completed/started fraction', () => {
+    render(<OverallSnapshot snapshot={mockSnapshot} isLoading={false} />)
+    // mockSnapshot: completed=6, in_progress=4 → started=10 → "6/10"
+    expect(screen.getByTestId('snapshot-avg-met')).toHaveTextContent('6/10')
+  })
+
+  it('renders avg met as 0/0 when no one has started', () => {
+    const noStarted = {...mockSnapshot, completed: 0, in_progress: 0}
+    render(<OverallSnapshot snapshot={noStarted} isLoading={false} />)
+    expect(screen.getByTestId('snapshot-avg-met')).toHaveTextContent('0/0')
+  })
 })

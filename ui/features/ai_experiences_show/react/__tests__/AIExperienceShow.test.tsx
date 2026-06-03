@@ -520,4 +520,68 @@ describe('AIExperienceShow', () => {
       expect(screen.queryByTestId('dismiss-failed-lecture-notes.pdf')).not.toBeInTheDocument()
     })
   })
+
+  describe('evaluation metrics in Configurations tab', () => {
+    const experienceWithMetrics: AIExperience = {
+      ...mockAiExperience,
+      evaluation_metrics: [
+        {
+          name: 'Summary',
+          description: 'An overall summary.',
+          enabled: true,
+          visible_to_learners: false,
+        },
+        {
+          name: 'Learning targets met',
+          description: 'Which targets were hit.',
+          enabled: false,
+          visible_to_learners: false,
+        },
+      ],
+    }
+
+    it('renders evaluation metrics section when metrics are present', async () => {
+      render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-metrics-section')).toBeInTheDocument()
+      })
+    })
+
+    it('renders each metric name', async () => {
+      render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByText('Summary')).toBeInTheDocument()
+        expect(screen.getByText('Learning targets met')).toBeInTheDocument()
+      })
+    })
+
+    it('renders all metric checkboxes as disabled', async () => {
+      render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-metric-enabled-0')).toBeDisabled()
+        expect(screen.getByTestId('evaluation-metric-enabled-1')).toBeDisabled()
+      })
+    })
+
+    it('does not render the Add AI metric button', async () => {
+      render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-metrics-section')).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId('evaluation-metrics-add-button')).not.toBeInTheDocument()
+    })
+
+    it('does not render evaluation metrics section when no metrics are configured', async () => {
+      render(<AIExperienceShow aiExperience={mockAiExperience} />)
+      fireEvent.click(screen.getByText('Configurations'))
+      await waitFor(() => {
+        expect(screen.getByText('Text source')).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId('evaluation-metrics-section')).not.toBeInTheDocument()
+    })
+  })
 })
