@@ -72,6 +72,62 @@ describe WikiPagesController do
       expect(assigns[:js_env][:DISPLAY_SHOW_ALL_LINK]).to be(true)
     end
 
+    context "study_assist feature" do
+      before do
+        front_page = @course.wiki_pages.create!(title: "Front Page")
+        @wiki.set_front_page_url!(front_page.url)
+        @course.enable_feature!(:study_assist)
+        student_in_course(active_all: true)
+        user_session(@student)
+      end
+
+      it "sets study_assist in FEATURES" do
+        get "front_page", params: { course_id: @course.id }
+        expect(assigns[:js_env][:FEATURES][:study_assist]).to be true
+      end
+
+      it "sets WIKI_PAGE_ID to the front page url" do
+        get "front_page", params: { course_id: @course.id }
+        expect(assigns[:js_env][:WIKI_PAGE_ID]).to be_present
+      end
+    end
+
+    context "notebook feature" do
+      before do
+        front_page = @course.wiki_pages.create!(title: "Front Page")
+        @wiki.set_front_page_url!(front_page.url)
+        @course.account.enable_feature!(:notebook)
+        student_in_course(active_all: true)
+        user_session(@student)
+      end
+
+      it "sets notebook in FEATURES" do
+        get "front_page", params: { course_id: @course.id }
+        expect(assigns[:js_env][:FEATURES][:notebook]).to be true
+      end
+
+      it "sets NOTEBOOK_OBJECT_ID to the page id" do
+        get "front_page", params: { course_id: @course.id }
+        expect(assigns[:js_env][:NOTEBOOK_OBJECT_ID]).to be_present
+      end
+    end
+
+    context "page visibility restriction" do
+      before do
+        front_page = @course.wiki_pages.create!(title: "Front Page")
+        @wiki.set_front_page_url!(front_page.url)
+        @course.enable_feature!(:study_assist)
+        student_in_course(active_all: true)
+        user_session(@student)
+      end
+
+      it "does not set study_assist when front page is not visible to student" do
+        allow_any_instance_of(WikiPage).to receive(:visible_to_user?).and_return(false)
+        get "front_page", params: { course_id: @course.id }
+        expect(assigns[:js_env][:FEATURES]).not_to have_key(:study_assist)
+      end
+    end
+
     context "assign to differentiation tags" do
       before do
         @course.account.tap do |a|

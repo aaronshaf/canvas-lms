@@ -26,7 +26,7 @@ class WikiPagesController < ApplicationController
 
   include HorizonMode
 
-  before_action :load_canvas_career, only: [:index, :show]
+  before_action :load_canvas_career, only: %i[index show front_page]
 
   before_action :get_wiki_page, except: [:front_page]
   before_action :set_front_page, only: [:front_page]
@@ -72,6 +72,7 @@ class WikiPagesController < ApplicationController
 
     if @page && !@page.new_record?
       wiki_pages_js_env(@context)
+      setup_study_tools
       @padless = true
       js_bundle :wiki_page_show
       css_bundle :wiki_page
@@ -126,25 +127,7 @@ class WikiPagesController < ApplicationController
         set_master_course_js_env_data(@page, @context)
         @mark_done = MarkDonePresenter.new(self, @context, params["module_item_id"], @current_user, @page)
         @padless = true
-        if @context.is_a?(Course) && @context.feature_enabled?(:study_assist) && @context.user_is_student?(@current_user, include_fake_student: true)
-          @show_study_assist = true
-          js_env[:FEATURES][:study_assist] = true
-          js_env({
-                   WIKI_PAGE_ID: @page.url,
-                   STUDY_ASSIST_TOOLS: study_assist_enabled_tools
-                 })
-          js_bundle :study_assist
-        end
-        if @context.is_a?(Course) && @context.account.feature_enabled?(:notebook) && @context.user_is_student?(@current_user)
-          @show_notebook = true
-          js_env[:FEATURES][:notebook] = true
-          js_env({
-                   NOTEBOOK_OBJECT_ID: @page.id,
-                   WIKI_PAGE_UPDATED_AT: @page.updated_at.iso8601,
-                 })
-          js_bundle :notebook
-        end
-        js_bundle :student_study_drawer if @show_study_assist || @show_notebook
+        setup_study_tools
       end
 
       js_bundle :wiki_page_show
@@ -206,6 +189,30 @@ class WikiPagesController < ApplicationController
   end
 
   private
+
+  def setup_study_tools
+    return if @current_user && !@page.visible_to_user?(@current_user)
+
+    if @context.is_a?(Course) && @context.feature_enabled?(:study_assist) && @context.user_is_student?(@current_user, include_fake_student: true)
+      @show_study_assist = true
+      js_env[:FEATURES][:study_assist] = true
+      js_env({
+               WIKI_PAGE_ID: @page.url,
+               STUDY_ASSIST_TOOLS: study_assist_enabled_tools
+             })
+      js_bundle :study_assist
+    end
+    if @context.is_a?(Course) && @context.account.feature_enabled?(:notebook) && @context.user_is_student?(@current_user)
+      @show_notebook = true
+      js_env[:FEATURES][:notebook] = true
+      js_env({
+               NOTEBOOK_OBJECT_ID: @page.id,
+               WIKI_PAGE_UPDATED_AT: @page.updated_at.iso8601,
+             })
+      js_bundle :notebook
+    end
+    js_bundle :student_study_drawer if @show_study_assist || @show_notebook
+  end
 
   def determine_editor_feature(context)
     is_block_editor_enabled = context.account.feature_enabled?(:block_editor)
