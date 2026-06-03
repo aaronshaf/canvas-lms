@@ -136,6 +136,7 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
       optionsMenuTriggerLabel={I18n.t('Student Options')}
       optionsMenuItems={[displayAsMenuGroup, sortByMenuGroup, sortOrderMenuGroup]}
       columnWidth={STUDENT_COLUMN_WIDTH}
+      optionsMenuTriggerColor="secondary"
     />
   )
 }

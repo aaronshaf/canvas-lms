@@ -101,6 +101,7 @@ export const ContributingScoreHeader: React.FC<ContributingScoreHeaderProps> = (
         assignment: alignment.associated_asset_name,
       })}
       optionsMenuItems={[speedGraderMenuItem, sortMenuGroup]}
+      optionsMenuTriggerColor="secondary"
     />
   )
 }

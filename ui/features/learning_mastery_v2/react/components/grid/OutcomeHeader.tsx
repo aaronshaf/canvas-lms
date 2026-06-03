@@ -133,6 +133,7 @@ export const OutcomeHeader: React.FC<OutcomeHeaderProps> = ({
         icon={<IconOutcomesLine />}
         optionsMenuTriggerLabel={I18n.t('%{outcome} options', {outcome: outcome.title})}
         optionsMenuItems={[sortMenuGroup, <Menu.Separator key="separator" />, displayMenuGroup]}
+        optionsMenuTriggerColor="secondary"
       />
 
       <OutcomeDescriptionModal
