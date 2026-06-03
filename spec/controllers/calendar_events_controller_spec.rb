@@ -304,4 +304,28 @@ describe CalendarEventsController, type: :request do
       expect(@course.calendar_events.active).not_to include(@event)
     end
   end
+
+  # === selenium-gap-filler additions ===
+  # selenium: k5_important_dates_teacher_spec.rb:46
+  # creating a calendar event with important_dates flag persists the attribute
+  it "persists important_dates flag when teacher creates a calendar event" do
+    # Arrange
+    user_session(@teacher)
+
+    # Act
+    post "/courses/#{@course.id}/calendar_events",
+         params: {
+           calendar_event: {
+             title: "Important K5 Event",
+             start_at: 1.day.from_now,
+             important_dates: true
+           }
+         }
+
+    # Assert
+    expect(response).to be_redirect
+    new_event = @course.calendar_events.find_by(title: "Important K5 Event")
+    expect(new_event).not_to be_nil
+    expect(new_event.important_dates).to be true
+  end
 end
