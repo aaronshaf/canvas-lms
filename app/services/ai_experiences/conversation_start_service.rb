@@ -58,6 +58,7 @@ module AiExperiences
         root_account_id: root_account_uuid || "default",
         account_id: root_account_uuid || "default",
         user_id: current_user&.uuid || "anonymous",
+        user_global_id: current_user&.global_id&.to_s,
         prompt_code: PROMPT_CODE,
         workflow_state: "active",
         auto_initialize: true

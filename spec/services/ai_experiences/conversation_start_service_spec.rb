@@ -98,6 +98,20 @@ describe AiExperiences::ConversationStartService do
       expect(result[:messages].length).to eq(2)
     end
 
+    it "includes the user's global_id in the conversation payload" do
+      service.start(current_user: user, root_account_uuid:, facts:, learning_objectives:, scenario:)
+
+      expect(http_client).to have_received(:post)
+        .with("/conversations", payload: hash_including(user_global_id: user.global_id.to_s))
+    end
+
+    it "sends nil for user_global_id when current_user is nil" do
+      service.start(current_user: nil, root_account_uuid:, facts:, learning_objectives:, scenario:)
+
+      expect(http_client).to have_received(:post)
+        .with("/conversations", payload: hash_including(user_global_id: nil))
+    end
+
     it "raises ConversationError on API failure" do
       allow(http_client).to receive(:post)
         .and_raise(LlmConversation::Errors::ConversationError, "Service unavailable")
