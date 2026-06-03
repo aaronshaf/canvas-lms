@@ -178,6 +178,55 @@ difference.
 
 ---
 
+## Pattern 5 — Test Split with DB Setup (Step 3 in Practice)
+
+When Steps 1–2 are exhausted and the formula still exceeds 60, split the
+test. The challenge is reproducing the first cycle's output state via DB
+setup so the second test doesn't repeat the slow UI create.
+
+### Technique (discussions_edit_page_spec.rb:1162, QE-142)
+
+The original test did create-save-edit-save in one `it` block (~60s). Split
+into:
+
+**Test A (create cycle):** UI create → save → verify DB → open edit page →
+verify displayed dates. `custom_timeout: 55`.
+
+**Test B (edit cycle):** DB setup → open edit page → update dates → save →
+verify DB. `custom_timeout: 45`.
+
+### DB setup pitfalls learned from QE-142
+
+1. **Do not set `submission_types: "discussion_topic"` on the assignment.**
+   The `discussion_topic` creation with `assignment:` wires the association
+   naturally. Explicitly setting `submission_types` causes
+   `ActiveRecord::RecordNotSaved` in `update_submittable` during the GraphQL
+   save mutation.
+
+2. **The UI auto-generates cards you didn't create.** When section-specific
+   overrides exist, the edit form renders an "Everyone else" card alongside
+   the section card. This changes card indices (card 0 may be "Everyone else",
+   not the section card). Delete the unwanted card via UI if it interferes
+   with the test's intent.
+
+3. **The frontend controls the section warning, not the DB state.** Setting
+   `only_visible_to_overrides: true` in the DB does not prevent the
+   "Everyone else" card from appearing. The section warning is triggered by
+   the frontend checking whether all course sections are covered by the
+   assign-to cards. To trigger the warning, you must delete the "Everyone
+   else" card via `click_delete_assign_to_card(0)` — one UI interaction
+   (~1s) that restores full coverage parity with the original test.
+
+### When to prefer DB setup over UI setup
+
+DB setup is justified when the UI create cycle costs > 20s and the edit
+cycle is the primary behaviour under test. The trade-off: DB setup may not
+produce identical state to UI create (as seen with the "Everyone else" card).
+Compensate with minimal UI interactions (card deletion) rather than
+replicating the full UI flow.
+
+---
+
 ## The Core Rule
 
 > When `custom_timeout` is at the 60 s ceiling, the only path forward is to

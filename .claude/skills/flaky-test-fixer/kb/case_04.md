@@ -175,3 +175,64 @@ commit message, not just "test stability."
 
 - `spec/serializers/checkpoints/sub_assignment_submission_serializer_spec.rb:113`
   and `:122`
+
+---
+
+## Pattern D — AJAX Preference Save Before Navigation
+
+### Failure signature
+
+```
+RSpec::Expectations::ExpectationNotMetError:
+  expected: 8
+       got: 4
+```
+
+After refreshing the page, only half the modules are expanded despite
+clicking "Expand All" before the refresh.
+
+**Stats signature:** very low `build_fails`, high `flaky_fails`
+(ratio ~100:1). The AJAX save is fast enough most of the time.
+
+### Root cause
+
+`expand_all_modules_button.click` fires an AJAX POST
+(`/courses/{id}/collapse_all_modules`) to persist the expand/collapse
+preference server-side. The test navigates away with `go_to_modules`
+immediately after the click, before the POST completes. On reload, the
+preference is partially or not saved — some modules revert to collapsed.
+
+The sibling test "expands all modules" (same file, line 106) has
+`wait_for_ajaximations` after the click and passes consistently. The
+"retained on refresh" variant was missing it.
+
+### How to recognise it
+
+A button click that triggers a server-side preference save (expand/collapse,
+sort order, view mode) followed directly by navigation (`go_to_modules`,
+`get`, `refresh_page`) with no `wait_for_ajaximations` between them. The
+test then asserts on the persisted state after reload.
+
+### Fix
+
+Add `wait_for_ajaximations` after the click, before navigation:
+
+```ruby
+expand_all_modules_button.click
+wait_for_ajaximations # persist preference before navigating away
+
+go_to_modules
+```
+
+### Difference from Pattern B
+
+Pattern B is about AJAX that fires **during page load** (deferred widget
+data fetch). Pattern D is about AJAX that fires **from a user action**
+(button click) and needs to complete before the test navigates away. Both
+are fixed with `wait_for_ajaximations` but the placement differs: Pattern B
+adds the wait **after** navigation; Pattern D adds it **before** navigation.
+
+### Files affected (QE-142)
+
+- `spec/selenium/context_modules_v2/students/course_modules2_student_spec.rb:148`
+  and `:170` (proactive)

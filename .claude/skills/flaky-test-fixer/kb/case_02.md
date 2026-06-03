@@ -213,10 +213,9 @@ conservative application is +2H (10 calls / 5 = 2):
 
 **Corrected fix:** `custom_timeout: 45` → `custom_timeout: 60`.
 
-**Warning:** 60 s is the system maximum. If this test flakes again at the cap on
-very loaded workers, the only remaining option is splitting it: separate the
-"create discussion and assert" phase from the "re-open edit page, update dates,
-assert" phase into two independent `it` blocks.
+**QE-142 follow-up:** `custom_timeout: 60` was still insufficient (355
+flaky_fails). The test was split per Case 03 Step 3. See Case 03 Pattern 5
+for the split technique including DB setup pitfalls.
 
 ---
 
@@ -234,7 +233,16 @@ paginated list — a potential race condition that the timeout increase alone wi
 not fully resolve. The timeout fix eliminates the timer as one source of
 flakiness; the race condition may warrant a separate investigation.
 
-**Fix:** `custom_timeout: 30` → `custom_timeout: 40`.
+**Fix (QE-90):** `custom_timeout: 30` → `custom_timeout: 40`.
+
+**QE-142 follow-up:** `custom_timeout: 40` was still insufficient (630
+flaky_fails). The quiz_model and 51 quiz_questions were never referenced by
+any assertion — the test only moves an assessment question between banks.
+Removing them eliminated 52 DB round-trips, bringing setup from 102 records
+to 51. All three original assertions (refresh_page + contain_css, two
+`assessment_question_count` DB checks) were preserved. This is Case 03
+Pattern 4 applied as a standalone fix, not just as part of a ceiling
+optimisation.
 
 ---
 

@@ -334,22 +334,12 @@ describe "quizzes question banks" do
       expect(f("#unauthorized_message")).to be_displayed
     end
 
-    it "moves paginated questions in a question bank from one bank to another", custom_timeout: 40, priority: "2" do # flaky-fix: QE-90
-      @context = @course
+    it "moves paginated questions in a question bank from one bank to another", custom_timeout: 40, priority: "2" do # flaky-fix: QE-142
       source_bank = @course.assessment_question_banks.create!(title: "Source Bank")
       target_bank = @course.assessment_question_banks.create!(title: "Target Bank")
-      @q = quiz_model
       assessment_question = []
-      @quiz_question = []
-      answers = [{ "id" => 1 }, { "id" => 2 }, { "id" => 3 }]
       51.times do |o|
         assessment_question[o] = source_bank.assessment_questions.create!
-        @quiz_question.push(@q.quiz_questions.create!(question_data:
-                                                   { :name => "question #{o}",
-                                                     :question_type => "multiple_choice_question",
-                                                     "answers" => answers,
-                                                     :points_possible => 1 },
-                                                      assessment_question: assessment_question[o]))
       end
       get "/courses/#{@course.id}/question_banks/#{source_bank.id}"
       f(".more_questions_link").click

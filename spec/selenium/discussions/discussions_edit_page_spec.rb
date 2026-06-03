@@ -1159,12 +1159,9 @@ describe "discussions" do
             expect(module_item_assign_to_card.last).to contain_css(reply_to_topic_due_date_input_selector)
           end
 
-          it "shows required replies input on graded discussion with sub assignments", custom_timeout: 60 do # flaky-fix: QE-90
+          it "creates a checkpointed discussion and verifies dates on the edit page", custom_timeout: 55 do # flaky-fix: QE-142
             Account.site_admin.enable_feature!(:discussion_checkpoints)
             @course.account.enable_feature!(:discussion_checkpoints)
-            # One student in the default section is enough to trigger the
-            # section-warning dialog when the discussion is assigned to a
-            # different section only.
             student_in_course(course:, active_all: true)
             @course_section_2 = course.course_sections.create!(name: "section Beta")
 
@@ -1172,7 +1169,6 @@ describe "discussions" do
             title = "Graded Discussion Topic with letter grade type"
 
             f("input[placeholder='Topic Title']").send_keys title
-            # body is not required by the discussion form
 
             force_click_native('input[type=checkbox][value="graded"]')
             force_click_native('input[type=checkbox][value="checkpoints"]')
@@ -1186,28 +1182,21 @@ describe "discussions" do
             update_reply_to_topic_date(0, reply_to_topic_date_formatted)
             update_reply_to_topic_time(0, "5:00 PM")
 
-            # required replies
             required_replies_date = 4.days.from_now(Time.zone.now).to_date + 17.hours
             required_replies_date_formatted = format_date_for_view(required_replies_date, "%m/%d/%Y")
             update_required_replies_date(0, required_replies_date_formatted)
             update_required_replies_time(0, "5:00 PM")
 
-            # available from
             available_from_date = 2.days.from_now(Time.zone.now).to_date + 17.hours
             available_from_date_formatted = format_date_for_view(available_from_date, "%m/%d/%Y")
             update_available_date(0, available_from_date_formatted, exclude_due_date: true, exclude_checkpoints: false)
             update_available_time(0, "5:00 PM", exclude_due_date: true, exclude_checkpoints: false)
 
-            # available until
             until_date = 5.days.from_now(Time.zone.now).to_date + 17.hours
             until_date_formatted = format_date_for_view(until_date, "%m/%d/%Y")
             update_until_date(0, until_date_formatted, exclude_due_date: true, exclude_checkpoints: false)
             update_until_time(0, "5:00 PM", exclude_due_date: true, exclude_checkpoints: false)
 
-            # Use block form so the page-change flag is planted before navigation
-            # fires — avoids a race where bare wait_for_new_page_load sets the
-            # flag on the already-loaded destination page and burns the full
-            # finder timeout (~5s) waiting for a condition that can never flip.
             Discussion.save_button.click
             expect_new_page_load { Discussion.section_warning_continue_button.click }
 
@@ -1220,19 +1209,85 @@ describe "discussions" do
             expect(format_date_for_view(sub_assignment1.assignment_overrides.active.first.due_at, "%m/%d/%Y")).to eq(reply_to_topic_date_formatted)
             expect(format_date_for_view(sub_assignment2.assignment_overrides.active.first.due_at, "%m/%d/%Y")).to eq(required_replies_date_formatted)
 
-            # renders update
+            # Verify dates round-trip correctly to the edit form
             get "/courses/#{@course.id}/discussion_topics/#{graded_discussion.id}/edit"
 
             displayed_override_dates = all_displayed_assign_to_date_and_time
-            # Check that all four date types are correctly displayed
             expect(displayed_override_dates.include?(reply_to_topic_date)).to be_truthy
             expect(displayed_override_dates.include?(required_replies_date)).to be_truthy
             expect(displayed_override_dates.include?(available_from_date)).to be_truthy
             expect(displayed_override_dates.include?(until_date)).to be_truthy
+          end
 
-            # Update only the checkpoint due dates — available_from and until
-            # carry over from the first save and still satisfy the ordering
-            # constraint (available_from < due_dates <= until).
+          it "updates checkpoint dates on an existing checkpointed discussion", custom_timeout: 45 do # flaky-fix: QE-142
+            Account.site_admin.enable_feature!(:discussion_checkpoints)
+            @course.account.enable_feature!(:discussion_checkpoints)
+            student_in_course(course:, active_all: true)
+            @course_section_2 = course.course_sections.create!(name: "section Beta")
+
+            # Create checkpointed discussion via DB (bypasses slow UI create).
+            # No submission_types — let the discussion_topic creation wire the
+            # assignment association naturally (avoids ActiveRecord::RecordNotSaved
+            # in update_submittable during the GraphQL save mutation).
+            assignment = @course.assignments.create!(
+              name: "Graded Discussion",
+              points_possible: 10,
+              only_visible_to_overrides: true
+            )
+            assignment.update!(has_sub_assignments: true)
+
+            reply_to_topic_due = 3.days.from_now(Time.zone.now).to_date + 17.hours
+            required_replies_due = 4.days.from_now(Time.zone.now).to_date + 17.hours
+
+            sub1 = assignment.sub_assignments.create!(
+              context: @course,
+              sub_assignment_tag: CheckpointLabels::REPLY_TO_TOPIC,
+              points_possible: 5,
+              due_at: reply_to_topic_due
+            )
+            sub2 = assignment.sub_assignments.create!(
+              context: @course,
+              sub_assignment_tag: CheckpointLabels::REPLY_TO_ENTRY,
+              points_possible: 5,
+              due_at: required_replies_due
+            )
+
+            parent_override = assignment.assignment_overrides.create!(
+              set_type: "CourseSection",
+              set: @course_section_2
+            )
+            sub1.assignment_overrides.create!(
+              set_type: "CourseSection",
+              set: @course_section_2,
+              due_at: reply_to_topic_due,
+              parent_override:
+            )
+            sub2.assignment_overrides.create!(
+              set_type: "CourseSection",
+              set: @course_section_2,
+              due_at: required_replies_due,
+              parent_override:
+            )
+
+            graded_discussion = @course.discussion_topics.create!(
+              title: "Graded Discussion",
+              discussion_type: "threaded",
+              user: @teacher,
+              assignment:,
+              reply_to_entry_required_count: 1
+            )
+
+            get "/courses/#{@course.id}/discussion_topics/#{graded_discussion.id}/edit"
+            wait_for_ajaximations
+            wait_for(method: nil, timeout: 10) { ff(module_item_assign_to_card_selector).present? }
+
+            # The edit form auto-generates an "Everyone else" card alongside
+            # the section Beta card. Delete it so only section Beta remains —
+            # this makes students in the default section uncovered, which
+            # triggers the section-warning dialog on save.
+            click_delete_assign_to_card(0)
+
+            # Update checkpoint dates on card 0 (now section Beta)
             reply_to_topic_date = 4.days.from_now(Time.zone.now).to_date + 17.hours
             reply_to_topic_date_formatted = format_date_for_view(reply_to_topic_date, "%m/%d/%Y")
             update_reply_to_topic_date(0, reply_to_topic_date_formatted)
@@ -1243,6 +1298,7 @@ describe "discussions" do
             update_required_replies_date(0, required_replies_date_formatted)
             update_required_replies_time(0, "5:00 PM")
 
+            # Only section Beta is assigned — section warning should appear
             Discussion.save_button.click
             expect_new_page_load { Discussion.section_warning_continue_button.click }
 

@@ -121,4 +121,59 @@ pasted independently.
 
 ---
 
-<!-- Add new rules below as S-03, S-04, … -->
+## S-03 — Preserve original coverage
+
+**Rule:** When fixing a flaky test, the top priority is to preserve the
+original test coverage. Do not remove assertions, simplify scenarios, or
+change the tested behaviour unless there is no alternative and the trade-off
+is explicitly discussed.
+
+**Why:** A flaky-fix that silently reduces coverage trades one problem
+(intermittent failure) for another (undetected regression). The goal is to
+make the test reliable while keeping it effective.
+
+**How to apply:** Before removing any interaction or assertion, ask: "which
+`expect` call verifies this?" If the answer is "none", the interaction is a
+candidate for removal. If an `expect` depends on it, the interaction must
+stay — find a different way to make the test faster or more stable.
+
+*Introduced: QE-142*
+
+---
+
+## S-04 — Determine original coverage from description AND assertions
+
+**Rule:** The test description (`it "..."`) alone does not fully describe
+the intent and goals of a test. The original coverage is the union of the
+test description and the full set of assertions in the implementation.
+
+**Why:** Test descriptions are often abbreviated or outdated. A test titled
+"shows required replies input" may also verify date persistence, section
+warnings, and edit-page round-trips via its assertions. Relying only on the
+title leads to underestimating what the test covers and accidentally dropping
+important checks.
+
+**How to apply:** Before modifying or splitting a test, inventory every
+`expect` call and map it to the behaviour it verifies. The fixed version
+must represent all of those behaviours — either in the same test or
+distributed across split tests.
+
+*Introduced: QE-142*
+
+---
+
+## S-05 — One patch set per JIRA issue
+
+**Rule:** Bundle all fixes for a single JIRA ticket into one Gerrit patch
+set. Do not create separate patch sets per test — they create merge/abandon
+overhead with no benefit.
+
+**How to apply:** Use `git commit --amend` to add new fixes to the existing
+commit, keeping the same `Change-Id`. Push to the same `refs/for/master`
+reference to update the PS in place.
+
+*Introduced: QE-142*
+
+---
+
+<!-- Add new rules below as S-06, S-07, … -->
