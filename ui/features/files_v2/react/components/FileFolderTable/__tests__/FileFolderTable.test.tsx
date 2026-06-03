@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {screen, waitFor} from '@testing-library/react'
+import {screen, waitFor, within} from '@testing-library/react'
 import userEvent, {UserEvent} from '@testing-library/user-event'
 import {FAKE_FILES, FAKE_FOLDERS, FAKE_FOLDERS_AND_FILES} from '../../../../fixtures/fakeData'
 import {renderComponent, defaultProps} from './testUtils'
@@ -118,6 +118,32 @@ describe('FileFolderTable', () => {
       name: `Folder ${FAKE_FOLDERS_AND_FILES[0].name}`,
     })
     expect(link).toBeInTheDocument()
+  })
+
+  it('renders the type, name, and size column values for an uploaded file', async () => {
+    // FAKE_FILES[5] is the uploaded PDF (Submitting_Assignment_Canvas.pdf, 249632 bytes)
+    const pdfFile = FAKE_FILES[5]
+    renderComponent({rows: [pdfFile]})
+
+    const row = (await screen.findAllByTestId('table-row'))[0]
+
+    // name column: type icon labelled "PDF File" plus the file's display name
+    const nameCell = within(row).getByTestId('table-cell-name')
+    expect(within(nameCell).getByTitle('PDF File')).toBeInTheDocument()
+    expect(within(nameCell).getByText(pdfFile.display_name)).toBeInTheDocument()
+
+    // size column: 249632 bytes is rendered by friendlyBytes as "250 KB"
+    const sizeCell = within(row).getByTestId('table-cell-size')
+    expect(within(sizeCell).getByText('250 KB')).toBeInTheDocument()
+
+    // created and last-modified columns each render a formatted date value
+    expect(within(row).getByTestId('table-cell-created_at')).not.toBeEmptyDOMElement()
+    expect(
+      within(within(row).getByTestId('table-cell-created_at')).getByTestId('friendly-date-time'),
+    ).toBeInTheDocument()
+    expect(
+      within(within(row).getByTestId('table-cell-updated_at')).getByTestId('friendly-date-time'),
+    ).toBeInTheDocument()
   })
 
   it('has labels for checkboxes', async () => {

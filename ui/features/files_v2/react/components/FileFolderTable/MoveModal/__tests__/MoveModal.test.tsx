@@ -20,6 +20,7 @@ import React from 'react'
 import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {FAKE_FILES, FAKE_FOLDERS, FAKE_FOLDERS_AND_FILES} from '../../../../../fixtures/fakeData'
+import {type File, type Folder} from '../../../../../interfaces/File'
 import MoveModal from '../MoveModal'
 import {useFoldersQuery} from '../hooks'
 import {FileManagementProvider} from '../../../../contexts/FileManagementContext'
@@ -188,6 +189,148 @@ describe('MoveModal', () => {
           parent_folder_id: childFolder.id,
         }),
       )
+    })
+  })
+
+  // Make the PUT endpoints echo back the moved item so sendMoveRequests can
+  // build the exact "X successfully moved to Y." flash from the response name.
+  const useEchoingMoveHandlers = (items: (File | Folder)[]) => {
+    const byId = new Map(items.map(item => [item.id, item]))
+    server.use(
+      http.put('/api/v1/folders/:folderId', async ({request, params}) => {
+        capturedRequests.push({
+          path: new URL(request.url).pathname,
+          body: await request.json(),
+        })
+        return HttpResponse.json(byId.get(params.folderId as string) ?? {})
+      }),
+      http.put('/api/v1/files/:fileId', async ({request, params}) => {
+        capturedRequests.push({
+          path: new URL(request.url).pathname,
+          body: await request.json(),
+        })
+        return HttpResponse.json(byId.get(params.fileId as string) ?? {})
+      }),
+    )
+  }
+
+  describe('moving via the modal', () => {
+    // covers spec/selenium/files_v2/files_folders_spec.rb:166
+    it('moves a single folder into the selected target with the exact success flash', async () => {
+      vi.mocked(useFoldersQuery).mockReturnValue({
+        folders: {[FAKE_FOLDERS[2].id]: FAKE_FOLDERS[2]},
+        foldersLoading: false,
+        foldersError: false,
+      })
+
+      const movedFolder = FAKE_FOLDERS[1] // id '44', name '2nd Folder'
+      const targetFolder = FAKE_FOLDERS[2] // id '47', name 'a'
+      useEchoingMoveHandlers([movedFolder])
+
+      renderComponent({items: [movedFolder]})
+      await userEvent.click(await screen.findByText(targetFolder.name))
+      await userEvent.click(await screen.findByTestId('move-move-button'))
+
+      await waitFor(() => {
+        const folderRequest = capturedRequests.find(
+          req => req.path === `/api/v1/folders/${movedFolder.id}`,
+        )
+        expect(folderRequest).toBeDefined()
+        expect(folderRequest?.body).toEqual(
+          expect.objectContaining({parent_folder_id: targetFolder.id}),
+        )
+      })
+
+      // The success flash renders in both the visible alert and the
+      // screenreader live region, so match all occurrences.
+      expect(
+        await screen.findAllByText(
+          `${movedFolder.name} successfully moved to ${targetFolder.name}.`,
+        ),
+      ).not.toHaveLength(0)
+      expect(defaultProps.onDismiss).toHaveBeenCalled()
+    })
+
+    // covers spec/selenium/files_v2/files_folders_spec.rb:175
+    it('moves multiple selected folders to the chosen target', async () => {
+      vi.mocked(useFoldersQuery).mockReturnValue({
+        folders: {[FAKE_FOLDERS[2].id]: FAKE_FOLDERS[2]},
+        foldersLoading: false,
+        foldersError: false,
+      })
+
+      const firstFolder = FAKE_FOLDERS[1] // id '44'
+      const secondFolder = FAKE_FOLDERS[3] // id '43'
+      const targetFolder = FAKE_FOLDERS[2] // id '47'
+      useEchoingMoveHandlers([firstFolder, secondFolder])
+
+      renderComponent({items: [firstFolder, secondFolder]})
+      await userEvent.click(await screen.findByText(targetFolder.name))
+      await userEvent.click(await screen.findByTestId('move-move-button'))
+
+      await waitFor(() => {
+        const firstRequest = capturedRequests.find(
+          req => req.path === `/api/v1/folders/${firstFolder.id}`,
+        )
+        const secondRequest = capturedRequests.find(
+          req => req.path === `/api/v1/folders/${secondFolder.id}`,
+        )
+        expect(firstRequest?.body).toEqual(
+          expect.objectContaining({parent_folder_id: targetFolder.id}),
+        )
+        expect(secondRequest?.body).toEqual(
+          expect.objectContaining({parent_folder_id: targetFolder.id}),
+        )
+      })
+
+      expect(defaultProps.onDismiss).toHaveBeenCalled()
+    })
+
+    // covers spec/selenium/files_v2/files_folders_spec.rb:195
+    it('moves a folder and a file together with the exact success flash for each', async () => {
+      vi.mocked(useFoldersQuery).mockReturnValue({
+        folders: {[FAKE_FOLDERS[2].id]: FAKE_FOLDERS[2]},
+        foldersLoading: false,
+        foldersError: false,
+      })
+
+      const movedFolder = FAKE_FOLDERS[1] // id '44', name '2nd Folder'
+      const movedFile = FAKE_FILES[5] // id '180', 'Submitting_Assignment_Canvas.pdf'
+      const targetFolder = FAKE_FOLDERS[2] // id '47', name 'a'
+      useEchoingMoveHandlers([movedFolder, movedFile])
+
+      renderComponent({items: [movedFolder, movedFile]})
+      await userEvent.click(await screen.findByText(targetFolder.name))
+      await userEvent.click(await screen.findByTestId('move-move-button'))
+
+      await waitFor(() => {
+        const folderRequest = capturedRequests.find(
+          req => req.path === `/api/v1/folders/${movedFolder.id}`,
+        )
+        const fileRequest = capturedRequests.find(
+          req => req.path === `/api/v1/files/${movedFile.id}`,
+        )
+        expect(folderRequest?.body).toEqual(
+          expect.objectContaining({parent_folder_id: targetFolder.id}),
+        )
+        expect(fileRequest?.body).toEqual(
+          expect.objectContaining({parent_folder_id: targetFolder.id}),
+        )
+      })
+
+      // Each success flash renders in both the visible alert and the
+      // screenreader live region, so match all occurrences.
+      expect(
+        await screen.findAllByText(
+          `${movedFolder.name} successfully moved to ${targetFolder.name}.`,
+        ),
+      ).not.toHaveLength(0)
+      expect(
+        await screen.findAllByText(
+          `${movedFile.display_name} successfully moved to ${targetFolder.name}.`,
+        ),
+      ).not.toHaveLength(0)
+      expect(defaultProps.onDismiss).toHaveBeenCalled()
     })
   })
 })

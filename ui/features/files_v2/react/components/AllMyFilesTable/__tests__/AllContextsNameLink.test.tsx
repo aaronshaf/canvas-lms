@@ -47,4 +47,16 @@ describe('AllContextsNameLink', () => {
     const link = screen.getByRole('link', {name: /my context/i})
     expect(link).toHaveAttribute('href', '/folder/users_1')
   })
+
+  it('points the My Files row at the user files folder route', () => {
+    renderComponent({name: 'My Files', contextType: 'users', contextId: '1'})
+    const link = screen.getByTestId('My Files')
+    expect(link).toHaveAttribute('href', '/folder/users_1')
+  })
+
+  it('points a course files row at that course folder route', () => {
+    renderComponent({name: 'Course 1', contextType: 'courses', contextId: '1'})
+    const link = screen.getByTestId('Course 1')
+    expect(link).toHaveAttribute('href', '/folder/courses_1')
+  })
 })

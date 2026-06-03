@@ -90,6 +90,23 @@ describe('SearchBar', () => {
       await user.keyboard('{enter}')
       expect(onSearch).toHaveBeenCalled()
     })
+
+    // covers spec/selenium/files_v2/files_spec.rb:70 (can search for file, folder and file inside folder)
+    // The SearchBar's contribution to that scenario: typing 'example' and clicking search
+    // invokes onSearch with exactly the typed term (the consumer then issues the search request).
+    it('invokes onSearch with the exact typed term when searching by button', async () => {
+      await user.type(getInput(), 'example')
+      await user.click(getSearchButton())
+      expect(onSearch).toHaveBeenCalledWith('example')
+    })
+
+    // covers spec/selenium/files_v2/files_spec.rb:718 (Can search for files)
+    // Typing a specific filename and submitting passes that filename verbatim to onSearch.
+    it('invokes onSearch with the exact typed filename when searching by enter', async () => {
+      await user.type(getInput(), 'file1.pdf')
+      await user.keyboard('{enter}')
+      expect(onSearch).toHaveBeenCalledWith('file1.pdf')
+    })
   })
 
   describe('when input is not empty', () => {

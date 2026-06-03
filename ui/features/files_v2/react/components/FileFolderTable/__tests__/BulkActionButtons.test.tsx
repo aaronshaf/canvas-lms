@@ -110,6 +110,19 @@ describe('BulkActionButtons', () => {
     expect(screen.queryByTestId('bulk-actions-more-button')).toBeNull()
   })
 
+  it('shows only the Download button in the toolbar for a student with no edit/delete permissions', () => {
+    renderComponent({
+      ...defaultProps,
+      userCanEditFilesForContext: false,
+      userCanDeleteFilesForContext: false,
+      userCanRestrictFilesForContext: false,
+      usageRightsRequiredForContext: false,
+    })
+    expect(screen.getByTestId('bulk-actions-download-button')).toBeInTheDocument()
+    expect(screen.queryByTestId('bulk-actions-more-button')).toBeNull()
+    expect(screen.queryByTestId('bulk-actions-delete-button')).toBeNull()
+  })
+
   it('does not render manage access when usageRightsRequiredForContext is false', async () => {
     renderComponent({...defaultProps, usageRightsRequiredForContext: false})
     const moreButton = screen.getByTestId('bulk-actions-more-button')

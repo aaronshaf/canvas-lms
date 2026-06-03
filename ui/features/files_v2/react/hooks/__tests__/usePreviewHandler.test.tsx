@@ -221,6 +221,25 @@ describe('usePreviewHandler', async () => {
       expect(mockNavigate).toHaveBeenCalledWith('/', {replace: true})
     })
 
+    it('returns to the current folder on close after previewing a file in that folder', () => {
+      const previewedFile = mockCollection[0]
+      const folderId = previewedFile.folder_id
+      const {result} = renderHook(() => usePreviewHandler({collection: mockCollection}), {
+        wrapper: createWrapper(`/?folder_id=${folderId}&preview=${previewedFile.id}`),
+      })
+
+      // the preview is open on the file in the folder (its name drives the header)
+      expect(result.current.previewState.isModalOpen).toBe(true)
+      expect(result.current.previewState.previewFile).toEqual(previewedFile)
+
+      act(() => {
+        result.current.previewHandlers.handleCloseModal()
+      })
+
+      // closing drops only the preview param, keeping the folder view (no full reload)
+      expect(mockNavigate).toHaveBeenCalledWith(`?folder_id=${folderId}`, {replace: true})
+    })
+
     it('preserves existing query parameters when closing preview', () => {
       const {result} = renderHook(() => usePreviewHandler({collection: mockCollection}), {
         wrapper: createWrapper('/?search_term=homework&folder_id=123&preview=456'),

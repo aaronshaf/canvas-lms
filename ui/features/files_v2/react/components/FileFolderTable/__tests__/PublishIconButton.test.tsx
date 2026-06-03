@@ -91,4 +91,40 @@ describe('PublishIconButton', () => {
     const {container} = render(<PublishIconButton {...defaultProps} />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('renders the restricted-button-icon for a published item with an availability date range', () => {
+    // mirrors persisted state after saving available-from/until dates via the date-range form
+    defaultProps.item.locked = false
+    defaultProps.item.unlock_at = '2024-12-15T00:00:00Z'
+    defaultProps.item.lock_at = '2024-12-25T23:59:59Z'
+    render(<PublishIconButton {...defaultProps} />)
+    expect(screen.getByTestId('restricted-button-icon')).toBeInTheDocument()
+    expect(screen.queryByTestId('published-button-icon')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('unpublished-button-icon')).not.toBeInTheDocument()
+  })
+
+  it('renders the unpublished-button-icon and no published-button-icon when unpublished', () => {
+    // mirrors persisted state after a bulk unpublish save
+    defaultProps.item.locked = true
+    render(<PublishIconButton {...defaultProps} />)
+    expect(screen.getByTestId('unpublished-button-icon')).toBeInTheDocument()
+    expect(screen.queryByTestId('published-button-icon')).not.toBeInTheDocument()
+  })
+
+  it('renders the published-button-icon and no unpublished-button-icon when published', () => {
+    // mirrors persisted state after a bulk publish save
+    defaultProps.item.locked = false
+    render(<PublishIconButton {...defaultProps} />)
+    expect(screen.getByTestId('published-button-icon')).toBeInTheDocument()
+    expect(screen.queryByTestId('unpublished-button-icon')).not.toBeInTheDocument()
+  })
+
+  it('renders the link-only-button-icon for a published item available with link', () => {
+    // mirrors persisted state after saving available_with_link permissions
+    defaultProps.item.locked = false
+    defaultProps.item.hidden = true
+    render(<PublishIconButton {...defaultProps} />)
+    expect(screen.getByTestId('link-only-button-icon')).toBeInTheDocument()
+    expect(screen.queryByTestId('published-button-icon')).not.toBeInTheDocument()
+  })
 })

@@ -31,6 +31,8 @@ import {BulkItemRequestsError} from '../../../../queries/BultItemRequestsError'
 import {makeBulkItemRequests} from '../../../../queries/makeBulkItemRequests'
 import {deleteItem} from '../../../../queries/deleteItem'
 import {UnauthorizedError} from '../../../../../utils/apiUtils'
+import {SELECT_ALL_FOCUS_STRING} from '../../../../contexts/RowFocusContext'
+import {queryClient} from '@instructure/platform-query'
 
 import * as FlashAlert from '@instructure/platform-alerts'
 import * as Sentry from '@sentry/react'
@@ -178,6 +180,81 @@ describe('DeleteModal', () => {
       await clickDeleteButton()
 
       expect(mockFlashAlerts.showFlashSuccess).toHaveBeenCalledWith('1 item deleted successfully.')
+    })
+
+    // covers spec/selenium/files_v2/files_spec.rb:176 ("deletes file")
+    // After deleting a single file via its row kebab, the file is removed from the
+    // table (files query refetch) and focus returns to that row's action button.
+    it('removes the deleted file from the table and focuses the originating row', async () => {
+      const onCloseMock = vi.fn()
+      const mockSetRowToFocus = vi.fn()
+      const refetchSpy = vi.spyOn(queryClient, 'refetchQueries').mockResolvedValue(undefined)
+      mockMakeBulkItemRequests.mockResolvedValue(undefined)
+
+      renderComponentWithCustomContexts(
+        {items: [FAKE_FILES[0]], onClose: onCloseMock, rowIndex: 1},
+        {...mockRowFocusContext, setRowToFocus: mockSetRowToFocus},
+      )
+
+      await clickDeleteButton()
+
+      // the file is deleted via the bulk request with the single item
+      expect(mockMakeBulkItemRequests).toHaveBeenCalledWith([FAKE_FILES[0]], deleteItem)
+      // the table drops the row by refetching the files list
+      expect(refetchSpy).toHaveBeenCalledWith({queryKey: ['files'], type: 'active'})
+      // modal closes and focus returns to the originating row's kebab button
+      expect(onCloseMock).toHaveBeenCalled()
+      expect(mockSetRowToFocus).toHaveBeenCalledWith(1)
+
+      refetchSpy.mockRestore()
+    })
+
+    // covers spec/selenium/files_v2/files_spec.rb:264 ("deletes file from toolbar")
+    // When deletion is triggered from the toolbar (no originating row index), focus
+    // returns to the select-all checkbox rather than a specific row.
+    it('focuses the select-all checkbox after a toolbar deletion (no rowIndex)', async () => {
+      const onCloseMock = vi.fn()
+      const mockSetRowToFocus = vi.fn()
+      const refetchSpy = vi.spyOn(queryClient, 'refetchQueries').mockResolvedValue(undefined)
+      mockMakeBulkItemRequests.mockResolvedValue(undefined)
+
+      renderComponentWithCustomContexts(
+        {items: [FAKE_FILES[0]], onClose: onCloseMock},
+        {...mockRowFocusContext, setRowToFocus: mockSetRowToFocus},
+      )
+
+      await clickDeleteButton()
+
+      expect(mockMakeBulkItemRequests).toHaveBeenCalledWith([FAKE_FILES[0]], deleteItem)
+      expect(refetchSpy).toHaveBeenCalledWith({queryKey: ['files'], type: 'active'})
+      expect(onCloseMock).toHaveBeenCalled()
+      // no rowIndex was provided, so focus goes to the select-all checkbox
+      expect(mockSetRowToFocus).toHaveBeenCalledWith(SELECT_ALL_FOCUS_STRING)
+
+      refetchSpy.mockRestore()
+    })
+
+    // covers spec/selenium/files_v2/files_spec.rb:270 ("deletes multiple files from toolbar")
+    // A bulk toolbar deletion requests all selected items and removes them from the
+    // table via the files query refetch.
+    it('removes multiple deleted files from the table', async () => {
+      const itemsToDelete = [FAKE_FILES[0], FAKE_FILES[1]]
+      const refetchSpy = vi.spyOn(queryClient, 'refetchQueries').mockResolvedValue(undefined)
+      mockMakeBulkItemRequests.mockResolvedValue(undefined)
+
+      renderComponent({items: itemsToDelete})
+
+      await clickDeleteButton()
+
+      // both selected files are deleted in one bulk request
+      expect(mockMakeBulkItemRequests).toHaveBeenCalledWith(itemsToDelete, deleteItem)
+      expect(mockFlashAlerts.showFlashSuccess).toHaveBeenCalledWith(
+        `${itemsToDelete.length} items deleted successfully.`,
+      )
+      // the table drops both rows by refetching the files list
+      expect(refetchSpy).toHaveBeenCalledWith({queryKey: ['files'], type: 'active'})
+
+      refetchSpy.mockRestore()
     })
   })
 

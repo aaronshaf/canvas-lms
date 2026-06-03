@@ -137,6 +137,32 @@ describe('RenameModal', () => {
       })
     })
 
+    it('renames with the new value and closes (restoring focus to the row action) on submit', async () => {
+      server.use(
+        http.put(`/api/v1/files/${FAKE_FILES[0].id}`, async ({request}) => {
+          callCount++
+          lastCallBody = await request.text()
+          return HttpResponse.json('')
+        }),
+      )
+
+      const user = userEvent.setup()
+      renderComponent()
+      const input = screen.getByLabelText('File Name *')
+      await user.clear(input)
+      await user.type(input, 'Example_edited.pdf')
+      await user.click(screen.getByTestId('rename-modal-button-save'))
+
+      await waitFor(() => {
+        expect(lastCallBody).toEqual(`{"name":"Example_edited.pdf"}`)
+      })
+      // onClose is the hook the parent (ActionMenuButton) uses to dismiss the
+      // modal and restore focus to the row's action/kebab button after rename.
+      await waitFor(() => {
+        expect(defaultProps.onClose).toHaveBeenCalled()
+      })
+    })
+
     it('displays loading spinner when submitting', async () => {
       const user = userEvent.setup()
       server.use(

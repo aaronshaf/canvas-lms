@@ -196,6 +196,22 @@ describe('UsageRightsModal', () => {
         ).toBeInTheDocument()
       })
 
+      it('hides the CC license selector when a non-CC justification is selected', async () => {
+        renderComponent()
+        const selector = await screen.findByTestId('usage-rights-justification-selector')
+
+        await userEvent.click(selector)
+        await userEvent.click(
+          await screen.findByText(
+            'The material is subject to an exception - e.g. fair use, the right to quote, or others under applicable copyright laws',
+          ),
+        )
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('usage-rights-license-selector')).not.toBeInTheDocument()
+        })
+      })
+
       it('for holder', async () => {
         renderComponent()
         expect(await screen.findByTestId('usage-rights-holder-input')).toBeInTheDocument()

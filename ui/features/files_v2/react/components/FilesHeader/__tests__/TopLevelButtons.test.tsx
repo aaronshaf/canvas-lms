@@ -67,6 +67,13 @@ describe('TopLevelButtons', () => {
     expect(allMyFilesButton).toBeInTheDocument()
   })
 
+  it('links the "All My Files" button to the user files route', () => {
+    renderComponent()
+
+    const allMyFilesLink = screen.getByText(/All My Files/i).closest('a')
+    expect(allMyFilesLink).toHaveAttribute('href', '/files')
+  })
+
   it('does not render "All My Files" button when isUserContext is true', () => {
     renderComponent({isUserContext: true})
 

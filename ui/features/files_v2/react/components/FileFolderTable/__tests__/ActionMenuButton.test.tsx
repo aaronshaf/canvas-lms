@@ -150,6 +150,27 @@ describe('ActionMenuButton', () => {
       })
     })
 
+    it('shows only the Download option for a student with no edit/delete/restrict permissions', async () => {
+      const user = userEvent.setup()
+      renderComponent({
+        ...defaultProps,
+        userCanEditFilesForContext: false,
+        userCanDeleteFilesForContext: false,
+        userCanRestrictFilesForContext: false,
+        usageRightsRequiredForContext: false,
+      })
+
+      const button = screen.getByTestId('action-menu-button-large')
+      await user.click(button)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('action-menu-button-Download')).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId('action-menu-button-Rename')).toBeNull()
+      expect(screen.queryByTestId('action-menu-button-Move To...')).toBeNull()
+      expect(screen.queryByTestId('action-menu-button-Delete')).toBeNull()
+    })
+
     it('renders items when context is groups', async () => {
       const user = userEvent.setup()
       renderComponent(

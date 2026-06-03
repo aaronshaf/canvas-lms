@@ -185,6 +185,27 @@ describe('Breadcrumbs', () => {
       expect(screen.getByText('Course 1')).toBeInTheDocument()
     })
 
+    // covers spec/selenium/files_v2/files_spec.rb:642 (url-encodes sort header links)
+    // A folder whose name contains a special char ('?') must render its breadcrumb link
+    // with a URL-encoded href (eh? -> eh%3F) while still displaying the decoded name.
+    it('url-encodes special characters in breadcrumb link hrefs', () => {
+      const specialFolder = {
+        ...childCourseFolder,
+        id: '4',
+        name: 'eh?',
+        full_name: 'course files/eh?',
+      }
+      const leafFolder = {
+        ...child2CourseFolder,
+        id: '5',
+        full_name: 'course files/eh?/PDFs',
+        parent_folder_id: '4',
+      }
+      renderComponent({folders: [rootCourseFolder, specialFolder, leafFolder]})
+      const link = screen.getByText('eh?').closest('a')
+      expect(link).toHaveAttribute('href', '/folder/eh%3F')
+    })
+
     it('renders for all contexts', () => {
       vi.mocked(windowPathname).mockReturnValue('/files/courses_2/')
       const multipleFilesContexts = createFilesContexts({
