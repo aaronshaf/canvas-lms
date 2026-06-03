@@ -340,6 +340,13 @@ describe StudyAssist::Service do
       end.to raise_error(StudyAssist::ContentUnavailable)
     end
 
+    it "raises ContentUnavailable when the student cannot read the page" do
+      unpublished = @course.wiki_pages.create!(title: "Hidden", body: "secret", workflow_state: "unpublished")
+      expect do
+        call_service(prompt: "Summarize", state: { "pageID" => unpublished.url })
+      end.to raise_error(StudyAssist::ContentUnavailable, /access denied/)
+    end
+
     it "raises ContentUnavailable when no pageID or fileID is provided" do
       expect do
         call_service(prompt: "Summarize", state: {})
@@ -365,11 +372,52 @@ describe StudyAssist::Service do
       call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s })
     end
 
-    it "raises ContentTooLarge when content exceeds the cap" do
-      huge_page = @course.wiki_pages.create!(title: "Huge", body: "x" * (described_class::MAX_CONTENT_CHARS + 1))
+    it "clamps oversized page content to MAX_CONTENT_CHARS instead of raising" do
+      huge_page = @course.wiki_pages.create!(title: "Huge", body: "x" * (described_class::MAX_CONTENT_CHARS + 1_000))
+      content = nil
+      allow(CedarClient).to receive(:prompt) do |args|
+        content = Base64.strict_decode64(args[:document][:base64Source])
+        Struct.new(:response, :response_id).new("A summary", "r1")
+      end
+      call_service(prompt: "Summarize", state: { "pageID" => huge_page.url })
+      expect(content.length).to be <= described_class::MAX_CONTENT_CHARS
+    end
+
+    it "raises ContentTooLarge when a file directly exceeds the cap" do
+      huge_attachment = attachment_model(
+        context: @course,
+        content_type: "text/plain",
+        uploaded_data: stub_file_data("huge.txt", "x" * (described_class::MAX_CONTENT_CHARS + 1), "text/plain")
+      )
       expect do
-        call_service(prompt: "Summarize", state: { "pageID" => huge_page.url })
+        call_service(prompt: "Summarize", state: { "fileID" => huge_attachment.id.to_s })
       end.to raise_error(StudyAssist::ContentTooLarge)
+    end
+
+    it "raises ContentUnavailable when the student cannot read the file" do
+      attachment = attachment_model(
+        context: @course,
+        content_type: "text/plain",
+        uploaded_data: stub_file_data("notes.txt", "content", "text/plain")
+      )
+      allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :read).and_return(false)
+      expect do
+        call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s })
+      end.to raise_error(StudyAssist::ContentUnavailable, /access denied/)
+    end
+
+    it "raises ContentUnavailable when the file is locked for the student" do
+      attachment = attachment_model(
+        context: @course,
+        content_type: "text/plain",
+        uploaded_data: stub_file_data("notes.txt", "content", "text/plain")
+      )
+      allow_any_instance_of(Attachment).to receive(:locked_for?)
+        .with(@student, check_policies: true)
+        .and_return({ lock_type: "date_lock" })
+      expect do
+        call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s })
+      end.to raise_error(StudyAssist::ContentUnavailable, /locked/)
     end
 
     it "rejects fileIDs belonging to a different course" do
@@ -384,6 +432,407 @@ describe StudyAssist::Service do
       expect do
         call_service(prompt: "Summarize", state: { "fileID" => other_attachment.id.to_s })
       end.to raise_error(StudyAssist::ContentUnavailable)
+    end
+
+    describe "embedded file content in pages" do
+      let(:file_attachment) do
+        attachment_model(
+          context: @course,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("doc.txt", "The Iliad content goes here", "text/plain")
+        )
+      end
+
+      def captured_cedar_content(&)
+        content = nil
+        allow(CedarClient).to receive(:prompt) do |args|
+          content = Base64.strict_decode64(args[:document][:base64Source])
+          Struct.new(:response, :response_id).new("A summary", "r1")
+        end
+        yield
+        content
+      end
+
+      it "appends embedded file text to page content" do
+        p = @course.wiki_pages.create!(
+          title: "Page with PDF",
+          body: "<a class=\"instructure_file_link instructure_scribd_file\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+      end
+
+      it "appends embedded file text from iframe embeds" do
+        p = @course.wiki_pages.create!(
+          title: "Page with iframe",
+          body: "<iframe src=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\"></iframe>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+      end
+
+      it "skips embedded files the student cannot read" do
+        p = @course.wiki_pages.create!(
+          title: "Page with unreadable file",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_return(false)
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("The Iliad content goes here")
+      end
+
+      it "skips embedded files that are locked for the student" do
+        p = @course.wiki_pages.create!(
+          title: "Page with locked file",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        allow_any_instance_of(Attachment).to receive(:locked_for?).and_return({ lock_type: "module_lock" })
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("The Iliad content goes here")
+      end
+
+      it "preserves non-Canvas anchor text in page text" do
+        p = @course.wiki_pages.create!(
+          title: "Page with external link",
+          body: '<p>See <a href="https://example.com">this article</a>.</p>',
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("this article")
+      end
+
+      it "includes each embedded file's text exactly once when linked multiple times" do
+        body = "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">link1</a>" \
+               "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">link2</a>"
+        p = @course.wiki_pages.create!(title: "Duplicate links page", body:, saving_user: @student)
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content.scan("The Iliad content goes here").size).to eq(1)
+      end
+
+      it "strips canvas file link metadata from page text so skipped files leave no noise" do
+        image = attachment_model(context: @course, content_type: "image/png", filename: "img.png")
+        p = @course.wiki_pages.create!(
+          title: "Page with skipped file",
+          body: "<p>Some context.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{image.id}?wrap=1\">img.png</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("Some context")
+        expect(content).not_to include("/courses/#{@course.id}/files/#{image.id}")
+        expect(content).not_to include("img.png")
+      end
+
+      it "skips embedded files of unsupported types without raising" do
+        image = attachment_model(context: @course, content_type: "image/png", filename: "img.png")
+        p = @course.wiki_pages.create!(
+          title: "Page with image link",
+          body: "<p>Some context.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{image.id}?wrap=1\">img.png</a>",
+          saving_user: @student
+        )
+        expect { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }.not_to raise_error
+      end
+
+      it "raises ContentUnavailable when all embedded files are skipped and the page has no other text" do
+        image = attachment_model(context: @course, content_type: "image/png", filename: "img.png")
+        p = @course.wiki_pages.create!(
+          title: "Image only page",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{image.id}?wrap=1\">img.png</a>",
+          saving_user: @student
+        )
+        expect do
+          call_service(prompt: "Summarize", state: { "pageID" => p.url })
+        end.to raise_error(StudyAssist::ContentUnavailable, /No readable content/)
+      end
+
+      it "raises ContentUnavailable when the only embedded file is locked and the page has no other text" do
+        allow_any_instance_of(Attachment).to receive(:locked_for?).and_return({ lock_type: "date_lock" })
+        p = @course.wiki_pages.create!(
+          title: "Locked-only page",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        expect do
+          call_service(prompt: "Summarize", state: { "pageID" => p.url })
+        end.to raise_error(StudyAssist::ContentUnavailable, /No readable content/)
+      end
+
+      it "skips an embedded file without raising when grants_right? raises unexpectedly" do
+        p = @course.wiki_pages.create!(
+          title: "DB error page",
+          body: "<p>Good text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_raise(ActiveRecord::StatementInvalid, "DB error")
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("The Iliad content goes here")
+        expect(content).to include("Good text")
+      end
+
+      it "includes text from a cross-shard embedded file when the shard resolves" do
+        allow(Shard).to receive(:lookup).and_call_original
+        allow(Shard).to receive(:lookup).with(99).and_return(Shard.current)
+        p = @course.wiki_pages.create!(
+          title: "Cross-shard page",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/99~#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+      end
+
+      it "skips a cross-shard embedded file when the shard database is unreachable" do
+        p = @course.wiki_pages.create!(
+          title: "Dead shard page",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/99~999999?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        dead_shard = instance_double(Shard, id: 99)
+        allow(dead_shard).to receive(:==).and_return(false)
+        allow(dead_shard).to receive(:activate).and_raise(Switchman::Errors::NonExistentShardError)
+        allow(Shard).to receive(:lookup).and_call_original
+        allow(Shard).to receive(:lookup).with(99).and_return(dead_shard)
+        expect { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }.not_to raise_error
+      end
+
+      it "skips a cross-shard embedded file when the shard cannot be resolved" do
+        allow(Shard).to receive(:lookup).and_call_original
+        allow(Shard).to receive(:lookup).with(99).and_return(nil)
+        p = @course.wiki_pages.create!(
+          title: "Unknown shard page",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/99~999999?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        expect { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }.not_to raise_error
+      end
+
+      it "excludes cross-shard file content when the student lacks read access" do
+        original_course = @course
+        foreign_attachment = attachment_model(
+          context: course_model,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("foreign.txt", "foreign secret", "text/plain")
+        )
+        @course = original_course
+        p = @course.wiki_pages.create!(
+          title: "Cross-shard foreign-course page",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/99~#{foreign_attachment.id}?wrap=1\">foreign.txt</a>",
+          saving_user: @student
+        )
+        mock_shard = instance_double(Shard, id: 99)
+        allow(mock_shard).to receive(:==).and_return(false)
+        allow(mock_shard).to receive(:activate).and_yield
+        allow(Shard).to receive(:lookup).and_call_original
+        allow(Shard).to receive(:lookup).with(99).and_return(mock_shard)
+        allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_return(false)
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("foreign secret")
+      end
+
+      context "cross-shard ownership checks" do
+        specs_require_sharding
+
+        it "excludes cross-shard embedded files whose course context does not match" do
+          other_att = @shard1.activate do
+            other_account = Account.create!(name: "Shard1 account")
+            other_course = other_account.courses.create!
+            attachment_model(
+              context: other_course,
+              content_type: "text/plain",
+              uploaded_data: stub_file_data("secret.txt", "cross-shard secret", "text/plain")
+            )
+          end
+          allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_return(true)
+          allow_any_instance_of(Attachment).to receive(:locked_for?).with(@student, check_policies: true).and_return(false)
+          p = @course.wiki_pages.create!(
+            title: "Cross-shard course-mismatch page",
+            body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{@shard1.id}~#{other_att.id}?wrap=1\">secret.txt</a>",
+            saving_user: @student
+          )
+          content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+          expect(content).not_to include("cross-shard secret")
+        end
+
+        it "skips cross-shard embedded files whose context_type is not Course" do
+          user_att = @shard1.activate do
+            attachment_model(
+              context: user_model,
+              content_type: "text/plain",
+              uploaded_data: stub_file_data("user-file.txt", "user secret", "text/plain")
+            )
+          end
+          allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_return(true)
+          allow_any_instance_of(Attachment).to receive(:locked_for?).with(@student, check_policies: true).and_return(false)
+          p = @course.wiki_pages.create!(
+            title: "User-file cross-shard page",
+            body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{@shard1.id}~#{user_att.id}?wrap=1\">user-file.txt</a>",
+            saving_user: @student
+          )
+          content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+          expect(content).not_to include("user secret")
+        end
+      end
+
+      it "does not include content from embedded files belonging to another course" do
+        original_course = @course
+        other_course = course_model
+        other_attachment = attachment_model(
+          context: other_course,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("secret.txt", "secret content", "text/plain")
+        )
+        @course = original_course
+        p = @course.wiki_pages.create!(
+          title: "Cross-course page",
+          body: "<p>Page text.</p><a href=\"/courses/#{other_course.id}/files/#{other_attachment.id}?wrap=1\">secret.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("secret content")
+      end
+
+      it "ignores module progressions from other courses when checking embedded file locks" do
+        original_course = @course
+        other_course = course_model
+        @course = original_course
+        mod = other_course.context_modules.create!(name: "Locked Module")
+        mod.content_tags.create!(content: file_attachment, context: other_course, content_type: "Attachment")
+        ContextModuleProgression.create!(context_module: mod, user: @student, workflow_state: "locked")
+
+        p = @course.wiki_pages.create!(
+          title: "Cross-course progression page",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+      end
+
+      it "includes text from all embedded files" do
+        second_attachment = attachment_model(
+          context: @course,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("doc2.txt", "Second file content", "text/plain")
+        )
+        p = @course.wiki_pages.create!(
+          title: "Page with two files",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>" \
+                "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{second_attachment.id}?wrap=1\">doc2.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+        expect(content).to include("Second file content")
+      end
+
+      it "skips a file that raises during extraction and still includes subsequent files" do
+        bad_file = attachment_model(
+          context: @course,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("bad.txt", "bad content", "text/plain")
+        )
+        allow_any_instance_of(described_class).to receive(:extract_attachment_text).and_wrap_original do |m, att|
+          raise Attachment::FailedResponse, "simulated extraction error" if att.id == bad_file.id
+
+          m.call(att)
+        end
+        p = @course.wiki_pages.create!(
+          title: "Page with bad then good file",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{bad_file.id}?wrap=1\">bad.txt</a>" \
+                "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("bad content")
+        expect(content).to include("The Iliad content goes here")
+      end
+
+      it "propagates StudyAssist::Error raised during embedded file extraction" do
+        p = @course.wiki_pages.create!(
+          title: "Rate limited page",
+          body: "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        allow_any_instance_of(described_class).to receive(:extract_attachment_text)
+          .and_raise(StudyAssist::RateLimited, "rate limit hit")
+        expect do
+          call_service(prompt: "Summarize", state: { "pageID" => p.url })
+        end.to raise_error(StudyAssist::RateLimited, /rate limit hit/)
+      end
+
+      it "skips embedded files that exceed MAX_FILE_BYTES" do
+        allow(file_attachment).to receive(:size).and_return(described_class::MAX_FILE_BYTES + 1)
+        allow_any_instance_of(Attachment).to receive(:size).and_return(described_class::MAX_FILE_BYTES + 1)
+        p = @course.wiki_pages.create!(
+          title: "Page with oversized file",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">doc.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("The Iliad content goes here")
+      end
+
+      context "char budget / short-circuit" do
+        let(:long_attachment) do
+          attachment_model(
+            context: @course,
+            content_type: "text/plain",
+            uploaded_data: stub_file_data("long.txt", "A" * 60_000, "text/plain")
+          )
+        end
+
+        def page_with_links(*atts)
+          links = atts.map do |a|
+            "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{a.id}?wrap=1\">#{a.display_name}</a>"
+          end.join
+          @course.wiki_pages.create!(
+            title: "Budget test page",
+            body: "<p>Budget test.</p>#{links}",
+            saving_user: @student
+          )
+        end
+
+        it "truncates the last file to stay within MAX_CONTENT_CHARS" do
+          second = attachment_model(
+            context: @course,
+            content_type: "text/plain",
+            uploaded_data: stub_file_data("second.txt", "B" * 60_000, "text/plain")
+          )
+          p = page_with_links(long_attachment, second)
+          content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+          expect(content.length).to be <= described_class::MAX_CONTENT_CHARS
+          expect(content).to include("A")
+          expect(content).to include("B")
+        end
+
+        it "does not extract files beyond the budget" do
+          # First file is 110k — larger than MAX_CONTENT_CHARS (100k) — so after
+          # it is truncated to fill the budget, remaining drops below zero and the
+          # second file is skipped entirely.
+          huge = attachment_model(
+            context: @course,
+            content_type: "text/plain",
+            uploaded_data: stub_file_data("huge.txt", "A" * 110_000, "text/plain")
+          )
+          second = attachment_model(
+            context: @course,
+            content_type: "text/plain",
+            uploaded_data: stub_file_data("second.txt", "B" * 10_000, "text/plain")
+          )
+          extracted_ids = []
+          allow_any_instance_of(described_class).to receive(:extract_attachment_text).and_wrap_original do |_m, att|
+            extracted_ids << att.id
+            "A" * 110_000
+          end
+          p = page_with_links(huge, second)
+          call_service(prompt: "Summarize", state: { "pageID" => p.url })
+          expect(extracted_ids).to include(huge.id)
+          expect(extracted_ids).not_to include(second.id)
+        end
+      end
     end
   end
 
@@ -419,6 +868,28 @@ describe StudyAssist::Service do
       expect(CedarClient).to receive(:prompt).twice.and_call_original
       call_service(prompt: "Flashcards")
       call_service(prompt: "Generate flashcards")
+    end
+
+    it "busts the file text cache when the attachment md5 changes" do
+      attachment = attachment_model(
+        context: @course,
+        content_type: "text/plain",
+        uploaded_data: stub_file_data("notes.txt", "version 1", "text/plain")
+      )
+      expect(CedarClient).to receive(:prompt).twice.and_call_original
+      call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s })
+      attachment.update_columns(md5: "new-hash-after-content-change")
+      call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s })
+    end
+
+    it "falls back gracefully when attachment md5 is nil" do
+      attachment = attachment_model(
+        context: @course,
+        content_type: "text/plain",
+        uploaded_data: stub_file_data("notes.txt", "content", "text/plain")
+      )
+      allow_any_instance_of(Attachment).to receive(:md5).and_return(nil)
+      expect { call_service(prompt: "Summarize", state: { "fileID" => attachment.id.to_s }) }.not_to raise_error
     end
 
     it "builds shard-safe cache keys referencing the page's global_id" do

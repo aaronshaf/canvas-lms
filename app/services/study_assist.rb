@@ -36,6 +36,7 @@ module StudyAssist
     MAX_FILE_BYTES = 2.megabytes
     RESPONSE_CACHE_TTL = 24.hours
     TEXT_CACHE_TTL = 24.hours
+    CANVAS_FILE_URL_PATTERN = %r{/(?:courses|groups|users)/\d+/files/([\d~]+)}
     EXTRACTOR_MIMETYPES = %w[
       application/pdf
       application/vnd.openxmlformats-officedocument.wordprocessingml.document
@@ -170,9 +171,15 @@ module StudyAssist
       raise ContentUnavailable, "Page access denied" unless page.grants_right?(@user, :read)
 
       shard_safe_key = shard_safe_cache_key_for(page)
-      text = Rails.cache.fetch(text_cache_key_for(:page, shard_safe_key), expires_in: TEXT_CACHE_TTL) do
-        html_to_text(page.body.to_s)
+      body = page.body.to_s
+      page_text = Rails.cache.fetch(text_cache_key_for(:page, shard_safe_key), expires_in: TEXT_CACHE_TTL) do
+        html_to_text(strip_canvas_file_links(body))
       end
+
+      budget = [MAX_CONTENT_CHARS - page_text.length, 0].max
+      embedded = embedded_file_texts(body, char_budget: budget)
+      text = [page_text, *embedded].compact_blank.join("\n\n")[0, MAX_CONTENT_CHARS]
+      raise ContentUnavailable, "No readable content found on this page" if text.blank?
 
       Content.new(kind: :page, id: page.id, cache_key_with_version: shard_safe_key, text:)
     end
@@ -195,6 +202,117 @@ module StudyAssist
       Content.new(kind: :file, id: attachment.id, cache_key_with_version: shard_safe_key, text:)
     end
 
+    def embedded_file_texts(html, char_budget: MAX_CONTENT_CHARS)
+      refs = parse_embedded_file_refs(html)
+      return [] if refs.empty?
+
+      attachments = load_attachments_for_refs(refs)
+
+      course_shard = @course.shard
+      remaining = char_budget
+      refs.each_with_object([]) do |ref, texts|
+        break if remaining <= 0
+
+        attachment = attachments[ref]
+        next unless attachment
+
+        text = begin
+          next unless attachment.grants_right?(@user, :download)
+
+          if attachment.shard != course_shard
+            next unless attachment.context_type == "Course"
+            next unless Shard.global_id_for(attachment.context_id, attachment.shard) == @course.global_id
+          end
+
+          next if attachment.locked_for?(@user, check_policies: true)
+
+          next unless supported_attachment?(attachment)
+          next if attachment.size && attachment.size > MAX_FILE_BYTES
+
+          shard_safe_key = shard_safe_cache_key_for(attachment)
+          Rails.cache.fetch(text_cache_key_for(:file, shard_safe_key), expires_in: TEXT_CACHE_TTL) do
+            extract_attachment_text(attachment)
+          end.presence
+        rescue StudyAssist::Error
+          raise
+        rescue Attachment::FailedResponse,
+               Attachment::CorruptedDownload,
+               Net::ReadTimeout,
+               Net::OpenTimeout,
+               IOError,
+               SocketError,
+               Errno::ECONNRESET,
+               Errno::ECONNABORTED,
+               Errno::ETIMEDOUT,
+               Errno::EHOSTUNREACH => e
+          Canvas::Errors.capture_exception(:study_assist_embedded_file, e, :warn)
+          Rails.logger.warn("StudyAssist: skipping embedded file #{ref.inspect} due to #{e.class}: #{e.message}")
+          nil
+        rescue => e
+          Canvas::Errors.capture_exception(:study_assist_embedded_file, e, :error)
+          Rails.logger.error("StudyAssist: unexpected error for #{ref.inspect}: #{e.class}: #{e.message}")
+          nil
+        end
+
+        next unless text
+
+        texts << text[0, remaining]
+        remaining -= text.length
+      end
+    end
+
+    def parse_embedded_file_refs(html)
+      doc = Nokogiri::HTML.fragment(html.to_s.encode("UTF-8", invalid: :replace, undef: :replace))
+      doc.css("a[href], iframe[src]").filter_map do |el|
+        url = el["href"] || el["src"]
+        parse_canvas_file_ref(url)
+      end.uniq
+    end
+
+    def parse_canvas_file_ref(url)
+      raw = url&.match(CANVAS_FILE_URL_PATTERN)&.captures&.first
+      return nil unless raw
+
+      if raw.match?(/\A\d+\z/)
+        [@course.shard, raw.to_i]
+      elsif (m = raw.match(/\A(\d+)~(\d+)\z/))
+        shard = Shard.lookup(m[1].to_i)
+        if shard
+          [shard, m[2].to_i]
+        else
+          Rails.logger.warn("StudyAssist: skipping file ref with unknown shard #{m[1]} in course #{@course.id}")
+          nil
+        end
+      end
+    end
+
+    def load_attachments_for_refs(refs)
+      course_shard = @course.shard
+      refs.group_by(&:first).each_with_object({}) do |(shard, shard_refs), result|
+        local_ids = shard_refs.map(&:last)
+        begin
+          fetched = shard.activate do
+            scope = (shard == course_shard) ? @course.attachments.not_deleted : Attachment.not_deleted
+            scope.where(id: local_ids).index_by(&:id)
+          end
+          shard_refs.each { |(_, lid)| result[[shard, lid]] = fetched[lid] }
+        rescue ActiveRecord::StatementInvalid,
+               ActiveRecord::ConnectionNotEstablished,
+               Switchman::Errors::NonExistentShardError => e
+          Rails.logger.warn("StudyAssist: skipping shard #{shard.id} attachments course=#{@course.id}: #{e.class}: #{e.message}")
+        end
+      end
+    end
+
+    def strip_canvas_file_links(html)
+      doc = Nokogiri::HTML.fragment(html.to_s.encode("UTF-8", invalid: :replace, undef: :replace))
+      doc.css("a[href], iframe[src]").each do |el|
+        url = el["href"] || el["src"]
+        el.remove if url&.match?(CANVAS_FILE_URL_PATTERN)
+      end
+      doc.to_html
+    end
+
     def supported_attachment?(attachment)
       return true if attachment.content_type&.start_with?("text/")
 
@@ -205,7 +323,10 @@ module StudyAssist
       return FileTextExtractionService.new(attachment:).call.text.to_s if EXTRACTOR_MIMETYPES.include?(attachment.content_type)
 
       raw = +""
-      attachment.open { |chunk| raw << chunk }
+      attachment.open do |chunk|
+        raw << chunk
+        break if raw.length >= MAX_FILE_BYTES
+      end
       (attachment.content_type == "text/html") ? html_to_text(raw) : raw
     end
 
@@ -214,7 +335,8 @@ module StudyAssist
     end
 
     def shard_safe_cache_key_for(record)
-      "#{record.class.model_name.cache_key}/#{record.global_id}-#{record.cache_version}"
+      version = record.is_a?(Attachment) ? (record.md5.presence || record.updated_at&.to_i) : record.cache_version
+      "#{record.class.model_name.cache_key}/#{record.global_id}-#{version}"
     end
 
     # --- Cedar call + caching ---
