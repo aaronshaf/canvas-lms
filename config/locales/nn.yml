@@ -16369,9 +16369,9 @@ nn:
     assignment_changed: 
       email: 
         body: |-
-            Oppgåva "%{title}" for %{course} er endra.  
+            Oppgåva "%{title}" for %{course} er endra.
             
-            Klikk her for å sjå oppgåva: 
+            Klikk her for å sjå oppgåva:
             %{url}
         html: 
           body: "Oppgåva \"%{title}\" for %{course} er endra."
@@ -16591,7 +16591,7 @@ nn:
             %{course_or_group}.  Dokumentet er oppretta av %{user}
             in %{service} og invitasjonen er send til e-postadressa %{email}.
             
-            Om e-postadressa ikkje passar for denne type samarbeid, må du 
+            Om e-postadressa ikkje passar for denne type samarbeid, må du
             endre profilinnstillingane dine eller registrere deg hos %{service}.
             
             Du kan sjå detaljane her:
