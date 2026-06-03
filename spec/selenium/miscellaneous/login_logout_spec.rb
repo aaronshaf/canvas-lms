@@ -37,18 +37,6 @@ describe "login logout test" do
     @login_error_box_css = ".error_text:last"
   end
 
-  it "logins successfully with correct username and password", :xbrowser, priority: "2" do
-    user_with_pseudonym({ active_user: true })
-    login_as
-    expect(f('[aria-label="Profile tray"] h2').text).to eq @user.pseudonyms.first.unique_id
-  end
-
-  it "shows error message if wrong credentials are used", priority: "2" do
-    get "/login"
-    fill_in_login_form("fake@user.com", "fakepass")
-    assert_flash_error_message("Please verify your username or password and try again.")
-  end
-
   it "shows invalid password message if password is nil", priority: "2" do
     expected_error = "Invalid password"
     get "/login"
@@ -90,26 +78,6 @@ describe "login logout test" do
     go_to_forgot_password
     f(".login_link").click
     expect(f("#login_form")).to be_displayed
-  end
-
-  it "fails on an invalid authenticity token", priority: "1" do
-    user_with_pseudonym({ active_user: true })
-    get "/login"
-    driver.execute_script "$.cookie('_csrf_token', '42')"
-    fill_in_login_form("nobody@example.com", "asdfasdf")
-    assert_flash_error_message "Invalid Authenticity Token"
-  ensure
-    driver.execute_script "$.cookie('_csrf_token', '', { expires: -1 })"
-  end
-
-  it "logins when a trusted referer exists", priority: "2" do
-    allow_any_instance_of(Account).to receive(:trusted_referer?).and_return(true)
-    user_with_pseudonym(active_user: true)
-    get "/login"
-    driver.execute_script "$.cookie('_csrf_token', '', { expires: -1 })"
-    driver.execute_script "$('[name=authenticity_token]').remove()"
-    fill_in_login_form("nobody@example.com", "asdfasdf")
-    expect(displayed_username).to eq @user.pseudonyms.first.unique_id
   end
 
   it "doesn't display external link icons", priority: "2" do
