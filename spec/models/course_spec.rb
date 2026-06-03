@@ -2969,6 +2969,30 @@ describe Course do
         @course.root_account.disable_feature!(:a11y_checker_ga1)
       end
 
+      it "does not return the Accessibility tab for students when a11y_checker feature flag is enabled" do
+        @course.root_account.enable_feature!(:a11y_checker)
+        @course.enable_feature!(:a11y_checker_eap)
+        student = user_factory(active_all: true)
+        @course.enroll_student(student, enrollment_state: "active")
+
+        tab_ids = @course.tabs_available(student).pluck(:id)
+        expect(tab_ids).not_to include(Course::TAB_ACCESSIBILITY)
+      ensure
+        @course.disable_feature!(:a11y_checker_eap)
+        @course.root_account.disable_feature!(:a11y_checker)
+      end
+
+      it "does not return the Accessibility tab for students when a11y_checker_ga1 feature flag is enabled" do
+        @course.root_account.enable_feature!(:a11y_checker_ga1)
+        student = user_factory(active_all: true)
+        @course.enroll_student(student, enrollment_state: "active")
+
+        tab_ids = @course.tabs_available(student).pluck(:id)
+        expect(tab_ids).not_to include(Course::TAB_ACCESSIBILITY)
+      ensure
+        @course.root_account.disable_feature!(:a11y_checker_ga1)
+      end
+
       describe "TAB_YOUTUBE_MIGRATION" do
         before do
           @course.enable_feature!(:youtube_migration)
