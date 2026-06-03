@@ -67,13 +67,11 @@ RSpec.describe Lti::ToolConfigurationsApiController do
   before do
     user_session(admin)
     canvas_lti_configuration["extensions"][0]["privacy_level"] = privacy_level || extension_privacy_level
-    request.accept = "application/json"
-    request.content_type = "application/json"
   end
 
   shared_examples_for "an action that requires manage developer keys" do |skip_404|
     context "when the user has manage_developer_keys" do
-      it { is_expected.to be_successful }
+      it { is_expected.to have_http_status(:success) }
     end
 
     context "when the user is not an admin" do
@@ -412,16 +410,21 @@ RSpec.describe Lti::ToolConfigurationsApiController do
   end
 
   describe "#create" do
-    subject { post :create, params: }
+    subject do
+      make_request
+      response
+    end
 
     let(:dev_key_id) { nil }
+    let(:create_url) { "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration" }
+    let(:make_request) { post create_url, params: params.except(:account_id, :developer_key_id), as: :json }
 
     it_behaves_like "an action that requires manage developer keys", true
 
     context "when the tool configuration does not exist" do
       let(:dev_key_id) { developer_key.id }
 
-      it { is_expected.to be_ok }
+      it { is_expected.to have_http_status(:ok) }
 
       it "creates a developer key on the correct account" do
         subject
@@ -449,7 +452,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
         end
 
         it "defaults scopes to an empty array" do
-          expect(subject).to be_successful
+          expect(subject).to have_http_status(:success)
 
           expect(config_from_response.developer_key.scopes).to eql([])
           expect(config_from_response.scopes).to eql([])
@@ -472,17 +475,17 @@ RSpec.describe Lti::ToolConfigurationsApiController do
     end
 
     it_behaves_like "an endpoint that accepts a settings_url" do
-      let(:make_request) { post :create, params: }
+      let(:make_request) { post "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration", params: params.except(:account_id, :developer_key_id), as: :json }
     end
 
     it_behaves_like "an endpoint that validates public_jwk and public_jwk_url" do
-      let(:make_request) { post :create, params: }
+      let(:make_request) { post "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration", params: params.except(:account_id, :developer_key_id), as: :json }
     end
 
     it_behaves_like "an endpoint that accepts developer key parameters" do
       let(:bad_scope_params) { { account_id: account.id, developer_key: dev_key_params.merge(scopes: ["invalid scope"]) } }
-      let(:make_request) { post :create, params: params.merge({ developer_key: dev_key_params }) }
-      let(:bad_scope_request) { post :create, params: params.merge(bad_scope_params) }
+      let(:make_request) { post "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration", params: params.merge({ developer_key: dev_key_params }).except(:account_id, :developer_key_id), as: :json }
+      let(:bad_scope_request) { post "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration", params: params.merge(bad_scope_params).except(:account_id, :developer_key_id), as: :json }
     end
 
     context "with manual_custom_fields present" do
@@ -493,7 +496,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
       end
 
       it "merges them with the custom fields on the tool configuration" do
-        expect(subject).to be_ok
+        expect(subject).to have_http_status(:ok)
         expect(config_from_response.internal_lti_configuration[:custom_fields])
           .to include({ "unique_key" => "unique_value", "neato" => "mydude" })
       end
@@ -503,7 +506,8 @@ RSpec.describe Lti::ToolConfigurationsApiController do
       let(:dev_key_params) { super().merge(redirect_uris: nil) }
 
       it "infers the redirect_uris from the settings" do
-        expect(post(:create, params:)).to be_ok
+        post "/api/lti/accounts/#{account.id}/developer_keys/tool_configuration", params: params.except(:account_id, :developer_key_id), as: :json
+        expect(response).to have_http_status(:ok)
         expect(config_from_response.developer_key.redirect_uris.map(&:redirect_uri)).to eq(config_from_response.redirect_uris)
       end
     end
@@ -515,15 +519,19 @@ RSpec.describe Lti::ToolConfigurationsApiController do
   end
 
   describe "#update" do
-    subject { put :update, params: }
+    subject do
+      make_request
+      response
+    end
 
-    before do
+    let(:make_request) do
       tool_configuration
       canvas_lti_configuration["target_link_uri"] = new_url
+      put "/api/lti/developer_keys/#{developer_key.id}/tool_configuration", params: params.except(:account_id, :developer_key_id), as: :json
     end
 
     context do
-      it { is_expected.to be_ok }
+      it { is_expected.to have_http_status(:ok) }
 
       it "updates the tool configuration" do
         subject
@@ -563,7 +571,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
 
         before do
           installed_tool
-          put(:update, params:)
+          put "/api/lti/developer_keys/#{developer_key.id}/tool_configuration", params: params.except(:account_id, :developer_key_id), as: :json
           run_jobs
         end
 
@@ -587,19 +595,23 @@ RSpec.describe Lti::ToolConfigurationsApiController do
 
     it_behaves_like "an endpoint that accepts developer key parameters" do
       let(:bad_scope_params) { { developer_key: dev_key_params.merge(scopes: ["invalid scope"]) } }
-      let(:make_request) { put :update, params: params.merge({ developer_key: dev_key_params }) }
-      let(:bad_scope_request) { put :update, params: params.merge(bad_scope_params) }
+      let(:make_request) { put "/api/lti/developer_keys/#{developer_key.id}/tool_configuration", params: params.merge({ developer_key: dev_key_params }).except(:account_id, :developer_key_id), as: :json }
+      let(:bad_scope_request) { put "/api/lti/developer_keys/#{developer_key.id}/tool_configuration", params: params.merge(bad_scope_params).except(:account_id, :developer_key_id), as: :json }
     end
   end
 
   describe "#show" do
-    subject { get :show, params: params.except(:tool_configuration) }
+    subject do
+      make_request
+      response
+    end
 
-    before do
+    let(:make_request) do
       developer_key
       account.developer_key_account_bindings
              .find_by(developer_key:)
              .update!(workflow_state: "on")
+      get "/api/lti/accounts/#{account.id}/developer_keys/#{dev_key_id}/tool_configuration", as: :json
     end
 
     context "when tool configuration does not exist" do
@@ -693,10 +705,14 @@ RSpec.describe Lti::ToolConfigurationsApiController do
   end
 
   describe "#destroy" do
-    subject { delete :destroy, params: params.except(:tool_configuration) }
+    subject do
+      make_request
+      response
+    end
 
-    before do
+    let(:make_request) do
       developer_key
+      delete "/api/lti/developer_keys/#{developer_key.id}/tool_configuration", as: :json
     end
 
     it_behaves_like "an action that requires manage developer keys"
@@ -742,14 +758,14 @@ RSpec.describe Lti::ToolConfigurationsApiController do
     end
 
     describe "POST 'create'" do
-      subject { post :create, params: site_admin_params, format: :json }
+      subject { post "/api/lti/accounts/#{Account.site_admin.id}/developer_keys/tool_configuration", params: site_admin_params.except(:account_id), as: :json }
 
       context "when user has modify_site_admin_developer_keys permission" do
         before { user_session(site_admin_admin) }
 
         it "allows creating a site admin tool configuration" do
           subject
-          expect(response).to be_successful
+          expect(response).to have_http_status(:success)
           key = DeveloperKey.find(json_parse.dig("developer_key", "id"))
           expect(key.account).to be_nil
         end
@@ -767,7 +783,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
     end
 
     describe "PUT 'update'" do
-      subject { put :update, params: update_params, format: :json }
+      subject { put "/api/lti/developer_keys/#{update_params[:developer_key_id]}/tool_configuration", params: update_params.except(:developer_key_id), as: :json }
 
       let(:site_admin_key) { lti_developer_key_model(account: Account.site_admin) }
       let(:site_admin_tool_config) { lti_tool_configuration_model(developer_key: site_admin_key, lti_registration: site_admin_key.lti_registration) }
@@ -788,7 +804,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
 
         it "allows updating a site admin tool configuration" do
           subject
-          expect(response).to be_successful
+          expect(response).to have_http_status(:success)
         end
       end
 
@@ -804,7 +820,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
     end
 
     describe "DELETE 'destroy'" do
-      subject { delete :destroy, params: destroy_params, format: :json }
+      subject { delete "/api/lti/developer_keys/#{destroy_params[:developer_key_id]}/tool_configuration", as: :json }
 
       let(:site_admin_key) { lti_developer_key_model(account: Account.site_admin) }
       let(:site_admin_tool_config) { lti_tool_configuration_model(developer_key: site_admin_key, lti_registration: site_admin_key.lti_registration) }
