@@ -169,7 +169,16 @@ class TokenScopes
   end
 
   def self.all_scopes
-    @_all_scopes ||= [USER_INFO_SCOPE[:scope], CD2_SCOPE[:scope], *api_routes.pluck(:scope), *LTI_SCOPES.keys, *LTI_HIDDEN_SCOPES.keys].freeze
+    @_all_scopes ||= [*api_routes.pluck(:scope), *non_route_scopes].freeze
+  end
+
+  def self.non_route_scopes
+    @_non_route_scopes ||= [
+      USER_INFO_SCOPE[:scope],
+      CD2_SCOPE[:scope],
+      *LTI_SCOPES.keys,
+      *LTI_HIDDEN_SCOPES.keys
+    ].freeze
   end
 
   def self.detailed_scopes
@@ -228,5 +237,6 @@ class TokenScopes
     @_all_scopes = nil
     @_detailed_scopes = nil
     @_named_scopes = nil
+    @_non_route_scopes = nil
   end
 end

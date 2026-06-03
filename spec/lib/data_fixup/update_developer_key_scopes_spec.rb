@@ -40,8 +40,7 @@ describe DataFixup::UpdateDeveloperKeyScopes do
 
   it "changes developer key scopes in batches" do
     expect(Rails.application).to receive(:routes).and_return(application.routes)
-    TokenScopes.instance_variable_set(:@_api_routes, nil)
-    TokenScopes.instance_variable_set(:@_all_scopes, nil)
+    TokenScopes.reset!
 
     dk = DeveloperKey.create!(
       scopes: [
@@ -54,8 +53,7 @@ describe DataFixup::UpdateDeveloperKeyScopes do
     # Simulate someone committing a change to routes.rb, with an
     # accompanying data fixup.
     expect(Rails.application).to receive(:routes).and_return(changed_routes_application.routes)
-    TokenScopes.instance_variable_set(:@_api_routes, nil)
-    TokenScopes.instance_variable_set(:@_all_scopes, nil)
+    TokenScopes.reset!
 
     scopes_to_change = {
       "url:GET|/api/v1/courses" => "url:GET|/api/v1/courses_changed",

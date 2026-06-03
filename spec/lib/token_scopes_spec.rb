@@ -72,12 +72,7 @@ describe TokenScopes do
 
     describe "generated_scopes" do
       let!(:generated_scopes) do
-        TokenScopes.all_scopes - [
-          TokenScopes::USER_INFO_SCOPE[:scope],
-          TokenScopes::CD2_SCOPE[:scope],
-          *TokenScopes::LTI_SCOPES.keys,
-          *TokenScopes::LTI_HIDDEN_SCOPES.keys
-        ]
+        TokenScopes.all_scopes - TokenScopes.non_route_scopes
       end
 
       it "formats the scopes with url:http_verb|api_path and url:http|file_access_path" do
@@ -98,6 +93,46 @@ describe TokenScopes do
           expect(scope.include?("(.:type)")).to be false
         end
       end
+    end
+  end
+
+  describe ".non_route_scopes" do
+    it "includes the userinfo scope" do
+      expect(TokenScopes.non_route_scopes).to include(TokenScopes::USER_INFO_SCOPE[:scope])
+    end
+
+    it "includes the CD2 scope" do
+      expect(TokenScopes.non_route_scopes).to include(TokenScopes::CD2_SCOPE[:scope])
+    end
+
+    it "includes the LTI scopes" do
+      expect(TokenScopes.non_route_scopes).to include(*TokenScopes::LTI_SCOPES.keys)
+    end
+
+    it "includes the hidden LTI scopes" do
+      expect(TokenScopes.non_route_scopes).to include(*TokenScopes::LTI_HIDDEN_SCOPES.keys)
+    end
+
+    it "does not include url:-prefixed API route scopes" do
+      expect(TokenScopes.non_route_scopes.none? { |s| s.start_with?("url:") }).to be true
+    end
+
+    it "is a subset of all_scopes" do
+      expect(TokenScopes.all_scopes).to include(*TokenScopes.non_route_scopes)
+    end
+  end
+
+  describe ".reset!" do
+    it "clears the non_route_scopes cache" do
+      original = TokenScopes.non_route_scopes
+      TokenScopes.reset!
+      expect(TokenScopes.non_route_scopes).not_to be(original)
+    end
+
+    it "clears the all_scopes cache" do
+      original = TokenScopes.all_scopes
+      TokenScopes.reset!
+      expect(TokenScopes.all_scopes).not_to be(original)
     end
   end
 
