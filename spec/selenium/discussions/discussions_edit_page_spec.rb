@@ -1159,7 +1159,7 @@ describe "discussions" do
             expect(module_item_assign_to_card.last).to contain_css(reply_to_topic_due_date_input_selector)
           end
 
-          it "shows required replies input on graded discussion with sub assignments", custom_timeout: 60 do
+          it "shows required replies input on graded discussion with sub assignments", custom_timeout: 60 do # flaky-fix: QE-90
             Account.site_admin.enable_feature!(:discussion_checkpoints)
             @course.account.enable_feature!(:discussion_checkpoints)
             # One student in the default section is enough to trigger the

@@ -98,12 +98,13 @@ describe "settings tabs" do
       assert_error_box("#account_notification_subject")
     end
 
-    it "edits an announcement" do
+    it "edits an announcement" do # flaky-fix: QE-141
       notification = account_notification(user: @user)
       initial_notification_start = notification.start_at
       initial_notification_end = notification.end_at
       get "/accounts/#{Account.default.id}/settings"
       f("#tab-announcements").click
+      wait_for_ajaximations
       edit_announcement(notification)
       notification.reload
       expect(notification.subject).to eq "edited subject"

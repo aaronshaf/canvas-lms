@@ -248,7 +248,8 @@ shared_context "in-process server selenium tests" do
         "DEV_HOST is not defined", # Federated Modules aren't configured to work in Selenium
         "NoSuchFrameException", # upgrading chrome version is throwing this for some testcases only in pipeline build
         "Uncaught Error: More value is provided", # upgrading chrome version is throwing this for some testcases only in pipeline build
-        "Support for this event type has been removed" # Mutation events removed from Chrome from July 2024
+        "Support for this event type has been removed", # Mutation events removed from Chrome from July 2024
+        "Session with given id not found" # flaky-fix: QE-141 — Chrome CDP artifact: emitted when a pending CDP command targets a detached iframe session (e.g. after type_in_tiny / switch_editor_views). Not a Canvas application error.
       ].freeze
 
       javascript_errors = browser_logs.select do |e|

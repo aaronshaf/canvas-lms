@@ -65,8 +65,8 @@ Derived from calibrating against 7 known-passing tests with measured timeouts.
 minimum_timeout = max(20,  H×6 + M×2 + 5)
 ```
 
-Round up to the nearest 5. Cap at 60 (system max). If result > 60, split the
-test.
+Round up to the nearest 5. Cap at 60 (system max). If result > 60, follow
+the optimisation procedure in Case 03 before splitting the test.
 
 The `+5` is fixed overhead: Selenium driver handshake, cookie setup, initial
 DOM settle.
@@ -257,12 +257,14 @@ flakiness; the race condition may warrant a separate investigation.
    pages (signals: helpers from `items_assign_to_tray.rb`, 10+ total date/time field
    fills). Round up to nearest 5. Cap at 60.
 
-4. **If result > 60:** look for unnecessary interactions first. Specifically:
-   - Shared helpers may contain RCE interactions (`set_answer_comment`,
-     `set_question_comment`, `type_in_tiny`) that this particular test does not
-     assert. Parameterise the helper (e.g. `with_comments: false`) before
-     raising the timeout.
-   - If interactions cannot be removed, split the test.
+4. **If result > 60:** the cap cannot be raised. Follow the optimisation
+   procedure in **Case 03** before splitting the test:
+   - Fix any `wait_for_new_page_load` race (bare call after navigation trigger).
+   - Remove `type_in_tiny` calls whose body text is never asserted.
+   - Skip form-field fills for fields not covered by final DB assertions.
+   - Parameterise shared helpers that run RCE interactions this test does not
+     assert (e.g. `with_comments: false` — see Case A above).
+   - If still > 60 after all optimisations, split the test.
 
 5. **If result ≤ 60:** update `custom_timeout`. If there was no `custom_timeout`
    annotation at all, add one.

@@ -40,7 +40,7 @@ describe "taking a quiz" do
         quiz_past_due.reload
       end
 
-      it 'shows the submission as late on the submission details page and marks it as "late"', custom_timeout: 40 do
+      it 'shows the submission as late on the submission details page and marks it as "late"', custom_timeout: 40 do # flaky-fix: QE-90
         take_and_answer_quiz(quiz: quiz_past_due)
         verify_quiz_submission_is_late
         verify_quiz_submission_is_late_in_speedgrader

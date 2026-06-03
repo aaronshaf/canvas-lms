@@ -374,7 +374,7 @@ describe "calendar2" do
         end
       end
 
-      it "can edit an all_day event in calendar", priority: "1" do
+      it "can edit an all_day event in calendar", priority: "1" do # flaky-fix: QE-141
         @date = Time.zone.now.beginning_of_day
         @event = make_event(start: @date, end: @date, title: "An all day event")
 
@@ -394,6 +394,7 @@ describe "calendar2" do
         edit_calendar_event_form_submit_button.click
         wait_for_ajaximations
         refresh_page
+        wait_for_ajaximations # FullCalendar fires its event-fetch AJAX after page init
         event_title_on_calendar.click
         expect(
           event_content.find_element(:css, ".event-details-timestring").text
@@ -680,7 +681,7 @@ describe "calendar2" do
         expect(ff(".fc-view-container .fc-content .fc-title").length).to equal(1)
       end
 
-      it "edits the event in calendar", priority: "1" do
+      it "edits the event in calendar", priority: "1" do # flaky-fix: QE-141
         get "/calendar2"
         event_title_on_calendar.click
         calendar_edit_event_link.click
@@ -696,6 +697,7 @@ describe "calendar2" do
         edit_calendar_event_form_submit_button.click
         wait_for_ajaximations
         refresh_page
+        wait_for_ajaximations # FullCalendar fires its event-fetch AJAX after page init
         event_title_on_calendar.click
         expect(
           event_content.find_element(:css, ".event-details-timestring").text

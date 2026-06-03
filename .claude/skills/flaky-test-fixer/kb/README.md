@@ -34,3 +34,11 @@ Cases are numbered sequentially: `case_01.md`, `case_02.md`, etc.
 See `case_01.md` in this folder for the reference example of the expected
 structure (context, failure sequence, correct fix, core rule, and dictionary
 of terms).
+
+## Style Guidelines
+
+`style.md` captures coding and annotation conventions that apply across all
+flaky-fix work — things like how to tag a fixed test with a JIRA reference.
+Each rule in that file is numbered (S-01, S-02, …) and cites the JIRA that
+introduced it. When adding a new convention, append it to `style.md` rather
+than scattering it across case files.

@@ -110,24 +110,28 @@ describe Checkpoints::SubAssignmentSubmissionSerializer do
           @external_user = User.create!(name: "External User")
         end
 
-        it "raises MissingSubAssignmentSubmissionError" do
+        it "raises MissingSubAssignmentSubmissionError" do # flaky-fix: QE-141
+          # sub_assignments has no guaranteed DB order, so either ID may be
+          # encountered first — match either to stay order-independent
           expect do
             described_class.serialize(assignment:, user_id: @external_user.id)
           end.to raise_error(
             described_class::MissingSubAssignmentSubmissionError,
-            /Submission is missing for SubAssignment #{sub_assignment1.id} and user #{@external_user.id}/
+            /Submission is missing for SubAssignment (#{sub_assignment1.id}|#{sub_assignment2.id}) and user #{@external_user.id}/
           )
         end
 
-        it "raises MissingSubAssignmentSubmissionError for sub assignment submission that is missing" do
+        it "raises MissingSubAssignmentSubmissionError for sub assignment submission that is missing" do # flaky-fix: QE-141
           submission1 = sub_assignment1.find_or_create_submission(student)
           submission1.delete
 
+          # sub_assignments has no guaranteed DB order, so either ID may be
+          # encountered first — match either to stay order-independent
           expect do
             described_class.serialize(assignment:, user_id: @external_user.id)
           end.to raise_error(
             described_class::MissingSubAssignmentSubmissionError,
-            /Submission is missing for SubAssignment #{sub_assignment1.id} and user #{@external_user.id}/
+            /Submission is missing for SubAssignment (#{sub_assignment1.id}|#{sub_assignment2.id}) and user #{@external_user.id}/
           )
         end
       end
