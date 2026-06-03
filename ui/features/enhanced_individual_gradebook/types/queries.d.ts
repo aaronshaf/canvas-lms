@@ -69,7 +69,10 @@ export type AssignmentConnection = {
   hasSubmittedSubmissions: boolean
   inClosedGradingPeriod: boolean | null
   checkpoints?: AssignmentCheckpoint[]
-  peerReviewSubAssignment?: Omit<AssignmentConnection, 'peerReviewSubAssignment' | 'checkpoints'> | null
+  peerReviewSubAssignment?: Omit<
+    AssignmentConnection,
+    'peerReviewSubAssignment' | 'checkpoints'
+  > | null
 }
 
 export type AssignmentGroupConnection = {
@@ -79,7 +82,7 @@ export type AssignmentGroupConnection = {
   rules: {
     dropLowest?: number
     dropHighest?: number
-    neverDrop?: string[]
+    neverDrop?: {id: string}[]
   }
   sisId: string | null
   state: string

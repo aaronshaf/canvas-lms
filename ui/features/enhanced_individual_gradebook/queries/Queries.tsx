@@ -118,6 +118,9 @@ export const GRADEBOOK_QUERY = gql`
           rules {
             dropHighest
             dropLowest
+            neverDrop {
+              id: _id
+            }
           }
           sisId
           state
@@ -435,6 +438,9 @@ export const GRADEBOOK_ASSIGNMENT_GROUPS_QUERY = gql`
           rules {
             dropHighest
             dropLowest
+            neverDrop {
+              id: _id
+            }
           }
           sisId
           state

@@ -125,6 +125,35 @@ describe('gradebookUtils', () => {
       })
     })
 
+    describe('drop rules', () => {
+      it('maps neverDrop assignment objects to an array of assignment ids', () => {
+        const assignment1 = createAssignment('1', 'Assignment 1')
+        const assignment2 = createAssignment('2', 'Assignment 2')
+        const assignmentGroup = createAssignmentGroup('1', [assignment1, assignment2])
+        assignmentGroup.rules = {dropLowest: 1, dropHighest: 0, neverDrop: [{id: '2'}]}
+
+        const result = mapAssignmentGroupQueryResults([assignmentGroup], emptyGradingPeriodMap)
+
+        // never_drop must be a list of string ids so the grade calculator can
+        // protect the assignment from being dropped by drop_lowest/drop_highest.
+        expect(result.mappedAssignmentGroupMap['1'].rules).toEqual({
+          drop_lowest: 1,
+          drop_highest: 0,
+          never_drop: ['2'],
+        })
+      })
+
+      it('leaves never_drop undefined when no neverDrop assignments are present', () => {
+        const assignment = createAssignment('1', 'Assignment 1')
+        const assignmentGroup = createAssignmentGroup('1', [assignment])
+        assignmentGroup.rules = {dropLowest: 1, dropHighest: 0}
+
+        const result = mapAssignmentGroupQueryResults([assignmentGroup], emptyGradingPeriodMap)
+
+        expect(result.mappedAssignmentGroupMap['1'].rules.never_drop).toBeUndefined()
+      })
+    })
+
     describe('with peer review sub assignments', () => {
       it('flattens peer review sub assignments after parent assignments', () => {
         const peerReviewSubAssignment = createAssignment('1-peer', 'Peer Review', {

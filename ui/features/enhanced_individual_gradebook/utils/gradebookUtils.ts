@@ -141,7 +141,7 @@ export function mapAssignmentGroupQueryResults(
         rules: {
           drop_lowest: curr.rules.dropLowest,
           drop_highest: curr.rules.dropHighest,
-          never_drop: curr.rules.neverDrop,
+          never_drop: curr.rules.neverDrop?.map(assignment => assignment.id),
         },
         id: curr.id,
         position: curr.position,
