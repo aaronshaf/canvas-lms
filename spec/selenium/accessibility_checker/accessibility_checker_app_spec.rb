@@ -27,35 +27,6 @@ describe "Accessibility Checker", :ignore_js_errors do
     end
 
     context "Accessibility navigation tab" do
-      it "displays the Accessibility tab when feature flags are enabled" do
-        @course.account.enable_feature!(:a11y_checker)
-        @course.enable_feature!(:a11y_checker_eap)
-
-        get "/courses/#{@course.id}"
-
-        accessibility_tab = f("#section-tabs a.accessibility")
-        expect(accessibility_tab).to be_displayed
-        expect(accessibility_tab.text).to eq("Accessibility")
-      end
-
-      it "does not display the Accessibility tab when account-level feature flag is disabled" do
-        @course.account.disable_feature!(:a11y_checker)
-        @course.enable_feature!(:a11y_checker_eap)
-
-        get "/courses/#{@course.id}"
-
-        expect(f("#section-tabs")).not_to contain_css("a.accessibility")
-      end
-
-      it "does not display the Accessibility tab when course-level feature flag is disabled" do
-        @course.account.enable_feature!(:a11y_checker)
-        @course.disable_feature!(:a11y_checker_eap)
-
-        get "/courses/#{@course.id}"
-
-        expect(f("#section-tabs")).not_to contain_css("a.accessibility")
-      end
-
       it "navigates to the Accessibility page when tab is clicked" do
         @course.account.enable_feature!(:a11y_checker)
         @course.enable_feature!(:a11y_checker_eap)
@@ -66,16 +37,6 @@ describe "Accessibility Checker", :ignore_js_errors do
         expect_new_page_load { accessibility_tab.click }
 
         expect(driver.current_url).to include("/courses/#{@course.id}/accessibility")
-      end
-
-      it "displays the Accessibility tab when a11y_checker_ga1 feature flag is enabled" do
-        @course.account.enable_feature!(:a11y_checker_ga1)
-
-        get "/courses/#{@course.id}"
-
-        accessibility_tab = f("#section-tabs a.accessibility")
-        expect(accessibility_tab).to be_displayed
-        expect(accessibility_tab.text).to eq("Accessibility")
       end
 
       it "navigates to the Accessibility page when tab is clicked with a11y_checker_ga1" do
@@ -161,15 +122,6 @@ describe "Accessibility Checker", :ignore_js_errors do
     end
 
     context "Accessibility navigation tab" do
-      it "does not display the Accessibility tab even when feature flags are enabled" do
-        @course.account.enable_feature!(:a11y_checker)
-        @course.enable_feature!(:a11y_checker_eap)
-
-        get "/courses/#{@course.id}"
-
-        expect(f("#section-tabs")).not_to contain_css("a.accessibility")
-      end
-
       it "does not allow direct access to the Accessibility page" do
         @course.account.enable_feature!(:a11y_checker)
         @course.enable_feature!(:a11y_checker_eap)
@@ -180,14 +132,6 @@ describe "Accessibility Checker", :ignore_js_errors do
         body_text = f("body").text.downcase
         expect(body_text).to include("access denied".downcase)
         expect(body_text).to include("you don't have access to view this resource.".downcase)
-      end
-
-      it "does not display the Accessibility tab even when a11y_checker_ga1 is enabled" do
-        @course.account.enable_feature!(:a11y_checker_ga1)
-
-        get "/courses/#{@course.id}"
-
-        expect(f("#section-tabs")).not_to contain_css("a.accessibility")
       end
 
       it "does not allow direct access to the Accessibility page with a11y_checker_ga1" do
