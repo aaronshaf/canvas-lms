@@ -69,6 +69,7 @@ module LocaleSelection
     return nil unless ACCEPT_LANGUAGE.match?(accept_language)
 
     supported_locales = locales_with_aliases.keys
+    default_locale = I18n.default_locale.to_s
 
     ranges = accept_language.downcase.split(SEPARATOR).map do |range|
       quality = (range =~ QUALITY_VALUE) ? $1.to_f : 1
@@ -88,14 +89,19 @@ module LocaleSelection
          best_range.last != 0
         [locale, best_range.last, ranges.index(best_range)]
       end
-    end.sort_by { |l, q, pos| [-q, pos, l.count("-"), l] }
+    end.sort_by { |l, q, pos| [-q, pos, (l == default_locale) ? 0 : 1, l.count("-"), l] }
     # wrt the sorting here, rfc2616 doesn't specify which tag is preferable
     # if there is a quality tie (due to prefix matching or otherwise).
     # technically they are equally acceptable.  we've decided to break ties
     # with:
     # * position listed in header (tie here comes from '*')
+    # * the default locale (so a bare '*' resolves to en rather than the
+    #   alphabetically-first locale, which happens to be Arabic)
     # * length of locale (shorter first)
     # * alphabetical
+    #
+    # the default-locale tiebreak comes before length so that it still wins
+    # even if the default locale is itself a regional variant (e.g. en-AU).
     #
     # this seems reasonable for scenarios like the following:
     #   given that i accept 'en'

@@ -82,6 +82,25 @@ describe LocaleSelection do
       expect(ls.infer_browser_locale("en, *", "ar" => nil, "en" => nil)).to eql("en")
     end
 
+    it "resolves a bare wildcard to the default locale rather than the first alphabetically" do
+      # a bare '*' means "any language is acceptable", so it should fall back
+      # to the default locale (en) instead of the alphabetically-first
+      # supported locale (ar)
+      expect(ls.infer_browser_locale("*", "ar" => nil, "en" => nil, "es" => nil)).to eql("en")
+    end
+
+    it "prefers the default locale only as a tiebreak, not over explicit preferences" do
+      # an explicitly-listed language still wins over the wildcard
+      expect(ls.infer_browser_locale("ar, *", "ar" => nil, "en" => nil)).to eql("ar")
+      # higher quality still wins regardless of the default
+      expect(ls.infer_browser_locale("ar;q=0.9, en;q=0.1", "ar" => nil, "en" => nil)).to eql("ar")
+    end
+
+    it "falls back to alphabetical when the default locale is not supported" do
+      # no en available, so the wildcard tiebreak has no default to prefer
+      expect(ls.infer_browser_locale("*", "ar" => nil, "es" => nil)).to eql("ar")
+    end
+
     it "handles aliases" do
       expect(ls.infer_browser_locale("zh-TW, *", "zh-TW" => "zh-Hant", "zh-Hant" => nil, "en" => nil)).to eql("zh-Hant")
     end
