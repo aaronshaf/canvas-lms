@@ -292,6 +292,14 @@ describe WikiPagesApiController, type: :request do
         end
       end
 
+      context "when block_editor_data is absent" do
+        it "does not call create_block_editor_data and succeeds" do
+          expect_any_instance_of(WikiPage).not_to receive(:create_block_editor_data)
+
+          create_wiki_page(@teacher, { title: "New Page", body: "<p>hello</p>" })
+        end
+      end
+
       context "when the feature flag is disabled" do
         before do
           @course.account.disable_feature!(:horizon_block_content_editor)
