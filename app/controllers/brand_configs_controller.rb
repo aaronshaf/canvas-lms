@@ -225,6 +225,9 @@ class BrandConfigsController < ApplicationController
   TEXTAREA_FORBIDDEN_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/
   TEXTAREA_MAX_LENGTH = 500
 
+  OVERRIDE_URL_REGEX = %r{\A(https?://[^\s\x00-\x1F\x7F'"<>()\\]+|/[^\s\x00-\x1F\x7F'"<>()\\]*)\z}
+  OVERRIDE_URL_MAX_LENGTH = 2048
+
   def process_variables(variables)
     return unless variables
 
@@ -275,6 +278,14 @@ class BrandConfigsController < ApplicationController
   def process_file(file)
     if file.is_a?(ActionDispatch::Http::UploadedFile)
       upload_file(file)
+    elsif file.is_a?(String)
+      return file if file.empty?
+
+      if file.length > OVERRIDE_URL_MAX_LENGTH || !file.match?(OVERRIDE_URL_REGEX)
+        raise ActionController::BadRequest, "invalid override URL"
+      end
+
+      file
     else
       file
     end

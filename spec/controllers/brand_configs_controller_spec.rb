@@ -174,6 +174,95 @@ describe BrandConfigsController do
       expect(json["brand_config"]["js_overrides"]).to be_present
     end
 
+    context "override URL processing" do
+      before { user_session(admin) }
+
+      %i[js_overrides css_overrides mobile_js_overrides mobile_css_overrides].each do |override|
+        context override.to_s do
+          # merge avoids mixing new-style and hash-rocket keys in the same literal
+          def override_params(override, url)
+            { account_id: @account.id, brand_config: bcin }.merge(override => url)
+          end
+
+          it "accepts a valid https:// URL" do
+            post "create", params: override_params(override, "https://cdn.example.com/app.js")
+            expect(response).to have_http_status(:ok)
+          end
+
+          it "accepts a valid http:// URL" do
+            post "create", params: override_params(override, "http://cdn.example.com/app.js")
+            expect(response).to have_http_status(:ok)
+          end
+
+          it "accepts a root-relative URL" do
+            post "create", params: override_params(override, "/assets/app.js")
+            expect(response).to have_http_status(:ok)
+          end
+
+          it "rejects javascript: scheme" do
+            post "create", params: override_params(override, "javascript:alert(1)")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects data: scheme" do
+            post "create", params: override_params(override, "data:text/html,<script>alert(1)</script>")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with a double-quote" do
+            post "create", params: override_params(override, 'https://example.com/app.js?x="1"')
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with a single-quote" do
+            post "create", params: override_params(override, "https://example.com/app.js?x='1'")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with angle brackets" do
+            post "create", params: override_params(override, "https://example.com/<script>")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with parentheses" do
+            post "create", params: override_params(override, "https://example.com/url(x)")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with a backslash" do
+            post "create", params: override_params(override, "https://example.com/path\\file")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL with a control character" do
+            post "create", params: override_params(override, "https://example.com/path\x00end")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "rejects a URL exceeding 2048 characters" do
+            post "create", params: override_params(override, "https://example.com/#{"a" * 2040}")
+            expect(response).to have_http_status(:bad_request)
+          end
+
+          it "accepts a URL at exactly 2048 characters" do
+            url = "https://example.com/" + ("a" * (2048 - "https://example.com/".length))
+            post "create", params: override_params(override, url)
+            expect(response).to have_http_status(:ok)
+          end
+        end
+      end
+
+      it "does not affect the UploadedFile branch" do
+        tf = Tempfile.new("test.js")
+        tf.write("test")
+        uf = ActionDispatch::Http::UploadedFile.new(tempfile: tf, filename: "test.js")
+        request.headers["CONTENT_TYPE"] = "multipart/form-data"
+        expect_any_instance_of(Attachment).to receive(:save_to_storage).and_return(true)
+        post "create", params: { account_id: @account.id, brand_config: bcin, js_overrides: uf }
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context "textarea variable processing" do
       it "sanitizes XSS attempts in textarea values" do
         user_session(admin)
