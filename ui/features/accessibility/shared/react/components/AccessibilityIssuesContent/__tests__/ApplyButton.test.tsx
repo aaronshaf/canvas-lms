@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ApplyButton from '../ApplyButton'
 
@@ -182,6 +182,102 @@ describe('ApplyButton', () => {
 
       const applyButton = screen.getByTestId('apply-button')
       expect(applyButton).not.toHaveFocus()
+    })
+  })
+
+  describe('apply button label', () => {
+    it('renders the apply button with a custom label from props', () => {
+      render(<ApplyButton {...defaultProps}>Merge links</ApplyButton>)
+
+      const applyButton = screen.getByTestId('apply-button')
+      expect(applyButton).toBeInTheDocument()
+      expect(applyButton).toHaveTextContent('Merge links')
+    })
+
+    it('renders a different rule-specific label when provided', () => {
+      render(<ApplyButton {...defaultProps}>Reformat</ApplyButton>)
+
+      const applyButton = screen.getByTestId('apply-button')
+      expect(applyButton).toBeInTheDocument()
+      expect(applyButton).toHaveTextContent('Reformat')
+    })
+  })
+
+  describe('undo state restoration', () => {
+    it('restores the enabled apply button and clears the fixed indicator after undo', async () => {
+      const {rerender} = render(
+        <ApplyButton {...defaultProps} isApplied={true}>
+          Apply
+        </ApplyButton>,
+      )
+
+      expect(screen.getByText('Issue fixed')).toBeInTheDocument()
+      const undoButton = screen.getByTestId('undo-button')
+      expect(undoButton).toBeInTheDocument()
+      expect(screen.queryByTestId('apply-button')).not.toBeInTheDocument()
+
+      await userEvent.click(undoButton)
+      expect(defaultProps.onUndo).toHaveBeenCalledTimes(1)
+
+      rerender(
+        <ApplyButton {...defaultProps} isApplied={false}>
+          Apply
+        </ApplyButton>,
+      )
+
+      const applyButton = screen.getByTestId('apply-button')
+      expect(applyButton).toBeInTheDocument()
+      expect(applyButton).not.toBeDisabled()
+      expect(applyButton).toHaveTextContent('Apply')
+      expect(screen.queryByText('Issue fixed')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('undo-button')).not.toBeInTheDocument()
+    })
+
+    it('restores the original rule-specific apply label after undo', async () => {
+      const {rerender} = render(
+        <ApplyButton {...defaultProps} isApplied={true}>
+          Merge links
+        </ApplyButton>,
+      )
+
+      expect(screen.getByText('Issue fixed')).toBeInTheDocument()
+      await userEvent.click(screen.getByTestId('undo-button'))
+
+      rerender(
+        <ApplyButton {...defaultProps} isApplied={false}>
+          Merge links
+        </ApplyButton>,
+      )
+
+      const applyButton = screen.getByTestId('apply-button')
+      expect(applyButton).toBeInTheDocument()
+      expect(applyButton).not.toBeDisabled()
+      expect(applyButton).toHaveTextContent('Merge links')
+      expect(screen.queryByText('Issue fixed')).not.toBeInTheDocument()
+    })
+
+    it('clears a custom undo message after undo restores the apply button', async () => {
+      const {rerender} = render(
+        <ApplyButton {...defaultProps} isApplied={true} undoMessage="Caption added">
+          Reformat
+        </ApplyButton>,
+      )
+
+      expect(screen.getByText('Caption added')).toBeInTheDocument()
+      await userEvent.click(screen.getByTestId('undo-button'))
+
+      rerender(
+        <ApplyButton {...defaultProps} isApplied={false} undoMessage="Caption added">
+          Reformat
+        </ApplyButton>,
+      )
+
+      const applyButton = screen.getByTestId('apply-button')
+      expect(applyButton).toBeInTheDocument()
+      expect(applyButton).not.toBeDisabled()
+      expect(applyButton).toHaveTextContent('Reformat')
+      expect(screen.queryByText('Caption added')).not.toBeInTheDocument()
+      expect(screen.queryByText('Issue fixed')).not.toBeInTheDocument()
     })
   })
 })
