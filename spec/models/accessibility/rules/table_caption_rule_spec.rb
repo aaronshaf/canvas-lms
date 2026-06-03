@@ -145,5 +145,13 @@ describe Accessibility::Rules::TableCaptionRule do
     it "returns the proper form" do
       expect(Accessibility::Rules::TableCaptionRule.new.form(nil).label).to eq("Table caption")
     end
+
+    it "defines a text-input caption control and an apply button labeled \"Add caption\"" do
+      form = Accessibility::Rules::TableCaptionRule.new.form(nil)
+
+      expect(form).to be_a(Accessibility::Forms::TextInputField)
+      expect(form.field_type).to eq("textinput")
+      expect(form.action).to eq("Add caption")
+    end
   end
 end

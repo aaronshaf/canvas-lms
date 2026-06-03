@@ -441,4 +441,10 @@ describe Accessibility::Rules::ListStructureRule do
       expect(preview.scan("<p>").length).to eq(2)
     end
   end
+
+  context "message string" do
+    it "returns the exact misformatted list message" do
+      expect(Accessibility::Rules::ListStructureRule.new.message).to eq("This looks like a list but isn't formatted as one.")
+    end
+  end
 end

@@ -104,4 +104,10 @@ describe Accessibility::Rules::AdjacentLinksRule do
       end
     end
   end
+
+  describe "#message" do
+    it "returns the issue description shown in the accessibility checker" do
+      expect(Accessibility::Rules::AdjacentLinksRule.new.message).to eq("These are two links that go to the same place. Turn them into one link to avoid repetition.")
+    end
+  end
 end

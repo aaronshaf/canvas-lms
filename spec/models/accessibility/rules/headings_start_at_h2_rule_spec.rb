@@ -81,4 +81,13 @@ describe Accessibility::Rules::HeadingsStartAtH2Rule do
       expect(form.action).to be_present
     end
   end
+
+  context "issue message" do
+    it "returns the exact H1 page hierarchy message" do
+      expect(described_class.new.message).to eq(
+        "This text is styled as a Heading 1, but there should only be one H1 on a web page — the page title. " \
+        "Use Heading 2 or lower (H2, H3, etc.) for your content headings instead."
+      )
+    end
+  end
 end
