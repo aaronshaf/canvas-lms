@@ -19,7 +19,6 @@
  */
 
 library "canvas-builds-library@${env.CANVAS_BUILDS_REFSPEC}"
-loadLocalLibrary('local-lib', 'build/new-jenkins/library')
 
 env.BUILD_REGISTRY_FQDN = configuration.buildRegistryFQDN()
 env.COMPOSE_FILE = 'docker-compose.new-jenkins-js.yml'

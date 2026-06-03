@@ -44,7 +44,6 @@ def buildParameters = [
 commitMessageFlag.setEnabled(env.GERRIT_EVENT_TYPE != 'change-merged')
 
 library "canvas-builds-library@${getCanvasBuildsRefspec()}"
-loadLocalLibrary('local-lib', 'build/new-jenkins/library')
 
 commitMessageFlag.setDefaultValues(commitMessageFlagDefaults() + commitMessageFlagPrivateDefaults())
 

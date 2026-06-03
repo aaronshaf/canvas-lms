@@ -19,7 +19,6 @@
  */
 
 library 'canvas-builds-library'
-loadLocalLibrary('local-lib', 'build/new-jenkins/library')
 
 // if the build never starts or gets into a node block, then we
 // can never load a file. and a very noisy/confusing error is thrown.

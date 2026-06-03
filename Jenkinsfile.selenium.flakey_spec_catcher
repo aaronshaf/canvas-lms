@@ -19,7 +19,6 @@
  */
 
 library "canvas-builds-library@${env.CANVAS_BUILDS_REFSPEC}"
-loadLocalLibrary('local-lib', 'build/new-jenkins/library')
 
 @groovy.transform.Field
 def partitions = []
