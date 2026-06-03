@@ -2451,6 +2451,41 @@ describe Assignment do
           expect(duplicating_assignment.workflow_state).to eq "unpublished"
         end
       end
+
+      context "with a New Quiz duplicate of a published quiz" do
+        let(:published_quiz_lti) do
+          @course.assignments.create!(workflow_state: "published", **assignment_valid_attributes).tap do |a|
+            allow(a).to receive(:quiz_lti?).and_return(true)
+          end
+        end
+
+        let(:duplicating_quiz_lti) do
+          @course.assignments.create!(
+            workflow_state: "duplicating",
+            duplicate_of: published_quiz_lti,
+            **assignment_valid_attributes
+          ).tap do |a|
+            allow(a).to receive(:quiz_lti?).and_return(true)
+          end
+        end
+
+        it "stays unpublished when duplicated via the Duplicate button" do
+          duplicating_quiz_lti.finish_duplicating
+          expect(duplicating_quiz_lti.workflow_state).to eq "unpublished"
+        end
+
+        it "mirrors the source's published state when copied by a migration" do
+          duplicating_quiz_lti.mark_duplicated_for_migration!
+          duplicating_quiz_lti.finish_duplicating
+          expect(duplicating_quiz_lti.workflow_state).to eq "published"
+        end
+
+        it "clears the migration marker after finishing" do
+          duplicating_quiz_lti.mark_duplicated_for_migration!
+          duplicating_quiz_lti.finish_duplicating
+          expect(duplicating_quiz_lti.duplicated_for_migration?).to be false
+        end
+      end
     end
 
     describe ".fail_to_duplicate" do

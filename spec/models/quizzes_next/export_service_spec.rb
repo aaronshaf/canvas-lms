@@ -183,6 +183,13 @@ describe QuizzesNext::ExportService do
       expect(new_assignment1.reload.duplicate_of).to eq(old_assignment1)
     end
 
+    it "marks the new assignment as duplicated for migration" do
+      allow(Canvas::LiveEvents).to receive(:quizzes_next_quiz_duplicated)
+
+      described_class.send_imported_content(new_course, content_migration, basic_import_content)
+      expect(new_assignment1.reload.duplicated_for_migration?).to be true
+    end
+
     it "sets the external_tool_tag to be the same as the old tag" do
       allow(Canvas::LiveEvents).to receive(:quizzes_next_quiz_duplicated)
 

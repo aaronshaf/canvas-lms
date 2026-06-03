@@ -75,6 +75,7 @@ module QuizzesNext
           new_assignment.duplicate_of = old_assignment
           new_assignment.workflow_state = "duplicating"
           new_assignment.duplication_started_at = Time.zone.now
+          new_assignment.mark_duplicated_for_migration!
           new_assignment.save!
         end
 

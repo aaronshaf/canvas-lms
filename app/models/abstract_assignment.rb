@@ -548,7 +548,12 @@ class AbstractAssignment < ApplicationRecord
       self.workflow_state = "outcome_alignment_cloning"
       start_outcome_alignment_service_clone
     else
-      self.workflow_state = ((duplicate_of&.workflow_state == "published" || !can_unpublish?) && !quiz_lti?) ? "published" : "unpublished"
+      source_published = duplicate_of&.workflow_state == "published" || !can_unpublish?
+      # If NQ was created via the Duplicate button, it should start Unpublished (QUIZ-14864).
+      # If it was copied by a course copy or bp sync, keep the original state (QUIZ-17930)
+      force_unpublished_new_quiz = quiz_lti? && !duplicated_for_migration?
+      self.workflow_state = (source_published && !force_unpublished_new_quiz) ? "published" : "unpublished"
+      clear_duplicated_for_migration!
     end
   end
 
@@ -557,6 +562,27 @@ class AbstractAssignment < ApplicationRecord
 
     self.workflow_state =
       (duplicate_of&.workflow_state == "published" || !can_unpublish?) ? "published" : "unpublished"
+    clear_duplicated_for_migration!
+  end
+
+  # A New Quiz can enter the "duplicating" state from two paths: a user clicking
+  # the Duplicate button, or a content migration (course copy / blueprint sync)
+  # copying the quiz. Because the quiz content is copied asynchronously by the
+  # Quiz LTI service, we persist which path started the copy so that
+  # #finish_duplicating (run later, from the service's callback) knows whether
+  # to preserve the source's published state.
+  def mark_duplicated_for_migration!
+    self.settings = (settings || {}).merge("duplicated_for_migration" => true)
+  end
+
+  def duplicated_for_migration?
+    !!settings&.dig("duplicated_for_migration")
+  end
+
+  def clear_duplicated_for_migration!
+    return unless settings&.key?("duplicated_for_migration")
+
+    self.settings = settings.except("duplicated_for_migration")
   end
 
   def can_duplicate?
