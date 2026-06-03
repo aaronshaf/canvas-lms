@@ -70,6 +70,25 @@ ENV COMPILE_ASSETS_NPM_INSTALL=0
 RUN unset RUBY && bundle config --global build.nokogiri --use-system-libraries && \
   bundle config --global build.ffi --enable-system-libffi && \
   bundle install
-RUN yarn install --frozen-lockfile || yarn install --frozen-lockfile --network-concurrency 1 && \
-  bin/rails canvas:compile_assets --trace && \
+# Token for the private @instructure Artifactory mirror (virtual-npm-internal),
+# host of the 11.7.x-SECURITY.* InstUI builds. Supplied via a BuildKit secret
+# mount (id=artifactory_token) so it never lands in build-args or `docker
+# history`; the .npmrc auth line is written and removed within this single RUN
+# so it never lands in a layer either. A failed strip aborts the build rather
+# than risk baking the credential.
+RUN --mount=type=secret,id=artifactory_token \
+  set -u; \
+  npmrc=.npmrc; \
+  if [ -s /run/secrets/artifactory_token ]; then \
+    reg='//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/'; \
+    printf '%s\n' \
+      "@instructure:registry=https:${reg}" \
+      "${reg}:_authToken=$(cat /run/secrets/artifactory_token)" \
+      "${reg}:always-auth=true" >> "$npmrc"; \
+  fi; \
+  ( yarn install --frozen-lockfile || yarn install --frozen-lockfile --network-concurrency 1 ); \
+  rc=$?; \
+  [ -f "$npmrc" ] && { sed -i '/virtual-npm-internal/d' "$npmrc" || exit 1; }; \
+  [ $rc -eq 0 ] || exit $rc; \
+  bin/rails canvas:compile_assets --trace; \
   rm -rf node_modules

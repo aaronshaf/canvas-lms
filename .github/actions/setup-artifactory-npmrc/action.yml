@@ -1,0 +1,28 @@
+name: Setup Artifactory npmrc
+description: >
+  Configure ~/.npmrc so the @instructure scope resolves from the private
+  Artifactory mirror (virtual-npm-internal), which hosts the InstUI
+  11.7.x-SECURITY.* builds that are not published to public npm.
+
+inputs:
+  artifactory-token:
+    description: Read-only Artifactory API key (org secret ARTIFACTORY_READONLY_API_KEY)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        ARTIFACTORY_TOKEN: ${{ inputs.artifactory-token }}
+      run: |
+        if [ -z "${ARTIFACTORY_TOKEN}" ]; then
+          echo "::error::ARTIFACTORY_READONLY_API_KEY is empty - @instructure private packages will 404. Is the org secret available to this workflow (check for environment scoping)?"
+          exit 1
+        fi
+        reg='//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/'
+        {
+          echo "@instructure:registry=https:${reg}"
+          echo "${reg}:_authToken=${ARTIFACTORY_TOKEN}"
+          echo "${reg}:always-auth=true"
+        } >> "$HOME/.npmrc"

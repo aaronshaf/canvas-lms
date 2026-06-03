@@ -3,6 +3,28 @@ FROM local/ruby-runner
 RUN --mount=type=bind,from=local/cache-helper,source=/tmp/dst,target=/cache-helper \
   tar --no-same-owner -xf /cache-helper/yarn-runner.tar -C ${APP_HOME}
 
-RUN set -eux; \
-  (DISABLE_POSTINSTALL=1 yarn install || DISABLE_POSTINSTALL=1 yarn install --network-concurrency 1) \
-  && yarn cache clean
+# Token for the private @instructure Artifactory mirror (virtual-npm-internal),
+# which hosts the 11.7.x-SECURITY.* InstUI builds. Supplied via a BuildKit secret
+# mount (id=artifactory_token) so the value never lands in build-args or
+# `docker history`; the .npmrc auth line is written and removed within the single
+# RUN below so it never lands in a layer either.
+#
+# NOTE: errexit is intentionally not set; we capture yarn's exit code so the
+# token line is always stripped from .npmrc (even on install failure) before
+# the layer is finalized. A failed strip aborts the build rather than risk
+# baking the credential.
+RUN --mount=type=secret,id=artifactory_token \
+  set -u; \
+  npmrc="${APP_HOME}/.npmrc"; \
+  if [ -s /run/secrets/artifactory_token ]; then \
+    reg='//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/'; \
+    printf '%s\n' \
+      "@instructure:registry=https:${reg}" \
+      "${reg}:_authToken=$(cat /run/secrets/artifactory_token)" \
+      "${reg}:always-auth=true" >> "$npmrc"; \
+  fi; \
+  ( DISABLE_POSTINSTALL=1 yarn install || DISABLE_POSTINSTALL=1 yarn install --network-concurrency 1 ); \
+  rc=$?; \
+  [ -f "$npmrc" ] && { sed -i '/virtual-npm-internal/d' "$npmrc" || exit 1; }; \
+  yarn cache clean || true; \
+  exit $rc

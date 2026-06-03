@@ -38,6 +38,9 @@ WORKSPACE=${WORKSPACE:-$(pwd)}
 
 export CACHE_VERSION="2025-02-11.1"
 export DOCKER_BUILDKIT=1
+# Define (possibly empty) so the BuildKit secret mount below always resolves;
+# an unset env= source would make `docker build --secret` fail outright.
+export ARTIFACTORY_READONLY_API_KEY="${ARTIFACTORY_READONLY_API_KEY:-}"
 
 if [[ "$WRITE_BUILD_CACHE" == "1" ]]; then
   export USE_BUILD_CACHE=1
@@ -191,6 +194,7 @@ if [[ -z "${WEBPACK_ASSETS_SELECTED_TAG}" || "${FORCE_BUILD_WEBPACK-0}" == "1" ]
       tag_many $RUBY_RUNNER_SELECTED_TAG local/ruby-runner ${RUBY_RUNNER_TAGS[SAVE_TAG]}
 
       docker build \
+        --secret id=artifactory_token,env=ARTIFACTORY_READONLY_API_KEY \
         --label "BASE_RUNNER_SELECTED_TAG=$BASE_RUNNER_SELECTED_TAG" \
         --label "RUBY_RUNNER_SELECTED_TAG=$RUBY_RUNNER_SELECTED_TAG" \
         --tag "${YARN_RUNNER_TAGS[SAVE_TAG]}" \
