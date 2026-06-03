@@ -11802,9 +11802,9 @@ he:
     assignment_changed: 
       email: 
         body: |-
-            המשימה "%{title}" בקורס %{course} שונתה.  
+            המשימה "%{title}" בקורס %{course} שונתה.
             
-            יש להקליק כאן כדי לעיין בה: 
+            יש להקליק כאן כדי לעיין בה:
             %{url}
         html: 
           body: "המשימה \"%{title}\" בקורס %{course} שונתה."
