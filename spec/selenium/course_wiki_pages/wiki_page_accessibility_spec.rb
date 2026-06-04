@@ -249,24 +249,6 @@ describe "Wiki Pages" do
         wait_for_ajaximations
       end
 
-      it "alerts user if navigating away from page with unsaved RCE changes", priority: "1" do
-        skip "QE Team will revisit due to chrome update TESTOPS-232 2025-07-23"
-        add_text_to_tiny("derp")
-        course_home_nav_menu.click
-        expect(driver.switch_to.alert).to be_present
-        driver.switch_to.alert.accept
-      end
-
-      it "alerts user if navigating away from page with unsaved html changes", priority: "1" do
-        skip "QE Team will revisit due to chrome update TESTOPS-232 2025-07-23"
-        skip_if_safari(:alert)
-        switch_editor_views
-        wiki_page_body.send_keys("derp")
-        fln("Home").click
-        expect(driver.switch_to.alert).to be_present
-        driver.switch_to.alert.accept
-      end
-
       it "does not save changes when navigating away and not saving", priority: "1" do
         skip_if_safari(:alert)
         switch_editor_views
@@ -276,17 +258,6 @@ describe "Wiki Pages" do
         # driver.switch_to.alert.accept
         get "/courses/#{@course.id}/pages/bar/edit"
         expect(f("textarea")).not_to include_text("derp")
-      end
-
-      it "alerts user if navigating away from page after title change", priority: "1" do
-        skip "QE Team will revisit due to chrome update TESTOPS-232 2025-07-23"
-        skip_if_safari(:alert)
-        switch_editor_views
-        edit_page_title_input.clear
-        edit_page_title_input.send_keys("derpy-title")
-        fln("Home").click
-        expect(driver.switch_to.alert).to be_present
-        driver.switch_to.alert.accept
       end
     end
   end
