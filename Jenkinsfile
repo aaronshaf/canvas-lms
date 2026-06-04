@@ -47,16 +47,17 @@ library "canvas-builds-library@${getCanvasBuildsRefspec()}"
 
 commitMessageFlag.setDefaultValues(commitMessageFlagDefaults() + commitMessageFlagPrivateDefaults())
 
-// Urgent hotfixes route to a dedicated lockable resource so they bypass the
-// saturated canvas_build_global_mutex queue. pipelineHelpers.isHotfixUrgent()
-// parses the commit message directly, so this applies to both the pre-merge
-// patchset build and the post-merge change-merged build.
+// Urgent hotfixes ([hotfix-urgent] in the commit message) bypass the saturated
+// canvas_build_global_mutex lock queue via a dedicated canvas_hotfix lock. Node
+// selection — including the dedicated canvas-hotfix pool — is handled centrally
+// by nodeLabel(), which every triggered sub-build also uses, so the whole
+// hotfix pipeline stays out of the contended canvas-docker pool.
 def buildLockLabel = pipelineHelpers.isHotfixUrgent() ? 'canvas_hotfix' : 'canvas_build_global_mutex'
 
 pipelineHelpers.preBuildChecks()
 
 pipeline {
-  agent { label 'canvas-docker' }
+  agent { label nodeLabel() }
 
   options {
     skipDefaultCheckout()
