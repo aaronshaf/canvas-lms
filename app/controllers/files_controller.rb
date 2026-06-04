@@ -894,9 +894,9 @@ class FilesController < ApplicationController
     # download param because the download param is used all over the place to mean stuff
     # other than actually download the file. Long term we probably ought to audit the files
     # controller, make download mean download, and remove download_frd.
-    if params[:inline] && !params[:download_frd] && !active_svg_payload?(attachment) && !active_html_payload?(attachment) && attachment.content_type && (attachment.content_type&.start_with?("text") || attachment.mime_class == "text" || attachment.mime_class == "html" || attachment.mime_class == "code" || attachment.mime_class == "image")
+    if params[:inline] && !params[:download_frd] && !active_svg_payload?(attachment) && attachment.content_type && (attachment.content_type&.start_with?("text") || attachment.mime_class == "text" || attachment.mime_class == "html" || attachment.mime_class == "code" || attachment.mime_class == "image")
       send_stored_file(attachment)
-    elsif attachment.inline_content? && !params[:download_frd] && !@context.is_a?(AssessmentQuestion) && !active_svg_payload?(attachment) && !active_html_payload?(attachment)
+    elsif attachment.inline_content? && !params[:download_frd] && !@context.is_a?(AssessmentQuestion) && !active_svg_payload?(attachment)
       if params[:file_path] || !params[:wrap]
         send_stored_file(attachment)
       else
@@ -921,29 +921,6 @@ class FilesController < ApplicationController
     attachment.content_type.to_s.start_with?("image/svg")
   end
   protected :active_svg_payload?
-
-  # HTML and XML-family content render as active documents: <script>,
-  # on* handlers, meta-refresh, javascript: URIs (and, for XML with
-  # the XHTML namespace, embedded <script>) all execute when the file
-  # is fetched with Content-Disposition: inline. With a separate
-  # files_domain configured, the file is served on a sandboxed origin
-  # so any XSS is contained off the app origin. Without one, the file
-  # renders on the app origin and any uploader — including a student
-  # via a submission attachment — can pop XSS in the viewing user's
-  # session. In that case force the attachment branch so the browser
-  # saves the file instead of rendering it.
-  def active_html_payload?(attachment)
-    return false if HostUrl.has_file_host?
-
-    attachment.content_type.to_s.start_with?(
-      "text/html",
-      "application/xhtml",
-      "text/xml",
-      "application/xml",
-      "text/xsl"
-    )
-  end
-  protected :active_html_payload?
   protected :send_attachment
 
   def send_stored_file(attachment, inline: true)
