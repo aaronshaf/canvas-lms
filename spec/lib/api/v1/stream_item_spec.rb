@@ -27,12 +27,12 @@ describe "Api::V1::StreamItem" do
     end
 
     before do
-      @current_user = @student
       @context = @course
     end
 
     def render_stream_with(paginate_url)
-      api_render_stream(contexts: [@course], paginate_url:)
+      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
+      api_render_stream(contexts: [@course], paginate_url:, current_principal: principal)
     end
 
     it "raises ArgumentError for an unknown method name" do
