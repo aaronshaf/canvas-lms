@@ -160,7 +160,7 @@ class AnonymousOrModerationEvent < ApplicationRecord
       "student"
     elsif assignment.moderated_grading? && assignment.final_grader == user
       "final_grader"
-    elsif assignment.course.account_membership_allows(user)
+    elsif assignment.course.account_membership_allows?(user)
       "admin"
     else
       "grader"

@@ -148,7 +148,7 @@ class SubmissionComment < ApplicationRecord
     return if author_id.blank? || submission.posted? || submission.assignment.post_manually?
 
     course = submission.assignment.course
-    if course.instructor_ids.include?(author.id) || course.account_membership_allows(author)
+    if course.instructor_ids.include?(author.id) || course.account_membership_allows?(author)
       submission.update!(posted_at: Time.zone.now)
     end
   end

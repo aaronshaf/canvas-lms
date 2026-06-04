@@ -88,7 +88,7 @@ module SpeedGrader
         workflow_state
       ]
 
-      if !anonymize_students? || course.account_membership_allows(current_principal)
+      if !anonymize_students? || course.account_membership_allows?(current_principal)
         attachment_json_fields << :viewed_at
       end
 

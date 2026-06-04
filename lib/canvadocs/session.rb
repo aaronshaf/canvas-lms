@@ -116,7 +116,7 @@ module Canvadocs
       return true if is_teacher
 
       course = submissions.first.assignment.course
-      course.account_membership_allows(user)
+      course.account_membership_allows?(user)
     end
     private :managing?
 

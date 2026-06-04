@@ -1521,7 +1521,7 @@ class DiscussionTopic < ApplicationRecord
       if assignment_id
         context.grants_right?(principal, session, :manage_assignments_edit)
       else
-        context.user_is_admin?(principal.user) || context.account_membership_allows(principal.user) || !context.visibility_limited_to_course_sections?(principal.user)
+        context.user_is_admin?(principal.user) || !context.visibility_limited_to_course_sections?(principal.user) || context.account_membership_allows(principal.user)
       end
     end
     can :manage_assign_to
@@ -1532,7 +1532,7 @@ class DiscussionTopic < ApplicationRecord
       if assignment_id
         context.grants_right?(principal, session, :manage_assignments_add)
       else
-        context.user_is_admin?(principal.user) || context.account_membership_allows(principal.user) || !context.visibility_limited_to_course_sections?(principal.user)
+        context.user_is_admin?(principal.user) || !context.visibility_limited_to_course_sections?(principal.user) || context.account_membership_allows(principal.user)
       end
     end
     can :create_assign_to

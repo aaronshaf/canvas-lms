@@ -216,7 +216,7 @@ class GradebookImporter
     # preload periods to avoid N+1s
     periods = GradingPeriod.for(@context)
     # preload is_admin to avoid N+1
-    is_admin = @context.account_membership_allows(@user)
+    is_admin = @context.account_membership_allows?(@user)
     # Preload effective due dates to avoid N+1s
     effective_due_dates = EffectiveDueDates.for_course(@context, @all_assignments.values)
 

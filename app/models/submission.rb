@@ -2031,7 +2031,7 @@ class Submission < ApplicationRecord
     return :not_applicable if deleted?
     return :unpublished unless assignment.published?
     return :cant_manage_grades unless context.grants_right?(user, nil, :manage_grades)
-    return :account_admin if context.account_membership_allows(user)
+    return :account_admin if context.account_membership_allows?(user)
 
     if grading_period&.closed?
       :assignment_in_closed_grading_period
@@ -3819,7 +3819,7 @@ class Submission < ApplicationRecord
     return false if draft || provisional
     return false if author.blank?
 
-    assignment.context.instructor_ids.include?(author.id) || assignment.context.account_membership_allows(author)
+    assignment.context.instructor_ids.include?(author.id) || assignment.context.account_membership_allows?(author)
   end
 
   def handle_posted_at_changed

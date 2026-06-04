@@ -4658,7 +4658,7 @@ class CoursesController < ApplicationController
 
   def can_change_group_weighting_scheme?
     return true unless @course.grading_periods?
-    return true if @course.account_membership_allows(@current_user)
+    return true if @course.account_membership_allows?(@current_user)
 
     !@course.any_assignment_in_closed_grading_period?
   end

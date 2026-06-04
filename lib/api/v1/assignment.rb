@@ -997,7 +997,7 @@ module Api::V1::Assignment
   end
 
   def assignment_editable_fields_valid?(assignment, user)
-    return true if assignment.context.account_membership_allows(user)
+    return true if assignment.context.account_membership_allows?(user)
     # if not in closed grading period editable fields are valid
     return true unless assignment.in_closed_grading_period?
     # if assignment was not and is still not gradeable fields are valid

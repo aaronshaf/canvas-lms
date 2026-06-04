@@ -136,7 +136,7 @@ module CoursesHelper
     enrollment = enrollments ? enrollments[user.id] : course.enrollments.find_by(user:)
 
     if enrollment.nil?
-      return course.account_membership_allows(user) ? "admin" : nil
+      return course.account_membership_allows?(user) ? "admin" : nil
     end
 
     type = enrollment.type.remove(/Enrollment/).downcase

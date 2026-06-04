@@ -1150,7 +1150,7 @@ class Quizzes::Quiz < ApplicationRecord
 
     given do |principal, session|
       context.grants_right?(principal, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(principal&.user) || !due_for_any_student_in_closed_grading_period?)
+        (!due_for_any_student_in_closed_grading_period? || context.account_membership_allows(principal&.user))
     end
     can :delete
 

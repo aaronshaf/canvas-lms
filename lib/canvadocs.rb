@@ -297,7 +297,7 @@ module Canvadocs
     def peer_review_user_filter(submission, current_user, enrollments)
       # Submitter, instructors, and admins should always see assessors' annotations.
       is_instructor = submission.course.participating_instructors.include?(current_user)
-      is_admin = submission.course.account_membership_allows(current_user)
+      is_admin = submission.course.account_membership_allows?(current_user)
       users_for_filter = if current_user == submission.user || is_instructor || is_admin
                            User.where(id: submission.assessment_requests.pluck(:assessor_id)).to_a
                          else

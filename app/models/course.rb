@@ -2491,7 +2491,7 @@ class Course < ApplicationRecord
   end
 
   # Since this method can return AdheresToPolicy::JustifiedFailure, it must be last in a `given` block
-  # or must be explicitly checked for truth
+  # or must be explicitly checked for truth (use `account_membership_allows?` to get a simple true/false)
   def account_membership_allows(user, permission = nil)
     return false unless user
 
@@ -2512,6 +2512,13 @@ class Course < ApplicationRecord
         results.find { |r| r.is_a?(AdheresToPolicy::JustifiedFailure) } || false
       end
     end
+  end
+
+  def account_membership_allows?(user, permission = nil)
+    result = account_membership_allows(user, permission)
+    return result.success? if result.is_a?(AdheresToPolicy::Result)
+
+    result
   end
 
   def grade_publishing_status_translation(status, message)

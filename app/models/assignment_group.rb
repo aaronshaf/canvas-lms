@@ -112,7 +112,7 @@ class AssignmentGroup < ApplicationRecord
 
     given do |principal, session|
       context.grants_right?(principal, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(principal&.user) || !any_assignment_in_closed_grading_period?)
+        (!any_assignment_in_closed_grading_period? || context.account_membership_allows(principal&.user))
     end
     can :delete
   end

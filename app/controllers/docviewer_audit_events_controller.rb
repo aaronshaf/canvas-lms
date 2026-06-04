@@ -67,7 +67,7 @@ class DocviewerAuditEventsController < ApplicationController
   private
 
   def admin_or_student(user, course)
-    return true if course.account_membership_allows(user)
+    return true if course.account_membership_allows?(user)
 
     enrollment = user.enrollments.find_by!(course:)
     enrollment.student_or_fake_student?

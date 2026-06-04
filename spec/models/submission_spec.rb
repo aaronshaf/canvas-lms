@@ -2975,8 +2975,8 @@ describe Submission do
       @student = User.new
       @student.id = 42
 
-      allow(@course).to receive(:account_membership_allows).with(@grader).and_return(true)
-      allow(@course).to receive(:grants_right?).with(@grader, nil, :manage_grades).and_return(true)
+      allow(@course).to receive(:account_membership_allows).with(having_attributes(user: @grader), nil).and_return(true)
+      allow(@course).to receive(:grants_right?).with(having_attributes(user: @grader), nil, :manage_grades).and_return(true)
 
       @assignment.course = @course
       allow(@assignment).to receive(:published?).and_return(true)
@@ -3010,7 +3010,7 @@ describe Submission do
 
     context "when the grader does not have the right to manage grades for the course" do
       before do
-        allow(@course).to receive(:grants_right?).with(@grader, nil, :manage_grades).and_return(false)
+        allow(@course).to receive(:grants_right?).with(having_attributes(user: @grader), nil, :manage_grades).and_return(false)
 
         @status = @submission.grants_right?(@grader, :grade)
       end
@@ -3026,7 +3026,7 @@ describe Submission do
 
     context "when the grader is a teacher and the assignment is in a closed grading period" do
       before do
-        allow(@course).to receive(:account_membership_allows).with(@grader).and_return(false)
+        allow(@course).to receive(:account_membership_allows).with(having_attributes(user: @grader), nil).and_return(false)
         grading_period = instance_double(GradingPeriod, closed?: true)
         allow(@submission).to receive(:grading_period).and_return(grading_period)
 
@@ -3044,7 +3044,7 @@ describe Submission do
 
     context "when grader_id is a teacher's id and the assignment is in a closed grading period" do
       before do
-        allow(@course).to receive(:account_membership_allows).with(@grader).and_return(false)
+        allow(@course).to receive(:account_membership_allows).with(having_attributes(user: @grader), nil).and_return(false)
         grading_period = instance_double(GradingPeriod, closed?: true)
         allow(@submission).to receive(:grading_period).and_return(grading_period)
         @submission.grader = nil
@@ -3064,7 +3064,7 @@ describe Submission do
 
     it 'returns true if the grader is an admin even if the assignment is in
         a closed grading period' do
-      allow(@course).to receive(:account_membership_allows).with(@grader).and_return(true)
+      allow(@course).to receive(:account_membership_allows).with(having_attributes(user: @grader), nil).and_return(true)
       grading_period = instance_double(GradingPeriod, closed?: false)
       allow(@submission).to receive(:grading_period).and_return(grading_period)
 

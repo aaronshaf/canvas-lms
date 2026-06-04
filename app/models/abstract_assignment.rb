@@ -2219,7 +2219,7 @@ class AbstractAssignment < ApplicationRecord
 
     given do |principal, session|
       context.grants_right?(principal, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(principal&.user) || !in_closed_grading_period?)
+        (!in_closed_grading_period? || context.account_membership_allows(principal&.user))
     end
     can :delete
 
@@ -4184,7 +4184,7 @@ class AbstractAssignment < ApplicationRecord
   def permits_moderation?(user)
     return false unless user
 
-    final_grader_id == user.id || context.account_membership_allows(user, :select_final_grade)
+    final_grader_id == user.id || context.account_membership_allows?(user, :select_final_grade)
   end
 
   def available_moderators
@@ -4250,7 +4250,7 @@ class AbstractAssignment < ApplicationRecord
     return true unless moderated_grading? && !grades_published?
 
     return grader_names_visible_to_final_grader? if final_grader_id == user.id
-    return true if context.account_membership_allows(user, :select_final_grade)
+    return true if context.account_membership_allows?(user, :select_final_grade)
     return false unless grader_comments_visible_to_graders?
 
     !graders_anonymous_to_graders?
@@ -4260,7 +4260,7 @@ class AbstractAssignment < ApplicationRecord
     return false unless context.grants_any_right?(user, :manage_grades, :view_all_grades)
     return true unless moderated_grading?
 
-    return true if final_grader_id == user.id || context.account_membership_allows(user, :select_final_grade)
+    return true if final_grader_id == user.id || context.account_membership_allows?(user, :select_final_grade)
 
     grader_comments_visible_to_graders?
   end

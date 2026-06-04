@@ -206,7 +206,7 @@ module Api::V1::Submission
       end
     end
 
-    if params[:anonymize_user_id] || context.account_membership_allows(current_principal)
+    if params[:anonymize_user_id] || context.account_membership_allows?(current_principal)
       hash["anonymous_id"] = submission.anonymous_id
     end
 

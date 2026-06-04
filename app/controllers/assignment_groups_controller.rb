@@ -512,7 +512,7 @@ class AssignmentGroupsController < ApplicationController
 
   def can_reorder_assignments?(assignments, group)
     return true unless @context.grading_periods?
-    return true if @context.account_membership_allows(@current_user)
+    return true if @context.account_membership_allows?(@current_user)
 
     effective_due_dates = EffectiveDueDates.for_course(@context, assignments)
     assignments.none? do |assignment|
