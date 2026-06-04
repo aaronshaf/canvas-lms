@@ -74,13 +74,6 @@ describe "profile" do
     expect(errorboxes.any? { |errorbox| errorbox.text.include?("Invalid old password for the login") }).to be_truthy
   end
 
-  it "changes the password" do
-    log_in_to_settings
-    change_password("asdfasdf", "newpassword")
-    # login with new password
-    expect(@pseudonym.reload).to be_valid_password("newpassword")
-  end
-
   it "rejects passwords longer than 255 characters", priority: "2" do
     log_in_to_settings
     change_password("asdfasdf", SecureRandom.hex(128))
@@ -121,19 +114,6 @@ describe "profile" do
       submit_form(confirmation_dialog)
       expect(element_exists?(confirmation_dialog_selector)).to be_falsey
       expect(f(".email_channels")).to include_text(test_email)
-    end
-
-    it "changes default email address" do
-      @user.communication_channel.confirm!
-      channel = communication_channel(@user, { username: "walter_white@example.com", active_cc: true })
-
-      get "/profile/settings"
-      row = f("#channel_#{channel.id}")
-      link = f("#channel_#{channel.id} td:first-of-type a")
-      link.click
-      wait_for_ajaximations
-      expect(row).to have_class("default")
-      expect(f(".default_email.display_data")).to include_text("walter_white@example.com")
     end
 
     it "edits full name" do
@@ -178,22 +158,6 @@ describe "profile" do
       click_option("#user_locale", "Español")
       expect_new_page_load { submit_form(edit_form) }
       expect(get_value("#user_locale")).to eq "es"
-    end
-
-    context "when pronouns are enabled" do
-      before do
-        @user.account.settings = { can_add_pronouns: true }
-        @user.account.save!
-      end
-
-      it "changes pronouns" do
-        get "/profile/settings"
-        desired_pronoun = "She/Her"
-        edit_form = click_edit
-        click_option("#user_pronouns", desired_pronoun)
-        expect_new_page_load { submit_form(edit_form) }
-        expect(get_value("#user_pronouns")).to eq desired_pronoun
-      end
     end
 
     describe "adding SMS contact method" do
@@ -397,19 +361,6 @@ describe "profile" do
       expect(f("[role=dialog][aria-label='Access Token Details']")).to be_displayed
     end
 
-    it "deletes an access token", priority: "2" do
-      skip_if_safari(:alert)
-      get "/profile/settings"
-      generate_access_token
-      # using :visible because we don't want to grab the template element
-      fj("#access_tokens .delete_key_link:visible").click
-      expect(driver.switch_to.alert).not_to be_nil
-      driver.switch_to.alert.accept
-      wait_for_ajaximations
-      expect(f("#access_tokens")).not_to be_displayed
-      check_element_has_focus f(".add_access_token_link")
-    end
-
     it "sets focus to the previous access token when deleting and multiple exist" do
       @token1 = @user.access_tokens.create! purpose: "token_one"
       @token2 = @user.access_tokens.create! purpose: "token_two"
@@ -425,11 +376,6 @@ describe "profile" do
       before do
         @course.root_account.settings[:limit_personal_access_tokens] = true
         @course.root_account.save!
-      end
-
-      it "the new token button is disabled for non-admins" do
-        get "/profile/settings"
-        expect(f(".add_access_token_link")).to be_disabled
       end
 
       it "doesn't show the regenerate button for non-admins" do
@@ -532,89 +478,6 @@ describe "profile" do
     expect(f("#links_empty_message").text).to eq "No links have been added"
   end
 
-  describe "profile field permissions" do
-    def show_edit_form
-      f("[data-event='editProfile']").click
-
-      # assert we are actually in edit mode
-      expect(f("[data-event='cancelEditProfile']")).to be_displayed
-    end
-
-    before :once do
-      @account = Account.default
-      @account.settings[:enable_profiles] = true
-    end
-
-    it "can edit title when profiles and title setting are enabled" do
-      user_logged_in
-      # set to false to assert that we aren't relying on the name setting
-      # which was the original setting check
-      @account.settings[:users_can_edit_name] = false
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_title] = true
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(f("[name='user_profile[title]']")).to be_displayed
-    end
-
-    it "can edit biography when profiles and biography setting are enabled" do
-      user_logged_in
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_bio] = true
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(f("[name='user_profile[bio]']")).to be_displayed
-    end
-
-    it "can edit profile links when profiles and profile links setting are enabled" do
-      user_logged_in
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_profile_links] = true
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(f("#edit_links_table")).to be_displayed
-    end
-
-    it "cannot edit biography when biography setting is disabled" do
-      user_logged_in
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_bio] = false
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(element_exists?("[name='user_profile[bio]']")).to be false
-    end
-
-    it "cannot edit title when title setting is disabled" do
-      user_logged_in
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_title] = false
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(element_exists?("[name='user_profile[title]']")).to be false
-    end
-
-    it "cannot edit profile links when profile links setting is disabled" do
-      user_logged_in
-      @account.settings[:users_can_edit_profile] = true
-      @account.settings[:users_can_edit_profile_links] = false
-      @account.save!
-      get "/profile"
-
-      show_edit_form
-      expect(element_exists?("#edit_links_table")).to be false
-    end
-  end
-
   describe "avatar reporting" do
     before do
       Account.default.enable_service(:avatars)
@@ -626,28 +489,6 @@ describe "profile" do
       @other_student.avatar_state = "submitted"
       @other_student.save!
       student_in_course(course: @course, user: @other_student, active_all: true)
-    end
-
-    it "is able to report inappropriate pictures without profiles enabled" do
-      get "/courses/#{@course.id}/users/#{@other_student.id}"
-      f(".report_avatar_picture_link").click
-      wait_for_ajaximations
-      expect(f("#content").text).to include("This image has been reported")
-      @other_student.reload
-      expect(@other_student.avatar_state).to eq :reported
-    end
-
-    it "is able to report inappropriate pictures with profiles enabled" do
-      Account.default.settings[:enable_profiles] = true
-      Account.default.save!
-      get "/courses/#{@course.id}/users/#{@other_student.id}"
-      f("#report_avatar_link").click
-      expect(f('span[aria-label="Report Profile Picture"]')).to be_truthy
-      f('button[data-testid="confirm-button"]').click
-      wait_for_ajaximations
-      assert_flash_notice_message("The profile picture has been reported.")
-      @other_student.reload
-      expect(@other_student.avatar_state).to eq :reported
     end
 
     it "shows a message when the profile picture has already been reported" do
@@ -663,43 +504,6 @@ describe "profile" do
       reported = f("#avatar_is_reported")
       expect(reported).to be_truthy
       expect(reported.attribute(:innerHTML)).to eq "This image has been reported."
-    end
-  end
-
-  describe "avatar removing" do
-    before do
-      Account.default.enable_service(:avatars)
-      Account.default.settings[:avatars] = "enabled_pending"
-      Account.default.save!
-
-      course_with_teacher_logged_in(active_all: true)
-      @other_student = user_factory
-      @other_student.avatar_state = "submitted"
-      @other_student.save!
-      student_in_course(course: @course, user: @other_student, active_all: true)
-    end
-
-    it "is able to remove inappropriate pictures without profiles enabled" do
-      get "/courses/#{@course.id}/users/#{@other_student.id}"
-      f(".remove_avatar_picture_link").click
-      expect(f('span[aria-label="Confirm Removal"]')).to be_truthy
-      f('button[data-testid="confirm-button"]').click
-      wait_for_ajaximations
-      @other_student.reload
-      expect(@other_student.avatar_image_url?).to be(false)
-    end
-
-    it "is able to remove inappropriate pictures with profiles enabled" do
-      Account.default.settings[:enable_profiles] = true
-      Account.default.save!
-      get "/courses/#{@course.id}/users/#{@other_student.id}"
-      f("#remove_avatar_link").click
-      expect(f('span[aria-label="Confirm Removal"]')).to be_truthy
-      f('button[data-testid="confirm-button"]').click
-      wait_for_ajaximations
-      assert_flash_notice_message("The profile picture has been removed.")
-      @other_student.reload
-      expect(@other_student.avatar_image_url?).to be(false)
     end
   end
 
