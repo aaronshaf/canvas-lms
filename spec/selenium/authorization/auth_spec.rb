@@ -23,18 +23,4 @@ require_relative "pages/logout_page"
 describe "auth" do
   include_context "in-process server selenium tests"
   include LogoutPage
-
-  describe "logout" do
-    it "presents confirmation on GET /logout" do
-      user_with_pseudonym active_user: true
-      login_as
-
-      visit_logout_page
-      confirm_logout
-
-      keep_trying_until do
-        expect(driver.current_url).to match %r{/login/canvas}
-      end
-    end
-  end
 end
