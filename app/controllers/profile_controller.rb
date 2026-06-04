@@ -469,7 +469,14 @@ class ProfileController < ApplicationController
         if params[:pseudonym][:password_id] && change_password
           pseudonym_to_update = @user.pseudonyms.find(params[:pseudonym][:password_id])
         end
-        if change_password == "1" && pseudonym_to_update && !pseudonym_to_update.valid_arbitrary_credentials?(old_password)
+        # Credential-impacting changes (password rotation and login-ID rewrite)
+        # must verify the current password explicitly here, not rely on the
+        # implicit `require_password = true` + model validation coupling below.
+        password_changing = change_password == "1"
+        unique_id_changing = pseudonym_to_update &&
+                             pseudonym_params[:unique_id].present? &&
+                             pseudonym_params[:unique_id] != pseudonym_to_update.unique_id
+        if (password_changing || unique_id_changing) && pseudonym_to_update && !pseudonym_to_update.valid_arbitrary_credentials?(old_password)
           error_msg = t("errors.invalid_old_passowrd", "Invalid old password for the login %{pseudonym}", pseudonym: pseudonym_to_update.unique_id)
           pseudonymed = true
           format.html do
@@ -477,6 +484,7 @@ class ProfileController < ApplicationController
             redirect_to user_profile_url(@current_user)
           end
           format.json { render json: { errors: { old_password: error_msg } }, status: :bad_request }
+          return [user_updated, pseudonymed]
         end
         if change_password != "1" || !pseudonym_to_update || !pseudonym_to_update.valid_arbitrary_credentials?(old_password)
           pseudonym_params.delete :password

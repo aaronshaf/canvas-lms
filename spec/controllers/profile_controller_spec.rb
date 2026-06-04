@@ -153,6 +153,64 @@ describe ProfileController do
       put "update", params: { user_id: @fake_student.id }
       assert_unauthorized
     end
+
+    describe "credential-impacting pseudonym changes" do
+      it "rejects unique_id change when old_password is missing" do
+        user_session(@user, @pseudonym)
+        original_unique_id = @pseudonym.unique_id
+        put "update",
+            params: {
+              user_id: @user.id,
+              pseudonym: {
+                password_id: @pseudonym.id,
+                change_password: "0",
+                unique_id: "attacker@example.com",
+              },
+            },
+            format: "json"
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to include("Invalid old password")
+        expect(@pseudonym.reload.unique_id).to eq original_unique_id
+      end
+
+      it "rejects unique_id change when old_password is wrong" do
+        user_session(@user, @pseudonym)
+        original_unique_id = @pseudonym.unique_id
+        put "update",
+            params: {
+              user_id: @user.id,
+              pseudonym: {
+                password_id: @pseudonym.id,
+                change_password: "1",
+                old_password: "wrong_password",
+                password: "new_password_456",
+                password_confirmation: "new_password_456",
+                unique_id: "attacker@example.com",
+              },
+            },
+            format: "json"
+        expect(response).to have_http_status(:bad_request)
+        expect(@pseudonym.reload.unique_id).to eq original_unique_id
+      end
+
+      it "rejects password change when old_password is wrong" do
+        user_session(@user, @pseudonym)
+        put "update",
+            params: {
+              user_id: @user.id,
+              pseudonym: {
+                password_id: @pseudonym.id,
+                change_password: "1",
+                old_password: "wrong_password",
+                password: "new_password_456",
+                password_confirmation: "new_password_456",
+              },
+            },
+            format: "json"
+        expect(response).to have_http_status(:bad_request)
+        expect(@pseudonym.reload).to be_valid_password("asdfasdf")
+      end
+    end
   end
 
   describe "personal pronouns" do
