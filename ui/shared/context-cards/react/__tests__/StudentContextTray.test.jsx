@@ -183,6 +183,29 @@ describe('StudentContextTray', () => {
     })
   })
 
+  describe('icon-email in header', () => {
+    it('renders icon-email when send_messages permission is true and enrollment is active', () => {
+      const userWithAnalytics = {...user, analytics}
+      props.data = {loading: false, user: userWithAnalytics, course}
+      render(<StudentContextTray {...props} />)
+      // Tray renders via portal; query document rather than container
+      const emailIcon = document.querySelector('i.icon-email')
+      expect(emailIcon).not.toBeNull()
+    })
+
+    it('does not render icon-email when send_messages permission is false', () => {
+      const noMessageCourse = {
+        ...course,
+        permissions: {...course.permissions, send_messages: false},
+      }
+      const userWithAnalytics = {...user, analytics}
+      props.data = {loading: false, user: userWithAnalytics, course: noMessageCourse}
+      render(<StudentContextTray {...props} />)
+      const emailIcon = document.querySelector('i.icon-email')
+      expect(emailIcon).toBeNull()
+    })
+  })
+
   describe('Student name link', () => {
     const getAriaLabel = () => {
       return screen.getByTestId('student-name-link').getAttribute('aria-label')
@@ -378,6 +401,56 @@ describe('StudentContextTray', () => {
       // No scrolling constraints should be applied
       expect(computedStyle.maxHeight).not.toBe('8rem')
       expect(computedStyle.overflowY).not.toBe('auto')
+    })
+  })
+
+  describe('icon-email with inactive enrollment', () => {
+    it('does not render icon-email when enrollment is inactive', () => {
+      const inactiveUser = {
+        ...user,
+        enrollments: [
+          {
+            state: 'inactive',
+            section: {name: 'Section 1'},
+            grades: {current_grade: null, current_score: null},
+          },
+        ],
+        analytics,
+      }
+      props.data = {loading: false, user: inactiveUser, course}
+      render(<StudentContextTray {...props} />)
+      const emailIcon = document.querySelector('i.icon-email')
+      expect(emailIcon).toBeNull()
+    })
+  })
+
+  describe('Avatar link', () => {
+    it('links avatar to the course-scoped user page', () => {
+      const userWithAnalytics = {...user, analytics}
+      props.data = {loading: false, user: userWithAnalytics, course}
+      render(<StudentContextTray {...props} />)
+      const avatarLink = document.querySelector('.StudentContextTray__Avatar a')
+      expect(avatarLink).not.toBeNull()
+      expect(avatarLink.getAttribute('href')).toContain('/courses/')
+      expect(avatarLink.getAttribute('href')).toBe(`/courses/${course._id}/users/${user._id}`)
+    })
+  })
+
+  describe('Grades quick link permissions', () => {
+    it('does not render Grades link when manage_grades and view_all_grades are both false', () => {
+      const restrictedCourse = {
+        ...course,
+        permissions: {
+          ...course.permissions,
+          manage_grades: false,
+          view_all_grades: false,
+          view_analytics: true,
+        },
+      }
+      const userWithAnalytics = {...user, analytics}
+      props.data = {loading: false, user: userWithAnalytics, course: restrictedCourse}
+      const {queryByText} = render(<StudentContextTray {...props} />)
+      expect(queryByText('Grades')).toBeNull()
     })
   })
 })

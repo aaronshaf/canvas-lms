@@ -125,6 +125,20 @@ const sample2: APIPageView[] = [
   },
 ]
 
+const sample3: APIPageView[] = [
+  {
+    id: '3',
+    app_name: null,
+    http_method: 'get',
+    created_at: '2024-01-01T12:00:00Z',
+    participated: true,
+    interaction_seconds: 30,
+    user_agent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    url: 'http://example.com',
+  },
+]
+
 describe('PageViewsTable', () => {
   beforeAll(() => server.listen())
   afterEach(() => server.resetHandlers())
@@ -244,5 +258,16 @@ describe('PageViewsTable', () => {
       await findByTestId('page-views-empty-state')
       expect(onEmpty).toHaveBeenCalledTimes(1)
     })
+  })
+
+  it('renders an svg participation icon when participated is true', async () => {
+    const id = '131'
+    server.use(http.get(`/api/v1/users/${id}/page_views`, () => HttpResponse.json(sample3)))
+    const {findByTestId, getByTestId} = render(<Subject userId={id} />)
+    expect(await findByTestId('page-views-table-body')).toBeInTheDocument()
+    const cells = getByTestId('page-view-row').querySelectorAll('td')
+    // cells[2] is the Participated column (URL, Date, Participated, Time, User Agent)
+    const svg = cells[2].querySelector('svg')
+    expect(svg).not.toBeNull()
   })
 })
