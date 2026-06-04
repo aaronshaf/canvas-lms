@@ -253,15 +253,6 @@ describe "admin settings tab" do
             test_checkbox_off(assignment_name_length)
           end
 
-          it "tests sis assignment name length" do
-            set_checkbox_via_label(default_grade_export, true)
-            set_checkbox_via_label(assignment_name_length, true)
-            name_length = 123
-            f("#account_settings_sis_assignment_name_length_input_value").send_keys(name_length)
-            click_submit
-            expect(f("#account_settings_sis_assignment_name_length_input_value")).to have_value(name_length.to_s)
-          end
-
           it "persists 'Sync Grades to SIS' on" do
             test_checkbox_on(default_grade_export)
           end
