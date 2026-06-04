@@ -41,6 +41,15 @@ def buildParameters = [
   string(name: 'CRYSTALBALL_MAP_S3_VERSION', value: "${env.CRYSTALBALL_MAP_S3_VERSION}")
 ]
 
+// Downstream test-suite folder. The /Canvas/main-Jenkinsfile job sets
+// TEST_SUITES_FOLDER=/Canvas/test-suites-jenkinsfile (full checkout + FETCH_HEAD)
+// so that, when validating a patchset's Jenkinsfile changes, the sub-builds run
+// the PATCHSET's pipeline definitions instead of master's. Normal builds leave it
+// unset and use the fast lightweight-checkout /Canvas/test-suites folder.
+// NOTE: the two folders must be kept in sync by hand; adding/removing a downstream
+// parameter or changing a job path means updating BOTH folders' jobs in Jenkins.
+def testSuitesFolder = env.TEST_SUITES_FOLDER ?: '/Canvas/test-suites'
+
 commitMessageFlag.setEnabled(env.GERRIT_EVENT_TYPE != 'change-merged')
 
 library "canvas-builds-library@${getCanvasBuildsRefspec()}"
@@ -476,7 +485,7 @@ pipeline {
                 script {
                   pipelineHelpers.runTestSuite(
                     'Javascript',
-                    '/Canvas/test-suites/JS',
+                    "${testSuitesFolder}/JS",
                     buildParameters + [string(name: 'KARMA_RUNNER_IMAGE', value: env.KARMA_RUNNER_IMAGE)]
                   )
                 }
@@ -567,7 +576,7 @@ pipeline {
             script {
               pipelineHelpers.runTestSuite(
                 'Local Docker Dev Build',
-                '/Canvas/test-suites/local-docker-dev-smoke',
+                "${testSuitesFolder}/local-docker-dev-smoke",
                 buildParameters
               )
             }
@@ -589,7 +598,7 @@ pipeline {
             script {
               pipelineHelpers.runTestSuite(
                 'Flakey Spec Catcher',
-                '/Canvas/test-suites/flakey-spec-catcher',
+                "${testSuitesFolder}/flakey-spec-catcher",
                 buildParameters + [
                   string(name: 'DYNAMODB_IMAGE_TAG', value: "${env.DYNAMODB_IMAGE_TAG}"),
                   string(name: 'POSTGRES_IMAGE_TAG', value: "${env.POSTGRES_IMAGE_TAG}")
@@ -607,7 +616,7 @@ pipeline {
             script {
               pipelineHelpers.runTestSuite(
                 'Vendored Gems',
-                '/Canvas/test-suites/vendored-gems',
+                "${testSuitesFolder}/vendored-gems",
                 buildParameters + [
                   string(name: 'DYNAMODB_IMAGE_TAG', value: "${env.DYNAMODB_IMAGE_TAG}"),
                   string(name: 'POSTGRES_IMAGE_TAG', value: "${env.POSTGRES_IMAGE_TAG}")
@@ -625,7 +634,7 @@ pipeline {
             script {
               pipelineHelpers.runTestSuite(
                 'RspecQ Tests',
-                '/Canvas/test-suites/test-queue',
+                "${testSuitesFolder}/test-queue",
                 buildParameters + [
                   string(name: 'DYNAMODB_IMAGE_TAG', value: "${env.DYNAMODB_IMAGE_TAG}"),
                   string(name: 'POSTGRES_IMAGE_TAG', value: "${env.POSTGRES_IMAGE_TAG}"),

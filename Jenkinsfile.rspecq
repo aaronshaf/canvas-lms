@@ -191,8 +191,8 @@ def sendCrystalballMetrics() {
 
     reportBuildLog('rspecq_crystalball_data', [
                     'node_count': rspecqNodeTotal,
-                    'example_count': exampleCount.toInteger(),
-                    'execution_time': buildTime.toInteger(),
+                    'example_count': exampleCount.isInteger() ? exampleCount.toInteger() : 0,
+                    'execution_time': buildTime.isInteger() ? buildTime.toInteger() : 0,
                     'result': currentBuild.currentResult,
                     'upstream_tag': "${env.UPSTREAM_TAG}"])
 }
