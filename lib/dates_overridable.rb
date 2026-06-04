@@ -39,7 +39,7 @@ module DatesOverridable
     base.has_many :assignment_override_students, -> { where(workflow_state: "active") }, dependent: :destroy, foreign_key: "#{base.table_name.singularize}_id"
     base.has_many :all_assignment_override_students, class_name: "AssignmentOverrideStudent", dependent: :destroy, foreign_key: "#{base.table_name.singularize}_id"
 
-    base.validate :validate_active_assignment_override_children
+    base.validate :validate_active_assignment_override_children, unless: :deleted?
 
     base.extend(ClassMethods)
   end

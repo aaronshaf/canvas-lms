@@ -8427,6 +8427,35 @@ describe Assignment do
       expect { assignment.destroy }.to raise_error(ActiveRecord::RecordInvalid)
     end
 
+    it "deletes an assignment even when a cross-listed section left behind an invalid override" do
+      course_with_teacher(active_all: true)
+      section = @course.course_sections.create!(name: "Section X")
+      assignment = @course.assignments.create!(title: "Stale override assignment")
+      create_section_override_for_assignment(assignment, course_section: section)
+
+      # update_column bypasses move_to_course's override cleanup, recreating the
+      # legacy stale override that historically blocked deletion (EGG-1925)
+      other_course = course_factory(active_all: true)
+      section.update_column(:course_id, other_course.id)
+
+      assignment.reload.destroy
+      expect(assignment.reload).to be_deleted
+    end
+
+    it "still blocks saving an assignment that has an invalid override" do
+      course_with_teacher(active_all: true)
+      section = @course.course_sections.create!(name: "Section X")
+      assignment = @course.assignments.create!(title: "Stale override assignment")
+      create_section_override_for_assignment(assignment, course_section: section)
+
+      other_course = course_factory(active_all: true)
+      section.update_column(:course_id, other_course.id)
+
+      assignment.reload
+      assignment.title = "Renamed"
+      expect(assignment.save).to be false
+    end
+
     it "refreshes the course participation counts" do
       expect_any_instance_of(Progress).to receive(:process_job)
         .with(@assignment.context,
