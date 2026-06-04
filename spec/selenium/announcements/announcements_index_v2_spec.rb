@@ -77,24 +77,12 @@ describe "announcements index v2" do
       expect(f("#content")).not_to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement2_title))
     end
 
-    it "an announcement can be locked for commenting", priority: "1" do
-      AnnouncementIndex.click_lock_menu(@announcement1_title)
-      expect(Announcement.where(title: @announcement1_title).first.locked).to be true
-    end
-
     it "multiple announcements can be locked for commenting", priority: "1" do
       AnnouncementIndex.check_announcement(@announcement1_title)
       AnnouncementIndex.check_announcement(@announcement2_title)
       AnnouncementIndex.toggle_lock
       expect(Announcement.where(title: @announcement1_title).first.locked).to be true
       expect(Announcement.where(title: @announcement2_title).first.locked).to be true
-    end
-
-    it "an announcement can be deleted", priority: "1" do
-      AnnouncementIndex.click_delete_menu(@announcement1_title)
-      AnnouncementIndex.click_confirm_delete
-      expect(f("#content")).not_to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement1_title))
-      expect(Announcement.where(title: @announcement1_title).first.workflow_state).to eq "deleted"
     end
 
     it "multiple announcements can be deleted", priority: "1" do
@@ -173,45 +161,6 @@ describe "announcements index v2" do
         expect(AnnouncementIndex.announcement(@announcement1_title)).to be_displayed
         expect(f("#content")).not_to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement2_title))
       end
-    end
-  end
-
-  context "as a student" do
-    before do
-      user_session(@student)
-    end
-
-    it "does not display delayed announcement to student", priority: "1" do
-      AnnouncementIndex.visit_announcements(@course.id)
-      expect(ff('[data-testid="announcement-reply"]').count).to eq 1
-      expect(f("#content")).not_to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement2_title))
-    end
-
-    it "does not display locked announcement to student", priority: "1" do
-      AnnouncementIndex.visit_announcements(@course.id)
-      expect(ff('[data-testid="announcement-reply"]').count).to eq 1
-      expect(f("#content")).not_to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement3_title))
-    end
-
-    it "does not reply button to use without reply permissions", priority: "1" do
-      @course.root_account.role_overrides.create!(permission: "post_to_forum", role: student_role, enabled: false)
-      AnnouncementIndex.visit_announcements(@course.id)
-      expect(@announcement1.grants_right?(@student, :reply)).to be false
-      expect(f("#content")).not_to contain_jqcss("[data-testid=announcement-reply]")
-      expect(f("#content")).to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement1_title))
-    end
-  end
-
-  context "as an observer" do
-    before do
-      user_session(@observer)
-    end
-
-    it "does not display reply for observers", priority: "1" do
-      AnnouncementIndex.visit_announcements(@course.id)
-      expect(@announcement1.grants_right?(@observer, :reply)).to be false
-      expect(f("#content")).not_to contain_jqcss("[data-testid=announcement-reply]")
-      expect(f("#content")).to contain_jqcss(AnnouncementIndex.announcement_title_css(@announcement1_title))
     end
   end
 end

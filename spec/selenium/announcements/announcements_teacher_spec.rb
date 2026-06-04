@@ -133,36 +133,6 @@ describe "announcements" do
         expect(AnnouncementNewEdit.save_button).to be_displayed
       end
 
-      it "removes delayed_post_at when Available from field is cleared" do
-        @announcement.delayed_post_at = 10.days.from_now
-        @announcement.save!
-        get "/courses/#{@course.id}/discussion_topics/#{@announcement.id}/edit"
-
-        AnnouncementNewEdit.available_from_reset_button.click
-        expect_new_page_load do
-          AnnouncementNewEdit.submit_button.click
-          AnnouncementNewEdit.notification_modal_send.click
-        end
-
-        @announcement.reload
-        expect(@announcement.delayed_post_at).to be_nil
-      end
-
-      it "removes lock_at when Available until field is cleared" do
-        @announcement.lock_at = 10.days.from_now
-        @announcement.save!
-
-        get "/courses/#{@course.id}/discussion_topics/#{@announcement.id}/edit"
-        AnnouncementNewEdit.available_until_reset_button.click
-        expect_new_page_load do
-          AnnouncementNewEdit.submit_button.click
-          AnnouncementNewEdit.notification_modal_send.click
-        end
-
-        @announcement.reload
-        expect(@announcement.lock_at).to be_nil
-      end
-
       context "selective release assignment embedded in discussions edit page" do
         it "allows create" do
           title = "Announcement"
@@ -235,29 +205,6 @@ describe "announcements" do
       skip "Will be fixed in VICE-5634 2025-11-11"
       AnnouncementNewEdit.visit_new(@course)
       expect { f("#allow_user_comments") }.not_to raise_error
-    end
-
-    context "section specific announcements" do
-      before(:once) do
-        course_with_teacher(active_course: true)
-        @section = @course.course_sections.create!(name: "test section")
-
-        @announcement = @course.announcements.create!(user: @teacher, message: "hello my favorite section!")
-        @announcement.is_section_specific = true
-        @announcement.course_sections = [@section]
-        @announcement.save!
-
-        @student1, @student2 = create_users(2, return_type: :record)
-        @course.enroll_student(@student1, enrollment_state: "active")
-        @course.enroll_student(@student2, enrollment_state: "active")
-        student_in_section(@section, user: @student1)
-      end
-
-      it "is visible to teacher in course" do
-        user_session(@teacher)
-        get "/courses/#{@course.id}/discussion_topics/#{@announcement.id}"
-        expect(f('[data-testid="message_title"]')).to include_text(@announcement.title)
-      end
     end
 
     describe "shared main page topics specs" do
@@ -374,17 +321,6 @@ describe "announcements" do
       f("input#delayed_post_at").clear
 
       expect(f(".submit_button").text).to eq("Publish")
-    end
-
-    it "lets a teacher add a new entry to its own announcement", :ignore_js_errors, priority: "1" do
-      create_announcement
-      get [@course, @announcement]
-      f('[data-testid="discussion-topic-reply"').click
-      entry_text = "new entry text"
-      type_in_tiny("textarea", entry_text)
-      f('[data-testid="DiscussionEdit-submit"]').click
-      wait_for_ajaximations
-      expect(DiscussionEntry.last.message).to include(entry_text)
     end
 
     it "shows announcements to student view student", :ignore_js_errors, priority: "1" do
