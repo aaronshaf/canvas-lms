@@ -341,6 +341,25 @@ describe CanvasSanitize do
       expect(res).to match(/left/)
     end
 
+    it "preserves responsive iframe embed wrapper (position:relative div + position:absolute iframe)" do
+      html = <<~HTML
+        <div style="position: relative; width: 100%; padding-top: 56.25%; overflow: hidden;">
+          <iframe src="https://example.com/embed/abc123"
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                  title="Example embed"
+                  allowfullscreen="allowfullscreen"
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  loading="lazy"></iframe>
+        </div>
+      HTML
+      res = Sanitize.clean(html, CanvasSanitize::SANITIZE)
+      expect(res).to match(/position:\s*relative/)
+      expect(res).to match(/position:\s*absolute/)
+      expect(res).to match(/top:\s*0/)
+      expect(res).to match(/left:\s*0/)
+      expect(res).to match(/padding-top:\s*56\.25%/)
+    end
+
     it "strips position: -webkit-sticky (vendor-prefixed sticky)" do
       res = Sanitize.clean(%(<div style="position: -webkit-sticky; top: 0">x</div>), CanvasSanitize::SANITIZE)
       expect(res).not_to match(/position/)
