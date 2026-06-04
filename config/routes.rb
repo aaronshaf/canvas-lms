@@ -1070,7 +1070,15 @@ CanvasRails::Application.routes.draw do
     post "user_services" => "users#create_user_service", :as => :profile_create_user_service
   end
 
-  get "about/:id" => "profile#show", :as => :user_profile
+  # Constrain :id to the identifier shapes api_find actually accepts: shard-aware
+  # numeric (Api::ID), sis_*/lti_* prefixed, hex:-encoded, and uuid:. The whole
+  # alternation is wrapped in a non-capturing group so it stays bounded to this
+  # segment, otherwise the top-level `|` leaks and corrupts route generation.
+  # Scanner junk like "function.php" or path traversal is rejected at the router
+  # before any DB lookup runs.
+  get "about/:id" => "profile#show",
+      :as => :user_profile,
+      :constraints => { id: %r{(?:(?:\d+~)?\d+|(?:hex:)?(?:sis_|lti_)\w+:[^/]+|uuid:[\w-]{36,})} }
   resources :communication_channels
 
   get "" => "users#user_dashboard", :as => "dashboard"
