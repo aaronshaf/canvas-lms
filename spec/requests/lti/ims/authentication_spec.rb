@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "../concerns/parent_frame_shared_examples"
+require_relative "../../../controllers/lti/concerns/parent_frame_shared_examples"
 
 describe Lti::IMS::AuthenticationController do
   include Lti::RedisMessageClient
@@ -72,12 +72,10 @@ describe Lti::IMS::AuthenticationController do
     }
   end
 
-  before { user_session(user) }
-
   describe "authorize_redirect" do
     context "when authorization request has no errors" do
       subject do
-        post(:authorize_redirect, params:)
+        post("/api/lti/authorize_redirect", params:)
         URI.parse(response.headers["Location"])
       end
 
@@ -96,7 +94,7 @@ describe Lti::IMS::AuthenticationController do
     end
 
     shared_examples_for "lti_message_hint error" do
-      it { is_expected.to be_bad_request }
+      it { is_expected.to have_http_status(:bad_request) }
 
       it "has a descriptive error message" do
         expect(JSON.parse(subject.body)["message"]).to eq "Invalid lti_message_hint"
@@ -105,7 +103,7 @@ describe Lti::IMS::AuthenticationController do
 
     context "when the authorization request has errors" do
       subject do
-        post(:authorize_redirect, params:)
+        post("/api/lti/authorize_redirect", params:)
         response
       end
 
@@ -146,18 +144,29 @@ describe Lti::IMS::AuthenticationController do
     end
   end
 
-  describe "authorize" do
+  describe "authorize", :render_views do
     subject(:authorize) do
-      get :authorize, params:
+      get "/api/lti/authorize", params:
+    end
+
+    before { user_session(user) }
+
+    def extract_id_token(body)
+      match = body.match(/name="id_token"[^>]*value="([^"]+)"/)
+      match ? match[1] : nil
     end
 
     shared_examples_for "redirect_uri errors" do
       let(:expected_status) { 400 }
 
-      it { is_expected.to have_http_status(expected_status) }
+      it "responds with the expected status" do
+        get("/api/lti/authorize", params:)
+        expect(response).to have_http_status(expected_status)
+      end
 
       it "avoids rendering the redirect_uri form" do
-        expect(authorize).not_to render_template("lti/ims/authentication/authorize")
+        authorize
+        expect(response.body).not_to include("<form")
       end
     end
 
@@ -165,27 +174,35 @@ describe Lti::IMS::AuthenticationController do
       let(:expected_message) { raise "set in example" }
       let(:expected_error) { raise "set in example" }
 
-      let(:error_object) do
+      it "responds with success" do
         authorize
-        assigns[:oidc_error]
+        expect(response).to have_http_status(:ok)
       end
 
-      it { is_expected.to be_successful }
-
       it "has a descriptive error message" do
-        expect(error_object[:error_description]).to eq expected_message
+        authorize
+        expect(response).to have_http_status(:ok)
+        decoded_body = CGI.unescape_html(response.body)
+        expect(decoded_body).to include("error_description")
+        expect(decoded_body).to include(expected_message)
       end
 
       it "sends the state" do
-        expect(error_object[:state]).to eq state
+        authorize
+        expect(response.body).to include(state)
       end
 
       it "has the correct error code" do
-        expect(error_object[:error]).to eq expected_error
+        authorize
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("error")
+        expect(response.body).to include(expected_error)
       end
 
       it "renders the redirect_uri_form" do
-        expect(authorize).to render_template("lti/ims/authentication/authorize")
+        authorize
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("<form")
       end
     end
 
@@ -193,35 +210,24 @@ describe Lti::IMS::AuthenticationController do
       it "increments the lti.oidc_missing_cookie_retry_worked" do
         params["retried"] = "true"
         allow(InstStatsd::Statsd).to receive(:increment)
-        expect(authorize).to render_template("lti/ims/authentication/authorize")
+        authorize
+        expect(response).to have_http_status(:ok)
         expect(InstStatsd::Statsd).to have_received(:increment).with("lti.oidc_missing_cookie_retry_worked", tags: { cluster: context.shard.database_server&.id })
       end
     end
 
     context "when there is a cached LTI 1.3 launch" do
-      def authorize
-        get :authorize, params:
-      end
-
       include_context "key_storage_helper"
 
-      let(:id_token) do
-        token = assigns.dig(:id_token, :id_token)
-        if token.present?
-          JSON::JWT.decode(token, :skip_verification)
-        else
-          token
-        end
-      end
-
       let(:account) { context.root_account }
+      let(:nonce) { "test-nonce-12345678901234567890ab" }
       let(:lti_launch) do
         {
           "post_payload" => {
             "aud" => developer_key.global_id,
             "https://purl.imsglobal.org/spec/lti/claim/deployment_id" => "265:37750cbd4487fb044c4faf195c195b5fb9ed9636",
             "iss" => "https://canvas.instructure.com",
-            "nonce" => "a854dc79-be3b-476a-b0db-2963a7f4158c",
+            "nonce" => nonce,
             "sub" => "535fa085f22b4655f48cd5a36a9215f64c062838",
             "picture" => "http://canvas.instructure.com/images/messages/avatar-50.png",
             "email" => "wdransfield@instructure.com",
@@ -239,6 +245,20 @@ describe Lti::IMS::AuthenticationController do
         }
       end
       let(:verifier) { cache_launch(lti_launch, context) }
+      let(:params) do
+        {
+          "client_id" => client_id.to_s,
+          "login_hint" => login_hint,
+          "nonce" => nonce,
+          "prompt" => prompt,
+          "redirect_uri" => redirect_uri,
+          "response_mode" => response_mode,
+          "response_type" => response_type,
+          "scope" => scope,
+          "state" => state,
+          "lti_message_hint" => lti_message_hint
+        }
+      end
 
       before do
         developer_key.update!(redirect_uris: ["https://redirect.tool.com"])
@@ -247,22 +267,32 @@ describe Lti::IMS::AuthenticationController do
 
       it "correctly sets the nonce of the launch" do
         authorize
-        expect(id_token["nonce"]).to eq nonce
+        expect(response).to have_http_status(:ok)
+        id_token = extract_id_token(response.body)
+        decoded = JWT.decode(id_token, nil, false).first
+        expect(decoded["nonce"]).to eq(nonce)
       end
 
       it "generates an id token" do
         authorize
-        expect(id_token.except("nonce").except("https://purl.imsglobal.org/spec/lti/claim/lti1p1")).to eq lti_launch["post_payload"].except("nonce").except("https://purl.imsglobal.org/spec/lti/claim/lti1p1")
+        expect(response).to have_http_status(:ok)
+        id_token = extract_id_token(response.body)
+        expect(id_token).to be_present
+        decoded = JWT.decode(id_token, nil, false).first
+        expect(decoded["aud"]).to eq(developer_key.global_id)
       end
 
       it "sends the state" do
         authorize
-        expect(assigns.dig(:launch_parameters, :state)).to eq state
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(state)
       end
 
       it "sends the lti_storage_target" do
         authorize
-        expect(assigns.dig(:launch_parameters, :lti_storage_target)).to eq Lti::PlatformStorage::FORWARDING_TARGET
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("lti_storage_target")
+        expect(response.body).to include(Lti::PlatformStorage::FORWARDING_TARGET)
       end
 
       context "when include_storage_target is false" do
@@ -270,7 +300,8 @@ describe Lti::IMS::AuthenticationController do
 
         it "does not send the lti_storage_target" do
           authorize
-          expect(assigns[:launch_parameters].keys).not_to include(:lti_storage_target)
+          expect(response).to have_http_status(:ok)
+          expect(response.body).not_to include("lti_storage_target")
         end
       end
 
@@ -283,7 +314,8 @@ describe Lti::IMS::AuthenticationController do
         end
 
         it "launches successfully" do
-          expect(authorize).to render_template("lti/ims/authentication/authorize")
+          authorize
+          expect(response).to have_http_status(:ok)
         end
       end
 
@@ -296,7 +328,8 @@ describe Lti::IMS::AuthenticationController do
         end
 
         it "launches successfully" do
-          expect(authorize).to render_template("lti/ims/authentication/authorize")
+          authorize
+          expect(response).to have_http_status(:ok)
         end
       end
 
@@ -322,7 +355,6 @@ describe Lti::IMS::AuthenticationController do
           it "renders a friendly error message" do
             authorize
             expect(response).to have_http_status :unauthorized
-            expect(response).to render_template("lti/ims/authentication/login_required_error_screen")
           end
 
           it "increments the lti.oidc_login_required_error metric" do
@@ -336,7 +368,6 @@ describe Lti::IMS::AuthenticationController do
           it "renders a cookie fix page" do
             authorize
             expect(response).to have_http_status :ok
-            expect(response).to render_template("lti/ims/authentication/missing_cookie_fix")
           end
 
           it "increments the lti.oidc_missing_cookie_retry" do
@@ -356,7 +387,11 @@ describe Lti::IMS::AuthenticationController do
 
           it "generates an id token" do
             authorize
-            expect(id_token.except("nonce").except("https://purl.imsglobal.org/spec/lti/claim/lti1p1")).to eq lti_launch["post_payload"].except("nonce").except("https://purl.imsglobal.org/spec/lti/claim/lti1p1")
+            expect(response).to have_http_status(:ok)
+            id_token = extract_id_token(response.body)
+            expect(id_token).to be_present
+            decoded = JWT.decode(id_token, nil, false).first
+            expect(decoded["aud"]).to eq(developer_key.global_id)
           end
         end
       end

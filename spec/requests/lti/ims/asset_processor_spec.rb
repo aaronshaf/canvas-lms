@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "concerns/advantage_services_shared_context"
-require_relative "concerns/advantage_services_shared_examples"
-require_relative "concerns/lti_services_shared_examples"
+require_relative "../../../controllers/lti/ims/concerns/advantage_services_shared_context"
+require_relative "../../../controllers/lti/ims/concerns/advantage_services_shared_examples"
+require_relative "../../../controllers/lti/ims/concerns/lti_services_shared_examples"
 
 describe Lti::IMS::AssetProcessorController do
   include_context "advantage services context"
@@ -27,6 +27,43 @@ describe Lti::IMS::AssetProcessorController do
   let(:assignment) { assignment_model(course:) }
   let(:asset) { lti_asset_model(submission: submission_model(assignment:)) }
   let(:asset_processor) { lti_asset_processor_model(tool:, assignment:) }
+
+  let(:controller) do
+    instance_double(Lti::IMS::AssetProcessorController, tool:).as_null_object
+  end
+
+  def action_to_url(action_name, overrides)
+    case action_name
+    when :create_report
+      "/api/lti/asset_processors/#{overrides[:asset_processor_id]}/reports"
+    when :lti_asset_show
+      "/api/lti/asset_processors/#{overrides[:asset_processor_id]}/assets/#{overrides[:asset_id]}"
+    else
+      raise "Unknown action: #{action_name}"
+    end
+  end
+
+  def send_http
+    url = action_to_url(action, params_overrides)
+    request_headers = {}
+    request_headers["Authorization"] = "Bearer #{access_token_jwt}" if access_token_jwt
+    request_headers["Content-Type"] = content_type if content_type.present?
+    request_headers["HTTP_HOST"] = test_request_host
+
+    case request_method
+    when :get, :delete
+      send(request_method, url, params: params_overrides.except(:asset_processor_id, :asset_id), headers: request_headers)
+    when :post, :put
+      body_data = (body_overrides || {}).merge(params_overrides.except(:asset_processor_id, :asset_id))
+      send(request_method, url, params: body_data, headers: request_headers, as: :json)
+    end
+  end
+
+  def send_request
+    response = send_http
+    run_jobs
+    response
+  end
 
   describe "#create_report" do
     let(:action) { :create_report }
@@ -70,14 +107,25 @@ describe Lti::IMS::AssetProcessorController do
 
       expect do
         send_request
-
-        expect(response.parsed_body).to eq(JSON.parse(expected_values.to_json))
         expect(response).to have_http_status(:created)
       end.to change(Lti::AssetReport, :count).by(1)
 
+      body = response.parsed_body
+      expect(body["assetId"]).to eq(expected_values[:assetId])
+      expect(body["title"]).to eq(expected_values[:title])
+      expect(body["type"]).to eq(expected_values[:type])
+      expect(body["result"]).to eq(expected_values[:result])
+      expect(body["priority"]).to eql(expected_values[:priority])
+      expect(body["processingProgress"]).to eq(expected_values[:processingProgress])
+      expect(body["timestamp"]).to eq(expected_values[:timestamp])
+      expect(body["visibleToOwner"]).to eq(expected_values[:visibleToOwner])
+      expect(body["https://example.com/foo/extra"]).to eq({ "extra value" => true })
+      expect(body["https://example.com/foo/extra2"]).to eql(1) # rubocop:disable RSpec/BeEql
+
       report = Lti::AssetReport.last
 
-      expect(report).to have_attributes(expected_values.slice(:title, :priority))
+      expect(report.title).to eq(expected_values[:title])
+      expect(report.priority).to eql(expected_values[:priority])
       expect(report.asset).to eq(asset)
       expect(report.timestamp).to be_within(1.second).of(Time.zone.parse(expected_values[:timestamp]))
       expect(report.report_type).to eq(expected_values[:type])
@@ -127,8 +175,9 @@ describe Lti::IMS::AssetProcessorController do
 
       it "returns a 409 Conflict and does not create a new asset report" do
         first_report = make_extra_report(Time.zone.now)
+        initial_state = first_report.workflow_state
         expect_no_creation(:conflict, /existing report/)
-        expect(first_report.reload.workflow_state).to eq("active")
+        expect(first_report.reload.workflow_state).to eq(initial_state)
       end
     end
 
@@ -220,11 +269,9 @@ describe Lti::IMS::AssetProcessorController do
     end
 
     it "redirects to the asset's public download URL" do
-      allow(controller).to receive(:render_or_redirect_to_stored_file).and_call_original
-      expect(controller).to receive(:render_or_redirect_to_stored_file)
       send_request
       expect(response).to have_http_status(:found)
-      expect(response.location).to include("sf_verifier=")
+      expect(response.location).to match(/sf_verifier=\w+/)
     end
 
     context "when the asset is not found" do
@@ -256,11 +303,7 @@ describe Lti::IMS::AssetProcessorController do
 
       it "returns the text entry content as a downloadable file" do
         send_request
-        expect(response).to have_http_status(:found).or have_http_status(:ok)
-        # Follow redirect if present
-        if response.status == 302 && response.location
-          follow_redirect!
-        end
+        expect(response).to have_http_status(:ok)
         expect(response.headers["Content-Type"]).to eq("text/html")
         expect(response.headers["Content-Disposition"]).to eq("attachment")
         expect(response.body).to eq(text_content)

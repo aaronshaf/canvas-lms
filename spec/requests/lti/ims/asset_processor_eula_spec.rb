@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-require_relative "concerns/advantage_services_shared_context"
+require_relative "../../../controllers/lti/ims/concerns/advantage_services_shared_context"
 
 describe Lti::IMS::AssetProcessorEulaController do
   include_context "advantage services context"
@@ -27,6 +27,44 @@ describe Lti::IMS::AssetProcessorEulaController do
   let(:context) { cet.context }
   let(:eula_required) { true }
   let(:body_overrides) { { eulaRequired: eula_required } }
+
+  let(:controller) do
+    instance_double(Lti::IMS::AssetProcessorEulaController, tool:).as_null_object
+  end
+
+  def action_to_url(action_name, overrides)
+    tool_id_val = overrides[:context_external_tool_id]
+    case action_name
+    when :update_tool_eula
+      "/api/lti/asset_processor_eulas/#{tool_id_val}/deployment"
+    when :create_acceptance, :delete_acceptances
+      "/api/lti/asset_processor_eulas/#{tool_id_val}/user"
+    else
+      raise "Unknown action: #{action_name}"
+    end
+  end
+
+  def send_http
+    url = action_to_url(action, params_overrides)
+    request_headers = {}
+    request_headers["Authorization"] = "Bearer #{access_token_jwt}" if access_token_jwt
+    request_headers["Content-Type"] = content_type if content_type.present?
+    request_headers["HTTP_HOST"] = test_request_host
+
+    case request_method
+    when :get, :delete
+      send(request_method, url, params: params_overrides.except(:context_external_tool_id), headers: request_headers)
+    when :post, :put
+      body_data = (body_overrides || {}).merge(params_overrides.except(:context_external_tool_id))
+      send(request_method, url, params: body_data, headers: request_headers, as: :json)
+    end
+  end
+
+  def send_request
+    response = send_http
+    run_jobs
+    response
+  end
 
   describe "#update_tool_eula" do
     let(:action) { :update_tool_eula }
@@ -77,7 +115,8 @@ describe Lti::IMS::AssetProcessorEulaController do
 
     context "when the tool is invalid" do
       before do
-        allow_any_instance_of(ContextExternalTool).to receive(:developer_key_id).and_return("mismatched_id")
+        other_key = DeveloperKey.create!(account: context.root_account)
+        cet.update!(developer_key: other_key)
       end
 
       it "returns 400 bad request" do
@@ -208,7 +247,8 @@ describe Lti::IMS::AssetProcessorEulaController do
 
     context "when the tool is invalid" do
       before do
-        allow_any_instance_of(ContextExternalTool).to receive(:developer_key_id).and_return("mismatched_id")
+        other_key = DeveloperKey.create!(account: context.root_account)
+        cet.update!(developer_key: other_key)
       end
 
       it "returns 400 bad request" do
@@ -281,7 +321,8 @@ describe Lti::IMS::AssetProcessorEulaController do
 
     context "when the tool is invalid" do
       before do
-        allow_any_instance_of(ContextExternalTool).to receive(:developer_key_id).and_return("mismatched_id")
+        other_key = DeveloperKey.create!(account: context.root_account)
+        cet.update!(developer_key: other_key)
       end
 
       it "returns 400 bad request" do
