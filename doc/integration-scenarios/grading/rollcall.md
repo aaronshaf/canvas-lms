@@ -25,7 +25,7 @@ And the assignment is worth 100 points by default
 And the assignment has a submission type of "external_tool"
 ```
 
-**Scenario RC-1.2 — Attendance mark produces a grade on the Canvas assignment**
+**Scenario RC-1.2a — Present attendance mark produces a grade on the Canvas assignment**
 - **GUID:** `e5a82d4f`
 - **Reason:** Students receive no credit for attending class if Rollcall attendance marks do not flow back as grades to the Canvas assignment.
 ```
@@ -36,27 +36,39 @@ Then the student's submission on the attendance assignment shows a score reflect
 And the submission workflow state is "graded"
 ```
 
-**Scenario RC-1.3 — Late attendance mark applies the configured lateness percentage**
-- **GUID:** `1f7d6a93`
-- **Reason:** The lateness penalty is not applied and students receive full credit for late arrivals if the Rollcall lateness setting is ignored in grade calculation.
+**Scenario RC-1.2b — Absent attendance mark records a zero grade, not a blank**
+- **GUID:** `2f8c4d6b`
+- **Reason:** An absence is silently treated as ungraded — leaving the student's attendance unscored instead of penalized — if a 0% passback does not record a real zero grade on the Canvas submission.
 ```
 Given a course with the Roll Call Attendance assignment configured
-And the Rollcall lateness value is set to 80%
 And a student is enrolled in the course
-When the teacher marks the student as present for one session and late for another session
-Then the student's attendance grade reflects an average of 100% and 80%
-And the submission score on the attendance assignment is 90% of the total points
+When the teacher marks the student as absent for one class session
+Then the student's submission on the attendance assignment has a score of 0
+And the submission workflow state is "graded"
 ```
 
-**Scenario RC-1.4 — Absent mark reduces attendance grade**
-- **GUID:** `b0e94c58`
-- **Reason:** Students who miss class are not penalized if an absence mark does not reduce the attendance score in the gradebook.
+**Scenario RC-1.3 — A subsequent Rollcall passback overwrites a prior Rollcall-set attendance grade**
+- **GUID:** `1f7d6a93`
+- **Reason:** Corrected attendance never reaches the gradebook if a later Rollcall passback cannot update a score it previously set, leaving students with stale attendance grades after the teacher re-takes attendance.
+- **Note:** The attendance percentage itself (how present/late/absent marks average to a score, including the lateness weight) is computed inside Rollcall and is covered by unit tests in the rollcall-attendance repo. At the Canvas boundary only the resulting passback is observable, so this scenario tests that a re-take overwrites the earlier score.
 ```
-Given a course with the Roll Call Attendance assignment worth 100 points
+Given a course with the Roll Call Attendance assignment configured
+And a student whose attendance submission was previously graded by Rollcall
+When the teacher re-takes attendance and Rollcall sends an updated grade passback for the student
+Then the student's submission score is updated to the new value
+And the submission remains graded
+```
+
+**Scenario RC-1.4 — A reduced attendance score lowers the student's course grade**
+- **GUID:** `b0e94c58`
+- **Reason:** Students who miss class are not penalized if a reduced attendance score does not flow through to their overall course grade.
+- **Note:** The attendance percentage itself (how an absence averages into the score) is computed inside Rollcall and is covered by unit tests in the rollcall-attendance repo. This scenario tests that the reduced score Rollcall passes back actually reaches the student's computed course grade.
+```
+Given a course with the Roll Call Attendance assignment counting toward the final grade
 And a student is enrolled in the course
-When the teacher marks the student as present for one session and absent for another session
-Then the student's attendance grade reflects an average of 100% and 0%
-And the submission score on the attendance assignment is 50
+When Rollcall posts a reduced attendance score for the student
+Then the student's submission score on the attendance assignment reflects the reduced value
+And the student's current course grade reflects the reduced attendance score
 ```
 
 **Scenario RC-1.5 — Rollcall grade passback does not auto-post when assignment has manual posting policy**

@@ -22,3 +22,9 @@ Metrics/AbcSize:
 
 Metrics/ParameterLists:
   Enabled: false
+
+# Integration tests pin numeric response/DB contracts with `eql` so a float-vs-int
+# serializer regression (100 vs 100.0) fails loudly. RSpec/BeEql would push these to
+# `be`, which is identity-based and reserved for true/false/nil. Disable the conflict.
+RSpec/BeEql:
+  Enabled: false
