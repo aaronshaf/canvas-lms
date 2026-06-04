@@ -104,4 +104,9 @@ describe('DifferentiationTagTrayManager', () => {
     renderComponent()
     expect(screen.getByText(/Like groups, but different!/)).toBeInTheDocument()
   })
+
+  it('does not render the tray header when isOpen is false', () => {
+    renderComponent({}, {isOpen: false})
+    expect(screen.queryByTestId('differentiation-tag-header')).not.toBeInTheDocument()
+  })
 })

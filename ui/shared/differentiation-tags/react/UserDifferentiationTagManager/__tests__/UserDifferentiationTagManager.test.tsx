@@ -198,4 +198,42 @@ describe('UserDifferentiationTagManager', () => {
     await user.click(screen.getByText('Tag 1'))
     expect(mutateMock).not.toHaveBeenCalled()
   })
+
+  it('calls useAddTagMembership with groupId and userIds when selecting a tag from a multi-group category', async () => {
+    const mockCategories = [
+      {
+        id: 1,
+        name: 'Category 1',
+        groups: [
+          {id: 1, name: 'Tag 1'},
+          {id: 2, name: 'Tag 2'},
+        ],
+      },
+    ]
+    renderComponent({data: mockCategories})
+    const tagAsButton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
+    await user.click(tagAsButton)
+    await waitFor(() => expect(screen.getByText('Tag 2')).toBeInTheDocument())
+    await user.click(screen.getByText('Tag 2'))
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({groupId: 2, userIds: [1, 2]}))
+  })
+
+  it('calls useAddTagMembership with groupId and userIds when selecting a variant from a multi-variant category', async () => {
+    const mockCategories = [
+      {
+        id: 1,
+        name: 'Tag Set 1',
+        groups: [
+          {id: 1, name: 'Variant A'},
+          {id: 2, name: 'Variant B'},
+        ],
+      },
+    ]
+    renderComponent({data: mockCategories})
+    const tagAsButton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
+    await user.click(tagAsButton)
+    await waitFor(() => expect(screen.getByText('Variant B')).toBeInTheDocument())
+    await user.click(screen.getByText('Variant B'))
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({groupId: 2, userIds: [1, 2]}))
+  })
 })

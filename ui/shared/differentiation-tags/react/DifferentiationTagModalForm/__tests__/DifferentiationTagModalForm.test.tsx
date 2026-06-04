@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DifferentiationTagModalForm from '../DifferentiationTagModalForm'
 import type {DifferentiationTagModalFormProps} from '../DifferentiationTagModalForm'
@@ -285,7 +285,7 @@ describe('DifferentiationTagModalForm', () => {
 
   it('calls onClose when clicking the close button', async () => {
     renderComponent()
-    await user.click(screen.getByRole('button', {name: 'Close', hidden: true}))
+    await user.click(within(screen.getByTestId('close-button')).getByRole('button'))
     expect(onCloseMock).toHaveBeenCalled()
   })
 
@@ -418,5 +418,103 @@ describe('DifferentiationTagModalForm', () => {
     renderComponent({mode: EDIT_MODE, differentiationTagSet: multipleTagsCategoryLimit})
     expect(screen.queryByText('Add another tag')).not.toBeInTheDocument()
     expect(screen.queryByText('Variant limit reached. Current limit is 10')).toBeInTheDocument()
+  })
+
+  describe('Edit mode pre-population', () => {
+    it('shows Edit Tag header and pre-populated value in single tag edit mode', async () => {
+      renderComponent({mode: EDIT_MODE, differentiationTagSet: singleTagCategory})
+      expect(screen.getByText('Edit Tag')).toBeInTheDocument()
+      const tagInput = screen.getByDisplayValue(singleTagCategory.name)
+      expect(tagInput).toBeInTheDocument()
+      expect(screen.queryByText('Tag Set Name')).not.toBeInTheDocument()
+    })
+
+    it('shows Tag Set Name label and pre-populated variant values in multi-tag edit mode', async () => {
+      renderComponent({mode: EDIT_MODE, differentiationTagSet: multipleTagsCategory})
+      expect(screen.getByText('Edit Tag')).toBeInTheDocument()
+      expect(screen.getByText('Tag Set Name')).toBeInTheDocument()
+      if (multipleTagsCategory.groups) {
+        for (const group of multipleTagsCategory.groups) {
+          expect(screen.getByDisplayValue(group.name)).toBeInTheDocument()
+        }
+      }
+    })
+  })
+
+  describe('Create mode submission', () => {
+    it('closes modal after creating a single tag', async () => {
+      renderComponent({mode: CREATE_MODE})
+      const tagInput = screen.getByLabelText(/Tag Name/i)
+      await user.clear(tagInput)
+      await user.type(tagInput, 'New Single Tag')
+      await user.click(screen.getByTestId('save-button'))
+      await waitFor(() => {
+        expect(onCloseMock).toHaveBeenCalled()
+      })
+    })
+
+    it('closes modal after creating a multi-tag set', async () => {
+      renderComponent({mode: CREATE_MODE})
+      await user.click(screen.getByLabelText('Add another tag'))
+      const tagInputs = screen.getAllByTestId('tag-name-input')
+      await user.clear(tagInputs[0])
+      await user.type(tagInputs[0], 'Variant 1')
+      await user.clear(tagInputs[1])
+      await user.type(tagInputs[1], 'Variant 2')
+      const tagSetNameInput = screen.getByLabelText(/Tag Set Name/i)
+      await user.clear(tagSetNameInput)
+      await user.type(tagSetNameInput, 'New Tag Set')
+      await user.click(screen.getByTestId('save-button'))
+      await waitFor(() => {
+        expect(onCloseMock).toHaveBeenCalled()
+      })
+    })
+  })
+
+  it('keeps the modal open and does not call onClose when the server returns a validation error', async () => {
+    server.use(
+      http.post('*/group_categories/bulk_manage_differentiation_tag', () => {
+        return HttpResponse.json({errors: 'Validation failed: Record invalid'}, {status: 422})
+      }),
+    )
+
+    renderComponent({mode: CREATE_MODE})
+
+    const tagInput = screen.getByLabelText(/Tag Name/i)
+    await user.clear(tagInput)
+    await user.type(tagInput, 'New Single Tag')
+
+    const saveButton = screen.getByLabelText('Save')
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      expect(onCloseMock).not.toHaveBeenCalled()
+    })
+    expect(screen.getByText('Create Tag')).toBeInTheDocument()
+  })
+
+  it('keeps the modal open and does not call onClose when the server returns a tag limit error', async () => {
+    server.use(
+      http.post('*/group_categories/bulk_manage_differentiation_tag', () => {
+        return HttpResponse.json(
+          {errors: 'Validation failed: You have reached the tag limit for this course'},
+          {status: 422},
+        )
+      }),
+    )
+
+    renderComponent({mode: CREATE_MODE})
+
+    const tagInput = screen.getByLabelText(/Tag Name/i)
+    await user.clear(tagInput)
+    await user.type(tagInput, 'New Tag At Limit')
+
+    const saveButton = screen.getByLabelText('Save')
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      expect(onCloseMock).not.toHaveBeenCalled()
+    })
+    expect(screen.getByText('Create Tag')).toBeInTheDocument()
   })
 })

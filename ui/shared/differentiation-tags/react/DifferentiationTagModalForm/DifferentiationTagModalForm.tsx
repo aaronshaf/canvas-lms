@@ -482,6 +482,7 @@ export default function DifferentiationTagModalForm(props: DifferentiationTagMod
             handleClose()
           }}
           screenReaderLabel={I18n.t('Close')}
+          data-testid="close-button"
         />
         <Heading>{modeConfig[mode].title}</Heading>
       </Modal.Header>
@@ -605,6 +606,7 @@ export default function DifferentiationTagModalForm(props: DifferentiationTagMod
           color="primary"
           interaction={isSubmitting ? 'disabled' : 'enabled'}
           aria-label={modeConfig[mode].submitLabel}
+          data-testid="save-button"
         >
           {isSubmitting ? I18n.t('Saving...') : modeConfig[mode].submitLabel}
         </Button>
