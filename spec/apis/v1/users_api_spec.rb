@@ -2742,6 +2742,24 @@ describe "Users API", type: :request do
         expect(response).to have_http_status :forbidden
       end
 
+      it "cannot set own avatar_state without manage_user_details (refs ULTI-697)" do
+        @user.avatar_state = "submitted"
+        @user.avatar_image_url = "http://localhost/preserved-avatar"
+        @user.avatar_image_source = "attachment"
+        @user.save!
+
+        %w[approved locked reported re_reported none].each do |attempted_state|
+          api_call(:put,
+                   "/api/v1/users/#{@user.id}",
+                   @path_options.merge(id: @user.id),
+                   { user: { avatar: { state: attempted_state } } })
+
+          @user.reload
+          expect(@user.avatar_state).to eq(:submitted), "state changed to #{@user.avatar_state} when sending state=#{attempted_state}"
+          expect(@user.avatar_image_url).to eq("http://localhost/preserved-avatar")
+        end
+      end
+
       it "cannot see avatar_state" do
         raw_api_call(:put, "/api/v1/users/#{@user.id}", @path_options.merge(id: @user.id), { email: "test@example.com" })
         expect(response).to have_http_status :ok

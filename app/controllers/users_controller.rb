@@ -2323,7 +2323,7 @@ class UsersController < ApplicationController
         user_params[:avatar_image] = { url: }
       end
 
-      if (state = avatar.try(:[], :state))
+      if (state = avatar.try(:[], :state)) && @user.grants_right?(@current_user, :manage_user_details)
         user_params[:avatar_image] = { state: }
       end
     end
