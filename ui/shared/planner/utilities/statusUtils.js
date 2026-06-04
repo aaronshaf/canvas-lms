@@ -60,6 +60,10 @@ export function showPillForOverdueStatus(status, item) {
   return !!item.status && item.status[status]
 }
 
+function gradeBadgeVisible(status) {
+  return Boolean(status && status.graded && !status.excused && status.posted_at)
+}
+
 /**
  * Returns an array of pill objects that the particular item
  * qualifies to have
@@ -68,8 +72,7 @@ export function getBadgesForItem(item) {
   let badges = []
   if (item.status) {
     badges = Object.keys(item.status)
-      .filter((key, _index, _all) => !(!item.status.posted_at && key === 'graded')) // if no posted_at, ignore graded
-      .filter((key, _index, _all) => !(item.status.excused && key === 'graded')) // if excused, ignore graded
+      .filter(key => key !== 'graded' || gradeBadgeVisible(item.status))
       .filter((key, _index, _all) => !(item.status.graded && key === 'submitted')) // if graded, ignore submitted
       .filter((key, _index, _all) => !(item.status.redo_request && key === 'submitted')) // if redo requested, ignore submitted
       .filter(key => {
@@ -101,7 +104,7 @@ export function getBadgesForItem(item) {
  */
 export function getBadgesForItems(items) {
   const badges = []
-  if (items.some(i => i.status && i.newActivity && i.status.graded && !i.status.excused)) {
+  if (items.some(i => i.newActivity && gradeBadgeVisible(i.status))) {
     badges.push(PILL_MAPPING.new_grades())
   }
   if (items.some(i => i.status && i.status.submitted && !i.status.graded && !i.status.excused)) {

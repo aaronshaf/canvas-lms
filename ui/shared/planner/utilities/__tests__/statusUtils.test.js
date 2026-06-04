@@ -133,7 +133,7 @@ describe('getBadgesForItems', () => {
 
   it('returns New Grades object when at least one new activity item is graded and not excused', () => {
     const items = [
-      {newActivity: true, status: {graded: true, excused: false}},
+      {newActivity: true, status: {graded: true, excused: false, posted_at: Date.now()}},
       {status: {excused: true}},
     ]
     expect(getBadgesForItems(items)).toContainEqual({
@@ -144,10 +144,29 @@ describe('getBadgesForItems', () => {
 
   it('does not return New Grades object when one activity is graded but is also excused', () => {
     const items = [
-      {newActivity: true, status: {graded: true, excused: true}},
+      {newActivity: true, status: {graded: true, excused: true, posted_at: Date.now()}},
       {status: {excused: true}},
     ]
     expect(getBadgesForItems(items)).toEqual([])
+  })
+
+  it('does not return New Grades object when graded item has no posted_at', () => {
+    const items = [
+      {newActivity: true, status: {graded: true, excused: false, posted_at: null}},
+      {status: {excused: true}},
+    ]
+    expect(getBadgesForItems(items)).toEqual([])
+  })
+
+  it('returns New Grades object when a collapsed day mixes posted and unposted graded items', () => {
+    const items = [
+      {newActivity: true, status: {graded: true, excused: false, posted_at: null}},
+      {newActivity: true, status: {graded: true, excused: false, posted_at: Date.now()}},
+    ]
+    expect(getBadgesForItems(items)).toContainEqual({
+      id: 'new_grades',
+      text: 'Graded',
+    })
   })
 
   it('returns Submitted object when at least one item is submitted but not graded or excused', () => {
