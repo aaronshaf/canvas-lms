@@ -127,3 +127,8 @@ f980a6f3a7517a2d5024ab1abf198dd96a9237b2 # SpeedGrader linting
 33c5c980c58777578f6888639cd1a77d90f169ac # Biome & Eslint
 e216f64638bc47569d8f476eb1cbbdda02ecf0e6 # Biome & Eslint
 9c33ecc8dd5851fec2f7ed9cdb346c10b1ca0bca # Biome & Eslint
+d7257d8c88901cfb07cedcdeadba645d91f4922a # RuboCop ERB Style/HashSyntax
+b35d068f4594b1c2ec99a5f91e7fe5a96e99af99 # RuboCop ERB Style/HashSyntax
+506e568b8f8cde1fa6f20762b885fdf1c94f91b7 # Rubocop ERB Layout
+d547658d3661b106065d3f67eb7bf9dc1df213f5 # RuboCop ERB Layout
+0fa02bf887ae21bb9657f5d7f30223e2cc38123c # RuboCop ERB Style/StringLiterals
