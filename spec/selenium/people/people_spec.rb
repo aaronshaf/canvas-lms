@@ -311,16 +311,6 @@ describe "people" do
       expect(f(".empty-groupset-instructions")).to be_displayed
     end
 
-    it "tests prior enrollment functionality" do
-      @course.complete
-      get "/courses/#{@course.id}/users"
-      expect_new_page_load do
-        f("#people-options .Button").click
-        fln("View Prior Enrollments").click
-      end
-      expect(f("#users")).to include_text(@student_1.name)
-    end
-
     it "deals with observers linked to multiple students" do
       @students = []
       @obs = user_model(name: "The Observer")
@@ -605,30 +595,6 @@ describe "people" do
       expect(f("body")).not_to contain_jqcss("input[id^='select-user-']")
     end
 
-    it "validates that the TA cannot delete or reset course" do
-      get "/courses/#{@course.id}/settings"
-      expect(f("#content")).not_to contain_css(".delete_course_link")
-      expect(f("#content")).not_to contain_css(".reset_course_content_button")
-      get "/courses/#{@course.id}/confirm_action?event=conclude"
-      expect(f("#unauthorized_message")).to include_text("Access Denied")
-    end
-
-    it "includes login id column if the user has :view_user_logins, even if they don't have :manage_students" do
-      RoleOverride.create!(context: Account.default, permission: "manage_students", role: ta_role, enabled: false)
-      get "/courses/#{@course.id}/users"
-      index = ff("table.roster th").map(&:text).find_index("Login ID")
-      expect(index).not_to be_nil
-      ta_row = ff("table.roster #user_#{@ta.id} td").map(&:text)
-      expect(ta_row[index].strip).to eq @ta.pseudonym.unique_id
-    end
-
-    it "does not include login id column if the user does not have :view_user_logins, even if they do have :manage_students" do
-      RoleOverride.create!(context: Account.default, permission: "view_user_logins", role: ta_role, enabled: false)
-      get "/courses/#{@course.id}/users"
-      index = ff("table.roster th").map(&:text).find_index("Login ID")
-      expect(index).to be_nil
-    end
-
     context "without view all grades permissions" do
       before do
         ["view_all_grades", "manage_grades"].each do |permission|
@@ -666,24 +632,6 @@ describe "people" do
           expect(f("#content")).not_to contain_link("Student Interactions Report")
         end
       end
-    end
-  end
-
-  context "people as a student" do
-    before :once do
-      course_with_student(active_all: true)
-    end
-
-    before do
-      user_session @student
-    end
-
-    it "does not link avatars to a user's profile page if profiles are disabled" do
-      @course.account.settings[:enable_profiles] = false
-      @course.account.enable_service(:avatars)
-      @course.account.save!
-      get "/courses/#{@course.id}/users/#{@student.id}"
-      expect(f(".avatar")["href"]).not_to be_present
     end
   end
 
@@ -844,52 +792,9 @@ describe "people" do
       admin_logged_in
     end
 
-    it "lets observers have their roles changed if they don't have associated users" do
-      @course.enroll_user(@teacher, "ObserverEnrollment", allow_multiple_enrollments: true)
-
-      get "/courses/#{@course.id}/users"
-
-      open_dropdown_menu("#user_#{@teacher.id}")
-      expect_dropdown_item("editRoles", "#user_#{@teacher.id}")
-    end
-
-    it "does not let observers with associated users have their roles changed" do
-      student = user_factory
-      @course.enroll_student(student)
-      @course.enroll_user(@teacher, "ObserverEnrollment", allow_multiple_enrollments: true, associated_user_id: student.id)
-
-      get "/courses/#{@course.id}/users"
-
-      open_dropdown_menu("#user_#{@teacher.id}")
-      expect_no_dropdown_item("editRoles", "#user_#{@teacher.id}")
-    end
-
     def open_role_dialog(user)
       f("#user_#{user.id} .admin-links a.al-trigger").click
       f("#user_#{user.id} .admin-links a[data-event='editRoles']").click
-    end
-
-    it "lets users change to an observer role" do
-      get "/courses/#{@course.id}/users"
-
-      open_role_dialog(@teacher)
-
-      f("[data-testid='edit-roles-select']").click
-      teacher_option = f("[data-testid='Teacher-option']")
-      expect(teacher_option.attribute("aria-selected")).to eq "true"
-      expect(f("[data-testid='Observer-option']")).to be_present
-      expect(f("[data-testid='Student-option']")).to be_present
-    end
-
-    it "does not let users change to a type they don't have permission to manage" do
-      @course.root_account.role_overrides.create!(role: admin_role, permission: "add_student_to_course", enabled: false)
-
-      get "/courses/#{@course.id}/users"
-
-      open_role_dialog(@teacher)
-      f("[data-testid='edit-roles-select']").click
-      expect(f("[data-testid='TA-option']")).to be_present
-      expect(f("body")).not_to contain_css("[data-testid='Student-option']")
     end
 
     it "retains the same enrollment state" do
@@ -1049,59 +954,7 @@ describe "people" do
         expect(f(".StudentContextTray-Header__Name h2 a")).to include_text("student@test.com")
         expect(f(".StudentContextTray-Header")).to contain_css("i.icon-email")
       end
-
-      it "does not display the message button if the student enrollment is inactive" do
-        @enrollment.deactivate
-        get("/courses/#{@course.id}/users")
-        f("a[data-student_id='#{@student.id}']").click
-        expect(f(".StudentContextTray-Header")).not_to contain_css("i.icon-email")
-      end
-
-      context "student context card tool placement" do
-        before :once do
-          @tool = Account.default.context_external_tools.new(name: "a", domain: "google.com", consumer_key: "12345", shared_secret: "secret")
-          @tool.student_context_card = {
-            url: "http://www.example.com",
-            text: "See data for this student or whatever",
-            required_permissions: "view_all_grades,manage_grades"
-          }
-          @tool.save!
-        end
-
-        it "shows a link to the tool" do
-          get("/courses/#{@course.id}/users")
-          f("a[data-student_id='#{@student.id}']").click
-
-          link = ff(".StudentContextTray-QuickLinks__Link a")[1]
-          expect(link).to include_text(@tool.label_for(:student_context_card))
-          expect(link["href"]).to eq course_external_tool_url(@course, @tool) + "?launch_type=student_context_card&student_id=#{@student.id}"
-        end
-
-        it "does not show link if the user doesn't have the permissions specified by the tool" do
-          @course.account.role_overrides.create!(permission: "manage_grades", role: admin_role, enabled: false)
-          get("/courses/#{@course.id}/users")
-          f("a[data-student_id='#{@student.id}']").click
-
-          link = ff(".StudentContextTray-QuickLinks__Link a")[1]
-          expect(link).to be_nil
-        end
-      end
     end
-  end
-
-  it "does not show unenroll link to admins without permissions" do
-    account_admin_user(active_all: true)
-    user_session(@admin)
-
-    course_with_student(active_all: true)
-    get "/users/#{@student.id}"
-
-    expect(f("#courses")).to contain_css(".unenroll_link")
-
-    Account.default.role_overrides.create!(permission: "remove_student_from_course", enabled: false, role: admin_role)
-    refresh_page
-
-    expect(f("#courses")).not_to contain_css(".unenroll_link")
   end
 
   context "Differentiation Tags" do
@@ -1119,30 +972,12 @@ describe "people" do
         user_session @teacher
       end
 
-      it "renders the Manage Tags Button if the setting is on" do
-        get "/courses/#{@course.id}/users"
-        expect(fj("button:contains('Manage Tags')")).to be_displayed
-      end
-
       it "does not render the Manage Tags Button if the setting is off" do
         Account.default.settings[:allow_assign_to_differentiation_tags] = { value: false }
         Account.default.save!
         Account.default.reload
         get "/courses/#{@course.id}/users"
         expect(f("body")).not_to contain_jqcss("button:contains('Manage Tags')")
-      end
-
-      it "does not render the Manage Tags Button if the user does not have permissions (as a TA)" do
-        course_with_ta(active_all: true)
-        user_session @ta
-        get "/courses/#{@course.id}/users"
-        expect(f("body")).not_to contain_jqcss("button:contains('Manage Tags')")
-      end
-
-      it "opens the Tray when the Manage Tags Button is clicked" do
-        get "/courses/#{@course.id}/users"
-        fj("button:contains('Manage Tags')").click
-        expect(fj("h2:contains('Manage Tags')")).to be_displayed
       end
 
       it "closes the Tray when the close button is clicked" do

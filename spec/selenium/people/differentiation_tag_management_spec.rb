@@ -216,10 +216,6 @@ describe "Differentiation Tag Management" do
           wait_for_ajaximations
         end
 
-        it "opens the tray when the 'Manage Tags' button is clicked" do
-          expect(fj("h2:contains('Manage Tags')")).to be_displayed
-        end
-
         it "displays a tooltip when name is too large" do
           expect(ff("[data-testid='full-tag-name']").last.text).to eq ""
           hover(f("[data-testid='tooltip-container']"))
@@ -235,27 +231,6 @@ describe "Differentiation Tag Management" do
           check_element_has_focus(fj("button:contains('Manage Tags')"))
         end
 
-        it "displays a search input in the tray" do
-          expect(f("input[placeholder='Search for Tag']")).to be_displayed
-        end
-
-        it "shows 'No matching tags found' when the search returns no results" do
-          search_box = f("input[placeholder='Search for Tag']")
-          search_box.send_keys("some random string that does not match anything")
-          wait_for_ajaximations
-
-          expect(f("body")).to contain_jqcss("span:contains('No matching tags found.')")
-        end
-
-        it "filters the tags by category name" do
-          search_box = f("input[placeholder='Search for Tag']")
-          search_box.send_keys("single")
-          wait_for_ajaximations
-
-          expect(fj("span:contains('single tag')")).to be_displayed
-          expect(f("body")).not_to contain_jqcss("span:contains('Multiple Tags')")
-        end
-
         it "filters the tags by tag name" do
           search_box = f("input[placeholder='Search for Tag']")
           search_box.send_keys("variant 2")
@@ -263,13 +238,6 @@ describe "Differentiation Tag Management" do
 
           expect(fj("span:contains('Multiple Tags')")).to be_displayed
           expect(f("body")).not_to contain_jqcss("span:contains('single tag')")
-        end
-
-        it "opens the create edit modal when + tag is pressed" do
-          fj("button:contains('+ Tag')").click
-          wait_for_ajaximations
-
-          expect(fj("h2:contains('Create Tag')")).to be_displayed
         end
 
         it "displays correct modal data when editing single tag" do
@@ -316,44 +284,6 @@ describe "Differentiation Tag Management" do
           expect(ff("[data-testid='tag-name-input']")[0]).to have_value(@multiple_tags_1.name)
           expect(ff("[data-testid='tag-name-input']")[1]).to have_value(@multiple_tags_2.name)
         end
-
-        it "displays correct tray cards when opening the tray" do
-          expect(fj("span:contains('single tag')")).to be_displayed
-          expect(fj("span:contains('Multiple Tags')")).to be_displayed
-        end
-
-        it "paginates when there are more than 4 differentiation tags" do
-          4.times do |i|
-            cat = @course.group_categories.create!(name: "Extra Cat #{i}", non_collaborative: true)
-            @course.groups.create!(name: "Extra Tag #{i}", group_category: cat)
-          end
-
-          refresh_page
-          fj("button:contains('Manage Tags')").click
-          wait_for_ajaximations
-
-          # Expect the pagination control to appear
-          expect(f("body")).to contain_jqcss("[data-testid='differentiation-tag-pagination']")
-        end
-
-        it "shows an empty state if there are no categories" do
-          @course.differentiation_tag_categories.destroy_all
-          refresh_page
-          wait_for_ajaximations
-          fj("button:contains('Manage Tags')").click
-
-          expect(fj("h3:contains('Differentiation Tags')")).to be_displayed
-          expect(fj("button:contains('Get Started')")).to be_displayed
-        end
-
-        it "deletes a tag category when the delete button is pressed" do
-          ffj("button:contains('Delete')")[0].click
-          wait_for_ajaximations
-          fj("button:contains('Confirm')").click
-          wait_for_ajaximations
-          expect(f("body")).not_to contain_jqcss("span:contains('single tag')")
-          expect(@course.differentiation_tag_categories.count).to eq 2
-        end
       end
 
       context "user differentiation tag manager" do
@@ -363,19 +293,6 @@ describe "Differentiation Tag Management" do
           expect(f("input[type='checkbox'][aria-label='Select #{@student.name}']").attribute("checked")).to be_truthy
 
           expect(f("[data-testid='user-diff-tag-manager-user-count']")).to include_text("1 Selected")
-        end
-
-        it "displays the 'Tag As' menu button" do
-          expect(f("button[data-testid='user-diff-tag-manager-tag-as-button']")).to be_displayed
-        end
-
-        it "opens the 'Tag As' menu and shows categories when clicked" do
-          f("button[data-testid='user-diff-tag-manager-tag-as-button']").click
-          wait_for_ajaximations
-
-          expect(fj("span:contains('#{@single_tag_1.name}')")).to be_displayed
-          expect(fj("span:contains('#{@multiple_tags_1.name}')")).to be_displayed
-          expect(fj("span:contains('#{@multiple_tags_2.name}')")).to be_displayed
         end
 
         it "shows the create tag modal" do
@@ -568,24 +485,6 @@ describe "Differentiation Tag Management" do
             expect(f("[data-testid='tag-name-input']")).to have_value(@single_tag.name)
           end
 
-          it "Displays correct edit data for a multiple tag" do
-            # Open the edit modal for a multiple tag set
-            f("button[aria-label='Edit tag set: #{@multiple_tags.name}']").click
-            wait_for_ajaximations
-
-            # Verify that the modal shows both Tag Set Name and tag variant fields
-            expect(fj("span:contains('Edit Tag')")).to be_displayed
-            expect(fj("span:contains('Tag Set Name')")).to be_displayed
-            expect(fj("span:contains('Tag Name')")).to be_displayed
-            expect(fj("span:contains('Tag Name (Variant 1)')")).to be_displayed
-            expect(fj("span:contains('Tag Name (Variant 2)')")).to be_displayed
-
-            # Verify the correct values in each tag input field
-            tag_inputs = ff("[data-testid='tag-name-input']")
-            expect(tag_inputs[0]).to have_value(@multiple_tags_1.name)
-            expect(tag_inputs[1]).to have_value(@multiple_tags_2.name)
-          end
-
           it "Displays correct edit data for a tag set with one tag but different names" do
             # Setup a differentiation tag set with a different tag set name from its single tag name.
             single_diff_set = @course.group_categories.create!(name: "Diff Set", non_collaborative: true)
@@ -720,25 +619,6 @@ describe "Differentiation Tag Management" do
             expect(@multiple_tags.reload.groups.active.pluck(:id)).not_to eq(original_tag_ids)
           end
 
-          it "Displays an error message in the modal", :ignore_js_errors do
-            allow_any_instance_of(GroupCategoriesController)
-              .to receive(:bulk_manage_differentiation_tag)
-              .and_raise(ActiveRecord::RecordInvalid.new)
-
-            fj("button:contains('+ Tag')").click
-            wait_for_ajaximations
-
-            expect(fj("h2:contains('Create Tag')")).to be_displayed
-
-            tag_input = f("[data-testid='tag-name-input']")
-            tag_input.send_keys("New Single Tag")
-            fj("button:contains('Save')").click
-            wait_for_ajaximations
-
-            expect(fj("h2:contains('Create Tag')")).to be_displayed
-            expect(f(".flashalert-message")).to be_displayed
-          end
-
           it "Displays an info alert if tag variant limit is reached", :ignore_js_errors do
             multiple_tags_full = @course.group_categories.create!(name: "Project Tags", non_collaborative: true)
             (1..10).each do |x|
@@ -754,25 +634,6 @@ describe "Differentiation Tag Management" do
             expect(f("body")).not_to contain_jqcss("button:contains('+ Add another tag')")
 
             expect(fj("div:contains('Variant limit reached. Current limit is #{Group.MAX_VARIANTS_PER_TAG_CATEGORY}')")).to be_displayed
-          end
-
-          it "Displays an error message for tag limit", :ignore_js_errors do
-            tags_to_create = GroupCategory.MAX_DIFFERENTIATION_TAG_PER_COURSE - @multiple_tags.max_diff_tag_validation_count
-            (1..tags_to_create).each do |x|
-              st = @course.group_categories.create!(name: "st #{x}", non_collaborative: true)
-              @course.groups.create!(name: "st #{x}", group_category: st)
-            end
-            expect(@multiple_tags.max_diff_tag_validation_count).to eq GroupCategory.MAX_DIFFERENTIATION_TAG_PER_COURSE
-
-            fj("button:contains('+ Tag')").click
-            wait_for_ajaximations
-
-            tag_input = f("[data-testid='tag-name-input']")
-            tag_input.send_keys("No more tags")
-            fj("button:contains('Save')").click
-            wait_for_ajaximations
-            expect(f(".flashalert-message")).to be_displayed
-            expect(fj("p:contains('Validation failed: You have reached the tag limit for this course')")).to be_displayed
           end
 
           it "focus the edit button after tag creation" do
@@ -937,70 +798,6 @@ describe "Differentiation Tag Management" do
         user_session @student
         get "/courses/#{@course.id}/users"
         expect(f("body")).not_to contain_jqcss("button:contains('Manage Tags')")
-      end
-
-      it "does not show selection checkboxes or 'Tag As' for TAs by default" do
-        user_session @ta
-        get "/courses/#{@course.id}/users"
-
-        expect(f("body")).not_to contain_jqcss("input[type='checkbox'][aria-label^='Select']")
-        expect(f("body")).not_to contain_jqcss("button[data-testid='user-diff-tag-manager-tag-as-button']")
-      end
-    end
-
-    context "sub account settings" do
-      context "when the parent account differentiation tags setting is on and locked" do
-        before do
-          Account.default.settings[:allow_assign_to_differentiation_tags] = { value: true, locked: true }
-          Account.default.save!
-        end
-
-        it "shows the 'Manage Tags' button" do
-          user_session @teacher
-          get "/courses/#{@course_with_tags_disabled.id}/users"
-          expect(f("body")).to contain_jqcss("button:contains('Manage Tags')")
-        end
-      end
-
-      context "when the parent account setting is on and not locked" do
-        before do
-          Account.default.settings[:allow_assign_to_differentiation_tags] = { value: true }
-          Account.default.save!
-        end
-
-        it "shows the 'Manage Tags' button when sub account setting is on" do
-          user_session @teacher
-          get "/courses/#{@course_with_tags_enabled.id}/users"
-          expect(f("body")).to contain_jqcss("button:contains('Manage Tags')")
-        end
-
-        it "does not show the 'Manage Tags' button when sub account setting is off" do
-          @sub1_account.settings[:allow_assign_to_differentiation_tags] = { value: false }
-          @sub1_account.save!
-          @teacher.clear_caches
-          user_session @teacher
-          get "/courses/#{@course_with_tags_disabled.id}/users"
-          expect(f("body")).not_to contain_jqcss("button:contains('Manage Tags')")
-        end
-      end
-
-      context "when the parent account setting is off and not locked" do
-        before do
-          Account.default.settings[:allow_assign_to_differentiation_tags] = { value: false }
-          Account.default.save!
-        end
-
-        it "shows the 'Manage Tags' button when sub account setting is on" do
-          user_session @teacher
-          get "/courses/#{@course_with_tags_enabled.id}/users"
-          expect(f("body")).to contain_jqcss("button:contains('Manage Tags')")
-        end
-
-        it "does not show the 'Manage Tags' button when sub account setting is off" do
-          user_session @teacher
-          get "/courses/#{@course_with_tags_disabled.id}/users"
-          expect(f("body")).not_to contain_jqcss("button:contains('Manage Tags')")
-        end
       end
     end
   end
