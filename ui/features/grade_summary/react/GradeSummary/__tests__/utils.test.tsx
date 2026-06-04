@@ -28,7 +28,7 @@ import {GradingPeriod} from '../../../graphql/GradingPeriod'
 import {GradingStandard} from '../../../graphql/GradingStandard'
 import {Submission} from '../../../graphql/Submission'
 
-import {ASSIGNMENT_NOT_APPLICABLE, ASSIGNMENT_SORT_OPTIONS, ASSIGNMENT_STATUS} from '../constants'
+import {ASSIGNMENT_NOT_APPLICABLE, ASSIGNMENT_SORT_OPTIONS} from '../constants'
 
 import {
   calculateTotalPercentageWithPartialWeight,
@@ -43,7 +43,6 @@ import {
   getAssignmentGroupScore,
   getAssignmentGroupTotalPoints,
   getAssignmentLetterGrade,
-  getAssignmentNoSubmissionStatus,
   getAssignmentPercentage,
   getAssignmentPositionInModuleItems,
   getAssignmentSortKey,
@@ -623,11 +622,11 @@ describe('util', () => {
       expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
     })
 
-    it('should return "Missing" status when dueDate is in the past and there is no submissionsConnection nodes', () => {
+    it('should return "Missing" status when an unsubmitted submission is flagged missing by the backend', () => {
       const assignment = {
         dueAt: getTime(true),
         submissionsConnection: {
-          nodes: [Submission.mock({state: 'unsubmitted'})],
+          nodes: [Submission.mock({state: 'unsubmitted', missing: true})],
         },
       }
 
@@ -669,6 +668,18 @@ describe('util', () => {
       expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
     })
 
+    it('should return "Not Submitted" (not "Missing") for a past-due unsubmitted submission the backend does not flag missing, e.g. an external tool assignment', () => {
+      const assignment = {
+        dueAt: getTime(true),
+        submissionsConnection: {
+          nodes: [Submission.mock({state: 'unsubmitted', missing: false})],
+        },
+      }
+
+      const expectedOutput = <Pill color="primary">Not Submitted</Pill>
+      expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
+    })
+
     it('should return "Not Submitted" status when dueDate is in the future and there is no submissionsConnection nodes', () => {
       const assignment = {
         dueAt: getTime(false),
@@ -693,33 +704,6 @@ describe('util', () => {
         },
       }
       expect(getDisplayStatus(assignment)).toEqual(DateHelper.formatDatetimeForDisplay(submittedAt))
-    })
-  })
-
-  describe('getAssignmentNoSubmissionStatus', () => {
-    it('should return MISSING status when the due date is in the past', () => {
-      const pastDueDate = new Date()
-      pastDueDate.setDate(pastDueDate.getDate() - 1)
-      const result = getAssignmentNoSubmissionStatus(pastDueDate.toISOString())
-      expect(result).toEqual(ASSIGNMENT_STATUS.MISSING)
-    })
-
-    it('should return NOT_SUBMITTED status when the due date is in the future', () => {
-      const futureDueDate = new Date()
-      futureDueDate.setDate(futureDueDate.getDate() + 1)
-      const result = getAssignmentNoSubmissionStatus(futureDueDate.toISOString())
-      expect(result).toEqual(ASSIGNMENT_STATUS.NOT_SUBMITTED)
-    })
-
-    it('should return MISSING status when the due date is today', () => {
-      const today = new Date().toISOString().split('T')[0]
-      const result = getAssignmentNoSubmissionStatus(today)
-      expect(result).toEqual(ASSIGNMENT_STATUS.MISSING)
-    })
-
-    it('should return NOT_SUBMITTED status when no due date is provided', () => {
-      const result = getAssignmentNoSubmissionStatus(undefined)
-      expect(result).toEqual(ASSIGNMENT_STATUS.NOT_SUBMITTED)
     })
   })
 

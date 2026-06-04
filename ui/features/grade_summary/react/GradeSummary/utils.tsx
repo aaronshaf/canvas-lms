@@ -160,7 +160,7 @@ export const submissionCommentsPresent = assignment => {
 
 // @ts-expect-error
 export const getAssignmentStatus = assignment => {
-  const {submissionsConnection, dropped, gradingType, dueAt} = assignment || {}
+  const {submissionsConnection, dropped, gradingType} = assignment || {}
 
   const latestSubmission = submissionsConnection?.nodes?.[0]
   const {gradingStatus, late, missing, customGradeStatus, state, submittedAt} =
@@ -181,7 +181,7 @@ export const getAssignmentStatus = assignment => {
       status = ASSIGNMENT_STATUS.MISSING
     }
   } else if (state === 'unsubmitted') {
-    status = getAssignmentNoSubmissionStatus(dueAt)
+    status = ASSIGNMENT_STATUS.NOT_SUBMITTED
   } else if (late) {
     if (gradingStatus === 'graded') {
       status = ASSIGNMENT_STATUS.LATE_GRADED
@@ -201,17 +201,6 @@ export const getAssignmentStatus = assignment => {
   }
 
   return status
-}
-
-// @ts-expect-error
-export const getAssignmentNoSubmissionStatus = dueDate => {
-  const assignmentDueDate = new Date(dueDate)
-  const currentDate = new Date()
-  if (dueDate && assignmentDueDate < currentDate) {
-    return ASSIGNMENT_STATUS.MISSING
-  } else {
-    return ASSIGNMENT_STATUS.NOT_SUBMITTED
-  }
 }
 
 // @ts-expect-error
