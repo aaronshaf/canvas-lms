@@ -260,6 +260,8 @@
       "webkitallowfullscreen",
       "mozallowfullscreen",
       "allow",
+      "frameborder",
+      "scrolling",
       "data-old-link"
     ],
     "i": [],
