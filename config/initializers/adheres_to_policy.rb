@@ -162,15 +162,17 @@ module AdheresToPolicy
         end
       end
 
-      def method_missing(...)
+      def method_missing(method, ...)
         return super unless user
+        return super if %i[encode_with init_with].include?(method)
 
         AdheresToPolicy::Canvas.deprecation_check(:principal_as_user)
-        user.__send__(...)
+        user.__send__(method, ...)
       end
 
       def respond_to_missing?(method_name, include_private = false)
         return super unless user
+        return super if %i[encode_with init_with].include?(method_name)
 
         user.respond_to?(method_name, include_private) || super
       end

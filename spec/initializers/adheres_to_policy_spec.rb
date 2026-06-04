@@ -167,6 +167,25 @@ describe "adheres_to_policy monkeypatches" do
         expect { principal == user }.to raise_error(AdheresToPolicy::Canvas::DeprecationFailure)
       end
     end
+
+    describe "YAML round-trip" do
+      let(:pseudonym) { pseudonym_model(user:) }
+
+      it "round-trips a user-wrapping principal as a UserPrincipal (not a bare User)" do
+        round_tripped = YAML.unsafe_load(YAML.dump(principal))
+        expect(round_tripped).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(round_tripped.user).to eq user
+        expect(round_tripped.pseudonym).to be_nil
+      end
+
+      it "round-trips a pseudonym-wrapping principal with both user and pseudonym" do
+        principal = Canvas::AdheresToPolicy::UserPrincipal.new(pseudonym)
+        round_tripped = YAML.unsafe_load(YAML.dump(principal))
+        expect(round_tripped).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(round_tripped.user).to eq user
+        expect(round_tripped.pseudonym).to eq pseudonym
+      end
+    end
   end
 
   describe AdheresToPolicy::InstanceMethods do
