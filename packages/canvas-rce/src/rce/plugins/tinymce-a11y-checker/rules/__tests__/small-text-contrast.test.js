@@ -17,7 +17,12 @@
  */
 
 import rule from '../small-text-contrast'
-import * as uid from '@instructure/uid'
+import {uid} from '@instructure/uid'
+
+vi.mock('@instructure/uid', () => {
+  const mockUid = vi.fn()
+  return {default: mockUid, uid: mockUid}
+})
 
 let el
 
@@ -87,7 +92,7 @@ describe('test', () => {
 
 describe('data', () => {
   test('returns the color matching the elements existing color', () => {
-    vi.spyOn(uid, 'default').mockReturnValue('123')
+    uid.mockReturnValue('123')
     el.style.color = '#fff'
     expect(rule.data(el)).toEqual({
       color: 'rgba(255, 255, 255, 1)',
