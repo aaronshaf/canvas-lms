@@ -1299,7 +1299,7 @@ describe "RCE next tests", :ignore_js_errors do
 
     describe "the html editors" do
       after do
-        driver.execute_script("if (document.fullscreenElement) document.exitFullscreen()")
+        force_exit_fullscreen
       end
 
       it "remembers preferred html editor" do
@@ -1335,6 +1335,14 @@ describe "RCE next tests", :ignore_js_errors do
 
     # rubocop:disable Specs/NoSeleniumWebDriverWait
     describe "fullscreen" do
+      after do
+        # Ensure fullscreen is exited so the next test's prepend_before
+        # (resize_screen_to_standard) doesn't hit UnexpectedAlertOpenError
+        # from Chrome's fullscreen state. # flaky-fix: QE-144
+        force_exit_fullscreen
+      rescue # rubocop:disable Lint/SuppressedException
+      end
+
       it "restores the rce to its original size after switching to pretty html view" do
         visit_front_page_edit(@course)
 
@@ -1354,7 +1362,7 @@ describe "RCE next tests", :ignore_js_errors do
         end
       end
 
-      it "restores the rce to its original size after switching from pretty html view" do
+      it "restores the rce to its original size after switching from pretty html view" do # flaky-fix: QE-144
         visit_front_page_edit(@course)
         switch_to_html_view
 
@@ -1385,7 +1393,7 @@ describe "RCE next tests", :ignore_js_errors do
         expect(f("##{menu_id}")).to be_displayed
       end
 
-      it "traps focus in fullscreen" do
+      it "traps focus in fullscreen" do # flaky-fix: QE-144
         visit_front_page_edit(@course)
         full_screen_button.click
         active_elem = driver.execute_script("return document.activeElement") # content area

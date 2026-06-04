@@ -29,6 +29,28 @@ shared_examples_for "context modules for teachers" do
   include ModulesSettingsTray
   include ItemsAssignToTray
 
+  # Create the LTI tool before any test runs. The launch_definitions endpoint
+  # responds with expires_in 10.minutes — Chrome caches the response. Earlier
+  # tests that select "External Tool" (e.g. "allows adding an external tool
+  # item") populate the cache. If this tool doesn't exist yet when the cache
+  # is populated, the "LTI tool selection" test gets a stale cached response
+  # with zero tools. # flaky-fix: QE-144
+  before(:once) do
+    @course.context_external_tools.create!(
+      name: "Test LTI Tool",
+      consumer_key: "test_key",
+      shared_secret: "test_secret",
+      url: "http://example.com/lti",
+      settings: {
+        "link_selection" => {
+          "url" => "http://example.com/resource_selection",
+          "selection_width" => 500,
+          "selection_height" => 500
+        }
+      }
+    )
+  end
+
   it "shows all module items", priority: "1" do
     module_with_two_items
 
@@ -234,31 +256,25 @@ shared_examples_for "context modules for teachers" do
     expect(f("#context_module_item_#{tag.id}")).to have_attribute(:class, "context_external_tool")
   end
 
-  it "allows selecting external tool from LTI list by clicking" do
-    @course.context_external_tools.create!(
-      name: "Test LTI Tool",
-      consumer_key: "test_key",
-      shared_secret: "test_secret",
-      url: "http://example.com/lti",
-      settings: {
-        "link_selection" => {
-          "url" => "http://example.com/resource_selection",
-          "selection_width" => 500,
-          "selection_height" => 500
-        }
-      }
-    )
-
+  it "allows selecting external tool from LTI list by clicking" do # flaky-fix: QE-144
     @course.context_modules.create!(name: "Test Module")
     get "/courses/#{@course.id}/modules"
 
     f(".ig-header-admin .al-trigger").click
     f(".add_module_item_link").click
+
+    # Wait for the select_content_dialog JS bundle to finish initializing.
+    # The bundle detaches the .tool template element during init; once gone,
+    # the #add_module_item_select change handler is guaranteed to be bound.
+    # Without this wait, selecting "External Tool" fires a change event before
+    # the handler exists, so the AJAX to load tools never starts.
+    expect(f("#context_external_tools_select .tools")).not_to contain_css(".tool")
+
     select_module_item("#add_module_item_select", "External Tool")
     wait_for_ajaximations
 
     wait_for(method: nil, timeout: 10) do
-      !ff("#context_external_tools_select .tools .tool").empty?
+      element_exists?("#context_external_tools_select .tools .tool")
     end
 
     tool_element = fj("#context_external_tools_select .tools .tool:contains('Test LTI Tool')")

@@ -69,6 +69,9 @@ Three reports reveal whether the failure pattern is consistent or varies.
 | `RuntimeError` from JS console | CDP artifact | Case 04 Pattern A |
 | `ExpectationNotMetError` (wrong value) | DB ordering / global state | Case 04 Pattern C, Case 05 |
 | "expected X but nothing was raised" | Global state contamination | Case 05 |
+| `NoSuchElementError` on AJAX-loaded content | JS init race or browser cache | Case 06 |
+| Error in `prepend_before` / `after` hook | Previous test left browser state | Case 07 |
+| Multiple tests always fail together | Shared environment variable | Case 05, Case 06 (env) |
 
 ### 4c. Implement the fix
 
@@ -90,7 +93,12 @@ report page (same format as the Breakdown `parent_build_url`) is used to
 search for any reoffending tests.
 
 - If the test fails: download the MHTML, diagnose, adjust, push again
+- If the MHTML does not contain enough information to diagnose, add
+  temporary diagnostic logging (S-07) and push again. Read the diagnostic
+  output from the next failure's MHTML, then remove the logging.
 - If the test passes: move to the next test
+- Also check for new failures in the same spec file — a fix can introduce
+  flakiness in sibling tests (e.g. a `before(:once)` creating shared data)
 
 ### 4f. Generate JIRA comment
 

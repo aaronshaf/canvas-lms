@@ -162,18 +162,116 @@ distributed across split tests.
 
 ---
 
-## S-05 — One patch set per JIRA issue
+## S-05 — Minimise patch sets per JIRA issue
 
-**Rule:** Bundle all fixes for a single JIRA ticket into one Gerrit patch
-set. Do not create separate patch sets per test — they create merge/abandon
-overhead with no benefit.
+**Rule:** Use as few Gerrit patch sets as possible per JIRA ticket. Within a
+single repo, bundle all fixes into one PS. Across repos, one PS per repo is
+the minimum — never more.
 
-**How to apply:** Use `git commit --amend` to add new fixes to the existing
-commit, keeping the same `Change-Id`. Push to the same `refs/for/master`
-reference to update the PS in place.
+**How to apply:**
+- Use `git commit --amend` to add new fixes to the existing commit, keeping
+  the same `Change-Id`. Push to the same `refs/for/master` reference to
+  update the PS in place.
+- When amending a commit message (e.g. to improve the description after
+  review feedback), **preserve the original `Change-Id`** in the message
+  footer. If the hook generates a new `Change-Id`, manually replace it with
+  the original before pushing — otherwise Gerrit creates a new PS instead of
+  updating the existing one.
+- When a batch spans multiple repos (e.g. `canvas-lms` + a plugin like
+  `multiple_root_accounts`), create one PS in each repo. Reference the
+  companion PS in the commit message or JIRA comment so reviewers can find
+  both.
 
-*Introduced: QE-142*
+*Introduced: QE-142, updated: QE-144*
 
 ---
 
-<!-- Add new rules below as S-06, S-07, … -->
+## S-06 — Avoid raw `execute_script` in test files
+
+**Rule:** Do not call `driver.execute_script` directly in spec files. Use
+or create a helper method instead.
+
+**Why:** Inline `execute_script` triggers the `Specs/NoExecuteScript` RuboCop
+cop, scatters JS snippets across test files, and makes intent harder to read.
+Encapsulating the call in a helper gives it a name, a single location, and
+reuse across specs.
+
+**How to apply — in priority order:**
+1. **Use an existing helper.** Search `spec/selenium/test_setup/common_helper_methods/`
+   and the relevant page objects. Examples: `element_exists?`, `scroll_page_to_top`,
+   `get_value`, `fullscreen_element`.
+2. **Extend an existing helper.** If a helper is close but not quite right,
+   parameterise or broaden it rather than writing a new one.
+3. **Add a new helper** only when nothing existing covers the need. Place it
+   alongside helpers of the same category:
+   - Screen/window state → `custom_screen_actions.rb`
+   - Element queries → `custom_selenium_actions.rb`
+   - Waits/polling → `custom_wait_methods.rb`
+   - Alerts/modals → `custom_alert_actions.rb`
+   - Page-specific → the relevant page object (e.g. `rce_next_page.rb`)
+
+*Introduced: QE-144*
+
+---
+
+## S-07 — Add diagnostic logging when the failure report is inconclusive
+
+**Rule:** When the Jenkins MHTML failure report does not provide enough
+information to reach a stable diagnosis, add temporary `Rails.logger.info`
+logging to the test. Push the instrumented version, let CI produce a failure,
+read the diagnostic output from the Rails log section of the MHTML, then
+remove the logging before the final PS.
+
+**How to apply:**
+- Prefix log lines with a tag: `[QE-NNN DIAG]` so they are easy to grep in
+  the MHTML.
+- Capture the JS/DOM state via a helper or (temporarily) `execute_script`,
+  returning a hash of the values you need. Log the hash with `.inspect`.
+- Take two snapshots when diagnosing a wait: one immediately after the
+  action, one after the wait times out. The diff reveals whether the state
+  changed at all.
+- Mark the logging clearly as temporary in the commit message and in a code
+  comment so it is not accidentally left in.
+- Remove all diagnostic logging before the fix is submitted for review.
+
+**Example (from QE-144):**
+```ruby
+diag = driver.execute_script(<<~JS)
+  var sel = document.querySelector('#my_element');
+  return {
+    hasLoaded: sel ? sel.classList.contains('loaded') : 'missing',
+    childCount: sel ? sel.children.length : 0
+  };
+JS
+Rails.logger.info("[QE-144 DIAG] state: #{diag.inspect}")
+```
+
+*Introduced: QE-144*
+
+---
+
+## S-08 — Account for browser HTTP caching in Selenium tests
+
+**Rule:** When a test depends on data created at test time being returned by
+an AJAX endpoint, verify that the endpoint's cache headers
+(`expires_in`, `Cache-Control`) do not allow Chrome to serve a stale
+response from an earlier test on the same worker.
+
+**How to apply:**
+- If the endpoint uses `expires_in` (e.g. `launch_definitions` caches for
+  10 minutes), ensure the test data exists **before the first request to
+  that URL** — typically by creating it in a top-level `before(:once)` that
+  runs before all tests sharing the same course/URL.
+- Moving data creation from inside the `it` block to `before(:once)` is the
+  preferred fix. It ensures every cached response already contains the data.
+- Do not create a separate test to "prime" the cache — just ensure the data
+  exists early enough.
+- When diagnosing, the signal for a cache hit is: the AJAX success callback
+  ran (`loaded` class set, message removed) but zero items appeared, and
+  there is no corresponding `Processing by` entry in the Rails log.
+
+*Introduced: QE-144*
+
+---
+
+<!-- Add new rules below as S-09, S-10, … -->

@@ -43,6 +43,10 @@ module CustomScreenActions
     driver.manage.window.resize_to(767, 800)
   end
 
+  def force_exit_fullscreen
+    driver.execute_script("if (document.fullscreenElement) document.exitFullscreen()")
+  end
+
   def close_extra_windows
     while driver.window_handles.size > 1
       driver.switch_to.window(driver.window_handles.last)
