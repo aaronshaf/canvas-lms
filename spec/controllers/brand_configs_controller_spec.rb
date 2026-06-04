@@ -555,9 +555,18 @@ describe BrandConfigsController do
         "ic-brand-header-image",
         {
           "relative image paths" => "/images/logo.png",
+          "http image URLs" => "http://cdn.example.com/logo.png",
           "https image URLs" => "https://cdn.example.com/logo.png",
         },
         {
+          "javascript: scheme" => "javascript:alert(1)",
+          "data: image URIs" => "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+          "data: html URIs" => "data:text/html;base64,PGgxPng=",
+          "vbscript: scheme" => "vbscript:msgbox(1)",
+          "file: scheme" => "file:///etc/passwd",
+          "bare relative paths without a leading slash" => "logo.png",
+          "protocol-relative URLs" => "//evil.example.com/logo.png",
+          "triple-slash URLs" => "///evil.example.com/logo.png",
           "image URLs containing single quotes" => "logo.png'); background: red; ('",
           "image URLs containing parentheses" => "evil(payload).png",
           "image URLs containing newlines" => "logo.png\n} :root { color: red",

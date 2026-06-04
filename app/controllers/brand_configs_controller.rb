@@ -220,13 +220,17 @@ class BrandConfigsController < ApplicationController
 
   COLOR_VALUE_REGEX = /\A#(\h{3}|\h{4}|\h{6}|\h{8})\z/
   PERCENTAGE_VALUE_REGEX = /\A(0|[1-9]\d?|100)(\.\d+)?%?\z/
-  IMAGE_URL_FORBIDDEN_CHARS = /[\x00-\x1F\x7F'"()<>\\]/
-  IMAGE_URL_MAX_LENGTH = 2048
+  # Fail-closed scheme allowlist: only absolute http(s) or root-relative URLs
+  # are permitted. Everything else (javascript:, data:, vbscript:, file:,
+  # blob:, custom schemes, ...) is rejected rather than relying on a character
+  # blocklist tuned to one sink's escaping rules.
+  # The root-relative branch uses (?!/) so a leading // (protocol-relative,
+  # e.g. //evil.example.com/x.png) or /// can't slip through and be fetched
+  # cross-origin once emitted into CSS/HTML.
+  URL_REGEX = %r{\A(https?://[^\s\x00-\x1F\x7F'"<>()\\]+|/(?!/)[^\s\x00-\x1F\x7F'"<>()\\]*)\z}
+  URL_MAX_LENGTH = 2048
   TEXTAREA_FORBIDDEN_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/
   TEXTAREA_MAX_LENGTH = 500
-
-  OVERRIDE_URL_REGEX = %r{\A(https?://[^\s\x00-\x1F\x7F'"<>()\\]+|/[^\s\x00-\x1F\x7F'"<>()\\]*)\z}
-  OVERRIDE_URL_MAX_LENGTH = 2048
 
   def process_variables(variables)
     return unless variables
@@ -259,12 +263,12 @@ class BrandConfigsController < ApplicationController
         memo[key] = Sanitize.clean(value)
       when "image"
         if value.is_a?(String)
-          if value.length > IMAGE_URL_MAX_LENGTH
-            raise ActionController::BadRequest, "#{key} cannot exceed #{IMAGE_URL_MAX_LENGTH} characters"
+          if value.length > URL_MAX_LENGTH
+            raise ActionController::BadRequest, "#{key} cannot exceed #{URL_MAX_LENGTH} characters"
           end
 
-          if value.match?(IMAGE_URL_FORBIDDEN_CHARS)
-            raise ActionController::BadRequest, "#{key} contains invalid characters"
+          unless value.match?(URL_REGEX)
+            raise ActionController::BadRequest, "#{key} is not a valid image URL"
           end
         end
 
@@ -281,7 +285,7 @@ class BrandConfigsController < ApplicationController
     elsif file.is_a?(String)
       return file if file.empty?
 
-      if file.length > OVERRIDE_URL_MAX_LENGTH || !file.match?(OVERRIDE_URL_REGEX)
+      if file.length > URL_MAX_LENGTH || !file.match?(URL_REGEX)
         raise ActionController::BadRequest, "invalid override URL"
       end
 
