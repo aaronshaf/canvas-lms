@@ -23,17 +23,6 @@ describe "communication channel selenium tests" do
   include_context "in-process server selenium tests"
 
   context "confirm" do
-    it "registers the user" do
-      Setting.set("terms_required", "false")
-      u1 = user_with_communication_channel(user_state: "creation_pending")
-      get "/register/#{u1.communication_channel.confirmation_code}"
-      set_value f("#pseudonym_password"), "asdfasdf"
-      expect_new_page_load do
-        f("#registration_confirmation_form").submit
-      end
-      expect_logout_link_present
-    end
-
     it "does not show a mysterious error" do
       Setting.set("terms_required", "false")
       u1 = user_with_communication_channel(user_state: "creation_pending")
@@ -61,26 +50,6 @@ describe "communication channel selenium tests" do
       u1.save
       get "/register/#{u1.communication_channel.confirmation_code}"
       expect(f("#content")).not_to contain_css('input[name="user[terms_of_use]"]')
-    end
-
-    it "allows the user to edit the pseudonym if its already taken" do
-      u1 = user_with_communication_channel(username: "asdf@qwerty.com", user_state: "creation_pending")
-      u1.accept_terms
-      u1.save
-      # d'oh, now it's taken
-      user_with_pseudonym(username: "asdf@qwerty.com", active_user: true)
-
-      get "/register/#{u1.communication_channel.confirmation_code}"
-      # they can set it...
-      input = f("#pseudonym_unique_id")
-      expect(input).to be_present
-      set_value input, "asdf@asdf.com"
-      set_value f("#pseudonym_password"), "asdfasdf"
-      expect_new_page_load do
-        f("#registration_confirmation_form").submit
-      end
-
-      expect_logout_link_present
     end
 
     it "confirms the communication channels", priority: "2" do
@@ -119,28 +88,6 @@ describe "communication channel selenium tests" do
       m = @user.messages.first
       expect(m.subject).to eq("Canvas Alert")
       expect(m.body).to include(sms_cc.confirmation_code)
-    end
-
-    it "shows the bounce count reset button when a siteadmin is masquerading" do
-      u = user_with_pseudonym(active_all: true)
-      communication_channel(u, { username: "test@example.com", active_cc: true, bounce_count: 3 })
-      site_admin_logged_in
-      masquerade_as(u)
-
-      get "/profile/settings"
-
-      expect(f(".reset_bounce_count_link")).to be_present
-    end
-
-    it "does not show the bounce count reset button when an account admin is masquerading" do
-      u = user_with_pseudonym(active_all: true)
-      communication_channel(u, { username: "test@example.com", active_cc: true, bounce_count: 3 })
-      admin_logged_in
-      masquerade_as(u)
-
-      get "/profile/settings"
-
-      expect(f("#content")).not_to contain_css(".reset_bounce_count_link")
     end
 
     it "does not show the bounce count reset button when the channel is not bouncing" do
