@@ -19,7 +19,7 @@
  */
 
 pipeline {
-  agent { label 'canvas-docker' }
+  agent { label 'canvas-junit-uploader' }
 
   options {
     ansiColor('xterm')
