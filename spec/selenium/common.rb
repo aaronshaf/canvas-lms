@@ -42,6 +42,10 @@ RSpec.configure do |config|
     # For flakey spec catcher: if server and driver are already initialized, reuse instead of starting another instance
     SeleniumDriverSetup.run unless SeleniumDriverSetup.server.present? && SeleniumDriverSetup.driver.present?
   end
+
+  config.after :suite do
+    ApiRequestTracker.write_report if ENV["API_REQUEST_TRACKER"] == "1"
+  end
 end
 
 module SeleniumDependencies
@@ -89,6 +93,7 @@ shared_context "in-process server selenium tests" do
     end
     SeleniumDriverSetup.allow_requests!
     driver.ready_for_interaction = false # need to `get` before we do anything selenium-y in a spec
+    ApiRequestTracker.start_recording(app_host_and_port) if ENV["API_REQUEST_TRACKER"] == "1"
   end
 
   append_before :all do
@@ -263,6 +268,12 @@ shared_context "in-process server selenium tests" do
         raise javascript_errors.map(&:message).join("\n\n").gsub('\\n', "\n")
       end
     end
+  end
+
+  # record the API requests the browser issued during this example (if
+  # API_REQUEST_TRACKER=1); writes them to log/selenium_api_requests.json.
+  after do |example|
+    ApiRequestTracker.finish_example(example) if ENV["API_REQUEST_TRACKER"] == "1"
   end
 
   after(:all) do

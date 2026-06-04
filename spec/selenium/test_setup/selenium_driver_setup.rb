@@ -21,6 +21,7 @@ require_relative "common_helper_methods/custom_alert_actions"
 require_relative "common_helper_methods/custom_screen_actions"
 require_relative "patches/selenium/webdriver/remote/w3c/bridge"
 require_relative "test_only_routes"
+require_relative "api_request_tracker"
 
 # rubocop:disable Rails/Output, RSpec/Output
 module SeleniumDriverSetup
@@ -120,6 +121,8 @@ module SeleniumDriverSetup
 
       set_timeouts(TIMEOUTS)
       puts "Browser: #{browser_name} - #{browser_version}"
+
+      ApiRequestTracker.attach(@driver) if browser == :chrome && ENV["API_REQUEST_TRACKER"] == "1"
 
       @driver
     end

@@ -34,6 +34,7 @@ group :test do
 
   gem "rspec-openapi", "~> 0.25"
   gem "selenium-webdriver", "~> 4.12", require: false
+  gem "selenium-devtools", "~> 0.145.0", require: false
   gem "testrailtagging", "0.3.8.7", require: false
 
   gem "webmock", "~> 3.18", require: false
