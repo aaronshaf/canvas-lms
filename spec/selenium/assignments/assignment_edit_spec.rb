@@ -496,95 +496,57 @@ describe "assignment" do
     end
 
     context "toggle and field reset" do
-      it "resets all peer review fields and toggles to defaults when peer review is disabled then re-enabled", custom_timeout: 55 do # flaky-fix: QE-90
-        # Create a group category for testing within-groups toggle
+      it "resets all peer review fields and toggles to defaults when peer review is disabled then re-enabled" do
         group_category = @pr_course.group_categories.create!(name: "Test Group Category")
+        assignment = @pr_course.assignments.create!(
+          name: "Toggle Reset Test Assignment",
+          points_possible: 10,
+          submission_types: "online_text_entry",
+          group_category:,
+          peer_reviews: true,
+          peer_review_count: 5,
+          anonymous_peer_reviews: true,
+          intra_group_peer_reviews: true,
+          peer_review_submission_required: true
+        )
+        peer_review_model(parent_assignment: assignment, grading_type: "pass_fail")
 
-        get "/courses/#{@pr_course.id}/assignments/new"
+        get "/courses/#{@pr_course.id}/assignments/#{assignment.id}/edit"
         wait_for_ajaximations
 
-        f("#assignment_name").send_keys("Toggle Reset Test Assignment")
-        f("#assignment_text_entry").click
-
-        # Set up as group assignment
-        f("#has_group_category").click
-        click_option("#assignment_group_category_id", group_category.name)
+        # Confirm the page loaded with all advanced toggles in their non-default state.
+        fj("button:contains('Advanced Peer Review Configurations')").click
+        wait_for_ajaximations
+        expect(f("#peer_reviews_within_groups_checkbox")).to be_selected
+        expect(f("#peer_reviews_pass_fail_grading_checkbox")).to be_selected
+        expect(f("#peer_reviews_anonymity_checkbox")).to be_selected
+        expect(f("#peer_reviews_submission_required_checkbox")).to be_selected
 
         f("[data-testid='peer-review-checkbox'] + label").click
         wait_for_ajaximations
+        f("[data-testid='peer-review-checkbox'] + label").click
+        wait_for_ajaximations
 
-        reviews_required_input = f("input[data-testid='reviews-required-input']")
-        reviews_required_input.send_keys([:control, "a"], :backspace, "5")
-
-        points_per_review_input = f("input[data-testid='points-per-review-input']")
-        points_per_review_input.send_keys([:control, "a"], :backspace, "10")
-
-        total_points_display = f("span[data-testid='total-peer-review-points']")
-        expect(total_points_display.text).to eq("50")
+        expect(f("input[data-testid='reviews-required-input']").attribute("value")).to eq("1")
+        expect(f("input[data-testid='points-per-review-input']").attribute("value")).to eq("0")
+        expect(f("span[data-testid='total-peer-review-points']").text).to eq("0")
 
         fj("button:contains('Advanced Peer Review Configurations')").click
         wait_for_ajaximations
+        expect(f("#peer_reviews_within_groups_checkbox")).not_to be_selected
+        expect(f("#peer_reviews_pass_fail_grading_checkbox")).not_to be_selected
+        expect(f("#peer_reviews_anonymity_checkbox")).not_to be_selected
+        expect(f("#peer_reviews_submission_required_checkbox")).not_to be_selected
 
-        f("[data-testid='within-groups-checkbox'] + label").click
-        f("[data-testid='pass-fail-grading-checkbox'] + label").click
-        f("[data-testid='anonymity-checkbox'] + label").click
-        f("[data-testid='submission-required-checkbox'] + label").click
-
+        # Verify reset values are serialized and persisted to the backend on save
         expect_new_page_load { f(".btn-primary[type=submit]").click }
         wait_for_ajaximations
-
-        assignment = @pr_course.assignments.last
-
-        # Verify assignment was created with custom values
-        expect(assignment.peer_reviews).to be true
-        expect(assignment.peer_review_count).to eq 5
-        expect(assignment.peer_review_sub_assignment.points_possible).to eq 50
-        expect(assignment.intra_group_peer_reviews).to be true
-        expect(assignment.peer_review_sub_assignment.grading_type).to eq "pass_fail"
-        expect(assignment.anonymous_peer_reviews).to be true
-        expect(assignment.peer_review_submission_required).to be true
-
-        get "/courses/#{@pr_course.id}/assignments/#{assignment.id}/edit"
-        wait_for_ajaximations
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        find_button("Save").click
-        wait_for_ajaximations
-
-        # Edit assignment again and re-enable peer reviews
-        get "/courses/#{@pr_course.id}/assignments/#{assignment.id}/edit"
-        wait_for_ajaximations
-
-        f("[data-testid='peer-review-checkbox'] + label").click
-        wait_for_ajaximations
-
-        # Verify numeric fields are reset to defaults
-        reviews_required_input = f("input[data-testid='reviews-required-input']")
-        expect(reviews_required_input.attribute("value")).to eq("1")
-
-        points_per_review_input = f("input[data-testid='points-per-review-input']")
-        expect(points_per_review_input.attribute("value")).to eq("0")
-
-        total_points_display = f("span[data-testid='total-peer-review-points']")
-        expect(total_points_display.text).to eq("0")
-
-        fj("button:contains('Advanced Peer Review Configurations')").click
-        wait_for_ajaximations
-
-        # Verify all toggles are disabled (default state)
-        within_groups_checkbox = f("#peer_reviews_within_groups_checkbox")
-        expect(within_groups_checkbox).not_to be_selected
-
-        pass_fail_checkbox = f("#peer_reviews_pass_fail_grading_checkbox")
-        expect(pass_fail_checkbox).not_to be_selected
-
-        anonymity_checkbox = f("#peer_reviews_anonymity_checkbox")
-        expect(anonymity_checkbox).not_to be_selected
-
-        submission_required_checkbox = f("#peer_reviews_submission_required_checkbox")
-        expect(submission_required_checkbox).not_to be_selected
+        assignment.reload
+        expect(assignment.peer_review_count).to eq 1
+        expect(assignment.anonymous_peer_reviews).to be false
+        expect(assignment.intra_group_peer_reviews).to be false
+        expect(assignment.peer_review_submission_required).to be false
+        expect(assignment.peer_review_sub_assignment.points_possible).to eq 0
       end
 
       it "resets all peer review settings when peer reviews are disabled", custom_timeout: 30 do
