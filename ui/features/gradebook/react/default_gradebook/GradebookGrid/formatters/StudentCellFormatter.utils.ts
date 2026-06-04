@@ -43,7 +43,8 @@ export function getSecondaryDisplayInfo(
     const sectionNames: string[] = (student?.sections || [])
       .filter(options.isVisibleSection)
       .map((sectionId: string) => options.getSection(sectionId).name)
-    return listFormatter.format(sectionNames.sort())
+
+    return htmlEscape(listFormatter.format(sectionNames.sort()))
   }
 
   if (options.shouldShowGroups() && secondaryInfo === 'group') {

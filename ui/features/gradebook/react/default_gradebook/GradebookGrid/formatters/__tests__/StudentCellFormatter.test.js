@@ -137,11 +137,12 @@ describe('GradebookGrid StudentCellFormatter', () => {
       )
     })
 
-    test('does not escape html in the section names', () => {
-      gradebook.sections[2001].name = '&lt;span&gt;Freshmen&lt;/span&gt;'
+    test('escapes html in the section names', () => {
+      gradebook.sections[2001].name = "<img src=x onerror='alert(1)'>"
       gradebook.setSelectedSecondaryInfo('section', true) // skipRedraw
-      expect(renderCell().querySelector('.secondary-info').innerHTML).toBe(
-        '&lt;span&gt;Freshmen&lt;/span&gt;, Juniors, and Seniors',
+      const secondaryInfo = renderCell().querySelector('.secondary-info')
+      expect(secondaryInfo.innerHTML).toBe(
+        "&lt;img src=x onerror='alert(1)'&gt;, Juniors, and Seniors",
       )
     })
 
