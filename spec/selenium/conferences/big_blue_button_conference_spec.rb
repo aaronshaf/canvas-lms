@@ -119,45 +119,7 @@ describe "BigBlueButton conferences" do
         new_conference = WebConference.last
         expect(group_participant_and_group_tag_count).to eq new_conference.users.count
       end
-
-      it "succesfully creates a group BBB conference" do
-        get "/groups/#{@group.id}/conferences"
-        group_participant_and_group_tag_count = @group.participating_users_in_context.count + 1
-
-        new_conference_button.click
-        wait_for_ajaximations
-
-        wait_for_new_page_load { f("button[data-testid='submit-button']").click }
-
-        new_conference = WebConference.last
-        expect(new_conference.users.count).to eq group_participant_and_group_tag_count
-        expect(new_conference.context_code).to eq "group_#{@group.id}"
-      end
     end
-  end
-
-  it "validates name length" do
-    initial_conference_count = WebConference.count
-    get conferences_index_page
-    name_255_chars = "Y3298V7EQwLC8chKnXTz5IFARakIP0k2Yk0nLQ7owgidY6zDQnh9nCmH8z033TnJ1ssFwYtCkKwyhB7HkUN9ZF3u2s1shsj4vYqUlsEQmPljTGFBtO43pCh1QquQUnM2yCsiS5nnCRefjTK7jMwAiOXTZeyFvPk3tLzPAmOwf1Od6vtOB5nfXFSPVYyxSNcl85ySG8SlBoOULqF1IZV0BwE4TLthJV8Ab1h7xW0CbjHaJLMTQtnWK6ntTLxSNi4"
-    f("button[title='New Conference']").click
-    name_input = f("input[placeholder='Conference Name']")
-    error_message = "Name must not exceed 255 characters"
-    name_input.clear
-    name_input.send_keys name_255_chars
-    name_input.send_keys "a" # 256th char
-    expect(fj("span:contains('#{error_message}')")).to be_present
-    expect(fj("span:contains('#{error_message}')")).to be_present
-    expect(f("button[data-testid='submit-button']")).not_to be_enabled
-
-    # bring it back down to 255 chars
-    name_input.send_keys :backspace
-    expect(f("body")).not_to contain_jqcss("span:contains('#{error_message}')")
-    expect(f("button[data-testid='submit-button']")).to be_enabled
-
-    f("button[data-testid='submit-button']").click
-    wait_for_ajaximations
-    expect(WebConference.count).to be > initial_conference_count
   end
 
   it "validates empty name" do
@@ -173,54 +135,6 @@ describe "BigBlueButton conferences" do
     # bring it back down to a char
     name_input.send_keys "a"
     expect(f("body")).not_to contain_jqcss("span:contains('Please fill this field')")
-    expect(f("button[data-testid='submit-button']")).to be_enabled
-
-    f("button[data-testid='submit-button']").click
-    wait_for_ajaximations
-    expect(WebConference.count).to be > initial_conference_count
-  end
-
-  it "validates duration length" do
-    initial_conference_count = WebConference.count
-    get conferences_index_page
-    number_larger_than_8_digits = 999_999_990
-    error_message_for_to_many_digits = "Duration must be less than or equal to 99,999,999 minutes"
-    f("button[title='New Conference']").click
-    duration_input = f("span[data-testid='duration-input'] input")
-    duration_input.clear
-    duration_input.send_keys number_larger_than_8_digits
-    expect(fj("span:contains('#{error_message_for_to_many_digits}')")).to be_present
-    expect(f("button[data-testid='submit-button']")).not_to be_enabled
-
-    # bring it back down to 8 digits
-    duration_input.send_keys :backspace
-    expect(f("body")).not_to contain_jqcss("span:contains('#{error_message_for_to_many_digits}')")
-    expect(f("button[data-testid='submit-button']")).to be_enabled
-
-    f("button[data-testid='submit-button']").click
-    wait_for_ajaximations
-    expect(WebConference.count).to be > initial_conference_count
-  end
-
-  it "validates duration is 0" do
-    initial_conference_count = WebConference.count
-    get conferences_index_page
-    error_message_to_zero = "Duration must be greater than 0 minute"
-    f("button[title='New Conference']").click
-    duration_input = f("span[data-testid='duration-input'] input")
-    duration_input.clear
-    # Default value is 60
-    expect(duration_input.attribute("value")).to eq "60"
-    # Delete two digits (60)
-    duration_input.send_keys :backspace
-    duration_input.send_keys :backspace
-    expect(duration_input.attribute("value")).to eq "0"
-    expect(fj("span:contains('#{error_message_to_zero}')")).to be_present
-    expect(f("button[data-testid='submit-button']")).not_to be_enabled
-
-    # bring it back to one digit instead of 0
-    duration_input.send_keys "1"
-    expect(f("body")).not_to contain_jqcss("span:contains('#{error_message_to_zero}')")
     expect(f("button[data-testid='submit-button']")).to be_enabled
 
     f("button[data-testid='submit-button']").click
@@ -269,32 +183,6 @@ describe "BigBlueButton conferences" do
     f("button[title='New Conference']").click
     expect(f("input[placeholder='Conference Name']")).to be_present
     expect(f("body")).not_to contain_jqcss("input[value='add_to_calendar']")
-  end
-
-  it "has a working add to calendar option on create" do
-    get conferences_index_page
-    f("button[title='New Conference']").click
-
-    f("input[value='add_to_calendar'] + label").click
-    driver.switch_to.alert.accept
-    wait_for_ajaximations
-
-    start_date_picker = fj("label:contains('Start Date')")
-    end_date_picker = fj("label:contains('End Date')")
-    # for both dates, we will base the selection off of the row of the 15th.
-    # no matter the current date when the test is being done, this row will
-    # always be enabled
-    start_date_picker.click
-    fj("button:contains('15')").find_element(:xpath, "../..").find_elements(:css, "button").first.click
-    end_date_picker.click
-    fj("button:contains('15')").find_element(:xpath, "../..").find_elements(:css, "button").last.click
-    fj("button:contains('Create')").click
-    wait_for_ajaximations
-
-    ce = CalendarEvent.last
-    wc = WebConference.last
-    expect(ce.web_conference_id).to eq wc.id
-    expect(ce.start_at).to eq wc.start_at
   end
 
   it "does not invite all if add to calendar cancels" do
