@@ -47,6 +47,12 @@ library "canvas-builds-library@${getCanvasBuildsRefspec()}"
 
 commitMessageFlag.setDefaultValues(commitMessageFlagDefaults() + commitMessageFlagPrivateDefaults())
 
+// Urgent hotfixes route to a dedicated lockable resource so they bypass the
+// saturated canvas_build_global_mutex queue. pipelineHelpers.isHotfixUrgent()
+// parses the commit message directly, so this applies to both the pre-merge
+// patchset build and the post-merge change-merged build.
+def buildLockLabel = pipelineHelpers.isHotfixUrgent() ? 'canvas_hotfix' : 'canvas_build_global_mutex'
+
 pipelineHelpers.preBuildChecks()
 
 pipeline {
@@ -57,7 +63,7 @@ pipeline {
     timeout(time: 2, unit: 'HOURS')
     ansiColor('xterm')
     timestamps()
-    lock (label: 'canvas_build_global_mutex', quantity: 1)
+    lock (label: buildLockLabel, quantity: 1)
   }
 
   environment {
@@ -134,6 +140,7 @@ pipeline {
     stage('Configure Build') {
       steps {
         script {
+          pipelineHelpers.maybeSlackSendHotfixUrgent()
           buildParameters = pipelineHelpers.configureBuildStage(buildParameters)
         }
       }
