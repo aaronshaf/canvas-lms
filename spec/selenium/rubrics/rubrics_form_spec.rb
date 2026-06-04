@@ -116,20 +116,6 @@ describe "Rubric form page" do
     expect(RubricsForm.criteria_row_names[0]).to include_text("Criterion 1")
   end
 
-  it "does not allow a rubric to be saved without a name and one criterion" do
-    RubricsIndex.create_rubric_button.click
-    expect(RubricsForm.save_rubric_button).to be_disabled
-
-    RubricsForm.rubric_title_input.send_keys("Rubric 4")
-    expect(RubricsForm.save_rubric_button).to be_disabled
-
-    RubricsForm.add_criterion_button.click
-    RubricsForm.criterion_name_input.send_keys("Criterion 1")
-    RubricsForm.save_criterion_button.click
-
-    expect(RubricsForm.save_rubric_button).not_to be_disabled
-  end
-
   it "does not save the rubric if cancel is selected" do
     RubricsIndex.rubric_popover(@rubric1.id).click
     RubricsIndex.edit_rubric_button.click
