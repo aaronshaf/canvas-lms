@@ -235,8 +235,9 @@
             <%= t(:none, "None") %>
           <% end %>
         </div>
+      </div>
       <% if (@context.sis_source_id && can_do(@context, current_principal, :read_sis)) || can_do(@context.root_account, current_principal, :manage_sis) %>
-        </div><div class="form-row">
+        <div class="form-row">
           <div class="form-label"><%= f.blabel :sis_source_id, en: "SIS ID" %></div>
           <div style="word-wrap: break-word;">
             <% if can_manage && can_do(@context.root_account, current_principal, :manage_sis) %>
@@ -247,13 +248,15 @@
               </span>
             <% end %>
           </div>
+        </div>
       <% end %>
       <% if @current_user && Account.site_admin.account_users_for(@current_user).present? %>
-        </div><div class="form-row">
+        <div class="form-row">
           <div class="form-label"><%= f.blabel :root_account, en: "Root Account" %></div>
           <div><%= link_to @context.root_account.name, account_url(@context.root_account.id), id: "course_root_account" %></div>
+        </div>
       <% end %>
-      </div><div class="form-row">
+      <div class="form-row">
         <div class="form-label"><%= f.blabel :account_id, en: "Subaccount" %></div>
         <div>
           <% can_edit_account = false %>
@@ -379,27 +382,28 @@
         </div>
       </div>
       <% if available_locales.size > 1 %>
-      <div class="form-row language-row">
-        <div class="form-label"><%= f.blabel :locale, :language, en: "Language" %></div>
-        <div class="tall-row">
-          <% no_language = t(:no_language_preference, "Not set (user-configurable, defaults to %{language})", language: available_locales[infer_locale(context: @context.account)]) %>
-          <% if can_manage %>
-            <div>
-              <%= f.select :locale,
-                           [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
-                           { selected: @context.locale },
-                           { :class => "locale", "aria-describedby" => "language-description" } %>
-              <%= render partial: "shared/locale_warning" %>
-            </div>
-            <div class="aside palign" id="language-description">
-              <%= t("language_overrides_preferences", "This will override any user/system language preferences. This is only recommended for foreign language courses") %>
-            </div>
-          <% else %>
-            <%= @context.locale ? available_locales[@context.locale] : no_language %>
-          <% end %>
+        <div class="form-row language-row">
+          <div class="form-label"><%= f.blabel :locale, :language, en: "Language" %></div>
+          <div class="tall-row">
+            <% no_language = t(:no_language_preference, "Not set (user-configurable, defaults to %{language})", language: available_locales[infer_locale(context: @context.account)]) %>
+            <% if can_manage %>
+              <div>
+                <%= f.select :locale,
+                             [[no_language, nil]] + available_locales.invert.sort_by { |desc, _| Canvas::ICU.collation_key(desc) },
+                             { selected: @context.locale },
+                             { :class => "locale", "aria-describedby" => "language-description" } %>
+                <%= render partial: "shared/locale_warning" %>
+              </div>
+              <div class="aside palign" id="language-description">
+                <%= t("language_overrides_preferences", "This will override any user/system language preferences. This is only recommended for foreign language courses") %>
+              </div>
+            <% else %>
+              <%= @context.locale ? available_locales[@context.locale] : no_language %>
+            <% end %>
+          </div>
         </div>
       <% end %>
-      </div><div class="form-row">
+      <div class="form-row">
         <div class="form-label"><%= f.blabel :storage_quota_mb, :storage_quota, en: "File Storage" %></div>
         <div>
           <% if can_manage && can_do(@context.account, current_principal, :manage_storage_quotas) %>
@@ -409,16 +413,17 @@
           <% end %>
           <%= t("megabytes", %(megabytes)) %>
         </div>
+      </div>
       <% if @context.turnitin_enabled? %>
-      </div><div class="form-row">
-        <div class="form-label"><%= f.blabel :turnitin_comments, en: "Turnitin Comments" %></div>
-        <div class="nobr">
-          <span class="aside"><%= t("turnitin", %(these comments will be shown to students when submitting a Turnitin-enabled assignment)) %></span>
-          <br/>
-          <%= f.text_area :turnitin_comments, style: "width: 90%; height: 50px;", disabled: !can_manage %>
+        <div class="form-row">
+          <div class="form-label"><%= f.blabel :turnitin_comments, en: "Turnitin Comments" %></div>
+          <div class="nobr">
+            <span class="aside"><%= t("turnitin", %(these comments will be shown to students when submitting a Turnitin-enabled assignment)) %></span>
+            <br/>
+            <%= f.text_area :turnitin_comments, style: "width: 90%; height: 50px;", disabled: !can_manage %>
+          </div>
         </div>
       <% end %>
-      </div>
       <% if @context.root_account.feature_enabled?(:filter_speed_grader_by_student_group) %>
         <div class="form-row">
           <div class="form-label">
@@ -463,13 +468,15 @@
             <%= @context.readable_license %>
           <% end %>
         </div>
-      </div><div class="form-row">
+      </div>
+      <div class="form-row">
         <div class="form-label"><%= f.blabel :usage_rights_required, en: "File Copyright" %></div>
         <div id="usage_rights_required" class="checkbox-flex-container">
           <%= f.check_box :usage_rights_required, disabled: !can_manage || @context.account.usage_rights_required[:locked] %>
           <%= f.label :usage_rights_required, t("Copyright and license information must be provided for files before they are published.") %>
         </div>
-      </div><div class="form-row course-visibility-row">
+      </div>
+      <div class="form-row course-visibility-row">
         <div class="form-label"><label for="course_visibility"><%= before_label("course_visibility", %(Visibility)) %></label></div>
         <div colspan="3" id="course_visibility">
           <% if can_change_visibility %>
@@ -520,7 +527,8 @@
             </div>
           <% end %>
         </div>
-      </div><div class="form-row">
+      </div>
+      <div class="form-row">
         <div class="form-label"><label for="course_course_format"><%= before_label("course_format", %(Format)) %></label></div>
         <% format_options = [[t("#course.course_format.not_set", "Not Set"), ""],
                              [t("#course.course_format.on_campus", "On-Campus"), "on_campus"],
@@ -613,7 +621,8 @@
         <div colspan="3">
           <%= f.text_area :public_description, style: "height: 100px;", disabled: !can_manage %>
         </div>
-      </div><div class="form-row">
+      </div>
+      <div class="form-row">
         <div></div>
         <div colspan="3">
           <span class="self_enrollment_message" style="<%= hidden unless @context.self_enrollment_enabled? && !is_master_course %>">

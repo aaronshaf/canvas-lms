@@ -98,54 +98,50 @@
 
     <div class="ig-info">
 
-    <% if module_item && module_item.content_type == "ContextModuleSubHeader" %>
-      <h3 class="module-item-title">
-    <% else %>
-      <div class="module-item-title">
-    <% end %>
-        <span class="item_name">
-          <% title = module_item&.title %>
-          <% if module_item && module_item.content_type == "ExternalUrl" && module_item.new_tab %>
-            <% # FYI, this link gets opened via context_modules_helper.externalUrlLinkClick %>
-            <a
-              title="<%= title %>"
-              class="title external_url_link"
-              target="_blank"
-              href="<%= module_item.url %>"
-              data-item-href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item.id %>"
-            >
-              <%= title %>
-            </a>
-          <% elsif !(module_item && module_item.content_type == "ContextModuleSubHeader") %>
-            <a
-              title="<%= title %>"
-              class="ig-title title item_link"
-              href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>"
-              aria-describedby="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-details"
-              <% if item_data[:mastery_paths] && item_data[:mastery_paths][:locked] %>
-              aria-describedby="module-item-locked-<%= module_item&.id %>"
-              <% end %>
-            >
-              <%= title %>
-            </a>
-            <% if title && item_restrictions %>
-              🔒
+    <%= tag.__send__((module_item&.content_type == "ContextModuleSubHeader") ? :h3 : :div,
+                     class: "module-item-title") do %>
+      <span class="item_name">
+        <% title = module_item&.title %>
+        <% if module_item && module_item.content_type == "ExternalUrl" && module_item.new_tab %>
+          <% # FYI, this link gets opened via context_modules_helper.externalUrlLinkClick %>
+          <a
+            title="<%= title %>"
+            class="title external_url_link"
+            target="_blank"
+            href="<%= module_item.url %>"
+            data-item-href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item.id %>"
+          >
+            <%= title %>
+          </a>
+        <% elsif !(module_item && module_item.content_type == "ContextModuleSubHeader") %>
+          <a
+            title="<%= title %>"
+            class="ig-title title item_link"
+            href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>"
+            aria-describedby="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-details"
+            <% if item_data[:mastery_paths] && item_data[:mastery_paths][:locked] %>
+            aria-describedby="module-item-locked-<%= module_item&.id %>"
             <% end %>
+          >
+            <%= title %>
+          </a>
+          <% if title && item_restrictions %>
+            🔒
           <% end %>
+        <% end %>
 
-          <span title="<%= title %>" class="title locked_title"><%= title %></span>
-          <span class="points_possible" style="display: none;"><%= round_if_whole(module_item.try_rescue(:assignment).try_rescue(:points_possible)) || nbsp %></span>
-          <span class="requirement" style="display: none;">&nbsp;</span>
-          <span class="completion_requirement" style="display: none;">&nbsp;</span>
-          <span class="position" style="display: none;"><%= module_item&.position %></span>
-          <span class="url" style="display: none;"><%= module_item.try(:url) if @can_view %></span>
-          <span class="new_tab" style="display: none;"><%= if @can_view
-                                                             module_item.try(:new_tab) ? "1" : "0"
-                                                           end %></span>
-          <span class="estimated_duration_minutes" style="display: none;"></span>
-          <span class="can_set_estimated_duration" style="display: none;"></span>
-        </span>
-      </div>
+        <span title="<%= title %>" class="title locked_title"><%= title %></span>
+        <span class="points_possible" style="display: none;"><%= round_if_whole(module_item.try_rescue(:assignment).try_rescue(:points_possible)) || nbsp %></span>
+        <span class="requirement" style="display: none;">&nbsp;</span>
+        <span class="completion_requirement" style="display: none;">&nbsp;</span>
+        <span class="position" style="display: none;"><%= module_item&.position %></span>
+        <span class="url" style="display: none;"><%= module_item.try(:url) if @can_view %></span>
+        <span class="new_tab" style="display: none;"><%= if @can_view
+                                                           module_item.try(:new_tab) ? "1" : "0"
+                                                         end %></span>
+        <span class="estimated_duration_minutes" style="display: none;"></span>
+        <span class="can_set_estimated_duration" style="display: none;"></span>
+      </span>
 
       <div class="module_item_icons nobr">
         <!-- dead code? -->
@@ -247,11 +243,7 @@
         <div class="estimated_duration_display ig-details__item"></div>
         <div class="mc_objectives ig-details__item"></div>
       </div>
-      <% if module_item && module_item.content_type == "ContextModuleSubHeader" %>
-        </h3>
-      <% else %>
-        </div>
-      <% end %>
+    <% end %>
     <% unless @can_view %>
       <div class="module-item-status-icon"></div> <%# going to set this in JS-land, not here %>
     <% end %>
@@ -495,6 +487,7 @@
       <% end %>
     </div>
   <% end %>
+  </div>
 </li>
 
 <% if @is_student && @context.feature_enabled?(:assignments_2_student) && module_item && module_item.content_type == "Assignment" %>

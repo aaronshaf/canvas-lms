@@ -6,13 +6,13 @@
 </head>
   <body>
     <h1><%= I18n.t("Announcements") %></h1>
-    <ol>
     <% if content.empty? %>
       <p><%= I18n.t("There are no announcements for this course.") %></p>
     <% else %>
-      <% content.each do |item| %>
-        <li><a href="#<%= item[:identifier] %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a></li>
-      <% end %>
+      <ol>
+        <% content.each do |item| %>
+          <li><a href="#<%= item[:identifier] %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a></li>
+        <% end %>
       </ol>
       <hr/>
       <p><a href="toc.xhtml"><%= I18n.t("Back to Table of Contents") %></a></p>

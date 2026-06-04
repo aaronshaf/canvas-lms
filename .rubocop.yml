@@ -34,6 +34,8 @@ ERB/BlockAlignment:
 ERB/LeadingEmptyLines:
   Include:
     - "**/*.erb"
+ERB/MissingClosingTag:
+  Severity: error
 ERB/TrailingEmptyLines:
   Include:
     - "**/*.erb"

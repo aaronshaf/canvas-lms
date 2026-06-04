@@ -237,24 +237,24 @@
                 <div style="display: flex;">
                   <div style="flex: 1">
                     <h2 class="gradebookHeader--rightside"><%= t("headers.assessment", "Assessment") %></h2>
-                    <% if can_do(@context, current_principal, :manage_grades) || (@context.concluded? && can_do(@context, current_principal, :read_as_admin)) %>
-                    <div id="grade_container">
-                      <%= render partial: "grading_box_extended", locals: { assignment: @assignment } %>
-                      <span class="turnitin_score_container"></span>
-                      <a href="#" id="submit_same_score"><br><%= t("links.submit_same_score", "Use this same grade for the resubmission") %></a>
-                      <div class="turnitin_info_container"></div>
-                    </div>
-                  </div>
+                    <% has_grade_container = can_do(@context, current_principal, :manage_grades) || (@context.concluded? && can_do(@context, current_principal, :read_as_admin)) %>
+                    <% if has_grade_container %>
+                      <div id="grade_container">
+                        <%= render partial: "grading_box_extended", locals: { assignment: @assignment } %>
+                        <span class="turnitin_score_container"></span>
+                        <a href="#" id="submit_same_score"><br><%= t("links.submit_same_score", "Use this same grade for the resubmission") %></a>
+                        <div class="turnitin_info_container"></div>
+                      </div>
+                    <% end %>
 
-                  <% if @assignment.stickers_enabled?(@current_user) %>
-                  <div id="submission_sticker_mount_point"></div>
-                  <% end %>
-                </div>
-
-                <div id="grading_details_mount_point"></div>
-                <% else %>
+                    <% if has_grade_container && @assignment.stickers_enabled?(@current_user) %>
+                      <div id="submission_sticker_mount_point"></div>
+                    <% end %>
                   </div>
                 </div>
+
+                <% if has_grade_container %>
+                  <div id="grading_details_mount_point"></div>
                 <% end %>
 
                 <% if @assignment.active_rubric_association? %>

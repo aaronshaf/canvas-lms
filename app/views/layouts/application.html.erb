@@ -50,6 +50,8 @@
   enable_content_view_if_requested
   enable_hide_global_nav_if_requested
 -%>
+<!DOCTYPE html>
+<html dir="<%= I18n.rtl? ? "rtl" : "ltr" %>" lang="<%= I18n.locale %>">
 <%= render partial: "layouts/head" %>
 <%-
   left_side = nil

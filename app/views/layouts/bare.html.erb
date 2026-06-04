@@ -20,6 +20,8 @@
 <% end %>
 <%- body_classes << "bare-layout" %>
 <%- body_classes << "is-masquerading-or-student-view" if @real_current_user && @real_current_user != @current_user -%>
+<!DOCTYPE html>
+<html dir="<%= I18n.rtl? ? "rtl" : "ltr" %>" lang="<%= I18n.locale %>">
 <%= render partial: "layouts/head" %>
 <body class="<%= body_classes.uniq.join(" ") %>">
 <%= yield %>

@@ -16,6 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
+<!DOCTYPE html>
+<html dir="<%= I18n.rtl? ? "rtl" : "ltr" %>" lang="<%= I18n.locale %>">
 <%= render partial: "layouts/head" %>
 <body class="Sg-only">
   <%= render partial: "shared/static_notices" %>
