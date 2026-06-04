@@ -76,36 +76,9 @@ describe "better_file_browsing" do
       expect(ff(".ef-size-col")[1]).to include_text "194 KB"
     end
 
-    context "from cog icon" do
-      before do
-        get "/courses/#{@course.id}/files"
-      end
-
-      it "edits file name", priority: "1", upgrade_files_v2: "done" do
-        expect(fln("example.pdf")).to be_present
-        file_rename_to = "Example_edited.pdf"
-        edit_name_from_cog_icon(file_rename_to)
-        expect(f("#content")).not_to contain_link("example.pdf")
-        expect(fln(file_rename_to)).to be_present
-      end
-
-      it "deletes file", priority: "1", upgrade_files_v2: "done" do
-        skip_if_safari(:alert)
-        delete_file(0, :cog_icon)
-        expect(f("body")).not_to contain_css(".ef-item-row")
-      end
-    end
-
     context "from cloud icon" do
       before do
         get "/courses/#{@course.id}/files"
-      end
-
-      it "unpublishes and publish a file", priority: "1", upgrade_files_v2: "done" do
-        set_item_permissions(:unpublish, :cloud_icon)
-        expect(f(".btn-link.published-status.unpublished")).to be_displayed
-        set_item_permissions(:publish, :cloud_icon)
-        expect(f(".btn-link.published-status.published")).to be_displayed
       end
 
       it "makes file available to student with link", priority: "1", upgrade_files_v2: "done" do
@@ -120,21 +93,6 @@ describe "better_file_browsing" do
     end
 
     context "from toolbar menu" do
-      it "deletes file from toolbar", priority: "1", upgrade_files_v2: "done" do
-        skip_if_safari(:alert)
-        get "/courses/#{@course.id}/files"
-        delete_file(0, :toolbar_menu)
-        expect(f("body")).not_to contain_css(".ef-item-row")
-      end
-
-      it "unpublishes and publish a file", priority: "1", upgrade_files_v2: "done" do
-        get "/courses/#{@course.id}/files"
-        set_item_permissions(:unpublish, :toolbar_menu)
-        expect(f(".btn-link.published-status.unpublished")).to be_displayed
-        set_item_permissions(:publish, :toolbar_menu)
-        expect(f(".btn-link.published-status.published")).to be_displayed
-      end
-
       it "makes file available to student with link from toolbar", priority: "1", upgrade_files_v2: "done" do
         get "/courses/#{@course.id}/files"
         set_item_permissions(:restricted_access, :available_with_link, :toolbar_menu)
@@ -193,24 +151,6 @@ describe "better_file_browsing" do
     end
   end
 
-  context "Search textbox" do
-    before do
-      course_with_teacher_logged_in
-      @teacher.set_preference(:files_ui_version, "v1")
-      txt_files = ["a_file.txt", "b_file.txt", "c_file.txt"]
-      txt_files.map do |text_file|
-        add_file(fixture_file_upload(text_file.to_s, "text/plain"), @course, text_file)
-      end
-      get "/courses/#{@course.id}/files"
-    end
-
-    it "searches for a file", priority: "2", upgrade_files_v2: "done" do
-      expect(all_files_folders).to have_size 3
-      f("input[type='search']").send_keys "b_fi", :return
-      expect(all_files_folders).to have_size 1
-    end
-  end
-
   context "Move dialog" do
     before(:once) do
       course_with_teacher(active_all: true)
@@ -229,28 +169,6 @@ describe "better_file_browsing" do
       fln("Move To...").click
       wait_for_ajaximations
       check_element_has_focus(ff(".tree")[1])
-    end
-
-    it "moves a file using cog icon", priority: "1", upgrade_files_v2: "done" do
-      file_name = "a_file.txt"
-      folder_model(name: "destination_folder")
-      get "/courses/#{@course.id}/files"
-      move(file_name, 0, :cog_icon)
-      expect(f("#flash_message_holder")).to include_text "#{file_name} moved to destination_folder"
-      expect(ff(".ef-name-col__text")[0]).not_to include_text file_name
-      ff(".ef-name-col__text")[2].click
-      expect(fln(file_name)).to be_displayed
-    end
-
-    it "moves a file using toolbar menu", priority: "1", upgrade_files_v2: "done" do
-      file_name = "a_file.txt"
-      folder_model(name: "destination_folder")
-      get "/courses/#{@course.id}/files"
-      move(file_name, 0, :toolbar_menu)
-      expect(f("#flash_message_holder")).to include_text "#{file_name} moved to destination_folder"
-      expect(ff(".ef-name-col__text")[0]).not_to include_text file_name
-      ff(".ef-name-col__text")[2].click
-      expect(fln(file_name)).to be_displayed
     end
 
     it "moves multiple files", priority: "1", upgrade_files_v2: "done" do
@@ -279,10 +197,6 @@ describe "better_file_browsing" do
       @teacher.set_preference(:files_ui_version, "v1")
       user_session(@teacher)
       get "/courses/#{@course.id}/files"
-    end
-
-    it "validates that file is published by default", priority: "1", upgrade_files_v2: "done" do
-      expect(f(".btn-link.published-status.published")).to be_displayed
     end
 
     it "sets focus to the close button when opening the dialog", priority: "1", upgrade_files_v2: "done" do
@@ -402,51 +316,6 @@ describe "better_file_browsing" do
     end
 
     context "course files" do
-      it "sets usage rights on a file via the modal by clicking the indicator", priority: "1", upgrade_files_v2: "done" do
-        get "/courses/#{@course.id}/files"
-        f(".UsageRightsIndicator__openModal").click
-        set_usage_rights_in_modal
-        # a11y: focus should go back to the element that was clicked.
-        check_element_has_focus(f(".UsageRightsIndicator__openModal"))
-        verify_usage_rights_ui_updates
-      end
-
-      it "sets usage rights on a file via the cog menu", priority: "1", upgrade_files_v2: "done" do
-        get "/courses/#{@course.id}/files"
-        f(".ef-links-col .al-trigger").click
-        f(".ItemCog__OpenUsageRights a").click
-        set_usage_rights_in_modal
-        # a11y: focus should go back to the element that was clicked.
-        check_element_has_focus(f(".ef-links-col .al-trigger"))
-        verify_usage_rights_ui_updates
-      end
-
-      it "sets usage rights on a file via the toolbar", priority: "1", upgrade_files_v2: "done" do
-        get "/courses/#{@course.id}/files"
-        f(".ef-item-row").click
-        f(".Toolbar__ManageUsageRights").click
-        set_usage_rights_in_modal
-        # a11y: focus should go back to the element that was clicked.
-        check_element_has_focus(f(".Toolbar__ManageUsageRights"))
-        verify_usage_rights_ui_updates
-      end
-
-      it "sets usage rights on a file inside a folder via the toolbar", priority: "1", upgrade_files_v2: "done" do
-        folder_model name: "new folder"
-        get "/courses/#{@course.id}/files"
-        move("a_file.txt", 0, :cog_icon)
-        wait_for_ajaximations
-        f(".ef-item-row").click
-        f(".Toolbar__ManageUsageRights").click
-        expect(f(".UsageRightsDialog__fileName")).to include_text "new folder"
-        expect(f(".UsageRightsSelectBox__select")).to be_displayed
-        set_usage_rights_in_modal
-        # a11y: focus should go back to the element that was clicked.
-        check_element_has_focus(f(".Toolbar__ManageUsageRights"))
-        ff(".ef-name-col__text")[0].click
-        verify_usage_rights_ui_updates
-      end
-
       it "does not show the creative commons selection if creative commons isn't selected", priority: "1", upgrade_files_v2: "done" do
         get "/courses/#{@course.id}/files"
         f(".UsageRightsIndicator__openModal").click
@@ -464,15 +333,6 @@ describe "better_file_browsing" do
     end
 
     context "user files" do
-      it "updates course files from user files page", priority: "1", upgrade_files_v2: "done" do
-        get "/files/folder/courses_#{@course.id}/"
-        f(".UsageRightsIndicator__openModal").click
-        set_usage_rights_in_modal
-        # a11y: focus should go back to the element that was clicked.
-        check_element_has_focus(f(".UsageRightsIndicator__openModal"))
-        verify_usage_rights_ui_updates
-      end
-
       it "copies a file to a different context", priority: "1", upgrade_files_v2: "waiting for deployment (RCX-2535)" do
         get "/files/"
         file_name = "amazing_file.txt"
@@ -493,41 +353,7 @@ describe "better_file_browsing" do
     end
   end
 
-  context "When Require Usage Rights is turned-off" do
-    it "sets files to published by default", priority: "1", upgrade_files_v2: "done" do
-      course_with_teacher_logged_in
-      @teacher.set_preference(:files_ui_version, "v1")
-      @course.usage_rights_required = true
-      @course.save!
-      add_file(fixture_file_upload("b_file.txt", "text/plain"), @course, "b_file.txt")
-
-      get "/courses/#{@course.id}/files"
-      expect(f(".btn-link.published-status.published")).to be_displayed
-    end
-  end
-
   context "Directory Header" do
-    it "sorts the files properly", priority: 2, upgrade_files_v2: "done" do
-      # this test performs 2 sample sort combinations
-      course_with_teacher_logged_in
-      @teacher.set_preference(:files_ui_version, "v1")
-
-      add_file(fixture_file_upload("example.pdf", "application/pdf"), @course, "a_example.pdf")
-      add_file(fixture_file_upload("b_file.txt", "text/plain"), @course, "b_file.txt")
-
-      get "/courses/#{@course.id}/files"
-
-      # click name once to make it sort descending
-      fj('.ef-plain-link span:contains("Name")').click
-      expect(ff(".ef-name-col__text")[0]).to include_text "example.pdf"
-      expect(ff(".ef-name-col__text")[1]).to include_text "b_file.txt"
-
-      # click size twice to make it sort ascending
-      2.times { fj('.ef-plain-link span:contains("Size")').click }
-      expect(ff(".ef-name-col__text")[0]).to include_text "b_file.txt"
-      expect(ff(".ef-name-col__text")[1]).to include_text "example.pdf"
-    end
-
     it "url-encodes sort header links", upgrade_files_v2: "done" do
       course_with_teacher_logged_in
       @teacher.set_preference(:files_ui_version, "v1")

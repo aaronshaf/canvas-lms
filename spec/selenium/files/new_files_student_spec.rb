@@ -47,24 +47,6 @@ describe "better_file_browsing" do
         end
       end
 
-      it "searches for a file", priority: "1", upgrade_files_v2: "done" do
-        get "/courses/#{@course.id}/files"
-        f("input[type='search']").send_keys "b_fi", :return
-        expect(all_files_folders).to have_size 1
-      end
-
-      it "does not return unpublished files in search results", priority: "1", upgrade_files_v2: "done" do
-        @files[0].update_attribute(:locked, true)
-        get "/courses/#{@course.id}/files"
-        verify_hidden_item_not_searchable_as_student("a_fi")
-      end
-
-      it "does not return hidden files in search results", priority: "1", upgrade_files_v2: "done" do
-        @files[0].update_attribute(:hidden, true)
-        get "/courses/#{@course.id}/files"
-        verify_hidden_item_not_searchable_as_student("a_fi")
-      end
-
       it "does not see upload file, add folder buttons and cloud icon", priority: "1", upgrade_files_v2: "done" do
         get "/courses/#{@course.id}/files"
         content = f("#content")
@@ -103,28 +85,6 @@ describe "better_file_browsing" do
         f(".icon-calendar-day").click
         wait_for_ajaximations
         expect(f("body")).not_to contain_css("[name=permissions]")
-      end
-    end
-
-    context "in course with folders" do
-      before :once do
-        @folder = folder_model(name: "restricted_folder", context: @course)
-        @file = add_file(fixture_file_upload("example.pdf", "application/pdf"),
-                         @course,
-                         "example.pdf",
-                         @folder)
-      end
-
-      it "does not return files from hidden folders in search results", priority: "1", upgrade_files_v2: "done" do
-        @folder.update_attribute :hidden, true
-        get "/courses/#{@course.id}/files"
-        verify_hidden_item_not_searchable_as_student("example")
-      end
-
-      it "does not return files from unpublished folders in search results", priority: "1", upgrade_files_v2: "done" do
-        @folder.update_attribute :locked, true
-        get "/courses/#{@course.id}/files"
-        verify_hidden_item_not_searchable_as_student("example")
       end
     end
   end

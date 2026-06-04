@@ -38,12 +38,6 @@ describe "better_file_browsing, folders" do
       expect(f("form.ef-edit-name-form")).to be_displayed
     end
 
-    it "creates a new folder", :xbrowser, priority: "1", upgrade_files_v2: "done" do
-      # locator was changed from fln in this test due to an issue with edgedriver
-      # We can not use fln here
-      expect(fj("a:contains('new test folder')")).to be_present
-    end
-
     it "displays all cog icon options", priority: "1", upgrade_files_v2: "done" do
       expect(fj("a:contains('new test folder')")).to be_present
       ff(".ef-item-row").first.click # ensure folder item has focus
@@ -55,41 +49,9 @@ describe "better_file_browsing, folders" do
       expect(fln("Delete")).to be_displayed
     end
 
-    it "edits folder name", priority: "1", upgrade_files_v2: "done" do
-      folder_rename_to = "test folder"
-      edit_name_from_cog_icon(folder_rename_to)
-      wait_for_ajaximations
-      expect(f("#content")).not_to contain_link("new test folder")
-      expect(fln("test folder")).to be_present
-    end
-
     it "validates xss on folder text", priority: "1", upgrade_files_v2: "done" do
       add_folder('<script>alert("Hi");</script>')
       expect(ff(".ef-name-col__text")[0].text).to eq '<script>alert("Hi");<_script>'
-    end
-
-    it "moves a folder", priority: "1", upgrade_files_v2: "done" do
-      ff(".ef-name-col__text")[0].click
-      wait_for_ajaximations
-      add_folder("test folder")
-      move("test folder", 0, :cog_icon)
-      wait_for_ajaximations
-      expect(f("#flash_message_holder").text).to eq "test folder moved to course files"
-      get "/courses/#{@course.id}/files"
-      expect(ff(".treeLabel span")[2].text).to eq "test folder"
-    end
-
-    it "deletes a folder from cog icon", priority: "1", upgrade_files_v2: "done" do
-      skip_if_safari(:alert)
-      delete_file(0, :cog_icon)
-      expect(f("#content")).not_to contain_link("new test folder")
-    end
-
-    it "unpublishes and publish a folder from cloud icon", priority: "1", upgrade_files_v2: "waiting for deployment" do
-      set_item_permissions(:unpublish, :cloud_icon)
-      expect(f(".btn-link.published-status.unpublished")).to be_displayed
-      set_item_permissions(:publish, :cloud_icon)
-      expect(f(".btn-link.published-status.published")).to be_displayed
     end
 
     it "makes folder available to student with link", priority: "1", upgrade_files_v2: "waiting for deployment" do
@@ -100,12 +62,6 @@ describe "better_file_browsing, folders" do
     it "makes folder available to student within given timeframe", priority: "1", upgrade_files_v2: "waiting for deployment" do
       set_item_permissions(:restricted_access, :available_with_timeline, :cloud_icon)
       expect(f(".btn-link.published-status.restricted")).to be_displayed
-    end
-
-    it "deletes folder from toolbar", priority: "1", upgrade_files_v2: "done" do
-      skip_if_safari(:alert)
-      delete_file(0, :toolbar_menu)
-      expect(f("body")).not_to contain_css(".ef-item-row")
     end
 
     it "is able to create and view a new folder with uri characters", priority: "2", upgrade_files_v2: "done" do
@@ -130,12 +86,6 @@ describe "better_file_browsing, folders" do
       course_with_teacher_logged_in
       @teacher.set_preference(:files_ui_version, "v1")
       get "/courses/#{@course.id}/files"
-    end
-
-    it "creates a new folder", priority: "2", upgrade_files_v2: "done" do
-      new_folder = create_new_folder
-      expect(all_files_folders.count).to eq 1
-      expect(new_folder.text).to match(/New Folder/)
     end
 
     it "handles duplicate folder names", priority: "1", upgrade_files_v2: "done" do
