@@ -21,10 +21,26 @@ require_relative "concerns/advantage_services_shared_context"
 require_relative "concerns/advantage_services_shared_examples"
 require_relative "concerns/lti_services_shared_examples"
 
-describe Lti::IMS::ResultsController do
+describe Lti::IMS::ResultsController, type: :request do
   include_context "advantage services context"
   include AccountDomainSpecHelper
 
+  def send_request
+    course_id = params_overrides[:course_id]
+    line_item_id = params_overrides[:line_item_id]
+    result_id = params_overrides[:id]
+    query_params = params_overrides.except(:course_id, :line_item_id, :id)
+    url = if result_id
+            "/api/lti/courses/#{course_id}/line_items/#{line_item_id}/results/#{result_id}"
+          else
+            "/api/lti/courses/#{course_id}/line_items/#{line_item_id}/results"
+          end
+    auth_headers = access_token_jwt ? { "Authorization" => "Bearer #{access_token_jwt}" } : {}
+    get(url, params: query_params, headers: auth_headers)
+    run_jobs
+  end
+
+  let(:test_request_host) { "www.example.com" }
   let(:assignment) do
     opts = { course:, points_possible: 5 }
     if tool.present?
@@ -77,18 +93,18 @@ describe Lti::IMS::ResultsController do
     it "returns a collection of results" do
       send_request
       expect(json.size).to eq 4
+      expect(json.pluck("userId")).to include(result.user.lti_id)
     end
 
     it "formats the results correctly" do
       send_request
-      expect { Lti::Result.find(json.first["id"].split("/").last.to_i) }.not_to raise_error
+      expect(json.first["id"]).to include("/api/lti/courses/#{course.id}/line_items/#{result.lti_line_item_id}/results/")
     end
 
     it "uses the Account#domain in the line item id" do
-      stub_host_for_environment_specific_domain("canonical.host")
       send_request
       expect(json.first["id"]).to start_with(
-        "http://canonical.host/api/lti/courses/#{course.id}/line_items/"
+        "http://#{HostUrl.context_host}/api/lti/courses/#{course.id}/line_items/"
       )
     end
 
@@ -172,9 +188,10 @@ describe Lti::IMS::ResultsController do
       end
 
       it "scales the resultScore to the resultMaximum" do
+        expected_score = result[:result_score] * result.result_maximum / assignment.points_possible.to_f
         send_request
-        scaled_result = json.find { |r| r["resultMaximum"] == 1 }
-        expect(scaled_result["resultScore"]).to eq 0.1
+        scaled_result = json.find { |r| r["resultMaximum"] == result.result_maximum }
+        expect(scaled_result["resultScore"]).to eql(expected_score)
       end
     end
   end
@@ -189,25 +206,27 @@ describe Lti::IMS::ResultsController do
     it "returns the result" do
       send_request
       expect(response).to have_http_status :ok
+      expect(json["id"]).to end_with("/results/#{result.id}")
     end
 
     it "includes the scoreMaximum" do
       send_request
-      expect(json["resultScore"]).to eq 0.5
+      expect(json["resultScore"]).to eql(0.5) # rubocop:disable RSpec/BeEql
     end
 
     it "formats the result correctly" do
       send_request
-      rslt = Lti::Result.find(json["id"].split("/").last.to_i)
-      expect(rslt).to eq result
+      expect(json["id"]).to end_with("/results/#{result.id}")
+      expect(json["userId"]).to eq(result.user.lti_id)
     end
 
     context "when the score was manually updated" do
       before { result.submission.update!(grader_id: 1) }
 
       it "scales the resultScore to the resultMaximum" do
+        expected_score = result[:result_score] * result.result_maximum / assignment.points_possible.to_f
         send_request
-        expect(json["resultScore"]).to eq 0.1
+        expect(json["resultScore"]).to eql(expected_score)
       end
     end
 

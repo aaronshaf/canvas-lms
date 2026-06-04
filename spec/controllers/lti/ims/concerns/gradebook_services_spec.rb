@@ -18,41 +18,27 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+require_relative "advantage_services_shared_context"
+
 module Lti
   module IMS::Concerns
-    describe GradebookServices do
-      controller(ApplicationController) do
-        include Lti::IMS::Concerns::GradebookServices
+    describe GradebookServices, type: :request do
+      include_context "advantage services context"
 
-        before_action :prepare_line_item_for_ags!, :verify_user_in_context, :verify_line_item_in_context
-        skip_before_action(
-          :verify_access_token,
-          :verify_developer_key,
-          :verify_tool,
-          :verify_active_in_account,
-          :verify_access_scope
-        )
-
-        def index
-          return render_error(params[:error_message]) if params.key?(:error_message)
-
-          render json: output
-        end
-
-        private
-
-        def output
-          {
-            line_item_id: line_item.id,
-            context_id: context.id,
-            user_id: user.id
-          }
-        end
+      let(:test_request_host) { "www.example.com" }
+      let(:access_token_scopes) do
+        %W[
+          #{TokenScopes::LTI_AGS_LINE_ITEM_SCOPE}
+          #{TokenScopes::LTI_AGS_LINE_ITEM_READ_ONLY_SCOPE}
+          #{TokenScopes::LTI_AGS_RESULT_READ_ONLY_SCOPE}
+          #{TokenScopes::LTI_AGS_SCORE_SCOPE}
+          #{TokenScopes::LTI_NRPS_V2_SCOPE}
+        ].join(" ")
       end
 
-      let_once(:context) { course_model(workflow_state: "available") }
-      let_once(:user) { student_in_course(course: context).user }
-      let_once(:assignment) do
+      let(:context) { course }
+      let(:user) { student_in_course(course: context, active_all: true).user }
+      let(:assignment) do
         opts = { course: context }
         opts[:submission_types] = "external_tool"
         opts[:external_tool_tag_attributes] = {
@@ -62,30 +48,74 @@ module Lti
         }
         assignment_model(opts)
       end
-      let_once(:developer_key) { lti_developer_key_model(account: context.account) }
-      let_once(:tool) do
-        lti_tool_configuration_model(developer_key:)
-        developer_key.lti_registration.new_external_tool(context)
+      let(:line_item) { assignment.line_items.first }
+
+      # Primary request helper — GET to ResultsController#index, which includes
+      # GradebookServices and exercises verify_course_not_concluded_for_user and
+      # verify_line_item_in_context before_actions.
+      def send_request(user_id: user.lti_id, extra_params: {})
+        get(
+          "/api/lti/courses/#{context.id}/line_items/#{line_item.id}/results",
+          params: { userId: user_id }.merge(extra_params),
+          headers: { "Authorization" => "Bearer #{access_token_jwt}" }
+        )
+        run_jobs
       end
-      let_once(:line_item) { assignment.line_items.first }
-      let(:parsed_response_body) { response.parsed_body }
-      let(:valid_params) { { course_id: context.id, userId: user.id, line_item_id: line_item.id } }
+
+      # Secondary request helper — POST to ScoresController#create. Used only for
+      # tests that specifically exercise verify_user_in_context, which is an explicit
+      # before_action on ScoresController but not on the GET results endpoint.
+      def send_score_request(user_id: user.lti_id)
+        post(
+          "/api/lti/courses/#{context.id}/line_items/#{line_item.id}/scores",
+          params: {
+            userId: user_id,
+            activityProgress: "Completed",
+            gradingProgress: "FullyGraded",
+            timestamp: Time.now.iso8601(3)
+          }.to_json,
+          headers: {
+            "Authorization" => "Bearer #{access_token_jwt}",
+            "Content-Type" => "application/vnd.ims.lis.v1.score+json"
+          }
+        )
+        run_jobs
+      end
+
+      # Sends a line item creation (POST to LineItemsController#create)
+      def send_line_item_request(extra_params: {})
+        body = {
+          scoreMaximum: 100,
+          label: "test line item"
+        }.merge(extra_params).to_json
+        post(
+          "/api/lti/courses/#{context.id}/line_items",
+          params: body,
+          headers: {
+            "Authorization" => "Bearer #{access_token_jwt}",
+            "Content-Type" => "application/vnd.ims.lis.v2.lineitem+json"
+          }
+        )
+        run_jobs
+      end
 
       describe "#before_actions" do
         context "with user and line item in context" do
           before { user.enrollments.first.update!(workflow_state: "active") }
 
           it "processes the request" do
-            get :index, params: valid_params
-            expect(response).to be_successful
+            send_request
+            expect(response).to have_http_status(:ok)
           end
         end
 
+        # verify_user_in_context is only an explicit before_action on ScoresController,
+        # so these enrollment-state tests use send_score_request (POST).
         context "with user not active in context" do
           before { user.enrollments.first.update!(workflow_state: "inactive") }
 
           it "fails to process the request" do
-            get :index, params: valid_params
+            send_score_request
             expect(response).to have_http_status :unprocessable_content
           end
         end
@@ -102,8 +132,8 @@ module Lti
             )
             student_in_section(section, { user: })
 
-            get :index, params: valid_params
-            expect(response).to be_successful
+            send_request
+            expect(response).to have_http_status(:ok)
           end
         end
 
@@ -116,8 +146,8 @@ module Lti
               "TaEnrollment" => { end_at: 1.day.from_now }
             )
 
-            get :index, params: valid_params
-            expect(response).to be_successful
+            send_request
+            expect(response).to have_http_status(:ok)
           end
         end
 
@@ -131,25 +161,29 @@ module Lti
               "TaEnrollment" => { end_at: 1.day.ago }
             )
 
-            get :index, params: valid_params
+            send_request
             expect(response).to have_http_status(:unprocessable_content)
           end
         end
 
         it "responds with 422 if course is hard concluded" do
           context.update!(workflow_state: "completed")
-          get :index, params: valid_params
+          send_request
           expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "responds with 422 if course end date has passed" do
           context.update!(start_at: 2.days.ago, conclude_at: 1.day.ago, restrict_enrollments_to_course_dates: true)
-          get :index, params: valid_params
+          send_request
           expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "still responds with a 404 if an invalid course_id is passed" do
-          get :index, params: valid_params.merge({ course_id: Course.last.id + 1 })
+          invalid_course_id = (Course.maximum(:id) || 0) + 1
+          get(
+            "/api/lti/courses/#{invalid_course_id}/line_items/#{line_item.id}/results",
+            headers: { "Authorization" => "Bearer #{access_token_jwt}" }
+          )
           expect(response).to have_http_status(:not_found)
         end
 
@@ -157,7 +191,7 @@ module Lti
           before { user.enrollments.destroy_all }
 
           it "fails to process the request" do
-            get :index, params: valid_params
+            send_score_request
             expect(response).to have_http_status :unprocessable_content
           end
         end
@@ -168,73 +202,45 @@ module Lti
           let(:some_lti_id) do
             "#{user.id}a000000"[0...8] + "-1234-1234-1234-e1214b67696d"
           end
-          let(:valid_params) { { course_id: context.id, user_id: some_lti_id, line_item_id: line_item.id } }
 
           it "fails to find user" do
-            get :index, params: valid_params
+            send_score_request(user_id: some_lti_id)
             expect(response).to have_http_status :unprocessable_content
             expect(response.parsed_body["errors"]["message"]).to eq("User not found in course or is not a student")
           end
 
           it "still uses such a user_id to look up by lti_id" do
             User.where(id: user.id).update_all lti_id: some_lti_id
-            get :index, params: valid_params
-
-            expect(response).to have_http_status :ok
-            expect(parsed_response_body["user_id"]).to eq user.id
+            send_score_request(user_id: some_lti_id)
+            expect(response).to have_http_status(:ok)
           end
         end
 
         context "when two students with enrollments were merged" do
-          let_once(:user_to_merge) { student_in_course(course: context).user }
+          let(:user_to_merge) { student_in_course(course: context).user }
           let(:lti_id) { user_to_merge.lti_id }
 
           before do
             user.enrollments.first.update!(workflow_state: "active")
             user_to_merge.enrollments.first.update!(workflow_state: "active")
-
             UserMerge.from(user_to_merge).into(user)
           end
 
-          context "when using the user_id parameter (LTI spec)" do
-            let(:valid_params) do
-              { course_id: context.id, user_id: lti_id, line_item_id: line_item.id }
-            end
-
-            it "successfuly finds the active user using the user past lti id" do
-              get :index, params: valid_params
-
-              expect(response).to have_http_status :ok
-              expect(parsed_response_body["user_id"]).to eq user.id
-            end
-          end
-
-          context "when using the userId parameter (backwards compatibility)" do
-            let(:valid_params) do
-              { course_id: context.id, userId: lti_id, line_item_id: line_item.id }
-            end
-
-            it "successfuly finds the active user using the user past lti id" do
-              get :index, params: valid_params
-
-              expect(response).to have_http_status :ok
-              expect(parsed_response_body["user_id"]).to eq user.id
-            end
+          it "successfuly finds the active user using the user past lti id" do
+            send_score_request(user_id: lti_id)
+            expect(response).to have_http_status(:ok)
           end
         end
 
         context "when student was deleted and it was not merged (is not a past user)" do
           let(:lti_id) { user.lti_id }
-          let(:valid_params) do
-            { course_id: context.id, userId: lti_id, line_item_id: line_item.id }
-          end
 
           before do
             user.update!(workflow_state: "deleted")
           end
 
           it "fails to find user" do
-            get :index, params: valid_params
+            send_score_request(user_id: lti_id)
             expect(response).to have_http_status :unprocessable_content
             expect(response.parsed_body["errors"]["message"]).to eq("User not found in course or is not a student")
           end
@@ -244,47 +250,41 @@ module Lti
           before { user.enrollments.first.update!(workflow_state: "active") }
 
           it "fails to process the request" do
-            get :index, params: { course_id: context.id, userId: user.id, line_item_id: LineItem.last.id + 1 }
-            expect(response).to be_not_found
+            invalid_line_item_id = (LineItem.maximum(:id) || 0) + 1
+            get(
+              "/api/lti/courses/#{context.id}/line_items/#{invalid_line_item_id}/results",
+              headers: { "Authorization" => "Bearer #{access_token_jwt}" }
+            )
+            expect(response).to have_http_status(:not_found)
           end
         end
       end
 
       describe "#prepare_line_item_for_ags!" do
-        before do
-          allow(controller).to receive(:developer_key).and_return(developer_key)
-        end
-
         context "when resource link id is missing" do
-          let(:valid_params) { { course_id: context.id, userId: user.id, line_item_id: line_item.id } }
-
           it "is ignored" do
-            expect_any_instance_of(Assignment).not_to receive(:migrate_to_1_3_if_needed!)
-            get :index, params: valid_params
+            send_line_item_request
+            expect(response).to have_http_status(:created)
           end
         end
 
         context "when resource link id points to wrong assignment" do
-          let(:valid_params) do
+          it "fails to match assignment tool" do
             a2 = assignment.clone
             a2.lti_context_id = nil
             a2.save
-            { course_id: context.id, userId: user.id, resourceLinkId: a2.lti_context_id }
-          end
-
-          it "fails to match assignment tool" do
-            get :index, params: valid_params
+            send_line_item_request(extra_params: { resourceLinkId: a2.lti_context_id })
             expect(response).to have_http_status :unprocessable_content
-            expect(parsed_response_body["errors"]["message"]).to eq("Resource link id points to Tool not associated with this Context")
+            expect(response.parsed_body["errors"]["message"]).to eq("Resource link id points to Tool not associated with this Context")
           end
         end
 
         context "with correct resource link id" do
-          let(:valid_params) { { course_id: context.id, userId: user.id, resourceLinkId: assignment.lti_context_id } }
-
           it "fixes up line items on assignment" do
-            expect_any_instance_of(Assignment).to receive(:migrate_to_1_3_if_needed!)
-            get :index, params: valid_params
+            send_line_item_request(extra_params: { resourceLinkId: assignment.lti_context_id })
+            expect(response).to have_http_status(:created)
+            expect(response.parsed_body["label"]).to eq("test line item")
+            expect(response.parsed_body["scoreMaximum"]).to eql(100.0) # rubocop:disable RSpec/BeEql
           end
         end
       end

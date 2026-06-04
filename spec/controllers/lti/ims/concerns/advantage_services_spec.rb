@@ -18,48 +18,65 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe Lti::IMS::Concerns::AdvantageServices do
-  let(:controller_class) { Lti::IMS::NamesAndRolesController }
+describe Lti::IMS::Concerns::AdvantageServices, type: :request do
+  let(:root_account) { Account.default }
+  let(:developer_key) do
+    dk = lti_developer_key_model(account: root_account)
+    dk.developer_key_account_bindings.first.update!(workflow_state: "on")
+    dk
+  end
+  let(:access_token_jwt) do
+    timestamp = Time.zone.now.to_i
+    JSON::JWT.new(
+      iss: "https://canvas.instructure.com",
+      sub: developer_key.global_id,
+      aud: "http://www.example.com/login/oauth2/token",
+      iat: timestamp,
+      exp: timestamp + 1.hour.to_i,
+      nbf: timestamp - 30,
+      jti: SecureRandom.uuid,
+      scopes: TokenScopes::LTI_NRPS_V2_SCOPE
+    ).sign(Canvas::Security.jwt_encryption_key, :HS256).to_s
+  end
+  let(:course) { course_factory(active_all: true, account: root_account) }
+  let(:headers) { { "Authorization" => "Bearer #{access_token_jwt}" } }
 
-  describe "tool" do
-    it "finds only tools for the developer key and context" do
-      registration1 = lti_registration_with_tool
-      registration2 = lti_registration_with_tool
-      dk1 = registration1.developer_key
-      dk2 = registration2.developer_key
-      c1 = course_model
-      c2 = course_model
-      tool = registration1.new_external_tool(c1)
+  before do
+    t = ContextExternalTool.create!(
+      context: course,
+      consumer_key: "key",
+      shared_secret: "secret",
+      name: "test tool",
+      url: "http://www.tool.com/launch",
+      developer_key:,
+      lti_version: "1.3",
+      workflow_state: "public"
+    )
+    control = t.context_controls.new(registration: developer_key.lti_registration, available: true)
+    control.course = course
+    control.save!
+  end
 
-      results = {}
-      [c1, c2].each do |ctx|
-        [dk1, dk2].each do |dev_key|
-          controller = controller_class.new
-          expect(controller).to receive(:context).at_least(:once).and_return ctx
-          expect(controller).to receive(:developer_key).at_least(:once).and_return dev_key
-          results[[dev_key.id, ctx.id]] = controller.tool
-        end
-      end
+  describe "#tool" do
+    it "returns success when the developer key has a tool in the context" do
+      get("/api/lti/courses/#{course.id}/names_and_roles", headers:)
+      expect(response).to have_http_status(:ok)
+    end
 
-      expect(results).to eq(
-        [dk1.id, c1.id] => tool,
-        [dk1.id, c2.id] => nil,
-        [dk2.id, c1.id] => nil,
-        [dk2.id, c2.id] => nil
+    it "returns unauthorized when the developer key has no tool in the context" do
+      other_course = course_factory(active_all: true, account: root_account)
+      get("/api/lti/courses/#{other_course.id}/names_and_roles", headers:)
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body["errors"]["message"]).to eq(
+        "Access Token not linked to a Tool associated with this Context"
       )
     end
   end
 
-  describe "meta headers" do
+  describe "#verify_developer_key" do
     it "adds dk meta header with developer_key.global_id when developer_key is present" do
-      registration = lti_registration_with_tool
-      dk = registration.developer_key
-      controller = controller_class.new
-
-      allow(controller).to receive(:developer_key).and_return(dk)
-      expect(RequestContext::Generator).to receive(:add_meta_header).with("dk", dk.global_id)
-
-      controller.send(:verify_developer_key)
+      get("/api/lti/courses/#{course.id}/names_and_roles", headers:)
+      expect(response.headers["X-Canvas-Meta"]).to include("dk=#{developer_key.global_id}")
     end
   end
 end

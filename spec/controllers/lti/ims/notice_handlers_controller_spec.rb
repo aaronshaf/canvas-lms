@@ -20,9 +20,22 @@
 require_relative "concerns/advantage_services_shared_context"
 require_relative "concerns/lti_services_shared_examples"
 
-describe Lti::IMS::NoticeHandlersController do
+describe Lti::IMS::NoticeHandlersController, type: :request do
   include_context "advantage services context"
 
+  def send_request
+    url = "/api/lti/notice-handlers/#{tool_id}"
+    auth_headers = access_token_jwt ? { "Authorization" => "Bearer #{access_token_jwt}" } : {}
+    case request_method
+    when :get
+      get(url, headers: auth_headers)
+    when :put
+      put(url, params: body_overrides, headers: auth_headers)
+    end
+    run_jobs
+  end
+
+  let(:test_request_host) { "www.example.com" }
   let(:cet) { developer_key.context_external_tools.first }
   let(:tool_id) { cet.global_id.to_s }
   let(:body_overrides) { {} }
@@ -30,7 +43,6 @@ describe Lti::IMS::NoticeHandlersController do
   let(:client_id) { developer_key.global_id }
   let(:lti_context_id) { Account.default.lti_context_id }
   let(:deployment_id) { cet.id.to_s + ":" + lti_context_id }
-  let(:handlers) { [{ "notice_type" => "notice_type", "handler" => "https://example.com" }] }
 
   # For shard lti services specs. Note that most of the "advantage services" shared specs don't
   # apply to this controller because this controller takes a tool_id and finds a context from it
@@ -42,20 +54,16 @@ describe Lti::IMS::NoticeHandlersController do
   describe "#index" do
     let(:action) { :index }
 
-    before do
-      allow(Lti::PlatformNotificationService).to receive(:list_handlers).with(tool: cet).and_return(handlers)
-    end
-
     it_behaves_like "lti services", skip_mime_type_checks_on_error: true
 
     it "returns the correct JSON response" do
       send_request
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to eq({
-                                           "client_id" => client_id,
-                                           "deployment_id" => deployment_id,
-                                           "notice_handlers" => handlers
-                                         })
+      expect(response.parsed_body["client_id"]).to eql(client_id)
+      expect(response.parsed_body["deployment_id"]).to eq(deployment_id)
+      expect(response.parsed_body["notice_handlers"]).to include(
+        { "notice_type" => Lti::Pns::NoticeTypes::HELLO_WORLD, "handler" => "" }
+      )
     end
 
     context "with unbound developer key" do
@@ -88,6 +96,7 @@ describe Lti::IMS::NoticeHandlersController do
         tool.destroy!
         send_request
         expect(response).to have_http_status :not_found
+        expect(json).to be_lti_advantage_error_response_body("not_found", "not found")
       end
     end
   end
@@ -95,8 +104,8 @@ describe Lti::IMS::NoticeHandlersController do
   describe "#update" do
     let(:action) { :update }
     let(:request_method) { :put }
-    let(:notice_type) { "notice_type" }
-    let(:handler_url) { "https://valid.url" }
+    let(:notice_type) { Lti::Pns::NoticeTypes::CONTEXT_COPY }
+    let(:handler_url) { "http://www.tool.com/notice_handler" }
 
     describe "with a valid handler url" do
       let(:body_overrides) { handler_object }
@@ -104,18 +113,11 @@ describe Lti::IMS::NoticeHandlersController do
 
       it_behaves_like "lti services", skip_mime_type_checks_on_error: true
 
-      before do
-        allow(Lti::PlatformNotificationService).to receive(:list_handlers).with(tool: cet).and_return(handlers)
-        allow(Lti::PlatformNotificationService).to \
-          receive(:subscribe_tool_for_notice)
-          .and_return(handler_object)
-      end
-
       it "subscribes the tool for given notice and returns the created handler" do
         send_request
-        expect(response.parsed_body).to eq(JSON.parse(handler_object.to_json))
         expect(response).to have_http_status(:ok)
-        expect(Lti::PlatformNotificationService).to have_received(:subscribe_tool_for_notice).with(tool: cet, notice_type:, handler_url:, max_batch_size: nil)
+        expect(response.parsed_body).to eq(JSON.parse(handler_object.to_json))
+        expect(Lti::NoticeHandler.find_by(context_external_tool: cet, notice_type:)&.url).to eq(handler_url)
       end
 
       context "when the request has extra fields" do
@@ -125,19 +127,18 @@ describe Lti::IMS::NoticeHandlersController do
           send_request
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body).to eq(JSON.parse(handler_object.to_json))
-          expect(Lti::PlatformNotificationService).to have_received(:subscribe_tool_for_notice).with(tool: cet, notice_type:, handler_url:, max_batch_size: nil)
         end
       end
 
       context "with max_batch_size" do
-        let(:handler_object) { { notice_type:, handler: handler_url, max_batch_size: "20" } }
+        let(:handler_object) { { notice_type:, handler: handler_url, max_batch_size: 20 } }
+        let(:body_overrides) { { notice_type:, handler: handler_url, max_batch_size: "20" } }
 
         it "subscribes the tool for given notice and returns the created handler with max_batch_size" do
           send_request
           expect(response).to have_http_status(:ok)
-
           expect(response.parsed_body).to eq(JSON.parse(handler_object.to_json))
-          expect(Lti::PlatformNotificationService).to have_received(:subscribe_tool_for_notice).with(tool: cet, notice_type:, handler_url:, max_batch_size: "20")
+          expect(response.parsed_body["max_batch_size"]).to eql(20) # rubocop:disable RSpec/BeEql
         end
       end
     end
@@ -146,17 +147,9 @@ describe Lti::IMS::NoticeHandlersController do
       let(:body_overrides) { { notice_type:, handler: handler_url } }
       let(:handler_url) { "" }
 
-      before do
-        allow(Lti::PlatformNotificationService).to receive(:list_handlers).with(tool: cet).and_return(handlers)
-        allow(Lti::PlatformNotificationService).to receive(:unsubscribe_tool_for_notice)
-          .with(tool: cet, notice_type:)
-          .and_return({ notice_type:, handler: "" })
-      end
-
       it "unsubscribes the tool for given notice and returns an empty handler JSON response" do
         send_request
         expect(response).to have_http_status(:ok)
-        expect(Lti::PlatformNotificationService).to have_received(:unsubscribe_tool_for_notice).with(tool: cet, notice_type:)
         expect(response.parsed_body).to eq({ "handler" => "", "notice_type" => notice_type })
       end
     end
@@ -214,6 +207,7 @@ describe Lti::IMS::NoticeHandlersController do
       it "it throws 401" do
         send_request
         expect(response).to have_http_status(:unauthorized)
+        expect(json).to be_lti_advantage_error_response_body("unauthorized", "Invalid Developer Key")
       end
     end
   end

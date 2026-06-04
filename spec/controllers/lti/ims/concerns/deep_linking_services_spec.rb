@@ -20,7 +20,7 @@
 
 require_relative "deep_linking_spec_helper"
 
-describe Lti::IMS::Concerns::DeepLinkingServices do
+describe Lti::IMS::Concerns::DeepLinkingServices, type: :request do
   describe "DeepLinkingJwt" do
     include_context "deep_linking_spec_helper"
     specs_require_cache(:redis_cache_store)
@@ -32,7 +32,6 @@ describe Lti::IMS::Concerns::DeepLinkingServices do
 
     before do
       developer_key.update!(public_jwk_url:)
-      allow(CanvasHttp).to receive(:get).with(public_jwk_url).and_call_original
     end
 
     # NOTE: JWKs only fetched and JWTs validated when we call valid? or invalid?
@@ -47,17 +46,15 @@ describe Lti::IMS::Concerns::DeepLinkingServices do
     it "caches the JWKs" do
       stub_jwks_request
       expect(make_jwt).to be_valid
-      expect(CanvasHttp).to have_received(:get).exactly(:once)
-
-      stub_request(:get, public_jwk_url).to_return(status: 500, body: "{}")
       expect(make_jwt).to be_valid
-      expect(CanvasHttp).to have_received(:get).exactly(:once)
+      expect(WebMock).to have_requested(:get, public_jwk_url).once
     end
 
     it "caches the JWKs for 5 minutes" do
       allow(Rails.cache).to receive(:write).and_call_original
       stub_jwks_request
       expect(make_jwt).to be_valid
+      expect(WebMock).to have_requested(:get, public_jwk_url).once
       expect(Rails.cache).to have_received(:write).with(
         a_string_matching(/^dev_key_public_jwk_url/),
         jwks,
@@ -66,9 +63,6 @@ describe Lti::IMS::Concerns::DeepLinkingServices do
     end
 
     it "caches by URL unders unique but safe (no special chars) cache key" do
-      # Stub default value
-      allow(Rails.cache).to receive(:read).and_call_original
-
       urls = [
         "http://instructure.com/a/b",
         "http://instructure.com/a.b",
@@ -76,23 +70,18 @@ describe Lti::IMS::Concerns::DeepLinkingServices do
         "http://instructure.com/a#b",
       ]
 
-      cache_keys = []
-
-      urls.each do |url|
-        allow(Rails.cache).to \
-          receive(:read).with(a_string_matching(/^dev_key_public_jwk_url/)) do |cache_key|
-            expect(cache_key).to match(%r{\Adev_key_public_jwk_url/[^/.?#]+\z})
-            cache_keys << cache_key
-            jwks
-          end
-
-        developer_key.update! public_jwk_url: url
-        expect(make_jwt).to be_valid
+      cache_keys = urls.map do |url|
+        ["dev_key_public_jwk_url", Digest::SHA256.hexdigest(url)].cache_key
       end
 
-      expect(cache_keys.length).to eq(urls.length)
+      expect(cache_keys).to all(match(%r{\Adev_key_public_jwk_url/[^/.?#]+\z}))
       expect(cache_keys.uniq.length).to eq(urls.length)
-      expect(CanvasHttp).not_to have_received(:get)
+
+      urls.each_with_index do |url, i|
+        developer_key.update! public_jwk_url: url
+        Rails.cache.write(cache_keys[i], jwks)
+        expect(make_jwt).to be_valid
+      end
     end
 
     context "when decoding from cached jwk fails" do
@@ -111,26 +100,30 @@ describe Lti::IMS::Concerns::DeepLinkingServices do
         stub_jwks_request
 
         expect(make_jwt).to be_valid
+        expect(WebMock).to have_requested(:get, public_jwk_url).once
         expect(Rails.cache.read(cache_key)).to eq(jwks)
       end
 
       it "causes an invalid JWT on network errors" do
-        expect(CanvasHttp).to receive(:get).and_raise SocketError
+        stub_request(:get, public_jwk_url).to_raise(SocketError)
         expect(make_jwt).not_to be_valid
+        expect(WebMock).to have_requested(:get, public_jwk_url).once
         expect(Rails.cache.read(cache_key)).to eq({ "foo" => "bar" })
       end
 
       it "causes an invalid JWT if the endpoint returns bad JSON" do
         stub_jwks_request("not json")
         expect(make_jwt).not_to be_valid
+        expect(WebMock).to have_requested(:get, public_jwk_url).once
         expect(Rails.cache.read(cache_key)).to eq({ "foo" => "bar" })
       end
 
       it "refetches and doesn't save to cache if decoding with new jwks fails" do
-        wrong_public_jwk =  CanvasSecurity::RSAKeyPair.new.public_jwk.to_h
+        wrong_public_jwk = CanvasSecurity::RSAKeyPair.new.public_jwk.to_h
         wrong_jwks_json = { "keys" => [wrong_public_jwk] }.to_json
         stub_jwks_request(wrong_jwks_json.to_json)
         expect(make_jwt).not_to be_valid
+        expect(WebMock).to have_requested(:get, public_jwk_url).once
         expect(Rails.cache.read(cache_key)).to eq({ "foo" => "bar" })
       end
     end

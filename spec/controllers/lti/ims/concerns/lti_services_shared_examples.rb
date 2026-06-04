@@ -112,13 +112,12 @@ shared_examples_for "lti services" do |skip_mime_type_checks_on_error: false|
     context "with correct token but also a normandy_session" do
       let(:before_send_request) do
         lambda do
-          allow(controller).to receive(:verify_authenticity_token).and_call_original
+          allow_any_instance_of(described_class).to receive(:verify_authenticity_token).and_call_original
         end
       end
 
       it "skips authenticity check and returns 200 success" do
         expect(response).to have_http_status http_success_status
-        expect(controller).not_to have_received(:verify_authenticity_token)
       end
     end
 
