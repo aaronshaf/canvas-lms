@@ -32,3 +32,12 @@ import {Rating} from '../types/rollup'
 export const findRating = (ratings: Rating[], score: number): Rating => {
   return ratings.find(r => score >= r.points) ?? ratings[ratings.length - 1]
 }
+
+/**
+ * Normalises a hex color to always have a leading `#`.
+ * Returns undefined if the input is null/undefined/empty.
+ */
+export const ensureHashPrefix = (color?: string | null): string | undefined => {
+  if (!color) return undefined
+  return color.startsWith('#') ? color : `#${color}`
+}

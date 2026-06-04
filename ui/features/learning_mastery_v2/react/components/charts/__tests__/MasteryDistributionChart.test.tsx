@@ -23,11 +23,12 @@ import {RatingDistribution} from '@canvas/outcomes/react/types/mastery_distribut
 
 // Mock the BarChart component to simplify testing
 vi.mock('../BarChart', () => ({
-  BarChart: ({labels, values, backgroundColor}: any) => (
+  BarChart: ({labels, values, backgroundColor, xAxisImages}: any) => (
     <div data-testid="bar-chart">
       <div data-testid="chart-labels">{JSON.stringify(labels)}</div>
       <div data-testid="chart-values">{JSON.stringify(values)}</div>
       <div data-testid="chart-colors">{JSON.stringify(backgroundColor)}</div>
+      <div data-testid="chart-x-axis-images">{JSON.stringify(xAxisImages)}</div>
     </div>
   ),
 }))
@@ -295,6 +296,41 @@ describe('MasteryDistributionChart', () => {
     const labels = JSON.parse(screen.getByTestId('chart-labels').textContent || '[]')
 
     expect(labels[0]).toBe('3')
+  })
+
+  describe('x-axis icon colors', () => {
+    it('uses rating.color as the fill in the x-axis icon data URIs', () => {
+      const distributionData: RatingDistribution[] = [
+        {description: 'Exceeds', points: 5, color: '#FF8C00', count: 1, student_ids: ['1']},
+        {description: 'Meets', points: 3, color: '#9C27B0', count: 2, student_ids: ['2', '3']},
+        {description: 'Almost', points: 2, color: '#3F51B5', count: 1, student_ids: ['4']},
+        {description: 'Below', points: 0, color: '#8BC34A', count: 0, student_ids: []},
+      ]
+      render(
+        <MasteryDistributionChart outcome={MOCK_OUTCOMES[0]} distributionData={distributionData} />,
+      )
+      const xAxisImages = JSON.parse(screen.getByTestId('chart-x-axis-images').textContent || '[]')
+
+      expect(xAxisImages).toHaveLength(4)
+      xAxisImages.forEach((img: string) => {
+        expect(img).toMatch(/^data:image\/svg\+xml/)
+      })
+      expect(decodeURIComponent(xAxisImages[0])).toContain('#FF8C00')
+      expect(decodeURIComponent(xAxisImages[1])).toContain('#9C27B0')
+      expect(decodeURIComponent(xAxisImages[2])).toContain('#3F51B5')
+      expect(decodeURIComponent(xAxisImages[3])).toContain('#8BC34A')
+    })
+
+    it('normalises colors without a leading # before injecting into the icon', () => {
+      const distributionData: RatingDistribution[] = [
+        {description: 'Meets', points: 3, color: '9C27B0', count: 1, student_ids: ['1']},
+      ]
+      render(
+        <MasteryDistributionChart outcome={MOCK_OUTCOMES[0]} distributionData={distributionData} />,
+      )
+      const xAxisImages = JSON.parse(screen.getByTestId('chart-x-axis-images').textContent || '[]')
+      expect(decodeURIComponent(xAxisImages[0])).toContain('#9C27B0')
+    })
   })
 
   it('handles various rating point values', () => {

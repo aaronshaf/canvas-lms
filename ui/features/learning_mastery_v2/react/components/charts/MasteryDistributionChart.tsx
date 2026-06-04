@@ -18,7 +18,9 @@
 import React, {useMemo} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Outcome} from '@canvas/outcomes/react/types/rollup'
-import {svgUrl} from '@canvas/outcomes/react/utils/icons'
+import {getTagIcon} from '@canvas/outcomes/react/utils/icons'
+import {ensureHashPrefix} from '@canvas/outcomes/react/utils/ratings'
+import {masteryLevelToSvgUrl} from '@instructure/outcomes-ui/es/util/gradebook/masteryLevelToSvgUrl'
 import {BarChart} from './BarChart'
 import {RatingDistribution} from '@canvas/outcomes/react/types/mastery_distribution'
 import {canvas} from '@instructure/ui-themes'
@@ -67,20 +69,17 @@ export const MasteryDistributionChart: React.FC<MasteryDistributionChartProps> =
   const masteryLevels = useMemo(() => {
     if (distributionData.length === 0 && outcome.ratings) {
       const sortedRatings = [...outcome.ratings].sort((a, b) => b.points - a.points)
-      return sortedRatings.map(rating => {
-        const color = rating.color || '666666'
-        return {
-          description: rating.description || `${rating.points} pts`,
-          color: color.startsWith('#') ? color : `#${color}`,
-          count: 0,
-          points: rating.points,
-        }
-      })
+      return sortedRatings.map(rating => ({
+        description: rating.description || `${rating.points} pts`,
+        color: ensureHashPrefix(rating.color) ?? '#666666',
+        count: 0,
+        points: rating.points,
+      }))
     }
 
     return distributionData.map(rating => ({
       description: rating.description,
-      color: rating.color.startsWith('#') ? rating.color : `#${rating.color}`,
+      color: ensureHashPrefix(rating.color) ?? '#666666',
       count: rating.count,
       points: rating.points,
     }))
@@ -100,8 +99,12 @@ export const MasteryDistributionChart: React.FC<MasteryDistributionChartProps> =
 
   const xAxisImages = useMemo(() => {
     if (isPreview) return undefined
-    return masteryLevels.map(level => svgUrl(level.points, outcome.mastery_points))
-  }, [masteryLevels, outcome.mastery_points, isPreview])
+    return masteryLevels.map(level => {
+      const iconResult = getTagIcon(level.points, outcome.mastery_points, outcome.ratings)
+      if (typeof iconResult !== 'string') return null
+      return masteryLevelToSvgUrl(iconResult, {fill: level.color})
+    })
+  }, [masteryLevels, outcome.mastery_points, outcome.ratings, isPreview])
 
   const chartDescription = useMemo(() => {
     if (isPreview) return undefined

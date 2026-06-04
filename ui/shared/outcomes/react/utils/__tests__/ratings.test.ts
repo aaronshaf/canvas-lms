@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {findRating} from '@canvas/outcomes/react/utils/ratings'
+import {ensureHashPrefix, findRating} from '@canvas/outcomes/react/utils/ratings'
 import {Rating} from '@canvas/outcomes/react/types/rollup'
 
 describe('findRating', () => {
@@ -150,5 +150,23 @@ describe('findRating', () => {
       expect(findRating(descendingRatings, 4)).toEqual(descendingRatings[3])
       expect(findRating(descendingRatings, 3)).toEqual(descendingRatings[3])
     })
+  })
+})
+
+describe('ensureHashPrefix', () => {
+  it('adds a # prefix to colors without one', () => {
+    expect(ensureHashPrefix('00FF00')).toBe('#00FF00')
+    expect(ensureHashPrefix('abc')).toBe('#abc')
+  })
+
+  it('returns the color unchanged when it already starts with #', () => {
+    expect(ensureHashPrefix('#00FF00')).toBe('#00FF00')
+    expect(ensureHashPrefix('#abc')).toBe('#abc')
+  })
+
+  it('returns undefined for nullish or empty input', () => {
+    expect(ensureHashPrefix(undefined)).toBeUndefined()
+    expect(ensureHashPrefix(null)).toBeUndefined()
+    expect(ensureHashPrefix('')).toBeUndefined()
   })
 })

@@ -20,7 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {Outcome} from '@canvas/outcomes/react/types/rollup'
 import {getTagIcon} from '@canvas/outcomes/react/utils/icons'
 import {ScoreDisplayFormat} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
-import {findRating} from '@canvas/outcomes/react/utils/ratings'
+import {ensureHashPrefix, findRating} from '@canvas/outcomes/react/utils/ratings'
 import {ScoreCellContent} from '@instructure/outcomes-ui/es/components/Gradebook/gradebook-table/ScoreCellContent'
 import {IconExpandStartLine} from '@instructure/ui-icons'
 import type {ViewProps} from '@instructure/ui-view'
@@ -47,10 +47,12 @@ const StudentOutcomeScoreComponent: React.FC<StudentOutcomeScoreProps> = ({
   const rating = score !== undefined ? findRating(outcome.ratings, score) : undefined
   const masteryLevelResult = getTagIcon(rating?.points, outcome.mastery_points)
   const masteryLevel = typeof masteryLevelResult === 'string' ? masteryLevelResult : 'unassessed'
+  const iconColor = ensureHashPrefix(rating?.color)
 
   return (
     <ScoreCellContent
       masteryLevel={masteryLevel}
+      iconColor={iconColor}
       score={score ?? 0}
       scoreDisplayFormat={scoreDisplayFormat}
       label={rating?.description || I18n.t('Unassessed')}

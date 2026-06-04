@@ -78,6 +78,20 @@ describe('StudentOutcomeScore', () => {
     expect(screen.getByRole('img')).toBeInTheDocument()
   })
 
+  it('fills the icon with the matched rating.color', () => {
+    const customRatings: Rating[] = [
+      {points: 5, color: '#FF8C00', description: 'excellent!', mastery: true},
+      {points: 3, color: '#9C27B0', description: 'great!', mastery: false},
+      {points: 1, color: '#3F51B5', description: 'needs improvement', mastery: false},
+    ]
+    render(
+      <StudentOutcomeScore
+        {...defaultProps({outcome: {ratings: customRatings, mastery_points: 5}})}
+      />,
+    )
+    expect(screen.getByRole('img').getAttribute('fill')).toBe('#9C27B0')
+  })
+
   it('renders the unassessed icon if there is no score', async () => {
     render(<StudentOutcomeScore {...defaultProps({score: undefined})} />)
     expect(await screen.findByLabelText('Unassessed')).toBeInTheDocument()
