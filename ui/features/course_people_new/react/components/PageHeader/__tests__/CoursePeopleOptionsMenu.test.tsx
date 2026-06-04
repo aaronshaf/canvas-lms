@@ -184,6 +184,17 @@ describe('CoursePeopleOptionsMenu', () => {
       expect(option).toBeInTheDocument()
       expect(option).toHaveAttribute('href', '/interactions-report')
     })
+
+    it('does not render option when canViewAllGrades and canReadReports are both false', async () => {
+      ;(useCoursePeopleContext as any).mockReturnValueOnce({
+        ...useCoursePeopleContextMocks,
+        canViewAllGrades: false,
+        canReadReports: false,
+      })
+      const {getByTestId, queryByTestId} = render(<CoursePeopleOptionsMenu />)
+      await userEvent.click(getByTestId('course-people-options-menu-button'))
+      expect(queryByTestId('view-student-interactions-report-option')).not.toBeInTheDocument()
+    })
   })
 
   describe('View Registered Services option', () => {

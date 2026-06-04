@@ -138,6 +138,87 @@ describe('EditRolesModal', () => {
     expect(defaultProps.onClose).not.toHaveBeenCalled()
   })
 
+  // ---------------------------------------------------------------------------
+  // Role select options visibility
+  // Covers: spec/selenium/people/people_spec.rb:872
+  // When the edit roles modal opens for a teacher enrollment, the teacher
+  // option must be aria-selected and observer/student options must be present.
+  // ---------------------------------------------------------------------------
+  it('shows current teacher role as selected and lists observer/student options', () => {
+    const teacherEnrollment = [
+      {
+        course_id: '11',
+        course_section_id: '111',
+        id: '1',
+        limit_privileges_to_course_section: true,
+        role_id: '2', // Teacher
+        ...GENERIC_ENROLLMENT,
+      },
+    ]
+    const rolesWithObserver = [
+      ...AVAILABLE_ROLES,
+      {
+        addable_by_user: true,
+        base_role_name: 'ObserverEnrollment',
+        deleteable_by_user: true,
+        id: '4',
+        label: 'Observer',
+        name: 'Observer',
+        plural_label: 'Observers',
+      },
+    ]
+    const {getByTestId} = render(
+      <EditRolesModal
+        {...defaultProps}
+        currentEnrollments={teacherEnrollment}
+        availableRoles={rolesWithObserver}
+      />,
+    )
+
+    const roleSelect = getByTestId('edit-roles-select') as HTMLInputElement
+    expect(roleSelect.value).toBe('Teacher')
+    fireEvent.click(roleSelect)
+
+    expect(getByTestId('Teacher-option').getAttribute('aria-selected')).toBe('true')
+    expect(getByTestId('Observer-option')).toBeInTheDocument()
+    expect(getByTestId('Student-option')).toBeInTheDocument()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Role select omits options for unpermitted roles
+  // Covers: spec/selenium/people/people_spec.rb:884
+  // When add_student_to_course permission is disabled, the Student option must
+  // not appear in the role select even when other roles are available.
+  // ---------------------------------------------------------------------------
+  it('does not show Student option when add_student_to_course permission is disabled', () => {
+    const teacherEnrollment = [
+      {
+        course_id: '11',
+        course_section_id: '111',
+        id: '1',
+        limit_privileges_to_course_section: true,
+        role_id: '2', // Teacher
+        ...GENERIC_ENROLLMENT,
+      },
+    ]
+    const rolesWithoutStudent = [
+      AVAILABLE_ROLES[1], // Teacher
+      AVAILABLE_ROLES[2], // TA
+    ]
+    const {getByTestId, queryByTestId} = render(
+      <EditRolesModal
+        {...defaultProps}
+        currentEnrollments={teacherEnrollment}
+        availableRoles={rolesWithoutStudent}
+      />,
+    )
+
+    fireEvent.click(getByTestId('edit-roles-select'))
+
+    expect(getByTestId('TA-option')).toBeInTheDocument()
+    expect(queryByTestId('Student-option')).not.toBeInTheDocument()
+  })
+
   it('updates all roles when enrolled in multiple sections with multiple roles', async () => {
     const user = userEvent.setup()
     const multipleEnrollments = [

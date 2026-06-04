@@ -269,4 +269,20 @@ describe('RosterTableRow', () => {
       expect(queryByTestId(`options-menu-user-${mockedUser._id}`)).not.toBeInTheDocument()
     })
   })
+
+  describe('Differentiation tag selection checkbox', () => {
+    it('shows selection checkbox for a student when allowAssignToDifferentiationTags is true', () => {
+      const {getByTestId} = renderRosterTableRow()
+      expect(getByTestId(`select-user-${mockedUser._id}`)).toBeInTheDocument()
+    })
+
+    it('hides selection checkbox when allowAssignToDifferentiationTags is false', () => {
+      ;(useCoursePeopleContext as any).mockReturnValue({
+        ...defaultContextValues,
+        allowAssignToDifferentiationTags: false,
+      })
+      const {queryByTestId} = renderRosterTableRow()
+      expect(queryByTestId(`select-user-${mockedUser._id}`)).not.toBeInTheDocument()
+    })
+  })
 })

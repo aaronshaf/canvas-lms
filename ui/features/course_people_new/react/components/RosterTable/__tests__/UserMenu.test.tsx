@@ -187,6 +187,21 @@ describe('UserMenu', () => {
       expect(queryByTestId(editRoles)).not.toBeInTheDocument()
     })
 
+    it('shows edit roles for observers without associated users', () => {
+      const props = {
+        enrollments: [
+          mockEnrollment({
+            enrollmentType: OBSERVER_ENROLLMENT,
+            hasAssociatedUser: false,
+          }),
+        ],
+      }
+      const {getByTestId} = renderUserMenu(props)
+      fireEvent.click(getByTestId(menuButton))
+
+      expect(getByTestId(editRoles)).toBeInTheDocument()
+    })
+
     it('hides edit sections for inactive enrollments', () => {
       const props = {
         enrollments: [
@@ -337,6 +352,48 @@ describe('UserMenu', () => {
       fireEvent.click(getByTestId(customLink1))
 
       expect(defaultProps.onCustomLinkSelect).toHaveBeenCalled()
+    })
+  })
+
+  describe('User Details Link', () => {
+    it('shows user details link with correct href', () => {
+      const {getByTestId} = renderUserMenu()
+      fireEvent.click(getByTestId(menuButton))
+      const detailsLink = getByTestId(detailsUser)
+      expect(detailsLink).toBeInTheDocument()
+      expect(detailsLink).toHaveAttribute('href', '/users/1')
+    })
+  })
+
+  describe('Remove User Visibility', () => {
+    it('hides remove user when canRemoveUsers is false', () => {
+      const {getByTestId, queryByTestId} = renderUserMenu({canRemoveUsers: false})
+      fireEvent.click(getByTestId(menuButton))
+      expect(queryByTestId(removeUser)).not.toBeInTheDocument()
+    })
+
+    it('shows remove user for manually enrolled student when canRemoveUsers is true', () => {
+      const {getByTestId} = renderUserMenu({canRemoveUsers: true})
+      fireEvent.click(getByTestId(menuButton))
+      expect(getByTestId(removeUser)).toBeInTheDocument()
+    })
+
+    it('shows remove user for student with SIS ID when canRemoveUsers is true', () => {
+      const {getByTestId} = renderUserMenu({canRemoveUsers: true})
+      fireEvent.click(getByTestId(menuButton))
+      expect(getByTestId(removeUser)).toBeInTheDocument()
+    })
+  })
+
+  describe('Resend Invitation Visibility', () => {
+    it('hides resend invitation when activeGranularEnrollmentPermissions is empty', () => {
+      ;(useCoursePeopleContext as any).mockReturnValue({
+        ...defaultContext,
+        activeGranularEnrollmentPermissions: [],
+      })
+      const {getByTestId, queryByTestId} = renderUserMenu()
+      fireEvent.click(getByTestId(menuButton))
+      expect(queryByTestId(resendInvitation)).not.toBeInTheDocument()
     })
   })
 
