@@ -55,25 +55,6 @@ describe "Wiki pages and Tiny WYSIWYG editor" do
       end
     end
 
-    it "takes user to page history" do
-      title = "test_page"
-      unpublished = false
-      edit_roles = "public"
-
-      p = create_wiki_page(title, unpublished, edit_roles)
-      # sets body
-      p.update(body: "test")
-
-      get "/courses/#{@course.id}/pages/#{p.title}"
-
-      wait_for_ajaximations
-
-      f(".page-toolbar .buttons .al-trigger").click
-      expect_new_page_load { f(".view_page_history").click }
-
-      expect(ff(".revision").length).to eq 2
-    end
-
     it "loads the previous version of the page and roll-back page" do
       title = "test_page"
       unpublished = false

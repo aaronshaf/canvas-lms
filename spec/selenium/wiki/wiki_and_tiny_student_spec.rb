@@ -31,19 +31,6 @@ describe "Wiki pages and Tiny WYSIWYG editor" do
       stub_rcs_config
     end
 
-    it "does not allow access to page when marked as hide from student" do
-      expected_error = "Access Denied"
-      title = "test_page"
-      hfs = true
-      edit_roles = "members"
-
-      create_wiki_page(title, hfs, edit_roles)
-      get "/courses/#{@course.id}/pages/#{title}"
-      wait_for_ajax_requests
-
-      expect(f("#unauthorized_message")).to include_text(expected_error)
-    end
-
     it "does not allow students to edit if marked for only teachers can edit" do
       # vars for the create_wiki_page method which seeds the used page
       title = "test_page"

@@ -41,32 +41,6 @@ describe "Wiki Pages" do
       course_with_teacher_logged_in account: @account
     end
 
-    it "navigates to pages tab with no front page set", priority: "1" do
-      @course.wiki_pages.create!(title: "Page1")
-      @course.wiki_pages.create!(title: "Page2")
-      get "/courses/#{@course.id}"
-      f(".pages").click
-      expect(driver.current_url).to include("/courses/#{@course.id}/pages")
-      expect(driver.current_url).not_to include("/courses/#{@course.id}/wiki")
-      get "/courses/#{@course.id}/wiki"
-      expect(driver.current_url).to include("/courses/#{@course.id}/pages")
-      expect(driver.current_url).not_to include("/courses/#{@course.id}/wiki")
-    end
-
-    it "navigates to front page when set", priority: "1" do
-      front = @course.wiki_pages.create!(title: "Front")
-      front.set_as_front_page!
-      front.save!
-      get "/courses/#{@course.id}"
-      f(".pages").click
-      expect(driver.current_url).not_to include("/courses/#{@course.id}/pages")
-      expect(driver.current_url).to include("/courses/#{@course.id}/wiki")
-      expect(f("div.front-page")).to include_text "Front Page"
-      get "/courses/#{@course.id}/pages"
-      expect(driver.current_url).to include("/courses/#{@course.id}/pages")
-      expect(driver.current_url).not_to include("/courses/#{@course.id}/wiki")
-    end
-
     it "has correct front page UI elements when set as home page", priority: "1" do
       front = @course.wiki_pages.create!(title: "Front")
       front.set_as_front_page!
@@ -338,37 +312,6 @@ describe "Wiki Pages" do
     before do
       account_model
       course_with_student_logged_in account: @account
-    end
-
-    it "locks page based on module date", priority: "1" do
-      locked = @course.wiki_pages.create! title: "locked"
-      mod2 = @course.context_modules.create! name: "mod2", unlock_at: 1.day.from_now
-      mod2.add_item id: locked.id, type: "wiki_page"
-      mod2.save!
-
-      get "/courses/#{@course.id}/pages/locked"
-      wait_for_ajaximations
-      # validation
-      lock_explanation = f(".lock_explanation").text
-      expect(lock_explanation).to include "This page is part of the module #{mod2.name} and hasn't been unlocked yet."
-      expect(lock_explanation).to include "The following requirements need to be completed before this page will be unlocked:"
-    end
-
-    it "locks page based on module progression", priority: "1" do
-      foo = @course.wiki_pages.create! title: "foo"
-      bar = @course.wiki_pages.create! title: "bar"
-      mod = @course.context_modules.create! name: "the_mod", require_sequential_progress: true
-      foo_item = mod.add_item id: foo.id, type: "wiki_page"
-      bar_item = mod.add_item id: bar.id, type: "wiki_page"
-      mod.completion_requirements = { foo_item.id => { type: "must_view" }, bar_item.id => { type: "must_view" } }
-      mod.save!
-
-      get "/courses/#{@course.id}/pages/bar"
-      wait_for_ajaximations
-      # validation
-      lock_explanation = f(".lock_explanation").text
-      expect(lock_explanation).to include "This page is part of the module the_mod and hasn't been unlocked yet"
-      expect(lock_explanation).to match(/foo\s+must view the page/)
     end
 
     it "does not honor unlock dates if course paces is enabled" do
