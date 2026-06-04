@@ -310,9 +310,14 @@ module StudyAssist
         question = item[:question] || item["question"]
         options = item[:options] || item["options"]
         result = item[:result] || item["result"]
-        raise CedarUnavailable, "Quiz item malformed" if question.blank? || options.blank? || result.nil?
+        correct = result.to_i
+        if question.blank? || options.blank? || result.nil? || !correct.between?(0, options.length - 1)
+          raise CedarUnavailable, "Quiz item malformed"
+        end
 
-        { question:, answers: options, correctAnswerIndex: result.to_i }
+        order = (0...options.length).to_a.shuffle
+        answers = order.map { |i| options[i] }
+        { question:, answers:, correctAnswerIndex: order.index(correct) }
       end
 
       { quizItems: quiz_items }

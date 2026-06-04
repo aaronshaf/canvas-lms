@@ -222,11 +222,10 @@ describe StudyAssist::Service do
 
     it "returns parsed quiz items mapping Journey shape to Canvas shape" do
       result = call_service(prompt: "Quiz me")
-      expect(result[:quizItems].first).to include(
-        question: "Q1",
-        answers: %w[a b c d],
-        correctAnswerIndex: 2
-      )
+      item = result[:quizItems].first
+      expect(item[:question]).to eq("Q1")
+      expect(item[:answers]).to match_array(%w[a b c d])
+      expect(item[:answers][item[:correctAnswerIndex]]).to eq("c")
     end
 
     it "raises ToolDisabled when the per-tool flag is off" do
@@ -254,13 +253,35 @@ describe StudyAssist::Service do
     it "extracts the JSON array even when surrounded by prose" do
       wrapped = "Here you go: #{[{ question: "Q1", options: %w[a b c d], result: 0 }].to_json} hope that helps!"
       stub_cedar(wrapped)
-      expect(call_service(prompt: "Quiz me")[:quizItems].first[:correctAnswerIndex]).to eq(0)
+      item = call_service(prompt: "Quiz me")[:quizItems].first
+      expect(item[:answers][item[:correctAnswerIndex]]).to eq("a")
     end
 
     it "limits to 10 quiz items even if Cedar returns more" do
       many = Array.new(20) { |i| { question: "Q#{i}", options: %w[a b c d], result: 0 } }
       stub_cedar(many.to_json)
       expect(call_service(prompt: "Quiz me")[:quizItems].size).to eq(10)
+    end
+
+    it "shuffles clustered correct answers while keeping the text aligned" do
+      items = Array.new(10) { |i| { question: "Q#{i}", options: %w[correct wrong1 wrong2 wrong3], result: 0 } }
+      stub_cedar(items.to_json)
+      srand(12_345)
+
+      quiz_items = call_service(prompt: "Quiz me")[:quizItems]
+
+      expect(quiz_items.pluck(:correctAnswerIndex).uniq.size).to be > 1
+      quiz_items.each do |item|
+        expect(item[:answers]).to match_array(%w[correct wrong1 wrong2 wrong3])
+        expect(item[:answers][item[:correctAnswerIndex]]).to eq("correct")
+      end
+    ensure
+      srand
+    end
+
+    it "raises CedarUnavailable when result is out of range" do
+      stub_cedar([{ question: "Q", options: %w[a b c d], result: 9 }].to_json)
+      expect { call_service(prompt: "Quiz me") }.to raise_error(StudyAssist::CedarUnavailable)
     end
   end
 
