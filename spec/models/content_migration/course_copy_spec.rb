@@ -151,6 +151,32 @@ describe ContentMigration do
       end
     end
 
+    context "attachment associations" do
+      it "creates attachment associations for files with attachment associations in the original course" do
+        user_file = attachment_model(context: @teacher, display_name: "img.png")
+        @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @teacher)
+          <p><img src="/users/#{@teacher.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}" controls="controls"></p>
+        HTML
+
+        run_course_copy
+
+        copy_to_file = @copy_to.attachments.find_by(migration_id: mig_id(user_file))
+        expect(@copy_to.attachment_associations.pluck(:attachment_id)).to match_array [copy_to_file.id]
+      end
+
+      it "doesn't create attachment associations for files without attachment associations in the original course" do
+        user = User.create!(name: "Test User")
+        user_file = attachment_model(context: user, display_name: "img.png")
+        @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @teacher)
+          <p><img src="/users/#{user.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}" controls="controls"></p>
+        HTML
+
+        run_course_copy
+
+        expect(@copy_to.attachment_associations).to be_empty
+      end
+    end
+
     it "migrates syllabus links on copy" do
       course_model
 
