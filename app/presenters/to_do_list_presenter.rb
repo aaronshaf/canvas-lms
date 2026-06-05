@@ -271,7 +271,7 @@ class ToDoListPresenter
     end
 
     def required_replies
-      assignment.parent_assignment.discussion_topic.reply_to_entry_required_count
+      assignment.parent_assignment&.discussion_topic&.reply_to_entry_required_count || 0
     end
   end
 

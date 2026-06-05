@@ -129,6 +129,26 @@ describe "ToDoListPresenter" do
         expect(presenter.needs_grading.map(&:title)).to include(@reply_to_topic.title)
       end
     end
+
+    context "when an orphaned checkpoint sub-assignment reaches the to-do list" do
+      before do
+        sub_account = Account.default.sub_accounts.create!
+        course1.account = sub_account
+        course1.save!
+        course1.account.enable_feature!(:discussion_checkpoints)
+        _reply_to_topic, @reply_to_entry = graded_discussion_topic_with_checkpoints(context: course1)
+        @reply_to_entry.submit_homework student, body: "reply to entry submission"
+        @reply_to_entry.parent_assignment.discussion_topic.update_column(:assignment_id, nil)
+      end
+
+      it "returns 0 required replies instead of raising NoMethodError on the nil topic" do
+        presenter = ToDoListPresenter.new(nil, grader, nil)
+        orphaned_sub = presenter.needs_grading.find(&:sub_assignment?)
+
+        expect(orphaned_sub).not_to be_nil
+        expect(orphaned_sub.required_replies).to eq 0
+      end
+    end
   end
 
   context "assignments that need submitting" do
