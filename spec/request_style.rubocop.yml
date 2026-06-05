@@ -90,16 +90,6 @@ RSpecRails/MinitestAssertions:
   Enabled: true
   AutoCorrect: true
 
-# Pushes `expect(course.reload).to be_available` toward
-# `expect(course.reload.workflow_state).to eq("available")` — when the
-# assertion fails, the message shows the actual value that differed instead
-# of just true/false. `EnforcedStyle: explicit` enforces that direction;
-# the default `inflected` would push the opposite way.
-RSpec/PredicateMatcher:
-  Enabled: true
-  EnforcedStyle: explicit
-  AutoCorrect: true
-
 # Bans `@ivar`s in specs. Instance variables in test code are usually a
 # symptom of state set up in a `before` and mutated across examples — the
 # canonical source of `--order random` flake where the symptom (stale value)
