@@ -18,25 +18,25 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require_relative '../../support/request_helper'
+require_relative "../../support/request_helper"
 
-describe 'Quizzes::QuizzesController#show with take=1' do
-  describe 'GET /courses/:course_id/quizzes/:quiz_id/take' do
-    it 'does not render the take_quiz_link element for a teacher' do
+describe "Quizzes::QuizzesController#show with take=1" do
+  describe "GET /courses/:course_id/quizzes/:quiz_id/take" do
+    it "does not render the take_quiz_link element for a teacher" do
       # Arrange
       course_with_teacher(active_all: true)
       course_with_student(course: @course, active_all: true)
-      quiz = @course.quizzes.create!(title: 'Teacher cannot take', time_limit: 5)
+      quiz = @course.quizzes.create!(title: "Teacher cannot take", time_limit: 5)
       quiz.quiz_questions.create!(question_data: multiple_choice_question_data)
       quiz.generate_quiz_data
-      quiz.workflow_state = 'available'
+      quiz.workflow_state = "available"
       quiz.published_at = Time.zone.now
       quiz.save!
 
       # The brandable_css handlebars index isn't built in this worktree;
       # stub it out so the full HTML view can render. We only care about the
       # take_quiz_link absence, not the css/js asset pipeline.
-      allow(BrandableCSS).to receive(:handlebars_index_json).and_return('{}'.html_safe)
+      allow(BrandableCSS).to receive(:handlebars_index_json).and_return("{}".html_safe)
 
       user_session(@teacher)
 

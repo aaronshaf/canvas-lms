@@ -18,13 +18,13 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'FilesController' do
+describe "FilesController" do
   # ---------------------------------------------------------------------------
   # Files index renders for enrolled student
   # Covers: spec/selenium/dashcards_spec.rb:99
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/files' do
-    it 'renders the files index page for an enrolled student' do
+  describe "GET /courses/:course_id/files" do
+    it "renders the files index page for an enrolled student" do
       # Arrange
       course = course_factory(active_all: true)
       student = student_in_course(active_all: true, course:).user
@@ -32,8 +32,8 @@ describe 'FilesController' do
       attachment_model(
         context: course,
         folder:,
-        filename: 'course_doc.txt',
-        content_type: 'text/plain'
+        filename: "course_doc.txt",
+        content_type: "text/plain"
       )
       user_session(student)
 
@@ -43,8 +43,8 @@ describe 'FilesController' do
       # Assert
       expect(response).to have_http_status(:ok)
       js_env = js_env_from_response(response)
-      contexts = js_env['FILES_CONTEXTS'] || []
-      expect(contexts.first['name']).to eq(course.name)
+      contexts = js_env["FILES_CONTEXTS"] || []
+      expect(contexts.first["name"]).to eq(course.name)
     end
   end
 end

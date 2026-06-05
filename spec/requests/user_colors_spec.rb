@@ -18,13 +18,13 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'UsersController' do
+describe "UsersController" do
   # ---------------------------------------------------------------------------
   # PATCH user color API updates hex color for a course calendar asset
   # Covers: spec/selenium/dashcards_spec.rb:220
   # ---------------------------------------------------------------------------
-  describe 'PUT /api/v1/users/:id/colors/:asset_string' do
-    it 'updates the course calendar color to the provided hex value for the user' do
+  describe "PUT /api/v1/users/:id/colors/:asset_string" do
+    it "updates the course calendar color to the provided hex value for the user" do
       # Arrange
       course1 = course_factory(active_all: true)
       student = student_in_course(active_all: true, course: course1).user
@@ -33,13 +33,13 @@ describe 'UsersController' do
 
       # Act
       put "/api/v1/users/#{student.id}/colors/#{asset_string}",
-          params: { hexcode: '#0B9BE3' }
+          params: { hexcode: "#0B9BE3" }
 
       # Assert
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
-      expect(json['hexcode']).to eq('#0B9BE3')
-      expect(student.reload.custom_colors[asset_string]).to eq('#0B9BE3')
+      expect(json["hexcode"]).to eq("#0B9BE3")
+      expect(student.reload.custom_colors[asset_string]).to eq("#0B9BE3")
     end
   end
 end

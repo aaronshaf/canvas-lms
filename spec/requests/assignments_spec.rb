@@ -18,22 +18,22 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'AssignmentsController' do
+describe "AssignmentsController" do
   # ---------------------------------------------------------------------------
   # Moderation page pagination
   # Covers: spec/selenium/grades/moderation/moderate_page_large_students_spec.rb:91
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/assignments/:assignment_id/moderate' do
-    it 'returns :ok and renders the moderate page for the final grader' do
+  describe "GET /courses/:course_id/assignments/:assignment_id/moderate" do
+    it "returns :ok and renders the moderate page for the final grader" do
       # Arrange
       course = course_factory(active_all: true)
       final_grader = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Moderated Assignment',
+        title: "Moderated Assignment",
         grader_count: 2,
         final_grader_id: final_grader.id,
-        submission_types: 'online_text_entry',
-        grading_type: 'points',
+        submission_types: "online_text_entry",
+        grading_type: "points",
         points_possible: 10,
         moderated_grading: true
       )
@@ -53,22 +53,22 @@ describe 'AssignmentsController' do
   # The moderate-page React app calls this API with per_page=20; the first page
   # must return exactly 20 records when 25 students are enrolled.
   # ---------------------------------------------------------------------------
-  describe 'GET /api/v1/courses/:course_id/assignments/:assignment_id/gradeable_students' do
-    it 'returns 20 students on the first page when 25 are enrolled' do
+  describe "GET /api/v1/courses/:course_id/assignments/:assignment_id/gradeable_students" do
+    it "returns 20 students on the first page when 25 are enrolled" do
       # Arrange
       course = course_factory(active_all: true)
       final_grader = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Moderated Assignment',
+        title: "Moderated Assignment",
         grader_count: 3,
         final_grader_id: final_grader.id,
-        submission_types: 'online_text_entry',
-        grading_type: 'points',
+        submission_types: "online_text_entry",
+        grading_type: "points",
         points_possible: 10,
         moderated_grading: true
       )
-      students = create_users_in_course(course, 25, return_type: :record, enrollment_type: 'StudentEnrollment')
-      students.each { |s| assignment.submit_homework(s, body: 'submitted') }
+      students = create_users_in_course(course, 25, return_type: :record, enrollment_type: "StudentEnrollment")
+      students.each { |s| assignment.submit_homework(s, body: "submitted") }
       user_session(final_grader)
 
       # Act
@@ -79,25 +79,25 @@ describe 'AssignmentsController' do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json.length).to eq(20)
-      response_ids = json.pluck('id').map(&:to_i)
+      response_ids = json.pluck("id").map(&:to_i)
       expect(students.map(&:id)).to include(*response_ids)
     end
 
-    it 'returns the remaining 5 students on page 2 when 25 are enrolled' do
+    it "returns the remaining 5 students on page 2 when 25 are enrolled" do
       # Arrange
       course = course_factory(active_all: true)
       final_grader = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Moderated Assignment',
+        title: "Moderated Assignment",
         grader_count: 3,
         final_grader_id: final_grader.id,
-        submission_types: 'online_text_entry',
-        grading_type: 'points',
+        submission_types: "online_text_entry",
+        grading_type: "points",
         points_possible: 10,
         moderated_grading: true
       )
-      students = create_users_in_course(course, 25, return_type: :record, enrollment_type: 'StudentEnrollment')
-      students.each { |s| assignment.submit_homework(s, body: 'submitted') }
+      students = create_users_in_course(course, 25, return_type: :record, enrollment_type: "StudentEnrollment")
+      students.each { |s| assignment.submit_homework(s, body: "submitted") }
       user_session(final_grader)
 
       # Act
@@ -108,7 +108,7 @@ describe 'AssignmentsController' do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json.length).to eq(5)
-      response_ids = json.pluck('id').map(&:to_i)
+      response_ids = json.pluck("id").map(&:to_i)
       expect(students.map(&:id)).to include(*response_ids)
     end
   end
@@ -122,28 +122,28 @@ describe 'AssignmentsController' do
   # selected_provisional_grade_id on each affected selection must point to the
   # accepted grader's provisional grade.
   # ---------------------------------------------------------------------------
-  describe 'PUT /api/v1/courses/:course_id/assignments/:assignment_id/provisional_grades/bulk_select' do
+  describe "PUT /api/v1/courses/:course_id/assignments/:assignment_id/provisional_grades/bulk_select" do
     it "selects each student's provisional grade for the accepted grader" do
       # Arrange
       course = course_factory(active_all: true)
       final_grader = teacher_in_course(active_all: true, course:).user
       provisional_grader = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Moderated Assignment',
+        title: "Moderated Assignment",
         grader_count: 3,
         final_grader_id: final_grader.id,
-        submission_types: 'online_text_entry',
-        grading_type: 'points',
+        submission_types: "online_text_entry",
+        grading_type: "points",
         points_possible: 10,
         moderated_grading: true
       )
-      students = create_users_in_course(course, 7, return_type: :record, enrollment_type: 'StudentEnrollment')
+      students = create_users_in_course(course, 7, return_type: :record, enrollment_type: "StudentEnrollment")
 
       # Create moderation selections (required before bulk_select)
       students.each { |s| assignment.moderated_grading_selections.find_or_create_by!(student: s) }
 
       provisional_grades = students.map do |student|
-        graded = assignment.grade_student(student, grade: '8', grader: provisional_grader, provisional: true)
+        graded = assignment.grade_student(student, grade: "8", grader: provisional_grader, provisional: true)
         graded.first.provisional_grade(provisional_grader)
       end
 
@@ -157,7 +157,7 @@ describe 'AssignmentsController' do
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json.length).to eq(7)
-      accepted_ids = json.pluck('selected_provisional_grade_id')
+      accepted_ids = json.pluck("selected_provisional_grade_id")
       expect(accepted_ids).to match_array(provisional_grades.map(&:id))
     end
 
@@ -167,21 +167,21 @@ describe 'AssignmentsController' do
       final_grader = teacher_in_course(active_all: true, course:).user
       provisional_grader = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Moderated Assignment',
+        title: "Moderated Assignment",
         grader_count: 3,
         final_grader_id: final_grader.id,
-        submission_types: 'online_text_entry',
-        grading_type: 'points',
+        submission_types: "online_text_entry",
+        grading_type: "points",
         points_possible: 10,
         moderated_grading: true
       )
-      students = create_users_in_course(course, 3, return_type: :record, enrollment_type: 'StudentEnrollment')
+      students = create_users_in_course(course, 3, return_type: :record, enrollment_type: "StudentEnrollment")
 
       # Create moderation selections (required before bulk_select)
       students.each { |s| assignment.moderated_grading_selections.find_or_create_by!(student: s) }
 
       provisional_grades = students.map do |student|
-        graded = assignment.grade_student(student, grade: '7', grader: provisional_grader, provisional: true)
+        graded = assignment.grade_student(student, grade: "7", grader: provisional_grader, provisional: true)
         graded.first.provisional_grade(provisional_grader)
       end
 
@@ -203,12 +203,12 @@ describe 'AssignmentsController' do
   # Assignment index renders for enrolled student
   # Covers: spec/selenium/dashcards_spec.rb:81
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/assignments' do
-    it 'renders the assignments index page for an enrolled student' do
+  describe "GET /courses/:course_id/assignments" do
+    it "renders the assignments index page for an enrolled student" do
       # Arrange
       course = course_factory(active_all: true)
       student = student_in_course(active_all: true, course:).user
-      course.assignments.create!(title: 'Homework 1', points_possible: 10)
+      course.assignments.create!(title: "Homework 1", points_possible: 10)
       user_session(student)
 
       # Act
@@ -217,7 +217,7 @@ describe 'AssignmentsController' do
       # Assert
       expect(response).to have_http_status(:ok)
       js_env = js_env_from_response(response)
-      expect(js_env['HAS_ASSIGNMENTS']).to be(true)
+      expect(js_env["HAS_ASSIGNMENTS"]).to be(true)
     end
   end
 
@@ -225,14 +225,14 @@ describe 'AssignmentsController' do
   # Assignment show renders for enrolled student navigating via module
   # Covers: spec/selenium/k5_course_dashboard_student_spec.rb:135
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/assignments/:id' do
-    it 'renders the assignment show page with the assignment title' do
+  describe "GET /courses/:course_id/assignments/:id" do
+    it "renders the assignment show page with the assignment title" do
       # Arrange
       course = course_factory(active_all: true)
       student = student_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Module Task Assignment',
-        submission_types: 'online_text_entry',
+        title: "Module Task Assignment",
+        submission_types: "online_text_entry",
         points_possible: 10
       )
       user_session(student)
@@ -242,7 +242,7 @@ describe 'AssignmentsController' do
 
       # Assert
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Module Task Assignment')
+      expect(response.body).to include("Module Task Assignment")
     end
   end
 
@@ -250,14 +250,14 @@ describe 'AssignmentsController' do
   # Assignment edit renders for teacher navigating via module
   # Covers: spec/selenium/k5_course_dashboard_teacher_spec.rb:154
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/assignments/:id/edit' do
-    it 'renders the assignment edit page for a teacher' do
+  describe "GET /courses/:course_id/assignments/:id/edit" do
+    it "renders the assignment edit page for a teacher" do
       # Arrange
       course = course_factory(active_all: true)
       teacher = teacher_in_course(active_all: true, course:).user
       assignment = course.assignments.create!(
-        title: 'Editable Module Task',
-        submission_types: 'online_text_entry',
+        title: "Editable Module Task",
+        submission_types: "online_text_entry",
         points_possible: 10
       )
       user_session(teacher)
@@ -268,7 +268,7 @@ describe 'AssignmentsController' do
       # Assert
       expect(response).to have_http_status(:ok)
       js_env = js_env_from_response(response)
-      expect(js_env.dig('ASSIGNMENT', 'id')).to eq(assignment.id.to_s)
+      expect(js_env.dig("ASSIGNMENT", "id")).to eq(assignment.id.to_s)
     end
   end
 end

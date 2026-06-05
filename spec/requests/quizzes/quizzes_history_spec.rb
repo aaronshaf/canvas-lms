@@ -18,11 +18,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require_relative '../../support/request_helper'
+require_relative "../../support/request_helper"
 
-describe 'Quiz History GET /courses/:course_id/quizzes/:quiz_id/history' do
-  describe 'observer viewing a non-final attempt when show_correct_answers_last_attempt is enabled' do
-    it 'does not authorize displaying correct answers for the observer on a non-final attempt' do
+describe "Quiz History GET /courses/:course_id/quizzes/:quiz_id/history" do
+  describe "observer viewing a non-final attempt when show_correct_answers_last_attempt is enabled" do
+    it "does not authorize displaying correct answers for the observer on a non-final attempt" do
       # Arrange
       course_with_student(active_all: true)
       course_with_observer(active_all: true, course: @course)
@@ -50,7 +50,7 @@ describe 'Quiz History GET /courses/:course_id/quizzes/:quiz_id/history' do
 
       # Stub the brandable_css handlebars index so the view layout can render
       # without requiring a `yarn run build:css` artifact on disk.
-      allow(BrandableCSS).to receive(:handlebars_index_json).and_return('{}'.html_safe)
+      allow(BrandableCSS).to receive(:handlebars_index_json).and_return("{}".html_safe)
 
       # Act: observer requests the history page using user_id (observer view path).
       get "/courses/#{@course.id}/quizzes/#{@quiz.id}/history",

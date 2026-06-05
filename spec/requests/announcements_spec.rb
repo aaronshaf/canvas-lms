@@ -18,20 +18,20 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'AnnouncementsController' do
+describe "AnnouncementsController" do
   # ---------------------------------------------------------------------------
   # Announcements index renders for enrolled student
   # Covers: spec/selenium/dashcards_spec.rb:72
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:course_id/announcements' do
-    it 'renders the announcements index page for an enrolled student' do
+  describe "GET /courses/:course_id/announcements" do
+    it "renders the announcements index page for an enrolled student" do
       # Arrange
       course = course_factory(active_all: true)
       teacher = teacher_in_course(active_all: true, course:).user
       student = student_in_course(active_all: true, course:).user
       course.announcements.create!(
-        title: 'Welcome Announcement',
-        message: 'Hello class',
+        title: "Welcome Announcement",
+        message: "Hello class",
         user: teacher
       )
       user_session(student)
@@ -42,7 +42,7 @@ describe 'AnnouncementsController' do
       # Assert
       expect(response).to have_http_status(:ok)
       js_env = js_env_from_response(response)
-      expect(js_env['is_showing_announcements']).to be(true)
+      expect(js_env["is_showing_announcements"]).to be(true)
     end
   end
 end
