@@ -75,7 +75,7 @@ Request specs don't expose the controller instance, so these controller-spec idi
 3. Add `type: :request` to the top-level `describe`.
 4. Rewrite each verb call. Keep the `params:` hash for anything that isn't part of the path; move path segments into the URL string.
 5. Address the non-translating idioms listed above. If a test relies on something request specs can't observe, surface it to the user rather than silently weakening the assertion.
-6. Run the linter, then iterate on remaining offenses (up to **2 fix attempts**). The cops enforce the static subset of the request-test rules and are configured in `spec/request_style.rubocop.yml`, inherited by `spec/controllers/.rubocop.yml`; each cop's comment in that file ties back to the goal: *reliable tests that are easy to understand when they fail.*
+6. Run the linter, then iterate on remaining offenses (up to **2 fix attempts**). The cops tie back to the goal: *reliable tests that are easy to understand when they fail.*
    ```bash
    docker exec canvas-web bin/rubocop -a <path>
    # or: docker compose run --rm web bin/rubocop -a <path>

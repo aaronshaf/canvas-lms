@@ -219,7 +219,7 @@ Canvas engineers develop in Docker. **Refuse to declare a test green if you cann
 
 ### Lint
 
-The cops enforce the static subset of the request-test rules. They're configured in `spec/request_style.rubocop.yml` (inherited by `spec/requests/.rubocop.yml`); each cop's comment in that file ties back to the goal: *reliable tests that are easy to understand when they fail.*
+Run the linter, then iterate on remaining offenses (up to **2 fix attempts**). The cops tie back to the goal: *reliable tests that are easy to understand when they fail.*
 
 Run safe autocorrect:
 

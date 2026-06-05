@@ -1,8 +1,0 @@
-# Inherits the shared request-test-style cop config. See that file for the
-# goal, the per-cop rationale, and a pointer to the full request-test rules.
-#
-# Controller specs are being progressively converted to request specs (via
-# the `:request` tag and eventual relocation to spec/requests/). Enforcing
-# the same discipline here keeps newly-converted specs honest and surfaces
-# legacy patterns that should be cleaned up during conversion.
-inherit_from: ../request_style.rubocop.yml

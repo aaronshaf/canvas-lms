@@ -1,3 +1,0 @@
-# Inherits the shared request-test-style cop config. See that file for the
-# goal, the per-cop rationale, and a pointer to the full request-test rules.
-inherit_from: ../request_style.rubocop.yml
