@@ -48,7 +48,7 @@
   **Are you %{name}?**",
                    email: @communication_channel.path,
                    name: friendly_name(@merge_opportunities.first.last.first, @merge_opportunities) %>
-          <% end %></p>
+          <% end %>
         </div>
         <div class="button_box ic-Login-confirmation__actions">
           <% if @pseudonym %><a href="#" class="btn" id="register"><%= t "buttons.no", "No" %></a><% end %>
