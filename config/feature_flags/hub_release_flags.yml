@@ -1,0 +1,8 @@
+hub_intro_widget:
+  state: 'hidden'
+  display_name: Hub Introduction Widget
+  description: Adds a hub introduction widget to the dashboard
+  applies_to: RootAccount
+  environments:
+    development:
+      state: allowed_on
