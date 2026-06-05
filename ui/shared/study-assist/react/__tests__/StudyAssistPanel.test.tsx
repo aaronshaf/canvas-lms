@@ -108,6 +108,17 @@ describe('StudyAssistPanel', () => {
     expect(screen.getByText('Study tools')).toBeInTheDocument()
   })
 
+  it('exposes the IgniteAI logo to screen readers with an accessible name', () => {
+    render(
+      <StudyAssistPanel
+        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+    expect(screen.getByRole('img', {name: 'IgniteAI'})).toBeInTheDocument()
+  })
+
   it('calls onDismiss when close button is clicked', async () => {
     const user = userEvent.setup()
     render(

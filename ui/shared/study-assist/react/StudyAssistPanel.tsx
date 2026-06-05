@@ -76,7 +76,9 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
             </Flex.Item>
           )}
           <Flex.Item>
-            <IconAiSolid />
+            <View as="span" role="img" aria-label={t('IgniteAI')}>
+              <IconAiSolid />
+            </View>
           </Flex.Item>
           <Flex.Item>
             <Heading themeOverride={{primaryColor: 'white'}}>{t('Study tools')}</Heading>
