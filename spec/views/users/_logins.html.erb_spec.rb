@@ -117,6 +117,8 @@ describe "users/_logins" do
     end
 
     it "does not display when user lacks permission to reset MFA" do
+      account.settings[:mfa_settings] = :optional
+      account.save!
       pseudonym(sally, account:)
       sally.otp_secret_key = "secret"
 
@@ -126,6 +128,29 @@ describe "users/_logins" do
       assign(:user, sally)
       render
       expect(response).not_to have_tag("a.reset_mfa_link")
+    end
+
+    context "when the admin can reset MFA but cannot manage the user" do
+      before do
+        bob.otp_secret_key = "secret"
+        assign(:domain_root_account, account)
+        assign(:current_user, sally)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
+        assign(:user, bob)
+        allow(view).to receive(:can_do).and_call_original
+        allow(view).to receive(:can_do).with(bob, anything, :manage, :manage_user_details).and_return(false)
+        allow(view).to receive(:can_do).with(bob, anything, :reset_mfa).and_return(true)
+        render
+      end
+
+      it "surfaces the reset MFA link" do
+        expect(response).to have_tag("a.reset_mfa_link")
+      end
+
+      it "does not expose the login management table" do
+        expect(response).not_to have_tag("table.ic-Table")
+        expect(response).not_to have_tag("a.add_pseudonym_link")
+      end
     end
   end
 

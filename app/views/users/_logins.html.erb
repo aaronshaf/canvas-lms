@@ -18,6 +18,7 @@
 
 <% extension_exclusions = %i[crypted_password password_salt persistence_token single_access_token single_access_token perishable_token reset_password_token].freeze %>
 
+<% can_reset_mfa = @user.otp_secret_key && can_do(@user, current_principal, :reset_mfa) %>
 <% if can_do(@user, current_principal, :manage, :manage_user_details) %>
   <% css_bundle :user_logins %>
   <% js_bundle :user_logins %>
@@ -107,7 +108,6 @@
       <% end %>
       <% new_pseudonym = @user.pseudonyms.build(account: @domain_root_account) %>
       <% can_add_pseudonym = can_do(new_pseudonym, current_principal, :create) %>
-      <% can_reset_mfa = @user.otp_secret_key && can_do(@user, current_principal, :reset_mfa) %>
       <% if can_add_pseudonym || can_reset_mfa %>
         <tr class="add_holder">
           <td colspan="5">
@@ -124,5 +124,16 @@
       <% end %>
     </table>
     <div class='inst-extension-login-information' data-extension-details="<%= pseudonyms&.to_json(except: extension_exclusions) %>"></div>
+  </fieldset>
+<% elsif can_reset_mfa %>
+  <% css_bundle :user_logins %>
+  <% js_bundle :user_logins %>
+  <fieldset id="login_information" class="responsive">
+    <legend>
+      <h4 class="profileHeader">
+        <%= t("titles.logins", "Login Information") %>
+      </h4>
+    </legend>
+    <a href="<%= disable_mfa_path(@user) %>" class="reset_mfa_link"><%= t("reset_mfa", "Reset Multi-Factor Authentication") %></a>
   </fieldset>
 <% end %>
