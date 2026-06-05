@@ -19,15 +19,17 @@
 #
 
 class Loaders::MentionableUserLoader < GraphQL::Batch::Loader
-  def initialize(current_user:, search_term: nil)
+  attr_reader :current_principal
+
+  def initialize(current_principal:, search_term: nil)
     super()
-    @curent_user = current_user
+    @current_principal = current_principal
     @search_term = search_term
   end
 
   def perform(objects)
     objects.each do |object|
-      calculator = ::MessageableUser::Calculator.new(@curent_user)
+      calculator = ::MessageableUser::Calculator.new(current_principal)
       fulfill(object, calculator.search_in_context_scope(context: object, search: @search_term, show_teachers: true))
     end
   end

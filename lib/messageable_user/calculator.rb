@@ -23,11 +23,13 @@ class MessageableUser
     CONTEXT_RECIPIENT = /\A(course|section|group|differentiation_tag|discussion_topic)_(\d+)(?:_([a-z_]+))?\z/
     INDIVIDUAL_RECIPIENT = /\A\d+\z/
 
+    attr_reader :principal
+
     # all work is done within the context of a user. avoid passing it around in
     # every single method call by being an object instead of just a collection
     # of class methods
-    def initialize(user)
-      @user = user
+    def initialize(principal)
+      @principal = principal
     end
 
     # Takes a list of Users (or ids, or MessageableUsers) and:
@@ -77,7 +79,7 @@ class MessageableUser
 
       # what common courses and groups do they have, if any. if they had some,
       # they're definitely messageable
-      other_users = users.reject { |u| u.id == @user.id }
+      other_users = users.reject { |u| u.id == principal.user.id }
       if other_users.present?
         load_common_courses_with_users(other_users, include_course_id, strict_checks:)
         load_common_groups_with_users(other_users, include_group_id, strict_checks:)
@@ -89,12 +91,12 @@ class MessageableUser
         questionable = users.select do |user|
           user.common_courses.blank? &&
             user.common_groups.blank? &&
-            user.id != @user.id
+            user.id != principal.user.id
         end
 
         if questionable.present? && options[:conversation_id].present?
-          participants = participants_in_conversation([@user, *questionable], options[:conversation_id].to_i)
-          if participants.detect { |user| user == @user }
+          participants = participants_in_conversation([principal.user, *questionable], options[:conversation_id].to_i)
+          if participants.detect { |user| user == principal.user }
             questionable -= participants
           end
         end
@@ -203,7 +205,7 @@ class MessageableUser
           collections << ["self", bookmark(scope)]
         end
 
-        Shard.with_each_shard(@user.associated_shards) do
+        Shard.with_each_shard(principal.user.associated_shards) do
           if all_courses.present?
             scope = visible_enrollment_scope(options)
             scope = search_scope(scope, options[:search], global_exclude_ids)
@@ -286,7 +288,7 @@ class MessageableUser
 
       # with messageability constraints, do I see any of the users in any of my visible
       # courses, and if so with which enrollment type(s)?
-      Shard.with_each_shard(@user.associated_shards) do
+      Shard.with_each_shard(principal.user.associated_shards) do
         if all_courses.present?
           reverse_lookup = users.index_by(&:id)
           user_ids = reverse_lookup.keys
@@ -313,7 +315,7 @@ class MessageableUser
 
       # do I see the user in any of the accounts I admin, and if so with what
       # primary enrollment type?
-      Shard.with_each_shard(@user.associated_shards) do
+      Shard.with_each_shard(principal.user.associated_shards) do
         if visible_account_ids.present?
           reverse_lookup = users.index_by(&:id)
           user_ids = reverse_lookup.keys
@@ -339,7 +341,7 @@ class MessageableUser
 
       # with messageability constraints, do I see the user in any of my visible
       # groups?
-      Shard.with_each_shard(@user.associated_shards) do
+      Shard.with_each_shard(principal.user.associated_shards) do
         if fully_visible_group_ids.present?
           reverse_lookup = users.index_by(&:id)
           user_ids = reverse_lookup.keys
@@ -433,7 +435,7 @@ class MessageableUser
         # make sure the course is recognized
         return unless options[:admin_context] || (course = course_index[course.id])
 
-        scope = if (options[:admin_context] || course.user_is_instructor?(@user)) || !course.available?
+        scope = if (options[:admin_context] || course.user_is_instructor?(principal.user)) || !course.available?
                   enrollment_scope(options.merge(
                                      include_concluded_students: false,
                                      course_workflow_state: course.workflow_state
@@ -511,7 +513,7 @@ class MessageableUser
       group.shard.activate do
         if options[:admin_context] || fully_visible_group_ids.include?(group.id)
           # bail early if user doesn't have permission to message group members
-          return if group&.context.is_a?(Course) && !group.grants_right?(@user, nil, :send_messages)
+          return if group&.context.is_a?(Course) && !group.grants_right?(principal, nil, :send_messages)
 
           scope = group_user_scope.where("group_memberships.group_id" => group.id)
                                   .merge(active_users_in_group_context.except(:joins))
@@ -555,7 +557,7 @@ class MessageableUser
       return unless discussion_or_id
 
       discussion = discussion_or_id.is_a?(DiscussionTopic) ? discussion_or_id : DiscussionTopic.where(id: discussion_or_id).first
-      context = discussion.address_book_context_for(@user)
+      context = discussion.address_book_context_for(principal.user)
 
       scope = case context
               when Course
@@ -581,7 +583,7 @@ class MessageableUser
 
       if search.present? && (parts = search.strip.split(/\s+/)).present?
         parts.each do |part|
-          scope = scope.where(@user.wildcard("users.name", "users.short_name", part))
+          scope = scope.where(principal.user.wildcard("users.name", "users.short_name", part))
         end
       end
 
@@ -710,7 +712,7 @@ class MessageableUser
       [
         "(course_id IN (?) AND (enrollments.type IN ('TeacherEnrollment','TaEnrollment') OR enrollments.user_id IN (?)))",
         courses.map(&:id),
-        [@user.id] + observed_student_ids_in_courses(courses)
+        [principal.user.id] + observed_student_ids_in_courses(courses)
       ]
     end
 
@@ -778,8 +780,8 @@ class MessageableUser
     end
 
     def self_scope(options = {})
-      @user.shard.activate do
-        base_scope(options).where("users.id" => @user)
+      principal.user.shard.activate do
+        base_scope(options).where("users.id" => principal.user)
       end
     end
 
@@ -796,7 +798,7 @@ class MessageableUser
     end
 
     def uncached_visible_section_ids_in_course(course)
-      course.section_visibilities_for(@user).pluck(:course_section_id)
+      course.section_visibilities_for(principal.user).pluck(:course_section_id)
     end
 
     def uncached_observed_student_ids
@@ -812,7 +814,7 @@ class MessageableUser
     # is acceptable, as this is specific to a course and the enrollments all
     # live on the same shard as the course
     def uncached_observed_student_ids_in_course(course)
-      course.section_visibilities_for(@user).filter_map { |s| s[:associated_user_id] }
+      course.section_visibilities_for(principal.user).filter_map { |s| s[:associated_user_id] }
     end
 
     def uncached_linked_observer_ids
@@ -820,20 +822,20 @@ class MessageableUser
       # translation magic. we *have* to use with_each_shard... but we're
       # already in a with_each_shard from shard_cached, so we can restrict it
       # to this shard
-      @user.observee_enrollments.shard(Shard.current).map(&:global_user_id)
+      principal.user.observee_enrollments.shard(Shard.current).map(&:global_user_id)
     end
 
     def uncached_visible_account_ids
       # ditto
-      @user.associated_accounts.shard(Shard.current)
-           .select { |account| account.grants_right?(@user, :read_roster) }
-           .map(&:id)
+      principal.user.associated_accounts.shard(Shard.current)
+               .select { |account| account.grants_right?(principal.user, :read_roster) }
+               .map(&:id)
     end
 
     def uncached_fully_visible_group_ids
       # ditto for current groups
       course_group_ids = uncached_group_ids_in_courses(recent_fully_visible_courses)
-      own_group_ids = @user.current_active_groups.shard(Shard.current).pluck(:id)
+      own_group_ids = principal.user.current_active_groups.shard(Shard.current).pluck(:id)
       (course_group_ids + own_group_ids).uniq
     end
 
@@ -852,7 +854,7 @@ class MessageableUser
 
       section_visible = CourseSection
                         .joins(:enrollments)
-                        .where(course_id: section_visible_courses, enrollments: { user_id: @user })
+                        .where(course_id: section_visible_courses, enrollments: { user_id: principal.user })
 
       (fully_visible + section_visible)
         .group_by(&:course_id).values
@@ -913,8 +915,8 @@ class MessageableUser
       @shard_caches[key] ||=
         begin
           by_shard = {}
-          Shard.with_each_shard(@user.in_region_associated_shards) do
-            shard_key = [@user, "messageable_user", key]
+          Shard.with_each_shard(principal.user.in_region_associated_shards) do
+            shard_key = [principal.user, "messageable_user", key]
             methods.each do |method|
               canonical = send(method).cache_key
               shard_key << method
@@ -927,7 +929,7 @@ class MessageableUser
     end
 
     def all_courses_by_shard
-      @all_courses_by_shard ||= Course.where(id: @user.participating_current_and_concluded_course_ids).to_a.group_by(&:shard)
+      @all_courses_by_shard ||= Course.where(id: principal.user.participating_current_and_concluded_course_ids).to_a.group_by(&:shard)
     end
 
     def visible_section_ids_by_shard
@@ -1013,7 +1015,7 @@ class MessageableUser
     def course_visibility(course)
       @course_visibilities ||= {}
       @course_visibilities[course.global_id] ||=
-        course.enrollment_visibility_level_for(@user, course.section_visibilities_for(@user), require_message_permission: true)
+        course.enrollment_visibility_level_for(principal.user, require_message_permission: true)
     end
 
     def all_courses_by_visibility(visibility)
@@ -1057,7 +1059,7 @@ class MessageableUser
     end
 
     def student_courses
-      @student_courses_by_shard ||= Course.where(id: @user.participating_student_current_and_concluded_course_ids).to_a.group_by(&:shard)
+      @student_courses_by_shard ||= Course.where(id: principal.user.participating_student_current_and_concluded_course_ids).to_a.group_by(&:shard)
       @student_courses_by_shard[Shard.current]
     end
 

@@ -3371,7 +3371,7 @@ class User < ApplicationRecord
   end
 
   def messageable_user_calculator
-    @messageable_user_calculator ||= MessageableUser::Calculator.new(self)
+    @messageable_user_calculator ||= MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(self))
   end
 
   delegate :load_messageable_user,

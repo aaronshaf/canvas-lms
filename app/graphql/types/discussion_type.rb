@@ -418,7 +418,7 @@ module Types
       return nil if object.anonymous?
 
       Loaders::MentionableUserLoader.for(
-        current_user:,
+        current_principal:,
         search_term:
       ).load(object)
     end

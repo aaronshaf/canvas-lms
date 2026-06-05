@@ -46,7 +46,7 @@ class DiscussionTopicUsersController < ApplicationController
       return render_unauthorized_action
     end
 
-    calculator = ::MessageableUser::Calculator.new(@current_user)
+    calculator = ::MessageableUser::Calculator.new(current_principal)
     users = calculator.search_messageable_users(context: @topic, search: params[:search])
     users = Api.paginate(users, self, messageable_user_pagination_url)
                .map { |user| conversation_user_json(user, current_principal, session) }
