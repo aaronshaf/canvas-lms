@@ -29,28 +29,28 @@ module UserSearch
       end
     end
 
-    def for_user_in_context(search_term, context, searcher, session = nil, options = {})
+    def for_user_in_context(search_term, context, principal, session = nil, options = {})
       search_term = search_term.to_s
       return User.none if search_term.strip.empty?
 
       SearchTermHelper.validate_search_term(search_term)
 
       @is_id = search_term =~ Api::ID_REGEX && Api::MAX_ID_RANGE.cover?(search_term.to_i)
-      @include_login       = context.grants_right?(searcher, session, :view_user_logins)
-      @include_email       = context.grants_right?(searcher, session, :read_email_addresses)
-      @include_sis         = context.grants_any_right?(searcher, session, :read_sis, :manage_sis)
+      @include_login       = context.grants_right?(principal, session, :view_user_logins)
+      @include_email       = context.grants_right?(principal, session, :read_email_addresses)
+      @include_sis         = context.grants_any_right?(principal, session, :read_sis, :manage_sis)
       @include_integration = @include_sis
       @include_deleted_users = options[:include_deleted_users]
 
       context.shard.activate do
-        users_scope = context_scope(context, searcher, options.slice(:enrollment_state, :include_inactive_enrollments, :section_ids))
-        users_scope = users_scope.from("(#{conditions_statement(search_term, context, users_scope, searcher)}) AS users")
+        users_scope = context_scope(context, principal, options.slice(:enrollment_state, :include_inactive_enrollments, :section_ids))
+        users_scope = users_scope.from("(#{conditions_statement(search_term, context, users_scope, principal)}) AS users")
         users_scope = order_scope(users_scope, context, options.slice(:order, :sort))
         users_scope = roles_scope(users_scope, context, options.slice(:enrollment_type,
                                                                       :enrollment_role,
                                                                       :enrollment_role_id,
                                                                       :exclude_groups))
-        differentiation_tag_scope(users_scope, context, searcher, options.slice(:differentiation_tag_id))
+        differentiation_tag_scope(users_scope, context, principal, options.slice(:differentiation_tag_id))
       end
     end
 
@@ -62,12 +62,12 @@ module UserSearch
       ActiveRecord::Base.like_condition(value, "lower(:pattern)")
     end
 
-    def scope_for(context, searcher, options = {})
+    def scope_for(context, principal, options = {})
       @include_deleted_users = options[:include_deleted_users]
-      users_scope = context_scope(context, searcher, options.slice(:enrollment_state,
-                                                                   :include_inactive_enrollments,
-                                                                   :enrollment_role_id,
-                                                                   :section_ids))
+      users_scope = context_scope(context, principal, options.slice(:enrollment_state,
+                                                                    :include_inactive_enrollments,
+                                                                    :enrollment_role_id,
+                                                                    :section_ids))
       users_scope = roles_scope(users_scope, context, options.slice(:enrollment_role,
                                                                     :enrollment_role_id,
                                                                     :enrollment_type,
@@ -76,10 +76,10 @@ module UserSearch
                                                                     :temporary_enrollment_providers))
       users_scope = order_scope(users_scope, context, options.slice(:order, :sort))
 
-      differentiation_tag_scope(users_scope, context, searcher, options.slice(:differentiation_tag_id))
+      differentiation_tag_scope(users_scope, context, principal, options.slice(:differentiation_tag_id))
     end
 
-    def context_scope(context, searcher, options = {})
+    def context_scope(context, principal, options = {})
       enrollment_states = Array(options[:enrollment_state]) if options[:enrollment_state]
       include_prior_enrollments = !options[:enrollment_state].nil?
       include_inactive_enrollments = !!options[:include_inactive_enrollments]
@@ -87,13 +87,13 @@ module UserSearch
       when Account
         account_scope(context, include_deleted_users: @include_deleted_users)
       when Course
-        context.users_visible_to(searcher,
+        context.users_visible_to(principal&.user,
                                  include_priors: include_prior_enrollments,
                                  enrollment_state: enrollment_states,
                                  include_inactive: include_inactive_enrollments,
                                  section_ids: options[:section_ids]).distinct
       else
-        context.users_visible_to(searcher, include_inactive: include_inactive_enrollments).distinct
+        context.users_visible_to(principal&.user, include_inactive: include_inactive_enrollments).distinct
       end
     end
 
@@ -338,13 +338,13 @@ module UserSearch
       users_scope
     end
 
-    def differentiation_tag_scope(users_scope, context, searcher, options = {})
+    def differentiation_tag_scope(users_scope, context, principal, options = {})
       differentiation_tag_ids = Array(options[:differentiation_tag_id]) if options[:differentiation_tag_id]
 
       return users_scope unless differentiation_tag_ids&.any? &&
                                 context.is_a?(Course) &&
                                 context.account.allow_assign_to_differentiation_tags? &&
-                                context.grants_any_right?(searcher, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+                                context.grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
 
       users_scope.where(id: GroupMembership
                             .active
@@ -358,13 +358,13 @@ module UserSearch
 
     private
 
-    def conditions_statement(search_term, context, users_scope, searcher)
+    def conditions_statement(search_term, context, users_scope, principal)
       pattern = like_string_for(search_term)
       params = { pattern:,
                  account: context.root_account,
                  path_type: CommunicationChannel::TYPE_EMAIL,
                  db_id: search_term,
-                 searcher: }
+                 principal: }
 
       if context.is_a?(Account)
         # if the context is an Account, the scope is determined by the outer CTE

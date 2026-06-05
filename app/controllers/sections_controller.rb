@@ -462,9 +462,9 @@ class SectionsController < ApplicationController
     search_term = params[:search_term].presence
 
     users = if search_term
-              UserSearch.for_user_in_context(search_term, @context, @current_user, session, search_params)
+              UserSearch.for_user_in_context(search_term, @context, current_principal, session, search_params)
             else
-              UserSearch.scope_for(@context, @current_user, search_params)
+              UserSearch.scope_for(@context, current_principal, search_params)
             end
 
     includes = Array(params[:include])

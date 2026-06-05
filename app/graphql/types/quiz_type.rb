@@ -45,14 +45,14 @@ module Types
     end
 
     def submissions_connection(filter: nil, order_by: nil)
-      return nil if current_user.nil? || object.assignment.nil?
+      return nil if current_principal.nil? || object.assignment.nil?
 
       filter = filter.to_h
       order_by ||= []
       filter[:states] ||= Types::DEFAULT_SUBMISSION_STATES
       filter[:states] = filter[:states] + ["unsubmitted"].freeze if filter[:include_unsubmitted]
       filter[:order_by] = order_by.map(&:to_h)
-      SubmissionSearch.new(object.assignment, current_user, session, filter).search
+      SubmissionSearch.new(object.assignment, current_principal, session, filter).search
     end
   end
 end

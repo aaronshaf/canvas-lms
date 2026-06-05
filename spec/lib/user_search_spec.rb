@@ -20,10 +20,12 @@ describe UserSearch do
   describe ".for_user_in_context" do
     let(:search_names) { ["Rose Tyler", "Martha Jones", "Rosemary Giver", "Martha Stewart", "Tyler Pickett", "Jon Stewart", "Stewart Little", "Ĭńşŧřůćƭǜȑȩ Person"] }
     let(:course) { Course.create!(workflow_state: "available") }
-    let(:users) { UserSearch.for_user_in_context("Stewart", course, user, nil, sort: "username", order: "asc").to_a }
+    let(:users) { UserSearch.for_user_in_context("Stewart", course, principal, nil, sort: "username", order: "asc").to_a }
     let(:names) { users.map(&:name) }
     let(:user) { User.last }
+    let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:student) { User.where(name: search_names.last).first }
+    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(student) }
 
     before do
       teacher = User.create!(name: "Tyler Teacher")
@@ -40,24 +42,24 @@ describe UserSearch do
       it "does not include users in that group" do
         group = Group.create! name: "test", context: course
         group.add_user user
-        expect(UserSearch.for_user_in_context("admin", course, user, nil, exclude_groups: [group.id]).size).to eq 0
+        expect(UserSearch.for_user_in_context("admin", course, principal, nil, exclude_groups: [group.id]).size).to eq 0
       end
     end
 
     it "searches case-insensitively" do
-      expect(UserSearch.for_user_in_context("steWArt", course, user).size).to eq 3
+      expect(UserSearch.for_user_in_context("steWArt", course, principal).size).to eq 3
     end
 
     it "searches by both name and short_name" do
       user_with_short_name = User.create!(name: "Nicknamed Student", short_name: "Name is Little")
       StudentEnrollment.create!(user: user_with_short_name, course:, workflow_state: "active")
 
-      expect(UserSearch.for_user_in_context("little", course, user).size).to eq 2
+      expect(UserSearch.for_user_in_context("little", course, principal).size).to eq 2
     end
 
     it "uses postgres lower(), not ruby downcase()" do
       # ruby 1.9 downcase doesn't handle the downcasing of many multi-byte characters correctly
-      expect(UserSearch.for_user_in_context("Ĭńşŧřůćƭǜȑȩ", course, user).size).to eq 1
+      expect(UserSearch.for_user_in_context("Ĭńşŧřůćƭǜȑȩ", course, principal).size).to eq 1
     end
 
     it "returns an enumerable" do
@@ -72,7 +74,8 @@ describe UserSearch do
 
     it "does not contain users I am not allowed to see" do
       unenrolled_user = User.create!(name: "Unenrolled User")
-      search_results = UserSearch.for_user_in_context("Stewart", course, unenrolled_user).map(&:name)
+      unenrolled_principal = Canvas::AdheresToPolicy::UserPrincipal.new(unenrolled_user)
+      search_results = UserSearch.for_user_in_context("Stewart", course, unenrolled_principal).map(&:name)
       expect(search_results).to eq []
     end
 
@@ -84,7 +87,7 @@ describe UserSearch do
     end
 
     it "will find teachers" do
-      results = UserSearch.for_user_in_context("Tyler", course, user)
+      results = UserSearch.for_user_in_context("Tyler", course, principal)
       expect(results.map(&:name)).to include("Tyler Teacher")
     end
 
@@ -99,7 +102,7 @@ describe UserSearch do
       subject { names }
 
       describe "to a single role" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course, user, nil, enrollment_type: "student").to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course, principal, nil, enrollment_type: "student").to_a }
 
         it { is_expected.to include("Rose Tyler") }
         it { is_expected.to include("Tyler Pickett") }
@@ -107,7 +110,7 @@ describe UserSearch do
       end
 
       describe "to multiple roles" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course, student, nil, enrollment_type: ["ta", "teacher"]).to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course, principal, nil, enrollment_type: ["ta", "teacher"]).to_a }
 
         before do
           ta = User.create!(name: "Tyler TA")
@@ -120,7 +123,7 @@ describe UserSearch do
       end
 
       describe "FooEnrollment names" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course, user, nil, enrollment_type: "StudentEnrollment").to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course, principal, nil, enrollment_type: "StudentEnrollment").to_a }
 
         it { is_expected.to include("Rose Tyler") }
         it { is_expected.to include("Tyler Pickett") }
@@ -128,7 +131,7 @@ describe UserSearch do
       end
 
       describe "with the broader role parameter" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course, student, nil, enrollment_role: "ObserverEnrollment").to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course, student_principal, nil, enrollment_role: "ObserverEnrollment").to_a }
 
         before do
           ta = User.create!(name: "Tyler Observer")
@@ -151,7 +154,7 @@ describe UserSearch do
         end
 
         describe "when the context is a course" do
-          let(:users) { UserSearch.for_user_in_context("Tyler", course, user, nil, enrollment_role: "StudentEnrollment").to_a }
+          let(:users) { UserSearch.for_user_in_context("Tyler", course, principal, nil, enrollment_role: "StudentEnrollment").to_a }
 
           it { is_expected.to include("Rose Tyler") }
           it { is_expected.to include("Tyler Pickett") }
@@ -160,7 +163,7 @@ describe UserSearch do
         end
 
         describe "when the context is an account" do
-          let(:users) { UserSearch.for_user_in_context("Tyler", course.account, user, nil, enrollment_role: "StudentEnrollment").to_a }
+          let(:users) { UserSearch.for_user_in_context("Tyler", course.account, principal, nil, enrollment_role: "StudentEnrollment").to_a }
 
           it { is_expected.to include("Rose Tyler") }
           it { is_expected.to include("Tyler Pickett") }
@@ -170,7 +173,7 @@ describe UserSearch do
       end
 
       describe "with the role id parameter" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course, student, nil, enrollment_role_id: student_role.id).to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course, student_principal, nil, enrollment_role_id: student_role.id).to_a }
 
         before do
           newstudent = User.create!(name: "Tyler Student")
@@ -183,7 +186,7 @@ describe UserSearch do
         it { is_expected.not_to include("Tyler Teacher") }
 
         it "does not return results if role id is invalid" do
-          expect(UserSearch.for_user_in_context("", course, student, nil, enrollment_role_id: student_role.id + 99_999).size).to eq 0
+          expect(UserSearch.for_user_in_context("", course, student_principal, nil, enrollment_role_id: student_role.id + 99_999).size).to eq 0
         end
       end
     end
@@ -200,11 +203,11 @@ describe UserSearch do
       end
 
       it "will match against an sis id" do
-        expect(UserSearch.for_user_in_context("SOME_SIS", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("SOME_SIS", course, principal)).to eq [user]
       end
 
       it "will match against an integration id" do
-        expect(UserSearch.for_user_in_context("ACME", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("ACME", course, principal)).to eq [user]
       end
 
       describe "will match against a suspended user" do
@@ -214,15 +217,15 @@ describe UserSearch do
         end
 
         it "by sis id" do
-          expect(UserSearch.for_user_in_context("SOME_SIS", course, user)).to eq [user]
+          expect(UserSearch.for_user_in_context("SOME_SIS", course, principal)).to eq [user]
         end
 
         it "by integration id" do
-          expect(UserSearch.for_user_in_context("ACME", course, user)).to eq [user]
+          expect(UserSearch.for_user_in_context("ACME", course, principal)).to eq [user]
         end
 
         it "by user name" do
-          expect(UserSearch.for_user_in_context("admin", course, user)).to eq [user]
+          expect(UserSearch.for_user_in_context("admin", course, principal)).to eq [user]
         end
       end
 
@@ -256,7 +259,7 @@ describe UserSearch do
                              role: teacher_role,
                              permission: "read_sis",
                              enabled: false)
-        expect(UserSearch.for_user_in_context("SOME_SIS", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("SOME_SIS", course, principal)).to eq []
       end
 
       it "will not match against an integration id without :read_sis permission" do
@@ -264,7 +267,7 @@ describe UserSearch do
                              role: teacher_role,
                              permission: "read_sis",
                              enabled: false)
-        expect(UserSearch.for_user_in_context("ACME", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("ACME", course, principal)).to eq []
       end
 
       it "will match against an sis id and regular id" do
@@ -272,17 +275,17 @@ describe UserSearch do
         pseudonym.sis_user_id = user2.id.to_s
         pseudonym.save!
         course.enroll_user(user2)
-        expect(UserSearch.for_user_in_context(user2.id.to_s, course, user)).to eq [user, user2]
+        expect(UserSearch.for_user_in_context(user2.id.to_s, course, principal)).to eq [user, user2]
       end
 
       it "handles search terms out of bounds for max bigint" do
         pseudonym.sis_user_id = "9223372036854775808"
         pseudonym.save!
-        expect(UserSearch.for_user_in_context("9223372036854775808", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("9223372036854775808", course, principal)).to eq [user]
       end
 
       it "will match against a login id" do
-        expect(UserSearch.for_user_in_context("UNIQUE_ID", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("UNIQUE_ID", course, principal)).to eq [user]
       end
 
       it "will not search login id without permission" do
@@ -290,11 +293,11 @@ describe UserSearch do
                              role: teacher_role,
                              permission: "view_user_logins",
                              enabled: false)
-        expect(UserSearch.for_user_in_context("UNIQUE_ID", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("UNIQUE_ID", course, principal)).to eq []
       end
 
       it "returns the last_login column when searching and sorting" do
-        results = UserSearch.for_user_in_context("UNIQUE_ID", course, user, nil, sort: "last_login")
+        results = UserSearch.for_user_in_context("UNIQUE_ID", course, principal, nil, sort: "last_login")
         expect(results.first["last_login"]).to eq(Time.utc(2019, 11, 11))
       end
 
@@ -302,7 +305,7 @@ describe UserSearch do
         pseudonym.sis_user_id = "MARTHA_SIS_ID"
         pseudonym.save!
         other_user = User.where(name: "Martha Stewart").first
-        results = UserSearch.for_user_in_context("martha", course, user)
+        results = UserSearch.for_user_in_context("martha", course, principal)
         expect(results).to include(user)
         expect(results).to include(other_user)
       end
@@ -314,7 +317,7 @@ describe UserSearch do
         User.find_by(name: "Tyler Pickett").pseudonyms.create!(unique_id: "tyler.pickett@example.com",
                                                                sis_user_id: "1tyler",
                                                                account_id: course.root_account_id)
-        users = UserSearch.for_user_in_context("Tyler", course, user, nil, sort: "sis_id")
+        users = UserSearch.for_user_in_context("Tyler", course, principal, nil, sort: "sis_id")
         expect(users.map(&:name)).to eq ["Tyler Pickett", "Rose Tyler", "Tyler Teacher"]
       end
 
@@ -325,7 +328,7 @@ describe UserSearch do
         User.find_by(name: "Tyler Pickett").pseudonyms.create!(unique_id: "tyler.pickett@example.com",
                                                                integration_id: "1tyler",
                                                                account_id: course.root_account_id)
-        users = UserSearch.for_user_in_context("Tyler", course, user, nil, sort: "integration_id")
+        users = UserSearch.for_user_in_context("Tyler", course, principal, nil, sort: "integration_id")
         expect(users.map(&:name)).to eq ["Tyler Pickett", "Rose Tyler", "Tyler Teacher"]
       end
 
@@ -336,7 +339,7 @@ describe UserSearch do
         User.find_by(name: "Tyler Pickett").pseudonyms.create!(unique_id: "tyler.pickett@example.com",
                                                                sis_user_id: "5",
                                                                account_id: course.root_account_id)
-        users = UserSearch.for_user_in_context("Tyler", course, user, nil, sort: "sis_id")
+        users = UserSearch.for_user_in_context("Tyler", course, principal, nil, sort: "sis_id")
         expect(users.map(&:name)).to eq ["Rose Tyler", "Tyler Pickett", "Tyler Teacher"]
       end
 
@@ -344,7 +347,7 @@ describe UserSearch do
         tyler = User.find_by(name: "Tyler Pickett")
         tyler.pseudonyms.create!(unique_id: "Yo", account_id: course.root_account_id, current_login_at: Time.zone.now)
         tyler.pseudonyms.create!(unique_id: "Pickett", account_id: course.root_account_id, current_login_at: 1.week.ago)
-        users = UserSearch.for_user_in_context("Pickett", course, user, nil, sort: "username")
+        users = UserSearch.for_user_in_context("Pickett", course, principal, nil, sort: "username")
         expect(users.map(&:name)).to eq ["Tyler Pickett"]
       end
     end
@@ -358,7 +361,7 @@ describe UserSearch do
       end
 
       it "matches against an email" do
-        expect(UserSearch.for_user_in_context("the.giver", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("the.giver", course, principal)).to eq [user]
       end
 
       it "requires :read_email_addresses permission" do
@@ -366,46 +369,46 @@ describe UserSearch do
                              role: teacher_role,
                              permission: "read_email_addresses",
                              enabled: false)
-        expect(UserSearch.for_user_in_context("the.giver", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("the.giver", course, principal)).to eq []
       end
 
       it "can match an email and a name in the same query" do
-        results = UserSearch.for_user_in_context("giver", course, user)
+        results = UserSearch.for_user_in_context("giver", course, principal)
         expect(results).to include(user)
         expect(results).to include(User.where(name: "Rosemary Giver").first)
       end
 
       it "will not match channels where the type is not email" do
         cc.update!(path_type: CommunicationChannel::TYPE_SMS)
-        expect(UserSearch.for_user_in_context("the.giver", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("the.giver", course, principal)).to eq []
       end
 
       it "doesn't match retired channels" do
         cc.retire!
-        expect(UserSearch.for_user_in_context("the.giver", course, user)).to eq []
+        expect(UserSearch.for_user_in_context("the.giver", course, principal)).to eq []
       end
 
       it "matches unconfirmed channels", priority: 1 do
         communication_channel(user, { username: "unconfirmed@example.com" })
-        expect(UserSearch.for_user_in_context("unconfirmed", course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context("unconfirmed", course, principal)).to eq [user]
       end
 
       it "sorts by email" do
         communication_channel(User.find_by(name: "Tyler Pickett"), { username: "1tyler@example.com" })
         communication_channel(User.find_by(name: "Tyler Teacher"), { username: "25teacher@example.com" })
-        users = UserSearch.for_user_in_context("Tyler", course, user, nil, sort: "email")
+        users = UserSearch.for_user_in_context("Tyler", course, principal, nil, sort: "email")
         expect(users.map(&:name)).to eq ["Tyler Pickett", "Tyler Teacher", "Rose Tyler"]
       end
     end
 
     describe "searching by a DB ID" do
       it "matches against the database id" do
-        expect(UserSearch.for_user_in_context(user.id, course, user)).to eq [user]
+        expect(UserSearch.for_user_in_context(user.id, course, principal)).to eq [user]
       end
 
       it "matches against a database id and a user simultaneously" do
         other_user = student_in_course(course:, name: user.id.to_s).user
-        expect(UserSearch.for_user_in_context(user.id, course, user)).to match_array [user, other_user]
+        expect(UserSearch.for_user_in_context(user.id, course, principal)).to match_array [user, other_user]
       end
 
       describe "cross-shard users" do
@@ -414,8 +417,8 @@ describe UserSearch do
         it "matches against the database id of a cross-shard user" do
           user = @shard1.activate { user_model }
           course.enroll_student(user)
-          expect(UserSearch.for_user_in_context(user.global_id, course, user)).to eq [user]
-          expect(UserSearch.for_user_in_context(user.global_id, course.account, user)).to eq [user]
+          expect(UserSearch.for_user_in_context(user.global_id, course, principal)).to eq [user]
+          expect(UserSearch.for_user_in_context(user.global_id, course.account, principal)).to eq [user]
         end
 
         it "doesn't try to query cross-shard when the search term is a foreign global id in account context with include_deleted_users" do
@@ -461,11 +464,11 @@ describe UserSearch do
       end
 
       it "constructs an SQL query with materialized CTE" do
-        expect(UserSearch.for_user_in_context("Tyler", course.account, user, nil, enrollment_type: "student").to_sql).to include("WITH inner_user_scope AS MATERIALIZED")
+        expect(UserSearch.for_user_in_context("Tyler", course.account, principal, nil, enrollment_type: "student").to_sql).to include("WITH inner_user_scope AS MATERIALIZED")
       end
 
       describe "to a single role" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course.account, user, nil, enrollment_type: "student").to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course.account, principal, nil, enrollment_type: "student").to_a }
 
         it { is_expected.to include("Rose Tyler") }
         it { is_expected.to include("Tyler Pickett") }
@@ -478,7 +481,7 @@ describe UserSearch do
       end
 
       describe "to multiple roles" do
-        let(:users) { UserSearch.for_user_in_context("Tyler", course.account, user, nil, enrollment_type: ["student", "teacher"]).to_a }
+        let(:users) { UserSearch.for_user_in_context("Tyler", course.account, principal, nil, enrollment_type: ["student", "teacher"]).to_a }
 
         it { is_expected.to include("Rose Tyler") }
         it { is_expected.to include("Tyler Pickett") }
@@ -497,12 +500,12 @@ describe UserSearch do
         end
 
         it "doesn't include deleted users" do
-          users = UserSearch.for_user_in_context("Deleted", course.account, user, nil, sort: "username", order: "asc").to_a
+          users = UserSearch.for_user_in_context("Deleted", course.account, principal, nil, sort: "username", order: "asc").to_a
           expect(users).not_to include(@user)
         end
 
         it "includes deleted users with option" do
-          users = UserSearch.for_user_in_context("Deleted", course.account, user, nil, sort: "username", order: "asc", include_deleted_users: true).to_a
+          users = UserSearch.for_user_in_context("Deleted", course.account, principal, nil, sort: "username", order: "asc", include_deleted_users: true).to_a
           expect(users).to include(@user)
         end
       end
@@ -528,10 +531,12 @@ describe UserSearch do
     end
 
     let(:course) { Course.create!(workflow_state: "available") }
-    let(:users) { UserSearch.scope_for(course, user, sort: "username", order: "desc").to_a }
+    let(:users) { UserSearch.scope_for(course, principal, sort: "username", order: "desc").to_a }
     let(:names) { users.map(&:name) }
     let(:user) { User.last }
+    let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:student) { User.where(name: search_names.last).first }
+    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(student) }
 
     before do
       search_names.each do |name|
@@ -554,8 +559,8 @@ describe UserSearch do
 
     it "raises an error if there is a bad enrollment type" do
       course = Course.create!
-      student = User.create!
-      bad_scope = -> { UserSearch.scope_for(course, student, enrollment_type: "all") }
+      User.create!
+      bad_scope = -> { UserSearch.scope_for(course, student_principal, enrollment_type: "all") }
       expect(&bad_scope).to raise_error(RequestError, "Invalid enrollment type: all")
     end
 
@@ -564,8 +569,9 @@ describe UserSearch do
       group = @course.groups.create!
       group.add_user(@student)
       account_admin_user
-      expect(UserSearch.scope_for(group, @admin, enrollment_type: ["student"], include_inactive_enrollments: true).to_a).to eq [@student]
-      expect(UserSearch.scope_for(group, @admin, enrollment_type: ["teacher"]).to_a).to be_empty
+      admin_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@admin)
+      expect(UserSearch.scope_for(group, admin_principal, enrollment_type: ["student"], include_inactive_enrollments: true).to_a).to eq [@student]
+      expect(UserSearch.scope_for(group, admin_principal, enrollment_type: ["teacher"]).to_a).to be_empty
     end
 
     describe "account user list filtering by role" do
@@ -635,15 +641,17 @@ describe UserSearch do
         @sorted_by_name = ["Ĭńşŧřůćƭǜȑȩ Person", "Jon Stewart", "Martha Jones", "Martha Stewart", "Rose Tyler", "Rosemary Giver", "Stewart Little", "Tyler Pickett", "Woody Walton"]
       end
 
+      let(:test_teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@test_teacher) }
+
       describe "single value columns" do
         context "name" do
           it "sorts by name ascending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "name", order: "asc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "name", order: "asc").to_a
             expect(users.map(&:name)).to eq @sorted_by_name
           end
 
           it "sorts by name descending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "name", order: "desc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "name", order: "desc").to_a
             expect(users.map(&:name)).to eq @sorted_by_name.reverse
           end
         end
@@ -655,7 +663,7 @@ describe UserSearch do
           end
 
           it "sorts by login_id ascending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "login_id", order: "asc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "login_id", order: "asc").to_a
             login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
             expect(login_ids).to include("pickett@example.com")
@@ -664,7 +672,7 @@ describe UserSearch do
           end
 
           it "sorts by login_id descending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "login_id", order: "desc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "login_id", order: "desc").to_a
             login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
             expect(login_ids).to include("tyler@example.com")
@@ -681,7 +689,7 @@ describe UserSearch do
 
             describe "when include_deleted_users is true" do
               it "includes deleted users when sorting by login_id ascending" do
-                users = UserSearch.scope_for(course.root_account, @test_teacher, sort: "login_id", order: "asc", include_deleted_users: true).to_a
+                users = UserSearch.scope_for(course.root_account, test_teacher_principal, sort: "login_id", order: "asc", include_deleted_users: true).to_a
                 login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
                 expect(login_ids).to include("deleted@example.com")
@@ -691,7 +699,7 @@ describe UserSearch do
               end
 
               it "includes deleted users when sorting by login_id descending" do
-                users = UserSearch.scope_for(course.root_account, @test_teacher, sort: "login_id", order: "desc", include_deleted_users: true).to_a
+                users = UserSearch.scope_for(course.root_account, test_teacher_principal, sort: "login_id", order: "desc", include_deleted_users: true).to_a
                 login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
                 expect(login_ids).to include("tyler@example.com")
@@ -703,7 +711,7 @@ describe UserSearch do
 
             describe "when include_deleted_users is false (default)" do
               it "excludes deleted users when sorting by login_id ascending" do
-                users = UserSearch.scope_for(course.root_account, @test_teacher, sort: "login_id", order: "asc").to_a
+                users = UserSearch.scope_for(course.root_account, test_teacher_principal, sort: "login_id", order: "asc").to_a
                 login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
                 expect(login_ids).not_to include("deleted@example.com")
@@ -713,7 +721,7 @@ describe UserSearch do
               end
 
               it "excludes deleted users when sorting by login_id descending" do
-                users = UserSearch.scope_for(course.root_account, @test_teacher, sort: "login_id", order: "desc").to_a
+                users = UserSearch.scope_for(course.root_account, test_teacher_principal, sort: "login_id", order: "desc").to_a
                 login_ids = users.map { |u| u.pseudonyms&.first&.unique_id }
 
                 expect(login_ids).not_to include("deleted@example.com")
@@ -732,14 +740,14 @@ describe UserSearch do
           end
 
           it "sorts by total activity time ascending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "total_activity_time", order: "asc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "total_activity_time", order: "asc").to_a
             total_activity_times = users.map { |u| u.enrollments&.first&.total_activity_time }
 
             expect(total_activity_times[0..1]).to eq [100, 200]
           end
 
           it "sorts by total activity time descending" do
-            users = UserSearch.scope_for(course, @test_teacher, sort: "total_activity_time", order: "desc").to_a
+            users = UserSearch.scope_for(course, test_teacher_principal, sort: "total_activity_time", order: "desc").to_a
             total_activity_times = users.map { |u| u.enrollments&.first&.total_activity_time }
 
             expect(total_activity_times[0..1]).to eq [200, 100]
@@ -748,7 +756,7 @@ describe UserSearch do
           it "raises an error when context is not a course" do
             account = Account.create!
             expect do
-              UserSearch.scope_for(account, @test_teacher, sort: "total_activity_time", order: "asc")
+              UserSearch.scope_for(account, test_teacher_principal, sort: "total_activity_time", order: "asc")
             end.to raise_error(RequestError, "Sorting by total_activity_time is only available within a course context")
           end
         end
@@ -757,6 +765,7 @@ describe UserSearch do
       describe "multiple value columns" do
         let(:course2) { Course.create! }
         let(:teacher1) { user_model(name: "Teacher One") }
+        let(:teacher1_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher1) }
         let(:ta1) { user_model(name: "TA One") }
         let(:student1) { user_model(name: "Student One") }
         let(:student2) { user_model(name: "Student Two") }
@@ -786,7 +795,7 @@ describe UserSearch do
         end
 
         def sort_user_ids(sort, order = "asc")
-          UserSearch.scope_for(course2, teacher1, sort:, order:).map(&:id)
+          UserSearch.scope_for(course2, teacher1_principal, sort:, order:).map(&:id)
         end
 
         context "last_activity_at" do
@@ -850,7 +859,7 @@ describe UserSearch do
           it "raises an error when context is not a course" do
             account = Account.create!
             expect do
-              UserSearch.scope_for(account, teacher1, sort: "last_activity_at")
+              UserSearch.scope_for(account, teacher1_principal, sort: "last_activity_at")
             end.to raise_error(RequestError, "Sorting by last_activity_at is only available within a course context")
           end
 
@@ -954,7 +963,7 @@ describe UserSearch do
           it "raises an error when context is not a course" do
             account = Account.create!
             expect do
-              UserSearch.scope_for(account, teacher1, sort: "section_name")
+              UserSearch.scope_for(account, teacher1_principal, sort: "section_name")
             end.to raise_error(RequestError, "Sorting by section_name is only available within a course context")
           end
         end
@@ -1022,7 +1031,7 @@ describe UserSearch do
           it "raises an error when context is not a course" do
             account = Account.create!
             expect do
-              UserSearch.scope_for(account, teacher1, sort: "role")
+              UserSearch.scope_for(account, teacher1_principal, sort: "role")
             end.to raise_error(RequestError, "Sorting by role is only available within a course context")
           end
         end

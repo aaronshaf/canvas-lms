@@ -299,7 +299,7 @@ class UsersController < ApplicationController
     if search_term
       users = UserSearch.for_user_in_context(search_term,
                                              @context,
-                                             @current_user,
+                                             current_principal,
                                              session,
                                              {
                                                order: params[:order],
@@ -310,7 +310,7 @@ class UsersController < ApplicationController
                                              })
     else
       users = UserSearch.scope_for(@context,
-                                   @current_user,
+                                   current_principal,
                                    {
                                      order: params[:order],
                                      sort: params[:sort],

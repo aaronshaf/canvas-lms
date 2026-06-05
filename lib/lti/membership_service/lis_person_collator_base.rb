@@ -21,11 +21,11 @@
 module Lti
   module MembershipService
     class LisPersonCollatorBase < CollatorBase
-      attr_reader :user
+      attr_reader :principal
 
-      def initialize(context, user, opts = {})
+      def initialize(context, principal, opts = {})
         super(context, opts)
-        @user = user
+        @principal = principal
       end
 
       def memberships

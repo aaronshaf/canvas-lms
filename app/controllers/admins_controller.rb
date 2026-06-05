@@ -85,7 +85,7 @@ class AdminsController < ApplicationController
         matching_users = UserSearch.for_user_in_context(
           params[:search_term],
           @context,
-          @current_user,
+          current_principal,
           session
         )
         matching_user_ids = matching_users.reselect(:id)

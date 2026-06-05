@@ -21,10 +21,13 @@
 module Lti::MembershipService
   describe PagePresenter do
     let(:base_url) { "https://localhost:3000" }
-    let(:presenter) { PagePresenter.new(@course, @teacher, base_url) }
+    let(:presenter) { PagePresenter.new(@course, teacher_principal, base_url) }
     let(:hash) { presenter.as_json }
-    let(:group_presenter) { PagePresenter.new(@group, @student, base_url) }
+    let(:group_presenter) { PagePresenter.new(@group, student_principal, base_url) }
     let(:group_hash) { group_presenter.as_json }
+    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) }
 
     context "course with single enrollment" do
       before do
@@ -216,7 +219,7 @@ module Lti::MembershipService
         end
 
         it "provides the right next_page url when page/per_page/role params are given" do
-          presenter = PagePresenter.new(@course, @user, base_url, page: 2, per_page: 1, role: "Instructor")
+          presenter = PagePresenter.new(@course, current_principal, base_url, page: 2, per_page: 1, role: "Instructor")
           hash = presenter.as_json
 
           uri = URI(hash.fetch(:nextPage))
@@ -229,7 +232,7 @@ module Lti::MembershipService
 
         it "returns nil for the next page url when the last page in the collection was requested" do
           allow(Api).to receive(:per_page).and_return(1)
-          presenter = PagePresenter.new(@course, @user, base_url, page: 3, per_page: 1, role: "Instructor")
+          presenter = PagePresenter.new(@course, current_principal, base_url, page: 3, per_page: 1, role: "Instructor")
           hash = presenter.as_json
 
           expect(hash.fetch(:nextPage)).to be_nil

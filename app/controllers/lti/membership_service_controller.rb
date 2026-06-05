@@ -53,7 +53,7 @@ module Lti
 
     def render_page_presenter
       @page = MembershipService::PagePresenter.new(@context,
-                                                   @current_user,
+                                                   current_principal,
                                                    request.base_url,
                                                    membership_service_params)
 

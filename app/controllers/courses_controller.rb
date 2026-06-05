@@ -1245,9 +1245,9 @@ class CoursesController < ApplicationController
         search_term = search_params[:search_term].presence
 
         users = if search_term
-                  UserSearch.for_user_in_context(search_term, @context, @current_user, session, search_params)
+                  UserSearch.for_user_in_context(search_term, @context, current_principal, session, search_params)
                 else
-                  UserSearch.scope_for(@context, @current_user, search_params)
+                  UserSearch.scope_for(@context, current_principal, search_params)
                 end
 
         # If a user_id is passed in, modify the page parameter so that the page
@@ -4091,7 +4091,7 @@ class CoursesController < ApplicationController
     end
 
     # NOTE: Similar to #user_progress, this endpoint should remain on the primary db
-    users = Api.paginate(UserSearch.scope_for(@context, @current_user, enrollment_type: %w[Student]), self, api_v1_course_bulk_user_progress_url)
+    users = Api.paginate(UserSearch.scope_for(@context, current_principal, enrollment_type: %w[Student]), self, api_v1_course_bulk_user_progress_url)
     cmps = ContextModuleProgression.where(user_id: users.map(&:id))
                                    .joins(:context_module)
                                    .where(context_modules: { context: @context, context_type: "Course" })

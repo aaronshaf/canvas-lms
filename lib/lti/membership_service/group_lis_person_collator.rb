@@ -24,7 +24,7 @@ module Lti
       private
 
       def scope
-        @user_scope ||= @user.nil? ? context.participating_users : UserSearch.scope_for(context, @user)
+        @user_scope ||= @user.nil? ? context.participating_users : UserSearch.scope_for(context, principal)
       end
 
       def generate_roles(user)

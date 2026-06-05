@@ -57,10 +57,10 @@ class Types::InstitutionalTagType < Types::ApplicationObjectType
     options = { sort: sort[:field], order: sort[:direction] }.compact
 
     if search_term
-      UserSearch.for_user_in_context(search_term, root_account, current_user, session, options)
+      UserSearch.for_user_in_context(search_term, root_account, current_principal, session, options)
                 .where(users: { id: users.select(:id) })
     else
-      UserSearch.scope_for(root_account, current_user, options)
+      UserSearch.scope_for(root_account, current_principal, options)
                 .where(users: { id: users.select(:id) })
     end
   end

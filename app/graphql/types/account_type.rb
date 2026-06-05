@@ -130,9 +130,9 @@ module Types
 
       search_term = filter[:search_term].presence
       if search_term
-        UserSearch.for_user_in_context(search_term, account, current_user, session, options)
+        UserSearch.for_user_in_context(search_term, account, current_principal, session, options)
       else
-        UserSearch.scope_for(account, current_user, options)
+        UserSearch.scope_for(account, current_principal, options)
       end
     end
 

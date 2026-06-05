@@ -22,8 +22,8 @@ module Lti
     class PagePresenter
       include Rails.application.routes.url_helpers
 
-      def initialize(context, user, base_url, opts = {})
-        @membership_collator = MembershipCollatorFactory.collator_instance(context, user, opts)
+      def initialize(context, principal, base_url, opts = {})
+        @membership_collator = MembershipCollatorFactory.collator_instance(context, principal, opts)
         @base_url = base_url
         @page = ::IMS::LTI::Models::MembershipService::Page.new(
           page_of:,

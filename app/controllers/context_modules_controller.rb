@@ -1206,7 +1206,7 @@ class ContextModulesController < ApplicationController
         @restrict_student_list = true
         student_ids = @context.observer_enrollments.for_user(@current_user).map(&:associated_user_id)
         student_ids << @current_user.id if @context.user_is_student?(@current_user)
-        students = UserSearch.scope_for(@context, @current_user, { enrollment_type: "student" }).where(id: student_ids)
+        students = UserSearch.scope_for(@context, current_principal, { enrollment_type: "student" }).where(id: student_ids)
         @visible_students = students.map { |u| user_json(u, current_principal, session) }
       end
     end

@@ -332,9 +332,9 @@ module Types
         search_term = filter[:search_term].presence
 
         scope = if search_term
-                  UserSearch.for_user_in_context(search_term, course, current_user, session, options)
+                  UserSearch.for_user_in_context(search_term, course, current_principal, session, options)
                 else
-                  UserSearch.scope_for(course, current_user, options)
+                  UserSearch.scope_for(course, current_principal, options)
                 end
 
         if user_ids.present?

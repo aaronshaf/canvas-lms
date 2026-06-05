@@ -21,10 +21,12 @@ class SubmissionSearch
   ASC_SORT = "ASC"
   DESC_SORT = "DESC NULLS LAST"
 
-  def initialize(assignment, searcher, session, options)
+  attr_reader :principal
+
+  def initialize(assignment, principal, session, options)
     @assignment = assignment
     @course = assignment.context
-    @searcher = searcher
+    @principal = principal
     @session = session
     @options = options
   end
@@ -38,7 +40,7 @@ class SubmissionSearch
 
   def user_search_scope
     UserSearch
-      .for_user_in_context(@options[:user_search], @assignment.context, @searcher, @session, @options)
+      .for_user_in_context(@options[:user_search], @assignment.context, principal, @session, @options)
       .except(:order)
   end
 
@@ -75,12 +77,12 @@ class SubmissionSearch
     end
     if @options[:apply_gradebook_group_filter] && @course.filter_speed_grader_by_student_group?
       # namely used for SG2 filtering when the filter SG by group option is enabled
-      group_selection = SpeedGrader::StudentGroupSelection.new(current_user: @searcher, course: @course)
+      group_selection = SpeedGrader::StudentGroupSelection.new(current_user: principal.user, course: @course)
       # return all submissions for the selected group
       search_scope = search_scope.where(user_id: group_selection.initial_group.user_ids) if group_selection.initial_group.present?
     end
 
-    can_manage_or_view_grades = @course.grants_any_right?(@searcher, @session, :manage_grades, :view_all_grades)
+    can_manage_or_view_grades = @course.grants_any_right?(principal, @session, :manage_grades, :view_all_grades)
 
     if @options[:posting_status].present? && can_manage_or_view_grades
       case @options[:posting_status]
@@ -93,14 +95,14 @@ class SubmissionSearch
       end
     end
 
-    search_scope = if can_manage_or_view_grades || @course.participating_observers.map(&:id).include?(@searcher.id)
+    search_scope = if can_manage_or_view_grades || @course.participating_observers.map(&:id).include?(principal.user.id)
                      # a user with manage_grades, view_all_grades, or an observer can see other users' submissions
                      # TODO: may want to add a preloader for this
                      user_scope = filter_section_enrollment_states(allowed_users)
                      search_scope.where(user_id: user_scope.select(:id))
-                   elsif @course.grants_right?(@searcher, @session, :read_grades)
+                   elsif @course.grants_right?(principal, @session, :read_grades)
                      # a user can see their own submission
-                     search_scope.where(user_id: @searcher.id)
+                     search_scope.where(user_id: principal.user)
                    else
                      Submission.none # return nothing
                    end
@@ -180,7 +182,7 @@ class SubmissionSearch
   end
 
   def order_by_needs_grading(search_scope:, direction:)
-    ComputedSubmissionColumnBuilder.add_needs_grading_column(search_scope, @searcher) => { scope:, column: needs_grading_column }
+    ComputedSubmissionColumnBuilder.add_needs_grading_column(search_scope, principal.user) => { scope:, column: needs_grading_column }
     # students needing grading come first when sorting ascending, last when sorting descending
     direction = reverse_direction(direction)
     scope.order(Arel.sql("#{needs_grading_column} #{direction}"))
@@ -190,7 +192,7 @@ class SubmissionSearch
     priorities = { not_graded: 1, resubmitted: 2, not_submitted: 3, graded: 4, not_gradeable: 5, other: 6 }
     ComputedSubmissionColumnBuilder.add_submission_status_priority_column(
       search_scope,
-      @searcher,
+      principal.user,
       priorities
     ) => { scope:, column: status_priority_column }
     scope.order(Arel.sql("#{status_priority_column} #{direction}"))
@@ -231,11 +233,11 @@ class SubmissionSearch
 
   def allowed_users
     users = if @options[:apply_gradebook_enrollment_filters]
-              @course.users_visible_to(@searcher, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_gradebook_settings)
+              @course.users_visible_to(principal.user, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_gradebook_settings)
             elsif @options[:include_concluded] || @options[:include_deactivated]
-              @course.users_visible_to(@searcher, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_filters)
+              @course.users_visible_to(principal.user, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_filters)
             else
-              @course.users_visible_to(@searcher)
+              @course.users_visible_to(principal.user)
             end
 
     if @options[:representatives_only] && @assignment.grade_as_group?
@@ -286,13 +288,13 @@ class SubmissionSearch
 
   def representatives
     includes = [:inactive]
-    settings = @searcher.get_preference(:gradebook_settings, @course.global_id) || {}
+    settings = principal.user.get_preference(:gradebook_settings, @course.global_id) || {}
     includes << :completed if settings["show_concluded_enrollments"] == "true" || @course.completed?
-    @representatives ||= @assignment.representatives(user: @searcher, includes:, ignore_student_visibility: true, include_others: true)
+    @representatives ||= @assignment.representatives(user: principal.user, includes:, ignore_student_visibility: true, include_others: true)
   end
 
   def excluded_enrollment_states_from_gradebook_settings
-    settings = @searcher.get_preference(:gradebook_settings, @course.global_id) || {}
+    settings = principal.user.get_preference(:gradebook_settings, @course.global_id) || {}
     excluded_enrollment_states(
       completed: settings["show_concluded_enrollments"] != "true" && !@course.completed?,
       inactive: settings["show_inactive_enrollments"] != "true"

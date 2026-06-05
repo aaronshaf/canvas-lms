@@ -985,9 +985,9 @@ class GroupsController < ApplicationController
     include_inactive = params[:exclude_inactive].present? ? !value_to_boolean(params[:exclude_inactive]) : true
 
     users = if search_term
-              UserSearch.for_user_in_context(search_term, @context, @current_user, session, { include_inactive_enrollments: include_inactive })
+              UserSearch.for_user_in_context(search_term, @context, current_principal, session, { include_inactive_enrollments: include_inactive })
             else
-              UserSearch.scope_for(@context, @current_user, { include_inactive_enrollments: include_inactive })
+              UserSearch.scope_for(@context, current_principal, { include_inactive_enrollments: include_inactive })
             end
 
     # Apply section restrictions using helper for check and filtering

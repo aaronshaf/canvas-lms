@@ -465,7 +465,7 @@ class EnrollmentsApiController < ApplicationController
               sis_id = sis_id.to_s
               users = UserSearch.for_user_in_context(sis_id,
                                                      @context,
-                                                     @current_user,
+                                                     current_principal,
                                                      session,
                                                      filter_params)
               users.find_each do |user|

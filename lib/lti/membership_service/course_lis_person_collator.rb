@@ -29,7 +29,7 @@ module Lti
           include_inactive_enrollments: false
         }
 
-        @user_scope ||= @user.nil? ? context.current_users : UserSearch.scope_for(context, @user, options)
+        @user_scope ||= principal ? UserSearch.scope_for(context, principal, options) : context.current_users
       end
 
       def generate_roles(user)

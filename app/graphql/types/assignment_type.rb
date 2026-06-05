@@ -795,7 +795,7 @@ module Types
       filter[:states] ||= DEFAULT_SUBMISSION_STATES
       filter[:states] = filter[:states] + ["unsubmitted"].freeze if filter[:include_unsubmitted]
       filter[:order_by] = order_by.map(&:to_h)
-      SubmissionSearch.new(assignment, current_user, session, filter).search
+      SubmissionSearch.new(assignment, current_principal, session, filter).search
     end
 
     field :my_sub_assignment_submissions_connection, SubmissionType.connection_type, null: true do
