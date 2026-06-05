@@ -3207,6 +3207,8 @@ describe AssignmentsApiController, type: :request do
         @group = @course.assignment_groups.create!(name: "test group")
       end
 
+      let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+
       def build_peer_review_assignment(options = {})
         assignment = @course.assignments.build(title: options[:title] || "Test Assignment", peer_reviews: options.fetch(:peer_reviews, true))
         params_hash = {}
@@ -3218,7 +3220,7 @@ describe AssignmentsApiController, type: :request do
       def call_create_assignment_api(assignment, assignment_params)
         controller = AssignmentsApiController.new
         controller.extend(Api::V1::Assignment)
-        controller.send(:create_api_assignment, assignment, assignment_params, @teacher, @course)
+        controller.send(:create_api_assignment, assignment, assignment_params, teacher_principal, @course)
       end
 
       def mock_and_call_create_api_assignment(assignment, assignment_params, mock_options = {})
@@ -5577,14 +5579,19 @@ describe AssignmentsApiController, type: :request do
     end
 
     describe "update_api_assignment" do
+      # Each nested context defines its own `let(:user)`; this wraps whichever
+      # `user` is in scope at the call site.
+      let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+
       def call_update_assignment_api(assignment, params, user)
         controller = AssignmentsApiController.new
+        principal = Canvas::AdheresToPolicy::UserPrincipal.new(user)
         controller.instance_variable_set(:@current_user, user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user))
+        controller.instance_variable_set(:@current_principal, principal)
         controller.instance_variable_set(:@context, assignment.context)
         # Extract assignment params just like the real controller does
         assignment_params = (params.is_a?(ActionController::Parameters) && params.key?(:assignment)) ? params[:assignment] : params
-        controller.send(:update_api_assignment, assignment, assignment_params, user)
+        controller.send(:update_api_assignment, assignment, assignment_params, principal)
       end
 
       describe "peer review sub assignment logic" do
@@ -5839,7 +5846,7 @@ describe AssignmentsApiController, type: :request do
             expect(test_object).not_to receive(:create_api_peer_review_sub_assignment)
             expect(test_object).not_to receive(:update_api_peer_review_sub_assignment)
 
-            result = test_object.send(:update_api_assignment, assignment, assignment_params, user)
+            result = test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
             expect(result).to be(false)
           end
         end
@@ -5854,7 +5861,7 @@ describe AssignmentsApiController, type: :request do
             expect(test_object).not_to receive(:create_api_peer_review_sub_assignment)
             expect(test_object).not_to receive(:update_api_peer_review_sub_assignment)
 
-            result = test_object.send(:update_api_assignment, assignment, assignment_params, user)
+            result = test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
             expect(result).to eq(:ok)
           end
         end
@@ -5954,7 +5961,7 @@ describe AssignmentsApiController, type: :request do
                 end
               end
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_with_date, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_with_date, current_principal)
 
               expect(slm_recompute_called).to be true
             end
@@ -5973,7 +5980,7 @@ describe AssignmentsApiController, type: :request do
                 end
               end
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_no_date, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_no_date, current_principal)
 
               expect(slm_recompute_called).to be false
             end
@@ -6002,7 +6009,7 @@ describe AssignmentsApiController, type: :request do
                 end
               end
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_with_override, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_with_override, current_principal)
 
               expect(slm_recompute_called).to be true
             end
@@ -6040,7 +6047,7 @@ describe AssignmentsApiController, type: :request do
                 end
               end
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_with_updated_override, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_with_updated_override, current_principal)
 
               expect(slm_recompute_called).to be true
             end
@@ -6074,7 +6081,7 @@ describe AssignmentsApiController, type: :request do
                 end
               end
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_with_no_overrides, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_with_no_overrides, current_principal)
 
               expect(slm_recompute_called).to be true
             end
@@ -6096,7 +6103,7 @@ describe AssignmentsApiController, type: :request do
               .and_raise(StandardError.new("Update failed"))
 
             expect do
-              test_object.send(:update_api_assignment, assignment, assignment_params, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
             end.to raise_error(StandardError, "Update failed")
           end
 
@@ -6108,7 +6115,7 @@ describe AssignmentsApiController, type: :request do
               .and_raise(StandardError.new("Deletion failed"))
 
             expect do
-              test_object.send(:update_api_assignment, assignment, assignment_params, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
             end.to raise_error(StandardError, "Deletion failed")
           end
 
@@ -6119,7 +6126,7 @@ describe AssignmentsApiController, type: :request do
             allow(test_object).to receive(:update_api_peer_review_sub_assignment)
               .and_return(false)
 
-            result = test_object.send(:update_api_assignment, assignment, assignment_params, user)
+            result = test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
 
             expect(result).to be false
           end
@@ -6138,7 +6145,7 @@ describe AssignmentsApiController, type: :request do
 
             expect(assignment.association(:peer_review_sub_assignment)).to receive(:reload).and_call_original
 
-            test_object.send(:update_api_assignment, assignment, assignment_params, user)
+            test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
           end
 
           it "reloads peer_review_sub_assignment association when destroying existing peer review sub assignment" do
@@ -6148,7 +6155,7 @@ describe AssignmentsApiController, type: :request do
 
             expect(assignment.association(:peer_review_sub_assignment)).to receive(:reload).at_least(:once).and_call_original
 
-            result = test_object.send(:update_api_assignment, assignment, assignment_params, user)
+            result = test_object.send(:update_api_assignment, assignment, assignment_params, current_principal)
 
             expect(result).to eq(:ok)
             expect(peer_review_sub_assignment.reload.workflow_state).to eq("deleted")
@@ -6178,7 +6185,7 @@ describe AssignmentsApiController, type: :request do
             it "wraps assignment update and peer review update in transaction when peer_review_allocation_and_grading is enabled" do
               expect(Assignment).to receive(:transaction).at_least(:once).and_call_original
 
-              test_object.send(:update_api_assignment, assignment, assignment_params_with_overrides, user)
+              test_object.send(:update_api_assignment, assignment, assignment_params_with_overrides, current_principal)
             end
 
             it "raises error when peer review update fails" do
@@ -6186,7 +6193,7 @@ describe AssignmentsApiController, type: :request do
                 .and_raise(StandardError.new("Peer review update failed"))
 
               expect do
-                test_object.send(:update_api_assignment, assignment, assignment_params_with_overrides, user)
+                test_object.send(:update_api_assignment, assignment, assignment_params_with_overrides, current_principal)
               end.to raise_error(StandardError, "Peer review update failed")
             end
           end
@@ -6339,7 +6346,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
 
@@ -6348,7 +6355,7 @@ describe AssignmentsApiController, type: :request do
             due_at: (assignment.due_at + 1.day).iso8601
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be false
         end
 
@@ -6358,7 +6365,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: false
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be false
         end
 
@@ -6368,7 +6375,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
 
@@ -6380,7 +6387,7 @@ describe AssignmentsApiController, type: :request do
           ).permit!
 
           expect do
-            test_object.send(:update_api_assignment, assignment, params, user)
+            test_object.send(:update_api_assignment, assignment, params, current_principal)
           end.not_to raise_error
         end
 
@@ -6391,7 +6398,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
 
@@ -6401,7 +6408,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
 
@@ -6410,7 +6417,7 @@ describe AssignmentsApiController, type: :request do
             due_at: assignment.due_at.iso8601
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be false
         end
 
@@ -6424,7 +6431,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
 
@@ -6438,7 +6445,7 @@ describe AssignmentsApiController, type: :request do
             only_visible_to_overrides: true
           ).permit!
 
-          test_object.send(:update_api_assignment, assignment, params, user)
+          test_object.send(:update_api_assignment, assignment, params, current_principal)
           expect(assignment.only_visible_to_overrides).to be true
         end
       end
@@ -11612,6 +11619,11 @@ describe AssignmentsApiController, type: :request do
       @assignment = @course.assignments.create!(title: "some assignment")
     end
 
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) }
+    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
+    let(:admin_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@admin) }
+
     def strong_anything
       ArbitraryStrongishParams::ANYTHING
     end
@@ -11630,7 +11642,7 @@ describe AssignmentsApiController, type: :request do
                                                     "new_tab" => "0"
                                                   }
                                                 })
-      assignment = update_from_params(@assignment, params, @user)
+      assignment = update_from_params(@assignment, params, current_principal)
       tag = assignment.external_tool_tag
       expect(tag.content_id).to eq mh.id
       expect(tag.content_type).to eq "Lti::MessageHandler"
@@ -11676,7 +11688,7 @@ describe AssignmentsApiController, type: :request do
                                                     "new_tab" => "0"
                                                   }
                                                 })
-      assignment = update_from_params(@assignment, params, @user)
+      assignment = update_from_params(@assignment, params, current_principal)
       tag = assignment.external_tool_tag
       expect(tag.content_id).to eq tool.id
       expect(tag.content_type).to eq "ContextExternalTool"
@@ -11686,7 +11698,7 @@ describe AssignmentsApiController, type: :request do
       json = %({"key": "value"})
       params = ActionController::Parameters.new({ "integration_data" => json })
 
-      update_from_params(@assignment, params, @user)
+      update_from_params(@assignment, params, current_principal)
       expect(@assignment.integration_data).to eq({})
     end
 
@@ -11696,13 +11708,13 @@ describe AssignmentsApiController, type: :request do
       account_admin_user_with_role_changes(
         role_changes: { manage_sis: true }
       )
-      update_from_params(@assignment, params, @admin)
+      update_from_params(@assignment, params, admin_principal)
       expect(@assignment.integration_data).to eq({ "key" => "value" })
     end
 
     it "does not update sis_source_id when lacking permission" do
       params = ActionController::Parameters.new({ "sis_assignment_id" => "BLAH" })
-      update_from_params(@assignment, params, @user)
+      update_from_params(@assignment, params, current_principal)
       expect(@assignment.sis_source_id).to be_nil
     end
 
@@ -11711,20 +11723,20 @@ describe AssignmentsApiController, type: :request do
       account_admin_user_with_role_changes(
         role_changes: { manage_sis: true }
       )
-      update_from_params(@assignment, params, @admin)
+      update_from_params(@assignment, params, admin_principal)
       expect(@assignment.sis_source_id).to eq "BLAH"
     end
 
     it "sets sis_source_id to nil when provided an empty string" do
       params = ActionController::Parameters.new({ "sis_assignment_id" => "" })
       account_admin_user_with_role_changes(role_changes: { manage_sis: true })
-      update_from_params(@assignment, params, @admin)
+      update_from_params(@assignment, params, admin_principal)
       expect(@assignment.sis_source_id).to be_nil
     end
 
     it "does not update anonymous grading if the anonymous marking feature flag is not set" do
       params = ActionController::Parameters.new({ "anonymous_grading" => "true" })
-      update_from_params(@assignment, params, @teacher)
+      update_from_params(@assignment, params, teacher_principal)
       expect(@assignment.anonymous_grading).to be_falsey
     end
 
@@ -11743,7 +11755,7 @@ describe AssignmentsApiController, type: :request do
       it "updates the updated_at of related AssessmentRequests when anonymous_peer_reviews changes" do
         params = ActionController::Parameters.new({ "anonymous_peer_reviews" => "1" })
         expect do
-          update_from_params(@assignment, params, @teacher)
+          update_from_params(@assignment, params, teacher_principal)
         end.to change {
           @assessment_request.reload.updated_at
         }
@@ -11753,7 +11765,7 @@ describe AssignmentsApiController, type: :request do
         @assignment.update!(anonymous_peer_reviews: true)
         params = ActionController::Parameters.new({ "anonymous_peer_reviews" => "1" })
         expect do
-          update_from_params(@assignment, params, @teacher)
+          update_from_params(@assignment, params, teacher_principal)
         end.not_to change {
           @assessment_request.reload.updated_at
         }
@@ -11767,13 +11779,13 @@ describe AssignmentsApiController, type: :request do
 
       it "enables anonymous grading if anonymous_grading is true" do
         params = ActionController::Parameters.new({ "anonymous_grading" => "true" })
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
         expect(@assignment).to be_anonymous_grading
       end
 
       it "disables anonymous grading if anonymous_grading is false" do
         params = ActionController::Parameters.new({ "anonymous_grading" => "false" })
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
         expect(@assignment).not_to be_anonymous_grading
       end
 
@@ -11781,7 +11793,7 @@ describe AssignmentsApiController, type: :request do
         @assignment.anonymous_grading = true
 
         params = ActionController::Parameters.new({})
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
 
         expect(@assignment).to be_anonymous_grading
       end
@@ -11789,7 +11801,7 @@ describe AssignmentsApiController, type: :request do
       it "does not set final_grader_id if the assignment is not moderated" do
         options = { final_grader_id: @teacher.id }
         params = ActionController::Parameters.new(options.as_json)
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
         expect(@assignment.final_grader).to be_nil
       end
 
@@ -11802,7 +11814,7 @@ describe AssignmentsApiController, type: :request do
           @assignment.update!(final_grader: @teacher)
           options = { final_grader_id: "" }
           params = ActionController::Parameters.new(options.as_json)
-          update_from_params(@assignment, params, @teacher)
+          update_from_params(@assignment, params, teacher_principal)
           expect(@assignment.final_grader).to be_nil
         end
 
@@ -11810,14 +11822,14 @@ describe AssignmentsApiController, type: :request do
           @assignment.update!(final_grader: @teacher)
           options = { final_grader_id: nil }
           params = ActionController::Parameters.new(options.as_json)
-          update_from_params(@assignment, params, @teacher)
+          update_from_params(@assignment, params, teacher_principal)
           expect(@assignment.final_grader).to be_nil
         end
 
         it "sets the final_grader_id if the user exists" do
           options = { final_grader_id: @teacher.id }
           params = ActionController::Parameters.new(options.as_json)
-          update_from_params(@assignment, params, @teacher)
+          update_from_params(@assignment, params, teacher_principal)
           expect(@assignment.final_grader).to eq @teacher
         end
       end
@@ -11833,7 +11845,7 @@ describe AssignmentsApiController, type: :request do
       before do
         allow(@assignment).to receive(:finish_duplicating)
         allow(@assignment).to receive(:fail_to_duplicate)
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
       end
 
       context "when duplicated_successfully is true" do
@@ -11869,7 +11881,7 @@ describe AssignmentsApiController, type: :request do
       before do
         allow(@assignment).to receive(:finish_importing)
         allow(@assignment).to receive(:fail_to_import)
-        update_from_params(@assignment, params, @teacher)
+        update_from_params(@assignment, params, teacher_principal)
       end
 
       context "when cc_imported_successfully is true" do

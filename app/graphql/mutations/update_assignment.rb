@@ -76,7 +76,7 @@ class Mutations::UpdateAssignment < Mutations::AssignmentBase::Mutation
     # normal update now
     @working_assignment.content_being_saved_by(current_user)
     @working_assignment.updating_user = current_user
-    result = update_proxy.update_api_assignment(@working_assignment, ActionController::Parameters.new(input_hash), current_user, @working_assignment.context)
+    result = update_proxy.update_api_assignment(@working_assignment, ActionController::Parameters.new(input_hash), current_principal, @working_assignment.context)
 
     # return the result
     if [:ok, :created].include? result

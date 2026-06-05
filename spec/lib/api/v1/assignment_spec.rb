@@ -977,6 +977,7 @@ describe "Api::V1::Assignment" do
   describe "update lockdown browser settings" do
     let(:course) { Course.create! }
     let(:teacher) { course.enroll_teacher(User.create!, enrollment_state: "active").user }
+    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
 
     let(:initial_lockdown_browser_params) do
       ActionController::Parameters.new({
@@ -1010,7 +1011,7 @@ describe "Api::V1::Assignment" do
     end
 
     it "creates and updates lockdown browser settings" do
-      api.update_api_assignment(assignment, initial_lockdown_browser_params, teacher)
+      api.update_api_assignment(assignment, initial_lockdown_browser_params, teacher_principal)
       expect(assignment.settings["lockdown_browser"]).to eq(
         "require_lockdown_browser" => true,
         "require_lockdown_browser_for_results" => false,
@@ -1019,7 +1020,7 @@ describe "Api::V1::Assignment" do
         "access_code" => "magggic code"
       )
 
-      api.update_api_assignment(assignment, lockdown_browser_params, teacher)
+      api.update_api_assignment(assignment, lockdown_browser_params, teacher_principal)
       expect(assignment.settings["lockdown_browser"]).to eq(
         "require_lockdown_browser" => true,
         "require_lockdown_browser_for_results" => true,
@@ -1032,6 +1033,7 @@ describe "Api::V1::Assignment" do
 
   describe "Updating submission type" do
     let(:user) { user_model }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:course) { course_factory }
     let(:student) { course.enroll_student(User.create!, enrollment_state: "active").user }
     let(:assignment_update_params) do
@@ -1046,7 +1048,7 @@ describe "Api::V1::Assignment" do
         expect(assignment.submissions.having_submission.count).to eq 0
         expect(assignment.submission_types).to eq "none"
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.submission_types).to eq "on_paper"
@@ -1069,7 +1071,7 @@ describe "Api::V1::Assignment" do
       it "allows updating the submission_types field" do
         expect(assignment.external_tool?).to be false
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.external_tool?).to be true
@@ -1085,7 +1087,7 @@ describe "Api::V1::Assignment" do
       it "allows updating the submission_types field" do
         expect(assignment.submissions.having_submission.count).to eq 1
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.submission_types).to eq "on_paper"
@@ -1108,7 +1110,7 @@ describe "Api::V1::Assignment" do
       it "allows updating the submission entry options" do
         expect(assignment.submissions.having_submission.count).to eq 1
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.submission_types).to eq "online_url,online_upload"
@@ -1124,7 +1126,7 @@ describe "Api::V1::Assignment" do
       it "does not allow updating the submission_types field" do
         expect(assignment.submissions.having_submission.count).to eq 1
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.submission_types).to eq "online_quiz"
@@ -1133,7 +1135,7 @@ describe "Api::V1::Assignment" do
       it "allows updating other fields" do
         expect(assignment.submissions.having_submission.count).to eq 1
 
-        response = api.update_api_assignment(assignment, assignment_update_params, user)
+        response = api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(response).to eq :ok
         expect(assignment.name).to eq "Edited name"
@@ -1143,6 +1145,7 @@ describe "Api::V1::Assignment" do
 
   describe "update with the 'duplicated_successfully' parameter" do
     let(:user) { user_model }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:assignment) { assignment_model(workflow_state:, duplicate_of: original_assignment) }
 
     let(:assignment_update_params) do
@@ -1160,7 +1163,7 @@ describe "Api::V1::Assignment" do
 
           it "sets workflow_state to '#{original_state}'" do
             expect do
-              api.update_api_assignment(assignment, assignment_update_params, user)
+              api.update_api_assignment(assignment, assignment_update_params, current_principal)
             end.to change { assignment.workflow_state }.to(original_state)
           end
         end
@@ -1177,7 +1180,7 @@ describe "Api::V1::Assignment" do
 
         it "sets workflow_state to 'unpublished'" do
           expect do
-            api.update_api_assignment(assignment, assignment_update_params, user)
+            api.update_api_assignment(assignment, assignment_update_params, current_principal)
           end.to change { assignment.workflow_state }.to("unpublished")
         end
       end
@@ -1187,7 +1190,7 @@ describe "Api::V1::Assignment" do
 
         it "sets workflow_state to 'unpublished'" do
           expect do
-            api.update_api_assignment(assignment, assignment_update_params, user)
+            api.update_api_assignment(assignment, assignment_update_params, current_principal)
           end.to change { assignment.workflow_state }.to("unpublished")
         end
       end
@@ -1199,7 +1202,7 @@ describe "Api::V1::Assignment" do
         assignment.update!(workflow_state: "duplicating")
         assignment.root_account.enable_feature!(:course_copy_alignments)
         expect do
-          api.update_api_assignment(assignment, assignment_update_params, user)
+          api.update_api_assignment(assignment, assignment_update_params, current_principal)
         end.to change { assignment.workflow_state }.to("outcome_alignment_cloning")
       end
     end
@@ -1225,7 +1228,7 @@ describe "Api::V1::Assignment" do
 
       it "does not transition to another state" do
         expect do
-          api.update_api_assignment(assignment, assignment_update_params, user)
+          api.update_api_assignment(assignment, assignment_update_params, current_principal)
         end.not_to change { assignment.workflow_state }
       end
     end
@@ -1239,7 +1242,7 @@ describe "Api::V1::Assignment" do
       end
 
       it "sets workflow_state to 'published' regardless of the original assignment state" do
-        api.update_api_assignment(assignment, assignment_update_params, user)
+        api.update_api_assignment(assignment, assignment_update_params, current_principal)
 
         expect(assignment.duplicate_of.workflow_state).to eq "unpublished"
         expect(assignment.workflow_state).to eq "published"
@@ -1250,11 +1253,12 @@ describe "Api::V1::Assignment" do
   describe "when updating with 'alignment_cloned_successfully'" do
     let(:original_assignment) { assignment_model(workflow_state: "published") }
     let(:assignment) { assignment_model(workflow_state: "outcome_alignment_cloning", duplicate_of: original_assignment) }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user_model) }
 
     it "updates the state to the original state" do
       params =  ActionController::Parameters.new(alignment_cloned_successfully: true)
       assignment.root_account.enable_feature!(:course_copy_alignments)
-      api.update_api_assignment(assignment, params, user_model)
+      api.update_api_assignment(assignment, params, current_principal)
 
       expect(assignment.workflow_state).to eq original_assignment.workflow_state
     end
@@ -1262,7 +1266,7 @@ describe "Api::V1::Assignment" do
     it "updates the state to 'failed_to_clone_outcome_alignment'" do
       params =  ActionController::Parameters.new(alignment_cloned_successfully: false)
       assignment.root_account.enable_feature!(:course_copy_alignments)
-      api.update_api_assignment(assignment, params, user_model)
+      api.update_api_assignment(assignment, params, current_principal)
 
       expect(assignment.workflow_state).to eq "failed_to_clone_outcome_alignment"
     end
@@ -1270,7 +1274,7 @@ describe "Api::V1::Assignment" do
 
   describe "#create_api_assignment" do
     subject do
-      api.create_api_assignment(assignment, assignment_create_params, user, assignment.context)
+      api.create_api_assignment(assignment, assignment_create_params, current_principal, assignment.context)
       Assignment.last
     end
 
@@ -1291,6 +1295,7 @@ describe "Api::V1::Assignment" do
     let_once(:course) { course_model }
     let_once(:account) { assignment.root_account }
     let_once(:user) { user_model }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
 
     context "external tool url" do
       it "creates the assignment with the passed in URL" do
@@ -1434,7 +1439,7 @@ describe "Api::V1::Assignment" do
   end
 
   describe "#update_api_assignment" do
-    subject { api.update_api_assignment(assignment, assignment_update_params, user, assignment.context, opts) }
+    subject { api.update_api_assignment(assignment, assignment_update_params, current_principal, assignment.context, opts) }
 
     let(:opts) { {} }
     let(:user) { user_model }
@@ -2056,6 +2061,7 @@ describe "Api::V1::Assignment" do
   describe "transaction rollback when peer review creation fails" do
     let(:course) { course_factory(active_all: true) }
     let(:teacher) { teacher_in_course(course:, active_all: true).user }
+    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
     let(:section) { course.default_section }
 
     before do
@@ -2078,7 +2084,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2100,7 +2106,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2123,7 +2129,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2154,7 +2160,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2176,7 +2182,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
 
           expect(result).to eq(:created)
           expect(assignment).to be_persisted
@@ -2204,7 +2210,7 @@ describe "Api::V1::Assignment" do
           }
         )
 
-        result = api.update_api_assignment(existing_assignment, update_params, teacher, course)
+        result = api.update_api_assignment(existing_assignment, update_params, teacher_principal, course)
 
         expect(result).to be(false)
         existing_assignment.reload
@@ -2222,7 +2228,7 @@ describe "Api::V1::Assignment" do
           }
         )
 
-        result = api.update_api_assignment(existing_assignment, update_params, teacher, course)
+        result = api.update_api_assignment(existing_assignment, update_params, teacher_principal, course)
 
         expect(result).to be(false)
         existing_assignment.reload
@@ -2250,7 +2256,7 @@ describe "Api::V1::Assignment" do
             due_at: 6.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2267,7 +2273,7 @@ describe "Api::V1::Assignment" do
             lock_at: 9.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2282,7 +2288,7 @@ describe "Api::V1::Assignment" do
             due_at: 4.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to eq(:ok)
         end
@@ -2296,7 +2302,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
         end
 
         it "rolls back when parent due_at moves past peer review unlock_at and peer_review params have no dates" do
@@ -2310,7 +2316,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2331,7 +2337,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2358,7 +2364,7 @@ describe "Api::V1::Assignment" do
 
           update_params = ActionController::Parameters.new(name: assignment_with_peer_review.name)
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2384,7 +2390,7 @@ describe "Api::V1::Assignment" do
             due_at: 5.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(legacy_assignment, update_params, teacher, course)
+          result = api.update_api_assignment(legacy_assignment, update_params, teacher_principal, course)
 
           expect(result).to eq(:ok)
         end

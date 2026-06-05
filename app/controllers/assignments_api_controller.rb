@@ -1459,7 +1459,7 @@ class AssignmentsApiController < ApplicationController
       track_create_metrics(@assignment)
       result = create_api_assignment(@assignment,
                                      params.require(:assignment),
-                                     @current_user,
+                                     current_principal,
                                      @context,
                                      calculate_grades: params.delete(:calculate_grades))
 
@@ -1715,7 +1715,7 @@ class AssignmentsApiController < ApplicationController
       track_update_metrics(@assignment, params[:assignment])
 
       @assignment.skip_downstream_changes! if params[:skip_downstream_changes].present?
-      result = update_api_assignment(@assignment, params.require(:assignment), @current_user, @context, opts)
+      result = update_api_assignment(@assignment, params.require(:assignment), current_principal, @context, opts)
 
       opts[:include_peer_review] = @assignment.context.feature_enabled?(:peer_review_allocation_and_grading)
       render_create_or_update_result(result, opts)

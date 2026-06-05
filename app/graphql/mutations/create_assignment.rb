@@ -68,7 +68,7 @@ class Mutations::CreateAssignment < Mutations::AssignmentBase::Mutation
     @working_assignment.content_being_saved_by(current_user)
     @working_assignment.updating_user = current_user
 
-    result = api_proxy.create_api_assignment(@working_assignment, ActionController::Parameters.new(input_hash), current_user, @course)
+    result = api_proxy.create_api_assignment(@working_assignment, ActionController::Parameters.new(input_hash), current_principal, @course)
     if [:ok, :created].include? result
       # ensure the assignment is part of all required modules (this must be done after the assignment is created)
       ensure_modules(module_ids) if module_ids

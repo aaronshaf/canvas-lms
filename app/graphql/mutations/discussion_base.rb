@@ -206,7 +206,7 @@ class Mutations::DiscussionBase < Mutations::BaseMutation
   def update_ungraded_discussion(discussion_topic, overrides)
     return if discussion_topic.assignment.present? || discussion_topic.context_type == "Group" || discussion_topic.is_announcement
 
-    batch = prepare_assignment_overrides_for_batch_update(discussion_topic, overrides, @current_user) if overrides
+    batch = prepare_assignment_overrides_for_batch_update(discussion_topic, overrides, current_principal) if overrides
     discussion_topic.transaction do
       perform_batch_update_assignment_overrides(discussion_topic, batch) if overrides
       # this is temporary until we are able to remove the dicussion_topic_section_visibilities table

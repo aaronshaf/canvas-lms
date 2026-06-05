@@ -662,10 +662,10 @@ module Api::V1::Assignment
     store_in_index
   ].freeze
 
-  def create_api_assignment(assignment, assignment_params, user, context = assignment.context, calculate_grades: nil)
+  def create_api_assignment(assignment, assignment_params, current_principal, context = assignment.context, calculate_grades: nil)
     return :forbidden unless grading_periods_allow_submittable_create?(assignment, assignment_params)
 
-    prepared_create = prepare_assignment_create_or_update(assignment, assignment_params, user, context)
+    prepared_create = prepare_assignment_create_or_update(assignment, assignment_params, current_principal, context)
     return false unless prepared_create[:valid]
 
     response = :created
@@ -691,7 +691,7 @@ module Api::V1::Assignment
         Assignment.transaction do
           prepared_create[:assignment].skip_peer_review_sub_assignment_sync = true
           response = if prepared_create[:overrides].present?
-                       create_api_assignment_with_overrides(prepared_create, user)
+                       create_api_assignment_with_overrides(prepared_create, current_principal)
                      else
                        prepared_create[:assignment].save!
                        :created
@@ -715,7 +715,7 @@ module Api::V1::Assignment
         end
       else
         response = if prepared_create[:overrides].present?
-                     create_api_assignment_with_overrides(prepared_create, user)
+                     create_api_assignment_with_overrides(prepared_create, current_principal)
                    else
                      prepared_create[:assignment].save!
                      :created
@@ -724,14 +724,14 @@ module Api::V1::Assignment
     end
 
     calc_grades = calculate_grades ? value_to_boolean(calculate_grades) : true
-    SubmissionLifecycleManager.recompute(prepared_create[:assignment], update_grades: calc_grades, executing_user: user)
+    SubmissionLifecycleManager.recompute(prepared_create[:assignment], update_grades: calc_grades, executing_user: current_principal&.user)
 
     # Recompute peer review sub assignment to ensure cached_due_date is updated
     if has_peer_reviews && prepared_create[:assignment].peer_review_sub_assignment.present?
       SubmissionLifecycleManager.recompute(
         prepared_create[:assignment].peer_review_sub_assignment,
         update_grades: calc_grades,
-        executing_user: user
+        executing_user: current_principal&.user
       )
     end
 
@@ -740,12 +740,12 @@ module Api::V1::Assignment
     false
   end
 
-  def update_api_assignment(assignment, assignment_params, user, context = assignment.context, opts = {})
+  def update_api_assignment(assignment, assignment_params, current_principal, context = assignment.context, opts = {})
     return :forbidden unless grading_periods_allow_submittable_update?(assignment, assignment_params)
 
     # Trying to change the "everyone" due date when the assignment is restricted to a specific section
     # creates an "everyone else" section
-    prepared_update = prepare_assignment_create_or_update(assignment, assignment_params, user, context)
+    prepared_update = prepare_assignment_create_or_update(assignment, assignment_params, current_principal, context)
     return false unless prepared_update[:valid]
 
     handle_only_visible_to_overrides!(assignment, assignment_params)
@@ -765,7 +765,7 @@ module Api::V1::Assignment
       if peer_review_grading_enabled
         Assignment.transaction do
           response = if prepared_update[:overrides]
-                       update_api_assignment_with_overrides(prepared_update, user)
+                       update_api_assignment_with_overrides(prepared_update, current_principal)
                      else
                        if assignment_params["force_updated_at"] && !prepared_update[:assignment].changed?
                          prepared_update[:assignment].touch
@@ -806,7 +806,7 @@ module Api::V1::Assignment
         end
       else
         response = if prepared_update[:overrides]
-                     update_api_assignment_with_overrides(prepared_update, user)
+                     update_api_assignment_with_overrides(prepared_update, current_principal)
                    else
                      if assignment_params["force_updated_at"] && !prepared_update[:assignment].changed?
                        prepared_update[:assignment].touch
@@ -821,7 +821,7 @@ module Api::V1::Assignment
     if @overrides_affected.to_i > 0 || cached_due_dates_changed
       assignment.clear_cache_key(:availability)
       assignment.quiz.clear_cache_key(:availability) if assignment.quiz?
-      SubmissionLifecycleManager.recompute(prepared_update[:assignment], update_grades: true, executing_user: user)
+      SubmissionLifecycleManager.recompute(prepared_update[:assignment], update_grades: true, executing_user: current_principal&.user)
     end
 
     # Recompute peer review sub assignment to ensure cached_due_date is updated
@@ -833,7 +833,7 @@ module Api::V1::Assignment
       SubmissionLifecycleManager.recompute(
         prepared_update[:assignment].peer_review_sub_assignment,
         update_grades: true,
-        executing_user: user
+        executing_user: current_principal&.user
       )
     end
 
@@ -855,7 +855,7 @@ module Api::V1::Assignment
         migration_type = "course_copy_importer"
         plugin = Canvas::Plugin.find(migration_type)
         content_migration = context.content_migrations.build(
-          user:,
+          user: current_principal&.user,
           context:,
           migration_type:,
           initiated_source: :new_quizzes
@@ -1014,7 +1014,7 @@ module Api::V1::Assignment
     false
   end
 
-  def update_from_params(assignment, assignment_params, user, context = assignment.context)
+  def update_from_params(assignment, assignment_params, current_principal, context = assignment.context)
     update_params = assignment_params.permit(allowed_assignment_input_fields(assignment))
 
     if update_params.key?("peer_reviews_assign_at")
@@ -1057,7 +1057,7 @@ module Api::V1::Assignment
 
     if update_params.key?("grading_standard_id")
       standard_id = update_params.delete("grading_standard_id")
-      if assignment.grants_right?(user, :set_grading_scheme)
+      if assignment.grants_right?(current_principal, :set_grading_scheme)
         if standard_id.present?
           grading_standard = GradingStandard.for(context).where(id: standard_id).first
           assignment.grading_standard = grading_standard if grading_standard
@@ -1067,7 +1067,7 @@ module Api::V1::Assignment
       end
     end
 
-    if assignment.context.grants_right?(user, :manage_sis)
+    if assignment.context.grants_right?(current_principal, :manage_sis)
       if update_params.key?("sis_assignment_id") && update_params["sis_assignment_id"].blank?
         update_params["sis_assignment_id"] = nil
       end
@@ -1110,7 +1110,7 @@ module Api::V1::Assignment
     # TODO: allow rubric creation
 
     if update_params.key?("description")
-      assignment.saving_user = user
+      assignment.saving_user = current_principal&.user
       update_params["description"] = process_incoming_html_content(update_params["description"])
     end
 
@@ -1204,7 +1204,7 @@ module Api::V1::Assignment
 
     apply_report_visibility_options!(assignment_params, assignment)
 
-    assignment.updating_user = user
+    assignment.updating_user = current_principal&.user
     assignment.attributes = update_params
     assignment.infer_times
 
@@ -1320,7 +1320,7 @@ module Api::V1::Assignment
     end
   end
 
-  def prepare_assignment_create_or_update(assignment, assignment_params, user, context = assignment.context)
+  def prepare_assignment_create_or_update(assignment, assignment_params, current_principal, context = assignment.context)
     raise "needs strong params" unless assignment_params.is_a?(ActionController::Parameters)
 
     if assignment_params[:points_possible].blank? &&
@@ -1360,10 +1360,10 @@ module Api::V1::Assignment
       return invalid
     end
 
-    return invalid unless update_parameters_valid?(assignment, assignment_params, user, overrides)
+    return invalid unless update_parameters_valid?(assignment, assignment_params, current_principal, overrides)
 
-    updated_assignment = update_from_params(assignment, assignment_params, user, context)
-    return invalid unless assignment_editable_fields_valid?(updated_assignment, user)
+    updated_assignment = update_from_params(assignment, assignment_params, current_principal, context)
+    return invalid unless assignment_editable_fields_valid?(updated_assignment, current_principal&.user)
     return invalid unless assignment_final_grader_valid?(updated_assignment, context)
 
     external_tool_tag_attributes = assignment_params[:external_tool_tag_attributes]
@@ -1394,7 +1394,7 @@ module Api::V1::Assignment
       assignment.line_item_tag = line_item[:tag]
     end
 
-    assignment.saving_user = user
+    assignment.saving_user = current_principal&.user
 
     {
       assignment:,
@@ -1405,7 +1405,7 @@ module Api::V1::Assignment
     }
   end
 
-  def create_api_assignment_with_overrides(prepared_update, user)
+  def create_api_assignment_with_overrides(prepared_update, current_principal)
     assignment = prepared_update[:assignment]
     overrides = prepared_update[:overrides]
 
@@ -1414,7 +1414,7 @@ module Api::V1::Assignment
     assignment.transaction do
       assignment.validate_overrides_for_sis(overrides)
       assignment.save_without_broadcasting!
-      batch_update_assignment_overrides(assignment, overrides, user)
+      batch_update_assignment_overrides(assignment, overrides, current_principal)
     end
 
     assignment.do_notifications!(prepared_update[:old_assignment], notify: prepared_update[:notify_of_update])
@@ -1426,7 +1426,7 @@ module Api::V1::Assignment
     tag_overrides.each(&:destroy!)
   end
 
-  def update_api_assignment_with_overrides(prepared_update, user)
+  def update_api_assignment_with_overrides(prepared_update, current_principal)
     assignment = prepared_update[:assignment]
     overrides = prepared_update[:overrides]
 
@@ -1439,7 +1439,7 @@ module Api::V1::Assignment
       end
     end
 
-    prepared_batch = prepare_assignment_overrides_for_batch_update(assignment, overrides, user)
+    prepared_batch = prepare_assignment_overrides_for_batch_update(assignment, overrides, current_principal)
 
     return :forbidden unless grading_periods_allow_assignment_overrides_batch_update?(assignment, prepared_batch)
 
@@ -1457,7 +1457,7 @@ module Api::V1::Assignment
       # category is changing, remove overrides for old groups first so we don't
       # fail validation
       assignment.validate_assignment_overrides if assignment.will_save_change_to_group_category_id?
-      assignment.updating_user = user
+      assignment.updating_user = current_principal&.user
       assignment.save_without_broadcasting!
       perform_batch_update_assignment_overrides(assignment, prepared_batch)
     end
@@ -1478,7 +1478,7 @@ module Api::V1::Assignment
       (custom_params.respond_to?(:to_unsafe_h) && Lti::DeepLinkingUtil.valid_custom_params?(custom_params.to_unsafe_h))
   end
 
-  def update_parameters_valid?(assignment, assignment_params, user, overrides)
+  def update_parameters_valid?(assignment, assignment_params, current_principal, overrides)
     return false unless !overrides || overrides.is_a?(Array)
     return false unless assignment_group_id_valid?(assignment, assignment_params)
     return false unless assignment_dates_valid?(assignment, assignment_params)
@@ -1488,7 +1488,7 @@ module Api::V1::Assignment
       return false unless assignment_params.key?(:annotatable_attachment_id)
 
       attachment = Attachment.find_by(id: assignment_params[:annotatable_attachment_id])
-      return false unless attachment&.grants_right?(user, :read)
+      return false unless attachment&.grants_right?(current_principal, :read)
     end
 
     true

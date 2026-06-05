@@ -357,7 +357,7 @@ class LearningObjectDatesController < ApplicationController
 
   def update_assignment(assignment, params)
     assignment.updating_user = @current_user
-    result = update_api_assignment(assignment, params, @current_user)
+    result = update_api_assignment(assignment, params, current_principal)
     return head :no_content if [:created, :ok].include?(result)
 
     render json: assignment.errors, status: (result == :forbidden) ? :forbidden : :bad_request
@@ -462,7 +462,7 @@ class LearningObjectDatesController < ApplicationController
 
     overrides = params.delete :assignment_overrides
     if overrides
-      batch = prepare_assignment_overrides_for_batch_update(quiz, overrides, @current_user)
+      batch = prepare_assignment_overrides_for_batch_update(quiz, overrides, current_principal)
       return render json: quiz.errors, status: :forbidden unless grading_periods_allow_assignment_overrides_batch_update?(quiz, batch)
 
       quiz.assignment&.validate_overrides_for_sis(overrides)
@@ -497,7 +497,7 @@ class LearningObjectDatesController < ApplicationController
       params.delete(:only_visible_to_overrides)
     end
 
-    batch = prepare_assignment_overrides_for_batch_update(object, overrides, @current_user) if overrides
+    batch = prepare_assignment_overrides_for_batch_update(object, overrides, current_principal) if overrides
     object.transaction do
       object.update!(params)
       perform_batch_update_assignment_overrides(object, batch) if overrides
