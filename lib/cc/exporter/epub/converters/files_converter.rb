@@ -37,11 +37,11 @@ module CC::Exporter::Epub::Converters
           return flv_path
         end
 
-        f = File.open(mp4_path, "wb")
-        CanvasHttp.get(mp4_url) do |response|
-          f.write(response.body)
+        File.open(mp4_path, "wb") do |f|
+          CanvasHttp.get(mp4_url) do |response|
+            f.write(response.body)
+          end
         end
-        f.close
 
         mp4_path
       end

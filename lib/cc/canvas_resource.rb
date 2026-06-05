@@ -100,14 +100,11 @@ module CC
     #   but still need some type of flag.
     def create_canvas_export_flag
       path = File.join(@canvas_resource_dir, "canvas_export.txt")
-      canvas_export_file = File.open(path, "w")
-
       # Fun panda joke!
-      canvas_export_file << <<~TEXT
+      File.write(path, <<~TEXT)
         Q: What did the panda say when he was forced out of his natural habitat?
         A: This is un-BEAR-able
       TEXT
-      canvas_export_file.close
     end
 
     # This is used to identify the source course of a content export
@@ -115,8 +112,11 @@ module CC
       unless document
         rel_path = File.join(CCHelper::COURSE_SETTINGS_DIR, CCHelper::CONTEXT_INFO)
         path = File.join(@canvas_resource_dir, CCHelper::CONTEXT_INFO)
-        file = File.open(path, "w")
-        document = Builder::XmlMarkup.new(target: file, indent: 2)
+        File.open(path, "w") do |file|
+          document = Builder::XmlMarkup.new(target: file, indent: 2)
+          create_context_info(document)
+        end
+        return rel_path
       end
 
       document.instruct!
@@ -133,7 +133,6 @@ module CC
         end
       end
 
-      file&.close
       rel_path
     end
 
@@ -143,7 +142,10 @@ module CC
       unless io_object
         syl_rel_path = File.join(CCHelper::COURSE_SETTINGS_DIR, CCHelper::SYLLABUS)
         path = File.join(@canvas_resource_dir, CCHelper::SYLLABUS)
-        io_object = File.open(path, "w")
+        File.open(path, "w") do |io_object|
+          create_syllabus(io_object)
+        end
+        return syl_rel_path
       end
       io_object << @html_exporter.html_page(@course.syllabus_body || "", "Syllabus")
       io_object.close

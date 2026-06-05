@@ -117,38 +117,39 @@ class CanvasUnzip
   def self.each_entry(archive_filename)
     raise ArgumentError, "no block given" unless block_given?
 
-    file = File.open(archive_filename)
-    mime_type = File.mime_type(file)
+    File.open(archive_filename) do |file|
+      mime_type = File.mime_type(file)
 
-    # on some systems `file` fails to recognize a zip file with no entries; fall back on using the extension
-    mime_type = File.mime_type(archive_filename) if mime_type == "application/octet-stream"
+      # on some systems `file` fails to recognize a zip file with no entries; fall back on using the extension
+      mime_type = File.mime_type(archive_filename) if mime_type == "application/octet-stream"
 
-    if ["application/x-gzip", "application/gzip"].include? mime_type
-      file = Zlib::GzipReader.new(file)
-      mime_type = "application/x-tar" # it may not actually be a tar though, so rescue if there's a problem
-    end
-
-    case mime_type
-    when "application/zip"
-      Zip::File.open(file) do |zipfile|
-        zipfile.entries.each_with_index do |zip_entry, index|
-          yield(Entry.new(zip_entry), index)
-        end
+      if ["application/x-gzip", "application/gzip"].include? mime_type
+        file = Zlib::GzipReader.new(file)
+        mime_type = "application/x-tar" # it may not actually be a tar though, so rescue if there's a problem
       end
-    when "application/x-tar"
-      index = 0
-      begin
-        Gem::Package::TarReader.new(file).each do |tar_entry|
-          next if tar_entry.header.typeflag == "x"
 
-          yield(Entry.new(tar_entry), index)
-          index += 1
+      case mime_type
+      when "application/zip"
+        Zip::File.open(file) do |zipfile|
+          zipfile.entries.each_with_index do |zip_entry, index|
+            yield(Entry.new(zip_entry), index)
+          end
         end
-      rescue Gem::Package::TarInvalidError
-        raise UnknownArchiveType, "invalid tar"
+      when "application/x-tar"
+        index = 0
+        begin
+          Gem::Package::TarReader.new(file).each do |tar_entry|
+            next if tar_entry.header.typeflag == "x"
+
+            yield(Entry.new(tar_entry), index)
+            index += 1
+          end
+        rescue Gem::Package::TarInvalidError
+          raise UnknownArchiveType, "invalid tar"
+        end
+      else
+        raise UnknownArchiveType, "unknown mime type #{mime_type} for archive #{File.basename(archive_filename)}"
       end
-    else
-      raise UnknownArchiveType, "unknown mime type #{mime_type} for archive #{File.basename(archive_filename)}"
     end
   end
 

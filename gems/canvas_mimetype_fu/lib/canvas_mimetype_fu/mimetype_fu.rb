@@ -26,16 +26,19 @@ class File
     elsif file.instance_of?(String)
       mime = extensions[File.extname(file)[1..]&.downcase]
     elsif file.respond_to?(:string)
-      temp = File.open(Dir.tmpdir + "/upload_file." + Process.pid.to_s, "wb")
-      temp << file.string
-      temp.close
-      # INSTRUCTURE: changed to IO.popen to be sane and consistent. This one shouldn't be able to contain a user
-      # specified path, but that's no reason to not do things the right way.
-      mime = IO.popen(["file", "--mime", "--brief", "--raw", "--", temp.path], &:read).strip
-      mime = mime.gsub(/^.*: */, "")
-      mime = mime.gsub(/;.*$/, "")
-      mime = mime.gsub(/,.*$/, "")
-      File.delete(temp.path)
+      File.open(Dir.tmpdir + "/upload_file." + Process.pid.to_s, "wb") do |temp|
+        temp << file.string
+        temp.close
+
+        # INSTRUCTURE: changed to IO.popen to be sane and consistent. This one shouldn't be able to contain a user
+        # specified path, but that's no reason to not do things the right way.
+        mime = IO.popen(["file", "--mime", "--brief", "--raw", "--", temp.path], &:read).strip
+        mime = mime.gsub(/^.*: */, "")
+        mime = mime.gsub(/;.*$/, "")
+        mime = mime.gsub(/,.*$/, "")
+      ensure
+        File.delete(temp.path)
+      end
     end
 
     mime = mime&.split(";")&.first

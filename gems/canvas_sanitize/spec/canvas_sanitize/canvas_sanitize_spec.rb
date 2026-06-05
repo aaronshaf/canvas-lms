@@ -505,11 +505,12 @@ describe CanvasSanitize do
   Dir.glob(File.expand_path(File.join(__FILE__, "..", "..", "fixtures", "xss", "*.xss"))) do |filename|
     name = File.split(filename).last
     it "sanitizes xss attempts for #{name}" do
-      f = File.open(filename)
-      check = f.readline.strip
-      str = f.read
-      res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
-      expect(res.downcase).not_to match(Regexp.new(check.downcase))
+      File.open(filename) do |f|
+        check = f.readline.strip
+        str = f.read
+        res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+        expect(res.downcase).not_to match(Regexp.new(check.downcase))
+      end
     end
   end
 end

@@ -57,19 +57,11 @@ module IncomingMailProcessor
     end
 
     def get_expected_text(name)
-      file = File.open(MAIL_FIXTURES_PATH + "expected/" + name + ".text_body", "rb")
-      content = file.read
-      file.close
-
-      content
+      File.read(MAIL_FIXTURES_PATH + "expected/" + name + ".text_body", mode: "rb")
     end
 
     def get_expected_html(name)
-      file = File.open(MAIL_FIXTURES_PATH + "expected/" + name + ".html_body", "rb")
-      content = file.read
-      file.close
-
-      content
+      File.read(MAIL_FIXTURES_PATH + "expected/" + name + ".html_body", mode: "rb")
     end
 
     def test_message(filename)

@@ -16,7 +16,7 @@ def remove_signature(filename)
 
   contents = File.read(filename)
   contents.gsub!(/\A\# Schema version: \d{14}\z/, "# ")
-  fp = File.open(filename, "w")
-  fp.puts contents
-  fp.close
+  File.open(filename, "w") do |fp|
+    fp.puts contents
+  end
 end

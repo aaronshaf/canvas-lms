@@ -378,7 +378,7 @@ module AttachmentFu # :nodoc:
           begin
             io = file_data
             if file_from_path
-              io = File.open(temp_path, "rb")
+              io = File.open(temp_path, "rb") # rubocop:disable Style/FileOpen
             end
             io.rewind
             io.each_line do |line|

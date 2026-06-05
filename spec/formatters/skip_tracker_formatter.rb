@@ -78,7 +78,7 @@ module RSpec
         @existing_data = read_existing_data_from_file(output_path)
 
         # Open file in write mode - we'll merge with existing data in close()
-        custom_output = File.open(output_path, "w")
+        custom_output = File.open(output_path, "w") # rubocop:disable Style/FileOpen
         super(custom_output)
       else
         super

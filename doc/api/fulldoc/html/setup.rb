@@ -289,7 +289,7 @@ def serialize_redirect(filename)
 end
 
 def extract_page_title_from_markdown(file)
-  File.open(file).readline
+  File.open(file, &:readline)
 end
 
 def generate_data_services_markdown_pages

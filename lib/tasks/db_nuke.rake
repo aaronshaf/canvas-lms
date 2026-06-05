@@ -17,9 +17,7 @@ namespace :db do
         begin
           FileUtils.rm_f(dbfile)
         rescue
-          f = File.open(dbfile, "w")
-          f.write("")
-          f.close
+          File.write(dbfile, "")
         end
         ActiveRecord::Base.establish_connection(db.to_sym)
       else
