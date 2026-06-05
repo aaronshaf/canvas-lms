@@ -39,7 +39,7 @@ module RuboCop
 
           add_offense(node,
                       message: "All `delay`s in migrations should be `delay_if_production`",
-                      severity: :error)
+                      severity: :warning)
         end
       end
     end

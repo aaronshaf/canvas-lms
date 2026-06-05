@@ -118,8 +118,7 @@ module RuboCop
         def check_add_index(node)
           if algorithm_concurrently?(node) && !@non_transactional
             add_offense(node,
-                        message: "Concurrent index adds require `disable_ddl_transaction!`",
-                        severity: :error)
+                        message: "Concurrent index adds require `disable_ddl_transaction!`")
           end
 
           check_if_not_exists(node)
@@ -131,18 +130,15 @@ module RuboCop
           if @in_change_table
             if if_not_exists?(node)
               add_offense(node,
-                          message: "Inside batch table operations, use `unless t.column_exists?(:name)` not `if_not_exists: true`",
-                          severity: :error)
+                          message: "Inside batch table operations, use `unless t.column_exists?(:name)` not `if_not_exists: true`")
             end
             unless unless_exists_conditional?(node)
               add_offense(node,
-                          message: "Non-transactional migrations should be idempotent; add `unless t.column_exists?(:name)` or equivalent",
-                          severity: :error)
+                          message: "Non-transactional migrations should be idempotent; add `unless t.column_exists?(:name)` or equivalent")
             end
           elsif !if_not_exists?(node)
             add_offense(node,
-                        message: "Non-transactional migrations should be idempotent; add `if_not_exists: true`",
-                        severity: :error)
+                        message: "Non-transactional migrations should be idempotent; add `if_not_exists: true`")
           end
         end
 
@@ -152,18 +148,15 @@ module RuboCop
           if @in_change_table
             if if_exists?(node)
               add_offense(node,
-                          message: "Inside batch table operations, use `if t.column_exists?(:name)` not `if_exists: true`",
-                          severity: :error)
+                          message: "Inside batch table operations, use `if t.column_exists?(:name)` not `if_exists: true`")
             end
             unless if_exists_conditional?(node)
               add_offense(node,
-                          message: "Non-transactional migrations should be idempotent; add `if t.column_exists?(:name)` or equivalent",
-                          severity: :error)
+                          message: "Non-transactional migrations should be idempotent; add `if t.column_exists?(:name)` or equivalent")
             end
           elsif !if_exists?(node)
             add_offense(node,
-                        message: "Non-transactional migrations should be idempotent; add `if_exists: true`",
-                        severity: :error)
+                        message: "Non-transactional migrations should be idempotent; add `if_exists: true`")
           end
         end
 

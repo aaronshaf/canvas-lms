@@ -29,8 +29,7 @@ module RuboCop
                     kwargs.keys.map(&:value).intersect?(%i[strand n_strand singleton])
 
           add_offense(node,
-                      message: "when queuing downstream jobs in a datafixup, they need to be a strand or n_strand",
-                      severity: :error)
+                      message: "when queuing downstream jobs in a datafixup, they need to be a strand or n_strand")
         end
       end
     end

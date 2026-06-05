@@ -54,7 +54,7 @@ module RuboCop
             child.to_a[2].children[0] == BLOCK_ARG
           end
 
-          add_offense node, message: MSG, severity: :warning
+          add_offense node, message: MSG
         end
       end
     end

@@ -34,7 +34,7 @@ module RuboCop
         RESTRICT_ON_SEND = [:change_column, :rename_column].freeze
 
         def on_send(node)
-          add_offense(node, severity: :warning) if change_column?(node) || rename_column?(node)
+          add_offense(node) if change_column?(node) || rename_column?(node)
         end
       end
     end

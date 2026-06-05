@@ -34,7 +34,7 @@ module RuboCop
           return unless method_name == METHOD
           return unless receiver.children[1] == RECEIVER
 
-          add_offense node, message: MSG, severity: :warning
+          add_offense node, message: MSG
         end
       end
     end

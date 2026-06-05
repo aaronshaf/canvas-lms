@@ -69,7 +69,7 @@ module RuboCop
           has_constraint = check_constraints_in_block(node).any? { |sql| sql.include?("workflow_state") }
           return if has_constraint
 
-          ws_nodes.each { |n| add_offense(n, message: MSG, severity: :warning) }
+          ws_nodes.each { |n| add_offense(n, message: MSG) }
         end
 
         def on_send(node)
@@ -80,7 +80,7 @@ module RuboCop
           has_constraint = standalone_check_constraints(@current_def_node).any? { |sql| sql.include?("workflow_state") }
           return if has_constraint
 
-          add_offense(node, message: MSG, severity: :warning)
+          add_offense(node, message: MSG)
         end
       end
     end

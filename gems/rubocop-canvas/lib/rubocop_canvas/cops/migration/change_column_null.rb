@@ -48,8 +48,8 @@ module RuboCop
           return if @current_def == :down
 
           if change_column_not_null?(node)
-            add_offense node, message: BACKFILL_NULLS_MSG, severity: :warning unless @backfill_nulls
-            add_offense @class_node || node, message: NON_TRANSACTIONAL_MSG, severity: :warning unless @non_transactional
+            add_offense node, message: BACKFILL_NULLS_MSG unless @backfill_nulls
+            add_offense @class_node || node, message: NON_TRANSACTIONAL_MSG unless @non_transactional
           end
         end
       end

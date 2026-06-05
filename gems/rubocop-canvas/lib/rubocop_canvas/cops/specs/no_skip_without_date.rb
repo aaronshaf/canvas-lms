@@ -60,7 +60,7 @@ module RuboCop
           return if contains_date?(reason)
 
           # If no related comments contain the date format, add an offense.
-          add_offense node, message: MSG, severity: :error
+          add_offense node, message: MSG
         end
 
         # Check for skip in RSpec metadata (e.g., context "name", skip: "reason")
@@ -74,7 +74,7 @@ module RuboCop
             skip_reason = value_node.value
             next if skip_reason.match?(DATE_REGEX)
 
-            add_offense pair, message: MSG, severity: :error
+            add_offense pair, message: MSG
           end
         end
 

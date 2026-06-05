@@ -46,7 +46,7 @@ module RuboCop
         def on_const(node)
           return unless bad_const?(node)
 
-          add_offense node, message: MSG, severity: :warning
+          add_offense node, message: MSG
         end
       end
     end

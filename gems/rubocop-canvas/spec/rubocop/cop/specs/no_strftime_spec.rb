@@ -30,6 +30,5 @@ describe RuboCop::Cop::Specs::NoStrftime do
     })
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/Avoid using strftime/)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

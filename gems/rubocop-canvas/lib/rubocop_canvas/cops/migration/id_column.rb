@@ -45,7 +45,7 @@ module RuboCop
           column_name = add_integer_column(node) || t_integer(node) || t_column_integer(node)
           return unless column_name&.to_s&.end_with?("_id")
 
-          add_offense(node, severity: :warning)
+          add_offense(node)
         end
       end
     end

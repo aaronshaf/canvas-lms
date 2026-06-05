@@ -35,7 +35,7 @@ module RuboCop
             if predeploy?
               add_offense(node, message: POSTDEPLOY_MSG, severity: :error)
             else
-              add_offense(node, message: IGNORED_COLUMNS_MSG, severity: :convention)
+              add_offense(node, message: IGNORED_COLUMNS_MSG)
             end
           end
         end

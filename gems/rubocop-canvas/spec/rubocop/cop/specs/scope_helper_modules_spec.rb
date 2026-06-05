@@ -107,6 +107,5 @@ describe RuboCop::Cop::Specs::ScopeHelperModules do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/Define all helper/)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

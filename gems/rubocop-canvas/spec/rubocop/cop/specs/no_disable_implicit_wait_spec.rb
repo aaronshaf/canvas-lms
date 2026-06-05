@@ -41,6 +41,5 @@ describe RuboCop::Cop::Specs::NoDisableImplicitWait do
     })
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/disable_implicit_wait/)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

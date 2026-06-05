@@ -30,6 +30,5 @@ describe RuboCop::Cop::Specs::NoExecuteScript do
     })
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/execute_script/)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

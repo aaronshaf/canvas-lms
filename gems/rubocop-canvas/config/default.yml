@@ -1,11 +1,13 @@
 Datafixup/EagerLoad:
   Enabled: true
+  Severity: error
   Include:
     - "**/db/migrate/*.rb"
     - "**/lib/data_fixup/*.rb"
 
 Datafixup/StrandDownstreamJobs:
   Enabled: true
+  Severity: warning
   Include:
     - "**/lib/data_fixup/*.rb"
 
@@ -18,27 +20,31 @@ Lint/NoSleep:
     - "**/spec/selenium/test_setup/**/*.rb"
 
 Migration/AddIndex:
-  Enable: true
+  Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
 Migration/AddForeignKey:
-  Enable: true
+  Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
 Migration/BooleanColumns:
-  Enable: true
+  Enabled: true
   Include:
     - "**/db/migrate/*.rb"
 
 Migration/ChangeColumn:
   Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
 Migration/ChangeColumnNull:
   Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
@@ -54,6 +60,7 @@ Migration/DataFixup:
 
 Migration/Delay:
   Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
@@ -64,11 +71,13 @@ Migration/Execute:
 
 Migration/IdColumn:
   Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
 Migration/FunctionUnqualifiedTable:
   Enabled: true
+  Severity: error
   Include:
     - "**/db/migrate/*.rb"
 
@@ -85,6 +94,7 @@ Migration/Predeploy:
 
 Migration/PrimaryKey:
   Enabled: true
+  Severity: warning
   Include:
     - "**/db/migrate/*.rb"
 
@@ -95,6 +105,7 @@ Migration/RemoveColumn:
 
 Migration/RenameTable:
   Enabled: true
+  Severity: error
   Include:
     - "**/db/migrate/*.rb"
 
@@ -110,6 +121,7 @@ Migration/SendLater:
 
 Migration/SetReplicaIdentityInSeparateTransaction:
   Enabled: true
+  Severity: error
   Include:
     - "**/db/migrate/*.rb"
 
@@ -123,12 +135,14 @@ Rails/SmartTimeZone:
 
 Specs/EnsureSpecExtension:
   Enabled: true
+  Severity: error
   Include:
     - "**/spec/**/*.rb"
     - "**/spec_canvas/**/*.rb"
 
 Specs/NoBeforeOnceStubs:
   Enabled: true
+  Severity: warning
   Include:
     - "**/spec/**/*.rb"
     - "**/spec_canvas/**/*.rb"
@@ -163,8 +177,17 @@ Specs/NoSeleniumWebDriverWait:
   Exclude:
     - "**/spec/selenium/test_setup/**/*.rb"
 
+Specs/NoSkipWithoutDate:
+  Enabled: true
+  Severity: error
+  Include:
+    - "**/spec/**/*.rb"
+    - "**/spec_canvas/**/*.rb"
+
+
 Specs/NoSkipWithoutTicket:
   Enabled: true
+  Severity: error
   Include:
     - "**/spec/**/*.rb"
     - "**/spec_canvas/**/*.rb"

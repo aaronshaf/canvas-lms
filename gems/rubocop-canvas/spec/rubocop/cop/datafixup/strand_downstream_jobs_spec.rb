@@ -30,7 +30,6 @@ describe RuboCop::Cop::Datafixup::StrandDownstreamJobs do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/strand/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "requires a strand on a delay when there are other arguments" do
@@ -43,7 +42,6 @@ describe RuboCop::Cop::Datafixup::StrandDownstreamJobs do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/strand/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "doesn't register an offsense when the job is stranded" do

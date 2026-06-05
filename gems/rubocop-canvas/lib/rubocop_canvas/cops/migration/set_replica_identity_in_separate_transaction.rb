@@ -42,7 +42,7 @@ module RuboCop
 
           set_replica_identity(node) do |_method, table|
             table = table.indifferent
-            add_offense(node, severity: :error) if @new_tables.include?(table)
+            add_offense(node) if @new_tables.include?(table)
           end
         end
       end

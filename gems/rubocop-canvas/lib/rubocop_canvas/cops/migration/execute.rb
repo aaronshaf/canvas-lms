@@ -28,7 +28,7 @@ module RuboCop
         PATTERN
 
         def on_send(node)
-          add_offense(node, severity: :convention) if execute?(node)
+          add_offense(node) if execute?(node)
         end
       end
     end

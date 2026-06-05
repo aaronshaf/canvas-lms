@@ -18,9 +18,14 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# rubocop:disable Migration/ChangeColumn, Migration/Execute, Migration/IdColumn
-# rubocop:disable Migration/PrimaryKey, Migration/RootAccountId, Rails/CreateTableWithTimestamps
+# rubocop:disable Migration/ChangeColumn
+# rubocop:disable Migration/Execute
+# rubocop:disable Migration/IdColumn
 # rubocop:disable Migration/PolymorphicAssociations
+# rubocop:disable Migration/PrimaryKey
+# rubocop:disable Migration/RootAccountId
+# rubocop:disable Migration/WorkflowStateEnum
+# rubocop:disable Rails/CreateTableWithTimestamps
 # rubocop:disable Rails/ThreeStateBooleanColumn
 class InitCanvasDb < ActiveRecord::Migration[7.0]
   prepend Canvas::ActiveRecord::Migration::DeferForeignKeys
@@ -5415,7 +5420,12 @@ class InitCanvasDb < ActiveRecord::Migration[7.0]
     raise ActiveRecord::IrreversibleMigration
   end
 end
-# rubocop:enable Migration/ChangeColumn, Migration/Execute, Migration/IdColumn
-# rubocop:enable Migration/PrimaryKey, Migration/RootAccountId, Rails/CreateTableWithTimestamps
-# rubocop:enable Migration/PolymorphicAssociations
 # rubocop:enable Rails/ThreeStateBooleanColumn
+# rubocop:enable Rails/CreateTableWithTimestamps
+# rubocop:enable Migration/WorkflowStateEnum
+# rubocop:enable Migration/RootAccountId
+# rubocop:enable Migration/PrimaryKey
+# rubocop:enable Migration/PolymorphicAssociations
+# rubocop:enable Migration/IdColumn
+# rubocop:enable Migration/Execute
+# rubocop:enable Migration/ChangeColumn

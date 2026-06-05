@@ -48,7 +48,7 @@ module RuboCop
           return if @current_def == :down
 
           qualified_name = qualified_name(node).first
-          add_offense(qualified_name, severity: :error) if create_function?(node) && !qualified_name.nil?
+          add_offense(qualified_name) if create_function?(node) && !qualified_name.nil?
         end
       end
     end

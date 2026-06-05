@@ -37,6 +37,5 @@ describe RuboCop::Cop::Specs::NoSeleniumWebDriverWait do
     })
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(msg_regex)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

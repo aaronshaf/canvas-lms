@@ -31,7 +31,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/disable_ddl/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "ignores non-concurrent indexes" do
@@ -71,7 +70,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists for add_column" do
@@ -86,7 +84,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists for add_reference" do
@@ -101,7 +98,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq 1
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq :error
   end
 
   it "is ok about missing if_not_exists for add_index when transactional" do
@@ -164,7 +160,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists on create_table" do
@@ -181,7 +176,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists on indexes in create_table" do
@@ -199,7 +193,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists on indexes in add_reference" do
@@ -217,7 +210,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "complains about missing if_not_exists on indexes with options in add_reference" do
@@ -235,7 +227,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_not_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "doesn't complain about present if_not_exists on indexes in add_reference" do
@@ -282,7 +273,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/if_exists/)
-    expect(offenses.first.severity.name).to eq(:error)
   end
 
   it "doesn't complain about drop_table with if_exists" do
@@ -314,7 +304,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
       expect(offenses.size).to eq(1)
       expect(offenses.first.message).to match(/if_not_exists/)
       expect(offenses.first.message).to match(/unless/)
-      expect(offenses.first.severity.name).to eq(:error)
     end
 
     it "complains about missing unless" do
@@ -332,7 +321,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
       expect(offenses.size).to eq(1)
       expect(offenses.first.message).not_to match(/if_not_exists/)
       expect(offenses.first.message).to match(/unless/)
-      expect(offenses.first.severity.name).to eq(:error)
     end
 
     it "does not complain with unless" do
@@ -365,7 +353,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
       expect(offenses.size).to eq(1)
       expect(offenses.first.message).to match(/if_exists/)
       expect(offenses.first.message).to match(/if/)
-      expect(offenses.first.severity.name).to eq(:error)
     end
 
     it "complains about missing if" do
@@ -383,7 +370,6 @@ describe RuboCop::Cop::Migration::NonTransactional do
       expect(offenses.size).to eq(1)
       expect(offenses.first.message).not_to match(/if_exists/)
       expect(offenses.first.message).to match(/if/)
-      expect(offenses.first.severity.name).to eq(:error)
     end
 
     it "does not complain with if" do

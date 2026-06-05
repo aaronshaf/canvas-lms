@@ -57,7 +57,7 @@ module RuboCop
           reason = first_arg.children.first
           return if refs_ticket?(reason)
 
-          add_offense node, message: MSG, severity: :error
+          add_offense node, message: MSG
         end
 
         # Check for skip in RSpec metadata (e.g., context "name", skip: "reason")
@@ -71,7 +71,7 @@ module RuboCop
             skip_reason = value_node.value
             next if refs_ticket?(skip_reason)
 
-            add_offense pair, message: MSG, severity: :error
+            add_offense pair, message: MSG
           end
         end
 

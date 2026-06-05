@@ -35,7 +35,7 @@ module RuboCop
           return unless options.hash_type?
 
           if options.children.find { |pair| pair.key.literal? && pair.key.value == :id && pair.value.falsey_literal? }
-            add_offense(node, message: MSG, severity: :warning)
+            add_offense(node, message: MSG)
           end
         end
       end

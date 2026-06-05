@@ -90,7 +90,7 @@ module RuboCop
 
         def check_non_transactional
           if @class_node && !@non_transactional && !@already_nagged_about_this
-            add_offense @class_node, message: NON_TRANSACTIONAL_MSG, severity: :warning
+            add_offense @class_node, message: NON_TRANSACTIONAL_MSG
             @already_nagged_about_this = true
           end
         end
@@ -99,7 +99,7 @@ module RuboCop
           check_non_transactional
 
           unless algorithm_concurrently?(node)
-            add_offense node, message: ALGORITHM_CONCURRENTLY_MSG, severity: :warning
+            add_offense node, message: ALGORITHM_CONCURRENTLY_MSG
           end
         end
 
@@ -108,7 +108,7 @@ module RuboCop
           if arg.nil? || !false?(arg)
             check_non_transactional
             if arg.nil? || !algorithm_concurrently?(arg)
-              add_offense arg || node, message: INDEX_ALGORITHM_CONCURRENTLY_MSG, severity: :warning
+              add_offense arg || node, message: INDEX_ALGORITHM_CONCURRENTLY_MSG
             end
           end
         end

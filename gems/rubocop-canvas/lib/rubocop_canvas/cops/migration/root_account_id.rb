@@ -130,7 +130,7 @@ module RuboCop
               end
 
               unless replica_identity_index(node).first
-                add_offense(node, message: <<~TEXT, severity: :warning)
+                add_offense(node, message: <<~TEXT)
                   Add a replica identity index
                   e.g. `#{EXAMPLE_REPLICA_IDENTITY_INDEX_LINE}`
                 TEXT
@@ -151,7 +151,7 @@ module RuboCop
             end
 
             if missing_ref
-              add_offense node, message: <<~TEXT, severity: :warning
+              add_offense node, message: <<~TEXT
                 New tables need a root_account reference
                 e.g. `#{EXAMPLE_REFERENCES_LINE}`
               TEXT

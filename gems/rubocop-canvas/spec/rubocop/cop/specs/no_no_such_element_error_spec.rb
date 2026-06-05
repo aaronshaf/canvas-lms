@@ -32,7 +32,6 @@ describe RuboCop::Cop::Specs::NoNoSuchElementError do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(msg_regex)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 
   it "disallows rescuing Selenium::WebDriver::Error::NoSuchElementError" do
@@ -46,7 +45,6 @@ describe RuboCop::Cop::Specs::NoNoSuchElementError do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(msg_regex)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 
   it "disallows raising Selenium::WebDriver::Error::NoSuchElementError" do
@@ -59,6 +57,5 @@ describe RuboCop::Cop::Specs::NoNoSuchElementError do
     RUBY
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(msg_regex)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

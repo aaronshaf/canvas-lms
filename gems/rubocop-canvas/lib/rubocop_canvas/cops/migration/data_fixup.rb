@@ -38,7 +38,7 @@ module RuboCop
 
           return if @tags.include? :postdeploy
 
-          add_offense(node, severity: :convention) if datafix?(node)
+          add_offense(node) if datafix?(node)
         end
       end
     end

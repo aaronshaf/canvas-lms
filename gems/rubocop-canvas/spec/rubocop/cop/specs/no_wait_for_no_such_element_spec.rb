@@ -32,6 +32,5 @@ describe RuboCop::Cop::Specs::NoWaitForNoSuchElement do
     })
     expect(offenses.size).to eq(1)
     expect(offenses.first.message).to match(/wait_for_no_such_element/)
-    expect(offenses.first.severity.name).to eq(:warning)
   end
 end

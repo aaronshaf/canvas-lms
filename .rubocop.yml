@@ -82,9 +82,9 @@ Lint/MixedCaseRange:
   # for example, it will change `[a-fA-f]` to `[a-fA-Za-f]` instead of `[a-fA-F]`
   AutoCorrect: false
 Lint/NoFileUtilsRmRf:
-  Severity: warning # intended for specs; not enforced
+  Severity: convention # intended for specs; not enforced
 Lint/NoSleep:
-  Severity: warning # intended for specs; not enforced
+  Severity: convention # intended for specs; not enforced
 Lint/NonLocalExitFromIterator:
   Enabled: false # SnR is too low because of how often this construct is used
 
@@ -490,7 +490,7 @@ Style/MultipleComparison:
   Severity: convention
   AutoCorrect: false
 Style/OneClassPerFile:
-  Severity: warning
+  Severity: convention
 Style/OptionalArguments:
   Severity: convention
 Style/StringConcatenation:

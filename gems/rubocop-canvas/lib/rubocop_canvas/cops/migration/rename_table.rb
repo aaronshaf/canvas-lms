@@ -53,7 +53,7 @@ module RuboCop
           return if @current_def == :down
 
           new_table_name = rename_table(node)&.value&.to_s
-          add_offense(node, severity: :warning) if new_table_name && new_table_name != @drop_view_name
+          add_offense(node) if new_table_name && new_table_name != @drop_view_name
         end
       end
     end
