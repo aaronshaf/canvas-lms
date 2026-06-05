@@ -133,7 +133,7 @@ describe "Planner API" do
       end
       expect(discussion_item).not_to be_nil
       expect(discussion_item["new_activity"]).to be true
-      expect(discussion_item["plannable"]["unread_count"]).to eql(1)
+      expect(discussion_item["plannable"]["unread_count"]).to be(1)
     end
 
     it "returns an empty list when the student has no upcoming assignments" do

@@ -32,7 +32,8 @@ describe "Quizzes Show Page" do
         quiz_type: "assignment"
       )
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data
@@ -60,7 +61,8 @@ describe "Quizzes Show Page" do
         quiz_type: "assignment"
       )
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data
@@ -88,7 +90,8 @@ describe "Quizzes Show Page" do
         quiz_type: "assignment"
       )
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data
@@ -128,7 +131,8 @@ describe "Quizzes Show Page" do
       @context = @course
       quiz = quiz_model(course: @course, access_code: "1234")
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data
@@ -208,7 +212,8 @@ describe "Quizzes Show Page" do
       @context = @course
       quiz = quiz_model(course: @course)
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data
@@ -335,7 +340,8 @@ describe "Quizzes Show Page" do
       @context = @course
       quiz = quiz_model(course: @course)
       quiz.quiz_questions.create!(
-        question_data: { name: "q1", question_type: "true_false_question",
+        question_data: { name: "q1",
+                         question_type: "true_false_question",
                          answers: [{ id: 1, text: "True", weight: 100 }, { id: 2, text: "False", weight: 0 }] }
       )
       quiz.generate_quiz_data

@@ -87,7 +87,7 @@ describe "GroupsController" do
       expect(response).to have_http_status(:found)
       group = Group.find_by(name: "Limited Group", context: @course)
       expect(group).not_to be_nil
-      expect(group.max_membership).to eql(2)
+      expect(group.max_membership).to be(2)
     end
   end
 
