@@ -608,16 +608,6 @@ module ApplicationHelper
     opts[:options_so_far].inject(&:<<) if opts[:depth] == 0
   end
 
-  # this little helper just allows you to do <% ot(...) %> and have it output the same as <%= t(...) %>. The upside though, is you can interpolate whole blocks of HTML, like:
-  # <% ot 'some_key', 'For %{a} select %{b}', :a => capture { %>
-  # <div>...</div>
-  # <% }, :b => capture { %>
-  # <select>...</select>
-  # <% } %>
-  def ot(*)
-    concat(t(*))
-  end
-
   def join_title(*parts)
     parts.join(t("#title_separator", ": "))
   end

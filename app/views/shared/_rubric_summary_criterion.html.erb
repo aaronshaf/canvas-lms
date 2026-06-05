@@ -55,18 +55,16 @@
       ><span class="rating rating_custom"><%= comments || "" %></span></a>
       <div class="displaying">
         <span class="nobr x_out_of_x">
-          <% ot(:out_of_points,
+          <%= t(:out_of_points,
                 "%{points}/%{total} pts",
-                points: capture do %>
-            <span class="criterion_points" style="<%= hidden if brief %>"><%= if assessing
-                                                                                assessment_rating ? I18n.n(assessment_rating.points) : ""
-                                                                              else
-                                                                                (criterion ? I18n.n(criterion.points) : I18n.n(5))
-                                                                              end %></span>
-          <% end,
-                total: capture do %>
-            <span class="criterion_points_possible"><%= criterion ? I18n.n(criterion.points) : I18n.n(5) %></span>
-             <% end) %>
+                points: tag.span(if assessing
+                                   assessment_rating ? I18n.n(assessment_rating.points) : ""
+                                 else
+                                   (criterion ? I18n.n(criterion.points) : I18n.n(5))
+                                 end,
+                                 class: "criterion_points",
+                                 style: (hidden if brief)),
+                total: tag.span(criterion ? I18n.n(criterion.points) : I18n.n(5), class: "criterion_points_possible")) %>
         </span>
       </div>
       <div class="ignoring">

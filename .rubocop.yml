@@ -275,8 +275,6 @@ Style/WordArray:
 # them to the section above)
 # auto-correct needs to be disabled for any that support it in the meantime
 
-ERB/InconsistentControlFlowScope:
-  Severity: convention
 ERB/OmittedClosingTag:
   Severity: convention
 ERB/TagIndentation:
