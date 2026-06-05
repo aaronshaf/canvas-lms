@@ -172,6 +172,35 @@ describe('StudentStudyDrawer', () => {
     expect(drawerLayout.contains(pageContent)).toBe(true)
   })
 
+  it('labels the tray region "IgniteAI Study Tools"', () => {
+    const pageContent = makePageContent()
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+
+    expect(screen.getByLabelText('IgniteAI Study Tools')).toBeInTheDocument()
+  })
+
+  it('labels the tray region "Notebook" when the notebook panel is open', () => {
+    const pageContent = makePageContent()
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('notebook:open'))
+    })
+
+    expect(screen.getByLabelText('Notebook')).toBeInTheDocument()
+    expect(screen.queryByLabelText('IgniteAI Study Tools')).not.toBeInTheDocument()
+  })
+
   it('opens the study-assist panel when the study-assist:open event fires', () => {
     const pageContent = makePageContent()
 

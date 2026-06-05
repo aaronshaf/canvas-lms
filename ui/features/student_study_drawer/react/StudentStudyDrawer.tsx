@@ -199,7 +199,7 @@ function StudentStudyDrawerInner({
           <div ref={handleHostRef} />
         </DrawerLayout.Content>
         <DrawerLayout.Tray
-          label={I18n.t('Sidebar panel')}
+          label={activePanel === 'notebook' ? I18n.t('Notebook') : I18n.t('IgniteAI Study Tools')}
           placement="end"
           open={activePanel !== null}
           onDismiss={handleDismiss}
