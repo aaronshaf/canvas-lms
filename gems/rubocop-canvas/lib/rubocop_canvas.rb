@@ -73,7 +73,6 @@ require "rubocop_canvas/cops/specs/no_strftime"
 require "rubocop_canvas/cops/specs/no_wait_for_no_such_element"
 require "rubocop_canvas/cops/specs/prefer_f_over_fj"
 require "rubocop_canvas/cops/specs/scope_helper_modules"
-require "rubocop_canvas/cops/specs/scope_includes"
 ## style
 require "rubocop_canvas/cops/style/concat_array_literals"
 

@@ -34,12 +34,9 @@ require_relative "../../factories/outcome_factory"
 
 require "optparse"
 
-# rubocop:disable Specs/ScopeIncludes
 # rubocop:disable Style/MixinUsage
 include Factories
 # rubocop:enable Style/MixinUsage
-
-# rubocop:enable Specs/ScopeIncludes
 
 # rubocop:disable Specs/ScopeHelperModules
 def toggle_k5_setting(account, enable: true)
