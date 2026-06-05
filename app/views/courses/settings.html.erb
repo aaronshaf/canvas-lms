@@ -221,7 +221,7 @@
                         else
                           @context.can_become_template? && @context.grants_right?(current_principal, session, :add_course_template)
                         end %>
-          <div id="course_template_details" data-is-editable=<%= editable %> %>></div>
+          <div id="course_template_details" data-is-editable="<%= editable %>"></div>
         </div>
       </div>
       <div class="form-row">
