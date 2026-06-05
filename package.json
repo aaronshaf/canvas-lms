@@ -42,7 +42,7 @@
     "@instructure/platform-nutrition-facts": "0.2.0",
     "@instructure/platform-provider": "0.5.2",
     "@instructure/platform-query": "0.2.2",
-    "@instructure/platform-sanitize": "0.3.11",
+    "@instructure/platform-sanitize": "0.3.13",
     "@instructure/platform-study-assist": "2.2.1",
     "@instructure/platform-widget-dashboard": "6.0.0",
     "@instructure/platform-with-breakpoints": "^0.2.0",
