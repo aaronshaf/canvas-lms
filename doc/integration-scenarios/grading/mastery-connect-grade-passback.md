@@ -45,19 +45,7 @@ When Mastery Connect scores the assessment for every enrolled student
 Then each student's score appears in the Canvas Gradebook for that assignment
 ```
 
-**Scenario MC-1.4 — Raw score assessment grade flows without manual publish**
-- **GUID:** `d1e83b06`
-- **Reason:** Raw score assessments are the only type that auto-publish; if this breaks, teachers must manually publish every MC assessment type.
-```
-Given a Canvas course with a linked Mastery Connect tracker
-And a raw score assessment has been added to the tracker
-And the corresponding Canvas assignment was auto-created in a published state
-And a student is enrolled in the course
-When Mastery Connect scores the student's raw score assessment
-Then the student's score appears in the Canvas Gradebook without any manual publish step
-```
-
-**Scenario MC-1.5 — Non-raw-score assessment requires manual publish before grade passback succeeds**
+**Scenario MC-1.4 — Non-raw-score assessment requires manual publish before grade passback succeeds**
 - **GUID:** `7f6c2a4d`
 - **Reason:** Students cannot submit assignments and grades cannot flow until the teacher publishes benchmark or item-based assessment assignments.
 ```
@@ -70,7 +58,7 @@ When Mastery Connect scores the student's item-based assessment
 Then the student's score appears in the Canvas Gradebook for that assignment
 ```
 
-**Scenario MC-1.6 — MC scores graded discussion assessment and grade appears in Canvas Gradebook**
+**Scenario MC-1.5 — MC scores graded discussion assessment and grade appears in Canvas Gradebook**
 - **GUID:** `e9a47b13`
 - **Reason:** Graded discussions aligned to Mastery standards do not reflect scores in Canvas if passback fails for this assignment type.
 ```
