@@ -219,9 +219,21 @@ Canvas engineers develop in Docker. **Refuse to declare a test green if you cann
 
 ### Lint
 
+The cops enforce the static subset of the request-test rules. They're configured in `spec/request_style.rubocop.yml` (inherited by `spec/requests/.rubocop.yml`); each cop's comment in that file ties back to the goal: *reliable tests that are easy to understand when they fail.*
+
+Run safe autocorrect:
+
 ```bash
 docker exec <container> bin/rubocop -a spec/requests/<file>_spec.rb
 ```
+
+Then iterate on remaining offenses, up to **2 fix attempts**:
+
+1. Read the offense list.
+2. For each, apply a manual fix — *not* a cop-disable comment.
+3. Re-run the linter.
+
+If offenses remain after 2 attempts, leave them and surface the list in the Final summary. Warnings don't block the **Run** step, but unresolved offenses are signal that the produced test is drifting from the rules — the grader will likely flag the same issue from a different angle.
 
 ### Run
 

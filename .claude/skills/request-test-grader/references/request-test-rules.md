@@ -10,6 +10,19 @@ It is `@include`d by:
 
 No other file restates these rules. Edits here are authoritative.
 
+## Goal
+
+Reliable (not flaky) tests that are easy to understand when they fail.
+
+"Easy to understand when they fail" has two halves, and both matter:
+
+1. **The failure message names the defect.** A reader of the rspec output can identify what's wrong without re-running the test or opening the test file. Precise matchers, value (not shape) assertions, and reloaded DB reads all serve this.
+2. **The test itself is scannable.** When the failure message isn't enough and the engineer (or LLM) opens the spec, a single `it` reads top-to-bottom as one self-contained story — setup, action, assertions — without requiring the reader to mentally compose state from ancestor `before`s, sibling `let`s, or cross-example shared objects. This is what "each `it` independently scannable" means throughout the rules below.
+
+"Reliable" means the test passes or fails for the right reason, deterministically, across `--order random` runs — no shared-state leaks, no stale in-memory caches, no unverified stubs masking missed branches.
+
+Every rule below serves one or more of these. When a rule's application is ambiguous in an edge case, decide by which interpretation better serves this goal.
+
 ## What a request test is
 
 **Central principle:** *Exercise the behavior of a single system — and only that system — through its public interface.* For request tests, the single system is Canvas, and the public interface is HTTP.

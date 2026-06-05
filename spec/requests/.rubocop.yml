@@ -1,9 +1,3 @@
-# Request-spec scoped rubocop config.
-#
-# Enables the experimental `Specs/NoNestedSetup` cop — bans
-# `before`/`let`/`subject` declared in a nested example group when an ancestor
-# group also declares one. See
-# gems/rubocop-canvas/lib/rubocop_canvas/cops/specs/no_nested_setup.rb.
-
-Specs/NoNestedSetup:
-  Enabled: true
+# Inherits the shared request-test-style cop config. See that file for the
+# goal, the per-cop rationale, and a pointer to the full request-test rules.
+inherit_from: ../request_style.rubocop.yml

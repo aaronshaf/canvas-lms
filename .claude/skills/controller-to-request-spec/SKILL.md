@@ -75,7 +75,12 @@ Request specs don't expose the controller instance, so these controller-spec idi
 3. Add `type: :request` to the top-level `describe`.
 4. Rewrite each verb call. Keep the `params:` hash for anything that isn't part of the path; move path segments into the URL string.
 5. Address the non-translating idioms listed above. If a test relies on something request specs can't observe, surface it to the user rather than silently weakening the assertion.
-6. Run the linter: `docker compose run --rm web rubocop -a <path>`. Accept any changes that it makes. If the linter can't be run or throws an error, skip this part.
+6. Run the linter, then iterate on remaining offenses (up to **2 fix attempts**). The cops enforce the static subset of the request-test rules and are configured in `spec/request_style.rubocop.yml`, inherited by `spec/controllers/.rubocop.yml`; each cop's comment in that file ties back to the goal: *reliable tests that are easy to understand when they fail.*
+   ```bash
+   docker exec canvas-web bin/rubocop -a <path>
+   # or: docker compose run --rm web bin/rubocop -a <path>
+   ```
+   For each non-autocorrectable offense, apply a manual fix — *not* a cop-disable comment. Re-run after each pass. If offenses remain after 2 attempts, leave them and surface the list to the user. If the linter can't be run, skip this part.
 7. Run the spec: `docker compose run --rm web bin/rspec <path>`. Failures here usually mean either a wrong URL, a missing `params:` key, or an `assigns`-style assertion that now needs to read the response.
 8. Enter **Grading mode** (next section) unless the skill was invoked with `--no-grading`. Grading mode is the default; `--no-grading` exits here and reports the mechanical port as the final output.
 
@@ -98,6 +103,7 @@ Grading mode brings every converted `it` block to `result=pass` per the grader r
    - *Convert to `before(:each)`* — change the `before(:once)` to `before(:each)` in place. Sibling unconverted `it`s in the same file will also see the change; warn the user inline.
    - *Leave + TODO comment* — preserve the `before(:once)` and add `# TODO: grader violation — no-before-once` to each affected `it`.
 6. **Serial fix pass.** For each `it` with `result=fail`, apply the `Failures` fixes from its grader report. Fix in source order to keep diffs reviewable.
+6.5. **Re-lint after fixes.** Apply the same lint flow used in Process step 6: `docker exec canvas-web bin/rubocop -a <path>`, then iterate on remaining offenses up to 2 attempts (manual fixes, not cop-disable comments). Grader fixes can introduce new style violations or undo prior autocorrects; cleaning them up before re-grading keeps the next grader pass focused on rule violations rather than style noise.
 7. **Parallel re-grade.** Re-spawn the grader subagent for each fixed `it`. Parse the new trailers.
 8. **Cap at 2 fix-and-regrade cycles per `it`.** After two cycles, accept the current state and move to escalation.
 9. **Pass condition.** Every converted `it` reaches `result=pass`. If yes, Grading mode is done.
