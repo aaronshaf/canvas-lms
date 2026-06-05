@@ -22,7 +22,7 @@ linter_options = {
   campsite_mode: false,
   append_files_to_command: true,
   boyscout_mode: false,
-  severe_levels: %w[error fatal].freeze
+  severe_levels: %w[warn error fatal].freeze
 }
 no_fail = false
 
