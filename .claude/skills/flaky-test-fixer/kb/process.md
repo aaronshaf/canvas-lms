@@ -72,6 +72,7 @@ Three reports reveal whether the failure pattern is consistent or varies.
 | `NoSuchElementError` on AJAX-loaded content | JS init race or browser cache | Case 06 |
 | Error in `prepend_before` / `after` hook | Previous test left browser state | Case 07 |
 | Multiple tests always fail together | Shared environment variable | Case 05, Case 06 (env) |
+| `RuntimeError: Don't know how to build task` (all tests) | Conditional task loading with stale guard | Case 08 |
 
 ### 4c. Implement the fix
 

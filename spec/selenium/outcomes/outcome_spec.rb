@@ -293,8 +293,7 @@ describe "outcomes" do
         expect(nth_individual_outcome_title(0)).to eq("outcome 4")
       end
 
-      # Can't reproduce the js error locally
-      it "bulk moves outcomes at the course level as a teacher", :ignore_js_errors do
+      it "bulk moves outcomes at the course level as a teacher", :ignore_js_errors, custom_timeout: 30 do # flaky-fix: QE-146
         create_bulk_outcomes_groups(@course, 1, 3)
         get outcome_url
         select_outcome_group_with_text(@course.name).click
@@ -307,9 +306,11 @@ describe "outcomes" do
         select_drilldown_outcome_group_with_text("New group").click
         force_click(confirm_move_button)
         # Verify through AR to save time
-        new_group_children = LearningOutcomeGroup.find_by(title: "New group").child_outcome_links
-        expect(new_group_children.count).to eq(2)
-        expect(new_group_children.pluck(:title).sort).to eq(["outcome 0", "outcome 1"])
+        keep_trying_until do
+          new_group_children = LearningOutcomeGroup.find_by(title: "New group").child_outcome_links
+          expect(new_group_children.count).to eq(2)
+          expect(new_group_children.pluck(:title).sort).to eq(["outcome 0", "outcome 1"])
+        end
       end
 
       it "imports account outcomes into a course via Find modal" do

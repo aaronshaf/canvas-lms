@@ -274,4 +274,30 @@ response from an earlier test on the same worker.
 
 ---
 
-<!-- Add new rules below as S-09, S-10, … -->
+## S-09 — Re-evaluate `custom_timeout` after changing a test's runtime
+
+**Rule:** When a flaky fix adds retry loops (`keep_trying_until`), extra waits,
+or any other change that increases the test's wall-clock time, recalculate the
+Case 02 formula and add or adjust `custom_timeout` if needed.
+
+**Why:** A fix that adds a `keep_trying_until` block (up to 10 s) or an extra
+`wait_for_ajaximations` (2 s) can push a test over the `TARGET_TIMEOUT` (15 s)
+threshold — the timeout applied when the file appears in HEAD's changed files.
+Since a flaky-fix PS always modifies the file, the reduced timeout is guaranteed
+to apply during CI verification of the fix itself.
+
+**How to apply:**
+1. After implementing the fix, re-count H and M for the full example
+   (including `before` hooks) per Case 02.
+2. Add the worst-case cost of any new retry/wait (e.g. +10 s for
+   `keep_trying_until`, +2 s per `wait_for_ajaximations`).
+3. If the result exceeds the current `custom_timeout` (or the 15 s
+   `TARGET_TIMEOUT` when no annotation exists), set or raise
+   `custom_timeout` to the formula result (rounded up to nearest 5,
+   capped at 60).
+
+*Introduced: QE-146*
+
+---
+
+<!-- Add new rules below as S-10, S-11, … -->
