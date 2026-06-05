@@ -21,6 +21,7 @@ import {render} from '@canvas/react'
 import ready from '@instructure/ready'
 import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
+import {Tooltip} from '@instructure/ui-tooltip'
 import {IconAiSolid} from '@instructure/ui-icons'
 
 const ICON_MOUNT_IDS = ['study_assist_mount_point', 'study_assist_mobile_mount_point']
@@ -30,18 +31,21 @@ function dispatchOpen() {
   window.dispatchEvent(new CustomEvent(OPEN_EVENT))
 }
 
-function StudyAssistTrigger() {
+export function StudyAssistTrigger() {
   const {t} = useTranslation('study_assist')
   return (
-    <IconButton
-      screenReaderLabel={t('Study tools')}
-      shape="circle"
-      color="ai-primary"
-      onClick={dispatchOpen}
-      data-pendo="study-assist-trigger"
-    >
-      <IconAiSolid />
-    </IconButton>
+    <Tooltip renderTip={t('IgniteAI Study Tools')}>
+      <IconButton
+        screenReaderLabel={t('IgniteAI Study Tools')}
+        shape="circle"
+        color="ai-primary"
+        onClick={dispatchOpen}
+        data-pendo="study-assist-trigger"
+        data-testid="study-assist-trigger"
+      >
+        <IconAiSolid />
+      </IconButton>
+    </Tooltip>
   )
 }
 
