@@ -21,19 +21,19 @@ module Assignments
   module CourseProxyCache
     # holds values so we don't have to recompute them over and over again
     class CourseProxy
-      attr_reader :course, :user
+      attr_reader :course, :principal
 
-      def initialize(course, user)
+      def initialize(course, principal)
         @course = course
-        @user = user
+        @principal = principal
       end
 
       def section_visibilities
-        @section_visibilities ||= course.section_visibilities_for(user)
+        @section_visibilities ||= course.section_visibilities_for(principal&.user)
       end
 
       def visibility_level
-        @visibility_level ||= course.enrollment_visibility_level_for(user, section_visibilities)
+        @visibility_level ||= course.enrollment_visibility_level_for(principal&.user, section_visibilities)
       end
 
       def visible_section_ids
@@ -46,23 +46,26 @@ module Assignments
     def course_proxy_for(assignment)
       @course_proxies ||= {}
       global_course_id = assignment.context.global_id
-      @course_proxies[global_course_id] ||= CourseProxy.new(assignment.context, @user)
+      @course_proxies[global_course_id] ||= CourseProxy.new(assignment.context, principal)
     end
   end
 
   class NeedsGradingCountQuery
     include CourseProxyCache
 
+    attr_reader :principal
+
     def initialize(assignments, user = nil)
       @assignments = Array(assignments)
       @user = user
+      @principal = @user && Canvas::AdheresToPolicy::UserPrincipal.new(@user)
     end
 
     # Returns { assignment.global_id => Integer }, defaults to 0 for unknown keys
     def count
       fetch_or_compute(:count, default: 0) do |assignments|
         if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, @user).count
+          NeedsGradingCountQueryOptimized.new(assignments, principal).count
         else
           map_results(assignments, &:count)
         end
@@ -73,7 +76,7 @@ module Assignments
     def manual_count
       fetch_or_compute(:manual_count, default: 0) do |assignments|
         if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, @user).manual_count
+          NeedsGradingCountQueryOptimized.new(assignments, principal).manual_count
         else
           map_results(assignments, &:manual_count)
         end
@@ -86,7 +89,7 @@ module Assignments
     def count_by_section
       fetch_or_compute(:count_by_section, default: []) do |assignments|
         if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, @user).count_by_section
+          NeedsGradingCountQueryOptimized.new(assignments, principal).count_by_section
         else
           map_results(assignments, &:count_by_section)
         end
@@ -100,7 +103,7 @@ module Assignments
     # When the optimized implementation lands, only the block passed by the public
     # methods needs to change — this layer stays untouched.
     def fetch_or_compute(method_key, default: nil)
-      missing = @assignments.reject { |a| RequestCache.exist?("ngcq_#{method_key}", a.global_id, @user&.global_id) }
+      missing = @assignments.reject { |a| RequestCache.exist?("ngcq_#{method_key}", a.global_id, principal&.user&.global_id) }
 
       new_values = {}
       if missing.any?
@@ -108,7 +111,7 @@ module Assignments
         # Populate the request cache so subsequent single-assignment lookups
         # within the same request are free in-memory hash reads.
         new_values.each do |gid, val|
-          RequestCache.cache("ngcq_#{method_key}", gid, @user&.global_id) { val }
+          RequestCache.cache("ngcq_#{method_key}", gid, principal&.user&.global_id) { val }
         end
       end
 
@@ -118,7 +121,7 @@ module Assignments
         # request cache (warmed by a prior call). The 0 fallback is a safety
         # net that should never be reached in normal operation.
         result[a.global_id] = new_values.fetch(a.global_id) do
-          RequestCache.cache("ngcq_#{method_key}", a.global_id, @user&.global_id) do
+          RequestCache.cache("ngcq_#{method_key}", a.global_id, principal&.user&.global_id) do
             default
           end
         end
@@ -129,7 +132,7 @@ module Assignments
     def map_results(assignments)
       assignments.each_with_object({}) do |assignment, h|
         proxy = course_proxy_for(assignment)
-        legacy = NeedsGradingCountQueryLegacy.new(assignment, @user, proxy)
+        legacy = NeedsGradingCountQueryLegacy.new(assignment, principal, proxy)
         h[assignment.global_id] = yield legacy
       end
     end
@@ -146,10 +149,10 @@ module Assignments
 
     delegate :course, :section_visibilities, :visibility_level, :visible_section_ids, to: :course_proxy
 
-    def initialize(assignment, user = nil, course_proxy = nil)
+    def initialize(assignment, principal = nil, course_proxy = nil)
       @assignment = assignment
-      @user = user
-      @course_proxy = course_proxy || CourseProxyCache::CourseProxy.new(@assignment.context, @user)
+      @user = principal&.user
+      @course_proxy = course_proxy || CourseProxyCache::CourseProxy.new(@assignment.context, principal)
     end
 
     def count
@@ -285,9 +288,11 @@ module Assignments
   class NeedsGradingCountQueryOptimized
     include CourseProxyCache
 
-    def initialize(assignments, user = nil)
+    attr_reader :principal
+
+    def initialize(assignments, principal = nil)
       @assignments = assignments
-      @user = user
+      @principal = principal
     end
 
     # Returns { assignment.global_id => Integer }
@@ -355,7 +360,7 @@ module Assignments
         .joins(:provisional_grades)
         .where(
           assignment_id: assignment_ids,
-          moderated_grading_provisional_grades: { final: false, scorer_id: @user.id }
+          moderated_grading_provisional_grades: { final: false, scorer_id: principal&.user }
         )
         .where.not(moderated_grading_provisional_grades: { score: nil })
         .group(:assignment_id)
@@ -375,7 +380,7 @@ module Assignments
         .joins(:provisional_grades)
         .where(assignment_id: assignment_ids)
         .where(moderated_grading_provisional_grades: { final: false })
-        .where.not(moderated_grading_provisional_grades: { scorer_id: @user.id })
+        .where.not(moderated_grading_provisional_grades: { scorer_id: principal&.user })
         .group("submissions.assignment_id", "submissions.id", "submissions.user_id")
         .count
         .each do |(a_id, sub_id, user_id), pg_count|
