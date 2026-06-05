@@ -61,6 +61,11 @@ class Submission < ApplicationRecord
   }.freeze
 
   SUBMISSION_TYPES_GOVERNED_BY_ALLOWED_ATTEMPTS = %w[online_upload online_url online_text_entry].freeze
+
+  # Max chars kept in the url column; longer urls are stashed in full in body
+  # and rebuilt by the url getter. (INTEROP-10688)
+  INLINE_URL_LIMIT = 251
+
   VALID_STICKERS = %w[
     apple
     basketball
@@ -852,7 +857,7 @@ class Submission < ApplicationRecord
 
   def url
     read_body = body && CGI.unescapeHTML(body)
-    @full_url = if read_body && (url = super) && read_body[0..250] == url[0..250]
+    @full_url = if read_body && (url = super) && read_body[0...INLINE_URL_LIMIT] == url[0...INLINE_URL_LIMIT]
                   body
                 else
                   super
@@ -2349,9 +2354,15 @@ class Submission < ApplicationRecord
   def validate_single_submission
     @full_url = nil
 
-    if (url = self["url"]) && url.length > 250
+    url = self["url"]
+
+    # Stash the full url in body and truncate the column; the url getter rebuilds
+    # it. Only stash when url is actually being (re)assigned, so a later save in
+    # the same request (the AGS Score flow saves twice) can't overwrite the
+    # full-url backup in body with the already-truncated value. (INTEROP-10688)
+    if will_save_change_to_url? && url && url.length > INLINE_URL_LIMIT
       self.body = url
-      self.url = url[0..250]
+      self.url = url[0...INLINE_URL_LIMIT]
     end
     unless submission_type
       self.submission_type ||= "online_url" if url

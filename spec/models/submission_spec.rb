@@ -1972,6 +1972,33 @@ describe Submission do
     expect(s.body).to eq "http://#{long_url}"
   end
 
+  it "does not corrupt the stashed full url in body on re-save (INTEROP-10688)" do
+    s = submission_spec_model(submit_homework: true)
+    long_url = "https://example.com/launch?#{"a" * 300}"
+
+    # first save: full url stashed in body, url column truncated to 251 chars
+    s.url = long_url
+    s.submission_type = "basic_lti_launch"
+    s.save!
+    expect(s.body).to eq long_url
+    expect(s["url"].length).to eq 251
+    expect(s.url).to eq long_url
+
+    # second save in the same flow (as the LTI Scores controller does) must not
+    # overwrite the full-url backup in body with the already-truncated value
+    s.save!
+    expect(s.body).to eq long_url
+    expect(s["url"].length).to eq 251
+    expect(s.url).to eq long_url
+    expect(s.external_tool_url).to eq long_url
+
+    # and it survives a reload from the database
+    s.reload
+    expect(s.body).to eq long_url
+    expect(s.url).to eq long_url
+    expect(s.external_tool_url).to eq long_url
+  end
+
   it "offers the context, if one is available" do
     @course = Course.new
     @assignment = Assignment.new(context: @course)
