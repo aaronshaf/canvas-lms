@@ -40,16 +40,9 @@ describe('PeerReviewSelector', () => {
 
   let mockCheckbox: HTMLInputElement
   const originalENV = window.ENV
-  const originalRequestAnimationFrame = window.requestAnimationFrame
 
   beforeEach(() => {
     vi.clearAllMocks()
-
-    // jsdom doesn't execute requestAnimationFrame callbacks
-    window.requestAnimationFrame = (callback: FrameRequestCallback) => {
-      callback(0)
-      return 0
-    }
 
     window.ENV = {
       ...originalENV,
@@ -65,7 +58,6 @@ describe('PeerReviewSelector', () => {
 
   afterEach(() => {
     window.ENV = originalENV
-    window.requestAnimationFrame = originalRequestAnimationFrame
     if (mockCheckbox && mockCheckbox.parentNode) {
       document.body.removeChild(mockCheckbox)
     }

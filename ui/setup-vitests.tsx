@@ -142,6 +142,42 @@ beforeEach(() => {
   pendingEconnrefusedCount = 0
 })
 
+// flaky-fix: QE-145
+// jsdom's requestAnimationFrame is driven by a frame timer that can be starved
+// under CI load far more readily than ordinary timers. InstUI portals
+// (Select/Popover/Tooltip) mount their content on an rAF tick, so under load
+// the listbox can fail to appear before findBy* times out — an intermittent
+// "Unable to find role=listbox"-style flake across every test that opens one.
+//
+// Back rAF with the (already timer-tracked, teardown-guarded) setTimeout(0)
+// instead. This keeps rAF ASYNCHRONOUS — component timing is unchanged, unlike
+// a synchronous shim, which breaks tests that rely on rAF running on a later
+// tick — but makes the tick fire reliably.
+//
+// Two rules make this safe alongside the suite's many vi.useFakeTimers() tests:
+//   1. Install at MODULE LOAD (below), before any component captures rAF, and so
+//      that fake-timer save/restore always restores a *callable* function — never
+//      undefined, which otherwise surfaces as "cancelAnimationFrame is not a
+//      function" on a later unmount.
+//   2. Reinstall each test ONLY when fake timers are inactive. Overwriting a
+//      fake-timer-controlled rAF breaks timer-driven tests (callbacks never fire)
+//      and desyncs rAF/cAF across fake-timer boundaries.
+const installRafShim = () => {
+  window.requestAnimationFrame = ((cb: FrameRequestCallback) =>
+    setTimeout(
+      () => cb(performance.now()),
+      0,
+    ) as unknown as number) as typeof window.requestAnimationFrame
+  window.cancelAnimationFrame = ((id: number) =>
+    clearTimeout(
+      id as unknown as ReturnType<typeof setTimeout>,
+    )) as typeof window.cancelAnimationFrame
+}
+installRafShim()
+beforeEach(() => {
+  if (!vi.isFakeTimers()) installRafShim()
+})
+
 // Global cleanup after each test to prevent memory leaks and timer issues
 // This is especially important for InstUI components that use transitions with setTimeout
 afterEach(() => {

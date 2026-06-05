@@ -300,4 +300,70 @@ to apply during CI verification of the fix itself.
 
 ---
 
-<!-- Add new rules below as S-10, S-11, … -->
+## S-10 — Back `requestAnimationFrame` with `setTimeout(0)` globally (keep it async)
+
+**Rule:** InstUI `Select`/`Popover`/`Tooltip` mount their portals on a
+`requestAnimationFrame` tick. jsdom drives rAF with an internal frame timer
+scheduled separately from ordinary timers and far more easily starved under CI
+load, so portal `findBy*` waits (e.g. `findByRole('listbox')`) intermittently
+exceed `asyncUtilTimeout` and flake. Fix this **once, globally** in
+`ui/setup-vitests.tsx` by backing rAF with a plain `setTimeout(0)` — a normal
+macrotask that fires as reliably as RTL's own `findBy` polling.
+
+**Implementation** (in the shared setup — module-load baseline + guarded reinstall):
+```ts
+const installRafShim = () => {
+  window.requestAnimationFrame = ((cb: FrameRequestCallback) =>
+    setTimeout(() => cb(performance.now()), 0) as unknown as number) as typeof window.requestAnimationFrame
+  window.cancelAnimationFrame = ((id: number) =>
+    clearTimeout(id as unknown as ReturnType<typeof setTimeout>)) as typeof window.cancelAnimationFrame
+}
+installRafShim() // module load: a callable baseline, before any component captures rAF
+beforeEach(() => {
+  if (!vi.isFakeTimers()) installRafShim() // never clobber fake-timer-controlled rAF
+})
+```
+
+**It must coexist with `vi.useFakeTimers()` — this is the whole difficulty.** A
+global rAF override that ignores fake timers fails in CI in two order-dependent
+ways that **do not reproduce in isolation** (only in full-shard runs):
+- Overwriting a fake-timer-controlled rAF → timer-driven callbacks never fire
+  (`vi.fn()` "called 0 times", e.g. `CreateOutcomeModal > Mobile`). → fixed by
+  the `!vi.isFakeTimers()` guard.
+- rAF/cAF left non-callable across a fake-timer save/restore boundary →
+  `cancelAnimationFrame is not a function` on a later unmount. → fixed by the
+  always-callable **module-load** baseline (so restore targets are functions).
+
+**Keep it asynchronous — never make rAF synchronous.** Running the callback
+synchronously (`cb => { cb(0); return 0 }`) changes component timing suite-wide
+and breaks unrelated tests that rely on rAF firing on a later tick (CI fallout:
+`OutcomeView`, `FileUpload`, `DiscussionThreadContainer`, `DashboardCard`, …).
+Unguarded, it also stack-overflows on InstUI's per-frame position-tracking loop.
+
+**Why these implementation choices:**
+- **Route through the wrapped `setTimeout`.** `setup-vitests.tsx` already wraps
+  `setTimeout`/`clearTimeout` to track pending timers and skip callbacks after
+  jsdom teardown. Each scheduled frame is therefore tracked, cleared, and guarded.
+- **Install at module load AND reinstall in `beforeEach` only when
+  `!vi.isFakeTimers()`; never restore.** The baseline is always callable, fake
+  timers stay in control when active, and there is no captured original to
+  restore unsafely.
+
+**Scope and exceptions:**
+- `ui/setup-vitests.tsx` covers `ui/**` tests only. Packages with their own
+  Vitest config (e.g. `packages/canvas-rce`) are **not** covered — add the same
+  shim to that package's setup if needed there.
+- Do not delete a `requestAnimationFrame` assignment that is a deliberate test
+  harness (e.g. a `MockWindow` that captures the callback for manual invocation)
+  — that is not the starvation workaround and the global rule does not replace it.
+
+**Validation:** verified that the de-overridden suites and the QE-145 flaky
+suite pass on the shim alone, and that the suites broken by the earlier
+synchronous attempt pass again. A suite-wide rAF change is still infra; gate it
+on a full `yarn test` run.
+
+*Introduced: QE-145*
+
+---
+
+<!-- Add new rules below as S-11, S-12, … -->

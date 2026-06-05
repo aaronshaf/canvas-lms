@@ -61,7 +61,6 @@ describe('ItemAssignToCard - PeerReviewSelector Integration', () => {
 
   let mockCheckbox: HTMLInputElement
   const originalENV = window.ENV
-  const originalRequestAnimationFrame = window.requestAnimationFrame
 
   beforeAll(() => {
     if (!document.getElementById('flash_screenreader_holder')) {
@@ -74,12 +73,6 @@ describe('ItemAssignToCard - PeerReviewSelector Integration', () => {
   })
 
   beforeEach(() => {
-    // jsdom doesn't execute requestAnimationFrame callbacks
-    window.requestAnimationFrame = (callback: FrameRequestCallback) => {
-      callback(0)
-      return 0
-    }
-
     window.ENV = {
       ...originalENV,
       PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED: true,
@@ -117,7 +110,6 @@ describe('ItemAssignToCard - PeerReviewSelector Integration', () => {
 
   afterEach(() => {
     window.ENV = originalENV
-    window.requestAnimationFrame = originalRequestAnimationFrame
     server.resetHandlers()
     if (mockCheckbox && mockCheckbox.parentNode) {
       document.body.removeChild(mockCheckbox)

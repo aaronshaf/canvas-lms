@@ -19,6 +19,16 @@
 import React from 'react'
 import {render, screen, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+
+vi.mock('@instructure/platform-alerts', async () => {
+  const actual = await vi.importActual('@instructure/platform-alerts')
+  return {
+    ...actual,
+    showFlashError: vi.fn(() => vi.fn()),
+    showFlashSuccess: vi.fn(() => vi.fn()),
+  }
+})
+
 import DifferentiationTagModalForm from '../DifferentiationTagModalForm'
 import type {DifferentiationTagModalFormProps} from '../DifferentiationTagModalForm'
 import {CREATE_MODE, EDIT_MODE} from '../../util/constants'
