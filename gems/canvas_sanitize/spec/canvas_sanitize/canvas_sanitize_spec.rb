@@ -293,14 +293,17 @@ describe CanvasSanitize do
   # position: fixed and sticky escape the .user_content container and can overlay
   # Canvas UI — a clickjacking vector. position: absolute is safe because Canvas
   # wraps user content in `.user_content { position: relative }`, which constrains
-  # absolute children. z-index and clip are blocked outright (no legitimate use).
+  # absolute children. z-index is allowed because fixed/sticky are blocked, so
+  # z-index cannot be used to overlay Canvas UI. clip is blocked outright.
   describe "overlay-capable CSS property blocking" do
-    # z-index and clip have no safe values for user content — strip the property entirely.
-    %w[z-index clip].each do |prop|
-      it "strips the #{prop} CSS property" do
-        res = Sanitize.clean(%(<div style="#{prop}: 0">x</div>), CanvasSanitize::SANITIZE)
-        expect(res).not_to match(/#{Regexp.escape(prop)}/)
-      end
+    it "strips the clip CSS property" do
+      res = Sanitize.clean(%(<div style="clip: rect(0,0,0,0)">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/\bclip\b/)
+    end
+
+    it "preserves z-index (safe: position:fixed/sticky are blocked)" do
+      res = Sanitize.clean(%(<div style="z-index: 10">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to match(/z-index/)
     end
 
     # fixed and sticky escape the container boundary — the actual clickjacking danger.
@@ -383,7 +386,7 @@ describe CanvasSanitize do
         CanvasSanitize::SANITIZE
       )
       expect(res).not_to match(/position/)
-      expect(res).not_to match(/z-index/)
+      expect(res).to match(/z-index/)
       expect(res).to match(/top/)
       expect(res).to match(/left/)
       expect(res).to match(/right/)

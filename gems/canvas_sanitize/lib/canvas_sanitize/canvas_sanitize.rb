@@ -810,6 +810,9 @@ module CanvasSanitize # :nodoc:
         width
         zoom
       ] +
+      # z-index is safe: position:fixed and position:sticky are blocked, so
+      # user content cannot use z-index to overlay Canvas UI elements.
+      ["z-index"] +
       %w[area auto-columns auto-flow auto-rows column gap row template].map { |i| "grid-#{i}" } +
       %w[areas columns rows].map { |i| "grid-template-#{i}" } +
       %w[end gap start].map { |i| "grid-column-#{i}" } +
