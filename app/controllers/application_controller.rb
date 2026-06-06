@@ -3012,7 +3012,7 @@ class ApplicationController < ActionController::Base
     end
     rewriter.set_handler("files", &file_handler)
     rewriter.set_handler("media_attachments_iframe", &file_handler)
-    UserContent.process_canvas_html(rewriter.translate_content(str), request.host_with_port, use_updated_math_rendering: use_new_math_equation_handling?)
+    UserContent.process_canvas_html(rewriter.translate_content(str, location), request.host_with_port, use_updated_math_rendering: use_new_math_equation_handling?)
   end
   helper_method :user_content
 

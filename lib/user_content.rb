@@ -226,20 +226,20 @@ module UserContent
       @allowed_types = Array(new_types)
     end
 
-    def translate_content(html)
+    def translate_content(html, location)
       return html if html.blank?
 
       parsed_html = Nokogiri::HTML5.fragment(html, nil, **CanvasSanitize::SANITIZE[:parser_options])
       html = add_lazy_loading(parsed_html)
 
-      return precise_translate_content(parsed_html) if Account.site_admin.feature_enabled?(:precise_link_replacements)
+      return precise_translate_content(parsed_html, location) if Account.site_admin.feature_enabled?(:precise_link_replacements)
 
-      html.gsub(@toplevel_regex) { |url| replacement(url) }
+      html.gsub(@toplevel_regex) { |url| replacement(url, location) }
     end
 
     # For places we have URLs outside of HTML content
     def translate_url(url)
-      url&.gsub(@toplevel_regex) { |matched_url| replacement(matched_url) }
+      url&.gsub(@toplevel_regex) { |matched_url| replacement(matched_url, nil) }
     end
 
     def add_lazy_loading(parsed_html)
@@ -251,20 +251,20 @@ module UserContent
       parsed_html.to_html
     end
 
-    def translate_blocks(block_editor)
+    def translate_blocks(block_editor, location)
       return block_editor.blocks if block_editor.blocks.blank?
 
       source_blocks = %w[ImageBlock MediaBlock]
       block_editor.blocks.each do |block|
         if source_blocks.include? block[1]["type"]["resolvedName"]
-          block[1]["props"]["src"] = replacement(block[1]["props"]["src"]) unless block[1]["props"]["src"].blank?
+          block[1]["props"]["src"] = replacement(block[1]["props"]["src"], location) unless block[1]["props"]["src"].blank?
         elsif block[1]["type"]["resolvedName"] == "RCETextBlock"
-          block[1]["props"]["text"] = block[1]["props"]["text"].gsub(@toplevel_regex) { |url| replacement(url) }
+          block[1]["props"]["text"] = block[1]["props"]["text"].gsub(@toplevel_regex) { |url| replacement(url, location) }
         end
       end
     end
 
-    def precise_translate_content(parsed_html)
+    def precise_translate_content(parsed_html, location)
       attributes = %w[value href longdesc src srcset title]
 
       parsed_html.css("img, iframe, video, audio, source, param, a").each do |e|
@@ -272,8 +272,8 @@ module UserContent
           attribute_value = e.attributes[attr]&.value
           next unless attribute_value&.match?(@toplevel_regex)
 
-          e.inner_html = e.inner_html.gsub(@toplevel_regex) { |url| replacement(url) } if e.name == "a" && e["href"] && e.inner_html.delete("\n").strip.include?(e["href"].strip)
-          processed_url = attribute_value.gsub(@toplevel_regex) { |url| replacement(url) }
+          e.inner_html = e.inner_html.gsub(@toplevel_regex) { |url| replacement(url, location) } if e.name == "a" && e["href"] && e.inner_html.delete("\n").strip.include?(e["href"].strip)
+          processed_url = attribute_value.gsub(@toplevel_regex) { |url| replacement(url, location) }
 
           e.set_attribute(attr, processed_url)
         end
@@ -281,7 +281,7 @@ module UserContent
       parsed_html.inner_html
     end
 
-    def replacement(url)
+    def replacement(url, location)
       # This is a terrible, horrible hack to avoid dealing with closing tags.
       # The regexp itself should be fixed but without a proper unit test or
       # business description I dare not change it lest I break some exotic
@@ -328,15 +328,17 @@ module UserContent
         handler = @unknown_handler
       end
 
-      converted = handler&.call(match) || url
+      converted = %w[files media_attachments_iframe].include?(type) ? handler&.call(match, location) : handler&.call(match)
+      converted ||= url
       converted.gsub("&amp;", "&") # get rid of ampersand conversions, it can trip up logic that runs after this
     end
 
     # if content is nil, it'll query the block for the content if needed (lazy content load)
-    def user_can_view_content?(content = nil)
+    def user_can_view_content?(content = nil, location = nil)
       return false if user.blank? && content.respond_to?(:locked?) && content.locked?
       return true unless user
 
+      return true if user && location && content.is_a?(Attachment) && AttachmentAssociation.verify_access(location, content, user)
       return content.grants_right?(user, :download) if content.is_a?(Attachment) && content.context != context
 
       # if user given, check that the user is allowed to manage all

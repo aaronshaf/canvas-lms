@@ -60,12 +60,7 @@ describe AttachmentAssociation do
         <p><a href="/courses/#{course.id}/files/#{course_attachment.id}/download">file 1</a>
           <img id="3" src="/courses/#{course.id}/files/#{course_attachment2.id}/preview"></p>
       HTML
-      html2 = <<~HTML
-        <p><a href="/courses/#{course.id}/files/#{course_attachment.id}/download">file 1</a>
-          <img id="3" src="/courses/#{course.id}/files/#{course_attachment3.id}/preview"></p>
-      HTML
       course.associate_attachments_to_rce_object(html, teacher)
-      course.associate_attachments_to_rce_object(html2, teacher, context_concern: "syllabus_body")
     end
 
     it "returns false if the attachment is locked" do
@@ -94,7 +89,7 @@ describe AttachmentAssociation do
 
     it "returns false if the attachment is not associated with the context" do
       make_associations
-      expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment2, teacher)).to be_falsey
+      expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment3, teacher)).to be_falsey
     end
 
     it "returns false if the user is not allowed to read the context" do
@@ -116,12 +111,12 @@ describe AttachmentAssociation do
 
         it "returns true for a public syllabus for an unassociated user" do
           make_associations
-          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment3, another_user)).to be_truthy
+          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment2, another_user)).to be_truthy
         end
 
         it "returns true for a public syllabus for an enrolled student" do
           make_associations
-          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment3, student)).to be_truthy
+          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment2, student)).to be_truthy
         end
       end
 
@@ -133,12 +128,12 @@ describe AttachmentAssociation do
 
         it "returns false for a nonpublic syllabus for an unassociated user" do
           make_associations
-          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment3, another_user)).to be_falsey
+          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment2, another_user)).to be_falsey
         end
 
         it "returns true for a nonpublic syllabus for an enrolled student" do
           make_associations
-          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment3, student)).to be_truthy
+          expect(AttachmentAssociation.verify_access("course_syllabus_#{course.id}", course_attachment2, student)).to be_truthy
         end
       end
     end

@@ -63,9 +63,9 @@ module CC
 
           File.open(path, "w") do |file|
             file << if page.block_editor
-                      @html_exporter.json_page(page.block_editor, page.title, meta_fields)
+                      @html_exporter.json_page(page.block_editor, page.title, page.asset_string, meta_fields)
                     else
-                      @html_exporter.html_page(page.body, page.title, meta_fields)
+                      @html_exporter.html_page(page.body, page.title, page.asset_string, meta_fields)
                     end
           end
 
@@ -76,8 +76,8 @@ module CC
           ) do |res|
             res.file(href: relative_path)
           end
-        rescue
-          add_error(I18n.t("course_exports.errors.wiki_page", "The wiki page \"%{title}\" failed to export", title: page.title), $!)
+        rescue => e
+          add_error(I18n.t("course_exports.errors.wiki_page", "The wiki page \"%{title}\" failed to export", title: page.title), e)
         end
       end
     end

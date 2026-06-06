@@ -94,7 +94,7 @@ describe UserContent do
         expect(match.obj_id.class).to eq String
         ""
       end
-      rewriter.translate_content("<a href=\"/courses/#{rewriter.context.id}/wiki/1234-numbered-page\">test</a>")
+      rewriter.translate_content("<a href=\"/courses/#{rewriter.context.id}/wiki/1234-numbered-page\">test</a>", nil)
       expect(called).to be_truthy
     end
 
@@ -105,7 +105,7 @@ describe UserContent do
         expect(match.obj_id.class).to eq String
         ""
       end
-      rewriter.translate_content("<a href=\"/courses/#{rewriter.context.id}/pages/1234-numbered-page\">test</a>")
+      rewriter.translate_content("<a href=\"/courses/#{rewriter.context.id}/pages/1234-numbered-page\">test</a>", nil)
       expect(called).to be_truthy
     end
 
@@ -134,7 +134,7 @@ describe UserContent do
         <iframe src="/media_objects_iframe/m-hi" loading="lazy"></iframe>
         <img src="/courses/#{course.id}/files/#{att.id}/preview" loading="lazy">
       HTML
-      expect(rewriter.translate_content(html)).to eq(expected)
+      expect(rewriter.translate_content(html, nil)).to eq(expected)
     end
 
     describe "precise_translate_content" do
@@ -147,9 +147,9 @@ describe UserContent do
         rewriter = UserContent::HtmlRewriter.new(@course, @teacher)
         html = "<a title='/courses/#{rewriter.context.id}/assignments/5'>non-href link</a>"
         parsed_html = Nokogiri::HTML5.fragment(html, nil, **CanvasSanitize::SANITIZE[:parser_options])
-        expect { rewriter.precise_translate_content(parsed_html) }.not_to raise_error
-        rewriter.translate_content("<!DOCTYPE html>" + ("<div>" * 1000))
-        expect { rewriter.precise_translate_content(parsed_html) }.not_to raise_error
+        expect { rewriter.precise_translate_content(parsed_html, nil) }.not_to raise_error
+        rewriter.translate_content("<!DOCTYPE html>" + ("<div>" * 1000), nil)
+        expect { rewriter.precise_translate_content(parsed_html, nil) }.not_to raise_error
       end
     end
 

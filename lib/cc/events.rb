@@ -45,7 +45,7 @@ module CC
           migration_id = create_key(event)
           events_node.event(identifier: migration_id) do |event_node|
             event_node.title event.title unless event.title.blank?
-            event_node.description @html_exporter.html_content(event.description)
+            event_node.description @html_exporter.html_content(event.description, event.asset_string)
             event_node.start_at ims_datetime(event.start_at) if event.start_at
             event_node.end_at ims_datetime(event.end_at) if event.end_at
             if event.all_day

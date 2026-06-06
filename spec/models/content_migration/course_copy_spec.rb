@@ -153,9 +153,11 @@ describe ContentMigration do
 
     context "attachment associations" do
       it "creates attachment associations for files with attachment associations in the original course" do
-        user_file = attachment_model(context: @teacher, display_name: "img.png")
-        @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @teacher)
-          <p><img src="/users/#{@teacher.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}" controls="controls"></p>
+        course_with_ta(course: @copy_from)
+        @user = @teacher
+        user_file = attachment_model(context: @ta, display_name: "img.png")
+        @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @ta)
+          <p><img src="/users/#{@ta.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}" controls="controls"></p>
         HTML
 
         run_course_copy
@@ -165,15 +167,74 @@ describe ContentMigration do
       end
 
       it "doesn't create attachment associations for files without attachment associations in the original course" do
-        user = User.create!(name: "Test User")
-        user_file = attachment_model(context: user, display_name: "img.png")
+        course_with_ta(course: @copy_from)
+        @user = @teacher
+        user_file = attachment_model(context: @ta, display_name: "img.png")
         @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @teacher)
-          <p><img src="/users/#{user.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}" controls="controls"></p>
+          <p><img src="/users/#{@ta.id}/files/#{user_file.id}/download?verifier=#{user_file.uuid}"></p>
         HTML
 
         run_course_copy
 
         expect(@copy_to.attachment_associations).to be_empty
+      end
+
+      it "deletes attachment associations for file links that are removed in following copies" do
+        course_with_ta(course: @copy_from)
+        @user = @teacher
+        @img = attachment_model(context: @ta, display_name: "img.png", uploaded_data: stub_png_data)
+        @media = attachment_model(context: @ta, display_name: "292.mp3", media_entry_id: "0_livecat", uploaded_data: dummy_io)
+        @doc = attachment_model(context: @ta, display_name: "test.docx", uploaded_data: dummy_io)
+
+        @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @ta)
+          <p><img src="/users/#{@ta.id}/files/#{@img.id}/download?verifier=#{@img.uuid}"></p>
+          <p><iframe src="/media_attachments_iframe/#{@media.id}?embedded=true&amp;type=video" data-media-id="m-5FxY4GQsmpFGA4Tonw7nVjJYvsrsuzFJ"></iframe></p>
+          <p><a href="/users/#{@ta.id}/files/#{@doc.id}/download?verifier=#{@doc.uuid}&amp;wrap=1">doc.pdf</a></p>
+        HTML
+
+        run_course_copy
+
+        img_to = @copy_to.attachments.find_by(migration_id: mig_id(@img))
+        media_to = @copy_to.attachments.find_by(migration_id: mig_id(@media))
+        doc_to = @copy_to.attachments.find_by(migration_id: mig_id(@doc))
+        expect(@copy_to.syllabus_body).to include("/courses/#{@copy_to.id}/files/#{img_to.id}/download")
+        expect(@copy_to.syllabus_body).to include("/media_attachments_iframe/#{media_to.id}")
+        expect(@copy_to.syllabus_body).to include("/courses/#{@copy_to.id}/files/#{doc_to.id}/download")
+        expect(@copy_to.attachment_associations.pluck(:attachment_id)).to match_array [img_to.id, media_to.id, doc_to.id]
+
+        @copy_from.update(syllabus_body: "empty now", updating_user: @user)
+        run_course_copy
+        expect(@copy_to.attachment_associations).to be_empty
+      end
+
+      context "with sharding" do
+        specs_require_sharding
+
+        it "properly changes cross-shard user files to course files in the new course and creates associations" do
+          @shard1.activate do
+            @user = User.create!(name: "Test User")
+            @img = attachment_model(context: @user, display_name: "img.png", uploaded_data: stub_png_data)
+            @media = attachment_model(context: @user, display_name: "292.mp3", media_entry_id: "0_livecat", uploaded_data: dummy_io)
+            @doc = attachment_model(context: @user, display_name: "test.docx", uploaded_data: dummy_io)
+          end
+
+          @copy_from.enroll_teacher(@user)
+          @copy_from.update(syllabus_body: <<~HTML.strip, updating_user: @user)
+            <p><img src="/users/#{@user.id}/files/#{@img.id}/download?verifier=#{@img.uuid}"></p>
+            <p><iframe src="/media_attachments_iframe/#{@media.id}?embedded=true&amp;type=video" data-media-id="m-5FxY4GQsmpFGA4Tonw7nVjJYvsrsuzFJ"></iframe></p>
+            <p><a href="/users/#{@user.id}/files/#{@doc.id}/download?verifier=#{@doc.uuid}&amp;wrap=1">doc.pdf</a></p>
+          HTML
+
+          run_course_copy
+
+          img_to = @copy_to.attachments.find_by(migration_id: mig_id(@img))
+          media_to = @copy_to.attachments.find_by(migration_id: mig_id(@media))
+          doc_to = @copy_to.attachments.find_by(migration_id: mig_id(@doc))
+          expect(@copy_to.syllabus_body).to include("/courses/#{@copy_to.id}/files/#{img_to.id}/download")
+          expect(@copy_to.syllabus_body).to include("/media_attachments_iframe/#{media_to.id}")
+          expect(@copy_to.syllabus_body).to include("/courses/#{@copy_to.id}/files/#{doc_to.id}/download")
+          expect(@copy_to.attachment_associations.pluck(:attachment_id)).to match_array [img_to.id, media_to.id, doc_to.id]
+        end
       end
     end
 

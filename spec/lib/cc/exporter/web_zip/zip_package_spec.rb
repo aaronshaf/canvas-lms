@@ -1178,7 +1178,7 @@ describe "ZipPackage" do
              %( data-api-returntype="File">file1.jpg</a>)
       expected_html = %(<a href="viewer/files/file1.jpg?canvas_download=1") +
                       %( data-api-returntype="File">file1.jpg</a>)
-      converted_html = @zip_package.convert_html_to_local(html)
+      converted_html = @zip_package.convert_html_to_local(html, nil)
       expect(converted_html).to eq expected_html
     end
 
@@ -1188,7 +1188,7 @@ describe "ZipPackage" do
              %( data-api-returntype="Assignment">Assignment 1</a>)
       expected_html = %(<a title="Assignment 1" href="assignments/#{create_key(assign)}") +
                       %( data-api-returntype="Assignment">Assignment 1</a>)
-      converted_html = @zip_package.convert_html_to_local(html)
+      converted_html = @zip_package.convert_html_to_local(html, assign.asset_string)
       expect(converted_html).to eq expected_html
     end
 
@@ -1201,7 +1201,7 @@ describe "ZipPackage" do
              %( data-api-returntype="Assignment">Assignment 1</a>)
       expected_html = %(<a title="Assignment 1" href="assignments/#{create_key(assign)}") +
                       %( data-api-returntype="Assignment">Assignment 1</a>)
-      converted_html = @zip_package.convert_html_to_local(html)
+      converted_html = @zip_package.convert_html_to_local(html, assign.asset_string)
       expect(converted_html).to eq expected_html
     end
   end

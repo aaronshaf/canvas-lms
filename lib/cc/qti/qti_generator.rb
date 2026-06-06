@@ -215,7 +215,7 @@ module CC
                  "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
                  "xsi:schemaLocation" => "#{CCHelper::CANVAS_NAMESPACE} #{CCHelper::XSD_URI}") do |q_node|
           q_node.title quiz.title
-          q_node.description @html_exporter.html_content(quiz.description || "")
+          q_node.description @html_exporter.html_content(quiz.description, "quiz_#{quiz.id}")
           q_node.lock_at ims_datetime(quiz.lock_at, nil) if quiz.lock_at
           q_node.unlock_at ims_datetime(quiz.unlock_at, nil) if quiz.unlock_at
           q_node.due_at ims_datetime(quiz.due_at, nil) if quiz.due_at

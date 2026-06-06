@@ -53,14 +53,14 @@ module CC::Exporter::WebZip
       time&.in_time_zone(user.time_zone)&.iso8601
     end
 
-    def convert_html_to_local(html)
-      exported_html = @html_converter.html_content(html)
+    def convert_html_to_local(html, location)
+      exported_html = @html_converter.html_content(html, location)
       # see below
       exported_html&.gsub!(CC::CCHelper::WEB_CONTENT_TOKEN, "viewer/files")
       exported_html&.gsub!(CGI.escape(CC::CCHelper::WEB_CONTENT_TOKEN), "viewer/files")
       CONTENT_TOKENS.each do |token|
         # tokens contain $'s. content exported with an HTML4 parser will have
-        # escaped it, but newere content will not; check both ways
+        # escaped it, but newer content will not; check both ways
         exported_html&.gsub!("#{token}/", "")
         # HTML4 parser does
         exported_html&.gsub!("#{CGI.escape(token)}/", "")
@@ -359,11 +359,11 @@ module CC::Exporter::WebZip
     def parse_content(item_content)
       case item_content
       when Assignment, Quizzes::Quiz
-        convert_html_to_local(item_content&.description)
+        convert_html_to_local(item_content&.description, item_content.asset_string)
       when DiscussionTopic
-        convert_html_to_local(item_content&.message)
+        convert_html_to_local(item_content&.message, item_content.asset_string)
       when WikiPage
-        convert_html_to_local(item_content&.body)
+        convert_html_to_local(item_content&.body, item_content.asset_string)
       when Attachment
         path = file_path(item_content)
         "viewer/files#{path}#{item_content&.display_name}"

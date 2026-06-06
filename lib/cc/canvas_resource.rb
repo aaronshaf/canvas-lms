@@ -147,7 +147,7 @@ module CC
         end
         return syl_rel_path
       end
-      io_object << @html_exporter.html_page(@course.syllabus_body || "", "Syllabus")
+      io_object << @html_exporter.html_page(@course.syllabus_body, "Syllabus", @course.asset_string)
       io_object.close
 
       syl_rel_path

@@ -96,7 +96,7 @@ module CC
 
     def create_cc_topic(doc, topic)
       doc.title topic.title
-      html = @html_exporter.html_content(topic.message || "")
+      html = @html_exporter.html_content(topic.message, topic.asset_string)
       doc.text(html, texttype: "text/html")
       if topic.attachment
         doc.attachments do |atts|

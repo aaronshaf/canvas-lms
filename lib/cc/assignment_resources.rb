@@ -68,7 +68,7 @@ module CC
       # That way at least the content of the assignment will appear
       # for agents that support neither CC 1.3 nor Canvas assignments
       File.open(path, "w") do |file|
-        file << @html_exporter.html_page(assignment.description || "", "Assignment: " + assignment.title)
+        file << @html_exporter.html_page(assignment.description, "Assignment: #{assignment.title}", assignment.asset_string)
       end
 
       if Gem::Version.new(@manifest.cc_version) >= VERSION_1_3
@@ -141,7 +141,7 @@ module CC
 
     def self.create_cc_assignment(node, assignment, migration_id, html_exporter, manifest = nil)
       node.title(assignment.title)
-      node.text(html_exporter.html_content(assignment.description), texttype: "text/html")
+      node.text(html_exporter.html_content(assignment.description, assignment.asset_string), texttype: "text/html")
       if assignment.points_possible
         node.gradable(assignment.graded?, points_possible: assignment.points_possible)
       else

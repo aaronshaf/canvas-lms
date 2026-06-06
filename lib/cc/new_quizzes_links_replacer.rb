@@ -33,7 +33,7 @@ module CC
       doc.search("*").each do |node|
         next unless node.node_name == "mattext" && node["texttype"] == "text/html"
 
-        node.content = html_exporter.html_content(node.content)
+        node.content = html_exporter.html_content(node.content, nil)
       end
 
       doc.to_xml

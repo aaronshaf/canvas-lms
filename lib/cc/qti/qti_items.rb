@@ -130,7 +130,7 @@ module CC
 
           item_node.presentation do |pres_node|
             pres_node.material do |mat_node|
-              html_mat_text(mat_node, "<div>#{question["question_text"]}</div>", "")
+              html_mat_text(mat_node, "<div>#{question["question_text"]}</div>", "", "quiz_question_#{question[:id]}")
             end
             presentation_options(pres_node, question)
           end # presentation
@@ -188,7 +188,7 @@ module CC
                 ident: answer["id"]
               ) do |rl_node|
                 rl_node.material do |mat_node|
-                  html_mat_text(mat_node, answer["html"], answer["text"])
+                  html_mat_text(mat_node, answer["html"], answer["text"], "quiz_question_#{question[:id]}")
                 end # mat_node
               end # rl_node
             end
@@ -200,7 +200,7 @@ module CC
         question["answers"].each do |answer|
           node.response_lid(ident: "response_#{answer["id"]}") do |lid_node|
             lid_node.material do |mat_node|
-              html_mat_text(mat_node, answer["html"], answer["text"])
+              html_mat_text(mat_node, answer["html"], answer["text"], "quiz_question_#{question[:id]}")
             end
 
             lid_node.render_choice do |rc_node|
@@ -248,7 +248,7 @@ module CC
               answers.each do |answer|
                 rc_node.response_label(ident: answer["id"]) do |r_node|
                   r_node.material do |mat_node|
-                    html_mat_text(mat_node, answer["html"], answer["text"])
+                    html_mat_text(mat_node, answer["html"], answer["text"], "quiz_question_#{question[:id]}")
                   end
                 end # r_node
               end
@@ -509,7 +509,7 @@ module CC
         node.itemfeedback(ident: id) do |f_node|
           f_node.flow_mat do |flow_node|
             flow_node.material do |mat_node|
-              html_mat_text(mat_node, question[key + "_html"], question[key])
+              html_mat_text(mat_node, question[key + "_html"], question[key], "quiz_question_#{question[:id]}")
             end
           end
         end
@@ -557,9 +557,9 @@ module CC
         end # ext_node
       end
 
-      def html_mat_text(mat_node, html_val, text_val)
+      def html_mat_text(mat_node, html_val, text_val, location)
         if html_val.present?
-          html = @html_exporter.html_content(html_val)
+          html = @html_exporter.html_content(html_val, location)
           mat_node.mattext html, texttype: "text/html"
         else
           mat_node.mattext text_val, texttype: "text/plain"

@@ -679,7 +679,7 @@ module Api
       end
       rewriter.set_handler("files", &file_handler)
       rewriter.set_handler("media_attachments_iframe", &file_handler)
-      rewriter.translate_content(html)
+      rewriter.translate_content(html, render_location_tag)
     end
 
     url_helper = Html::UrlProxy.new(self,

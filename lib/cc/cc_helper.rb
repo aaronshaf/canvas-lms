@@ -236,7 +236,7 @@ module CC
             "#{COURSE_TOKEN}/#{match.rest}"
           end
         end
-        file_handler = proc do |match|
+        file_handler = proc do |match, location|
           if match.obj_id.nil?
             if (match_data = match.url.match(%r{/files/folder/(.*)}))
               # this might not be the best idea but let's keep going and see what happens
@@ -257,7 +257,7 @@ module CC
             next(match.url) if obj.context_type == "Course" && obj.context_id != @course.id
             next(match.url) if obj.context_type == "AssessmentQuestion" && @for_course_copy
             next(match.url) if match.context_type.present? && (match.context_type.classify != obj&.context_type || match.context_id != obj.context_id.to_s)
-            next(match.url) unless @rewriter.user_can_view_content?(obj) || @for_epub_export
+            next(match.url) unless @for_epub_export || @rewriter.user_can_view_content?(obj, location)
 
             obj.export_id = @key_generator.create_key(obj)
             @referenced_files[obj.id] = obj if @track_referenced_files && !@referenced_files[obj.id]
@@ -287,7 +287,7 @@ module CC
           end
         end
         @rewriter.set_handler("files", &file_handler)
-        @rewriter.set_handler("media_attachments_iframe", &file_handler) # do |match|
+        @rewriter.set_handler("media_attachments_iframe", &file_handler)
         wiki_handler = proc do |match|
           # WikiPagesController allows loosely-matching URLs; fix them before exporting
           if match.obj_id.present?
@@ -362,19 +362,19 @@ module CC
         query.sub(original_param, new_param)
       end
 
-      def json_page(block_editor, title, meta_fields = {})
+      def json_page(block_editor, title, location, meta_fields = {})
         json = {}
         json["title"] = title
         json["meta"] = meta_fields
         json["block_editor"] = {
-          "blocks" => @rewriter.translate_blocks(block_editor),
+          "blocks" => @rewriter.translate_blocks(block_editor, location),
           "editor_version" => block_editor.editor_version
         }
         json.to_json
       end
 
-      def html_page(html, title, meta_fields = {})
-        content = html_content(html)
+      def html_page(html, title, location, meta_fields = {})
+        content = html_content(html, location)
         meta_html = ""
         meta_fields.each_pair do |k, v|
           next unless v.present?
@@ -415,10 +415,10 @@ module CC
         @disable_content_rewriting ? url : @rewriter.translate_url(url)
       end
 
-      def html_content(html)
+      def html_content(html, location)
         return html if @disable_content_rewriting || html.blank?
 
-        html = @rewriter.translate_content(html)
+        html = @rewriter.translate_content(html, location)
         return html if html.blank?
 
         doc = Nokogiri::HTML5.fragment(html, nil, **CanvasSanitize::SANITIZE[:parser_options])

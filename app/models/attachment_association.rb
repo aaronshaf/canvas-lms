@@ -64,11 +64,9 @@ class AttachmentAssociation < ApplicationRecord
 
     context_type = context_type.camelize
     context_id = Shard.integral_id_for(context_id)
-    context_concern = nil
     permission_context = nil
 
     if context_type == "CourseSyllabus"
-      context_concern = "syllabus_body"
       context_type = "Course"
     elsif context_type == "Quiz"
       context_type = "Quizzes::Quiz"
@@ -91,7 +89,7 @@ class AttachmentAssociation < ApplicationRecord
 
     unless permission_context
       association = Shard.shard_for(context_id).activate do
-        AttachmentAssociation.find_by(attachment:, context_id:, context_type:, context_concern:)
+        AttachmentAssociation.find_by(attachment:, context_id:, context_type:)
       end
 
       permission_context = if association&.context.is_a?(Quizzes::QuizQuestion)

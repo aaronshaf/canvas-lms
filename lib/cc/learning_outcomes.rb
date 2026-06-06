@@ -64,7 +64,7 @@ module CC
       migration_id = create_key(group)
       node.learningOutcomeGroup(identifier: migration_id) do |group_node|
         group_node.title group.title unless group.title.blank?
-        group_node.description @html_exporter.html_content(group.description) unless group.description.blank?
+        group_node.description @html_exporter.html_content(group.description, group.asset_string) unless group.description.blank?
         group_node.vendor_guid group.vendor_guid if group.vendor_guid.present?
         group_node.source_outcome_group_id group.source_outcome_group_id if group.source_outcome_group_id.present?
 
@@ -101,7 +101,7 @@ module CC
       migration_id = create_key(item)
       node.learningOutcome(identifier: migration_id) do |out_node|
         out_node.title item.short_description if item.short_description.present?
-        out_node.description @html_exporter.html_content(item.description) if item.description.present?
+        out_node.description @html_exporter.html_content(item.description, item.asset_string) if item.description.present?
         out_node.calculation_method item.calculation_method if item.calculation_method.present?
         out_node.calculation_int item.calculation_int if item.calculation_int.present?
         out_node.vendor_guid item.vendor_guid if item.vendor_guid.present?

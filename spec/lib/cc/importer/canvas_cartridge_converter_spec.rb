@@ -753,7 +753,7 @@ describe "Canvas Cartridge importing" do
 
     # export to html file
     migration_id = CC::CCHelper.create_key(page)
-    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(page.body, page.title, identifier: migration_id)
+    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(page.body, page.title, page.asset_string, identifier: migration_id)
     # convert to json
     doc = Nokogiri::XML(exported_html)
     hash = @converter.convert_wiki(doc, "some-page")
@@ -784,7 +784,7 @@ describe "Canvas Cartridge importing" do
     @copy_from.update!(syllabus_body: body)
 
     # export to html file
-    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@copy_from.syllabus_body, "Syllabus")
+    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@copy_from.syllabus_body, "Syllabus", @copy_from.asset_string)
     # convert to json
     doc = Nokogiri::XML(exported_html)
     syllabus_body = @converter.convert_syllabus(doc)
@@ -954,7 +954,7 @@ describe "Canvas Cartridge importing" do
 
     it "works with the precise_link_replacements FF OFF" do
       Account.site_admin.disable_feature! :precise_link_replacements
-      exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@page.body, @page.title, @meta_fields)
+      exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@page.body, @page.title, @page.asset_string, @meta_fields)
       # convert to json
       doc = Nokogiri::HTML5(exported_html)
       hash = @converter.convert_wiki(doc, "some-page")
@@ -976,7 +976,7 @@ describe "Canvas Cartridge importing" do
 
     it "works with the precise_link_replacements FF ON" do
       Account.site_admin.enable_feature! :precise_link_replacements
-      exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@page.body, @page.title, @meta_fields)
+      exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@page.body, @page.title, @page.asset_string, @meta_fields)
       # convert to json
       doc = Nokogiri::HTML5(exported_html)
       hash = @converter.convert_wiki(doc, "some-page")
@@ -1016,7 +1016,7 @@ describe "Canvas Cartridge importing" do
       @migration.context.save!
 
       exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(
-        @page.body, @page.title, @meta_fields
+        @page.body, @page.title, @page.asset_string, @meta_fields
       )
       # convert to json
       doc = Nokogiri::HTML5(exported_html)
@@ -1044,7 +1044,7 @@ describe "Canvas Cartridge importing" do
 
     # export to html file
     migration_id = CC::CCHelper.create_key(page)
-    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(page.body, page.title, identifier: migration_id)
+    exported_html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(page.body, page.title, page.asset_string, identifier: migration_id)
     # convert to json
     doc = Nokogiri::HTML5(exported_html)
     hash = @converter.convert_wiki(doc, "blti-link")
@@ -1101,7 +1101,7 @@ describe "Canvas Cartridge importing" do
     migration_id = CC::CCHelper.create_key(asmnt)
     builder = Builder::XmlMarkup.new(indent: 2)
     builder.assignment("identifier" => migration_id) { |a| CC::AssignmentResources.create_canvas_assignment(a, asmnt) }
-    html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(asmnt.description, "Assignment: " + asmnt.title)
+    html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(asmnt.description, "Assignment: " + asmnt.title, asmnt.asset_string)
     # convert to json
     meta_doc = Nokogiri::XML(builder.target!)
     html_doc = Nokogiri::HTML5(html)
@@ -1144,7 +1144,7 @@ describe "Canvas Cartridge importing" do
     migration_id = CC::CCHelper.create_key(@assignment)
     builder = Builder::XmlMarkup.new(indent: 2)
     builder.assignment("identifier" => migration_id) { |a| CC::AssignmentResources.create_canvas_assignment(a, @assignment) }
-    html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@assignment.description, "Assignment: " + @assignment.title)
+    html = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher).html_page(@assignment.description, "Assignment: " + @assignment.title, @assignment.asset_string)
     # convert to json
     meta_doc = Nokogiri::XML(builder.target!)
     html_doc = Nokogiri::HTML5(html)
