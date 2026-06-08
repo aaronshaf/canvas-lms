@@ -24621,6 +24621,7 @@ tr:
     failed_resending: "İstek başarısız oldu. Tekrar deneyin."
     labels: 
       enable_login_for_email: "Bu eposta adresini kullanarak Canvas'a giriş yapmak istiyorum"
+      verification_code: "Doğrulama Kodu"
     links: 
       resend_confirmation: "Onayı Tekrar Yolla"
       resend_confirmation_failed: "İstek başarısız oldu. Tekrar deneyin."
@@ -24811,6 +24812,7 @@ tr:
       confirm_email_address: "Eposta Adresini Onayla"
       confirm_sms_number: "SMS Numarasını Onayla"
       contact_not_confirmed: "İletişim onaylanmadı. Daha fazla ayrıntı için adrese tıklayınız"
+      disable_mfa: "Çoklu Kimlik Doğrulamayı Pasifleştir"
       email_not_confirmed: "Bu eposta adresi onaylanmadı. Daha fazla ayrıntı için adrese tıklayın"
       register_communication: "İletişim Kaydı"
       unconfirmed_click_to_confirm: "Onaylanmadı. Onaylamak için tıklayınız"
@@ -33714,6 +33716,7 @@ tr:
     save_succeeded: "Kaydetme başarılı"
     titles: 
       add_login: "Oturum Ekle"
+      reset_mfa: "Çoklu Kimlik Doğrulama'yı Sıfırla"
       update_login: "Oturumu Güncelle"
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "Kullanıcı birleştirme başarısız. Lütfen uygun izinlere sahip olduğunuzdan emin olun ve tekrar deneyin."
   user_merge_succeeded_sourceuser_and_destinationuse_71d5d85a: "Kullanıcı birleştirme başarılı! %{sourceUser} ve %{destinationUser} artık aynı kullanıcı. Kullanıcı sayfasına yönlendiriliyor..."
