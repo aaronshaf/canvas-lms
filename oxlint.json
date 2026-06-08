@@ -6,7 +6,8 @@
     "./config/oxlint-plugins/canvas-xss.js",
     "./config/canvas-sanitize-url.js",
     "./config/canvas-no-env-write.js",
-    "./config/canvas-no-env-read.js"
+    "./config/canvas-no-env-read.js",
+    "./config/canvas-postmessage-origin-check.js"
   ],
   "env": {
     "browser": true,
@@ -83,7 +84,8 @@
         "canvas-xss/no-unsafe-html": "error",
         "canvas-sanitize-url/at-href": "error",
         "canvas-sanitize-url/imperative": "error",
-        "canvas-no-env-write/no-env-write": "warn"
+        "canvas-no-env-write/no-env-write": "warn",
+        "canvas-postmessage-origin-check/require-origin-check": "warn"
       }
     },
     {
