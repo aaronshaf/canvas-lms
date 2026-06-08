@@ -20,6 +20,7 @@ import React from 'react'
 import {cleanup, render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CreateTodoModal from '../CreateTodoModal'
+import {WidgetThemeProvider} from '../../../../theme/WidgetThemeContext'
 
 describe('CreateTodoModal', () => {
   const defaultProps = {
@@ -51,6 +52,19 @@ describe('CreateTodoModal', () => {
 
   it('renders all form fields', () => {
     render(<CreateTodoModal {...defaultProps} />)
+    expect(screen.getByTestId('create-todo-title-input')).toBeInTheDocument()
+    expect(screen.getByTestId('create-todo-date-input')).toBeInTheDocument()
+    expect(screen.getByTestId('create-todo-course-select')).toBeInTheDocument()
+    expect(screen.getByTestId('create-todo-details-input')).toBeInTheDocument()
+  })
+
+  it('renders all form fields in dark mode', () => {
+    render(
+      <WidgetThemeProvider isDark={true} setIsDark={() => {}}>
+        <CreateTodoModal {...defaultProps} />
+      </WidgetThemeProvider>,
+    )
+    expect(screen.getByText('Add To Do')).toBeInTheDocument()
     expect(screen.getByTestId('create-todo-title-input')).toBeInTheDocument()
     expect(screen.getByTestId('create-todo-date-input')).toBeInTheDocument()
     expect(screen.getByTestId('create-todo-course-select')).toBeInTheDocument()

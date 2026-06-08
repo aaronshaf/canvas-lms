@@ -27,7 +27,10 @@ import {Flex} from '@instructure/ui-flex'
 import {DateTimeInput} from '@instructure/ui-date-time-input'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import {InstUISettingsProvider} from '@instructure/emotion'
 import moment from 'moment-timezone'
+import {useWidgetTheme} from '../../../theme/WidgetThemeContext'
+import {getTodoModalDarkTheme} from './todoModalTheme'
 
 const I18n = createI18nScope('widget_dashboard')
 
@@ -72,6 +75,8 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
   mode = 'create',
   initialValues = null,
 }) => {
+  const {isDark, colors} = useWidgetTheme()
+  const modalTheme = useMemo(() => (isDark ? getTodoModalDarkTheme(colors) : {}), [isDark, colors])
   const isEdit = mode === 'edit'
   const [title, setTitle] = useState('')
   const [todoDate, setTodoDate] = useState<moment.Moment | null>(moment.tz(timeZone).endOf('day'))
@@ -214,126 +219,132 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
   const selectedCourseValue = courseId || 'none'
 
   return (
-    <Modal
-      open={open}
-      onDismiss={handleClose}
-      size="medium"
-      label={isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}
-      shouldCloseOnDocumentClick={false}
-    >
-      <Modal.Header>
-        <CloseButton
-          data-testid="create-todo-close-button"
-          placement="end"
-          offset="small"
-          onClick={handleClose}
-          screenReaderLabel={I18n.t('Close')}
-          interaction={isCreating ? 'disabled' : 'enabled'}
-        />
-        <Heading>{isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}</Heading>
-      </Modal.Header>
-      <Modal.Body>
-        <Flex direction="column" gap="medium">
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <TextInput
-              data-testid="create-todo-title-input"
-              renderLabel={I18n.t('Title')}
-              isRequired={true}
-              value={title}
-              onChange={(_e, value) => {
-                setTitle(value)
-                if (titleError && value.trim() && value.length <= MAX_TITLE_LENGTH) {
-                  setTitleError('')
+    <InstUISettingsProvider theme={modalTheme}>
+      <Modal
+        open={open}
+        onDismiss={handleClose}
+        size="medium"
+        label={isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}
+        shouldCloseOnDocumentClick={false}
+      >
+        <Modal.Header>
+          <CloseButton
+            data-testid="create-todo-close-button"
+            placement="end"
+            offset="small"
+            onClick={handleClose}
+            screenReaderLabel={I18n.t('Close')}
+            interaction={isCreating ? 'disabled' : 'enabled'}
+          />
+          <Heading>{isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}</Heading>
+        </Modal.Header>
+        <Modal.Body>
+          <Flex direction="column" gap="medium">
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <TextInput
+                data-testid="create-todo-title-input"
+                renderLabel={I18n.t('Title')}
+                isRequired={true}
+                value={title}
+                onChange={(_e, value) => {
+                  setTitle(value)
+                  if (titleError && value.trim() && value.length <= MAX_TITLE_LENGTH) {
+                    setTitleError('')
+                  }
+                }}
+                messages={titleError ? [{type: 'error', text: titleError}] : []}
+                interaction={isCreating ? 'disabled' : 'enabled'}
+                maxLength={MAX_TITLE_LENGTH}
+              />
+            </Flex.Item>
+            <Flex.Item data-testid="create-todo-date-input" overflowX="visible" overflowY="visible">
+              <DateTimeInput
+                isRequired={true}
+                description={
+                  <ScreenReaderContent>
+                    {I18n.t('The date and time this to do is due')}
+                  </ScreenReaderContent>
                 }
-              }}
-              messages={titleError ? [{type: 'error', text: titleError}] : []}
-              interaction={isCreating ? 'disabled' : 'enabled'}
-              maxLength={MAX_TITLE_LENGTH}
-            />
-          </Flex.Item>
-          <Flex.Item data-testid="create-todo-date-input" overflowX="visible" overflowY="visible">
-            <DateTimeInput
-              isRequired={true}
-              description={
-                <ScreenReaderContent>
-                  {I18n.t('The date and time this to do is due')}
-                </ScreenReaderContent>
-              }
-              messages={dateError ? [{type: 'error', text: dateError}] : []}
-              dateRenderLabel={I18n.t('Date')}
-              nextMonthLabel={I18n.t('Next Month')}
-              prevMonthLabel={I18n.t('Previous Month')}
-              timeRenderLabel={I18n.t('Time')}
-              timeStep={30}
-              locale={locale}
-              timezone={timeZone}
-              value={todoDate && todoDate.isValid() ? todoDate.toISOString() : undefined}
-              layout="stacked"
-              onChange={handleDateChange}
-              invalidDateTimeMessage={invalidDateTimeMessage}
-              allowNonStepInput={true}
-              interaction={isCreating ? 'disabled' : 'enabled'}
-            />
-          </Flex.Item>
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <SimpleSelect
-              renderLabel={I18n.t('Course')}
-              assistiveText={I18n.t('Use arrow keys to navigate options.')}
-              data-testid="create-todo-course-select"
-              value={selectedCourseValue}
-              onChange={handleCourseIdChange}
-              interaction={isCreating ? 'disabled' : 'enabled'}
-            >
-              {[noneOption, ...courseOptions].map(props => (
-                <SimpleSelect.Option key={props.value} id={props.value} value={props.value}>
-                  {props.label}
-                </SimpleSelect.Option>
-              ))}
-            </SimpleSelect>
-          </Flex.Item>
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <TextArea
-              data-testid="create-todo-details-input"
-              label={I18n.t('Details')}
-              value={details}
-              onChange={e => {
-                setDetails(e.target.value)
-                if (detailsError && e.target.value.length <= MAX_DETAILS_LENGTH) {
-                  setDetailsError('')
-                }
-              }}
-              messages={detailsError ? [{type: 'error', text: detailsError}] : []}
-              height="10rem"
-              disabled={isCreating}
-              maxHeight="10rem"
-            />
-          </Flex.Item>
-        </Flex>
-      </Modal.Body>
-      <Modal.Footer>
-        <Flex justifyItems="end" gap="small">
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <Button
-              data-testid="create-todo-cancel-button"
-              onClick={handleClose}
-              interaction={isCreating ? 'disabled' : 'enabled'}
-            >
-              {I18n.t('Cancel')}
-            </Button>
-          </Flex.Item>
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <Button
-              data-testid="create-todo-submit-button"
-              onClick={handleSubmit}
-              color="primary"
-              interaction={isCreating ? 'disabled' : 'enabled'}
-            >
-              {isCreating ? (isEdit ? I18n.t('Saving...') : I18n.t('Creating...')) : I18n.t('Save')}
-            </Button>
-          </Flex.Item>
-        </Flex>
-      </Modal.Footer>
-    </Modal>
+                messages={dateError ? [{type: 'error', text: dateError}] : []}
+                dateRenderLabel={I18n.t('Date')}
+                nextMonthLabel={I18n.t('Next Month')}
+                prevMonthLabel={I18n.t('Previous Month')}
+                timeRenderLabel={I18n.t('Time')}
+                timeStep={30}
+                locale={locale}
+                timezone={timeZone}
+                value={todoDate && todoDate.isValid() ? todoDate.toISOString() : undefined}
+                layout="stacked"
+                onChange={handleDateChange}
+                invalidDateTimeMessage={invalidDateTimeMessage}
+                allowNonStepInput={true}
+                interaction={isCreating ? 'disabled' : 'enabled'}
+              />
+            </Flex.Item>
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <SimpleSelect
+                renderLabel={I18n.t('Course')}
+                assistiveText={I18n.t('Use arrow keys to navigate options.')}
+                data-testid="create-todo-course-select"
+                value={selectedCourseValue}
+                onChange={handleCourseIdChange}
+                interaction={isCreating ? 'disabled' : 'enabled'}
+              >
+                {[noneOption, ...courseOptions].map(props => (
+                  <SimpleSelect.Option key={props.value} id={props.value} value={props.value}>
+                    {props.label}
+                  </SimpleSelect.Option>
+                ))}
+              </SimpleSelect>
+            </Flex.Item>
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <TextArea
+                data-testid="create-todo-details-input"
+                label={I18n.t('Details')}
+                value={details}
+                onChange={e => {
+                  setDetails(e.target.value)
+                  if (detailsError && e.target.value.length <= MAX_DETAILS_LENGTH) {
+                    setDetailsError('')
+                  }
+                }}
+                messages={detailsError ? [{type: 'error', text: detailsError}] : []}
+                height="10rem"
+                disabled={isCreating}
+                maxHeight="10rem"
+              />
+            </Flex.Item>
+          </Flex>
+        </Modal.Body>
+        <Modal.Footer>
+          <Flex justifyItems="end" gap="small">
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <Button
+                data-testid="create-todo-cancel-button"
+                onClick={handleClose}
+                interaction={isCreating ? 'disabled' : 'enabled'}
+              >
+                {I18n.t('Cancel')}
+              </Button>
+            </Flex.Item>
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <Button
+                data-testid="create-todo-submit-button"
+                onClick={handleSubmit}
+                color="primary"
+                interaction={isCreating ? 'disabled' : 'enabled'}
+              >
+                {isCreating
+                  ? isEdit
+                    ? I18n.t('Saving...')
+                    : I18n.t('Creating...')
+                  : I18n.t('Save')}
+              </Button>
+            </Flex.Item>
+          </Flex>
+        </Modal.Footer>
+      </Modal>
+    </InstUISettingsProvider>
   )
 }
 

@@ -156,7 +156,6 @@ const WidgetDashboardApp = () => {
         #content [class*="-view-"],
         #content [class$="-heading"],
         #content [class*="-heading "],
-        #content [class*="-formFieldLayout__label"],
         #content [class*="-toggleDetails__summary"],
         #content [class*="-list__item"],
         #content [class*="-listItem"],
@@ -191,6 +190,9 @@ const WidgetDashboardApp = () => {
         body [class*="-options__item"]:hover,
         body [class*="-options__item"][data-highlighted] {
           background: ${darkColors.cardSecondary} !important;
+        }
+        body [class*="-formFieldLayout__label"] {
+          color: ${darkColors.textPrimary} !important;
         }
         #content [class*="-link"] a,
         #content a[class*="-link"] {
