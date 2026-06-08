@@ -93,7 +93,7 @@
     "@instructure/emotion": "11.6.0",
     "@instructure/k5uploader": "*",
     "@instructure/media-capture": "12.0.0",
-    "@instructure/platform-sanitize": "0.3.13",
+    "@instructure/platform-sanitize": "0.3.14",
     "@instructure/ui-a11y-content": "11.6.0",
     "@instructure/ui-a11y-utils": "11.6.0",
     "@instructure/ui-alerts": "11.6.0",
