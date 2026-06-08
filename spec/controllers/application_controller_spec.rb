@@ -3045,6 +3045,27 @@ RSpec.describe ApplicationController do
       end
     end
 
+    describe "mfa verified fingerprint" do
+      let(:user) { user_factory }
+      let(:pseudonym) { user.pseudonyms.create!(unique_id: "testuser") }
+      let(:pseudonym_session) { instance_double(PseudonymSession, "non_explicit_session=": true, save!: true) }
+
+      before do
+        allow_any_instantiation_of(pseudonym).to receive(:works_for_account?).and_return(true)
+        allow(PseudonymSession).to receive(:new).and_return(pseudonym_session)
+        allow(controller).to receive(:redirect_to).and_return(true)
+        request.env["REMOTE_ADDR"] = "9.9.9.9"
+        request.env["HTTP_USER_AGENT"] = "Example-User-Agent"
+      end
+
+      it "adds the current IP and UA hash to the verified lists so MFA isn't re-prompted" do
+        controller.params[:session_token] = SessionToken.new(pseudonym.global_id).to_s
+        controller.send(:initiate_session_from_token)
+        expect(session[:mfa_verified_ips]).to include("9.9.9.9")
+        expect(session[:mfa_verified_uas]).to include(Digest::MD5.hexdigest("Example-User-Agent"))
+      end
+    end
+
     describe "error reporting" do
       let(:user) { user_factory }
       let(:pseudonym) { user.pseudonyms.create!(unique_id: "testuser") }
@@ -5054,6 +5075,28 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
     expect(response).to be_successful
   end
 
+  context "when the auth provider opted out of Canvas MFA for this session" do
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      session[:login_aac_skip_canvas_mfa] = true
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+    end
+
+    around do |example|
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) { example.run }
+    end
+
+    it_behaves_like "allows request through"
+
+    it "does not emit any mfa events" do
+      allow(InstStatsd::Statsd).to receive(:event)
+      get :index, format: :html
+      expect(InstStatsd::Statsd).not_to have_received(:event).with(a_string_starting_with("MFA"), anything, anything)
+    end
+  end
+
   context "when authenticated via API token" do
     before do
       routes.draw { get "api/v1/check_mfa_test" => "anonymous#index" }
@@ -5333,6 +5376,39 @@ RSpec.describe ApplicationController, "#check_mfa_ips_and_user_agents" do
         expect(InstStatsd::Statsd).to receive(:event)
           .with("MFA UA Mismatch", "canvas.mfa_ua_mismatch", type: :mfa_ua_mismatch, alert_type: :warning, tags: hash_including(user_type: "regular"))
         get :index, format: :html
+      end
+
+      context "with only mfa_ip_enforce_all_mfa_users: true" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) { example.run }
+        end
+
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "with only mfa_ua_enforce_all_mfa_users: true" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_all_mfa_users" => true } } }) { example.run }
+        end
+
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "with neither IP nor UA enforcement keys set" do
+        around { |example| override_dynamic_settings({}) { example.run } }
+
+        it_behaves_like "allows request through"
+      end
+
+      context "when enforcement triggers" do
+        around do |example|
+          override_dynamic_settings({ private: { canvas: { "mfa_ua_enforce_all_mfa_users" => true } } }) { example.run }
+        end
+
+        it "stores the current location so the user returns there after entering OTP" do
+          get :index, format: :html
+          expect(session[:return_to]).to be_present
+        end
       end
     end
   end

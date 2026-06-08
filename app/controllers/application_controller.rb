@@ -1311,7 +1311,7 @@ class ApplicationController < ActionController::Base
   end
 
   def check_mfa_ips_and_user_agents
-    return unless logged_in_user&.canvas_mfa? && in_app?
+    return unless logged_in_user&.canvas_mfa? && !session[:login_aac_skip_canvas_mfa] && in_app?
 
     verified_ips = session[:mfa_verified_ips]
     ip_match = verified_ips&.include?(request.remote_ip)
@@ -1353,15 +1353,17 @@ class ApplicationController < ActionController::Base
 
     if @domain_root_account.feature_enabled?(:enforce_session_fingerprinting)
       settings = DynamicSettings.find(tree: :private)
-      enforce = if !ip_match
-                  (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
-                    (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
-                    settings["mfa_ip_enforce_all_mfa_users"]
-                elsif !ua_match
-                  (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
-                    (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
-                    settings["mfa_ua_enforce_all_mfa_users"]
-                end
+      ip_enforce = unless ip_match
+                     (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
+                       (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
+                       settings["mfa_ip_enforce_all_mfa_users"]
+                   end
+      ua_enforce = unless ua_match
+                     (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
+                       (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
+                       settings["mfa_ua_enforce_all_mfa_users"]
+                   end
+      enforce = ip_enforce || ua_enforce
     end
 
     unless enforce
@@ -1370,6 +1372,11 @@ class ApplicationController < ActionController::Base
       return
     end
 
+    prompt_for_otp
+  end
+
+  def prompt_for_otp
+    store_location
     session[:pending_otp] = true
     redirect_to otp_login_url
   end
@@ -2046,6 +2053,7 @@ class ApplicationController < ActionController::Base
             session[:is_mobile_webview] = true
             session[:mobile_cookie_consent] = token.consent_from_mobile == true
           end
+          add_mfa_verified_ip_and_user_agent
         end
         return redirect_to return_to if return_to
 

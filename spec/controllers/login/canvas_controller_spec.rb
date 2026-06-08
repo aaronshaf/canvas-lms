@@ -594,6 +594,34 @@ describe Login::CanvasController, type: :request do
         post "/login/canvas", params: { pseudonym_session: { unique_id: @pseudonym.unique_id, password: "qwertyuiop" } }
         expect(response).to redirect_to dashboard_url(login_success: 1)
       end
+
+      it "records that the provider opted out of Canvas MFA so the fingerprint check is skipped" do
+        Account.default.settings[:mfa_settings] = :required
+        Account.default.save!
+        user_with_pseudonym(active_all: 1, password: "qwertyuiop")
+        @user.otp_secret_key = ROTP::Base32.random
+        @user.save!
+        auth_provider = Account.default.canvas_authentication_provider
+        @pseudonym.update(authentication_provider: auth_provider)
+        auth_provider.skip_internal_mfa = true
+        auth_provider.save!
+
+        post "/login/canvas", params: { pseudonym_session: { unique_id: @pseudonym.unique_id, password: "qwertyuiop" } }
+        expect(session[:login_aac_skip_canvas_mfa]).to be true
+      end
+
+      it "does not flag the session to skip Canvas MFA when the provider enforces it" do
+        Account.default.settings[:mfa_settings] = :required
+        Account.default.save!
+        user_with_pseudonym(active_all: 1, password: "qwertyuiop")
+        @user.otp_secret_key = ROTP::Base32.random
+        @user.save!
+        auth_provider = Account.default.canvas_authentication_provider
+        @pseudonym.update(authentication_provider: auth_provider)
+
+        post "/login/canvas", params: { pseudonym_session: { unique_id: @pseudonym.unique_id, password: "qwertyuiop" } }
+        expect(session[:login_aac_skip_canvas_mfa]).to be_falsey
+      end
     end
   end
 

@@ -93,7 +93,8 @@ module Login::Shared
     Canvas::LiveEvents.logged_in(session, user, pseudonym)
 
     otp_passed ||= user.validate_otp_secret_key_remember_me_cookie(cookies["canvas_otp_remember_me"], request.remote_ip)
-    unless otp_passed || auth_provider.skip_internal_mfa
+    session[:login_aac_skip_canvas_mfa] = auth_provider&.skip_internal_mfa
+    unless otp_passed || session[:login_aac_skip_canvas_mfa]
       mfa_settings = user.mfa_settings(pseudonym_hint: @current_pseudonym)
       if (mfa_settings == :optional && (user.otp_secret_key || auth_provider.mfa_required)) || mfa_settings == :required
         session[:pending_otp] = true
