@@ -98,8 +98,8 @@
 
     <div class="ig-info">
 
-    <%= tag.__send__((module_item&.content_type == "ContextModuleSubHeader") ? :h3 : :div,
-                     class: "module-item-title") do %>
+    <%= content_tag((module_item&.content_type == "ContextModuleSubHeader") ? :h3 : :div,
+                    class: "module-item-title") do %>
       <span class="item_name">
         <% title = module_item&.title %>
         <% if module_item && module_item.content_type == "ExternalUrl" && module_item.new_tab %>
