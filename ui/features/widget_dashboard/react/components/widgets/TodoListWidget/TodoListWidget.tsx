@@ -28,10 +28,12 @@ import {SimpleSelect} from '@instructure/ui-simple-select'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {TemplateWidget} from '@instructure/platform-widget-dashboard'
 import TodoItem from './TodoItem'
-import CreateTodoModal from './CreateTodoModal'
+import CreateTodoModal, {type TodoFormValues} from './CreateTodoModal'
 import type {BaseWidgetProps} from '../../../types'
+import type {PlannerItem} from './types'
 import {usePlannerItems} from './hooks/usePlannerItems'
 import {useCreatePlannerNote} from './hooks/useCreatePlannerNote'
+import {useUpdatePlannerNote} from './hooks/useUpdatePlannerNote'
 import {useWidgetDashboard} from '../../../hooks/useWidgetDashboardContext'
 import {useWidgetConfig} from '../../../hooks/useWidgetConfig'
 
@@ -49,6 +51,7 @@ const TodoListWidget: React.FC<BaseWidgetProps> = ({
   dragHandleProps,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<PlannerItem | null>(null)
   const [filter, setFilter] = useWidgetConfig<TodoFilter>(
     widget.id,
     'filter',
@@ -70,6 +73,7 @@ const TodoListWidget: React.FC<BaseWidgetProps> = ({
   }, [])
 
   const {mutate: createPlannerNote, isPending: isCreating} = useCreatePlannerNote()
+  const {mutate: updatePlannerNote, isPending: isUpdating} = useUpdatePlannerNote()
   const {sharedCourseData, observedUserId} = useWidgetDashboard()
 
   const {
@@ -118,6 +122,44 @@ const TodoListWidget: React.FC<BaseWidgetProps> = ({
       },
     })
   }
+
+  const handleUpdateTodo = (data: TodoFormValues) => {
+    if (!editingItem) return
+    updatePlannerNote(
+      {id: editingItem.plannable_id, ...data},
+      {
+        onSuccess: () => {
+          setEditingItem(null)
+          showFlashAlert({
+            message: I18n.t('To-do item updated successfully'),
+            type: 'success',
+          })
+        },
+        onError: () => {
+          showFlashAlert({
+            message: I18n.t('Failed to update to-do item. Please try again.'),
+            type: 'error',
+          })
+        },
+      },
+    )
+  }
+
+  // Pre-populate the modal from the item being edited. Memoized on editingItem so a parent
+  // re-render while the edit modal is open does not produce a new object reference and re-run
+  // the modal's sync effect, which would discard unsaved edits.
+  const editInitialValues: TodoFormValues | null = useMemo(
+    () =>
+      editingItem
+        ? {
+            title: editingItem.plannable.title,
+            todo_date: editingItem.plannable.todo_date || editingItem.plannable_date,
+            details: editingItem.plannable.details,
+            course_id: editingItem.course_id || editingItem.plannable.course_id,
+          }
+        : null,
+    [editingItem],
+  )
 
   // Transform shared course data to the format expected by CreateTodoModal
   const courses = useMemo(
@@ -172,6 +214,7 @@ const TodoListWidget: React.FC<BaseWidgetProps> = ({
                   <TodoItem
                     item={item}
                     onItemUpdate={updateItemOverride}
+                    onEdit={setEditingItem}
                     readOnly={!!observedUserId}
                   />
                 </List.Item>
@@ -214,13 +257,18 @@ const TodoListWidget: React.FC<BaseWidgetProps> = ({
         {renderContent()}
       </TemplateWidget>
       <CreateTodoModal
-        open={isModalOpen}
-        onDismiss={() => setIsModalOpen(false)}
-        onSubmit={handleCreateTodo}
-        isCreating={isCreating}
+        open={isModalOpen || editingItem !== null}
+        onDismiss={() => {
+          setIsModalOpen(false)
+          setEditingItem(null)
+        }}
+        onSubmit={editingItem ? handleUpdateTodo : handleCreateTodo}
+        isCreating={editingItem ? isUpdating : isCreating}
         courses={courses}
         locale={locale}
         timeZone={timeZone}
+        mode={editingItem ? 'edit' : 'create'}
+        initialValues={editInitialValues}
       />
     </>
   )

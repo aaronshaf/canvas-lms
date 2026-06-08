@@ -160,4 +160,55 @@ describe('CreateTodoModal', () => {
 
     expect(inputs.length).toBeGreaterThanOrEqual(2)
   })
+
+  describe('edit mode', () => {
+    const editProps = {
+      ...defaultProps,
+      mode: 'edit' as const,
+      initialValues: {
+        title: 'Existing Todo',
+        todo_date: '2025-12-25T18:00:00.000Z',
+        details: 'Existing details',
+        course_id: undefined,
+      },
+    }
+
+    it('renders the edit heading', () => {
+      render(<CreateTodoModal {...editProps} />)
+      expect(screen.getByText('Edit To Do')).toBeInTheDocument()
+      expect(screen.queryByText('Add To Do')).not.toBeInTheDocument()
+    })
+
+    it('pre-populates the title and details from initialValues', () => {
+      render(<CreateTodoModal {...editProps} />)
+      const titleInput = screen.getByTestId('create-todo-title-input') as HTMLInputElement
+      const detailsInput = screen.getByTestId('create-todo-details-input') as HTMLTextAreaElement
+      expect(titleInput.value).toBe('Existing Todo')
+      expect(detailsInput.value).toBe('Existing details')
+    })
+
+    it('submits the edited values', async () => {
+      const user = userEvent.setup()
+      render(<CreateTodoModal {...editProps} />)
+
+      const titleInput = screen.getByTestId('create-todo-title-input') as HTMLInputElement
+      await user.clear(titleInput)
+      await user.type(titleInput, 'Renamed Todo')
+
+      const submitButton = screen.getByTestId('create-todo-submit-button')
+      await user.click(submitButton)
+
+      expect(editProps.onSubmit).toHaveBeenCalledWith({
+        title: 'Renamed Todo',
+        todo_date: expect.any(String),
+        details: 'Existing details',
+        course_id: undefined,
+      })
+    })
+
+    it('shows "Saving..." text on submit button when isCreating is true', () => {
+      render(<CreateTodoModal {...editProps} isCreating={true} />)
+      expect(screen.getByTestId('create-todo-submit-button')).toHaveTextContent('Saving...')
+    })
+  })
 })

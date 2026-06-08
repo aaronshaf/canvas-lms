@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useMemo} from 'react'
+import React, {useState, useMemo, useEffect} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
@@ -42,14 +42,23 @@ export interface Course {
   is_student?: boolean
 }
 
+export interface TodoFormValues {
+  title: string
+  todo_date: string
+  details?: string
+  course_id?: string
+}
+
 interface CreateTodoModalProps {
   open: boolean
   onDismiss: () => void
-  onSubmit: (data: {title: string; todo_date: string; details?: string; course_id?: string}) => void
+  onSubmit: (data: TodoFormValues) => void
   isCreating: boolean
   courses: Course[]
   locale: string
   timeZone: string
+  mode?: 'create' | 'edit'
+  initialValues?: TodoFormValues | null
 }
 
 const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
@@ -60,7 +69,10 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
   courses,
   locale,
   timeZone,
+  mode = 'create',
+  initialValues = null,
 }) => {
+  const isEdit = mode === 'edit'
   const [title, setTitle] = useState('')
   const [todoDate, setTodoDate] = useState<moment.Moment | null>(moment.tz(timeZone).endOf('day'))
   const [details, setDetails] = useState('')
@@ -107,7 +119,11 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
       course_id: courseId,
     })
 
-    resetForm()
+    // For create we clear the form for the next entry; for edit the parent closes
+    // the modal on success and the open effect repopulates on the next open.
+    if (!isEdit) {
+      resetForm()
+    }
   }
 
   const resetForm = () => {
@@ -124,6 +140,31 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
     resetForm()
     onDismiss()
   }
+
+  // Sync form fields whenever the modal opens: populate from the edited item, or clear for create.
+  useEffect(() => {
+    if (!open) return
+    if (isEdit && initialValues) {
+      setTitle(initialValues.title)
+      const parsedDate = initialValues.todo_date
+        ? moment.tz(initialValues.todo_date, timeZone)
+        : null
+      setTodoDate(
+        parsedDate && parsedDate.isValid() ? parsedDate : moment.tz(timeZone).endOf('day'),
+      )
+      setDetails(initialValues.details || '')
+      setCourseId(initialValues.course_id)
+    } else {
+      setTitle('')
+      setTodoDate(moment.tz(timeZone).endOf('day'))
+      setDetails('')
+      setCourseId(undefined)
+    }
+    setTitleError('')
+    setDateError('')
+    setDetailsError('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEdit, initialValues, timeZone])
 
   const handleDateChange = (_e: React.SyntheticEvent, isoDate?: string) => {
     const value = isoDate || ''
@@ -177,7 +218,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
       open={open}
       onDismiss={handleClose}
       size="medium"
-      label={I18n.t('Add To Do')}
+      label={isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}
       shouldCloseOnDocumentClick={false}
     >
       <Modal.Header>
@@ -189,7 +230,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
           screenReaderLabel={I18n.t('Close')}
           interaction={isCreating ? 'disabled' : 'enabled'}
         />
-        <Heading>{I18n.t('Add To Do')}</Heading>
+        <Heading>{isEdit ? I18n.t('Edit To Do') : I18n.t('Add To Do')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <Flex direction="column" gap="medium">
@@ -287,7 +328,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
               color="primary"
               interaction={isCreating ? 'disabled' : 'enabled'}
             >
-              {isCreating ? I18n.t('Creating...') : I18n.t('Save')}
+              {isCreating ? (isEdit ? I18n.t('Saving...') : I18n.t('Creating...')) : I18n.t('Save')}
             </Button>
           </Flex.Item>
         </Flex>

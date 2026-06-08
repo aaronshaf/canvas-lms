@@ -21,9 +21,11 @@ import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
+import {http, HttpResponse} from 'msw'
 import TodoListWidget from '../TodoListWidget'
 import type {BaseWidgetProps, Widget} from '../../../../types'
 import {plannerItemsHandlers, plannerNoteHandlers} from './mocks/handlers'
+import {mockPlannerItems} from './mocks/data'
 import {WidgetLayoutProvider} from '../../../../hooks/useWidgetLayout'
 import {WidgetDashboardEditProvider} from '../../../../hooks/useWidgetDashboardEdit'
 import {WidgetDashboardProvider} from '../../../../hooks/useWidgetDashboardContext'
@@ -161,5 +163,63 @@ describe('TodoListWidget - Create Todo Modal', () => {
     expect(screen.getByTestId('create-todo-date-input')).toBeInTheDocument()
     expect(screen.getByTestId('create-todo-course-select')).toBeInTheDocument()
     expect(screen.getByTestId('create-todo-details-input')).toBeInTheDocument()
+  })
+})
+
+describe('TodoListWidget - Edit Todo Modal', () => {
+  const plannerNote = mockPlannerItems.find(item => item.plannable_type === 'planner_note')!
+
+  const onlyPlannerNoteHandler = http.get('/api/v1/planner/items', () =>
+    HttpResponse.json([plannerNote], {
+      headers: {Link: '</api/v1/planner/items?per_page=5&start_index=0>; rel="first"'},
+    }),
+  )
+
+  it('opens the edit modal pre-populated from the item', async () => {
+    server.use(onlyPlannerNoteHandler)
+    const user = userEvent.setup()
+    renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
+    })
+
+    const editButton = await screen.findByTestId(`todo-edit-${plannerNote.plannable_id}`)
+    await user.click(editButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit To Do')).toBeInTheDocument()
+    })
+
+    const titleInput = screen.getByTestId('create-todo-title-input') as HTMLInputElement
+    expect(titleInput.value).toBe(plannerNote.plannable.title)
+  })
+
+  it('saves edits and closes the modal', async () => {
+    server.use(onlyPlannerNoteHandler)
+    const user = userEvent.setup()
+    renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
+    })
+
+    const editButton = await screen.findByTestId(`todo-edit-${plannerNote.plannable_id}`)
+    await user.click(editButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit To Do')).toBeInTheDocument()
+    })
+
+    const titleInput = screen.getByTestId('create-todo-title-input') as HTMLInputElement
+    await user.clear(titleInput)
+    await user.type(titleInput, 'Updated note title')
+
+    const submitButton = screen.getByTestId('create-todo-submit-button')
+    await user.click(submitButton)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Edit To Do')).not.toBeInTheDocument()
+    })
   })
 })

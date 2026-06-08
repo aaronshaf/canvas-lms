@@ -148,10 +148,38 @@ export const plannerNoteHandlers = [
 
     return HttpResponse.json(plannerNote, {status: 201})
   }),
+
+  http.put('/api/v1/planner_notes/:id', async ({params, request}) => {
+    const noteId = params.id as string
+    const body = (await request.json()) as {
+      title?: string
+      todo_date?: string
+      details?: string
+      course_id?: string
+    }
+
+    const plannerNote = {
+      id: parseInt(noteId, 10),
+      title: body.title || '',
+      description: body.details || '',
+      user_id: 1,
+      workflow_state: 'active',
+      course_id: body.course_id ? parseInt(body.course_id, 10) : null,
+      todo_date: body.todo_date || new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    return HttpResponse.json(plannerNote, {status: 200})
+  }),
 ]
 
 export const errorCreatePlannerNoteHandler = http.post('/api/v1/planner_notes', () => {
   return HttpResponse.json({errors: [{message: 'Failed to create planner note'}]}, {status: 500})
+})
+
+export const errorUpdatePlannerNoteHandler = http.put('/api/v1/planner_notes/:id', () => {
+  return HttpResponse.json({errors: [{message: 'Failed to update planner note'}]}, {status: 500})
 })
 
 export const validationErrorPlannerNoteHandler = http.post('/api/v1/planner_notes', () => {

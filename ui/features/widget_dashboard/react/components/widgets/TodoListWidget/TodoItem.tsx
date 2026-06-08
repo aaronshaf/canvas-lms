@@ -20,11 +20,11 @@ import React, {useEffect, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
-import {Button} from '@instructure/ui-buttons'
+import {Button, IconButton} from '@instructure/ui-buttons'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
 import {View} from '@instructure/ui-view'
 import {Link} from '@instructure/ui-link'
-import {IconCheckPlusLine, IconCheckLine} from '@instructure/ui-icons'
+import {IconCheckPlusLine, IconCheckLine, IconEditLine} from '@instructure/ui-icons'
 import {Spinner} from '@instructure/ui-spinner'
 import type {PlannerItem, PlannerOverride} from './types'
 import {
@@ -42,11 +42,14 @@ const I18n = createI18nScope('widget_dashboard')
 interface TodoItemProps {
   item: PlannerItem
   onItemUpdate?: (plannableId: string, plannableType: string, override: PlannerOverride) => void
+  onEdit?: (item: PlannerItem) => void
   readOnly?: boolean
 }
 
-const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false}) => {
+const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, onEdit, readOnly = false}) => {
   const isAnnouncement = item.plannable_type === 'announcement'
+  // Only self-authored planner notes can be edited by the student.
+  const isPlannerNote = item.plannable_type === 'planner_note'
   const dateText = isAnnouncement
     ? formatAnnouncementDate(item.plannable_date)
     : formatDate(item.plannable_date)
@@ -111,10 +114,35 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
       }}
     >
       <Flex direction="column">
-        <Flex.Item overflowY="visible">
-          <Text size="small" color="secondary">
-            {typeLabel}
-          </Text>
+        <Flex.Item overflowY="visible" overflowX="visible">
+          <Flex justifyItems="space-between" alignItems="start" gap="small">
+            <Flex.Item shouldShrink>
+              <Text size="small" color="secondary">
+                {typeLabel}
+              </Text>
+            </Flex.Item>
+            {isPlannerNote && !readOnly && (
+              <Flex.Item overflowY="visible" overflowX="visible">
+                <IconButton
+                  screenReaderLabel={I18n.t('Edit %{title}', {title: item.plannable.title})}
+                  renderIcon={IconEditLine}
+                  onClick={() => onEdit?.(item)}
+                  data-testid={`todo-edit-${item.plannable_id}`}
+                  size="small"
+                  withBackground={false}
+                  withBorder={false}
+                  themeOverride={
+                    isDark
+                      ? {
+                          secondaryGhostColor: colors.textPrimary,
+                          secondaryGhostHoverBackground: colors.cardBackground,
+                        }
+                      : undefined
+                  }
+                />
+              </Flex.Item>
+            )}
+          </Flex>
         </Flex.Item>
 
         <Flex.Item overflowY="visible">
@@ -191,45 +219,49 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
         </Flex.Item>
 
         <Flex.Item margin="x-small 0 0 0" overflowY="visible" overflowX="visible">
-          {isLoading ? (
-            <Spinner
-              renderTitle={I18n.t('Updating...')}
-              size="x-small"
-              data-testid={`todo-checkbox-loading-${item.plannable_id}`}
-            />
-          ) : (
-            <Button
-              elementRef={(el: Element | null) => {
-                buttonRef.current = el as HTMLButtonElement | null
-              }}
-              color={effectiveComplete ? 'success' : 'secondary'}
-              renderIcon={effectiveComplete ? <IconCheckLine /> : <IconCheckPlusLine />}
-              onClick={handleCheckboxClick}
-              data-testid={`todo-checkbox-${item.plannable_id}`}
-              interaction={readOnly ? 'disabled' : 'enabled'}
-              themeOverride={
-                isDark && !effectiveComplete
-                  ? {
-                      secondaryBackground: colors.inputBackground,
-                      secondaryBorderColor: colors.border,
-                      secondaryColor: colors.textPrimary,
-                      secondaryHoverBackground: colors.cardBackground,
-                      secondaryActiveBackground: colors.pageBackground,
+          <Flex gap="small" alignItems="center">
+            <Flex.Item overflowY="visible" overflowX="visible">
+              {isLoading ? (
+                <Spinner
+                  renderTitle={I18n.t('Updating...')}
+                  size="x-small"
+                  data-testid={`todo-checkbox-loading-${item.plannable_id}`}
+                />
+              ) : (
+                <Button
+                  elementRef={(el: Element | null) => {
+                    buttonRef.current = el as HTMLButtonElement | null
+                  }}
+                  color={effectiveComplete ? 'success' : 'secondary'}
+                  renderIcon={effectiveComplete ? <IconCheckLine /> : <IconCheckPlusLine />}
+                  onClick={handleCheckboxClick}
+                  data-testid={`todo-checkbox-${item.plannable_id}`}
+                  interaction={readOnly ? 'disabled' : 'enabled'}
+                  themeOverride={
+                    isDark && !effectiveComplete
+                      ? {
+                          secondaryBackground: colors.inputBackground,
+                          secondaryBorderColor: colors.border,
+                          secondaryColor: colors.textPrimary,
+                          secondaryHoverBackground: colors.cardBackground,
+                          secondaryActiveBackground: colors.pageBackground,
+                        }
+                      : undefined
+                  }
+                >
+                  <AccessibleContent
+                    alt={
+                      effectiveComplete
+                        ? I18n.t('Mark %{title} as incomplete', {title: item.plannable.title})
+                        : I18n.t('Mark %{title} as complete', {title: item.plannable.title})
                     }
-                  : undefined
-              }
-            >
-              <AccessibleContent
-                alt={
-                  effectiveComplete
-                    ? I18n.t('Mark %{title} as incomplete', {title: item.plannable.title})
-                    : I18n.t('Mark %{title} as complete', {title: item.plannable.title})
-                }
-              >
-                {effectiveComplete ? I18n.t('Done') : I18n.t('Mark as done')}
-              </AccessibleContent>
-            </Button>
-          )}
+                  >
+                    {effectiveComplete ? I18n.t('Done') : I18n.t('Mark as done')}
+                  </AccessibleContent>
+                </Button>
+              )}
+            </Flex.Item>
+          </Flex>
         </Flex.Item>
       </Flex>
     </View>

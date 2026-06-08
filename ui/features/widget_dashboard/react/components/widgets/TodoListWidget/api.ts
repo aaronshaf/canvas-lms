@@ -151,3 +151,27 @@ export async function createPlannerNote(params: CreatePlannerNoteParams): Promis
 
   return json
 }
+
+export interface UpdatePlannerNoteParams {
+  title?: string
+  todo_date?: string
+  details?: string
+  course_id?: string
+}
+
+export async function updatePlannerNote(
+  id: string,
+  params: UpdatePlannerNoteParams,
+): Promise<PlannerNote> {
+  const {json} = await doFetchApi<PlannerNote>({
+    path: `/api/v1/planner_notes/${id}`,
+    method: 'PUT',
+    body: params,
+  })
+
+  if (!json) {
+    throw new Error('Failed to update planner note')
+  }
+
+  return json
+}

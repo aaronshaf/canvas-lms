@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {render, screen} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {vi} from 'vitest'
 
 vi.mock('../hooks/usePlannerItems', () => ({
@@ -692,6 +693,40 @@ describe('TodoItem', () => {
 
       const postedText = screen.getByText(/Posted/)
       expect(postedText).toHaveAttribute('color', 'secondary')
+    })
+  })
+
+  describe('edit button', () => {
+    const plannerNoteItem = mockPlannerItems.find(item => item.plannable_type === 'planner_note')!
+
+    it('renders an edit button for planner note items', () => {
+      renderWithProvider(<TodoItem item={plannerNoteItem} onEdit={vi.fn()} />)
+      expect(screen.getByTestId(`todo-edit-${plannerNoteItem.plannable_id}`)).toBeInTheDocument()
+    })
+
+    it('does not render an edit button for non-planner-note items', () => {
+      const assignmentItem = mockPlannerItems[0]
+      renderWithProvider(<TodoItem item={assignmentItem} onEdit={vi.fn()} />)
+      expect(
+        screen.queryByTestId(`todo-edit-${assignmentItem.plannable_id}`),
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not render an edit button when readOnly', () => {
+      renderWithProvider(<TodoItem item={plannerNoteItem} onEdit={vi.fn()} readOnly={true} />)
+      expect(
+        screen.queryByTestId(`todo-edit-${plannerNoteItem.plannable_id}`),
+      ).not.toBeInTheDocument()
+    })
+
+    it('calls onEdit with the item when the edit button is clicked', async () => {
+      const user = userEvent.setup()
+      const onEdit = vi.fn()
+      renderWithProvider(<TodoItem item={plannerNoteItem} onEdit={onEdit} />)
+
+      await user.click(screen.getByTestId(`todo-edit-${plannerNoteItem.plannable_id}`))
+
+      expect(onEdit).toHaveBeenCalledWith(plannerNoteItem)
     })
   })
 })
