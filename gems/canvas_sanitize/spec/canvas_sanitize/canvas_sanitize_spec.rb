@@ -502,6 +502,36 @@ describe CanvasSanitize do
     end
   end
 
+  describe "border-radius longhand CSS properties" do
+    %w[
+      border-top-left-radius
+      border-top-right-radius
+      border-bottom-left-radius
+      border-bottom-right-radius
+    ].each do |prop|
+      it "preserves #{prop}" do
+        res = Sanitize.clean(%(<div style="#{prop}: 4px">x</div>), CanvasSanitize::SANITIZE)
+        expect(res).to include(prop)
+      end
+    end
+
+    it "preserves outline-offset" do
+      res = Sanitize.clean(%(<div style="outline-offset: 2px">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to include("outline-offset")
+    end
+
+    it "preserves negative outline-offset" do
+      res = Sanitize.clean(%(<div style="outline-offset: -2px">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to include("outline-offset")
+    end
+
+    it "preserves border-radius shorthand alongside a corner longhand" do
+      res = Sanitize.clean(%(<div style="border-radius: 4px; border-top-left-radius: 8px">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to match(/border-radius/)
+      expect(res).to match(/border-top-left-radius/)
+    end
+  end
+
   Dir.glob(File.expand_path(File.join(__FILE__, "..", "..", "fixtures", "xss", "*.xss"))) do |filename|
     name = File.split(filename).last
     it "sanitizes xss attempts for #{name}" do

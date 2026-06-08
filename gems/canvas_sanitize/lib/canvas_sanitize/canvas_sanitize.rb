@@ -821,6 +821,8 @@ module CanvasSanitize # :nodoc:
       %w[x y].map { |i| "background-position-#{i}" } +
       %w[bottom collapse color left right spacing style top width].map { |i| "border-#{i}" } +
       %w[bottom left right top].map { |i| %w[color style width].map { |j| "border-#{i}-#{j}" } }.flatten +
+      %w[top-left top-right bottom-left bottom-right].map { |i| "border-#{i}-radius" } +
+      %w[offset].map { |i| "outline-#{i}" } +
       %w[family size stretch style variant width].map { |i| "font-#{i}" } +
       %w[image position type].map { |i| "list-style-#{i}" } +
       %w[bottom left right top offset].map { |i| "margin-#{i}" } +
