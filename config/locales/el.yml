@@ -11546,6 +11546,7 @@ el:
     failed_resending: "Το αίτημα απέτυχε. Δοκιμάστε ξανά"
     labels: 
       enable_login_for_email: "Θέλω να συνδεθώ στο Canvas κάνοντας χρήστη αυτής της ηλεκτρονικής διεύθυνσης"
+      verification_code: "Κωδικός Επιβεβαίωσης"
     links: 
       resend_confirmation: "Επαναποστολή Επιβεβαίωσης"
       resend_confirmation_failed: "Το αίτημα απέτυχε. Δοκιμάστε ξανά"
@@ -11710,6 +11711,7 @@ el:
       confirm_email_address: "Επικύρωση Ηλεκτρονικής Διεύθυνσης"
       confirm_sms_number: "Επιβεβαιώστε τον Αριθμό SMS"
       contact_not_confirmed: "<mrk mid=\"2524\" mtype=\"seg\">Αυτή η επαφή δεν έχει επιβεβαιωθεί.</mrk>  <mrk mid=\"2525\" mtype=\"seg\">Κάντε κλικ στη διεύθυνση για περισσότερες λεπτομέρειες</mrk>"
+      disable_mfa: "Απενεργοποίηση Ελέγχου Ταυτότητας Πολλών Παραγόντων"
       email_not_confirmed: "Αυτή τη ηλεκτρονική διεύθυνση δεν έχει επιβεβαιωθεί. Κάνετε κλίκ στην διεύθυνση για περισσότερες πληροφορίες"
       register_communication: "Εγγραφή Επικοινωνίας"
       unconfirmed_click_to_confirm: "<mrk mid=\"2527\" mtype=\"seg\">Δεν έχει Επιβεβαιωθεί.</mrk>  <mrk mid=\"2528\" mtype=\"seg\">Κάντε κλικ για επιβεβαίωση</mrk>"
@@ -15713,6 +15715,7 @@ el:
     save_succeeded: "Επιτυχής αποθήκευση"
     titles: 
       add_login: "Προσθήκη Σύνδεσης"
+      reset_mfa: "Επαναφορά Ελέγχου Ταυτότητας Πολλών Παραγόντων"
       update_login: "Ενημέρωση Σύνδεσης"
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "<mrk mid=\"3718\" mtype=\"seg\">Η συγχώνευση χρήστη απέτυχε.</mrk> <mrk mid=\"3719\" mtype=\"seg\">Παρακαλώ βεβαιωθείτε ότι έχετε την απαιτούμενη εξουσιοδότηση και δοκιμάστε ξανά.</mrk>"
   user_name: 
