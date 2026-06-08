@@ -18,6 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# rubocop:disable Migration/ChangeColumn
 class IncreasePointsDeductedPrecision < ActiveRecord::Migration[8.0]
   tag :predeploy
 
@@ -29,3 +30,4 @@ class IncreasePointsDeductedPrecision < ActiveRecord::Migration[8.0]
     change_column :submissions, :points_deducted, :decimal, precision: 6, scale: 2
   end
 end
+# rubocop:enable Migration/ChangeColumn

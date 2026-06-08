@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# rubocop:disable Migration/AddIndex
 class AddNavTypeColumnsToNavMenuLinks < ActiveRecord::Migration[8.0]
   tag :predeploy
 
@@ -51,3 +52,4 @@ class AddNavTypeColumnsToNavMenuLinks < ActiveRecord::Migration[8.0]
     # it really isn't worth adding more indexes involving account_nav and user_nav
   end
 end
+# rubocop:enable Migration/AddIndex

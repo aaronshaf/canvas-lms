@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# rubocop:disable Migration/AddIndex
 # This migration comes from switchman_inst_jobs (originally 20260120092005)
 class AddMigrateFromJobsShard < ActiveRecord::Migration[7.1]
   tag :predeploy
@@ -25,3 +26,4 @@ class AddMigrateFromJobsShard < ActiveRecord::Migration[7.1]
     add_reference :switchman_shards, :migrate_from_delayed_jobs_shard, foreign_key: { to_table: :switchman_shards }, index: true, if_not_exists: true
   end
 end
+# rubocop:enable Migration/AddIndex
