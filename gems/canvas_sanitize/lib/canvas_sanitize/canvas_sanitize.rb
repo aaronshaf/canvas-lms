@@ -95,9 +95,16 @@ module CanvasSanitize # :nodoc:
       next unless node&.element? && node[attr]
 
       candidates = node[attr].split(",").map(&:strip)
-      clean = candidates.select do |candidate|
-        url = candidate.split(/\s+/).first.to_s
-        url.match?(%r{\Ahttps?://}i) || url.start_with?("/") || url.match?(/\Adata:/i)
+      clean = candidates.filter_map do |candidate|
+        parts = candidate.split(/\s+/, 2)
+        url = parts.first.to_s
+        # normalize protocol-relative to https:// (matches platform-sanitize JS behavior)
+        if url.start_with?("//")
+          url = "https:#{url}"
+          parts[0] = url
+        end
+        normalized = parts.join(" ")
+        normalized if url.match?(%r{\Ahttps?://}i) || url.start_with?("/") || url.match?(/\Adata:/i)
       end
       clean.empty? ? node.remove_attribute(attr) : node[attr] = clean.join(", ")
     end

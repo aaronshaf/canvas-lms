@@ -470,6 +470,49 @@ describe CanvasSanitize do
     end
   end
 
+  describe "protocol-relative URL handling" do
+    # Ruby's :relative protocol in the Sanitize gem allows URLs without a
+    # scheme — including protocol-relative //host/path — so these pass through
+    # without needing a custom transformer.
+    it "preserves protocol-relative iframe src" do
+      res = Sanitize.clean('<iframe src="//player.vimeo.com/video/123"></iframe>', CanvasSanitize::SANITIZE)
+      expect(res).to include('src="//player.vimeo.com/video/123"')
+    end
+
+    it "preserves protocol-relative img src" do
+      res = Sanitize.clean('<img src="//cdn.example.com/img.png">', CanvasSanitize::SANITIZE)
+      expect(res).to include('src="//cdn.example.com/img.png"')
+    end
+
+    it "preserves protocol-relative a href" do
+      res = Sanitize.clean('<a href="//example.com">link</a>', CanvasSanitize::SANITIZE)
+      expect(res).to include('href="//example.com"')
+    end
+
+    it "normalizes protocol-relative srcset candidate to https://" do
+      res = Sanitize.clean('<source srcset="//cdn.example.com/img.png 2x">', CanvasSanitize::SANITIZE)
+      expect(res).to include("https://cdn.example.com/img.png")
+      expect(res).not_to include('"//cdn')
+    end
+
+    it "normalizes // srcset candidates while preserving relative-path candidates" do
+      res = Sanitize.clean('<source srcset="//cdn.example.com/img.png 2x, /local/img.png 1x">', CanvasSanitize::SANITIZE)
+      expect(res).to include("https://cdn.example.com/img.png 2x")
+      expect(res).to include("/local/img.png 1x")
+    end
+
+    it "strips javascript: srcset alongside normalizing // candidate" do
+      res = Sanitize.clean('<source srcset="//cdn.example.com/img.png 2x, javascript:evil 1x">', CanvasSanitize::SANITIZE)
+      expect(res).to include("https://cdn.example.com/img.png 2x")
+      expect(res).not_to include("javascript")
+    end
+
+    it "strips backslash-prefixed (\\\\) srcset candidates" do
+      res = Sanitize.clean('<source srcset="\\\\evil.com/img.png 1x">', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("srcset")
+    end
+  end
+
   describe "srcset attribute protocol enforcement" do
     it "strips javascript: from source srcset" do
       res = Sanitize.clean('<source srcset="javascript:alert(1) 2x">', CanvasSanitize::SANITIZE)
