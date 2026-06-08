@@ -26,18 +26,22 @@ import {Tooltip} from '@instructure/ui-tooltip'
 
 const I18n = createI18nScope('notebook')
 
+const MOBILE_MOUNT_ID = 'notebook_mobile_mount_point'
+const ICON_MOUNT_IDS = ['notebook_mount_point', MOBILE_MOUNT_ID]
 const OPEN_EVENT = 'notebook:open'
 
 function dispatchOpen() {
   window.dispatchEvent(new CustomEvent(OPEN_EVENT))
 }
 
-function NotebookTrigger() {
+function NotebookTrigger({isMobile}: {isMobile: boolean}) {
   return (
     <Tooltip renderTip={I18n.t('Notebook')}>
       <IconButton
         renderIcon={<IconNoteLine />}
-        color="secondary"
+        color={isMobile ? 'primary-inverse' : 'secondary'}
+        withBackground={!isMobile}
+        withBorder={!isMobile}
         onClick={dispatchOpen}
         data-testid="notebook-button"
         screenReaderLabel={I18n.t('Notebook')}
@@ -49,8 +53,8 @@ function NotebookTrigger() {
 ready(() => {
   if (!window.ENV.FEATURES?.notebook) return
 
-  const mount = document.getElementById('notebook_mount_point')
-  if (!mount) return
-
-  render(<NotebookTrigger />, mount)
+  ICON_MOUNT_IDS.forEach(id => {
+    const mount = document.getElementById(id)
+    if (mount) render(<NotebookTrigger isMobile={id === MOBILE_MOUNT_ID} />, mount)
+  })
 })

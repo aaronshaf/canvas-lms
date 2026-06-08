@@ -188,7 +188,7 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
       style={{
         background: GRADIENT,
         color: 'white',
-        width: '25rem',
+        width: 'min(25rem, 100vw)',
         minHeight: '100vh',
         padding: '1rem',
         boxSizing: 'border-box',

@@ -26,7 +26,7 @@ module NotebookPage
   end
 
   def notebook_button_selector
-    '[data-testid="notebook-button"]'
+    '#notebook_mount_point [data-testid="notebook-button"]'
   end
 
   def notebook_panel_selector

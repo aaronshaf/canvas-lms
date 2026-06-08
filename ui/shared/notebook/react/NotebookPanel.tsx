@@ -165,7 +165,7 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
     <div
       data-testid="notebook-panel"
       style={{
-        width: '25rem',
+        width: 'min(25rem, 100vw)',
         minHeight: '100vh',
         boxSizing: 'border-box',
       }}
