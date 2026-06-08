@@ -76,5 +76,5 @@ class MockStaticSite
   end
 end
 
-class NonexistentMockSiteError < StandardError # rubocop:disable Style/OneClassPerFile
+class NonexistentMockSiteError < StandardError
 end

@@ -139,7 +139,7 @@ module YARD::Templates::Helpers::HtmlHelper
       klass << "current" if key == options[:object]
       anchors << "<a class=\"#{klass.join(" ")}\" href=\"#{link}\">#{val}</a>"
     end
-    anchors.join.html_safe # rubocop:disable Rails/OutputSafety
+    anchors.join.html_safe
   end
 
   def url_for_file(filename, anchor = nil)

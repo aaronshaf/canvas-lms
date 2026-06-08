@@ -25,8 +25,6 @@
 # In docker environment, run:
 #   docker compose run web bundle exec rails runner spec/fixtures/data_generation/generate_data.rb [options]
 
-# rubocop:disable Rails/Exit, Rails/Output, RSpec/Output
-
 require_relative "../../factories/course_factory"
 require_relative "../../factories/user_factory"
 require_relative "../../factories/quiz_factory"
@@ -859,5 +857,3 @@ options.each_key do |key|
 end
 
 exit 0
-
-# rubocop:enable Rails/Exit, Rails/Output, RSpec/Output

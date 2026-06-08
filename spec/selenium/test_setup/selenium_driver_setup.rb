@@ -23,7 +23,7 @@ require_relative "patches/selenium/webdriver/remote/w3c/bridge"
 require_relative "test_only_routes"
 require_relative "api_request_tracker"
 
-# rubocop:disable Rails/Output, RSpec/Output
+# rubocop:disable RSpec/Output
 module SeleniumDriverSetup
   CONFIG = ConfigFile.load("selenium") || {}.freeze
   SECONDS_UNTIL_GIVING_UP = 10
@@ -88,9 +88,7 @@ module SeleniumDriverSetup
         # examples in this group, meaning other workers won't pick them
         # up).
         #
-        # rubocop:disable Rails/Exit
         exit! 98
-        # rubocop:enable Rails/Exit
       end
 
       at_exit { shutdown }
@@ -485,7 +483,7 @@ module SeleniumDriverSetup
     end
   end
 end
-# rubocop:enable Rails/Output, RSpec/Output
+# rubocop:enable RSpec/Output
 
 # make Wait play nicely with Timecop
 module Selenium::WebDriver::Wait::Time
