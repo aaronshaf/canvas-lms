@@ -42,6 +42,7 @@ const ConversationMilestone: React.FC<ConversationMilestoneProps> = ({variant, o
         borderRadius="medium"
         borderColor="success"
         data-testid="conversation-milestone-single"
+        role="status"
       >
         <Flex gap="small" alignItems="center">
           <Flex.Item>
@@ -72,6 +73,7 @@ const ConversationMilestone: React.FC<ConversationMilestoneProps> = ({variant, o
       borderWidth="small"
       borderRadius="medium"
       data-testid="conversation-milestone-all"
+      role="status"
     >
       <Flex gap="small" alignItems="center">
         <Flex.Item>

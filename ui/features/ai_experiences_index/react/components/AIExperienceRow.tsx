@@ -148,7 +148,9 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
           <Flex.Item>
             <View as="div" margin="0 small 0 0">
               {loadingProgress ? (
-                <Spinner renderTitle={I18n.t('Loading progress')} size="x-small" />
+                <View as="span" aria-live="polite" aria-busy={true}>
+                  <Spinner renderTitle={I18n.t('Loading progress')} size="x-small" />
+                </View>
               ) : (
                 <Pill
                   color={

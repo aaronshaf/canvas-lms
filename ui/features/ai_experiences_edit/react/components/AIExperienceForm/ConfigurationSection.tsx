@@ -93,7 +93,10 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               )}
             </Text>
           </View>
-          <FormFieldGroup description="" layout="stacked">
+          <FormFieldGroup
+            description={I18n.t('Set the learning objectives for this activity')}
+            layout="stacked"
+          >
             <TextArea
               data-testid="ai-experience-edit-learning-objective-input"
               label={I18n.t('Learning objective targets')}
@@ -128,7 +131,10 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               {I18n.t('Define the instructions for the activity.')}
             </Text>
           </View>
-          <FormFieldGroup description="" layout="stacked">
+          <FormFieldGroup
+            description={I18n.t('Define the instructions for the activity')}
+            layout="stacked"
+          >
             <TextArea
               data-testid="ai-experience-edit-pedagogical-guidance-input"
               label={I18n.t('Pedagogical guidance')}
@@ -163,7 +169,10 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               {I18n.t('Provide sources for the LLM to reference.')}
             </Text>
           </View>
-          <FormFieldGroup description="" layout="stacked">
+          <FormFieldGroup
+            description={I18n.t('Provide sources for the LLM to reference')}
+            layout="stacked"
+          >
             <TextArea
               data-testid="ai-experience-edit-facts-input"
               label={I18n.t('Text source')}

@@ -223,12 +223,13 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} noValidate={true}>
+        <form onSubmit={handleSubmit} noValidate={true} aria-label={I18n.t('Knowledge Chat form')}>
           <FormHeader
             isEdit={isEdit}
             title={aiExperience?.title}
             onCancel={handleCancel}
             isLoading={isLoading}
+            workflowState={aiExperience?.workflow_state as 'published' | 'unpublished' | undefined}
           />
 
           <View

@@ -116,6 +116,19 @@ describe('AiExperiencesIndex', () => {
   })
 
   describe('teacher view', () => {
+    it('shows the Create new button when experiences exist', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences', () =>
+          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
+        ),
+      )
+
+      render(<AiExperiencesIndex />)
+
+      await waitFor(() => expect(screen.getByText('Customer Service Training')).toBeInTheDocument())
+      expect(screen.getByTestId('ai-expriences-index-create-new-button')).toBeInTheDocument()
+    })
+
     it('links experience titles to their show page', async () => {
       server.use(
         http.get('/api/v1/courses/123/ai_experiences', () =>
@@ -185,13 +198,18 @@ describe('AiExperiencesIndex', () => {
           HttpResponse.json({success: true}),
         ),
       )
-      window.confirm = vi.fn(() => true)
       const user = userEvent.setup()
       render(<AiExperiencesIndex />)
 
       await waitFor(() => expect(screen.getByText('Customer Service Training')).toBeInTheDocument())
       await user.click(screen.getAllByTestId('ai-experience-menu')[0])
       await user.click(screen.getByText('Delete'))
+
+      // Confirm deletion in the Modal
+      await waitFor(() =>
+        expect(screen.getByTestId('ai-experience-index-delete-confirm-button')).toBeInTheDocument(),
+      )
+      await user.click(screen.getByTestId('ai-experience-index-delete-confirm-button'))
 
       await waitFor(() =>
         expect(screen.queryByText('Customer Service Training')).not.toBeInTheDocument(),

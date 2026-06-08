@@ -41,6 +41,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({label, value, borderColor, testId}) => (
   <div
     data-testid={testId}
+    aria-label={`${label}: ${value}`}
     style={{
       border: `2px solid ${borderColor}`,
       borderRadius: RADIUS_LG,
@@ -48,11 +49,11 @@ const StatCard: React.FC<StatCardProps> = ({label, value, borderColor, testId}) 
       backgroundColor: '#ffffff',
     }}
   >
-    <Text size="xx-large" weight="bold">
+    <Text size="xx-large" weight="bold" aria-hidden="true">
       {value}
     </Text>
     <View as="div" margin="xx-small 0 0 0">
-      <Text size="small" color="secondary">
+      <Text size="small" color="secondary" aria-hidden="true">
         {label}
       </Text>
     </View>
@@ -80,7 +81,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
 
   return (
     <View as="div" margin="0 0 medium 0" data-testid="overall-snapshot">
-      <Heading level="h3" margin="0 0 small 0">
+      <Heading level="h2" margin="0 0 small 0">
         {I18n.t('Overall snapshot')}
       </Heading>
       <Flex gap="small" wrap="wrap">

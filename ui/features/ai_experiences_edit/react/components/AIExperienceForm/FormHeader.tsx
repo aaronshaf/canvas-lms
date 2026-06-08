@@ -22,7 +22,7 @@ import {Button} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
-import {IconPublishSolid} from '@instructure/ui-icons'
+import {IconPublishSolid, IconUnpublishedLine} from '@instructure/ui-icons'
 import {
   navyButtonTheme,
   lightBlueButtonTheme,
@@ -35,9 +35,17 @@ interface FormHeaderProps {
   title?: string
   onCancel: () => void
   isLoading: boolean
+  workflowState?: 'published' | 'unpublished'
 }
 
-const FormHeader: React.FC<FormHeaderProps> = ({isEdit, title, onCancel, isLoading}) => {
+const FormHeader: React.FC<FormHeaderProps> = ({
+  isEdit,
+  title,
+  onCancel,
+  isLoading,
+  workflowState,
+}) => {
+  const isPublished = workflowState === 'published'
   const getHeading = () => {
     if (!isEdit) {
       return I18n.t('New Knowledge Chat')
@@ -58,10 +66,16 @@ const FormHeader: React.FC<FormHeaderProps> = ({isEdit, title, onCancel, isLoadi
       <Flex.Item margin="0 0 0 medium">
         <Flex alignItems="center" gap="x-small">
           <Flex.Item>
-            <IconPublishSolid color="secondary" />
+            {isPublished ? (
+              <IconPublishSolid color="success" aria-hidden="true" />
+            ) : (
+              <IconUnpublishedLine color="secondary" aria-hidden="true" />
+            )}
           </Flex.Item>
           <Flex.Item>
-            <Text color="secondary">{I18n.t('Not published')}</Text>
+            <Text color={isPublished ? 'success' : 'secondary'}>
+              {isPublished ? I18n.t('Published') : I18n.t('Not published')}
+            </Text>
           </Flex.Item>
           <Flex.Item>
             <Button

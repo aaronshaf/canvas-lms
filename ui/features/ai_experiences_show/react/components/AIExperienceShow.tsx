@@ -222,7 +222,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
               >
                 <Flex direction="column" alignItems="center" gap="small">
                   <Flex.Item>
-                    <IconClockLine size="medium" color="secondary" />
+                    <IconClockLine size="medium" color="secondary" aria-hidden="true" />
                   </Flex.Item>
                   <Flex.Item>
                     <Text weight="bold">{I18n.t('Source files are still being processed')}</Text>

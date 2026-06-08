@@ -19,6 +19,7 @@
 import '@instructure/canvas-theme'
 import React from 'react'
 import {render, screen, fireEvent, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import EvaluationMetricsSection, {
   DEFAULT_METRICS,
 } from '@canvas/ai-experiences/react/components/EvaluationMetricsSection'
@@ -91,7 +92,8 @@ describe('EvaluationMetricsSection', () => {
       )
     })
 
-    it('removes a custom metric when remove button is clicked', () => {
+    it('removes a custom metric when remove button is clicked', async () => {
+      const user = userEvent.setup()
       const onChange = vi.fn()
       const metricsWithCustom: EvaluationMetric[] = [
         ...DEFAULT_METRICS,
@@ -103,7 +105,8 @@ describe('EvaluationMetricsSection', () => {
         },
       ]
       renderSection(metricsWithCustom, onChange)
-      fireEvent.click(screen.getByTestId('evaluation-metric-remove-3'))
+      const removeWrapper = screen.getByTestId('evaluation-metric-remove-3')
+      await user.click(removeWrapper.querySelector('button')!)
       const updated = onChange.mock.calls[0][0] as EvaluationMetric[]
       expect(updated).toHaveLength(3)
       expect(updated.find(m => m.name === 'My metric')).toBeUndefined()

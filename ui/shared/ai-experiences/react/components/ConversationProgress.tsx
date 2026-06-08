@@ -25,7 +25,7 @@ import {ProgressBar} from '@instructure/ui-progress'
 import {Popover} from '@instructure/ui-popover'
 import {IconMiniArrowDownLine, IconMiniArrowUpLine, IconCompleteLine} from '@instructure/ui-icons'
 import {List} from '@instructure/ui-list'
-import {Button} from '@instructure/ui-buttons'
+import {Button, CloseButton} from '@instructure/ui-buttons'
 import {navyButtonTheme, RADIUS_PILL, BLACK} from '../brand'
 
 const I18n = createI18nScope('ai_experiences')
@@ -87,6 +87,8 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
               color="primary"
               onClick={() => setIsPopoverOpen(!isPopoverOpen)}
               themeOverride={targetButtonTheme}
+              aria-expanded={isPopoverOpen}
+              aria-haspopup="true"
             >
               <Flex gap="xx-small" alignItems="center">
                 <Text weight="bold" size="small">
@@ -107,20 +109,38 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
           placement="bottom end"
           shouldContainFocus
           shouldReturnFocus
+          screenReaderLabel={I18n.t('Learning targets')}
         >
           <View as="div" padding="medium" width="400px" maxWidth="90vw">
-            <View as="div" margin="0 0 small 0">
-              <Text weight="bold" size="large">
-                {I18n.t('%{current}/%{total} Learning targets met', {current, total})}
-              </Text>
-            </View>
+            <Flex justifyItems="space-between" alignItems="start" margin="0 0 small 0">
+              <Flex.Item shouldGrow shouldShrink>
+                <Text weight="bold" size="large">
+                  {I18n.t('%{current}/%{total} Learning targets met', {current, total})}
+                </Text>
+              </Flex.Item>
+              <Flex.Item>
+                <CloseButton
+                  size="small"
+                  screenReaderLabel={I18n.t('Close learning targets')}
+                  onClick={() => setIsPopoverOpen(false)}
+                />
+              </Flex.Item>
+            </Flex>
             <List isUnstyled margin="0">
               {objectives.map((objective, index) => (
-                <List.Item key={index} spacing="small">
+                <List.Item
+                  key={index}
+                  spacing="small"
+                  aria-label={
+                    objective.status === 'covered'
+                      ? I18n.t('Met: %{objective}', {objective: objective.objective})
+                      : I18n.t('Not yet met: %{objective}', {objective: objective.objective})
+                  }
+                >
                   <Flex gap="small" alignItems="start">
                     <Flex.Item>
                       {objective.status === 'covered' ? (
-                        <IconCompleteLine color="success" />
+                        <IconCompleteLine color="success" aria-hidden="true" />
                       ) : (
                         <View
                           as="div"
@@ -129,11 +149,12 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
                           borderWidth="small"
                           borderRadius="circle"
                           display="inline-block"
+                          aria-hidden="true"
                         />
                       )}
                     </Flex.Item>
                     <Flex.Item shouldGrow shouldShrink>
-                      <Text>{objective.objective}</Text>
+                      <Text aria-hidden="true">{objective.objective}</Text>
                     </Flex.Item>
                   </Flex>
                 </List.Item>

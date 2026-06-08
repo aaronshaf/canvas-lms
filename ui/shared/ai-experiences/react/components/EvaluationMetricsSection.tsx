@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState} from 'react'
+import React, {useState, useRef} from 'react'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Heading} from '@instructure/ui-heading'
 import {Checkbox} from '@instructure/ui-checkbox'
-import {Button} from '@instructure/ui-buttons'
+import {Button, CloseButton} from '@instructure/ui-buttons'
 import {TextInput} from '@instructure/ui-text-input'
 import {TextArea} from '@instructure/ui-text-area'
 import {Modal} from '@instructure/ui-modal'
@@ -69,6 +69,7 @@ interface AddMetricModalProps {
 }
 
 const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd}) => {
+  const nameInputRef = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [visibleToLearners, setVisibleToLearners] = useState(true)
@@ -131,6 +132,7 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
       size="small"
       label={I18n.t('Add AI metric')}
       data-testid="add-metric-modal"
+      defaultFocusElement={() => nameInputRef.current}
     >
       <Modal.Header>
         <Heading>{I18n.t('Add AI metric')}</Heading>
@@ -149,6 +151,9 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
             value={name}
             onChange={(_e, val) => setName(val)}
             messages={nameError ? [{type: 'newError', text: nameError}] : []}
+            inputRef={(el: HTMLInputElement | null) => {
+              nameInputRef.current = el
+            }}
           />
         </View>
         <View as="div" margin="0 0 medium 0">
@@ -185,6 +190,8 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
   readOnly = false,
 }) => {
   const [modalOpen, setModalOpen] = useState(false)
+  const closeButtonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map())
+  const addButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const handleToggleEnabled = (index: number) => {
     onChange(metrics.map((m, i) => (i === index ? {...m, enabled: !m.enabled} : m)))
@@ -203,7 +210,27 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
   }
 
   const handleRemoveMetric = (index: number) => {
+    const customIndices = metrics
+      .map((m, i) => i)
+      .filter(i => i !== index && !isDefaultMetric(metrics[i]))
+
+    const nextIdx = customIndices.find(i => i > index)
+    const prevIdx = [...customIndices].reverse().find(i => i < index)
+
+    // After removal, metrics after the removed index shift down by 1
+    const postRemovalIndex =
+      nextIdx !== undefined ? nextIdx - 1 : prevIdx !== undefined ? prevIdx : null
+
     onChange(metrics.filter((_, i) => i !== index))
+
+    // Defer focus until after the re-render
+    setTimeout(() => {
+      if (postRemovalIndex !== null) {
+        closeButtonRefs.current.get(postRemovalIndex)?.focus()
+      } else {
+        addButtonRef.current?.focus()
+      }
+    }, 0)
   }
 
   return (
@@ -244,30 +271,26 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
               }}
             >
               <Flex alignItems="start" gap="x-small">
-                <Flex.Item>
+                <Flex.Item shouldGrow shouldShrink>
                   <Checkbox
                     data-testid={`evaluation-metric-enabled-${index}`}
-                    label=""
+                    label={metric.name}
                     checked={locked ? true : metric.enabled}
                     disabled={locked || readOnly}
                     onChange={() => handleToggleEnabled(index)}
                   />
                 </Flex.Item>
-                <Flex.Item shouldGrow shouldShrink>
-                  <Text weight="bold">{metric.name}</Text>
-                </Flex.Item>
                 {!readOnly && !isDefaultMetric(metric) && (
                   <Flex.Item>
-                    <Button
+                    <CloseButton
                       data-testid={`evaluation-metric-remove-${index}`}
                       size="small"
-                      color="secondary"
-                      withBackground={false}
+                      screenReaderLabel={I18n.t('Remove %{name}', {name: metric.name})}
                       onClick={() => handleRemoveMetric(index)}
-                      aria-label={I18n.t('Remove metric')}
-                    >
-                      ×
-                    </Button>
+                      elementRef={(el: Element | null) => {
+                        closeButtonRefs.current.set(index, el as HTMLButtonElement | null)
+                      }}
+                    />
                   </Flex.Item>
                 )}
               </Flex>
@@ -288,6 +311,9 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
           renderIcon={<IconPlusLine />}
           color="primary"
           onClick={() => setModalOpen(true)}
+          elementRef={(el: Element | null) => {
+            addButtonRef.current = el as HTMLButtonElement | null
+          }}
         >
           {I18n.t('Add AI metric')}
         </Button>

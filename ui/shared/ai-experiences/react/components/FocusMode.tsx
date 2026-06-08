@@ -67,7 +67,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
       size="fullscreen"
       label={title}
       shouldCloseOnDocumentClick={false}
-      shouldReturnFocus={false}
+      shouldReturnFocus={false} // parent manages return focus via deferred focus call after close
     >
       <Modal.Header>
         <Flex gap="small" alignItems="center" justifyItems="space-between" width="100%">
@@ -84,17 +84,14 @@ const FocusMode: React.FC<FocusModeProps> = ({
         </Flex>
       </Modal.Header>
       <Modal.Body padding="0">
-        <div
-          style={{
-            outline: 'none',
-            height: 'calc(100vh - 200px)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-          tabIndex={-1}
+        <View
+          as="div"
+          height="calc(100vh - 200px)"
+          overflowX="hidden"
+          overflowY="hidden"
+          display="flex"
         >
-          <Flex direction="column" height="100%" style={{overflow: 'hidden'}}>
+          <Flex direction="column" height="100%" style={{overflow: 'hidden', width: '100%'}}>
             <Flex.Item
               shouldGrow
               shouldShrink
@@ -113,7 +110,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
               </View>
             </Flex.Item>
           </Flex>
-        </div>
+        </View>
       </Modal.Body>
     </Modal>
   )

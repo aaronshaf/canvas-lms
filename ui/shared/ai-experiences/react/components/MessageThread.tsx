@@ -81,7 +81,13 @@ const MessageThread = ({
 }: MessageThreadProps) => {
   if (isInitializing) {
     return (
-      <Flex justifyItems="center" alignItems="center" height="100%">
+      <Flex
+        justifyItems="center"
+        alignItems="center"
+        height="100%"
+        aria-live="polite"
+        aria-busy={true}
+      >
         <Spinner renderTitle={I18n.t('Initializing conversation...')} />
       </Flex>
     )
@@ -140,7 +146,7 @@ const MessageThread = ({
         )
       })}
       {isLoading && (
-        <View as="div" margin="small 0" textAlign="center">
+        <View as="div" margin="small 0" textAlign="center" aria-live="polite" aria-busy={true}>
           <Spinner renderTitle={I18n.t('Thinking...')} size="small" />
         </View>
       )}

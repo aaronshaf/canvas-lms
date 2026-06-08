@@ -203,6 +203,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
               data-testid="ai-conversations-previous-button"
               onClick={handlePrevious}
               interaction={hasPrevious ? 'enabled' : 'disabled'}
+              aria-label={I18n.t('Previous student')}
               renderIcon={<IconArrowOpenStartLine size="x-small" />}
               themeOverride={navButtonTheme}
             >
@@ -212,6 +213,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
               data-testid="ai-conversations-next-button"
               onClick={handleNext}
               interaction={hasNext ? 'enabled' : 'disabled'}
+              aria-label={I18n.t('Next student')}
               themeOverride={navButtonTheme}
             >
               <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>

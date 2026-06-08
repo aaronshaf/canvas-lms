@@ -453,12 +453,14 @@ describe('LLMConversationView', () => {
       expect(liveRegion).toHaveAttribute('aria-atomic', 'true')
     })
 
-    it('adds role="log" to messages container', () => {
+    it('renders labeled messages container', () => {
       render(<LLMConversationView {...defaultProps} />)
 
+      // role="log" was removed — it caused VoiceOver to anchor at the last
+      // live-announced message, making earlier messages unreachable in FocusMode.
+      // The container is identified by aria-label only.
       const messagesContainer = screen.getByLabelText('Conversation messages')
       expect(messagesContainer).toBeInTheDocument()
-      expect(messagesContainer).toHaveAttribute('role', 'log')
     })
 
     it('adds role="article" to messages', async () => {

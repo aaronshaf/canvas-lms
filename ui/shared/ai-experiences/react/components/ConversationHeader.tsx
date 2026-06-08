@@ -37,9 +37,9 @@ interface ConversationHeaderProps {
 const ConversationHeader: React.FC<ConversationHeaderProps> = ({action}) => (
   <div style={headerStyle}>
     <Flex alignItems="center" justifyItems="space-between">
-      <Heading level="h3" margin="0" color="primary-inverse">
+      <Heading level="h2" margin="0" color="primary-inverse">
         <Flex as="span" alignItems="center" gap="x-small">
-          <IconAiSolid />
+          <IconAiSolid aria-hidden="true" />
           {I18n.t('Knowledge Chat')}
         </Flex>
       </Heading>

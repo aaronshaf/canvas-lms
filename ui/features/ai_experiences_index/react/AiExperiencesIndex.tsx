@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import {useScope as useI18nScope} from '@canvas/i18n'
 import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
@@ -24,6 +24,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Spinner} from '@instructure/ui-spinner'
 import {Text} from '@instructure/ui-text'
 import {Button} from '@instructure/ui-buttons'
+import {Modal} from '@instructure/ui-modal'
 import {IconAddLine, IconAiColoredSolid} from '@instructure/ui-icons'
 import {showFlashError} from '@instructure/platform-alerts'
 import doFetchApi from '@canvas/do-fetch-api-effect'
@@ -38,6 +39,9 @@ const AiExperiencesIndex: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [canManage, setCanManage] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{id: number; title: string} | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const createButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     const fetchExperiences = async () => {
@@ -75,31 +79,42 @@ const AiExperiencesIndex: React.FC = () => {
     window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${id}?preview=true`)
   }
 
-  const handleDelete = async (id: number) => {
-    if (
-      !window.confirm(
-        I18n.t(
-          'Are you sure you want to delete this Knowledge Chat? This action cannot be undone.',
-        ),
-      )
-    ) {
-      return
-    }
+  const handleDelete = (id: number) => {
+    const target = experiences.find(exp => exp.id === id)
+    if (target) setDeleteTarget({id, title: target.title})
+  }
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    const {id} = deleteTarget
+    setIsDeleting(true)
     try {
       const courseId = ENV.COURSE_ID
-
       await doFetchApi({
         path: `/api/v1/courses/${courseId}/ai_experiences/${id}`,
         method: 'DELETE',
       })
-
-      // Remove from local state
-      setExperiences(prevExperiences => prevExperiences.filter(exp => exp.id !== id))
+      setExperiences(prev => prev.filter(exp => exp.id !== id))
+      setDeleteTarget(null)
+      // Focus the next available menu button, or the Create button if the list is now empty
+      setTimeout(() => {
+        const nextMenu = document.querySelector<HTMLButtonElement>(
+          '[data-testid="ai-experience-menu"]',
+        )
+        if (nextMenu) {
+          nextMenu.focus()
+        } else {
+          createButtonRef.current?.focus()
+        }
+      }, 0)
     } catch {
       showFlashError(I18n.t('Failed to delete Knowledge Chat. Please try again.'))()
+    } finally {
+      setIsDeleting(false)
     }
   }
+
+  const handleCancelDelete = () => setDeleteTarget(null)
 
   const handlePublishToggle = async (id: number, newState: 'published' | 'unpublished') => {
     try {
@@ -135,7 +150,7 @@ const AiExperiencesIndex: React.FC = () => {
 
   if (loading) {
     return (
-      <View as="div" textAlign="center" margin="large">
+      <View as="div" textAlign="center" margin="large" aria-live="polite" aria-busy={true}>
         <Spinner renderTitle={I18n.t('Loading Knowledge Chats')} />
       </View>
     )
@@ -156,7 +171,7 @@ const AiExperiencesIndex: React.FC = () => {
           <Flex.Item>
             <Flex alignItems="center" gap="small">
               <Flex.Item>
-                <IconAiColoredSolid size="small" />
+                <IconAiColoredSolid size="small" aria-hidden="true" />
               </Flex.Item>
               <Flex.Item>
                 <Heading level="h1">{I18n.t('Knowledge Chats')}</Heading>
@@ -181,6 +196,9 @@ const AiExperiencesIndex: React.FC = () => {
                 color="primary"
                 renderIcon={() => <IconAddLine />}
                 onClick={handleCreateNew}
+                elementRef={(el: Element | null) => {
+                  createButtonRef.current = el as HTMLButtonElement | null
+                }}
               >
                 {I18n.t('Create new')}
               </Button>
@@ -201,6 +219,42 @@ const AiExperiencesIndex: React.FC = () => {
           onDelete={handleDelete}
         />
       )}
+
+      <Modal
+        open={deleteTarget !== null}
+        onDismiss={handleCancelDelete}
+        size="small"
+        label={I18n.t('Delete Knowledge Chat')}
+        shouldCloseOnDocumentClick={true}
+      >
+        <Modal.Header>
+          <Heading>{I18n.t('Delete Knowledge Chat')}</Heading>
+        </Modal.Header>
+        <Modal.Body>
+          <Text>
+            {I18n.t('Are you sure you want to delete "%{title}"? This action cannot be undone.', {
+              title: deleteTarget?.title ?? '',
+            })}
+          </Text>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            data-testid="ai-experience-index-delete-cancel-button"
+            onClick={handleCancelDelete}
+            margin="0 small 0 0"
+          >
+            {I18n.t('Cancel')}
+          </Button>
+          <Button
+            data-testid="ai-experience-index-delete-confirm-button"
+            onClick={handleConfirmDelete}
+            color="danger"
+            interaction={isDeleting ? 'disabled' : 'enabled'}
+          >
+            {isDeleting ? I18n.t('Deleting...') : I18n.t('Delete')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </View>
   )
 }

@@ -64,6 +64,7 @@ const MessageFeedback = ({
   const [feedbackText, setFeedbackText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLDivElement | null>(null)
+  const dislikeButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (uiState === 'dislike-form') {
@@ -149,6 +150,7 @@ const MessageFeedback = ({
     try {
       await postFeedback('disliked')
       setUiState('idle')
+      setTimeout(() => dislikeButtonRef.current?.focus(), 0)
     } catch {
       // error state already set in postFeedback
     }
@@ -158,6 +160,7 @@ const MessageFeedback = ({
     try {
       await postFeedback('disliked', feedbackText)
       setUiState('submitted')
+      setTimeout(() => dislikeButtonRef.current?.focus(), 0)
     } catch {
       // error state already set in postFeedback
     }
@@ -186,22 +189,25 @@ const MessageFeedback = ({
         >
           {isLiked ? <IconLikeSolid /> : <IconLikeLine />}
         </IconButton>
-        <span style={{display: 'inline-block', transform: 'rotate(180deg)'}}>
-          <IconButton
-            size="small"
-            withBackground={isDisliked}
-            withBorder={true}
-            color={isDisliked ? 'primary' : 'secondary'}
-            screenReaderLabel={I18n.t('Dislike this response')}
-            aria-describedby={messageContainerId}
-            onClick={handleDislike}
-            interaction={buttonInteraction}
-            data-testid="message-feedback-dislike"
-            themeOverride={isDisliked ? activeVoteButtonTheme : inactiveVoteButtonTheme}
-          >
+        <IconButton
+          size="small"
+          withBackground={isDisliked}
+          withBorder={true}
+          color={isDisliked ? 'primary' : 'secondary'}
+          screenReaderLabel={I18n.t('Dislike this response')}
+          aria-describedby={messageContainerId}
+          onClick={handleDislike}
+          interaction={buttonInteraction}
+          data-testid="message-feedback-dislike"
+          themeOverride={isDisliked ? activeVoteButtonTheme : inactiveVoteButtonTheme}
+          elementRef={(el: Element | null) => {
+            dislikeButtonRef.current = el as HTMLButtonElement | null
+          }}
+        >
+          <span style={{display: 'inline-block', transform: 'rotate(180deg)'}}>
             {isDisliked ? <IconLikeSolid /> : <IconLikeLine />}
-          </IconButton>
-        </span>
+          </span>
+        </IconButton>
       </Flex>
 
       {error && (

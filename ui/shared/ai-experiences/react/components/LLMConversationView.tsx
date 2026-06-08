@@ -301,7 +301,6 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
         ref={el => {
           normalModeMessagesContainerRef.current = el
         }}
-        role="log"
         aria-label={I18n.t('Conversation messages')}
         style={{
           minHeight: '300px',
@@ -334,7 +333,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
               <Flex.Item shouldGrow shouldShrink>
                 <TextArea
                   data-testid="llm-conversation-message-input"
-                  label={<span style={{display: 'none'}}>{I18n.t('Your answer...')}</span>}
+                  label={<ScreenReaderContent>{I18n.t('Your answer...')}</ScreenReaderContent>}
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
@@ -424,6 +423,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           isOpen={isFocusModeOpen}
           onClose={() => {
             setIsFocusModeOpen(false)
+            // Defer focus until after React flushes the state update that unmounts the modal
             setTimeout(() => expandButtonRef.current?.focus(), 0)
           }}
           title={aiExperienceTitle}
@@ -503,7 +503,6 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                           marginBottom: '1rem',
                           padding: '0.5rem',
                         }}
-                        role="log"
                         aria-label={I18n.t('Conversation messages')}
                         ref={el => {
                           focusModeMessagesContainerRef.current = el as HTMLDivElement | null

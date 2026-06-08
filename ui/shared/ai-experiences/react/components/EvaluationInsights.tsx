@@ -143,6 +143,8 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
       overflowY="auto"
       themeOverride={{borderRadiusMedium: RADIUS_MD}}
       data-testid="evaluation-insights"
+      tabIndex={0}
+      aria-label={I18n.t('Evaluation insights')}
     >
       <Heading level="h3" margin="0 0 medium 0">
         {I18n.t('Evaluation insights')}
