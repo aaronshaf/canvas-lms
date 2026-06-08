@@ -138,18 +138,21 @@ describe('CanvasContentPanel', () => {
   }
 
   const waitForLoading = async () => {
-    await waitFor(() => {
-      expect(screen.queryByText('Loading')).not.toBeInTheDocument()
-    })
+    // 5s timeout: the Suspense fallback from the lazy-loaded DynamicPanel can
+    // take >1s to resolve on a loaded CI machine; the default 1s would flake.
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Loading')).not.toBeInTheDocument()
+      },
+      {timeout: 5000},
+    )
   }
 
   describe('when used to load course_images', () => {
     const plugin = 'course_images'
 
     it('should update context on load', async () => {
-      await act(async () => {
-        renderComponent({plugin})
-      })
+      renderComponent({plugin})
 
       await waitForLoading()
 
