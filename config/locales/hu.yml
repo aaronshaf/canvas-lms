@@ -14251,6 +14251,7 @@ hu:
     otp: 
       errors: 
         invalid_otp: "Helytelen ellenőrzőkód, kérjük, próbálja újra"
+      invalid_verification_code: "Érvénytelen ellenőrző kód"
       new: 
         buttons: 
           send: Küldés
@@ -19335,6 +19336,7 @@ hu:
     failed_resending: "Nem sikerült teljesíteni a kérést. Próbálja újra."
     labels: 
       enable_login_for_email: "Be kívánok lépni a Canvasba ezzel az e-mail címmel"
+      verification_code: Ellenőrzőkód
     links: 
       resend_confirmation: "Megerősítés újraküldése"
       resend_confirmation_failed: "Nem sikerült teljesíteni a kérést. Próbálja újra."
@@ -19497,6 +19499,7 @@ hu:
       confirm_email_address: "E-mail cím megerősítése"
       confirm_sms_number: "SMS szám megerősítése"
       contact_not_confirmed: "Ez a kapcsolat nincs megerősítve. A részletekért kattintson a címre"
+      disable_mfa: "Többlépcsős hitelesítés letiltása"
       email_not_confirmed: "Ez az e-mail nincs megerősítve. A részletekért kattintson a címre"
       register_communication: "Kommunikáció regisztrálása"
       unconfirmed_click_to_confirm: "Nincs megerősítve. Kattintson a megerősítéshez"
@@ -26843,6 +26846,7 @@ hu:
     save_succeeded: "Sikeres mentés"
     titles: 
       add_login: "Belépési azonosító hozzáadása"
+      reset_mfa: "Többlépcsős hitelesítés alaphelyzetbe hozása"
       update_login: "Belépési azonosító frissítése"
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "A felhasználók összevonása sikertelen! Kérjük, ellenőrizze, hogy van-e hozzá jogosultsága, és próbálja újra."
   user_name: 
