@@ -18,23 +18,23 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'ContextController' do
+describe "ContextController" do
   # ---------------------------------------------------------------------------
   # Manage Tags permission visibility for students
   # Covers: spec/selenium/people/differentiation_tag_management_spec.rb:936
   # A student visiting the people page must not be granted the
   # can_manage_differentiation_tags permission in the page ENV.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/users' do
+  describe "GET /courses/:id/users" do
     let(:enrollment) { course_with_teacher(active_all: true) }
     let(:course) { enrollment.course }
     let(:student) { student_in_course(active_all: true, course: course).user }
 
-    it 'does not grant can_manage_differentiation_tags to a student' do
+    it "does not grant can_manage_differentiation_tags to a student" do
       user_session student
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'can_manage_differentiation_tags')).to be(false)
+      expect(js_env_from_response(response).dig("permissions", "can_manage_differentiation_tags")).to be(false)
     end
   end
 
@@ -44,22 +44,22 @@ describe 'ContextController' do
   # After a course is completed, a teacher can view prior enrollments and see
   # enrolled student names on the prior users page.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/users/prior' do
+  describe "GET /courses/:id/users/prior" do
     let(:enrollment) { course_with_teacher(active_all: true) }
     let(:course) { enrollment.course }
     let(:teacher) { enrollment.user }
     let!(:prior_student) do
-      s = user_factory(name: 'Prior Student', active_user: true)
-      e = course.enroll_student(s, enrollment_state: 'active')
-      e.update_columns(workflow_state: 'completed')
+      s = user_factory(name: "Prior Student", active_user: true)
+      e = course.enroll_student(s, enrollment_state: "active")
+      e.update_columns(workflow_state: "completed")
       s
     end
 
-    it 'returns ok and includes prior enrolled student name for teacher' do
+    it "returns ok and includes prior enrolled student name for teacher" do
       user_session teacher
       get "/courses/#{course.id}/users/prior"
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Student, Prior')
+      expect(response.body).to include("Student, Prior")
     end
   end
 
@@ -70,7 +70,7 @@ describe 'ContextController' do
   # TAs do not hold GRANULAR_MANAGE_TAGS_PERMISSIONS so can_manage_differentiation_tags
   # must be false in the PERMISSIONS ENV even when the account setting is enabled.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/users as a TA' do
+  describe "GET /courses/:id/users as a TA" do
     let(:ta_enrollment) { course_with_ta(active_all: true) }
     let(:course) { ta_enrollment.course }
     let(:ta) { ta_enrollment.user }
@@ -86,20 +86,20 @@ describe 'ContextController' do
       Account.default.save!
     end
 
-    it 'does not grant can_manage_differentiation_tags to a TA' do
+    it "does not grant can_manage_differentiation_tags to a TA" do
       user_session ta
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'can_manage_differentiation_tags')).to be(false)
+      expect(js_env_from_response(response).dig("permissions", "can_manage_differentiation_tags")).to be(false)
     end
 
-    it 'does not render Manage Tags permission for a TA even when account setting is on' do
+    it "does not render Manage Tags permission for a TA even when account setting is on" do
       user_session ta
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      permissions = js_env_from_response(response)['permissions']
-      expect(permissions['can_manage_differentiation_tags']).to be(false)
-      expect(permissions['allow_assign_to_differentiation_tags']).to be(true)
+      permissions = js_env_from_response(response)["permissions"]
+      expect(permissions["can_manage_differentiation_tags"]).to be(false)
+      expect(permissions["allow_assign_to_differentiation_tags"]).to be(true)
     end
   end
 
@@ -109,11 +109,11 @@ describe 'ContextController' do
   # The inheritable account setting must propagate correctly through the account
   # hierarchy, with locked parent settings overriding child settings.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/users allow_assign_to_differentiation_tags inheritance' do
+  describe "GET /courses/:id/users allow_assign_to_differentiation_tags inheritance" do
     let(:enrollment) { course_with_teacher(active_all: true) }
     let(:course) { enrollment.course }
     let(:teacher) { enrollment.user }
-    let(:sub_account) { Account.default.sub_accounts.create!(name: 'Sub Account') }
+    let(:sub_account) { Account.default.sub_accounts.create!(name: "Sub Account") }
 
     before do
       course.update!(account: sub_account)
@@ -124,7 +124,7 @@ describe 'ContextController' do
       Account.default.save!
     end
 
-    it 'shows Manage Tags when parent account is locked true and child is disabled' do
+    it "shows Manage Tags when parent account is locked true and child is disabled" do
       Account.default.settings[:allow_assign_to_differentiation_tags] = { value: true, locked: true }
       Account.default.save!
       sub_account.settings[:allow_assign_to_differentiation_tags] = { value: false }
@@ -132,28 +132,28 @@ describe 'ContextController' do
       user_session teacher
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'allow_assign_to_differentiation_tags')).to be(true)
+      expect(js_env_from_response(response).dig("permissions", "allow_assign_to_differentiation_tags")).to be(true)
     end
 
-    it 'shows Manage Tags when sub-account setting is on and parent is not locked' do
+    it "shows Manage Tags when sub-account setting is on and parent is not locked" do
       sub_account.settings[:allow_assign_to_differentiation_tags] = { value: true }
       sub_account.save!
       user_session teacher
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'allow_assign_to_differentiation_tags')).to be(true)
+      expect(js_env_from_response(response).dig("permissions", "allow_assign_to_differentiation_tags")).to be(true)
     end
 
-    it 'hides Manage Tags when sub-account setting is off and parent is not locked' do
+    it "hides Manage Tags when sub-account setting is off and parent is not locked" do
       sub_account.settings[:allow_assign_to_differentiation_tags] = { value: false }
       sub_account.save!
       user_session teacher
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'allow_assign_to_differentiation_tags')).to be(false)
+      expect(js_env_from_response(response).dig("permissions", "allow_assign_to_differentiation_tags")).to be(false)
     end
 
-    it 'shows Manage Tags when sub-account enabled overrides parent disabled (not locked)' do
+    it "shows Manage Tags when sub-account enabled overrides parent disabled (not locked)" do
       Account.default.settings[:allow_assign_to_differentiation_tags] = { value: false }
       Account.default.save!
       sub_account.settings[:allow_assign_to_differentiation_tags] = { value: true }
@@ -161,10 +161,10 @@ describe 'ContextController' do
       user_session teacher
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'allow_assign_to_differentiation_tags')).to be(true)
+      expect(js_env_from_response(response).dig("permissions", "allow_assign_to_differentiation_tags")).to be(true)
     end
 
-    it 'hides Manage Tags when both parent and sub-account setting are disabled' do
+    it "hides Manage Tags when both parent and sub-account setting are disabled" do
       Account.default.settings[:allow_assign_to_differentiation_tags] = { value: false }
       Account.default.save!
       sub_account.settings[:allow_assign_to_differentiation_tags] = { value: false }
@@ -172,7 +172,7 @@ describe 'ContextController' do
       user_session teacher
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'allow_assign_to_differentiation_tags')).to be(false)
+      expect(js_env_from_response(response).dig("permissions", "allow_assign_to_differentiation_tags")).to be(false)
     end
   end
 
@@ -182,29 +182,29 @@ describe 'ContextController' do
   # The view_user_logins PERMISSION flag in page ENV controls Login ID column
   # visibility independent of manage_students permission.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/users Login ID column visibility' do
+  describe "GET /courses/:id/users Login ID column visibility" do
     let(:ta_enrollment) { course_with_ta(active_all: true) }
     let(:course) { ta_enrollment.course }
     let(:ta) { ta_enrollment.user }
 
-    it 'includes view_user_logins:true in PERMISSIONS when TA has that right' do
+    it "includes view_user_logins:true in PERMISSIONS when TA has that right" do
       user_session ta
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'view_user_logins')).to be(true)
+      expect(js_env_from_response(response).dig("permissions", "view_user_logins")).to be(true)
     end
 
-    it 'sets view_user_logins:false in PERMISSIONS when TA has that right revoked' do
+    it "sets view_user_logins:false in PERMISSIONS when TA has that right revoked" do
       RoleOverride.create!(
         context: Account.default,
-        permission: 'view_user_logins',
+        permission: "view_user_logins",
         role: ta_role,
         enabled: false
       )
       user_session ta
       get "/courses/#{course.id}/users"
       expect(response).to have_http_status(:ok)
-      expect(js_env_from_response(response).dig('permissions', 'view_user_logins')).to be(false)
+      expect(js_env_from_response(response).dig("permissions", "view_user_logins")).to be(false)
     end
   end
 
@@ -215,19 +215,19 @@ describe 'ContextController' do
   # settings page must not expose the reset button, and the confirm_action
   # page must return unauthorized.
   # ---------------------------------------------------------------------------
-  describe 'GET /courses/:id/settings as a TA' do
+  describe "GET /courses/:id/settings as a TA" do
     let(:ta_enrollment) { course_with_ta(active_all: true) }
     let(:course) { ta_enrollment.course }
     let(:ta) { ta_enrollment.user }
 
-    it 'does not include reset_course_content_button on settings page for TA' do
+    it "does not include reset_course_content_button on settings page for TA" do
       user_session ta
       get "/courses/#{course.id}/settings"
       expect(response).to have_http_status(:ok)
-      expect(response.body).not_to include('reset_course_content_button')
+      expect(response.body).not_to include("reset_course_content_button")
     end
 
-    it 'returns unauthorized when TA attempts to access course conclude confirmation' do
+    it "returns unauthorized when TA attempts to access course conclude confirmation" do
       user_session ta
       get "/courses/#{course.id}/confirm_action?event=conclude"
       expect(response).to have_http_status(:unauthorized)

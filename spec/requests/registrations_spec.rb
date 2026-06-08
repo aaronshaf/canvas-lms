@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe 'UsersController' do
+describe "UsersController" do
   before do
     Account.default.canvas_authentication_provider.update_attribute(
       :self_registration, true
@@ -31,12 +31,12 @@ describe 'UsersController' do
   # When Setting terms_required is 'false', the ACCOUNT ENV on the
   # registration page must have terms_required: false.
   # ---------------------------------------------------------------------------
-  describe 'GET /register (globally no terms)' do
-    it 'returns terms_required false when Setting terms_required is false' do
-      Setting.set('terms_required', 'false')
+  describe "GET /register (globally no terms)" do
+    it "returns terms_required false when Setting terms_required is false" do
+      Setting.set("terms_required", "false")
       TermsOfService.ensure_terms_for_account(Account.default)
 
-      get '/register'
+      get "/register"
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('"terms_required":false')
@@ -49,13 +49,13 @@ describe 'UsersController' do
   # When account_terms_required is false on the account, the ACCOUNT ENV on
   # the registration page must have terms_required: false.
   # ---------------------------------------------------------------------------
-  describe 'GET /register (account-level no terms)' do
-    it 'returns terms_required false when account_terms_required is disabled' do
+  describe "GET /register (account-level no terms)" do
+    it "returns terms_required false when account_terms_required is disabled" do
       Account.default.settings[:account_terms_required] = false
       Account.default.save!
       TermsOfService.ensure_terms_for_account(Account.default)
 
-      get '/register'
+      get "/register"
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('"terms_required":false')
