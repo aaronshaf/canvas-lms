@@ -4001,6 +4001,24 @@ describe DiscussionTopic do
       expect(@topic.locked_for?(@student)).to be_falsey
     end
 
+    # Covers selenium discussion_topic_show_spec.rb:707/716 "does not honor
+    # unlock/lock dates if course paces is enabled".
+    context "when the course has course pacing enabled" do
+      before do
+        @course.update!(enable_course_paces: true)
+      end
+
+      it "does not honor a future unlock_at date" do
+        @topic.update(unlock_at: 1.week.from_now)
+        expect(@topic.reload.locked_for?(@student)).to be_falsey
+      end
+
+      it "does not honor a past lock_at date" do
+        @topic.update(lock_at: 1.week.ago)
+        expect(@topic.reload.locked_for?(@student)).to be_falsey
+      end
+    end
+
     it "is locked for future unlock_at date" do
       timestamp = 1.week.from_now
       @topic.update(unlock_at: timestamp)
@@ -4040,6 +4058,49 @@ describe DiscussionTopic do
       lock_info = @topic.locked_for?(@student)
       expect(lock_info).to be_truthy
       expect(lock_info[:unlock_at]).to eq timestamp
+    end
+
+    # Covers selenium discussion_topic_show_spec.rb:165 "displays module
+    # prerequisites": locked when an enclosing module is not yet unlocked.
+    # Covers selenium discussion_topic_show_spec.rb:165 "displays module
+    # prerequisites": locked when an enclosing module is not yet unlocked
+    # (no dates/workflow lock are set, so the module is the only lock source).
+    it "locks for a student when an enclosing module is not yet unlocked" do
+      cm = @course.context_modules.create!(name: "module1", unlock_at: 1.day.from_now, workflow_state: "active")
+      cm.add_item(type: "discussion_topic", id: @topic.id)
+      @topic.update!(could_be_locked: true)
+      expect(@topic.locked_for?(@student)).to be_truthy
+    end
+
+    # Covers selenium discussion_topic_show_spec.rb:775/795 "shows lock
+    # indication for discussions locked by student checkpoint overrides".
+    def checkpointed_topic_with_student_override(date_key, date_value)
+      @course.account.enable_feature!(:discussion_checkpoints)
+      graded = DiscussionTopic.create_graded_topic!(course: @course, title: "Checkpointed", user: @teacher)
+      override = { type: "override", set_type: "ADHOC", student_ids: [@student.id] }
+      override[date_key] = date_value
+      [CheckpointLabels::REPLY_TO_TOPIC, CheckpointLabels::REPLY_TO_ENTRY].each do |label|
+        Checkpoints::DiscussionCheckpointCreatorService.call(
+          discussion_topic: graded,
+          checkpoint_label: label,
+          points_possible: 5,
+          replies_required: (label == CheckpointLabels::REPLY_TO_ENTRY) ? 2 : 1,
+          dates: [override]
+        )
+      end
+      graded.reload
+    end
+
+    it "locks for a student with a future unlock_at override on a checkpoint" do
+      topic = checkpointed_topic_with_student_override(:unlock_at, 1.week.from_now)
+      expect(topic.locked_for?(@student)).to be_truthy
+    end
+
+    it "is closed for comments for a student with a past lock_at override on a checkpoint" do
+      topic = checkpointed_topic_with_student_override(:lock_at, 1.week.ago)
+      lock_info = topic.locked_for?(@student)
+      expect(lock_info).to be_truthy
+      expect(lock_info[:can_view]).to be_truthy
     end
 
     it "unlocks for student with override" do

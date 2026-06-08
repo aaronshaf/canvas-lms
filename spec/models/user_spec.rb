@@ -3218,6 +3218,23 @@ describe User do
         expect(events.first).to eq assignment2
       end
 
+      # Covers selenium discussions_overrides_spec.rb:103/108 "lists the
+      # discussions in the course/main dashboard": a graded discussion's
+      # assignment (with a section override) appears in upcoming_events, which
+      # backs both the course-page and main-dashboard "coming up" widgets.
+      it "includes a graded discussion's assignment that has a section override" do
+        topic = DiscussionTopic.create_graded_topic!(course: @course, title: "Discussion 1", user: @teacher)
+        topic.assignment.update!(due_at: 2.days.from_now)
+        section = @course.course_sections.create!(name: "Section 2")
+        override = topic.assignment.assignment_overrides.create!(due_at: 3.days.from_now, due_at_overridden: true)
+        override.set = section
+        override.save!
+
+        # course-scoped (course dashboard) and unscoped (main dashboard) both include it
+        expect(@user.upcoming_events(context_codes: [@course.asset_string], end_at: 1.week.from_now)).to include(topic.assignment)
+        expect(@user.upcoming_events(end_at: 1.week.from_now)).to include(topic.assignment)
+      end
+
       it "includes sub assignments if checkpoints are enabled in the accounts they are in" do
         # root account has checkpoints OFF and unlocked, while sub-account has checkpoints ON
         @course.root_account.set_feature_flag!(:discussion_checkpoints, Feature::STATE_DEFAULT_OFF)

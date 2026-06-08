@@ -135,4 +135,39 @@ describe "Discussion Topics API" do
       expect(js_env["totalDiscussions"]).to eq(1)
     end
   end
+
+  # Covers selenium discussions_new_page_spec.rb:470 "does not navigate to
+  # discussions create page": a Horizon course redirects the new-discussion
+  # page away to context modules (the create form never renders).
+  describe "GET /courses/:course_id/discussion_topics/new" do
+    it "redirects a horizon course away from the new discussion page" do
+      course = course_factory(active_all: true)
+      teacher = teacher_in_course(active_all: true, course:).user
+      course.account.enable_feature!(:horizon_course_setting)
+      course.update!(horizon_course: true)
+      user_session(teacher)
+
+      get "/courses/#{course.id}/discussion_topics/new"
+
+      expect(response).to redirect_to("/courses/#{course.id}/modules")
+    end
+  end
+
+  # Covers selenium discussions_edit_page_spec.rb:445 "does not navigate to
+  # existing discussion edit page": a Horizon course redirects the edit page
+  # away to context modules (the save button / form never renders).
+  describe "GET /courses/:course_id/discussion_topics/:id/edit" do
+    it "redirects a horizon course away from the edit page" do
+      course = course_factory(active_all: true)
+      teacher = teacher_in_course(active_all: true, course:).user
+      topic = course.discussion_topics.create!(title: "Test Discussion", user: teacher)
+      course.account.enable_feature!(:horizon_course_setting)
+      course.update!(horizon_course: true)
+      user_session(teacher)
+
+      get "/courses/#{course.id}/discussion_topics/#{topic.id}/edit"
+
+      expect(response).to redirect_to("/courses/#{course.id}/modules")
+    end
+  end
 end

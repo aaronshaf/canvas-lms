@@ -2924,6 +2924,25 @@ describe Course do
         end
       end
 
+      # Covers selenium discussion_permission_spec.rb:60/463 "shows / does not
+      # show the discussions link on the course page": the Discussions tab is
+      # gated on read_forum/post_to_forum/create_forum/moderate_forum.
+      describe "TAB_DISCUSSIONS" do
+        it "is included when the user can read discussions" do
+          tabs = @course.tabs_available(@user).pluck(:id)
+          expect(tabs).to include(Course::TAB_DISCUSSIONS)
+        end
+
+        it "is excluded when the user lacks all discussion permissions" do
+          %w[read_forum post_to_forum create_forum moderate_forum].each do |perm|
+            @course.root_account.role_overrides.create!(role: teacher_role, permission: perm, enabled: false)
+          end
+          @user.touch
+          tabs = @course.tabs_available(@user).pluck(:id)
+          expect(tabs).not_to include(Course::TAB_DISCUSSIONS)
+        end
+      end
+
       it "returns the defaults if nothing specified" do
         tab_ids = @course.tabs_available(@user).pluck(:id)
         # Reject AI Experiences tab since it's added dynamically when feature flag is enabled
