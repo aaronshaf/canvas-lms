@@ -18,7 +18,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 module CanvasOperations
   def self.registered_operations
-    []
+    [
+      ::Operations::ForceCanvasPasswordReset,
+    ]
   end
 
   def self.find(id)
