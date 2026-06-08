@@ -2448,7 +2448,6 @@ class Submission < ApplicationRecord
 
   scope :include_assessment_requests, -> { preload(:assessment_requests, :assigned_assessments) }
   scope :include_versions, -> { preload(:versions) }
-  scope :include_submission_comments, -> { preload(:submission_comments) }
   scope :speed_grader_includes, -> { preload(:versions, :submission_comments, :attachments, :rubric_assessment) }
   scope :for_user, ->(user) { where(user_id: user) }
   scope :needing_screenshot, -> { where("submissions.submission_type='online_url' AND submissions.attachment_id IS NULL").order(:updated_at) }

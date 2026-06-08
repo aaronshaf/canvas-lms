@@ -1283,7 +1283,9 @@ class DiscussionTopicsApiController < ApplicationController
     opts = get_forced_option
 
     @topic.change_all_read_state(new_state, @current_user, opts)
-    render json: {}, status: :no_content
+    respond_to do |format|
+      format.json { head :no_content }
+    end
   end
 
   def change_entry_read_state(new_state)

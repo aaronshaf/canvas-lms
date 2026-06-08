@@ -203,7 +203,6 @@ class AbstractAssignment < ApplicationRecord
              OR (pc.id IS NOT NULL AND pc.post_manually = False)
       SQL
   }
-  scope :nondeleted, -> { where.not(workflow_state: "deleted") }
   scope :assignments_only, -> { where(type: "Assignment") }
   scope :assignment_or_peer_review, -> { where(type: ["Assignment", "PeerReviewSubAssignment"]) }
 
@@ -1433,7 +1432,7 @@ class AbstractAssignment < ApplicationRecord
   # filtered by context during migrate_content_to_1_3
   # @see Lti::Migratable
   def self.directly_associated_items(tool_id)
-    Assignment.nondeleted.joins(:external_tool_tag).where(content_tags: { content_type: ContextExternalTool, content_id: tool_id })
+    Assignment.active.joins(:external_tool_tag).where(content_tags: { content_type: ContextExternalTool, content_id: tool_id })
   end
 
   # filtered by context during migrate_content_to_1_3
@@ -1442,7 +1441,7 @@ class AbstractAssignment < ApplicationRecord
     # TODO: this does not account for assignments that _are_ linked to a
     # tool and the tag has a content_id, but the content_id doesn't match
     # the current tool
-    Assignment.nondeleted.joins(:external_tool_tag).where(content_tags: { content_id: nil })
+    Assignment.active.joins(:external_tool_tag).where(content_tags: { content_id: nil })
   end
 
   # @see Lti::Migratable

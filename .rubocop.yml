@@ -351,13 +351,11 @@ Rails/ActiveSupportOnLoad:
 Rails/ApplicationMailer:
   Severity: convention
   AutoCorrect: false
-Rails/DeprecatedActiveModelErrorsMethods:
-  AutoCorrect: false
 Rails/EagerEvaluationLogMessage:
   Severity: convention
   AutoCorrect: false
 Rails/FindByOrAssignmentMemoization:
-  Severity: warning
+  Severity: convention
   # the autocorrect will check instance_variable_defined?, which might be right,
   # but it might also be better to use find_by!
   AutoCorrect: false
