@@ -77,5 +77,70 @@ describe BlockEditor do
       )
       expect(block_data.blocks.dig("xyz", "props", "content")).not_to include("onerror")
     end
+
+    describe "ButtonBlock url sanitization" do
+      def create_button_block(buttons)
+        BlockEditor.create!(
+          context: wiki_page,
+          editor_version: BlockEditor::LATEST_VERSION,
+          blocks: build_blocks("btn", "ButtonBlock", { "buttons" => buttons })
+        )
+      end
+
+      def saved_buttons(block_editor)
+        block_editor.blocks.dig("btn", "props", "buttons")
+      end
+
+      it "neutralizes a javascript: url on a button" do
+        block_data = create_button_block([{ "id" => 1, "text" => "Click me", "url" => "javascript:alert(document.cookie)" }])
+        button = saved_buttons(block_data).first
+        expect(button["url"]).to eq ""
+        expect(button["text"]).to eq "Click me"
+      end
+
+      it "neutralizes a data: url on a button" do
+        block_data = create_button_block([{ "id" => 1, "url" => "data:text/html,<script>alert(1)</script>" }])
+        expect(saved_buttons(block_data).first["url"]).to eq ""
+      end
+
+      it "neutralizes a vbscript: url on a button" do
+        block_data = create_button_block([{ "id" => 1, "url" => "vbscript:msgbox(1)" }])
+        expect(saved_buttons(block_data).first["url"]).to eq ""
+      end
+
+      it "neutralizes a blob: url on a button" do
+        block_data = create_button_block([{ "id" => 1, "url" => "blob:https://example.com/uuid" }])
+        expect(saved_buttons(block_data).first["url"]).to eq ""
+      end
+
+      it "leaves non-executable schemes such as mailto: untouched" do
+        block_data = create_button_block([{ "id" => 1, "url" => "mailto:teacher@example.com" }])
+        expect(saved_buttons(block_data).first["url"]).to eq "mailto:teacher@example.com"
+      end
+
+      it "neutralizes newline-obfuscated javascript: urls" do
+        block_data = create_button_block([{ "id" => 1, "url" => "java\nscript:alert(1)" }])
+        expect(saved_buttons(block_data).first["url"]).to eq ""
+      end
+
+      it "leaves absolute http/https urls untouched" do
+        block_data = create_button_block([{ "id" => 1, "url" => "https://example.com" }])
+        expect(saved_buttons(block_data).first["url"]).to eq "https://example.com"
+      end
+
+      it "leaves relative/internal urls untouched" do
+        block_data = create_button_block([{ "id" => 1, "url" => "/courses/1/pages/syllabus" }])
+        expect(saved_buttons(block_data).first["url"]).to eq "/courses/1/pages/syllabus"
+      end
+
+      it "sanitizes each button in the array independently" do
+        block_data = create_button_block([
+                                           { "id" => 1, "url" => "javascript:alert(1)" },
+                                           { "id" => 2, "url" => "https://safe.example" },
+                                         ])
+        urls = saved_buttons(block_data).pluck("url")
+        expect(urls).to eql ["", "https://safe.example"]
+      end
+    end
   end
 end

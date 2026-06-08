@@ -66,4 +66,22 @@ describe('ButtonView', () => {
     expect(button).toHaveAttribute('target', '_blank')
     expect(button).toHaveAttribute('rel', 'noopener noreferrer')
   })
+
+  it('neutralizes javascript: hrefs to prevent stored XSS', () => {
+    const xssProps = {...defaultProps, url: 'javascript:alert(document.cookie)'}
+    render(<ButtonView {...xssProps} />)
+    const button = screen.getByRole('link')
+    expect(button).toHaveAttribute('href', 'about:blank')
+  })
+
+  it('neutralizes data: hrefs to prevent stored XSS', () => {
+    const xssProps = {
+      ...defaultProps,
+      linkOpenMode: 'same-tab' as const,
+      url: 'data:text/html,<script>alert(1)</script>',
+    }
+    render(<ButtonView {...xssProps} />)
+    const button = screen.getByRole('link')
+    expect(button).toHaveAttribute('href', 'about:blank')
+  })
 })

@@ -20,6 +20,7 @@ import {useEditor, useNode, type Node} from '@craftjs/core'
 import {ButtonBlockToolbar} from './ButtonBlockToolbar'
 
 import {getIcon} from '../../../../assets/user-icons'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {Button} from '@instructure/ui-buttons'
 import {type ViewProps} from '@instructure/ui-view'
 import {darken, lighten} from '@instructure/ui-color-utils'
@@ -125,7 +126,7 @@ const ButtonBlock = ({
         data-testid="button-block"
         elementRef={el => (buttonRef.current = el as HTMLButtonElement)}
         color="secondary"
-        href={href}
+        href={href ? sanitizeUrl(href) : undefined}
         renderIcon={iconName ? renderIcon : undefined}
         size={size}
         themeOverride={getThemeOverride()}

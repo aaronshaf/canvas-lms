@@ -19,6 +19,7 @@
 import {alpha, lighten, darken} from '@instructure/ui-color-utils'
 import {BaseButtonTheme} from '@instructure/shared-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import tinyColor from 'tinycolor2'
 import {ButtonBaseProps} from './types'
 
@@ -81,7 +82,7 @@ export const getLinkProps = (props: ButtonBaseProps) => {
   const isNewTabLink = props.linkOpenMode === 'new-tab'
 
   return {
-    href: trimmedUrl || undefined,
+    href: trimmedUrl ? sanitizeUrl(trimmedUrl) : undefined,
     target: isNewTabLink ? '_blank' : undefined,
     rel: isNewTabLink ? 'noopener noreferrer' : undefined,
     url: trimmedUrl,
