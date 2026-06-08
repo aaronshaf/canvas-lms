@@ -18570,6 +18570,7 @@ fa:
     failed_resending: "درخواست انجام نشد. لطفا دوباره سعی کنید."
     labels: 
       enable_login_for_email: "می خواهم با استفاده از این نشانی پست الکترونیکی وارد کانواس شوم"
+      verification_code: "رمز تأیید"
     links: 
       resend_confirmation: "ارسال دوباره تأییدیه"
       resend_confirmation_failed: "درخواست انجام نشد. دوباره تلاش کنید."
@@ -18758,6 +18759,7 @@ fa:
       confirm_email_address: "تأیید نشانی پست الکترونیکی"
       confirm_sms_number: "تأیید شماره ی پیامک"
       contact_not_confirmed: "این مخاطب تأیید نشده است. برای اطلاعات بیشتر، روی نشانی کلیک کنید"
+      disable_mfa: "غیر فعال سازی اعتبارسنجی چند عاملی"
       email_not_confirmed: "این پست الکترونیکی تأیید نشده است. برای اطلاعات بیشتر، روی نشانی کلیک کنید"
       register_communication: "ثبت ارتباط"
       unconfirmed_click_to_confirm: "تأیید نشده است. برای تأیید کلیک کنید"
@@ -25333,6 +25335,7 @@ fa:
     save_succeeded: "ذخیره سازی با موفقیت انجام شد"
     titles: 
       add_login: "افزودن ورود"
+      reset_mfa: "بازنشانی اعتبارسنجی چند عاملی"
       update_login: "بهنگام سازی ورود"
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "ادغام کاربر انجام نشد. مطمئن شوید که مجوز لازم را دارید و دوباره تلاش کنید."
   user_name: 
