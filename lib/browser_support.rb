@@ -42,7 +42,7 @@ BrowserSupport = Struct.new(:browser, :version) do
     private
 
     def lts
-      @lts = OpenStruct.new(configuration["chrome_os_lts"])
+      @lts ||= configuration["chrome_os_lts"]
     end
 
     #
@@ -64,8 +64,8 @@ BrowserSupport = Struct.new(:browser, :version) do
     #
     def chrome_os_lts?(browser)
       return false unless browser.platform.chrome_os?
-      return false unless browser.chrome?(lts.chrome)
-      return true if /X11; CrOS \w+ #{lts.platform}/.match?(browser.ua)
+      return false unless browser.chrome?(lts["chrome"])
+      return true if /X11; CrOS \w+ #{lts["platform"]}/.match?(browser.ua)
 
       false
     end

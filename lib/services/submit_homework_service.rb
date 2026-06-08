@@ -173,6 +173,21 @@ module Services
       failure_email if @attachment
     end
 
+    # This is used instead of an actual Message object because we don't save it to the
+    # database, and inst-jobs can't (currently) persist unsaved models in the handler YAML
+    FauxMessage = Struct.new(:body,
+                             :context,
+                             :context_type,
+                             :created_at,
+                             :from_name,
+                             :global_id,
+                             :html_body,
+                             :id,
+                             :path_type,
+                             :reply_to_name,
+                             :subject,
+                             :to)
+
     def failure_email
       display_name = @attachment.display_name
       assignment_name = @progress.context.name
@@ -181,7 +196,7 @@ module Services
              "the assignment or contact your instructor if you are no " \
              "longer able to do so."
 
-      message = OpenStruct.new(
+      message = FauxMessage.new(
         from_name: "notifications@instructure.com",
         subject: "Submission upload failed: #{assignment_name}",
         to: @progress.user.email,

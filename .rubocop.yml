@@ -249,8 +249,6 @@ Style/MultilineBlockChain:
   Enabled: false # this is common when building up a large API result
 Style/NumericPredicate:
   Enabled: false # `> 0` can be easier to read than `.positive?`
-Style/OpenStructUse:
-  Severity: warning # unfortunately, legacy code uses it a lot;
 Style/ParallelAssignment:
   Enabled: false # most uses are legitimate deconstruction or value swapping
 Style/RescueModifier:

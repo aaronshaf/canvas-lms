@@ -26,12 +26,12 @@ module Canvas::Security
     validate :assertions, :aud, :exp, :iat, :jti
 
     def initialize(jwt:, expected_aud:, override_sub: nil, full_errors: false, require_iss: false, skip_jti_check: false, max_iat_age: nil)
-      @jwt = OpenStruct.new jwt
+      @jwt = jwt
       @assertions = Set.new(jwt.keys)
       @expected_aud = expected_aud
       @full_errors = full_errors
       @require_iss = require_iss
-      @jwt.sub = override_sub if override_sub.present?
+      @jwt["sub"] = override_sub if override_sub.present?
       @skip_jti_check = skip_jti_check
       @max_iat_age = max_iat_age || 5.minutes
     end
@@ -57,24 +57,24 @@ module Canvas::Security
 
     def aud
       return if errors?
-      return if Array(@jwt.aud).intersect?(Array(@expected_aud))
+      return if Array(@jwt["aud"]).intersect?(Array(@expected_aud))
 
       errors.add(:base, "the 'aud' is invalid")
     end
 
     def exp
-      errors.add(:base, "the 'exp' must be a number") if @jwt.exp.present? && !@jwt.exp.is_a?(Numeric)
+      errors.add(:base, "the 'exp' must be a number") if @jwt["exp"].present? && !@jwt["exp"].is_a?(Numeric)
       return if errors?
 
-      exp_time = Time.zone.at(@jwt.exp)
+      exp_time = Time.zone.at(@jwt["exp"])
       errors.add(:base, "the JWT has expired") if exp_time < Time.zone.now
     end
 
     def iat
-      errors.add(:base, "the 'iat' must be a number") if @jwt.iat.present? && !@jwt.iat.is_a?(Numeric)
+      errors.add(:base, "the 'iat' must be a number") if @jwt["iat"].present? && !@jwt["iat"].is_a?(Numeric)
       return if errors?
 
-      iat_time = Time.zone.at(@jwt.iat)
+      iat_time = Time.zone.at(@jwt["iat"])
       iat_future_buffer = 30.seconds
       errors.add(:base, "the 'iat' must be less than #{@max_iat_age} seconds old") if iat_time < @max_iat_age.ago
       errors.add(:base, "the 'iat' must not be in the future") if iat_time > Time.zone.now + iat_future_buffer
@@ -83,9 +83,9 @@ module Canvas::Security
     def jti
       return if errors? || @skip_jti_check
 
-      nonce_duration = (@jwt.exp.to_i - @jwt.iat.to_i).seconds
-      nonce_key = "nonce:#{@jwt.sub}:#{@jwt.jti}"
-      unless Lti::Security.check_and_store_nonce(nonce_key, @jwt.iat, nonce_duration)
+      nonce_duration = (@jwt["exp"].to_i - @jwt["iat"].to_i).seconds
+      nonce_key = "nonce:#{@jwt["sub"]}:#{@jwt["jti"]}"
+      unless Lti::Security.check_and_store_nonce(nonce_key, @jwt["iat"], nonce_duration)
         errors.add(:base, "the 'jti' is invalid")
       end
     end

@@ -1135,8 +1135,8 @@ module Api::V1::Assignment
       assignment.moderated_grading = value_to_boolean(assignment_params["moderated_grading"])
     end
 
-    grader_changes = final_grader_changes(assignment, assignment_params)
-    assignment.final_grader_id = grader_changes.grader_id if grader_changes.grader_changed?
+    grader_changed, final_grader_id = final_grader_changes(assignment, assignment_params)
+    assignment.final_grader_id = final_grader_id if grader_changed
 
     if assignment_params.key?("anonymous_grading") && assignment.course.feature_enabled?(:anonymous_marking)
       assignment.anonymous_grading = value_to_boolean(assignment_params["anonymous_grading"])
@@ -1303,13 +1303,12 @@ module Api::V1::Assignment
   end
 
   def final_grader_changes(assignment, assignment_params)
-    no_changes = OpenStruct.new(grader_changed?: false)
-    return no_changes unless assignment.moderated_grading && assignment_params.key?("final_grader_id")
+    return [false, nil] unless assignment.moderated_grading && assignment_params.key?("final_grader_id")
 
     final_grader_id = assignment_params.fetch("final_grader_id")
-    return OpenStruct.new(grader_changed?: true, grader_id: nil) if final_grader_id.blank?
+    return [true, nil] if final_grader_id.blank?
 
-    OpenStruct.new(grader_changed?: true, grader_id: final_grader_id)
+    [true, final_grader_id]
   end
 
   def apply_report_visibility_options!(assignment_params, assignment)

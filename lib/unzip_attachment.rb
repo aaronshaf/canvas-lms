@@ -225,7 +225,7 @@ class UnzipAttachment
   # Finds the folder in the database, creating the path if necessary
   def infer_folder(path)
     list = path.split("/")
-    current = (@root_directory ||= folders.root_directory)
+    current = (@root_directory ||= context_files_folder)
     # For every directory in the path...
     # (-2 means all entries but the last, which should be a filename)
     list[0..-2].each do |dir|
@@ -244,15 +244,6 @@ class UnzipAttachment
     folder.context = context
     folder.save!
     folder
-  end
-
-  # A cached list of folders that we know about.
-  # Used by infer_folder to know whether to create a folder or not.
-  def folders(reset: false)
-    @folders = nil if reset
-    return @folders if @folders
-
-    @folders = OpenStruct.new(root_directory: context_files_folder)
   end
 end
 

@@ -183,28 +183,28 @@ describe CC::LtiResourceLinks do
         url: tool_url
       )
     end
-    let(:resources_double) { double("resources") } # rubocop:disable RSpec/VerifiedDoubles
-    let(:rl_document) { Struct.new(:file_name, :file, :document).new("test.xml", double(close: nil), double) }
+    let(:resources) { double("resources") } # rubocop:disable RSpec/VerifiedDoubles -- rspec-mocks can't deal with a partial double of Builder::XmlMarker
+    let(:rl_document) { { file_name: "test.xml", file: instance_double(IO, close: nil), document: Builder::XmlMarkup.new } }
 
     before do
       @course = course
-      @resources = resources_double
+      @resources = resources
       assignment_resource_link
       allow(self).to receive(:create_resource_link_document).and_return(rl_document)
       allow(self).to receive(:add_lti_resource_link)
-      allow(resources_double).to receive(:resource)
+      allow(resources).to receive(:resource)
     end
 
     it "exports the resource link when the assignment is selected for export" do
       allow(self).to receive(:export_object?).with(assignment).and_return(true)
-      expect(resources_double).to receive(:resource).once
+      expect(resources).to receive(:resource).once
       add_lti_resource_links
     end
 
     it "skips the resource link when neither the assignment nor the resource link is selected for export" do
       allow(self).to receive(:export_object?).with(assignment).and_return(false)
       allow(self).to receive(:export_object?).with(assignment_resource_link).and_return(false)
-      expect(resources_double).not_to receive(:resource)
+      expect(resources).not_to receive(:resource)
       add_lti_resource_links
     end
 
@@ -212,14 +212,14 @@ describe CC::LtiResourceLinks do
       it "exports when only the resource link was updated (not the assignment)" do
         allow(self).to receive(:export_object?).with(assignment).and_return(false)
         allow(self).to receive(:export_object?).with(assignment_resource_link).and_return(true)
-        expect(resources_double).to receive(:resource).once
+        expect(resources).to receive(:resource).once
         add_lti_resource_links
       end
 
       it "skips when neither the assignment nor the resource link was updated" do
         allow(self).to receive(:export_object?).with(assignment).and_return(false)
         allow(self).to receive(:export_object?).with(assignment_resource_link).and_return(false)
-        expect(resources_double).not_to receive(:resource)
+        expect(resources).not_to receive(:resource)
         add_lti_resource_links
       end
     end

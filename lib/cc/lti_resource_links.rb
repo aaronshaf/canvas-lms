@@ -46,13 +46,13 @@ module CC
 
         rl_document = create_resource_link_document(migration_id)
 
-        add_lti_resource_link(resource_link, tool, rl_document.document)
+        add_lti_resource_link(resource_link, tool, rl_document[:document])
 
-        rl_document.file.close
+        rl_document[:file].close
 
         # Add a resource element to the root of the manifest
         @resources.resource(identifier: migration_id, type: CCHelper::BASIC_LTI_1_DOT_3) do |res|
-          res.file(href: "#{CCHelper::RESOURCE_LINK_FOLDER}/#{rl_document.file_name}")
+          res.file(href: "#{CCHelper::RESOURCE_LINK_FOLDER}/#{rl_document[:file_name]}")
         end
       end
     end
@@ -72,7 +72,7 @@ module CC
       document_info[:file] = File.new(path, "w")
       document_info[:document] = Builder::XmlMarkup.new(target: document_info[:file], indent: 2)
 
-      OpenStruct.new(document_info)
+      document_info
     end
 
     # Populates a document with the `imslticc_v1p3` representation
