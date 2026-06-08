@@ -1020,6 +1020,92 @@ describe UserLearningObjectScopes do
         expect(result).not_to include(@peer_review_sub_assignment)
       end
     end
+
+    context "with future temporary enrollments" do
+      before :once do
+        Account.default.enable_feature!(:temporary_enrollments)
+
+        @temp_course = course_factory(active_all: true)
+        @section_a = @temp_course.course_sections.create!(name: "Section A")
+        @section_b = @temp_course.course_sections.create!(name: "Section B")
+
+        @provider = user_with_pseudonym(active_all: true, name: "Provider Teacher")
+        @temp_course.enroll_user(
+          @provider,
+          "TeacherEnrollment",
+          enrollment_state: "active",
+          section: @section_a,
+          limit_privileges_to_course_section: true
+        )
+
+        @recipient = user_with_pseudonym(active_all: true, name: "Recipient Teacher")
+        # Negative control: the recipient's section-B enrollment can't see the section-A submission
+        # because of limit_privileges_to_course_section, so any leak must come from the temp enrollment.
+        @temp_course.enroll_user(
+          @recipient,
+          "TeacherEnrollment",
+          enrollment_state: "active",
+          section: @section_b,
+          limit_privileges_to_course_section: true
+        )
+
+        pairing = TemporaryEnrollmentPairing.create!(root_account: Account.default,
+                                                     created_by: account_admin_user)
+        @temp_enrollment = @temp_course.enroll_user(
+          @recipient,
+          "TeacherEnrollment",
+          role: teacher_role,
+          section: @section_a,
+          temporary_enrollment_source_user_id: @provider.id,
+          temporary_enrollment_pairing_id: pairing.id,
+          limit_privileges_to_course_section: true,
+          allow_multiple_enrollments: true
+        )
+
+        @temp_student = user_with_pseudonym(active_all: true, name: "SectionA Student")
+        @section_a.enroll_user(@temp_student, "StudentEnrollment", "active")
+
+        @temp_assignment = @temp_course.assignments.create!(
+          title: "Section A assignment",
+          submission_types: ["online_text_entry"]
+        )
+        @temp_assignment.submit_homework(@temp_student, body: "hello")
+
+        expect(@temp_enrollment.workflow_state).to eq("active")
+      end
+
+      it "does not include assignments when the temp enrollment has not started yet" do
+        @temp_enrollment.update!(start_at: 7.days.from_now, end_at: 14.days.from_now)
+        @temp_enrollment.reload
+
+        expect(@temp_enrollment.enrollment_state.state).to eq("inactive")
+        expect(@recipient.assignments_needing_grading).not_to include(@temp_assignment)
+      end
+
+      it "excludes the assignment when the grader enrollment_state is pending_active" do
+        @temp_enrollment.update!(start_at: 7.days.from_now, end_at: 14.days.from_now)
+        @temp_enrollment.enrollment_state.update!(state: "pending_active")
+
+        expect(@recipient.assignments_needing_grading).not_to include(@temp_assignment)
+      end
+
+      it "includes assignments once the temp enrollment is active (start_at in the past)" do
+        @temp_enrollment.update!(start_at: 1.day.ago, end_at: 14.days.from_now)
+        @temp_enrollment.reload
+
+        expect(@temp_enrollment.enrollment_state.state).to eq("active")
+        expect(@recipient.assignments_needing_grading).to include(@temp_assignment)
+      end
+
+      it "excludes future temp enrollments under the legacy assignments_needing_grading path" do
+        Setting.set("assignments_needing_grading_new_style", "false")
+
+        @temp_enrollment.update!(start_at: 7.days.from_now, end_at: 14.days.from_now)
+        @temp_enrollment.reload
+
+        expect(@recipient.assignments_needing_grading).not_to include(@temp_assignment)
+      end
+    end
   end
 
   describe "#submissions_needing_grading_count" do
@@ -1060,6 +1146,74 @@ describe UserLearningObjectScopes do
       end
 
       expect(@teacher.submissions_needing_grading_count).to eq 1
+    end
+
+    context "with future temporary enrollments" do
+      before :once do
+        Account.default.enable_feature!(:temporary_enrollments)
+
+        @temp_course = course_factory(active_all: true)
+        @section_a = @temp_course.course_sections.create!(name: "Section A")
+        @section_b = @temp_course.course_sections.create!(name: "Section B")
+
+        @provider = user_with_pseudonym(active_all: true, name: "Provider Teacher")
+        @temp_course.enroll_user(
+          @provider,
+          "TeacherEnrollment",
+          enrollment_state: "active",
+          section: @section_a,
+          limit_privileges_to_course_section: true
+        )
+
+        @recipient = user_with_pseudonym(active_all: true, name: "Recipient Teacher")
+        # Negative control: the recipient's section-B enrollment can't see the section-A submission
+        # because of limit_privileges_to_course_section, so any leak must come from the temp enrollment.
+        @temp_course.enroll_user(
+          @recipient,
+          "TeacherEnrollment",
+          enrollment_state: "active",
+          section: @section_b,
+          limit_privileges_to_course_section: true
+        )
+
+        pairing = TemporaryEnrollmentPairing.create!(root_account: Account.default,
+                                                     created_by: account_admin_user)
+        @temp_enrollment = @temp_course.enroll_user(
+          @recipient,
+          "TeacherEnrollment",
+          role: teacher_role,
+          section: @section_a,
+          temporary_enrollment_source_user_id: @provider.id,
+          temporary_enrollment_pairing_id: pairing.id,
+          limit_privileges_to_course_section: true,
+          allow_multiple_enrollments: true
+        )
+
+        @temp_student = user_with_pseudonym(active_all: true, name: "SectionA Student")
+        @section_a.enroll_user(@temp_student, "StudentEnrollment", "active")
+
+        @temp_assignment = @temp_course.assignments.create!(
+          title: "Section A assignment",
+          submission_types: ["online_text_entry"]
+        )
+        @temp_assignment.submit_homework(@temp_student, body: "hello")
+
+        expect(@temp_enrollment.workflow_state).to eq("active")
+      end
+
+      it "does not count submissions when the temp enrollment has not started yet" do
+        @temp_enrollment.update!(start_at: 7.days.from_now, end_at: 14.days.from_now)
+        @temp_enrollment.reload
+
+        expect(@recipient.submissions_needing_grading_count).to eq(0)
+      end
+
+      it "counts submissions once the temp enrollment is active (start_at in the past)" do
+        @temp_enrollment.update!(start_at: 1.day.ago, end_at: 14.days.from_now)
+        @temp_enrollment.reload
+
+        expect(@recipient.submissions_needing_grading_count).to be >= 1
+      end
     end
   end
 

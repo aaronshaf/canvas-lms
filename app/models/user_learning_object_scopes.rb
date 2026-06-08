@@ -426,10 +426,12 @@ module UserLearningObjectScopes
     Submission.active
               .needs_grading
               .joins("INNER JOIN #{Enrollment.quoted_table_name} AS grader_enrollments ON assignments.context_id = grader_enrollments.course_id")
+              .joins("INNER JOIN #{EnrollmentState.quoted_table_name} AS grader_enrollment_states ON grader_enrollment_states.enrollment_id = grader_enrollments.id")
               .where(assignments: { context_id: course_ids })
               .merge(Assignment.expecting_submission)
               .merge(Assignment.published)
               .where(grader_enrollments: { workflow_state: "active", user_id: self, type: ["TeacherEnrollment", "TaEnrollment"] })
+              .where(grader_enrollment_states: { state: "active" })
               .where("grader_enrollments.limit_privileges_to_course_section = 'f'
         OR grader_enrollments.course_section_id = enrollments.course_section_id")
               .where.not(
@@ -479,8 +481,11 @@ module UserLearningObjectScopes
         as = assignment_scope
              .where("EXISTS (#{grader_visible_submissions_sql})")
       end
+      # grader-side guard only; the student-side check still uses workflow_state alone (see Submission.needs_grading)
       as = as.joins("INNER JOIN #{Enrollment.quoted_table_name} ON enrollments.course_id = assignments.context_id")
+             .joins("INNER JOIN #{EnrollmentState.quoted_table_name} ON enrollment_states.enrollment_id = enrollments.id")
              .where(enrollments: { user_id: self, workflow_state: "active", type: ["TeacherEnrollment", "TaEnrollment"] })
+             .where(enrollment_states: { state: "active" })
              .group("assignments.id")
              .order("assignments.due_at")
              .preload(:context)
