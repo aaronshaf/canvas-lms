@@ -47,22 +47,30 @@ module RuboCop
         end
 
         def top_level_nodes
-          nodes = describe_statement_children(root_node)
-          # If we have no top level describe statements, we need to check any
-          # blocks on the top level (e.g. after a require).
-          if nodes.empty?
-            nodes = node_children(root_node).map do |child|
-              describe_statement_children(child) if child.type == :block
-            end.flatten.compact
-          end
+          top_level_statements.filter_map do |statement|
+            # A bare `describe Foo` send (without a block).
+            next statement if describe_statement?(statement)
 
-          nodes
+            # A `describe Foo do ... end` (or `RSpec.describe Foo do ... end`) block.
+            # We only consider the block's own send node -- we deliberately do not
+            # descend into the block body, since describe/context nested inside a
+            # different DSL (e.g. `shared_examples`/`shared_context`) is not a top
+            # level spec definition.
+            next statement.children[0] if statement.type == :block && describe_statement?(statement.children[0])
+
+            nil
+          end
         end
 
-        def describe_statement_children(node)
-          node_children(node).select do |element|
-            element.type == :send && METHODS.include?(element.children[1])
-          end
+        # The statements at the top level of the file. When the file has more than
+        # one top level statement they are wrapped in a `begin` node; otherwise the
+        # single statement is the root itself.
+        def top_level_statements
+          (root_node.type == :begin) ? node_children(root_node) : [root_node]
+        end
+
+        def describe_statement?(node)
+          node.type == :send && METHODS.include?(node.children[1])
         end
 
         def node_children(node)

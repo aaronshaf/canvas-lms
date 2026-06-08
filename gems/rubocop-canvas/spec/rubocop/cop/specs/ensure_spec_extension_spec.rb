@@ -92,5 +92,51 @@ describe RuboCop::Cop::Specs::EnsureSpecExtension do
         expect(offenses.first.message).to match(/Spec files need to end with "_spec.rb"/)
       end
     end
+
+    context "describe/context not at the top level" do
+      it "does not warn when describe is nested in a shared_examples block" do
+        offenses = inspect_source(%{
+          shared_examples_for "something" do
+            describe "#fire" do
+              it "rains fire" do
+                expect(1).to eq(1)
+              end
+            end
+          end
+        })
+        expect(offenses.size).to eq(0)
+      end
+
+      it "does not warn when context is nested in a shared_context block" do
+        offenses = inspect_source(%{
+          shared_context "something" do
+            context "when blue" do
+              it "rains fire" do
+                expect(1).to eq(1)
+              end
+            end
+          end
+        })
+        expect(offenses.size).to eq(0)
+      end
+
+      it "does not warn when describe is nested inside a custom DSL block" do
+        offenses = inspect_source(%{
+          my_custom_dsl "something" do
+            describe "#fire" do
+              it "rains fire" do
+                expect(1).to eq(1)
+              end
+            end
+            context "when blue" do
+              it "smells bad" do
+                expect(1).to eq(1)
+              end
+            end
+          end
+        })
+        expect(offenses.size).to eq(0)
+      end
+    end
   end
 end

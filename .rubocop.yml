@@ -215,10 +215,6 @@ Security/YAMLLoad:
   Severity: warning
   AutoCorrect: false
 
-Specs/EnsureSpecExtension:
-  Exclude:
-    - spec/shared_examples/**/*
-
 Style:
   Severity: error
 Style/BlockDelimiters:
