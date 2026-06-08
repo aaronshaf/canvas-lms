@@ -34,9 +34,9 @@ describe "New Quizzes Integration" do
 
   def create_nq_assignment(course, tool, title:, points_possible: 100)
     course.assignments.create!(
-      title: title,
+      title:,
       submission_types: "external_tool",
-      points_possible: points_possible,
+      points_possible:,
       grading_type: "points",
       workflow_state: "published",
       external_tool_tag_attributes: {
@@ -95,8 +95,10 @@ describe "New Quizzes Integration" do
     def nq_grade_passback(tool, xml_body)
       path = "/api/lti/v1/tools/#{tool.id}/grade_passback"
       consumer = OAuth::Consumer.new(
-        tool.consumer_key, tool.shared_secret,
-        site: "https://www.example.com", signature_method: "HMAC-SHA1"
+        tool.consumer_key,
+        tool.shared_secret,
+        site: "https://www.example.com",
+        signature_method: "HMAC-SHA1"
       )
       signed = consumer.create_signed_request(:post, path, nil, scheme: "header")
       post "https://www.example.com#{path}",
@@ -114,7 +116,7 @@ describe "New Quizzes Integration" do
     end
 
     def seed_existing_submission(assignment:, user:, tool:, launch_url:, score:, workflow_state: "graded")
-      submission = Submission.find_or_initialize_by(assignment: assignment, user: user)
+      submission = Submission.find_or_initialize_by(assignment:, user:)
       submission.submission_type = "basic_lti_launch"
       submission.submitted_at = 2.hours.ago
       submission.url = launch_url
@@ -141,7 +143,7 @@ describe "New Quizzes Integration" do
       xml_body = nq_replace_result_xml(
         source_id: nq_source_id(tool, course, assignment, student),
         score: "0.8",
-        launch_url: launch_url,
+        launch_url:,
         submitted_at: 1.hour.ago.iso8601(3)
       )
 
@@ -169,15 +171,19 @@ describe "New Quizzes Integration" do
       # Pre-existing submission: auto-graded questions scored 60/80, essay (20 pts) ungraded.
       # NQ sent initial passback with needsAdditionalReview, so workflow_state is pending_review.
       submission = seed_existing_submission(
-        assignment: assignment, user: student, tool: tool,
-        launch_url: launch_url, score: 60, workflow_state: "pending_review"
+        assignment:,
+        user: student,
+        tool:,
+        launch_url:,
+        score: 60,
+        workflow_state: "pending_review"
       )
 
       # Teacher grades the essay at 15/20 in NQ. NQ recalculates total: 60 + 15 = 75.
       xml_body = nq_replace_result_xml(
         source_id: nq_source_id(tool, course, assignment, student),
         score: "0.75",
-        launch_url: launch_url,
+        launch_url:,
         submitted_at: 2.hours.ago.iso8601(3)
       )
 
@@ -219,7 +225,7 @@ describe "New Quizzes Integration" do
       xml_body = nq_replace_result_xml(
         source_id: nq_source_id(tool, course, assignment, student),
         score: "0.9",
-        launch_url: launch_url,
+        launch_url:,
         submitted_at: 1.hour.ago.iso8601(3)
       )
 
@@ -255,15 +261,18 @@ describe "New Quizzes Integration" do
 
       # Pre-existing submission: student auto-graded at 70/100
       submission = seed_existing_submission(
-        assignment: assignment, user: student, tool: tool,
-        launch_url: launch_url, score: 70
+        assignment:,
+        user: student,
+        tool:,
+        launch_url:,
+        score: 70
       )
 
       # Teacher adds 10 fudge points in NQ. NQ recalculates: 70 + 10 = 80.
       xml_body = nq_replace_result_xml(
         source_id: nq_source_id(tool, course, assignment, student),
         score: "0.8",
-        launch_url: launch_url,
+        launch_url:,
         submitted_at: 2.hours.ago.iso8601(3)
       )
 
@@ -288,8 +297,11 @@ describe "New Quizzes Integration" do
 
       # Pre-existing submission from first attempt: student scored 60/100
       submission = seed_existing_submission(
-        assignment: assignment, user: student, tool: tool,
-        launch_url: first_attempt_url, score: 60
+        assignment:,
+        user: student,
+        tool:,
+        launch_url: first_attempt_url,
+        score: 60
       )
 
       # NQ sends grade passback for second attempt (different launch URL) with score 85/100

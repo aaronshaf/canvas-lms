@@ -28,7 +28,7 @@ describe "ContextController" do
   describe "GET /courses/:id/users" do
     let(:enrollment) { course_with_teacher(active_all: true) }
     let(:course) { enrollment.course }
-    let(:student) { student_in_course(active_all: true, course: course).user }
+    let(:student) { student_in_course(active_all: true, course:).user }
 
     it "does not grant can_manage_differentiation_tags to a student" do
       user_session student
@@ -48,11 +48,11 @@ describe "ContextController" do
     let(:enrollment) { course_with_teacher(active_all: true) }
     let(:course) { enrollment.course }
     let(:teacher) { enrollment.user }
-    let!(:prior_student) do
+
+    before do
       s = user_factory(name: "Prior Student", active_user: true)
       e = course.enroll_student(s, enrollment_state: "active")
       e.update_columns(workflow_state: "completed")
-      s
     end
 
     it "returns ok and includes prior enrolled student name for teacher" do

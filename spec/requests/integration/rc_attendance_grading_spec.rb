@@ -73,11 +73,11 @@ describe "Rollcall Attendance Grading" do
 
     body = response.parsed_body
     expect(body["name"]).to eq("Roll Call Attendance")
-    expect(body["points_possible"]).to eql(100.0)
+    expect(body["points_possible"]).to be(100.0)
     expect(body["submission_types"]).to eq(["external_tool"])
 
     assignment = course.assignments.find_by(title: "Roll Call Attendance")
-    expect(assignment.reload.points_possible).to eql(100.0)
+    expect(assignment.reload.points_possible).to be(100.0)
     expect(assignment.submission_types).to eq("external_tool")
     expect(assignment.external_tool_tag.url).to eq(tool.url)
   end
@@ -111,7 +111,7 @@ describe "Rollcall Attendance Grading" do
     expect(response).to have_http_status(:ok)
 
     submission = assignment.submissions.find_by(user: student)
-    expect(submission.reload.score).to eql(100.0)
+    expect(submission.reload.score).to be(100.0)
     expect(submission.grade).to eq("100%")
     expect(submission.workflow_state).to eq("graded")
     expect(submission.submission_type).to eq("basic_lti_launch")
@@ -147,7 +147,7 @@ describe "Rollcall Attendance Grading" do
     expect(response).to have_http_status(:ok)
 
     submission = assignment.submissions.find_by(user: student)
-    expect(submission.reload.score).to eql(0.0)
+    expect(submission.reload.score).to be(0.0)
     expect(submission.grade).to eq("0%")
     expect(submission.workflow_state).to eq("graded")
   end
@@ -194,7 +194,7 @@ describe "Rollcall Attendance Grading" do
     expect(response).to have_http_status(:ok)
 
     submission = assignment.submissions.find_by(user: student)
-    expect(submission.reload.score).to eql(90.0)
+    expect(submission.reload.score).to be(90.0)
     expect(submission.grade).to eq("90%")
     expect(submission.workflow_state).to eq("graded")
     expect(submission.submission_type).to eq("basic_lti_launch")
@@ -239,10 +239,10 @@ describe "Rollcall Attendance Grading" do
     expect(response).to have_http_status(:ok)
 
     submission = assignment.submissions.find_by(user: student)
-    expect(submission.reload.score).to eql(50.0)
+    expect(submission.reload.score).to be(50.0)
     expect(submission.workflow_state).to eq("graded")
 
     # essay 100/100 + attendance 50/100 = 75%
-    expect(student_enrollment.reload.computed_current_score).to eql(75.0)
+    expect(student_enrollment.reload.computed_current_score).to be(75.0)
   end
 end
