@@ -15511,6 +15511,7 @@ nn:
     otp: 
       errors: 
         invalid_otp: "Ugyldig stadfestingskode, prøv på nytt seinare"
+      invalid_verification_code: "Ugyldig verifikasjonskode"
       new: 
         buttons: 
           send: Send
@@ -20691,6 +20692,7 @@ nn:
     failed_resending: "Førespurnad mislukkast Prøv på nytt seinare."
     labels: 
       enable_login_for_email: "Eg vil logge på Canvas med denne e-postadressa"
+      verification_code: Stadfestingskode
     links: 
       resend_confirmation: "Send stadfesting på nytt"
       resend_confirmation_failed: "Førespurnad mislukkast Prøv på nytt seinare."
@@ -20865,6 +20867,7 @@ nn:
       confirm_email_address: "Stadfest e-postadresse"
       confirm_sms_number: "Stadfest SMS-nummer"
       contact_not_confirmed: "Denne kontakten er ikkje stadfesta.  Klikk på adressa for fleire detaljar"
+      disable_mfa: "Deaktiver godkjenning med fleire faktorar"
       email_not_confirmed: "Denne e-posten er ikkje stadfesta.  Klikk på adressa for fleire detaljar"
       register_communication: "Registrer kommunikasjon"
       unconfirmed_click_to_confirm: "Ikkje stadfesta.  Klikk for å stadfeste"
@@ -28677,6 +28680,7 @@ nn:
     save_succeeded: Lagra
     titles: 
       add_login: "Legg til pålogging"
+      reset_mfa: "Tilbakestill godkjenning med fleire faktorar"
       update_login: "Oppdater pålogging"
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "Samanslåing av brukarar mislukkast. Kontroller om du har korrekt løyve og prøv på nytt."
   user_name: 
