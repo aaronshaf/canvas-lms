@@ -2626,7 +2626,16 @@ class Submission < ApplicationRecord
     opts[:comment] = opts[:comment].try(:strip) || ""
     opts[:attachments] ||= opts[:comment_attachments]
     opts[:draft] = !!opts[:draft_comment]
-    opts[:attempt] = (!unsubmitted? && !opts.key?(:attempt)) ? self.attempt : opts[:attempt]
+    opts[:attempt] = if !unsubmitted? && !opts.key?(:attempt)
+                       self.attempt
+                     elsif opts[:attempt] && opts[:group_comment_id].present?
+                       # A group comment fans one attempt out to every member;
+                       # clamp it to each member's own attempt so a member on a
+                       # lower attempt doesn't fail validation and abort it all.
+                       opts[:attempt].to_i.clamp(..[attempt.to_i, 1].max)
+                     else
+                       opts[:attempt]
+                     end
     if opts[:comment].empty?
       if opts[:media_comment_id]
         opts[:comment] = ""

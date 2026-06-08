@@ -4056,6 +4056,51 @@ describe Assignment do
       expect(comment).not_to be_hidden
     end
 
+    context "for group assignments with mismatched submission attempts" do
+      before :once do
+        group_category = @course.group_categories.create!(name: "Group Set")
+        group = group_category.groups.create!(name: "Group 1", context: @course)
+        @leader = student_in_course(active_all: true, name: "Leader").user
+        @laggard = student_in_course(active_all: true, name: "Laggard").user
+        group.add_user(@leader)
+        group.add_user(@laggard)
+        @group_assignment = @course.assignments.create!(
+          assignment_valid_attributes.merge(
+            group_category:,
+            grade_group_students_individually: false,
+            submission_types: "online_text_entry"
+          )
+        )
+        @group_assignment.submit_homework(@leader, submission_type: "online_text_entry", body: "ours")
+        # Simulate group members whose submissions are on different attempts,
+        # e.g. a member who joined after the group already resubmitted.
+        @group_assignment.submissions.find_by(user: @leader).update_column(:attempt, 2)
+      end
+
+      let(:leader_submission) { @group_assignment.submissions.find_by(user: @leader) }
+      let(:laggard_submission) { @group_assignment.submissions.find_by(user: @laggard) }
+
+      it "comments on every member when their submission attempts differ" do
+        # attempt arrives as a string from the request params
+        @group_assignment.update_submission(
+          @leader, comment: "great work", author: @teacher, group_comment: true, attempt: "2"
+        )
+
+        expect(leader_submission.submission_comments.last.attempt).to eq 2
+        expect(laggard_submission.submission_comments.last.attempt).to eq 1
+      end
+
+      it "comments on a member whose submission has no recorded attempt" do
+        laggard_submission.update_column(:attempt, nil)
+
+        @group_assignment.update_submission(
+          @leader, comment: "great work", author: @teacher, group_comment: true, attempt: "2"
+        )
+
+        expect(laggard_submission.submission_comments.last.attempt).to eq 1
+      end
+    end
+
     context "for moderated assignments" do
       before(:once) do
         teacher_in_course
