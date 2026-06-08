@@ -235,6 +235,35 @@ describe('AuthorInfo', () => {
     expect(container.getByTestId('highlighted-search-item')).toBeInTheDocument()
   })
 
+  it('renders the author name as plain text inside the profile link (no .user_content wrapper)', () => {
+    // The display name is plain escaped text — it doesn't need SearchSpan's
+    // sanitization pipeline or the .user_content CSS containment, which are
+    // for rich user-authored HTML. HighlightedText renders the name as React
+    // text + highlight spans, with no extra wrapper.
+    const container = setup()
+    const link = container.getByRole('link', {name: 'Harry Potter'})
+    expect(link.textContent).toContain('Harry Potter')
+    expect(link.querySelector('.user_content')).toBeNull()
+  })
+
+  it('renders the author name and pronouns as siblings inside the same link', () => {
+    const container = setup({
+      author: User.mock({
+        _id: '2',
+        displayName: 'Harry Potter',
+        htmlUrl: 'http://test.host/courses/1/users/2',
+        pronouns: 'they/them',
+      }),
+    })
+    const link = container.getByRole('link', {name: /Harry Potter/})
+    const pronouns = container.getByTestId('author-pronouns')
+    // The link wraps both the name text and the pronouns Text so they
+    // remain on the same line — no block element between them.
+    expect(link.contains(pronouns)).toBe(true)
+    expect(link.textContent).toContain('Harry Potter')
+    expect(link.textContent).toContain('(they/them)')
+  })
+
   describe('timestamps', () => {
     it('renders the created date', () => {
       const container = setup()

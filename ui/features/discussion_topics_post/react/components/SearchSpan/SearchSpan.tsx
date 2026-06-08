@@ -157,7 +157,7 @@ export function SearchSpan({...props}: SearchSpanProps) {
   const finalHtml = sanitizeHTML(doc.body.innerHTML)
 
   return (
-    <span
+    <div
       lang={props.lang}
       className="user_content"
       data-resource-type={resourceType()}

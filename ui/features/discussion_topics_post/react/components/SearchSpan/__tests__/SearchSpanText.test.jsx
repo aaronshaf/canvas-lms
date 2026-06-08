@@ -102,12 +102,12 @@ describe('SearchSpan', () => {
 
   it('should not crash on empty htmlBody', () => {
     const {container} = setup({htmlBody: ''})
-    expect(container.querySelector('span.user_content')).not.toBeNull()
+    expect(container.querySelector('div.user_content')).not.toBeNull()
   })
 
   it('should not crash on undefined htmlBody', () => {
     const {container} = render(<SearchSpan />)
-    expect(container.querySelector('span.user_content')).not.toBeNull()
+    expect(container.querySelector('div.user_content')).not.toBeNull()
   })
 
   it('should highlight search term nested inside multiple elements', () => {
@@ -164,19 +164,20 @@ describe('SearchSpan', () => {
     expect(container.textContent).toBe('before X middle X after')
   })
 
-  it('should set className="user_content" on the rendered span', () => {
+  it('renders className="user_content" on a <div> wrapper', () => {
     const {container} = setup({htmlBody: 'plain'})
-    expect(container.querySelector('span.user_content')).not.toBeNull()
+    expect(container.querySelector('div.user_content')).not.toBeNull()
+    expect(container.querySelector('span.user_content')).toBeNull()
   })
 
   it('should pass through lang attribute', () => {
     const {container} = setup({htmlBody: 'plain', lang: 'fr'})
-    expect(container.querySelector('span.user_content')?.getAttribute('lang')).toBe('fr')
+    expect(container.querySelector('div.user_content')?.getAttribute('lang')).toBe('fr')
   })
 
   it('should pass through data-resource-id and data-testid', () => {
     const {container} = setup({htmlBody: 'plain', resourceId: '99', testId: 't-x'})
-    const span = container.querySelector('span.user_content')
+    const span = container.querySelector('div.user_content')
     expect(span).not.toBeNull()
     expect(span.getAttribute('data-resource-id')).toBe('99')
     expect(span.getAttribute('data-testid')).toBe('t-x')
@@ -185,35 +186,35 @@ describe('SearchSpan', () => {
   describe('resource-type data attribute', () => {
     it('is undefined when both isAnnouncement and isTopic are missing', () => {
       const {container} = setup({htmlBody: 'plain'})
-      const span = container.querySelector('span.user_content')
+      const span = container.querySelector('div.user_content')
       expect(span).not.toBeNull()
       expect(span.hasAttribute('data-resource-type')).toBe(false)
     })
 
     it('is announcement.body for an announcement topic', () => {
       const {container} = setup({htmlBody: 'plain', isAnnouncement: true, isTopic: true})
-      expect(container.querySelector('span.user_content')?.getAttribute('data-resource-type')).toBe(
+      expect(container.querySelector('div.user_content')?.getAttribute('data-resource-type')).toBe(
         'announcement.body',
       )
     })
 
     it('is announcement.reply for an announcement reply', () => {
       const {container} = setup({htmlBody: 'plain', isAnnouncement: true, isTopic: false})
-      expect(container.querySelector('span.user_content')?.getAttribute('data-resource-type')).toBe(
+      expect(container.querySelector('div.user_content')?.getAttribute('data-resource-type')).toBe(
         'announcement.reply',
       )
     })
 
     it('is discussion_topic.body for a discussion topic', () => {
       const {container} = setup({htmlBody: 'plain', isAnnouncement: false, isTopic: true})
-      expect(container.querySelector('span.user_content')?.getAttribute('data-resource-type')).toBe(
+      expect(container.querySelector('div.user_content')?.getAttribute('data-resource-type')).toBe(
         'discussion_topic.body',
       )
     })
 
     it('is discussion_topic.reply for a discussion reply', () => {
       const {container} = setup({htmlBody: 'plain', isAnnouncement: false, isTopic: false})
-      expect(container.querySelector('span.user_content')?.getAttribute('data-resource-type')).toBe(
+      expect(container.querySelector('div.user_content')?.getAttribute('data-resource-type')).toBe(
         'discussion_topic.reply',
       )
     })

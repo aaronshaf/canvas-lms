@@ -18,10 +18,9 @@
 import {UserType, AuthorInfoProps} from './AuthorInfo'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
-import {SearchSpan} from '../SearchSpan/SearchSpan'
+import {HighlightedText} from '../HighlightedText/HighlightedText'
 import theme from '@instructure/ui-themes'
 import {getDisplayName} from '../../utils'
-import {htmlEscape} from '@instructure/html-escape'
 
 interface NameLinkProps {
   userType: string
@@ -67,10 +66,9 @@ const NameLink = (props: NameLinkProps) => {
       >
         {props.userType === 'author' ? (
           <>
-            <SearchSpan
-              isSplitView={props.discussionEntryProps?.isSplitView}
-              searchTerm={props.searchTerm}
-              htmlBody={htmlEscape(getDisplayName(props.discussionEntryProps))}
+            <HighlightedText
+              text={getDisplayName(props.discussionEntryProps)}
+              searchTerm={props.discussionEntryProps?.isSplitView ? undefined : props.searchTerm}
             />
             {props.user?.pronouns && (
               <Text
