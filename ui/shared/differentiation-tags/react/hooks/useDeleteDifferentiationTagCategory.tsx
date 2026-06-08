@@ -17,7 +17,7 @@
  */
 
 import {queryClient} from '@instructure/platform-query'
-import doFetchApi from '@canvas/do-fetch-api-effect'
+import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {useMutation} from '@tanstack/react-query'
 
@@ -45,24 +45,30 @@ export const useDeleteDifferentiationTagCategory = () => {
     UseDeleteDifferentiationTagCategoryVariables
   >({
     mutationFn: async ({differentiationTagCategoryId}) => {
-      const result = await doFetchApi<DeleteDifferentiationTagCategoryResponse>({
-        path: `/api/v1/group_categories/${differentiationTagCategoryId}`,
-        method: 'DELETE',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
+      try {
+        const result = await doFetchApi<DeleteDifferentiationTagCategoryResponse>({
+          path: `/api/v1/group_categories/${differentiationTagCategoryId}`,
+          method: 'DELETE',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        })
 
-      if (!result.response.ok) {
-        throw new Error(I18n.t('Failed to delete Differentiation Tag Category'))
+        if (!result.json) {
+          throw new Error(I18n.t('No data returned from the server'))
+        }
+
+        return result.json
+      } catch (unknownError) {
+        if (unknownError instanceof FetchApiError && unknownError.response) {
+          if (unknownError.response.status === 403) {
+            throw new Error(I18n.t('You do not have permission to delete this tag'))
+          }
+          throw new Error(I18n.t('Failed to delete Differentiation Tag Category'))
+        }
+        throw unknownError
       }
-
-      if (!result.json) {
-        throw new Error(I18n.t('No data returned from the server'))
-      }
-
-      return result.json
     },
 
     onSuccess: async () => {

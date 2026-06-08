@@ -70,6 +70,9 @@ describe('UserDifferentiationTagManager', () => {
         id: 1,
         type: 'Course',
       },
+      permissions: {
+        can_add_differentiation_tags: true,
+      },
     })
     user = userEvent.setup()
     $.flashMessage = vi.fn()
@@ -235,5 +238,20 @@ describe('UserDifferentiationTagManager', () => {
     await waitFor(() => expect(screen.getByText('Variant B')).toBeInTheDocument())
     await user.click(screen.getByText('Variant B'))
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({groupId: 2, userIds: [1, 2]}))
+  })
+
+  it('hides the Tag As button when can_add_differentiation_tags is false', () => {
+    fakeENV.setup({
+      current_context: {id: 1, type: 'Course'},
+      permissions: {can_add_differentiation_tags: false},
+    })
+    renderComponent()
+    expect(screen.queryByTestId('user-diff-tag-manager-tag-as-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('user-diff-tag-manager-manage-tags-button')).toBeInTheDocument()
+  })
+
+  it('shows the Tag As button when can_add_differentiation_tags is true', () => {
+    renderComponent()
+    expect(screen.queryByTestId('user-diff-tag-manager-tag-as-button')).toBeInTheDocument()
   })
 })

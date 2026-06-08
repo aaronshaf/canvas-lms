@@ -29,10 +29,13 @@ interface DifferentiationTagTrayManagerProps {
   isOpen: boolean
   onClose: () => void
   courseID: number
+  canAddTags: boolean
+  canEditTags: boolean
+  canDeleteTags: boolean
 }
 
 function DifferentiationTagTrayContainer(props: DifferentiationTagTrayManagerProps) {
-  const {isOpen, onClose, courseID} = props
+  const {isOpen, onClose, courseID, canAddTags, canEditTags, canDeleteTags} = props
   const hasValidCourseID = typeof courseID === 'number' && !isNaN(courseID)
 
   const {
@@ -56,6 +59,9 @@ function DifferentiationTagTrayContainer(props: DifferentiationTagTrayManagerPro
       isLoading={isLoading}
       error={error}
       refetchDiffTags={() => refetch()}
+      canAddTags={canAddTags}
+      canEditTags={canEditTags}
+      canDeleteTags={canDeleteTags}
     />
   )
 }
@@ -64,6 +70,9 @@ export default function DifferentiationTagTrayManager({
   isOpen,
   onClose,
   courseID,
+  canEditTags,
+  canDeleteTags,
+  canAddTags,
 }: DifferentiationTagTrayManagerProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -71,6 +80,9 @@ export default function DifferentiationTagTrayManager({
         isOpen={isOpen}
         onClose={onClose}
         courseID={Number(courseID)}
+        canAddTags={canAddTags}
+        canEditTags={canEditTags}
+        canDeleteTags={canDeleteTags}
       />
     </QueryClientProvider>
   )

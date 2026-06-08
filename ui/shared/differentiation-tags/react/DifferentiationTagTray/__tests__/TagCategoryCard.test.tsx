@@ -46,6 +46,9 @@ describe('TagCategoryCard', () => {
       onEditCategory: vi.fn(),
       newlyCreatedCategoryId: null,
       onEditButtonBlur: vi.fn(),
+      onNoButtonFocusFallback: vi.fn(),
+      canEditTags: true,
+      canDeleteTags: true,
     }
     return render(<TagCategoryCard {...defaultProps} {...props} />)
   }
@@ -172,5 +175,27 @@ describe('TagCategoryCard', () => {
     const {getByTestId} = renderComponent({category: singleTagCategory})
     const card = getByTestId('single-tag-text')
     expect(card).toHaveAttribute('aria-label', 'Single tag - 15 students')
+  })
+
+  describe('permission-gated buttons', () => {
+    it('hides the edit button when canEditTags is false', () => {
+      renderComponent({canEditTags: false, canDeleteTags: true})
+      expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+    })
+
+    it('shows the edit button when canEditTags is true', () => {
+      renderComponent({canEditTags: true, canDeleteTags: true})
+      expect(screen.getByText('Edit')).toBeInTheDocument()
+    })
+
+    it('hides the delete button when canDeleteTags is false', () => {
+      renderComponent({canEditTags: true, canDeleteTags: false, category: noTagsCategory})
+      expect(screen.queryByText(`Delete ${noTagsCategory.name}`)).not.toBeInTheDocument()
+    })
+
+    it('shows the delete button when canDeleteTags is true', () => {
+      renderComponent({canEditTags: true, canDeleteTags: true, category: noTagsCategory})
+      expect(screen.getByText(`Delete ${noTagsCategory.name}`)).toBeInTheDocument()
+    })
   })
 })

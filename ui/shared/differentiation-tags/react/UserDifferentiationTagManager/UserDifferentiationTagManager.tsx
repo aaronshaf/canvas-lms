@@ -147,6 +147,10 @@ export default function UserDifferentiationTagManager(props: UserDifferentiation
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const {mutate, isSuccess, isError, error: errorAdd} = useAddTagMembership()
+  const envPermissions = (ENV as {permissions?: Record<string, boolean>}).permissions
+  const canAddTags = envPermissions?.can_add_differentiation_tags ?? false
+  const canEditTags = envPermissions?.can_edit_differentiation_tags ?? false
+  const canDeleteTags = envPermissions?.can_delete_differentiation_tags ?? false
   const courseStudentCount = Number(ENV.course?.course_student_count ?? 0)
   const selectedCount = allInCourse
     ? courseStudentCount - (userExceptions ? userExceptions.length : 0)
@@ -257,14 +261,16 @@ export default function UserDifferentiationTagManager(props: UserDifferentiation
             {I18n.t('%{userCount} Selected', {userCount: selectedCount})}
           </Text>
         </Flex.Item>
-        <Flex.Item margin="xx-small">
-          <TagAsMenu
-            courseId={courseId}
-            handleMenuSelection={handleMenuSelection}
-            userTags={userTags}
-            users={users}
-          />
-        </Flex.Item>
+        {canAddTags && (
+          <Flex.Item margin="xx-small">
+            <TagAsMenu
+              courseId={courseId}
+              handleMenuSelection={handleMenuSelection}
+              userTags={userTags}
+              users={users}
+            />
+          </Flex.Item>
+        )}
         <Flex.Item margin="xx-small">
           <Button
             elementRef={ref => (manageTagsRefButton.current = ref as HTMLButtonElement)}
@@ -279,7 +285,14 @@ export default function UserDifferentiationTagManager(props: UserDifferentiation
           </Button>
         </Flex.Item>
       </Flex>
-      <DifferentiationTagTrayManager isOpen={isOpen} onClose={onTrayClose} courseID={courseId} />
+      <DifferentiationTagTrayManager
+        isOpen={isOpen}
+        onClose={onTrayClose}
+        courseID={courseId}
+        canAddTags={canAddTags}
+        canEditTags={canEditTags}
+        canDeleteTags={canDeleteTags}
+      />
       <DifferentiationTagModalManager
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

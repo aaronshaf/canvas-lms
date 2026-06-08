@@ -49,6 +49,9 @@ export interface DifferentiationTagTrayProps {
   isLoading: boolean
   error: Error | null
   refetchDiffTags: () => void
+  canAddTags: boolean
+  canEditTags: boolean
+  canDeleteTags: boolean
 }
 
 const Header = ({
@@ -77,9 +80,11 @@ const Header = ({
 const EmptyState = ({
   onCreate,
   handleUploadCSV,
+  canAddTags,
 }: {
   onCreate: () => void
   handleUploadCSV: () => void
+  canAddTags: boolean
 }) => (
   <Flex
     direction="column"
@@ -109,19 +114,23 @@ const EmptyState = ({
         {I18n.t('Learn more about how we used your input to create differentiation tags.')}
       </Link>
     </Text>
-    <Button onClick={onCreate} margin="large 0 medium 0" color="primary" size="medium">
-      {I18n.t('Get Started')}
-    </Button>
-    <Text size="small">{I18n.t('Or if you have already created tags with a CSV file,')}</Text>
-    <Link
-      variant="standalone"
-      as={'button'}
-      renderIcon={<IconUploadLine />}
-      href=""
-      onClick={handleUploadCSV}
-    >
-      {I18n.t('Upload CSV')}
-    </Link>
+    {canAddTags && (
+      <>
+        <Button onClick={onCreate} margin="large 0 medium 0" color="primary" size="medium">
+          {I18n.t('Get Started')}
+        </Button>
+        <Text size="small">{I18n.t('Or if you have already created tags with a CSV file,')}</Text>
+        <Link
+          variant="standalone"
+          as={'button'}
+          renderIcon={<IconUploadLine />}
+          href=""
+          onClick={handleUploadCSV}
+        >
+          {I18n.t('Upload CSV')}
+        </Link>
+      </>
+    )}
   </Flex>
 )
 
@@ -148,7 +157,7 @@ const FileDropLabel = () => (
 )
 
 export default function DifferentiationTagTray(props: DifferentiationTagTrayProps) {
-  const {isOpen, onClose, differentiationTagCategories, refetchDiffTags, isLoading, error} = props
+  const {isOpen, onClose, differentiationTagCategories, refetchDiffTags, isLoading, error, canAddTags, canEditTags, canDeleteTags} = props
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showCSVUploadView, setShowCSVUploadView] = useState(false)
   const [showCSVSpinner, setShowCSVSpinner] = useState(false)
@@ -375,6 +384,8 @@ export default function DifferentiationTagTray(props: DifferentiationTagTrayProp
         category={category}
         onEditCategory={handleEditCategory}
         focusElRef={focusElRef}
+        canEditTags={canEditTags}
+        canDeleteTags={canDeleteTags}
         onDeleteFocusFallback={() =>
           index >= 1
             ? setFocusIndex(paginatedCategories[index - 1]?.id || -1)
@@ -383,11 +394,12 @@ export default function DifferentiationTagTray(props: DifferentiationTagTrayProp
                 if (el instanceof HTMLElement) el.focus()
               })()
         }
+        onNoButtonFocusFallback={() => addTagRef.current?.focus()}
         newlyCreatedCategoryId={newlyCreatedCategoryId}
         onEditButtonBlur={() => setNewlyCreatedCategoryId(null)}
       />
     ))
-  }, [paginatedCategories, handleEditCategory, focusElRef, newlyCreatedCategoryId])
+  }, [paginatedCategories, handleEditCategory, focusElRef, newlyCreatedCategoryId, canEditTags, canDeleteTags])
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage)
@@ -404,30 +416,32 @@ export default function DifferentiationTagTray(props: DifferentiationTagTrayProp
               initialValue={searchTerm}
             />
           </Flex.Item>
-          <Flex.Item overflowX="visible" overflowY="visible">
-            <Flex justifyItems="space-between">
-              <Flex.Item>
-                <Button
-                  onClick={handleCreateNewTag}
-                  color="primary"
-                  margin="x-small none"
-                  elementRef={setAddTagRef}
-                >
-                  {I18n.t('+ Tag')}
-                </Button>
-              </Flex.Item>
-              <Flex.Item>
-                <Button onClick={handleUploadCSV} color="secondary" margin="x-small none">
-                  <Flex justifyItems="start">
-                    <View as="div" margin="0 xx-small 0 0">
-                      <IconUploadLine />
-                    </View>
-                    {I18n.t('Upload CSV')}
-                  </Flex>
-                </Button>
-              </Flex.Item>
-            </Flex>
-          </Flex.Item>
+          {canAddTags && (
+            <Flex.Item overflowX="visible" overflowY="visible">
+              <Flex justifyItems="space-between">
+                <Flex.Item>
+                  <Button
+                    onClick={handleCreateNewTag}
+                    color="primary"
+                    margin="x-small none"
+                    elementRef={setAddTagRef}
+                  >
+                    {I18n.t('+ Tag')}
+                  </Button>
+                </Flex.Item>
+                <Flex.Item>
+                  <Button onClick={handleUploadCSV} color="secondary" margin="x-small none">
+                    <Flex justifyItems="start">
+                      <View as="div" margin="0 xx-small 0 0">
+                        <IconUploadLine />
+                      </View>
+                      {I18n.t('Upload CSV')}
+                    </Flex>
+                  </Button>
+                </Flex.Item>
+              </Flex>
+            </Flex.Item>
+          )}
         </Flex>
       )}
 
@@ -442,7 +456,11 @@ export default function DifferentiationTagTray(props: DifferentiationTagTrayProp
           </Text>
         </Flex.Item>
       ) : differentiationTagCategories.length === 0 ? (
-        <EmptyState onCreate={handleCreateNewTag} handleUploadCSV={handleUploadCSV} />
+        <EmptyState
+          onCreate={handleCreateNewTag}
+          handleUploadCSV={handleUploadCSV}
+          canAddTags={canAddTags}
+        />
       ) : filteredCategories.length === 0 && searchTerm.trim() ? (
         <Flex.Item shouldGrow shouldShrink margin="medium" textAlign="center">
           <Text>{I18n.t('No matching tags found.')}</Text>

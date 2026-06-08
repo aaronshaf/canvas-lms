@@ -24,6 +24,7 @@ import type {UserTaggedModalProps} from '../UserTaggedModal'
 import {useUserTags} from '../../hooks/useUserTags'
 import {useDeleteTagMembership} from '../../hooks/useDeleteTagMembership'
 import MessageBus from '@canvas/util/MessageBus'
+import fakeENV from '@canvas/test-utils/fakeENV'
 
 vi.mock('../../hooks/useUserTags')
 vi.mock('../../hooks/useDeleteTagMembership')
@@ -71,6 +72,15 @@ describe('UserTaggedModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    fakeENV.setup({
+      permissions: {
+        can_delete_differentiation_tags: true,
+      },
+    })
+  })
+
+  afterEach(() => {
+    fakeENV.teardown()
   })
 
   it('Shows the modal if isOpen is true', () => {
@@ -223,6 +233,45 @@ describe('UserTaggedModal', () => {
 
     mockData.forEach(tag => {
       expect(screen.getByTestId(`user-tag-${tag.id}`)).toBeInTheDocument()
+    })
+  })
+
+  describe('when the user lacks can_delete_differentiation_tags', () => {
+    beforeEach(() => {
+      fakeENV.setup({
+        permissions: {
+          can_delete_differentiation_tags: false,
+        },
+      })
+    })
+
+    it('still displays the tags', () => {
+      const mockData = [
+        {id: 1, name: 'Macroeconomics', groupCategoryName: 'Reading Groups', isSingleTag: false},
+      ]
+      renderComponent({data: mockData})
+      expect(screen.getByText('Reading Groups | Macroeconomics')).toBeInTheDocument()
+    })
+
+    it('does not render a remove (X) button on tags', () => {
+      const mockData = [
+        {id: 1, name: 'Macroeconomics', groupCategoryName: 'Reading Groups', isSingleTag: false},
+      ]
+      renderComponent({data: mockData})
+      expect(screen.queryByText('Remove Reading Groups | Macroeconomics')).not.toBeInTheDocument()
+    })
+
+    it('does not open the delete warning modal when a tag is clicked', async () => {
+      const mockData = [
+        {id: 1, name: 'Macroeconomics', groupCategoryName: 'Reading Groups', isSingleTag: false},
+      ]
+      renderComponent({data: mockData})
+      const tagBtn = screen.getByTestId('user-tag-1')
+      await userEvent.click(tagBtn)
+      expect(
+        screen.queryByText(/Removing the tag from a student preserves past assignments/i),
+      ).not.toBeInTheDocument()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
   })
 })

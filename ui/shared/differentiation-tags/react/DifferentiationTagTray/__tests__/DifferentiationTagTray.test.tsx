@@ -47,6 +47,9 @@ describe('DifferentiationTagTray', () => {
     differentiationTagCategories: [],
     isLoading: false,
     error: null,
+    canAddTags: true,
+    canEditTags: true,
+    canDeleteTags: true,
   }
 
   const renderComponent = (props: Partial<DifferentiationTagTrayProps> = {}) => {
@@ -236,6 +239,67 @@ describe('DifferentiationTagTray', () => {
       renderComponent({differentiationTagCategories: mockCategories})
       expect(screen.queryByTestId('differentiation-tag-pagination')).not.toBeInTheDocument()
     })
+  })
+
+
+  it('hides the + Tag button when canAddTags is false', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canAddTags: false})
+    expect(screen.queryByText('+ Tag')).not.toBeInTheDocument()
+  })
+
+  it('shows the + Tag button when canAddTags is true', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canAddTags: true})
+    expect(screen.getByText('+ Tag')).toBeInTheDocument()
+  })
+
+  it('hides the Upload CSV button when canAddTags is false', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canAddTags: false})
+    expect(screen.queryByText('Upload CSV')).not.toBeInTheDocument()
+  })
+
+  it('shows the Upload CSV button when canAddTags is true', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canAddTags: true})
+    expect(screen.getByText('Upload CSV')).toBeInTheDocument()
+  })
+
+  it('hides the empty-state Get Started and Upload CSV CTAs when canAddTags is false', () => {
+    renderComponent({differentiationTagCategories: [], canAddTags: false})
+    expect(screen.queryByText('Get Started')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upload CSV')).not.toBeInTheDocument()
+  })
+
+  it('shows the empty-state Get Started and Upload CSV CTAs when canAddTags is true', () => {
+    renderComponent({differentiationTagCategories: [], canAddTags: true})
+    expect(screen.getByText('Get Started')).toBeInTheDocument()
+    expect(screen.getByText('Upload CSV')).toBeInTheDocument()
+  })
+
+  it('hides the edit button when canEditTags is false', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canEditTags: false})
+    expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+  })
+
+  it('shows the edit button when canEditTags is true', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canEditTags: true})
+    expect(screen.getByText('Edit')).toBeInTheDocument()
+  })
+
+  it('hides the delete button when canDeleteTags is false', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canDeleteTags: false})
+    expect(screen.queryByText('Delete Test Tag')).not.toBeInTheDocument()
+  })
+
+  it('shows the delete button when canDeleteTags is true', () => {
+    const categories = [{id: 1, name: 'Test Tag', groups: []}]
+    renderComponent({differentiationTagCategories: categories, canDeleteTags: true})
+    expect(screen.getByText('Delete Test Tag')).toBeInTheDocument()
   })
 
   describe('DifferentiationTagTray - search and filtering logic', () => {

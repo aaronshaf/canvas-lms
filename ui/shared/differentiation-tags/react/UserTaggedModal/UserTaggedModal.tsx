@@ -56,6 +56,9 @@ function UserTagModalContainer(props: UserTaggedModalProps) {
     error: errorDelete,
   } = useDeleteTagMembership()
   const {data: userTagList, isPending, error, refetch} = useUserTags(courseId, userId)
+  const canDeleteTags =
+    (ENV as {permissions?: Record<string, boolean>}).permissions?.can_delete_differentiation_tags ??
+    false
   const tagRefs = useRef<Tag[]>([])
   const removeTagMembership = (userId: number, selectedTagId: number) => {
     mutate({groupId: selectedTagId, userId, refetch})
@@ -153,25 +156,35 @@ function UserTagModalContainer(props: UserTaggedModalProps) {
                       ref={el => el && (tagRefs.current[tag.id] = el)}
                       data-testid={`user-tag-${tag.id}`}
                       text={
-                        <AccessibleContent
-                          alt={I18n.t('Remove %{tag}', {
-                            tag: tag.isSingleTag
+                        canDeleteTags ? (
+                          <AccessibleContent
+                            alt={I18n.t('Remove %{tag}', {
+                              tag: tag.isSingleTag
+                                ? tag.groupCategoryName
+                                : `${tag.groupCategoryName} | ${tag.name}`,
+                            })}
+                          >
+                            {tag.isSingleTag
                               ? tag.groupCategoryName
-                              : `${tag.groupCategoryName} | ${tag.name}`,
-                          })}
-                        >
-                          {tag.isSingleTag
-                            ? tag.groupCategoryName
-                            : `${tag.groupCategoryName} | ${tag.name}`}
-                        </AccessibleContent>
+                              : `${tag.groupCategoryName} | ${tag.name}`}
+                          </AccessibleContent>
+                        ) : tag.isSingleTag ? (
+                          tag.groupCategoryName
+                        ) : (
+                          `${tag.groupCategoryName} | ${tag.name}`
+                        )
                       }
-                      dismissible={true}
+                      dismissible={canDeleteTags}
                       margin="auto"
                       size="medium"
-                      onClick={function () {
-                        setSelectedTagId(tag.id)
-                        setIsWarningModalOpen(true)
-                      }}
+                      onClick={
+                        canDeleteTags
+                          ? function () {
+                              setSelectedTagId(tag.id)
+                              setIsWarningModalOpen(true)
+                            }
+                          : undefined
+                      }
                       themeOverride={{
                         maxWidth: '100%',
                       }}

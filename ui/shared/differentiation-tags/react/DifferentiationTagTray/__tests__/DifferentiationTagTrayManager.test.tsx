@@ -31,10 +31,13 @@ describe('DifferentiationTagTrayManager', () => {
     isOpen: true,
     onClose: vi.fn(),
     courseID: 123,
+    canAddTags: true,
+    canEditTags: true,
+    canDeleteTags: true,
   }
 
   let user: ReturnType<typeof userEvent.setup>
-  const renderComponent = (mockReturn = {}, props = {}) => {
+  const renderComponent = (mockReturn = {}, props: Partial<typeof defaultProps> = {}) => {
     const defaultMock = {
       data: [],
       isLoading: false,
@@ -108,5 +111,41 @@ describe('DifferentiationTagTrayManager', () => {
   it('does not render the tray header when isOpen is false', () => {
     renderComponent({}, {isOpen: false})
     expect(screen.queryByTestId('differentiation-tag-header')).not.toBeInTheDocument()
+  })
+
+  it('hides the + Tag button when canAddTags is false', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canAddTags: false})
+    expect(screen.queryByText('+ Tag')).not.toBeInTheDocument()
+  })
+
+  it('shows the + Tag button when canAddTags is true', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canAddTags: true})
+    expect(screen.getByText('+ Tag')).toBeInTheDocument()
+  })
+
+  it('hides the edit button when canEditTags is false', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canEditTags: false})
+    expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+  })
+
+  it('shows the edit button when canEditTags is true', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canEditTags: true})
+    expect(screen.getByText('Edit')).toBeInTheDocument()
+  })
+
+  it('hides the delete button when canDeleteTags is false', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canDeleteTags: false})
+    expect(screen.queryByText('Delete Tag One')).not.toBeInTheDocument()
+  })
+
+  it('shows the delete button when canDeleteTags is true', () => {
+    const mockCategories = [{id: 1, name: 'Tag One', groups: []}]
+    renderComponent({data: mockCategories}, {canDeleteTags: true})
+    expect(screen.getByText('Delete Tag One')).toBeInTheDocument()
   })
 })

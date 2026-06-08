@@ -35,18 +35,24 @@ export interface TagCategoryCardProps {
   category: DifferentiationTagCategory
   onEditCategory: (id: number) => void
   onDeleteFocusFallback?: () => void
+  onNoButtonFocusFallback?: () => void
   focusElRef?: React.MutableRefObject<(HTMLElement | null)[]>
   newlyCreatedCategoryId: number | null
   onEditButtonBlur: () => void
+  canEditTags: boolean
+  canDeleteTags: boolean
 }
 
 function TagCategoryCard({
   category,
   onEditCategory,
   onDeleteFocusFallback,
+  onNoButtonFocusFallback,
   focusElRef,
   newlyCreatedCategoryId,
   onEditButtonBlur,
+  canEditTags,
+  canDeleteTags,
 }: TagCategoryCardProps) {
   const {name, groups = []} = category
 
@@ -54,20 +60,26 @@ function TagCategoryCard({
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const editButtonRef = useRef<HTMLButtonElement | null>(null)
+  const deleteButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    if (newlyCreatedCategoryId === category.id && editButtonRef.current) {
+    if (newlyCreatedCategoryId !== category.id) return
+
+    if (canEditTags && editButtonRef.current) {
       const editButton = editButtonRef.current
       editButton.focus()
-
       const handleBlur = () => onEditButtonBlur()
       editButton.addEventListener('blur', handleBlur)
-
-      return () => {
-        editButton.removeEventListener('blur', handleBlur)
-      }
+      return () => editButton.removeEventListener('blur', handleBlur)
     }
-  }, [newlyCreatedCategoryId, category.id, onEditButtonBlur])
+
+    if (canDeleteTags && deleteButtonRef.current) {
+      deleteButtonRef.current.focus()
+      return
+    }
+
+    onNoButtonFocusFallback?.()
+  }, [newlyCreatedCategoryId, category.id, canEditTags, canDeleteTags, onEditButtonBlur, onNoButtonFocusFallback])
 
   const mode = useMemo(() => {
     if (groups.length === 0) {
@@ -165,43 +177,48 @@ function TagCategoryCard({
         </Flex>
         {mode === 'MULTI_TAG_MODE' && <TagInfo tags={groups} multiMode={true} />}
         <Flex margin="xx-small 0 0 0">
-          <Flex.Item margin="0 x-small 0 0">
-            <IconButton
-              color="primary"
-              size="small"
-              withBackground={false}
-              withBorder={false}
-              screenReaderLabel={I18n.t('Edit')}
-              onClick={handleEdit}
-              aria-label={I18n.t('Edit tag set: %{name}', {name})}
-              elementRef={el => {
-                editButtonRef.current = el as HTMLButtonElement | null
-                editButtonRef.current?.setAttribute(
-                  'data-testid',
-                  `edit-button-tag-cat-${category.id}`,
-                )
-              }}
-            >
-              <IconEditLine />
-            </IconButton>
-          </Flex.Item>
-          <Flex.Item>
-            <IconButton
-              elementRef={el => {
-                if (focusElRef?.current && el instanceof HTMLElement) {
-                  focusElRef.current[category.id] = el
-                }
-              }}
-              color="primary"
-              size="small"
-              withBackground={false}
-              withBorder={false}
-              screenReaderLabel={I18n.t('Delete %{name}', {name})}
-              onClick={handleDelete}
-            >
-              <IconTrashLine />
-            </IconButton>
-          </Flex.Item>
+          {canEditTags && (
+            <Flex.Item margin="0 x-small 0 0">
+              <IconButton
+                color="primary"
+                size="small"
+                withBackground={false}
+                withBorder={false}
+                screenReaderLabel={I18n.t('Edit')}
+                onClick={handleEdit}
+                aria-label={I18n.t('Edit tag set: %{name}', {name})}
+                elementRef={el => {
+                  editButtonRef.current = el as HTMLButtonElement | null
+                  editButtonRef.current?.setAttribute(
+                    'data-testid',
+                    `edit-button-tag-cat-${category.id}`,
+                  )
+                }}
+              >
+                <IconEditLine />
+              </IconButton>
+            </Flex.Item>
+          )}
+          {canDeleteTags && (
+            <Flex.Item>
+              <IconButton
+                elementRef={el => {
+                  deleteButtonRef.current = el as HTMLButtonElement | null
+                  if (focusElRef?.current && el instanceof HTMLElement) {
+                    focusElRef.current[category.id] = el
+                  }
+                }}
+                color="primary"
+                size="small"
+                withBackground={false}
+                withBorder={false}
+                screenReaderLabel={I18n.t('Delete %{name}', {name})}
+                onClick={handleDelete}
+              >
+                <IconTrashLine />
+              </IconButton>
+            </Flex.Item>
+          )}
         </Flex>
       </View>
 

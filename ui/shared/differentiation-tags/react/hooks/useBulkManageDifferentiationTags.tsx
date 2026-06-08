@@ -98,7 +98,13 @@ export const useBulkManageDifferentiationTags = () => {
           try {
             const errorPayload = await unknownError.response.json()
             if (errorPayload?.errors) {
-              errorMsg = errorPayload.errors
+              if (Array.isArray(errorPayload.errors)) {
+                errorMsg = errorPayload.errors
+                  .map((e: any) => e.message || e.type || String(e))
+                  .join(', ')
+              } else if (typeof errorPayload.errors === 'string') {
+                errorMsg = errorPayload.errors
+              }
             }
           } catch {
             // Swallow parse errors; fallback to the default message
