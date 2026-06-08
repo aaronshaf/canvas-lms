@@ -41,9 +41,18 @@ describe Services::NewQuizzes::Routes::LaunchHelper do
     assignment.save!
     assignment
   end
-  # rubocop:disable RSpec/VerifiedDoubles
-  let(:controller) { double("ApplicationController", request: instance_double(ActionDispatch::Request), set_return_url: nil, lti_grade_passback_api_url: nil, blti_legacy_grade_passback_api_url: nil, lti_turnitin_outcomes_placement_url: nil, params: {}) }
-  # rubocop:enable RSpec/VerifiedDoubles
+  let(:controller) do
+    # Trigger lazy definition of route helper methods on ApplicationController
+    # so that instance_double can verify against them
+    ApplicationController.new.respond_to?(:lti_grade_passback_api_url)
+    instance_double(ApplicationController,
+                    request: instance_double(ActionDispatch::Request),
+                    set_return_url: nil,
+                    lti_grade_passback_api_url: nil,
+                    blti_legacy_grade_passback_api_url: nil,
+                    lti_turnitin_outcomes_placement_url: nil,
+                    params: {})
+  end
   let(:request) { controller.request }
   let(:pseudonym) { Pseudonym.create!(user:, account:, unique_id: "test@example.com") }
 
