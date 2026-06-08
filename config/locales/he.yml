@@ -15093,6 +15093,7 @@ he:
     failed_resending: "הבקשה נכשלה. יש לנסות שוב"
     labels: 
       enable_login_for_email: "ברצוני להתחבר לקנבס עם הדוא\"ל הזה"
+      verification_code: "קוד אימות"
     links: 
       resend_confirmation: "שליחה מחדש של האישור"
       resend_confirmation_failed: "הבקשה נכשלה. יש לנסות שוב"
@@ -15268,6 +15269,7 @@ he:
       confirm_email_address: "אישור כתובת דוא\"ל"
       confirm_sms_number: "אישור מספר מסרון"
       contact_not_confirmed: "איש הקשר הזה לא אושר. לפרטים נוספים יש להקיש על הכתובת "
+      disable_mfa: "הפסקת השירות של הזדהות רב מימדית"
       email_not_confirmed: "כתובת הדוא\"ל הזו לא אומתה. לפרטים נוספים יש להקליק על הכתובת "
       register_communication: "רישום תקשורת"
       unconfirmed_click_to_confirm: "לא אושר. הקלק/י כדי לאשר"
@@ -20409,6 +20411,7 @@ he:
     save_succeeded: "השמירה בוצעה"
     titles: 
       add_login: "הוספת לוג-אין "
+      reset_mfa: "איפוס הזדהות רב שלבית"
       update_login: "עדכון לוג-אין "
   user_merge_failed_please_make_sure_you_have_proper_c0e02cf2: "מיזוג המשתמש נכשל. יש לוודא שהרשאותיך מספיקות ולנסות שוב."
   user_name: 
