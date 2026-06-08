@@ -140,6 +140,7 @@
   min-height: 5px;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   a:not(.btn):not(.Button):not([role='button']) {
     text-decoration: underline;
   }
