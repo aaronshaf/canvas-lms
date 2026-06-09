@@ -571,7 +571,7 @@ RSpec.describe CanvasOperations::BaseOperation do
 
   describe CanvasOperations::BaseConcerns::Schema::Argument do
     let(:base_attrs) do
-      { name: :placeholder, type: :string, required: false, title: nil, description: nil, default: nil }
+      { name: :placeholder, type: :string, required: false, title: nil, description: nil, default: nil, example: nil }
     end
 
     describe "#initialize" do
@@ -661,6 +661,14 @@ RSpec.describe CanvasOperations::BaseOperation do
           expect(arg.to_property).to eql({ type: "boolean" })
         end
       end
+
+      context "when an example is declared" do
+        subject(:arg) { described_class.new(**base_attrs, name: :flag, type: :boolean, example: false) }
+
+        it "excludes the example (it is surfaced via the ui_schema instead)" do
+          expect(arg.to_property).not_to have_key(:example)
+        end
+      end
     end
   end
 
@@ -679,8 +687,6 @@ RSpec.describe CanvasOperations::BaseOperation do
                  required: false,
                  default: false,
                  title: "Skip Admins"
-
-        ui_schema "DescriptionHelper:short" => "A short description."
       end)
     end
   end
@@ -712,6 +718,83 @@ RSpec.describe CanvasOperations::BaseOperation do
         expect(operation_class.operation_schema[:ui_schema]).to eql("a" => 1, "b" => 2)
       end
     end
+
+    context "with a declared description" do
+      let(:operation_class) do
+        klass = Class.new(described_class)
+        stub_const("Operations::UiSchemaDescriptionOp", klass)
+        klass.class_eval { description "The full description." }
+        klass
+      end
+
+      it "defaults the short description helper to the description" do
+        expect(operation_class.operation_schema[:ui_schema]).to eql("DescriptionHelper:short" => "The full description.")
+      end
+
+      it "lets an explicit hint override the default short description" do
+        operation_class.class_eval do
+          ui_schema "DescriptionHelper:short" => "A shorter blurb."
+        end
+
+        expect(operation_class.operation_schema[:ui_schema]).to eql("DescriptionHelper:short" => "A shorter blurb.")
+      end
+    end
+
+    context "without a declared description" do
+      let(:operation_class) do
+        klass = Class.new(described_class)
+        stub_const("Operations::UiSchemaNoDescriptionOp", klass)
+        klass
+      end
+
+      it "omits the short description helper" do
+        expect(operation_class.operation_schema[:ui_schema]).to eql({})
+      end
+    end
+
+    context "with argument examples" do
+      let(:operation_class) do
+        klass = Class.new(described_class)
+        stub_const("Operations::UiSchemaExamplesOp", klass)
+        klass.class_eval do
+          argument :root_account, type: Account, required: true, example: "1"
+          argument :skip_admins, type: :boolean, example: false
+          argument :user, type: User
+        end
+        klass
+      end
+
+      it "builds a single SourceCodeField:examples entry titled with the operation title" do
+        expect(operation_class.operation_schema[:ui_schema]["SourceCodeField:examples"]).to eql(
+          [{ title: "Ui schema examples op", payload: { root_account_id: "1", skip_admins: false } }]
+        )
+      end
+
+      it "keys the payload by the property name, applying the _id suffix to AR arguments" do
+        payload = operation_class.operation_schema[:ui_schema]["SourceCodeField:examples"].first[:payload]
+        expect(payload.keys).to eql(%i[root_account_id skip_admins])
+      end
+
+      it "omits arguments that declare no example" do
+        payload = operation_class.operation_schema[:ui_schema]["SourceCodeField:examples"].first[:payload]
+        expect(payload).not_to have_key(:user_id)
+      end
+    end
+
+    context "without argument examples" do
+      let(:operation_class) do
+        klass = Class.new(described_class)
+        stub_const("Operations::UiSchemaNoExamplesOp", klass)
+        klass.class_eval do
+          argument :root_account, type: Account, required: true
+        end
+        klass
+      end
+
+      it "omits the SourceCodeField:examples hint" do
+        expect(operation_class.operation_schema[:ui_schema]).not_to have_key("SourceCodeField:examples")
+      end
+    end
   end
 
   describe ".operation_schema" do
@@ -731,8 +814,8 @@ RSpec.describe CanvasOperations::BaseOperation do
       expect(schema[:description]).to eql("A test operation.")
     end
 
-    it "exposes the declared ui_schema" do
-      expect(schema[:ui_schema]).to eql("DescriptionHelper:short" => "A short description.")
+    it "defaults the short description helper to the operation description" do
+      expect(schema[:ui_schema]).to eql("DescriptionHelper:short" => "A test operation.")
     end
 
     it "wraps arguments in a JSON Schema object" do

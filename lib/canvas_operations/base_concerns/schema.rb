@@ -22,7 +22,7 @@ module CanvasOperations
     module Schema
       AR_ARG_SUFFIX = "_id"
 
-      Argument = Data.define(:name, :type, :required, :title, :description, :default) do
+      Argument = Data.define(:name, :type, :required, :title, :description, :default, :example) do
         def initialize(**)
           super
           unless active_record_type? || type.is_a?(Symbol)
@@ -48,8 +48,8 @@ module CanvasOperations
         end
       end
 
-      def argument(name, type:, required: false, title: nil, description: nil, default: nil)
-        arguments << Argument.new(name:, type:, required:, title:, description:, default:)
+      def argument(name, type:, required: false, title: nil, description: nil, default: nil, example: nil)
+        arguments << Argument.new(name:, type:, required:, title:, description:, default:, example:)
       end
 
       def operation_schema
@@ -106,10 +106,36 @@ module CanvasOperations
         @arguments ||= []
       end
 
+      # UI hints for schema consumers.
+      #
+      # Some hints are derived automatically from the operation so individual
+      # operations don't have to repeat them:
+      #
+      #   * "DescriptionHelper:short" defaults to the operation's description.
+      #   * "SourceCodeField:examples" is built from any argument `example:`
+      #     values (see #source_code_examples).
+      #
+      # Pass a hint to override a default or to add additional hints.
       def ui_schema(hints = nil)
         @ui_schema ||= {}
         @ui_schema.merge!(hints) if hints
-        @ui_schema
+
+        derived = {
+          "DescriptionHelper:short" => description,
+          "SourceCodeField:examples" => source_code_examples.presence,
+        }.compact
+
+        derived.merge(@ui_schema)
+      end
+
+      def source_code_examples
+        payload = arguments.each_with_object({}) do |arg, hash|
+          hash[arg.property_name] = arg.example unless arg.example.nil?
+        end
+
+        return [] if payload.empty?
+
+        [{ title: operation_title, payload: }]
       end
 
       def json_schema
