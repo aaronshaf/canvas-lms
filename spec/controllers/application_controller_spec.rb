@@ -1174,6 +1174,46 @@ RSpec.describe ApplicationController do
               end
             end
           end
+
+          describe "sub-account overrides" do
+            before do
+              @account.enable_feature!(:send_usage_metrics)
+              mock_dynamic_settings_for_pendo_cc("pendos!")
+            end
+
+            context "when root has pendo_extended enabled" do
+              before { @account.enable_feature!(:pendo_extended) }
+
+              it "honors a sub-account disable when context is a sub-account" do
+                sub_account = Account.create!(parent_account: @account, name: "sub")
+                sub_account.disable_feature!(:pendo_extended)
+                controller.instance_variable_set(:@context, sub_account)
+                expect(controller.js_env[:FEATURES][:pendo_extended]).to be false
+                expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+              end
+
+              it "honors a sub-account disable when context is a course in that sub-account" do
+                sub_account = Account.create!(parent_account: @account, name: "sub")
+                sub_account.disable_feature!(:pendo_extended)
+                course = course_factory(account: sub_account)
+                controller.instance_variable_set(:@context, course)
+                expect(controller.js_env[:FEATURES][:pendo_extended]).to be false
+                expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+              end
+            end
+
+            context "when root has pendo_extended disabled" do
+              before { @account.disable_feature!(:pendo_extended) }
+
+              it "honors a sub-account enable when context is a sub-account" do
+                sub_account = Account.create!(parent_account: @account, name: "sub")
+                sub_account.enable_feature!(:pendo_extended)
+                controller.instance_variable_set(:@context, sub_account)
+                expect(controller.js_env[:FEATURES][:pendo_extended]).to be true
+                expect(controller.js_env[:USAGE_METRICS_METADATA]).to be_present
+              end
+            end
+          end
         end
 
         describe "PRE_COOKIE_CONSENT" do

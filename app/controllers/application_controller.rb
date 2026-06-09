@@ -646,7 +646,6 @@ class ApplicationController < ActionController::Base
     non_scoring_rubrics
     oak_for_admins
     oak_for_teachers
-    pendo_extended
     product_tours
     project_lhotse
     rce_asr_captioning_improvements
@@ -673,6 +672,7 @@ class ApplicationController < ActionController::Base
   JS_ENV_BRAND_ACCOUNT_FEATURES = %i[
     discussion_checkpoints
     embedded_release_notes
+    pendo_extended
   ].freeze
   JS_ENV_FEATURES_HASH = Digest::SHA256.hexdigest(
     [
@@ -3854,7 +3854,7 @@ class ApplicationController < ActionController::Base
     classic_usage_metrics = @domain_root_account&.feature_enabled?(:send_usage_metrics) && usage_metrics_api_key.present? if classic_usage_metrics.nil?
     consented_usage_metrics = @domain_root_account&.feature_enabled?(:send_usage_metrics_after_consent) && usage_metrics_regional_api_key.present? && usage_metrics_regional_api_env.present? if consented_usage_metrics.nil?
     cookie_consent_necessary = @domain_root_account&.feature_enabled?(:cookie_consent_necessary) if cookie_consent_necessary.nil?
-    pendo_extended = @domain_root_account&.feature_enabled?(:pendo_extended) if pendo_extended.nil?
+    pendo_extended = brand_config_account&.feature_enabled?(:pendo_extended) if pendo_extended.nil?
     potentially_underage = potentially_underage_user? if potentially_underage.nil?
     only_impact_guide_events = @domain_root_account&.settings&.dig(:only_impact_guide_events) if only_impact_guide_events.nil?
 
