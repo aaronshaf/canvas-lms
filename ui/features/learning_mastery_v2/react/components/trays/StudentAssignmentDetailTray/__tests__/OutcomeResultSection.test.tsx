@@ -22,7 +22,7 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {OutcomeResultSection, OutcomeResultSectionProps} from '../OutcomeResultSection'
-import {Outcome, StudentRollupData} from '@canvas/outcomes/react/types/rollup'
+import {Outcome} from '@canvas/outcomes/react/types/rollup'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
 const server = setupServer()
@@ -67,23 +67,30 @@ describe('OutcomeResultSection', () => {
     },
   ]
 
-  const mockRollups: StudentRollupData[] = [
-    {
-      studentId: '456',
-      outcomeRollups: [
-        {
-          outcomeId: 10,
-          score: 4.5,
-          rating: {points: 5, color: 'green', mastery: true},
-        },
-        {
-          outcomeId: 20,
-          score: 8.0,
-          rating: {points: 10, color: 'green', mastery: true},
-        },
-      ],
-    },
-  ]
+  // Builds a contributing_scores response for a single outcome. Each outcome's
+  // alignment is associated with the assignment under view, so the per-assignment
+  // score is whatever is passed in (null/undefined means "no score for this assignment").
+  const contributingScoresHandler = (scoreByOutcomeId: Record<string, number | null>) =>
+    http.get('/api/v1/courses/:courseId/outcomes/:outcomeId/contributing_scores', ({params}) => {
+      const outcomeId = String(params.outcomeId)
+      const score = scoreByOutcomeId[outcomeId]
+      return HttpResponse.json({
+        outcome: {id: outcomeId, title: 'Outcome'},
+        alignments: [
+          {
+            alignment_id: `A_${outcomeId}`,
+            associated_asset_id: assignmentId,
+            associated_asset_name: 'Assignment 1',
+            associated_asset_type: 'Assignment',
+            html_url: `/courses/${courseId}/assignments/${assignmentId}`,
+          },
+        ],
+        scores:
+          score === null || score === undefined
+            ? []
+            : [{user_id: studentId, alignment_id: `A_${outcomeId}`, score}],
+      })
+    })
 
   const mockAlignments = [
     {
@@ -108,7 +115,6 @@ describe('OutcomeResultSection', () => {
     courseId,
     studentId,
     assignmentId,
-    rollups: mockRollups,
     outcomes: mockOutcomes,
   }
 
@@ -132,6 +138,8 @@ describe('OutcomeResultSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default: no contributing scores. Tests that assert scores override this.
+    server.use(contributingScoresHandler({}))
   })
 
   afterEach(() => {
@@ -179,17 +187,84 @@ describe('OutcomeResultSection', () => {
       expect(screen.getByText('Display Name 2')).toBeInTheDocument()
     })
 
-    it('displays outcome scores', async () => {
+    it('displays the per-assignment score for each aligned outcome', async () => {
       server.use(
         http.get('/api/v1/courses/:courseId/outcome_alignments', () => {
           return HttpResponse.json(mockAlignments)
         }),
+        contributingScoresHandler({'10': 4.0, '20': 3.0}),
       )
 
       render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
 
-      await waitFor(() => expect(screen.getByText('4.5')).toBeInTheDocument())
-      expect(screen.getByText('8.0')).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText('4.0')).toBeInTheDocument())
+      expect(screen.getByText('3.0')).toBeInTheDocument()
+    })
+
+    it('matches the assignment alignment regardless of its asset type', async () => {
+      // Quiz- and discussion-backed assignments are returned with an asset type
+      // other than 'Assignment' (e.g. 'Quiz'), but still represent this assignment.
+      server.use(
+        http.get('/api/v1/courses/:courseId/outcome_alignments', () => {
+          return HttpResponse.json([mockAlignments[0]])
+        }),
+        http.get(
+          '/api/v1/courses/:courseId/outcomes/:outcomeId/contributing_scores',
+          ({params}) => {
+            const outcomeId = String(params.outcomeId)
+            return HttpResponse.json({
+              outcome: {id: outcomeId, title: 'Outcome'},
+              alignments: [
+                {
+                  alignment_id: `A_${outcomeId}`,
+                  associated_asset_id: assignmentId,
+                  associated_asset_name: 'Quiz 1',
+                  associated_asset_type: 'Quiz',
+                  html_url: `/courses/${courseId}/quizzes/${assignmentId}`,
+                },
+              ],
+              scores: [{user_id: studentId, alignment_id: `A_${outcomeId}`, score: 4.0}],
+            })
+          },
+        ),
+      )
+
+      render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
+
+      await waitFor(() => expect(screen.getByText('4.0')).toBeInTheDocument())
+    })
+
+    it('does not crash when the API returns a null score', async () => {
+      server.use(
+        http.get('/api/v1/courses/:courseId/outcome_alignments', () => {
+          return HttpResponse.json([mockAlignments[0]])
+        }),
+        http.get(
+          '/api/v1/courses/:courseId/outcomes/:outcomeId/contributing_scores',
+          ({params}) => {
+            const outcomeId = String(params.outcomeId)
+            return HttpResponse.json({
+              outcome: {id: outcomeId, title: 'Outcome'},
+              alignments: [
+                {
+                  alignment_id: `A_${outcomeId}`,
+                  associated_asset_id: assignmentId,
+                  associated_asset_name: 'Assignment 1',
+                  associated_asset_type: 'Assignment',
+                  html_url: `/courses/${courseId}/assignments/${assignmentId}`,
+                },
+              ],
+              scores: [{user_id: studentId, alignment_id: `A_${outcomeId}`, score: null}],
+            })
+          },
+        ),
+      )
+
+      render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
+
+      // The outcome still renders; the null score is shown as blank, not a crash.
+      await waitFor(() => expect(screen.getByText('Outcome 1')).toBeInTheDocument())
+      expect(screen.getByText('Aligned Outcomes')).toBeInTheDocument()
     })
 
     it('renders StudentOutcomeScore components for each outcome', async () => {
@@ -230,38 +305,25 @@ describe('OutcomeResultSection', () => {
       expect(screen.queryByText('Outcome 2')).not.toBeInTheDocument()
     })
 
-    it('handles outcomes without scores', async () => {
-      const rollupsWithoutScore: StudentRollupData[] = [
-        {
-          studentId: '456',
-          outcomeRollups: [
-            {
-              outcomeId: 10,
-              score: 4.5,
-              rating: {points: 5, color: 'green', mastery: true},
-            },
-            // Outcome 20 has no score
-          ],
-        },
-      ]
-
+    it('handles aligned outcomes without a score for this assignment', async () => {
       server.use(
         http.get('/api/v1/courses/:courseId/outcome_alignments', () => {
           return HttpResponse.json(mockAlignments)
         }),
+        // Outcome 10 has a score on this assignment; Outcome 20 does not.
+        contributingScoresHandler({'10': 4.0, '20': null}),
       )
 
-      render(<OutcomeResultSection {...defaultProps} rollups={rollupsWithoutScore} />, {
+      render(<OutcomeResultSection {...defaultProps} />, {
         wrapper: createWrapper(),
       })
 
-      await waitFor(() => expect(screen.getByText('Outcome 1')).toBeInTheDocument())
-      expect(screen.getByText('Outcome 2')).toBeInTheDocument()
-
       // Outcome 1 should have a score
-      expect(screen.getByText('4.5')).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText('4.0')).toBeInTheDocument())
+      expect(screen.getByText('Outcome 1')).toBeInTheDocument()
+      expect(screen.getByText('Outcome 2')).toBeInTheDocument()
       // Outcome 2 should not have a score displayed
-      expect(screen.queryByText('8.0')).not.toBeInTheDocument()
+      expect(screen.queryByText('3.0')).not.toBeInTheDocument()
     })
   })
 
@@ -361,14 +423,15 @@ describe('OutcomeResultSection', () => {
       expect(screen.queryByText('Outcome 2')).not.toBeInTheDocument()
     })
 
-    it('handles student with no rollup data', async () => {
+    it('handles student with no contributing scores', async () => {
       server.use(
         http.get('/api/v1/courses/:courseId/outcome_alignments', () => {
           return HttpResponse.json(mockAlignments)
         }),
+        contributingScoresHandler({'10': null, '20': null}),
       )
 
-      render(<OutcomeResultSection {...defaultProps} rollups={[]} />, {
+      render(<OutcomeResultSection {...defaultProps} />, {
         wrapper: createWrapper(),
       })
 
@@ -377,8 +440,8 @@ describe('OutcomeResultSection', () => {
       })
 
       // Outcomes should be displayed but without scores
-      expect(screen.queryByText('4.5')).not.toBeInTheDocument()
-      expect(screen.queryByText('8.0')).not.toBeInTheDocument()
+      expect(screen.queryByText('4.0')).not.toBeInTheDocument()
+      expect(screen.queryByText('3.0')).not.toBeInTheDocument()
     })
 
     it('handles mismatched outcome IDs between alignments and outcomes', async () => {

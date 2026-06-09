@@ -22,7 +22,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Tray} from '@instructure/ui-tray'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {Outcome, Student, StudentRollupData} from '@canvas/outcomes/react/types/rollup'
+import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
 import {View} from '@instructure/ui-view'
 import {TruncateWithTooltip} from '@instructure/platform-instui-bindings'
 import {AssignmentSection} from './AssignmentSection'
@@ -47,8 +47,8 @@ export interface StudentAssignmentDetailTrayProps {
   }
   assignmentNavigator: NavigatorProps
   studentNavigator: NavigatorProps
-  rollups: StudentRollupData[]
   outcomes: Outcome[]
+  showUnpublishedAssignments?: boolean
 }
 
 const TrayHeader = ({title, onClose}: {title: string; onClose: () => void}) => (
@@ -80,8 +80,8 @@ export const StudentAssignmentDetailTray: React.FC<StudentAssignmentDetailTrayPr
   assignment,
   assignmentNavigator,
   studentNavigator,
-  rollups,
   outcomes,
+  showUnpublishedAssignments,
 }) => {
   const {lmgbStudentReportingFF} = useLMGBContext()
   const masteryReportUrl = lmgbStudentReportingFF
@@ -126,8 +126,8 @@ export const StudentAssignmentDetailTray: React.FC<StudentAssignmentDetailTrayPr
           courseId={courseId}
           studentId={student.id}
           assignmentId={assignment.id}
-          rollups={rollups}
           outcomes={outcomes}
+          showUnpublishedAssignments={showUnpublishedAssignments}
         />
         <hr />
         <CommentsSection courseId={courseId} assignmentId={assignment.id} studentId={student.id} />

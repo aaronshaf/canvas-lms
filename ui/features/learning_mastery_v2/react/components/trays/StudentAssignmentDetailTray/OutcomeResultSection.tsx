@@ -24,7 +24,8 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {Spinner} from '@instructure/ui-spinner'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {showFlashAlert} from '@instructure/platform-alerts'
-import {Outcome, StudentRollupData} from '@canvas/outcomes/react/types/rollup'
+import {Outcome} from '@canvas/outcomes/react/types/rollup'
+import {useAssignmentOutcomeScores} from '@canvas/outcomes/react/hooks/useContributingScores'
 import {ScoreDisplayFormat} from '@instructure/outcomes-ui/lib/util/gradebook/constants'
 import {useOutcomeAlignments} from '../../../hooks/useOutcomeAlignments'
 import {StudentOutcomeScore} from '../../grid/StudentOutcomeScore'
@@ -35,16 +36,16 @@ export interface OutcomeResultSectionProps {
   courseId: string
   studentId: string
   assignmentId: string
-  rollups: StudentRollupData[]
   outcomes: Outcome[]
+  showUnpublishedAssignments?: boolean
 }
 
 export const OutcomeResultSection: React.FC<OutcomeResultSectionProps> = ({
   courseId,
   studentId,
   assignmentId,
-  rollups,
   outcomes,
+  showUnpublishedAssignments = false,
 }) => {
   const {
     data: alignments,
@@ -56,21 +57,6 @@ export const OutcomeResultSection: React.FC<OutcomeResultSectionProps> = ({
     assignmentId,
   })
 
-  const studentRollup = useMemo(
-    () => rollups.find(r => r.studentId === studentId),
-    [rollups, studentId],
-  )
-
-  const outcomeScoresMap = useMemo(() => {
-    if (!studentRollup) return new Map()
-    return new Map(
-      studentRollup.outcomeRollups.map(outcomeRollup => [
-        String(outcomeRollup.outcomeId),
-        outcomeRollup,
-      ]),
-    )
-  }, [studentRollup])
-
   const alignedOutcomes = useMemo(() => {
     if (!alignments || alignments.length === 0) return []
 
@@ -80,6 +66,14 @@ export const OutcomeResultSection: React.FC<OutcomeResultSectionProps> = ({
 
     return outcomes.filter(outcome => alignedOutcomeIds.has(String(outcome.id)))
   }, [alignments, outcomes])
+
+  const {scoreForOutcome} = useAssignmentOutcomeScores({
+    courseId,
+    studentId,
+    assignmentId,
+    outcomeIds: alignedOutcomes.map(outcome => outcome.id),
+    showUnpublishedAssignments,
+  })
 
   useEffect(() => {
     if (error) {
@@ -111,8 +105,7 @@ export const OutcomeResultSection: React.FC<OutcomeResultSectionProps> = ({
         <FlexItem>
           <Flex direction="column" gap="small">
             {alignedOutcomes.map(outcome => {
-              const outcomeScore = outcomeScoresMap.get(String(outcome.id))
-              const score = outcomeScore?.score
+              const score = scoreForOutcome(outcome.id)
               return (
                 <FlexItem key={`${studentId}-${assignmentId}-${outcome.id}`}>
                   <Flex direction="row" alignItems="center" justifyItems="space-between">

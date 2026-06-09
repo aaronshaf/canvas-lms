@@ -68,33 +68,109 @@ interface UseContributingScoresProps {
   settings?: GradebookSettings
 }
 
+export const pickMostRecentScore = (scores: ContributingScore[]): ContributingScore | undefined => {
+  if (scores.length === 0) return undefined
+  if (scores.length === 1) return scores[0]
+
+  return [...scores].sort((a, b) => {
+    if (!a.submitted_or_assessed_at && !b.submitted_or_assessed_at) return 0
+    if (!a.submitted_or_assessed_at) return 1
+    if (!b.submitted_or_assessed_at) return -1
+    return (
+      new Date(b.submitted_or_assessed_at).getTime() -
+      new Date(a.submitted_or_assessed_at).getTime()
+    )
+  })[0]
+}
+
 const getScoresForUser = (
   data: ContributingScoresResponse | undefined,
   userId: string,
 ): (ContributingScore | undefined)[] => {
   if (!data) return []
 
-  return data.alignments.map(alignment => {
-    // Find all scores for this user and alignment, then return the most recent one
-    const matchingScores = data.scores.filter(
-      s => s.user_id === userId && s.alignment_id === alignment.alignment_id,
-    )
+  return data.alignments.map(alignment =>
+    pickMostRecentScore(
+      data.scores.filter(s => s.user_id === userId && s.alignment_id === alignment.alignment_id),
+    ),
+  )
+}
 
-    if (matchingScores.length === 0) return undefined
-    if (matchingScores.length === 1) return matchingScores[0]
+const getAssignmentScore = (
+  data: ContributingScoresResponse | undefined,
+  studentId: string,
+  assignmentId: string,
+): number | undefined => {
+  if (!data) return undefined
 
-    // Sort by submitted_or_assessed_at descending (most recent first)
-    // Scores without dates are considered oldest
-    return matchingScores.sort((a, b) => {
-      if (!a.submitted_or_assessed_at && !b.submitted_or_assessed_at) return 0
-      if (!a.submitted_or_assessed_at) return 1
-      if (!b.submitted_or_assessed_at) return -1
-      return (
-        new Date(b.submitted_or_assessed_at).getTime() -
-        new Date(a.submitted_or_assessed_at).getTime()
-      )
-    })[0]
+  const alignment = data.alignments.find(
+    a => String(a.associated_asset_id) === String(assignmentId),
+  )
+  if (!alignment) return undefined
+
+  const mostRecent = pickMostRecentScore(
+    data.scores.filter(s => s.user_id === studentId && s.alignment_id === alignment.alignment_id),
+  )
+
+  // Normalize a null/absent score to undefined so callers can guard with `score !== undefined`.
+  return mostRecent?.score ?? undefined
+}
+
+interface UseAssignmentOutcomeScoresProps {
+  courseId: string
+  studentId: string
+  assignmentId: string
+  outcomeIds: (string | number)[]
+  showUnpublishedAssignments?: boolean
+  enabled?: boolean
+}
+
+// Unlike useContributingScores, which lazily loads only grid-expanded outcomes,
+// this loads every requested outcome (used by the assignment detail tray).
+export const useAssignmentOutcomeScores = ({
+  courseId,
+  studentId,
+  assignmentId,
+  outcomeIds,
+  showUnpublishedAssignments = false,
+  enabled = true,
+}: UseAssignmentOutcomeScoresProps) => {
+  const queries = useQueries({
+    queries: outcomeIds.map(outcomeId => ({
+      queryKey: [
+        'studentAssignmentTrayScores',
+        courseId,
+        outcomeId,
+        studentId,
+        assignmentId,
+        showUnpublishedAssignments,
+      ],
+      queryFn: async (): Promise<ContributingScoresResponse> => {
+        const showUnpublishedParam = showUnpublishedAssignments
+          ? '&show_unpublished_assignments=true'
+          : ''
+        const {json} = await doFetchApi({
+          path: `/api/v1/courses/${courseId}/outcomes/${outcomeId}/contributing_scores?user_ids[]=${studentId}&only_assignment_alignments=true${showUnpublishedParam}`,
+          method: 'GET',
+        })
+        return json as ContributingScoresResponse
+      },
+      enabled: enabled && !!courseId && !!studentId && !!assignmentId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })),
   })
+
+  const scoreForOutcome = (outcomeId: string | number): number | undefined => {
+    const index = outcomeIds.indexOf(outcomeId)
+    if (index < 0) return undefined
+    return getAssignmentScore(queries[index]?.data, studentId, assignmentId)
+  }
+
+  return {
+    scoreForOutcome,
+    isLoading: queries.some(query => query.isLoading),
+    error: queries.find(query => query.error)?.error ?? null,
+  } as const
 }
 
 export const useContributingScores = ({

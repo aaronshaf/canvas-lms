@@ -23,7 +23,7 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import fetchMock from 'fetch-mock'
 import LMGBContext from '@canvas/outcomes/react/contexts/LMGBContext'
 import {StudentAssignmentDetailTray} from '..'
-import {MOCK_OUTCOMES, MOCK_STUDENTS, MOCK_ROLLUPS} from '../../../../__fixtures__/rollups'
+import {MOCK_OUTCOMES, MOCK_STUDENTS} from '../../../../__fixtures__/rollups'
 
 describe('StudentAssignmentDetailTray', () => {
   const defaultProps = {
@@ -49,7 +49,6 @@ describe('StudentAssignmentDetailTray', () => {
       onPrevious: vi.fn(),
       onNext: vi.fn(),
     },
-    rollups: MOCK_ROLLUPS,
     outcomes: MOCK_OUTCOMES,
   }
 

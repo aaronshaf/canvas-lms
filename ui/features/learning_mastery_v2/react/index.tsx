@@ -283,8 +283,10 @@ const LearningMasteryContent: React.FC<LearningMasteryContentProps> = ({
               onNext: studentAssignmentDetailTray.handlers.navigateNextStudent,
               onPrevious: studentAssignmentDetailTray.handlers.navigatePreviousStudent,
             }}
-            rollups={rollups}
             outcomes={outcomes}
+            showUnpublishedAssignments={gradebookSettings.displayFilters.includes(
+              DisplayFilter.SHOW_UNPUBLISHED_ASSIGNMENTS,
+            )}
           />
         )}
     </>
