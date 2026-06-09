@@ -575,6 +575,34 @@ describe CanvasSanitize do
     end
   end
 
+  describe "annotation-xml mXSS namespace-confusion blocking" do
+    it "strips annotation-xml with encoding=text/html and its children" do
+      html = %(<math><annotation-xml encoding="text/html"><img onerror="alert(1)"></annotation-xml></math>)
+      res = Sanitize.clean(html, CanvasSanitize::SANITIZE)
+      expect(res).not_to include("annotation-xml")
+      expect(res).not_to include("onerror")
+    end
+
+    it "strips annotation-xml with encoding=application/xhtml+xml and its children" do
+      html = %(<math><annotation-xml encoding="application/xhtml+xml"><img onerror="alert(1)"></annotation-xml></math>)
+      res = Sanitize.clean(html, CanvasSanitize::SANITIZE)
+      expect(res).not_to include("annotation-xml")
+      expect(res).not_to include("onerror")
+    end
+
+    it "preserves annotation-xml with encoding=MathML-Content" do
+      html = %(<math><annotation-xml encoding="MathML-Content"><cn>42</cn></annotation-xml></math>)
+      res = Sanitize.clean(html, CanvasSanitize::SANITIZE)
+      expect(res).to include("annotation-xml")
+    end
+
+    it "preserves annotation-xml with encoding=application/x-tex" do
+      html = %(<math><annotation-xml encoding="application/x-tex"><ci>x</ci></annotation-xml></math>)
+      res = Sanitize.clean(html, CanvasSanitize::SANITIZE)
+      expect(res).to include("annotation-xml")
+    end
+  end
+
   Dir.glob(File.expand_path(File.join(__FILE__, "..", "..", "fixtures", "xss", "*.xss"))) do |filename|
     name = File.split(filename).last
     it "sanitizes xss attempts for #{name}" do

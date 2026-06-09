@@ -139,6 +139,18 @@ module CanvasSanitize # :nodoc:
     new_style.empty? ? node.remove_attribute("style") : node["style"] = new_style
   end
 
+  # annotation-xml with encoding="text/html" or encoding="application/xhtml+xml"
+  # creates an HTML integration point per the WHATWG spec — children re-parse as
+  # HTML in the browser while Sanitize treats the subtree as MathML, opening an
+  # mXSS namespace-confusion vector. Strip the whole element in those cases.
+  scrub_annotation_xml = lambda do |env|
+    node = env[:node]
+    return unless node&.element? && node.name == "annotation-xml"
+
+    encoding = node["encoding"].to_s.downcase.strip
+    node.replace(Nokogiri::XML::Text.new("", node.document)) if %w[text/html application/xhtml+xml].include?(encoding)
+  end
+
   SANITIZE = {
     elements: [
       "a",
@@ -838,7 +850,7 @@ module CanvasSanitize # :nodoc:
       protocols: DEFAULT_PROTOCOLS
     },
 
-    transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value]
+    transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value, scrub_annotation_xml]
   }.freeze
 
   # Any allowed element attributes for which we don't explicitly declare a
