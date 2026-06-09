@@ -21,13 +21,13 @@ module Quizzes
   class QuizUserFinder
     extend Forwardable
 
-    attr_reader :quiz, :user
+    attr_reader :quiz, :principal
 
     def_delegators :@quiz, :context, :quiz_submissions, :differentiated_assignments_applies?
 
-    def initialize(quiz, user)
+    def initialize(quiz, principal)
       @quiz = quiz
-      @user = user
+      @principal = principal
     end
 
     def submitted_students
@@ -39,7 +39,7 @@ module Quizzes
     end
 
     def all_students
-      context.students_visible_to(user, include: :inactive).order_by_sortable_name.group("users.id")
+      context.students_visible_to(principal&.user, include: :inactive).order_by_sortable_name.group("users.id")
     end
 
     def all_students_with_visibility

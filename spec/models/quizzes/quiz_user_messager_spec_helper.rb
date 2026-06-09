@@ -28,13 +28,10 @@ module Quizzes
     end
 
     def send_message(recipients = "all")
-      options = {
-        quiz: @quiz,
-        sender: @teacher,
-        conversation: conversation(recipients),
-        root_account_id: Account.default.id
-      }
-      Quizzes::QuizUserMessager.new(options).send
+      Quizzes::QuizUserMessager.new(quiz: @quiz,
+                                    principal: teacher_principal,
+                                    conversation: conversation(recipients),
+                                    root_account_id: Account.default.id).send
       run_jobs
     end
 

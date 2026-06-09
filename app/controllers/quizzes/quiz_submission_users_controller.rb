@@ -183,7 +183,7 @@ module Quizzes
     end
 
     def user_finder
-      @user_finder ||= Quizzes::QuizUserFinder.new(@quiz, @current_user)
+      @user_finder ||= Quizzes::QuizUserFinder.new(@quiz, current_principal)
     end
 
     def send_message
@@ -191,7 +191,7 @@ module Quizzes
         conversation: @conversation,
         root_account_id: @domain_root_account.id,
         async: true,
-        sender: @current_user,
+        principal: current_principal,
         quiz: @quiz
       ).send
     end

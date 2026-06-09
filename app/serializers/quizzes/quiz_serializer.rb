@@ -428,7 +428,7 @@ module Quizzes
     end
 
     def user_finder
-      @user_finder ||= Quizzes::QuizUserFinder.new(quiz, current_user)
+      @user_finder ||= Quizzes::QuizUserFinder.new(quiz, current_principal)
     end
 
     # def submission_for_current_user

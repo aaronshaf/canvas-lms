@@ -22,7 +22,7 @@ module Quizzes
   class QuizUserMessager
     extend Forwardable
 
-    attr_reader :sender, :async, :recipient_list, :conversation, :quiz
+    attr_reader :principal, :async, :recipient_list, :conversation, :quiz
     attr_reader :root_account_id, :context_id
 
     def_delegators :@user_finder,
@@ -30,14 +30,14 @@ module Quizzes
                    :all_students,
                    :unsubmitted_students
 
-    def initialize(options)
-      @quiz = options.fetch(:quiz)
-      @sender = options.fetch(:sender)
-      @async = options.fetch(:async, true) ? :async : :sync
-      @conversation = options.fetch(:conversation)
-      @root_account_id = options.fetch(:root_account_id)
+    def initialize(quiz:, principal:, conversation:, root_account_id:, async: true)
+      @quiz = quiz
+      @principal = principal
+      @async = async ? :async : :sync
+      @conversation = conversation
+      @root_account_id = root_account_id
       @context_id = quiz.context_id
-      @user_finder = Quizzes::QuizUserFinder.new(quiz, sender)
+      @user_finder = Quizzes::QuizUserFinder.new(quiz, principal)
     end
 
     def send
@@ -56,7 +56,7 @@ module Quizzes
     def message
       @message ||=
         Conversation.build_message(
-          sender,
+          principal.user,
           body,
           root_account_id:
         )
@@ -77,7 +77,7 @@ module Quizzes
                    when "submitted" then submitted_students
                    else all_students
                    end
-      sender.address_book.known_users(recipients)
+      principal.user.address_book.known_users(recipients)
     end
   end
 end

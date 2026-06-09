@@ -39,9 +39,14 @@ describe Quizzes::QuizSubmissionUsersController, type: :request do
 
     before :once do
       course_quiz(active: true)
-      @finder = Quizzes::QuizUserFinder.new(@quiz, @teacher)
       course_with_student(active_all: true, course: @course)
       @user = @teacher
+    end
+
+    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+
+    before do
+      @finder = Quizzes::QuizUserFinder.new(@quiz, teacher_principal)
     end
 
     def send_message(target_group)

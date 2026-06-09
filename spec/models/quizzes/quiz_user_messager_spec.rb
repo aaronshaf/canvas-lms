@@ -33,7 +33,12 @@ describe Quizzes::QuizUserMessager do
     submission = @quiz.generate_submission(@submitted)
     submission.mark_completed
     Quizzes::SubmissionGrader.new(submission).grade_submission
-    @finder = Quizzes::QuizUserFinder.new(@quiz, @teacher)
+  end
+
+  let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+
+  before do
+    @finder = Quizzes::QuizUserFinder.new(@quiz, teacher_principal)
   end
 
   describe "#send" do
