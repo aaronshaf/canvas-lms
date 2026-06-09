@@ -3237,10 +3237,10 @@
   dependencies:
     uuid "^11.1.1"
 
-"@instructure/platform-sanitize@0.3.15":
-  version "0.3.15"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.15.tgz#90fa5188bfb6128f97c727ad83e9ee2be6500700"
-  integrity sha512-DO/CuJZlavmpi7DfUII9452P+CAOJ4rg25fEd7sVJ+v6g9KTIawjJdZ9QZ33am4HVEZLQEz1lgcIxJl6wvmxBw==
+"@instructure/platform-sanitize@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.4.0.tgz#6500a856424632a02adb3b2cd8f3bbe737acb378"
+  integrity sha512-rXh/e6JFMS46JnRmN76s7hBX+pjo8cQcYvxpHi2r6ShBuEMdj2i2mgdSZisv80dOic3iuyptQX8GFsOpcAWWfg==
 
 "@instructure/platform-study-assist@2.2.1":
   version "2.2.1"
