@@ -1510,7 +1510,7 @@ RSpec.describe ApplicationController do
       # this test is supposed to represent calling I18n.t before a context is set
       # and still having later localizations that depend on the locale of the
       # context work.
-      it "resets the localizer" do
+      it "resets the localizer" do # flaky-fix: QE-147
         # emulate all the locale related work done before/around a request
         acct = Account.default
         acct.default_locale = "es"
@@ -1526,6 +1526,8 @@ RSpec.describe ApplicationController do
         expect(controller.instance_variable_get(:@context)).to eq @course
         I18n.set_locale_with_localizer # this is what t() triggers
         expect(I18n.locale.to_s).to eq "ru"
+      ensure
+        I18n.locale = I18n.default_locale # rubocop:disable Rails/I18nLocaleAssignment
       end
 
       it "doesn't fail if localizer exists in a contextless state" do

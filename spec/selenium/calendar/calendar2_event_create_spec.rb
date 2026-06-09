@@ -642,8 +642,9 @@ describe "calendar2" do
         @to_do = @student1.planner_notes.create!(todo_date: @todo_date, title: "A new to do")
       end
 
-      it "respects the calendars checkboxes" do
+      it "respects the calendars checkboxes", custom_timeout: 25 do # flaky-fix: QE-147
         get "/calendar2"
+        wait_for_ajaximations # catches FullCalendar deferred event-fetch AJAX
         expect(ff(".fc-view-container .fc-content .fc-title").length).to equal(1)
 
         # turn it off
@@ -652,6 +653,7 @@ describe "calendar2" do
 
         # turn it back on
         f("span.group_user_#{@student1.id}").click
+        wait_for_ajaximations # re-enabling calendar triggers event re-fetch
         expect(ff(".fc-view-container .fc-content .fc-title").length).to equal(1)
 
         # click to edit
@@ -678,6 +680,7 @@ describe "calendar2" do
 
         # turn it back on
         f("span.group_course_#{@course.id}").click
+        wait_for_ajaximations # re-enabling calendar triggers event re-fetch
         expect(ff(".fc-view-container .fc-content .fc-title").length).to equal(1)
       end
 

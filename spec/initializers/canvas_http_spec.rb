@@ -20,16 +20,8 @@
 require_relative "../../config/initializers/canvas_http"
 
 describe "CanvasHttp Configuration" do
-  before do
-    CanvasHttp.blocked_ip_ranges = []
-  end
-
-  after do
-    CanvasHttpInitializer.configure_circuit_breaker!
-    CanvasHttp.blocked_ip_ranges = nil
-  end
-
-  it "has a circuit breaker mechamism" do
+  it "has a circuit breaker mechamism" do # flaky-fix: QE-147
+    CanvasHttp.blocked_ip_ranges = [] # bypass IP validation for circuit breaker test
     CanvasHttp::CircuitBreaker.redis = -> { Canvas.redis }
     stub_const("CanvasHttp::CircuitBreaker::THRESHOLD", 0)
     stub_const("CanvasHttp::CircuitBreaker::INTERVAL", 1)
@@ -40,6 +32,9 @@ describe "CanvasHttp Configuration" do
       expect(CanvasHttp::CircuitBreaker.tripped?("some.url.com")).to be(true)
     end
     expect { CanvasHttp.get("some.url.com") }.to raise_error(CanvasHttp::CircuitBreakerError)
+  ensure
+    CanvasHttp.blocked_ip_ranges = nil
+    CanvasHttpInitializer.configure_circuit_breaker!
   end
 
   it "logs TLS versions" do

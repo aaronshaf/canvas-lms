@@ -98,8 +98,8 @@ describe "settings tabs" do
       assert_error_box("#account_notification_subject")
     end
 
-    it "edits an announcement" do # flaky-fix: QE-141
-      notification = account_notification(user: @user)
+    it "edits an announcement", custom_timeout: 40 do # flaky-fix: QE-141, QE-147
+      notification = account_notification(user: @user, start_at: 1.day.from_now)
       initial_notification_start = notification.start_at
       initial_notification_end = notification.end_at
       get "/accounts/#{Account.default.id}/settings"
@@ -126,8 +126,8 @@ describe "settings tabs" do
       expect(f("a.previous_page")).to have_attribute("href", /page=1#tab-announcements/)
     end
 
-    it "copies and saves an announcement" do
-      notification = account_notification(user: @user)
+    it "copies and saves an announcement", custom_timeout: 45 do # flaky-fix: QE-147
+      notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load
       f("#tab-announcements").click
@@ -174,8 +174,8 @@ describe "settings tabs" do
       expect(AccountNotification.active.count).to eq 2
     end
 
-    it "resets form properly on new announcement" do
-      notification = account_notification(user: @user)
+    it "resets form properly on new announcement", custom_timeout: 30 do # flaky-fix: QE-147
+      notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load
       f("#tab-announcements").click

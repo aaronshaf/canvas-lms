@@ -93,13 +93,13 @@ RSpec.describe Accessibility::CourseScanController, type: :request do
     end
 
     context "when the course exceeds scan limit" do
-      it "returns a bad request error" do
+      it "returns a bad request error" do # flaky-fix: QE-147
         course_with_teacher(active_all: true)
         user_session(@teacher)
         @course.root_account.enable_feature!(:a11y_checker_ga1)
 
-        # Create > 1000 resources to exceed MAX_ACCESSIBILITY_SCAN_RESOURCES limit
-        1001.times { |i| @course.wiki_pages.create!(title: "Page #{i}") }
+        stub_const("Course::MAX_ACCESSIBILITY_SCAN_RESOURCES", 2)
+        3.times { |i| @course.wiki_pages.create!(title: "Page #{i}") }
 
         post "/courses/#{@course.id}/accessibility/course_scan"
 

@@ -257,18 +257,9 @@ an AJAX endpoint, verify that the endpoint's cache headers
 (`expires_in`, `Cache-Control`) do not allow Chrome to serve a stale
 response from an earlier test on the same worker.
 
-**How to apply:**
-- If the endpoint uses `expires_in` (e.g. `launch_definitions` caches for
-  10 minutes), ensure the test data exists **before the first request to
-  that URL** — typically by creating it in a top-level `before(:once)` that
-  runs before all tests sharing the same course/URL.
-- Moving data creation from inside the `it` block to `before(:once)` is the
-  preferred fix. It ensures every cached response already contains the data.
-- Do not create a separate test to "prime" the cache — just ensure the data
-  exists early enough.
-- When diagnosing, the signal for a cache hit is: the AJAX success callback
-  ran (`loaded` class set, message removed) but zero items appeared, and
-  there is no corresponding `Processing by` entry in the Rails log.
+**How to apply:** Move test data creation to a `before(:once)` that runs
+before any test can trigger the cached AJAX. See **Case 06 Pattern B** for
+the full diagnostic procedure, signals, and fix details.
 
 *Introduced: QE-144*
 
@@ -411,4 +402,50 @@ masking the race. After fixing the event sequence the default timeout suffices.
 
 ---
 
-<!-- Add new rules below as S-12, S-13, … -->
+## S-12 — Fix global state contamination at the source, not the victim
+
+**Rule:** When a flaky test fails because a preceding test leaked global
+state (e.g. `I18n.locale`, class variables, process-level caches), fix the
+contaminating test — do not add defensive resets in every victim.
+
+**Why:** Defensive resets in victim tests create a bad pattern: each new
+victim needs the same boilerplate, the real leak stays open, and tests
+silently depend on running after the reset instead of in a clean
+environment. Fixing the source closes the leak for all tests at once.
+
+**How to apply — in priority order:**
+1. **Fix the leaking test.** Add `ensure` cleanup or an `after` block that
+   restores the original value. Use `ensure` when the cleanup must run even
+   if the test raises. Prefer `ensure` over `after` for single-test leaks
+   because it is co-located with the code that causes the contamination.
+2. **Add a framework-level reset** when the leaked state has no per-test
+   cleanup (e.g. no test "owns" the mutation, or multiple tests mutate the
+   same global). Add the reset to `spec_helper.rb` or the relevant support
+   file so it runs before every example.
+3. **Never add per-victim defensive resets** as the primary fix. They are
+   acceptable only as a temporary measure while the source fix is being
+   reviewed by another team.
+
+**Example (I18n.locale leak from QE-147):**
+```ruby
+# BAD — defensive reset in every victim
+it "shows dates" do
+  I18n.locale = :en  # workaround for locale leak
+  ...
+end
+
+# GOOD — ensure cleanup in the contaminating test
+it "resets the localizer" do
+  ...
+  I18n.set_locale_with_localizer
+  expect(I18n.locale.to_s).to eq "ru"
+ensure
+  I18n.locale = I18n.default_locale
+end
+```
+
+*Introduced: QE-147*
+
+---
+
+<!-- Add new rules below as S-13, S-14, … -->

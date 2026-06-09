@@ -794,7 +794,7 @@ shared_examples_for "context modules for teachers" do
       @topic = DiscussionTopic.create_graded_topic!(course: @course, title: "checkpointed topic")
     end
 
-    it "shows checkpoint data in module item info section" do
+    it "shows checkpoint data in module item info section" do # flaky-fix: QE-147
       @modules[0].add_item({ id: @topic.id, type: "discussion_topic" })
       c1 = Checkpoints::DiscussionCheckpointCreatorService.call(
         discussion_topic: @topic,
@@ -840,7 +840,7 @@ shared_examples_for "context modules for teachers" do
       expect(details).to eq "Reply to Topic\nRequired Replies (2)\n10 pts"
     end
 
-    it "shows multiple due dates as a hoverable link within each checkpoint" do
+    it "shows multiple due dates as a hoverable link within each checkpoint" do # flaky-fix: QE-147
       @modules[0].add_item({ id: @topic.id, type: "discussion_topic" })
       student_in_course(active_all: true)
       sec1 = add_section("sec1")

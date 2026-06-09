@@ -108,13 +108,24 @@ element_to_interact_with.click
 
 ### When to recognise it
 
-Any `refresh_page` followed directly by an element lookup (no explicit wait)
-where the element is rendered by a JavaScript widget that fetches its own
-data (FullCalendar, React async components, etc.).
+Any `refresh_page` or `get` followed directly by an element lookup (no
+explicit wait) where the element is rendered by a JavaScript widget that
+fetches its own data (FullCalendar, React async components, etc.).
 
-### Files affected (QE-141)
+**`ff()` vs `f()` trap (QE-147):** `f()` (find_element) has an implicit
+wait up to the finder timeout (5 s) and will wait for the element to
+appear. `ff()` (find_elements) returns an **empty array immediately** if
+no elements match — it does not wait. A test that uses
+`ff(".fc-title").length` after a page load will get 0 if FullCalendar
+hasn't rendered yet, even though `f(".fc-title")` would have waited. The
+fix is the same: add `wait_for_ajaximations` before the `ff()` call.
+This also applies after toggling calendar checkboxes, which trigger
+FullCalendar to re-fetch events.
+
+### Files affected (QE-141, QE-147)
 
 - `spec/selenium/calendar/calendar2_event_create_spec.rb:377` and `:683`
+- `spec/selenium/calendar/calendar2_event_create_spec.rb:645` (QE-147)
 
 ---
 

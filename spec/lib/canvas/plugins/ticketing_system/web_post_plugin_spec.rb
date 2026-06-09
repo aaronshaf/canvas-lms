@@ -49,8 +49,7 @@ module Canvas::Plugins::TicketingSystem
         end
       end
 
-      it "rejects an insecure URI without posting" do # flaky-fix: QE-142
-        CanvasHttp.blocked_ip_ranges = nil # ensure default blocklist is active
+      it "rejects an insecure URI without posting" do # flaky-fix: QE-142, QE-147
         ticketing = instance_double(Canvas::Plugins::TicketingSystem)
         report = instance_double(Canvas::Plugins::TicketingSystem::CustomError, to_document: { ok: 1 })
         plugin = WebPostPlugin.new(ticketing)
