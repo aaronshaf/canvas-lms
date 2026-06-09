@@ -366,4 +366,49 @@ on a full `yarn test` run.
 
 ---
 
-<!-- Add new rules below as S-11, S-12, … -->
+## S-11 — Use consistent `userEvent` for `CanvasAsyncSelect` interactions
+
+**Rule:** When interacting with a `CanvasAsyncSelect` (or any InstUI
+`Select`-based component) in a test, use `await user.click` consistently for
+both opening the dropdown and selecting an option. After selecting, add an
+explicit `waitFor` on the controlled input value before asserting downstream
+effects or performing the next interaction.
+
+**Never mix `fireEvent.click` for open with `user.click` for select:**
+```js
+// BAD — no focus events fired for open; creates blur/unmount race in CI
+fireEvent.click(getByLabelText('Account'))
+await user.click(await screen.findByText('CPMS'))
+await waitFor(() => expect(...), {timeout: 20000})  // inflated timeout masks the race
+
+// GOOD — consistent full-event simulation; explicit confirmation of selection
+const accountSelect = getByLabelText('Account')
+await user.click(accountSelect)                              // open
+await user.click(await screen.findByText('CPMS'))            // select
+await waitFor(() => expect(accountSelect).toHaveValue('CPMS'))  // confirm
+// now safe to assert downstream effects or perform next interaction
+```
+
+**Why:**
+`CanvasAsyncSelect`'s option-selected handler (`Ee`) is triggered by a click
+on the mounted option element. `user.click` fires the full pointer/focus/blur
+event sequence: when the option is clicked, `blur` on the input fires
+`onRequestHideOptions` → `Se()` → `setIsShowingOptions(false)`. In CI, the
+resulting unmount can race ahead of `pointerup`/`click`, so `Ee` never fires
+and the selection is lost — unless focus state was correctly established
+beforehand by using `user.click` to open. `fireEvent.click` fires no focus
+events, so focus is wrong when the option click starts.
+
+The `waitFor` on the input value waits for React to re-render after
+`onOptionSelected` updates the component's controlled state; downstream
+assertions or interactions that depend on that state would be non-deterministic
+without it.
+
+**Remove inflated timeouts** (`{timeout: 5000}`, `{timeout: 20000}`) that were
+masking the race. After fixing the event sequence the default timeout suffices.
+
+*Introduced: QE-149*
+
+---
+
+<!-- Add new rules below as S-12, S-13, … -->

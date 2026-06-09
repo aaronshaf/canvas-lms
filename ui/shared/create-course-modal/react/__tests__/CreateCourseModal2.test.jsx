@@ -350,6 +350,7 @@ describe('CreateCourseModal (2)', () => {
     })
 
     it('homeroom endpoint is called only for accounts in viewableAccountIds', async () => {
+      // flaky-fix: QE-149
       const user = userEvent.setup(USER_EVENT_OPTIONS)
       let homeroomRequestedForAccount4 = false
       let homeroomRequestedForAccount5 = false
@@ -365,14 +366,16 @@ describe('CreateCourseModal (2)', () => {
         }),
       )
       // only account '4' (CPMS) can view courses
-      const {getByText, getByLabelText} = render(
+      const {getByLabelText} = render(
         <CreateCourseModal {...getProps({viewableAccountIds: ['4']})} />,
       )
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      const accountSelect = getByLabelText('Which account will this subject be associated with?')
+      await user.click(accountSelect)
       await user.click(await screen.findByText('CPMS'))
+      await waitFor(() => expect(accountSelect).toHaveValue('CPMS'))
       await user.click(getByLabelText('Sync enrollments and subject start/end dates from homeroom'))
-      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true), {timeout: 20000})
+      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true))
       expect(homeroomRequestedForAccount5).toBe(false)
     })
   })

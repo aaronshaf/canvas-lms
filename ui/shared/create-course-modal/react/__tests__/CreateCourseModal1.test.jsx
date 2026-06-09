@@ -164,18 +164,20 @@ describe('CreateCourseModal (1)', () => {
   })
 
   it('disables the create button without a subject name and account', async () => {
+    // flaky-fix: QE-149
     const user = userEvent.setup(USER_EVENT_OPTIONS)
     server.use(http.get('/api/v1/manageable_accounts', () => HttpResponse.json(MANAGEABLE_COURSES)))
-    const {getByText, getByLabelText, getByRole} = render(<CreateCourseModal {...getProps()} />)
+    const {getByLabelText, getByRole} = render(<CreateCourseModal {...getProps()} />)
     await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
     const createButton = getByRole('button', {name: 'Create'})
     expect(createButton).toBeDisabled()
     await user.type(getByLabelText('Subject Name'), 'New course')
     expect(createButton).toBeDisabled()
-    fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+    const accountSelect = getByLabelText('Which account will this subject be associated with?')
+    await user.click(accountSelect)
     await user.click(await screen.findByText('Elementary'))
-    // Wait for the button to be enabled after account selection completes
-    await waitFor(() => expect(createButton).not.toBeDisabled(), {timeout: 5000})
+    await waitFor(() => expect(accountSelect).toHaveValue('Elementary'))
+    expect(createButton).not.toBeDisabled()
   })
 
   it('includes all received accounts in the select, handling pagination correctly', async () => {
