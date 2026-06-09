@@ -415,25 +415,25 @@ class DiscussionEntry < ApplicationRecord
     given { |principal| user && user == principal&.user && discussion_topic.available_for?(principal&.user) && context.user_can_manage_own_discussion_posts?(principal&.user) && discussion_topic.can_participate_in_course?(principal&.user) }
     can :update and can :delete
 
-    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :read_announcements) && discussion_topic.visible_for?(principal&.user) }
+    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :read_announcements) && discussion_topic.visible_for?(principal) }
     can :read
 
-    given { |principal, session| !discussion_topic.is_announcement && context.grants_right?(principal, session, :read_forum) && discussion_topic.visible_for?(principal&.user) }
+    given { |principal, session| !discussion_topic.is_announcement && context.grants_right?(principal, session, :read_forum) && discussion_topic.visible_for?(principal) }
     can :read
 
-    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :participate_as_student) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? }
+    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :participate_as_student) && discussion_topic.visible_for?(principal) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal) }
     can :read
 
-    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
     can :reply
 
-    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.comments_disabled? }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && discussion_topic.visible_for?(principal&.user) }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && discussion_topic.visible_for?(principal) }
     can :read
 
     given { |principal, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_right?(principal, session, :post_to_forum) && discussion_topic.available_for?(principal&.user) }

@@ -125,7 +125,7 @@ class Announcement < DiscussionTopic
     end
     can :read_replies
 
-    given { |principal, session| context.grants_right?(principal, session, :read_announcements) && visible_for?(principal&.user) }
+    given { |principal, session| context.grants_right?(principal, session, :read_announcements) && visible_for?(principal) }
     can :read
 
     given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !locked? && !comments_disabled? }
@@ -176,8 +176,8 @@ class Announcement < DiscussionTopic
     nil
   end
 
-  def show_in_search_for_user?(user)
-    return false if locked? && !grants_right?(user, :read_as_admin)
+  def show_in_search_for_user?(principal)
+    return false if locked? && !grants_right?(principal, :read_as_admin)
 
     super
   end
@@ -193,7 +193,7 @@ class Announcement < DiscussionTopic
     course.enrollments.active.of_observer_type.where.not(associated_user_id: nil).find_each do |enrollment|
       observer = enrollment.user
       student = enrollment.associated_user
-      next unless visible_for?(student)
+      next unless visible_for?(student.principal)
 
       threshold = ObserverAlertThreshold.where(observer:, alert_type: "course_announcement", student:).first
       next unless threshold

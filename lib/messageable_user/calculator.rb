@@ -568,7 +568,10 @@ class MessageableUser
                 messageable_users_in_section_scope(context, nil, options)
               end
 
-      visible_user_ids = scope.to_a.select { |u| discussion.visible_for?(u) }.map(&:id)
+      visible_user_ids = scope.to_a.select do |u|
+        discussion.visible_for?(u.principal)
+      end
+                              .map(&:id)
 
       # We need to convert it back to a scope.
       MessageableUser.where(id: visible_user_ids)

@@ -594,7 +594,7 @@ class DiscussionTopicsController < ApplicationController
     end
 
     return unless authorized_action(@topic, current_principal, (@topic.new_record? ? :create : :update))
-    return render_unauthorized_action unless @topic.visible_for?(@current_user)
+    return render_unauthorized_action unless @topic.visible_for?(current_principal)
 
     @context.try(:require_assignment_group) unless @topic.is_announcement
     can_set_group = @context.respond_to?(:group_categories) && @context.grants_right?(current_principal, session, :manage_groups_add) # i.e. not a student
@@ -793,7 +793,7 @@ class DiscussionTopicsController < ApplicationController
       return
     end
 
-    if (can_read_and_visible = @topic.grants_right?(current_principal, session, :read) && @topic.visible_for?(@current_user))
+    if (can_read_and_visible = @topic.grants_right?(current_principal, session, :read) && @topic.visible_for?(current_principal))
       @topic.change_read_state("read", @current_user) unless @locked.is_a?(Hash) && !@locked[:can_view]
       add_rss_links_to_content
     end
@@ -924,8 +924,8 @@ class DiscussionTopicsController < ApplicationController
              cedar_translation: true, # Temporary kept to avoid front error on release, see  VICE-5844
              discussion_translation_languages: Translation.available? ? Translation.languages : [],
              discussion_anonymity_enabled: true,
-             user_can_summarize: @topic.user_can_summarize?(@current_user),
-             user_can_access_insights: @topic.user_can_access_insights?(@current_user),
+             user_can_summarize: @topic.user_can_summarize?(current_principal),
+             user_can_access_insights: @topic.user_can_access_insights?(current_principal),
              discussion_pin_post: @context.feature_enabled?(:discussion_pin_post),
              discussion_summary_enabled: participant.nil? ? @topic.summary_enabled : participant.summary_enabled,
              should_show_deeply_nested_alert: @current_user&.should_show_deeply_nested_alert?,
@@ -981,7 +981,7 @@ class DiscussionTopicsController < ApplicationController
 
   def insights
     @topic = @context.all_discussion_topics.find(params[:id])
-    return render_unauthorized_action unless @topic.user_can_access_insights?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_access_insights?(current_principal)
 
     add_discussion_or_announcement_crumb
     add_crumb(@topic.title, named_context_url(@context, :context_discussion_topic_url, @topic.id))
@@ -1259,7 +1259,7 @@ class DiscussionTopicsController < ApplicationController
 
     @entries = []
     @entries.concat(@context.discussion_topics
-                            .select { |dt| dt.visible_for?(@current_user) })
+                            .select { |dt| dt.visible_for?(current_principal) })
     @entries.concat @context.discussion_entries.active
     @entries = @entries.sort_by(&:updated_at)
 

@@ -48,13 +48,11 @@ module IncomingMail
         end
 
         Rails.cache.fetch(["incoming_mail_reply_from", context, incoming_message.message_id].cache_key, expires_in: 7.days) do
-          context.reply_from({
-                               purpose: "general",
-                               user:,
-                               subject: IncomingMailProcessor::IncomingMessageProcessor.utf8ify(incoming_message.subject, incoming_message.header[:subject].try(:charset)),
-                               html: html_body,
-                               text: body
-                             })
+          context.reply_from(purpose: "general",
+                             user:,
+                             subject: IncomingMailProcessor::IncomingMessageProcessor.utf8ify(incoming_message.subject, incoming_message.header[:subject].try(:charset)),
+                             html: html_body,
+                             text: body)
           true
         end
       rescue IncomingMail::Errors::ReplyFrom => e

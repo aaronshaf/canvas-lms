@@ -131,16 +131,16 @@ describe Announcement do
     end
 
     it "is visible to students in specific section" do
-      expect(@announcement.visible_for?(@student1)).to be_truthy
+      expect(@announcement.visible_for?(@student1.principal)).to be_truthy
     end
 
     it "is visible to section-limited students in specific section" do
       @student1.enrollments.where(course_section_id: @section).update_all(limit_privileges_to_course_section: true)
-      expect(@announcement.visible_for?(@student1)).to be_truthy
+      expect(@announcement.visible_for?(@student1.principal)).to be_truthy
     end
 
     it "is not visible to students not in specific section" do
-      expect(@announcement.visible_for?(@student2)).to be_falsey
+      expect(@announcement.visible_for?(@student2.principal)).to be_falsey
     end
   end
 
@@ -170,9 +170,9 @@ describe Announcement do
       announcement.course_sections = [@section_a, @section_b]
       announcement.save!
 
-      expect(announcement.visible_for?(@student_a)).to be_truthy
-      expect(announcement.visible_for?(@student_b)).to be_truthy
-      expect(announcement.visible_for?(@student_ab)).to be_truthy
+      expect(announcement.visible_for?(@student_a.principal)).to be_truthy
+      expect(announcement.visible_for?(@student_b.principal)).to be_truthy
+      expect(announcement.visible_for?(@student_ab.principal)).to be_truthy
     end
 
     it "filters announcements correctly for student in multiple sections" do
@@ -191,9 +191,9 @@ describe Announcement do
       ann_c.course_sections = [@section_c]
       ann_c.save!
 
-      expect(ann_a.visible_for?(@student_ab)).to be_truthy
-      expect(ann_b.visible_for?(@student_ab)).to be_truthy
-      expect(ann_c.visible_for?(@student_ab)).to be_falsey
+      expect(ann_a.visible_for?(@student_ab.principal)).to be_truthy
+      expect(ann_b.visible_for?(@student_ab.principal)).to be_truthy
+      expect(ann_c.visible_for?(@student_ab.principal)).to be_falsey
     end
   end
 
@@ -417,11 +417,11 @@ describe Announcement do
   describe "show_in_search_for_user?" do
     shared_examples_for "expected_values_for_teacher_student" do |teacher_expected, student_expected|
       it "returns #{teacher_expected} for teacher" do
-        expect(announcement.show_in_search_for_user?(@teacher)).to eq(teacher_expected)
+        expect(announcement.show_in_search_for_user?(@teacher.principal)).to eq(teacher_expected)
       end
 
       it "returns #{student_expected} for student" do
-        expect(announcement.show_in_search_for_user?(@student)).to eq(student_expected)
+        expect(announcement.show_in_search_for_user?(@student.principal)).to eq(student_expected)
       end
     end
 

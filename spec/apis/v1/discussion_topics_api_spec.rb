@@ -4756,12 +4756,10 @@ def create_entry(topic, opts = {})
   entry
 end
 
-def create_reply(entry, opts = {})
-  created_at = opts.delete(:created_at)
-  opts[:user] ||= @user
-  opts[:html] ||= opts.delete(:message)
-  opts[:html] ||= "<p>This is a test message</p>"
-  reply = entry.reply_from(opts)
+def create_reply(entry, created_at: nil, user: nil, message: nil)
+  user ||= @user
+  html = message || "<p>This is a test message</p>"
+  reply = entry.reply_from(user:, html:)
   reply.created_at = created_at if created_at
   reply.save!
   reply

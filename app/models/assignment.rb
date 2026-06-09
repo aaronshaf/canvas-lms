@@ -114,8 +114,8 @@ class Assignment < AbstractAssignment
                    index_scope: ->(course) { course.assignments.active },
                    search_scope: ->(course, user) { Assignments::ScopedToUser.new(course, user, course.assignments.active).scope }
 
-  def show_in_search_for_user?(user)
-    include_description?(user)
+  def show_in_search_for_user?(principal)
+    include_description?(principal&.user)
   end
 
   def checkpoints_parent?

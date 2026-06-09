@@ -108,7 +108,7 @@ class DiscussionTopicsApiController < ApplicationController
   #       "usage": { "currentCount": 1, "limit": 5 }
   #     }
   def find_summary
-    return render_unauthorized_action unless @topic.user_can_summarize?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_summarize?(current_principal)
 
     unless !!llm_config_raw && !!llm_config_refined
       logger.error("No LLM config found for discussion topic summary")
@@ -158,7 +158,7 @@ class DiscussionTopicsApiController < ApplicationController
   #       "usage": { "currentCount": 1, "limit": 5 }
   #     }
   def find_or_create_summary
-    return render_unauthorized_action unless @topic.user_can_summarize?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_summarize?(current_principal)
 
     unless !!llm_config_raw && !!llm_config_refined
       logger.error("No LLM config found for discussion topic summary")
@@ -256,7 +256,7 @@ class DiscussionTopicsApiController < ApplicationController
   #       "success": true
   #     }
   def disable_summary
-    return render_unauthorized_action unless @topic.user_can_summarize?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_summarize?(current_principal)
 
     @topic.update!(summary_enabled: false)
 
@@ -294,7 +294,7 @@ class DiscussionTopicsApiController < ApplicationController
   #       "disliked": false
   #     }
   def summary_feedback
-    return render_unauthorized_action unless @topic.user_can_summarize?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_summarize?(current_principal)
 
     begin
       dts = @topic.summaries.find(params[:summary_id])
@@ -338,7 +338,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def insight
-    return render_unauthorized_action unless @topic.user_can_access_insights?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_access_insights?(current_principal)
 
     insight = @topic.insights.order(created_at: :desc).first
     if insight.nil?
@@ -361,7 +361,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def insight_generation
-    return render_unauthorized_action unless @topic.user_can_access_insights?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_access_insights?(current_principal)
 
     DiscussionTopicInsight.transaction do
       insight = @topic.insights.create!(
@@ -384,7 +384,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def insight_entries
-    return render_unauthorized_action unless @topic.user_can_access_insights?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_access_insights?(current_principal)
 
     insight = @topic.insights.order(created_at: :desc).first
     if insight.nil?
@@ -413,7 +413,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def insight_entry_update
-    return render_unauthorized_action unless @topic.user_can_access_insights?(@current_user)
+    return render_unauthorized_action unless @topic.user_can_access_insights?(current_principal)
 
     insight_entry = @topic.insight_entries.find(params[:entry_id])
     if insight_entry.nil?

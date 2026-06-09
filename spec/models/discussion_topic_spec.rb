@@ -489,7 +489,7 @@ describe DiscussionTopic do
 
     it "is visible to author when unpublished" do
       @topic.unpublish!
-      expect(@topic.visible_for?(@teacher)).to be_truthy
+      expect(@topic.visible_for?(@teacher.principal)).to be_truthy
     end
 
     it "returns the course for the address_book_context" do
@@ -500,16 +500,16 @@ describe DiscussionTopic do
       @topic.delayed_post_at = 5.days.from_now
       @topic.workflow_state = "post_delayed"
       @topic.save!
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is not visible when unpublished even when it is active" do
       @topic.unpublish!
-      expect(@topic.visible_for?(@student)).to be_falsey
+      expect(@topic.visible_for?(@student.principal)).to be_falsey
     end
 
     it "is visible to students when topic is not locked" do
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "clears the context modules cache on section change" do
@@ -527,25 +527,25 @@ describe DiscussionTopic do
     it "is visible to students when topic delayed_post_at is in the future" do
       @topic.delayed_post_at = 5.days.from_now
       @topic.save!
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is visible to students when topic is for delayed posting" do
       @topic.workflow_state = "post_delayed"
       @topic.save!
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is visible to students when topic delayed_post_at is in the past" do
       @topic.delayed_post_at = 5.days.ago
       @topic.save!
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is visible to students when topic delayed_post_at is nil" do
       @topic.delayed_post_at = nil
       @topic.save!
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is not visible to unauthenticated users in a public course" do
@@ -565,14 +565,14 @@ describe DiscussionTopic do
       @topic.assignment.saved_by = :discussion_topic
       @topic.save
 
-      expect(@topic.visible_for?(@student)).to be_truthy
+      expect(@topic.visible_for?(@student.principal)).to be_truthy
     end
 
     it "is visible to teachers not locked to a section in the course" do
       @topic.update_attribute(:delayed_post_at, 1.day.from_now)
       new_teacher = user_factory
       @course.enroll_teacher(new_teacher).accept!
-      expect(@topic.visible_for?(new_teacher)).to be_truthy
+      expect(@topic.visible_for?(new_teacher.principal)).to be_truthy
     end
 
     it "is not visible to teachers locked to a different section in a course" do
@@ -583,7 +583,7 @@ describe DiscussionTopic do
       Enrollment.limit_privileges_to_course_section!(@course, new_teacher, true)
       ann = @course.announcements.create!(message: "testing", is_section_specific: true, course_sections: [section2])
       ann.save!
-      expect(ann.visible_for?(new_teacher)).not_to be_truthy
+      expect(ann.visible_for?(new_teacher.principal)).not_to be_truthy
     end
 
     it "is visible to teachers locked to the same section in a course" do
@@ -594,7 +594,7 @@ describe DiscussionTopic do
       Enrollment.limit_privileges_to_course_section!(@course, new_teacher, true)
       ann = @course.announcements.create!(message: "testing", is_section_specific: true, course_sections: [section1])
       ann.save!
-      expect(ann.visible_for?(new_teacher)).to be_truthy
+      expect(ann.visible_for?(new_teacher.principal)).to be_truthy
     end
 
     it "unpublished topics should not be visible to custom account admins by default" do
@@ -603,7 +603,7 @@ describe DiscussionTopic do
       account = @course.root_account
       nobody_role = custom_account_role("NobodyAdmin", account:)
       admin = account_admin_user(account:, role: nobody_role, active_user: true)
-      expect(@topic.visible_for?(admin)).to be_falsey
+      expect(@topic.visible_for?(admin.principal)).to be_falsey
     end
 
     it "unpublished topics should be visible to account admins with :read_course_content permission" do
@@ -613,7 +613,7 @@ describe DiscussionTopic do
       nobody_role = custom_account_role("NobodyAdmin", account:)
       account_with_role_changes(account:, role: nobody_role, role_changes: { read_course_content: true, read_forum: true })
       admin = account_admin_user(account:, role: nobody_role, active_user: true)
-      expect(@topic.visible_for?(admin)).to be_truthy
+      expect(@topic.visible_for?(admin.principal)).to be_truthy
     end
 
     it "section-specific-topics should be visible to account admins" do
@@ -626,7 +626,7 @@ describe DiscussionTopic do
                                 role: nobody_role,
                                 role_changes: { read_course_content: true, read_forum: true })
       admin = account_admin_user(account:, role: nobody_role, active_user: true)
-      expect(@topic.visible_for?(admin)).to be_truthy
+      expect(@topic.visible_for?(admin.principal)).to be_truthy
     end
 
     context "participants with teachers and tas" do
@@ -672,20 +672,20 @@ describe DiscussionTopic do
           it "is visible only to the assigned student" do
             override = @topic.assignment_overrides.create!
             override.assignment_override_students.create!(user: @student1)
-            expect(@topic.visible_for?(@student1)).to be_truthy
-            expect(@topic.visible_for?(@student2)).to be_falsey
+            expect(@topic.visible_for?(@student1.principal)).to be_truthy
+            expect(@topic.visible_for?(@student2.principal)).to be_falsey
 
-            expect(@topic.visible_for?(@teacher1)).to be_truthy
-            expect(@topic.visible_for?(@teacher2_limited_to_section)).to be_truthy
+            expect(@topic.visible_for?(@teacher1.principal)).to be_truthy
+            expect(@topic.visible_for?(@teacher2_limited_to_section.principal)).to be_truthy
           end
 
           it "is visible only to users who can access the assigned section" do
             @topic.assignment_overrides.create!(set: @course_section)
-            expect(@topic.visible_for?(@student1)).to be_falsey
-            expect(@topic.visible_for?(@student2)).to be_truthy
+            expect(@topic.visible_for?(@student1.principal)).to be_falsey
+            expect(@topic.visible_for?(@student2.principal)).to be_truthy
 
-            expect(@topic.visible_for?(@teacher1)).to be_truthy
-            expect(@topic.visible_for?(@teacher2_limited_to_section)).to be_falsey
+            expect(@topic.visible_for?(@teacher1.principal)).to be_truthy
+            expect(@topic.visible_for?(@teacher2_limited_to_section.principal)).to be_falsey
           end
 
           it "is visible only to students in module override section" do
@@ -698,11 +698,11 @@ describe DiscussionTopic do
                                                             lock_at_overridden: true)
             override2.assignment_override_students.create!(user: @student1)
 
-            expect(@topic.visible_for?(@student1)).to be_truthy
-            expect(@topic.visible_for?(@student2)).to be_falsey
+            expect(@topic.visible_for?(@student1.principal)).to be_truthy
+            expect(@topic.visible_for?(@student2.principal)).to be_falsey
 
-            expect(@topic.visible_for?(@teacher1)).to be_truthy
-            expect(@topic.visible_for?(@teacher2_limited_to_section)).to be_truthy
+            expect(@topic.visible_for?(@teacher1.principal)).to be_truthy
+            expect(@topic.visible_for?(@teacher2_limited_to_section.principal)).to be_truthy
           end
 
           it "is visible to teachers with section limited access" do
@@ -713,7 +713,7 @@ describe DiscussionTopic do
             @topic.update!(only_visible_to_overrides: true)
             @topic.assignment_overrides.create!(set: @course_section)
 
-            expect(@topic.visible_for?(@teacher2_limited_to_section)).to be_truthy
+            expect(@topic.visible_for?(@teacher2_limited_to_section.principal)).to be_truthy
           end
         end
       end
@@ -737,20 +737,20 @@ describe DiscussionTopic do
       end
 
       it "is visible to a student with an override" do
-        expect(@topic.visible_for?(@student1)).to be_truthy
+        expect(@topic.visible_for?(@student1.principal)).to be_truthy
       end
 
       it "is not visible to a student without an override" do
-        expect(@topic.visible_for?(@student2)).to be_falsey
+        expect(@topic.visible_for?(@student2.principal)).to be_falsey
       end
 
       it "is visible to a teacher" do
-        expect(@topic.visible_for?(@teacher)).to be_truthy
+        expect(@topic.visible_for?(@teacher.principal)).to be_truthy
       end
 
       it "does not grant reply permissions to a student without an override" do
-        expect(@topic.check_policy(@student1)).to include :reply
-        expect(@topic.check_policy(@student2)).not_to include :reply
+        expect(@topic.check_policy(@student1.principal)).to include :reply
+        expect(@topic.check_policy(@student2.principal)).not_to include :reply
       end
 
       context "active_participants_with_visibility" do
@@ -3891,25 +3891,25 @@ describe DiscussionTopic do
     end
 
     it "does not allow to summarize if the feature is disabled" do
-      expect(@topic.user_can_summarize?(@teacher)).to be false
-      expect(@topic.user_can_summarize?(@ta)).to be false
-      expect(@topic.user_can_summarize?(@admin)).to be false
-      expect(@topic.user_can_summarize?(@designer)).to be false
-      expect(@topic.user_can_summarize?(@observer)).to be false
-      expect(@topic.user_can_summarize?(@student)).to be false
+      expect(@topic.user_can_summarize?(@teacher.principal)).to be false
+      expect(@topic.user_can_summarize?(@ta.principal)).to be false
+      expect(@topic.user_can_summarize?(@admin.principal)).to be false
+      expect(@topic.user_can_summarize?(@designer.principal)).to be false
+      expect(@topic.user_can_summarize?(@observer.principal)).to be false
+      expect(@topic.user_can_summarize?(@student.principal)).to be false
     end
 
     it "allows instructors and read admins to summarize if the feature is enabled" do
       allow(FeatureFlags::Hooks).to receive(:tier_1_visible_on_hook).and_return(true)
       @course.enable_feature!(:discussion_summary)
 
-      expect(@topic.user_can_summarize?(@teacher)).to be true
-      expect(@topic.user_can_summarize?(@ta)).to be true
-      expect(@topic.user_can_summarize?(@admin)).to be true
-      expect(@topic.user_can_summarize?(@designer)).to be true
+      expect(@topic.user_can_summarize?(@teacher.principal)).to be true
+      expect(@topic.user_can_summarize?(@ta.principal)).to be true
+      expect(@topic.user_can_summarize?(@admin.principal)).to be true
+      expect(@topic.user_can_summarize?(@designer.principal)).to be true
 
-      expect(@topic.user_can_summarize?(@observer)).to be false
-      expect(@topic.user_can_summarize?(@student)).to be false
+      expect(@topic.user_can_summarize?(@observer.principal)).to be false
+      expect(@topic.user_can_summarize?(@student.principal)).to be false
     end
 
     it "does not crash if the topic is in the context of a group with account context" do
@@ -3918,12 +3918,12 @@ describe DiscussionTopic do
       group = account.groups.create!
       topic = group.discussion_topics.create!(title: "topic")
 
-      expect(topic.user_can_summarize?(@teacher)).to be false
-      expect(topic.user_can_summarize?(@ta)).to be false
-      expect(topic.user_can_summarize?(@admin)).to be false
-      expect(topic.user_can_summarize?(@designer)).to be false
-      expect(topic.user_can_summarize?(@observer)).to be false
-      expect(topic.user_can_summarize?(@student)).to be false
+      expect(topic.user_can_summarize?(@teacher.principal)).to be false
+      expect(topic.user_can_summarize?(@ta.principal)).to be false
+      expect(topic.user_can_summarize?(@admin.principal)).to be false
+      expect(topic.user_can_summarize?(@designer.principal)).to be false
+      expect(topic.user_can_summarize?(@observer.principal)).to be false
+      expect(topic.user_can_summarize?(@student.principal)).to be false
     end
   end
 
@@ -3946,25 +3946,25 @@ describe DiscussionTopic do
     end
 
     it "does not allow to access insights if the feature is disabled" do
-      expect(@topic.user_can_access_insights?(@teacher)).to be false
-      expect(@topic.user_can_access_insights?(@ta)).to be false
-      expect(@topic.user_can_access_insights?(@admin)).to be false
-      expect(@topic.user_can_access_insights?(@designer)).to be false
-      expect(@topic.user_can_access_insights?(@observer)).to be false
-      expect(@topic.user_can_access_insights?(@student)).to be false
+      expect(@topic.user_can_access_insights?(@teacher.principal)).to be false
+      expect(@topic.user_can_access_insights?(@ta.principal)).to be false
+      expect(@topic.user_can_access_insights?(@admin.principal)).to be false
+      expect(@topic.user_can_access_insights?(@designer.principal)).to be false
+      expect(@topic.user_can_access_insights?(@observer.principal)).to be false
+      expect(@topic.user_can_access_insights?(@student.principal)).to be false
     end
 
     it "allows instructors and read admins to access insights if the feature is enabled" do
       allow(FeatureFlags::Hooks).to receive(:tier_2_visible_on_hook).and_return(true)
       @course.enable_feature!(:discussion_insights)
 
-      expect(@topic.user_can_access_insights?(@teacher)).to be true
-      expect(@topic.user_can_access_insights?(@ta)).to be true
-      expect(@topic.user_can_access_insights?(@admin)).to be true
-      expect(@topic.user_can_access_insights?(@designer)).to be true
+      expect(@topic.user_can_access_insights?(@teacher.principal)).to be true
+      expect(@topic.user_can_access_insights?(@ta.principal)).to be true
+      expect(@topic.user_can_access_insights?(@admin.principal)).to be true
+      expect(@topic.user_can_access_insights?(@designer.principal)).to be true
 
-      expect(@topic.user_can_access_insights?(@observer)).to be false
-      expect(@topic.user_can_access_insights?(@student)).to be false
+      expect(@topic.user_can_access_insights?(@observer.principal)).to be false
+      expect(@topic.user_can_access_insights?(@student.principal)).to be false
     end
 
     it "does not crash if the topic is in the context of a group with account context" do
@@ -3973,12 +3973,12 @@ describe DiscussionTopic do
       group = account.groups.create!
       topic = group.discussion_topics.create!(title: "topic")
 
-      expect(topic.user_can_access_insights?(@teacher)).to be false
-      expect(topic.user_can_access_insights?(@ta)).to be false
-      expect(topic.user_can_access_insights?(@admin)).to be false
-      expect(topic.user_can_access_insights?(@designer)).to be false
-      expect(topic.user_can_access_insights?(@observer)).to be false
-      expect(topic.user_can_access_insights?(@student)).to be false
+      expect(topic.user_can_access_insights?(@teacher.principal)).to be false
+      expect(topic.user_can_access_insights?(@ta.principal)).to be false
+      expect(topic.user_can_access_insights?(@admin.principal)).to be false
+      expect(topic.user_can_access_insights?(@designer.principal)).to be false
+      expect(topic.user_can_access_insights?(@observer.principal)).to be false
+      expect(topic.user_can_access_insights?(@student.principal)).to be false
     end
   end
 
@@ -4246,11 +4246,11 @@ describe DiscussionTopic do
   describe "show_in_search_for_user?" do
     shared_examples_for "expected_values_for_teacher_student" do |teacher_expected, student_expected|
       it "is #{teacher_expected} for teacher" do
-        expect(topic.show_in_search_for_user?(@teacher)).to eq(teacher_expected)
+        expect(topic.show_in_search_for_user?(@teacher.principal)).to eq(teacher_expected)
       end
 
       it "is #{student_expected} for student" do
-        expect(topic.show_in_search_for_user?(@student)).to eq(student_expected)
+        expect(topic.show_in_search_for_user?(@student.principal)).to eq(student_expected)
       end
     end
 

@@ -1571,11 +1571,11 @@ describe WikiPage do
   describe "show_in_search_for_user?" do
     shared_examples_for "expected_values_for_teacher_student" do |teacher_expected, student_expected|
       it "returns #{teacher_expected} for teacher" do
-        expect(@page.show_in_search_for_user?(@teacher)).to eq(teacher_expected)
+        expect(@page.show_in_search_for_user?(@teacher.principal)).to eq(teacher_expected)
       end
 
       it "returns #{student_expected} for student" do
-        expect(@page.show_in_search_for_user?(@student)).to eq(student_expected)
+        expect(@page.show_in_search_for_user?(@student.principal)).to eq(student_expected)
       end
     end
 

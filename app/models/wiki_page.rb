@@ -481,15 +481,15 @@ class WikiPage < ApplicationRecord
     false
   end
 
-  def show_in_search_for_user?(user)
-    return false unless user
-    return true if can_edit_page?(user)
+  def show_in_search_for_user?(principal)
+    return false unless principal&.user
+    return true if can_edit_page?(principal.user)
 
     if context.tab_hidden?(Course::TAB_PAGES)
-      return false unless context_module_tags.where(context:).any? { |tag| tag.context_module&.available_for?(user) }
+      return false unless context_module_tags.where(context:).any? { |tag| tag.context_module&.available_for?(principal.user) }
     end
 
-    !locked_for?(user)
+    !locked_for?(principal.user)
   end
 
   def effective_roles

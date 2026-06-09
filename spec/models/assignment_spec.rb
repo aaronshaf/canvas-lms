@@ -3207,16 +3207,17 @@ describe Assignment do
 
   describe "show_in_search_for_user?" do
     let(:user) { User.create }
+    let(:current_principal) { user.principal }
     let(:assignment) { Assignment.create }
 
     it "returns true if the user can see the description" do
       expect(assignment).to receive(:include_description?).with(user).and_return(true)
-      expect(assignment.show_in_search_for_user?(user)).to be true
+      expect(assignment.show_in_search_for_user?(current_principal)).to be true
     end
 
     it "returns false if the user cannot see the description" do
       expect(assignment).to receive(:include_description?).with(user).and_return(false)
-      expect(assignment.show_in_search_for_user?(user)).to be false
+      expect(assignment.show_in_search_for_user?(current_principal)).to be false
     end
   end
 

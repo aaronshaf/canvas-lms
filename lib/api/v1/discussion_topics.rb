@@ -164,7 +164,7 @@ module Api::V1::DiscussionTopics
     DatesOverridable.preload_override_data_for_objects([*topics, *topics.filter_map(&:assignment)])
     opts[:use_preload] = true
     topics.each_with_object([]) do |topic, result|
-      if topic.visible_for?(current_principal&.user)
+      if topic.visible_for?(current_principal)
         result << discussion_topic_api_json(topic, context || topic.context, current_principal, session, opts, root_topics)
       end
     end

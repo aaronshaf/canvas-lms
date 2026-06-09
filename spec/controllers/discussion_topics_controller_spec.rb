@@ -329,7 +329,7 @@ describe DiscussionTopicsController do
             parsed_json = json_parse(response.body)
             visible_ids_to_teacher = parsed_json.pluck("id")
 
-            expect(@topic.visible_for?(@teacher)).to be_truthy
+            expect(@topic.visible_for?(@teacher.principal)).to be_truthy
             expect(response).to have_http_status(:success)
             expect(visible_ids_to_teacher).to include(@topic.id)
           end

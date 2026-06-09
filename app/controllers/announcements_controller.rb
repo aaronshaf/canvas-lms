@@ -110,7 +110,7 @@ class AnnouncementsController < ApplicationController
     return unless get_feed_context
 
     announcements = @context.announcements.published.by_posted_at.limit(15)
-                            .select { |a| a.visible_for?(@current_user) }
+                            .select { |a| a.visible_for?(current_principal) }
 
     respond_to do |format|
       format.atom do

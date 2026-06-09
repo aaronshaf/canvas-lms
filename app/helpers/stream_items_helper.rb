@@ -30,9 +30,14 @@ module StreamItemsHelper
     attr_accessor :id, :type, :name, :linked_to, :time_zone
   end
 
-  def categorize_stream_items(stream_items, user = @user || @current_user, real_user: defined?(@real_current_user) ? @real_current_user : nil)
+  def categorize_stream_items(stream_items, principal = @user || current_principal, real_user: defined?(@real_current_user) ? @real_current_user : nil)
     categorized_items = {}
     return categorized_items unless stream_items.present? # if we have no items (possibly because we have no user), don't try to activate the user's shard
+
+    # TODO: find how @user is getting set so we can pass a proper principal in in the first place
+    if principal == @user
+      principal = @user.principal
+    end
 
     supported_categories = %w[Announcement Conversation Assignment DiscussionTopic DiscussionEntry AssessmentRequest]
     supported_categories.each { |category| categorized_items[category] = [] }
@@ -55,7 +60,7 @@ module StreamItemsHelper
 
       case category
       when "Conversation"
-        participant = user.conversation_participant(item.asset_id, real_user:)
+        participant = principal.user.conversation_participant(item.asset_id, real_user:)
 
         next if participant.nil? || participant.last_message.nil? || participant.last_author?
 
@@ -66,12 +71,12 @@ module StreamItemsHelper
         # may be out of sync with the underlying conversation.
         item.unread = participant.unread?
       when "AssessmentRequest"
-        next unless item.data.asset.grants_right?(user, :read)
+        next unless item.data.asset.grants_right?(principal, :read)
       end
 
-      next if topic_types.include?(category) && item.data.try(:visible_for?, user) == false
+      next if topic_types.include?(category) && item.data.try(:visible_for?, principal) == false
 
-      categorized_items[category] << generate_presenter(category, item, user)
+      categorized_items[category] << generate_presenter(category, item, principal&.user)
     end
     categorized_items
   end

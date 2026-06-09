@@ -229,7 +229,7 @@ module Types
       load_association(:child_topics).then do |child_topics|
         Loaders::AssociationLoader.for(DiscussionTopic, :context).load_many(child_topics).then do
           active_topics = child_topics.select { |ct| ct.context&.active? && !ct.deleted? }
-          return [] unless object.visible_for?(current_user)
+          return [] unless object.visible_for?(current_principal)
 
           active_topics.sort_by { |ct| ct.context.name }
         end

@@ -61,7 +61,7 @@ describe StreamItemsHelper do
     it "categorizes different types correctly" do
       @items = @teacher.recent_stream_items
       expect(@items.size).to eq 7 # 1 for each type, 1 hidden conversation
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       expect(@categorized["Announcement"].size).to eq 1
       expect(@categorized["Conversation"].size).to eq 1
       expect(@categorized["Assignment"].size).to eq 1
@@ -73,7 +73,7 @@ describe StreamItemsHelper do
     it "normalizes output into common fields" do
       @items = @teacher.recent_stream_items
       expect(@items.size).to eq 7 # 1 for each type, 1 hidden conversation
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       @categorized.values.flatten.each do |presenter|
         item = @items.detect { |si| si.id == presenter.stream_item_id }
         expect(item).not_to be_nil
@@ -101,13 +101,13 @@ describe StreamItemsHelper do
 
     it "skips assessment requests the user doesn't have permission to read" do
       @items = @reviewer_student.recent_stream_items
-      @categorized = helper.categorize_stream_items(@items, @reviewer_student)
+      @categorized = helper.categorize_stream_items(@items, @reviewer_student.principal)
       expect(@categorized["AssessmentRequest"].size).to eq 1
       @assignment.peer_reviews = false
       @assignment.save!
       AdheresToPolicy::Cache.clear
       @items = @reviewer_student.recent_stream_items
-      @categorized = helper.categorize_stream_items(@items, @reviewer_student)
+      @categorized = helper.categorize_stream_items(@items, @reviewer_student.principal)
       expect(@categorized["AssessmentRequest"].size).to eq 0
     end
 
@@ -121,9 +121,9 @@ describe StreamItemsHelper do
         @course.discussion_topics.create!(title: "title")
 
         items = @user2.recent_stream_items
-        categorized = helper.categorize_stream_items(items, @user2)
-        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @user2) }
-        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @user2) }
+        categorized = helper.categorize_stream_items(items, @user2.principal)
+        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @user2.principal) }
+        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @user2.principal) }
         si_id = @shard1.activate { items[0].id }
         expect(categorized["DiscussionTopic"][0].stream_item_id).to eq si_id
         expect(categorized1["DiscussionTopic"][0].stream_item_id).to eq si_id
@@ -136,9 +136,9 @@ describe StreamItemsHelper do
         topic = @course.discussion_topics.create!(title: "title")
 
         items = @teacher.recent_stream_items
-        categorized = helper.categorize_stream_items(items, @teacher)
-        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @teacher) }
-        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @teacher) }
+        categorized = helper.categorize_stream_items(items, @teacher.principal)
+        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @teacher.principal) }
+        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @teacher.principal) }
         expect(categorized["DiscussionTopic"][0].path).to eq "/courses/#{Shard.short_id_for(@course.global_id)}/discussion_topics/#{Shard.short_id_for(topic.global_id)}"
         expect(categorized1["DiscussionTopic"][0].path).to eq "/courses/#{Shard.short_id_for(@course.global_id)}/discussion_topics/#{Shard.short_id_for(topic.global_id)}"
         expect(categorized2["DiscussionTopic"][0].path).to eq "/courses/#{@course.local_id}/discussion_topics/#{topic.local_id}"
@@ -150,9 +150,9 @@ describe StreamItemsHelper do
         @course.discussion_topics.create!(title: "title")
 
         items = @teacher.recent_stream_items
-        categorized = helper.categorize_stream_items(items, @teacher)
-        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @teacher) }
-        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @teacher) }
+        categorized = helper.categorize_stream_items(items, @teacher.principal)
+        categorized1 = @shard1.activate { helper.categorize_stream_items(items, @teacher.principal) }
+        categorized2 = @shard2.activate { helper.categorize_stream_items(items, @teacher.principal) }
         expect(categorized["DiscussionTopic"][0].context.linked_to).to eq "/courses/#{Shard.short_id_for(@course.global_id)}/discussion_topics"
         expect(categorized1["DiscussionTopic"][0].context.linked_to).to eq "/courses/#{Shard.short_id_for(@course.global_id)}/discussion_topics"
         expect(categorized2["DiscussionTopic"][0].context.linked_to).to eq "/courses/#{@course.local_id}/discussion_topics"
@@ -164,7 +164,7 @@ describe StreamItemsHelper do
     it "links to correct place" do
       @items = @teacher.recent_stream_items
       expect(@items.size).to eq 7 # 1 for each type, 1 hidden conversation
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       expect(@categorized["Announcement"].first.path).to match("/courses/#{@course.id}/announcements/#{@announcement.id}")
       expect(@categorized["Conversation"].first.path).to match("/conversations/#{@conversation.id}")
       expect(@categorized["Assignment"].first.path).to match("/courses/#{@course.id}/assignments/#{@assignment.id}")
@@ -176,7 +176,7 @@ describe StreamItemsHelper do
     it "provides correct link for AssessmentRequest when assignments_2_student feature flag is enabled" do
       @course.enable_feature!(:assignments_2_student)
       @items = @teacher.recent_stream_items
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       expect(@categorized["AssessmentRequest"].first.path).to match("/courses/#{@course.id}/assignments/#{@assignment.id}?reviewee_id=#{@student.id}")
     end
   end
@@ -185,7 +185,7 @@ describe StreamItemsHelper do
     it "finds the correct context" do
       @items = @teacher.recent_stream_items
       expect(@items.size).to eq 7 # 1 for each type, 1 hidden conversation
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       expect(@categorized["Announcement"].first.context.id).to eq @course.id
       expect(@categorized["Conversation"].first.context.id).to eq @other_user.id
       expect(@categorized["Assignment"].first.context.id).to eq @course.id
@@ -201,7 +201,7 @@ describe StreamItemsHelper do
       @conversation.save!
 
       @items = @teacher.recent_stream_items
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       @convo_participant = @conversation.conversation_participants.find_by(user: @teacher)
       @stream_item_updated_at = @categorized["Conversation"].first.updated_at
       expect(@stream_item_updated_at).not_to eq @conversation.updated_at
@@ -213,7 +213,7 @@ describe StreamItemsHelper do
     it "finds the right content" do
       @items = @teacher.recent_stream_items
       expect(@items.size).to eq 7 # 1 for each type, 1 hidden conversation
-      @categorized = helper.categorize_stream_items(@items, @teacher)
+      @categorized = helper.categorize_stream_items(@items, @teacher.principal)
       expect(@categorized["Announcement"].first.summary).to eq @announcement.title
       expect(@categorized["Conversation"].first.summary).to eq @participant.last_message.body
       expect(@categorized["Assignment"].first.summary).to match(/Assignment Created/)
@@ -236,7 +236,7 @@ describe StreamItemsHelper do
       assessment_request.workflow_state = "assigned"
       assessment_request.save
       items = @other_user.recent_stream_items
-      @categorized = helper.categorize_stream_items(items, @other_user)
+      @categorized = helper.categorize_stream_items(items, @other_user.principal)
       expect(@categorized["AssessmentRequest"].first.summary).to include("Anonymous User")
     end
 
@@ -254,7 +254,7 @@ describe StreamItemsHelper do
       assessment_request.workflow_state = "assigned"
       assessment_request.save
       items = @other_user.recent_stream_items
-      @categorized = helper.categorize_stream_items(items, @other_user)
+      @categorized = helper.categorize_stream_items(items, @other_user.principal)
       expect(@categorized["AssessmentRequest"].first.path).to include("anonymous_submission")
     end
   end

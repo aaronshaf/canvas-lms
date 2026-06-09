@@ -1301,7 +1301,7 @@ class DiscussionTopic < ApplicationRecord
     user_ids = []
 
     stream_item&.stream_item_instances&.where(workflow_state: "unread")&.find_each do |item|
-      destroy_item_and_track(item, user_ids) unless visible_for?(item.user)
+      destroy_item_and_track(item, user_ids) unless visible_for?(item.user.principal)
     end
     clear_stream_item_cache_for(user_ids)
   end
@@ -1356,26 +1356,24 @@ class DiscussionTopic < ApplicationRecord
     is_a?(Announcement) && locked?
   end
 
-  def reply_from(opts)
+  def reply_from(user: nil, html: nil, text: nil, purpose: nil, subject: nil)
     raise IncomingMail::Errors::ReplyToDeletedDiscussion if deleted?
     raise IncomingMail::Errors::UnknownAddress if context.root_account.deleted?
 
-    user = opts[:user]
-    if opts[:html]
-      message = opts[:html].strip
-    else
-      message = opts[:text].strip
-      message = format_message(message).first
-    end
+    message = if html
+                html.strip
+              else
+                format_message(text.strip).first
+              end
     user = nil unless user && context.users.include?(user)
     if !user
       raise IncomingMail::Errors::InvalidParticipant
-    elsif !grants_right?(user, :read)
+    elsif !grants_right?(user&.principal, :read)
       nil
     else
       shard.activate do
         entry = discussion_entries.new(message:, user:)
-        if entry.grants_right?(user, :create) && !comments_disabled? && !locked_announcement?
+        if entry.grants_right?(user&.principal, :create) && !comments_disabled? && !locked_announcement?
           entry.saving_user = user
           entry.save!
           entry
@@ -1454,13 +1452,13 @@ class DiscussionTopic < ApplicationRecord
   set_policy do
     # Users may have can :read, but should not have access to all the data
     # because the topic is locked_for?(user)
-    given { |principal| visible_for?(principal&.user) }
+    given { |principal| visible_for?(principal) }
     can :read
 
     given { |principal| grants_right?(principal, :read) }
     can :read_replies
 
-    given { |principal| user && user == principal&.user && visible_for?(principal.user) && !locked_for?(principal.user, check_policies: true) && can_participate_in_course?(principal.user) && !comments_disabled? }
+    given { |principal| user && user == principal&.user && visible_for?(principal) && !locked_for?(principal.user, check_policies: true) && can_participate_in_course?(principal.user) && !comments_disabled? }
     can :reply
 
     given { |principal| user && user == principal&.user && available_for?(principal.user) && context.user_can_manage_own_discussion_posts?(principal.user) && context.grants_right?(principal, :participate_as_student) }
@@ -1471,14 +1469,14 @@ class DiscussionTopic < ApplicationRecord
 
     given do |principal, session|
       !locked_for?(principal&.user, check_policies: true) &&
-        context.grants_right?(principal, session, :post_to_forum) && visible_for?(principal&.user) && can_participate_in_course?(principal&.user) && !comments_disabled?
+        context.grants_right?(principal, session, :post_to_forum) && visible_for?(principal) && can_participate_in_course?(principal&.user) && !comments_disabled?
     end
     can :reply
 
-    given { |principal, session| user_can_create(principal&.user, session) }
+    given { |principal, session| user_can_create(principal, session) }
     can :create
 
-    given { |principal, session| user_can_create(principal&.user, session) && user_can_duplicate(principal&.user, session) }
+    given { |principal, session| user_can_create(principal, session) && user_can_duplicate(principal, session) }
     can :duplicate
 
     given { |principal, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_any_right?(principal, session, :create_forum, :post_to_forum) }
@@ -1538,30 +1536,30 @@ class DiscussionTopic < ApplicationRecord
     can :create_assign_to
   end
 
-  def self.context_allows_user_to_create?(context, user, session)
-    new(context:).grants_right?(user, session, :create)
+  def self.context_allows_user_to_create?(context, principal, session)
+    new(context:).grants_right?(principal, session, :create)
   end
 
-  def context_allows_user_to_create?(user)
+  def context_allows_user_to_create?(principal)
     return true unless context.respond_to?(:allow_student_discussion_topics)
-    return true if context.grants_right?(user, :read_as_admin)
+    return true if context.grants_right?(principal, :read_as_admin)
 
     context.allow_student_discussion_topics
   end
 
-  def user_can_create(user, session)
+  def user_can_create(principal, session)
     !is_announcement &&
-      context.grants_any_right?(user, session, :create_forum, :moderate_forum) &&
-      context_allows_user_to_create?(user)
+      context.grants_any_right?(principal, session, :create_forum, :moderate_forum) &&
+      context_allows_user_to_create?(principal)
   end
 
-  def user_can_duplicate(user, session)
+  def user_can_duplicate(principal, session)
     context.is_a?(Group) ||
-      course.user_is_instructor?(user) ||
-      context.grants_right?(user, session, :read_as_admin)
+      course.user_is_instructor?(principal&.user) ||
+      context.grants_right?(principal, session, :read_as_admin)
   end
 
-  def user_can_summarize?(user)
+  def user_can_summarize?(principal)
     if is_announcement
       return false
     end
@@ -1573,11 +1571,11 @@ class DiscussionTopic < ApplicationRecord
     end
 
     course.feature_enabled?(:discussion_summary) && (
-      course.user_is_instructor?(user) || course.grants_right?(user, :read_as_admin)
+      course.user_is_instructor?(principal&.user) || course.grants_right?(principal, :read_as_admin)
     )
   end
 
-  def user_can_access_insights?(user)
+  def user_can_access_insights?(principal)
     if is_announcement
       return false
     end
@@ -1589,7 +1587,7 @@ class DiscussionTopic < ApplicationRecord
     end
 
     course.feature_enabled?(:discussion_insights) && (
-      course.user_is_instructor?(user) || course.grants_right?(user, :read_as_admin)
+      course.user_is_instructor?(principal&.user) || course.grants_right?(principal, :read_as_admin)
     )
   end
 
@@ -1876,20 +1874,20 @@ class DiscussionTopic < ApplicationRecord
 
   # Public: Determine if the given user can view this discussion topic.
   #
-  # user - The user attempting to view the topic (default: nil).
+  # principal - The principal attempting to view the topic (default: nil).
   #
   # Returns a boolean.
-  def visible_for?(user = nil)
-    RequestCache.cache("discussion_visible_for", self, is_announcement, user) do
-      # user is the topic's author
-      next true if user && user.id == user_id
+  def visible_for?(principal = nil)
+    RequestCache.cache("discussion_visible_for", self, is_announcement, principal) do
+      # principal is the topic's author
+      next true if principal&.user && principal.user.id == user_id
 
       next false unless context
-      next false unless is_announcement ? context.grants_right?(user, :read_announcements) : context.grants_right?(user, :read_forum)
+      next false unless is_announcement ? context.grants_right?(principal, :read_announcements) : context.grants_right?(principal, :read_forum)
 
       # Don't have visibilites for any of the specific sections in a section specific topic
       if context.is_a?(Course) && try(:is_section_specific)
-        section_visibilities = context.course_section_visibility(user)
+        section_visibilities = context.course_section_visibility(principal)
         next false if section_visibilities == :none
 
         if section_visibilities != :all
@@ -1899,10 +1897,10 @@ class DiscussionTopic < ApplicationRecord
         end
       end
       # Verify that section limited teachers/ta's are properly restricted
-      if context.is_a?(Course) && !visible_to_everyone && context.user_is_instructor?(user)
+      if context.is_a?(Course) && !visible_to_everyone && context.user_is_instructor?(principal&.user)
 
         section_overrides = assignment_overrides.active.where(set_type: "CourseSection").pluck(:set_id)
-        visible_sections_for_user = context.course_section_visibility(user)
+        visible_sections_for_user = context.course_section_visibility(principal)
         next false if visible_sections_for_user == :none
 
         # If there are no section_overrides, then no check for section_specific instructor roles is needed
@@ -1912,15 +1910,15 @@ class DiscussionTopic < ApplicationRecord
       end
       # user is an admin in the context (teacher/ta/designer) OR
       # user is an account admin with appropriate permission
-      next true if context.grants_any_right?(user, :manage, :read_as_admin)
+      next true if context.grants_any_right?(principal, :manage, :read_as_admin)
 
       # assignment exists and isn't assigned to user (differentiated assignments)
       if for_assignment?
-        next false unless assignment.visible_to_user?(user)
+        next false unless assignment.visible_to_user?(principal&.user)
       # Announcements can be section specific, but that is already handled above.
       # Eventually is_section_specific will be replaced with assignment overrides, and then announcements will need to be handled
       elsif !is_announcement
-        next false unless visible_to_user?(user)
+        next false unless visible_to_user?(principal&.user)
       end
 
       # topic is not published
@@ -1979,14 +1977,14 @@ class DiscussionTopic < ApplicationRecord
     end
   end
 
-  def show_in_search_for_user?(user)
-    return false unless user && !deleted?
+  def show_in_search_for_user?(principal)
+    return false unless principal&.user && !deleted?
     return false if anonymous? && !context.feature_enabled?(:react_discussions_post)
-    return true if context.grants_right?(user, :read_as_admin)
-    return false if locked_by_module_item?(user)
+    return true if context.grants_right?(principal, :read_as_admin)
+    return false if locked_by_module_item?(principal&.user)
 
-    locked = locked_for?(user, check_policies: true, deep_check_if_needed: true)
-    locked.is_a?(Hash) ? !!locked[:can_view] : visible_for?(user)
+    locked = locked_for?(principal&.user, check_policies: true, deep_check_if_needed: true)
+    locked.is_a?(Hash) ? !!locked[:can_view] : visible_for?(principal)
   end
 
   def self.reject_context_module_locked_topics(topics, user)

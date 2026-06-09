@@ -151,7 +151,7 @@ class SmartSearchController < ApplicationController
 
   def filter_for_current_user(collection)
     collection.select do |item|
-      item.respond_to?(:show_in_search_for_user?) ? item.show_in_search_for_user?(@current_user) : true
+      item.respond_to?(:show_in_search_for_user?) ? item.show_in_search_for_user?(current_principal) : true
     end
   end
 
