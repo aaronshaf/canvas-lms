@@ -88,9 +88,17 @@ function StudentStudyDrawerInner({
   const [containerReady, setContainerReady] = useState(false)
   const containerRef = useRef<HTMLElement | null>(null)
   const closeButtonRef = useRef<Element | null>(null)
+  const triggerElementRef = useRef<HTMLElement | null>(null)
 
   const handleDismiss = useCallback(() => setActivePanel(null), [])
-  const handleOpenNotebook = useCallback(() => setActivePanel('notebook'), [])
+
+  // capture the triggered button so focus can return to it on close.
+  const openPanel = useCallback((panel: Exclude<ActivePanel, null>) => {
+    triggerElementRef.current = document.activeElement as HTMLElement | null
+    setActivePanel(panel)
+  }, [])
+
+  const handleOpenNotebook = useCallback(() => openPanel('notebook'), [openPanel])
 
   const handleCreateError = useCallback(
     (error: Error) => showFlashAlert({message: error.message, type: 'error', err: error}),
@@ -129,16 +137,16 @@ function StudentStudyDrawerInner({
   useEffect(() => {
     const handlers: Array<[string, () => void]> = []
     if (showStudyAssist) {
-      handlers.push([STUDY_ASSIST_OPEN_EVENT, () => setActivePanel('study-assist')])
+      handlers.push([STUDY_ASSIST_OPEN_EVENT, () => openPanel('study-assist')])
     }
     if (showNotebook) {
-      handlers.push([NOTEBOOK_OPEN_EVENT, () => setActivePanel('notebook')])
+      handlers.push([NOTEBOOK_OPEN_EVENT, () => openPanel('notebook')])
     }
     handlers.forEach(([event, fn]) => window.addEventListener(event, fn))
     return () => {
       handlers.forEach(([event, fn]) => window.removeEventListener(event, fn))
     }
-  }, [showStudyAssist, showNotebook])
+  }, [showStudyAssist, showNotebook, openPanel])
 
   // DrawerLayout.Tray's built-in ESC handling only fires in overlay mode
   // (`shouldCloseOnEscape && shouldOverlayTray`); on wide viewports the tray
@@ -150,6 +158,12 @@ function StudentStudyDrawerInner({
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
+  }, [activePanel])
+
+  // Return focus to the trigger when the drawer closes.
+  useEffect(() => {
+    if (activePanel !== null) return
+    triggerElementRef.current?.focus()
   }, [activePanel])
 
   // Notebook owns its own mount focus.

@@ -284,6 +284,83 @@ describe('StudentStudyDrawer', () => {
     expect(document.activeElement).toBe(screen.getByTestId('notebook-close-button'))
   })
 
+  it('returns focus to the study-assist trigger element after closing', () => {
+    const pageContent = makePageContent()
+    const triggerButton = document.createElement('button')
+    document.body.appendChild(triggerButton)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      triggerButton.focus()
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+    expect(screen.getByTestId('study-assist-panel')).toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+    })
+
+    expect(screen.queryByTestId('study-assist-panel')).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(triggerButton)
+  })
+
+  it('returns focus to the notebook trigger element after closing', () => {
+    const pageContent = makePageContent()
+    const triggerButton = document.createElement('button')
+    document.body.appendChild(triggerButton)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      triggerButton.focus()
+      window.dispatchEvent(new CustomEvent('notebook:open'))
+    })
+    expect(screen.getByTestId('notebook-panel')).toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+    })
+
+    expect(screen.queryByTestId('notebook-panel')).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(triggerButton)
+  })
+
+  it('returns focus to the last-active trigger when switching tools before closing', () => {
+    const pageContent = makePageContent()
+    const notebookTrigger = document.createElement('button')
+    const studyAssistTrigger = document.createElement('button')
+    document.body.appendChild(notebookTrigger)
+    document.body.appendChild(studyAssistTrigger)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      notebookTrigger.focus()
+      window.dispatchEvent(new CustomEvent('notebook:open'))
+    })
+    expect(screen.getByTestId('notebook-panel')).toBeInTheDocument()
+
+    act(() => {
+      studyAssistTrigger.focus()
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+    expect(screen.getByTestId('study-assist-panel')).toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+    })
+
+    expect(screen.queryByTestId('study-assist-panel')).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(studyAssistTrigger)
+  })
+
   it('closes the active panel when Escape is pressed', () => {
     const pageContent = makePageContent()
 
