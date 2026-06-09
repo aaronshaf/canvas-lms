@@ -33,6 +33,15 @@ module Operations
   class ForceCanvasPasswordReset < CanvasOperations::RootAccountOperation
     self.progress_tracking = true
 
+    description "Sets must_reset_password on every active canvas-auth pseudonym for a root account"
+
+    argument :root_account,
+             type: Account,
+             required: true,
+             title: "Root Account",
+             description: "The root account where password resets should be forced",
+             example: "93360000000000001"
+
     def execute
       GuardRail.activate(:secondary) do
         root_account.shard.activate do
