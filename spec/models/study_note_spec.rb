@@ -159,4 +159,29 @@ describe StudyNote do
       expect(@note.errors[:reaction]).to be_present
     end
   end
+
+  describe "per-object note limit validation" do
+    it "rejects a note that would exceed the per-object limit" do
+      stub_const("StudyNote::NOTES_PER_OBJECT_LIMIT", 2)
+      StudyNote.create!(user: @student, course: @course, root_account: @root_account, wiki_page: @wiki_page)
+      over_limit = StudyNote.new(user: @student, course: @course, root_account: @root_account, wiki_page: @wiki_page)
+      expect(over_limit).not_to be_valid
+      expect(over_limit.errors[:base].join).to match(/Note limit of 2 per page reached/)
+    end
+
+    it "allows a note on a different object when another object is at the limit" do
+      stub_const("StudyNote::NOTES_PER_OBJECT_LIMIT", 1)
+      # @note already puts @wiki_page at the limit of 1
+      other_page = @course.wiki_pages.create!(title: "Another Page")
+      note = StudyNote.new(user: @student, course: @course, root_account: @root_account, wiki_page: other_page)
+      expect(note).to be_valid
+    end
+
+    it "exempts notes migrated from Redwood" do
+      stub_const("StudyNote::NOTES_PER_OBJECT_LIMIT", 1)
+      # @note already puts @wiki_page at the limit of 1
+      migrated = StudyNote.new(user: @student, course: @course, root_account: @root_account, wiki_page: @wiki_page, redwood_uuid: SecureRandom.uuid)
+      expect(migrated).to be_valid
+    end
+  end
 end

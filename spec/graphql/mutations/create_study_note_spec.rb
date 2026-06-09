@@ -179,5 +179,12 @@ describe Mutations::CreateStudyNote do
       result = execute_with_input(input)
       expect_error(result, "Learning object not found")
     end
+
+    it "returns error when the per-object note limit is reached" do
+      stub_const("StudyNote::NOTES_PER_OBJECT_LIMIT", 1)
+      execute_with_input(valid_input)
+      result = execute_with_input(valid_input)
+      expect_error(result, "Note limit of 1 per page reached")
+    end
   end
 end

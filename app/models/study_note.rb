@@ -20,6 +20,9 @@
 class StudyNote < ApplicationRecord
   include Canvas::SoftDeletable
 
+  NOTES_PER_COURSE_LIMIT = 1000
+  NOTES_PER_OBJECT_LIMIT = 100
+
   belongs_to :user
   belongs_to :course
   belongs_to :root_account, class_name: "Account"
@@ -37,6 +40,7 @@ class StudyNote < ApplicationRecord
   validates :user_text, length: { maximum: maximum_text_length, too_long: ->(_object, data) { t("Note text is too long (%{count} character maximum)", count: data[:count]) } }, allow_nil: true
   validate :highlight_data_size
   validate :note_limit_not_exceeded, on: :create
+  validate :note_limit_per_object_not_exceeded, on: :create
 
   scope :for_user, ->(user) { where(user:) }
   scope :for_course, ->(course) { where(course:) }
@@ -69,6 +73,16 @@ class StudyNote < ApplicationRecord
     return unless user_id && course_id
 
     count = StudyNote.active.where(user_id:, course_id:).count
-    errors.add(:base, t("Note limit of 1000 per course reached")) if count >= 1000
+    errors.add(:base, t("Note limit of %{count} per course reached", count: NOTES_PER_COURSE_LIMIT)) if count >= NOTES_PER_COURSE_LIMIT
+  end
+
+  def note_limit_per_object_not_exceeded
+    return unless user_id && (wiki_page_id || assignment_id || quiz_id)
+    # Notes migrated from Redwood carry a redwood_uuid and predate this cap;
+    # Redwood allowed up to 1000 notes per object, so exempt them to migrate intact.
+    return if redwood_uuid.present?
+
+    count = StudyNote.active.where(user_id:, wiki_page_id:, assignment_id:, quiz_id:).count
+    errors.add(:base, t("Note limit of %{count} per page reached", count: NOTES_PER_OBJECT_LIMIT)) if count >= NOTES_PER_OBJECT_LIMIT
   end
 end
