@@ -269,6 +269,8 @@ AdheresToPolicy.configure do |config|
     # so we don't know that they're not masquerading, and therefore can't allow the action
     user = user.user if user.is_a?(AdheresToPolicy::Principal)
     if user.try(:impersonated) != false && Permissions.not_for_masquerading?(sought_right)
+      # NOTE: we don't currently have a controller handler for this case (see
+      # ApplicationController#authorized_action_handle_justification).
       AdheresToPolicy::JustifiedFailure.new(:not_for_masquerading)
     end
   end

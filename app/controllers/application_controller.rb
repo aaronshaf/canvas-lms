@@ -1465,7 +1465,7 @@ class ApplicationController < ActionController::Base
         # Even if there are multiple justifications, we can only reasonably handle one at a time,
         # so just arbitrarily choose the first one
         chosen = can_do.justifications.first
-        send(:"render_auth_failure_#{chosen.justification}", chosen.context)
+        authorized_action_handle_justification(chosen.justification, chosen.context)
       else
         render_unauthorized_action
       end
@@ -1473,6 +1473,15 @@ class ApplicationController < ActionController::Base
     can_do.success?
   end
   alias_method :authorized_action?, :authorized_action
+
+  # Dispatches an authorization-failure justification to its renderer.
+  # The base controller defines no renderers; plugins (e.g. MRA) override
+  # this to handle the justifications they introduce. Using an explicit
+  # override instead of an interpolated send() keeps this path free of
+  # dynamic code injection.
+  def authorized_action_handle_justification(justification, _context)
+    raise "Unhandled justification: #{justification}"
+  end
 
   def fix_ms_office_redirects
     if ms_office?
