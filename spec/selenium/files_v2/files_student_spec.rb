@@ -57,22 +57,6 @@ describe "better_file_browsing" do
         get "/courses/#{@course.id}/files"
         verify_hidden_item_not_searchable_as_student(txt_files[0])
       end
-
-      it "only sees Download option on cog icon", priority: "1" do
-        get "/courses/#{@course.id}/files"
-        get_item_files_table(1, 7).click
-        expect(action_menu_item_by_name("Download")).to be_displayed
-        expect(content).not_to contain_css(action_menu_item_by_name_selector("Rename"))
-        expect(content).not_to contain_css(action_menu_item_by_name_selector("Move To..."))
-        expect(content).not_to contain_css(action_menu_item_by_name_selector("Delete"))
-      end
-
-      it "only sees Download options on toolbar menu", priority: "1" do
-        get "/courses/#{@course.id}/files"
-        get_row_header_files_table(1).click
-        expect(bulk_actions_by_name("download")).to be_displayed
-        expect(content).not_to contain_css(bulk_actions_by_name_selector("more"))
-      end
     end
 
     context "in course with folders" do

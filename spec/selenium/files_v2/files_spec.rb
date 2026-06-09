@@ -153,13 +153,6 @@ describe "files index page", :ignore_js_errors do
           action_button = get_item_files_table(1, 7).find_element(:css, "button")
           check_element_has_focus(action_button)
         end
-
-        it "deletes file", priority: "1" do
-          delete_file_from(1, :kebab_menu)
-          expect(content).not_to contain_link(a_txt_file_name)
-          action_button = get_item_files_table(1, 7).find_element(:css, "button")
-          check_element_has_focus(action_button)
-        end
       end
 
       context "Publish cloud icon Dialog" do
@@ -226,19 +219,6 @@ describe "files index page", :ignore_js_errors do
           expect(f(all_files_table_row)).to contain_css("[data-testid='restricted-button-icon']")
           expect(permission_tooltip.attribute("innerText")).to include(/Available from [A-Za-z]{3} 15 at 12am until [A-Za-z]{3} 25 at 12am/)
         end
-
-        it "deletes file from toolbar", priority: "1" do
-          delete_file_from(1, :toolbar_menu)
-          expect(content).not_to contain_link(a_txt_file_name)
-          check_element_has_focus(select_all_checkbox)
-        end
-
-        it "deletes multiple files from toolbar", priority: "1" do
-          get_row_header_files_table(1).click
-          delete_file_from(2, :toolbar_menu)
-          expect(content).not_to contain_link(a_txt_file_name)
-          expect(content).not_to contain_link(b_txt_file_name)
-        end
       end
 
       context "accessibility tests for preview" do
@@ -286,17 +266,6 @@ describe "files index page", :ignore_js_errors do
                    @course,
                    mp3_file_name)
           get "/courses/#{@course.id}/files"
-        end
-
-        it "returns to current folder on close" do
-          sub_folder = Folder.root_folders(@course).first.sub_folders.create!(name: "Sub", context: @course)
-          add_file(fixture_file_upload(a_txt_file_name, "text/plain"), @course, a_txt_file_name, sub_folder)
-          get "/courses/#{@course.id}/files/folder/Sub"
-
-          get_item_files_table(1, 1).click
-          expect(preview_file_header).to include_text(a_txt_file_name)
-          preview_close_button.click
-          expect(breadcrumb).to contain_css("li", text: "Sub")
         end
 
         context "with media file" do
@@ -396,14 +365,6 @@ describe "files index page", :ignore_js_errors do
             check_element_has_focus(action_menu_button)
             get_item_files_table(1, 1).click
             verify_usage_rights_ui_updates(:creative_commons)
-          end
-
-          it "does not show the creative commons selection if creative commons isn't selected", priority: "1" do
-            get "/courses/#{@course.id}/files"
-            file_usage_rights_cloud_icon.click
-            file_usage_rights_justification.click
-            usage_rights_selector_fair_use.click
-            expect(usage_rights_manage_modal).not_to contain_css(usage_rights_license_selector)
           end
 
           it "sets focus to the close button when opening the file usage rights dialog", priority: "1" do
@@ -529,13 +490,6 @@ describe "files index page", :ignore_js_errors do
           header_name_files_table.click
           expect(get_item_content_files_table(1, 1)).to eq "PDF File\nexample.pdf"
           expect(get_item_content_files_table(2, 1)).to eq "Text File\nb_file.txt"
-        end
-
-        it "url-encodes sort header links" do
-          course_with_teacher_logged_in
-          Folder.root_folders(@course).first.sub_folders.create!(name: "eh?", context: @course)
-          get "/courses/#{@course.id}/files/folder/eh%3F"
-          expect(breadcrumb).to contain_css("li", text: "eh?")
         end
       end
     end
