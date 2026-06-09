@@ -4464,6 +4464,58 @@ describe UsersController do
         student_courses = course_data.select { |c| c[:courseId] == @course.id.to_s }
         expect(student_courses).to be_empty
       end
+
+      context "when hide_final_grades is enabled on the course" do
+        before do
+          assignment = @course.assignments.create!(title: "Test", points_possible: 100)
+          submission = assignment.submit_homework(@student, body: "test")
+          submission.update_column(:score, 90)
+          @enrollment.find_score(course_score: true).update!(current_score: 90)
+          @course.update!(hide_final_grades: true)
+        end
+
+        it "hides the grade from an observer with a course ObserverEnrollment" do
+          get :user_dashboard
+          expect(response).to be_successful
+
+          course_data = assigns[:js_env][:SHARED_COURSE_DATA]
+          observed_course = course_data.find { |c| c[:courseId] == @course.id.to_s }
+          expect(observed_course[:currentGrade]).to be_nil
+        end
+
+        it "hides the grade from an observer linked via UserObservationLink" do
+          add_linked_observer(@student, @observer)
+
+          get :user_dashboard
+          expect(response).to be_successful
+
+          course_data = assigns[:js_env][:SHARED_COURSE_DATA]
+          observed_course = course_data.find { |c| c[:courseId] == @course.id.to_s }
+          expect(observed_course[:currentGrade]).to be_nil
+        end
+
+        it "still shows the grade once hide_final_grades is turned off" do
+          @course.update!(hide_final_grades: false)
+
+          get :user_dashboard
+          expect(response).to be_successful
+
+          course_data = assigns[:js_env][:SHARED_COURSE_DATA]
+          observed_course = course_data.find { |c| c[:courseId] == @course.id.to_s }
+          expect(observed_course[:currentGrade]).to eq(90.0)
+        end
+
+        it "still shows the grade to an observer who also has view_all_grades" do
+          Account.default.account_users.create!(user: @observer)
+
+          get :user_dashboard
+          expect(response).to be_successful
+
+          course_data = assigns[:js_env][:SHARED_COURSE_DATA]
+          observed_course = course_data.find { |c| c[:courseId] == @course.id.to_s }
+          expect(observed_course[:currentGrade]).to eq(90.0)
+        end
+      end
     end
 
     context "grade priority and display" do

@@ -3601,10 +3601,8 @@ class UsersController < ApplicationController
 
     return [] if courses.empty?
 
-    # Update course_ids after filtering
     course_ids = courses.map(&:id)
 
-    # For observers, get observer's enrollments to check read_grades permission
     observer_enrollments_by_course = if target_user.id == @current_user.id
                                        {}
                                      else
@@ -3623,12 +3621,13 @@ class UsersController < ApplicationController
       enrollment = enrollments_by_course[course.id]
       next unless enrollment
 
-      # Check grade visibility
       can_read_grades = if target_user.id == @current_user.id
                           !course.hide_final_grades? || course.grants_any_right?(current_principal, :view_all_grades, :manage_grades)
                         else
                           observer_enrollment = observer_enrollments_by_course[course.id]
-                          observer_enrollment&.grants_right?(current_principal, :read_grades) || course.grants_any_right?(current_principal, :view_all_grades, :manage_grades)
+                          staff_can_read = course.grants_any_right?(current_principal, :view_all_grades, :manage_grades)
+                          observer_can_read = observer_enrollment&.grants_right?(current_principal, :read_grades) && !course.hide_final_grades?
+                          staff_can_read || observer_can_read
                         end
 
       # Get grade data if visible
