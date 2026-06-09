@@ -19,7 +19,7 @@
 import React from 'react'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import {MockedProvider} from '@apollo/client/testing'
-import {render, fireEvent, waitFor, act, cleanup} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   AccountStatusManagement,
@@ -67,10 +67,10 @@ describe('Account Grading Status Management', () => {
 
   describe('when the account is a root account', () => {
     it('should render the component and children successfully', async () => {
-      const {getByText, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByText, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: true,
       })
+      await findByTestId('custom-status-2')
       expect(getByText('Standard Statuses')).toBeInTheDocument()
       expect(getByText('Custom Statuses')).toBeInTheDocument()
 
@@ -80,24 +80,21 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should not render extended status when isExtendedStatusEnabled is false', async () => {
-      const {queryByText, queryAllByTestId, queryByTestId} = renderGradingStatusManagement({
-        isRootAccount: true,
-        isExtendedStatusEnabled: false,
-      })
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
-
-      expect(queryAllByTestId(/standard-status-/)).toHaveLength(5)
+      const {findAllByTestId, queryByText, queryAllByTestId, queryByTestId} =
+        renderGradingStatusManagement({
+          isRootAccount: true,
+          isExtendedStatusEnabled: false,
+        })
+      expect(await findAllByTestId(/standard-status-/)).toHaveLength(5)
       expect(queryByText('Extended')).not.toBeInTheDocument()
       expect(queryByTestId('standard-status-extended')).not.toBeInTheDocument()
     })
 
     it('should open a single edit popover when clicking on the edit button', async () => {
-      const {getByTestId, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: true,
       })
+      await findByTestId('standard-status-1')
       expect(queryAllByTestId('edit-status-popover')).toHaveLength(0)
 
       const standardStatusItem = getByTestId('standard-status-1')
@@ -116,10 +113,10 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should close popover if edit button clicked again', async () => {
-      const {getByTestId, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: true,
       })
+      await findByTestId('standard-status-1')
       expect(queryAllByTestId('edit-status-popover')).toHaveLength(0)
 
       const standardStatusItem = getByTestId('standard-status-1')
@@ -131,11 +128,8 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should pick new color for status item', async () => {
-      const {getByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
-      const standardStatusItem = getByTestId('standard-status-1')
+      const {findByTestId, getByTestId} = renderGradingStatusManagement({isRootAccount: true})
+      const standardStatusItem = await findByTestId('standard-status-1')
       expect(standardStatusItem.firstChild).toHaveStyle('background-color: #E40606')
 
       const standardEditButton = standardStatusItem?.querySelector('button') as Element
@@ -145,28 +139,24 @@ describe('Account Grading Status Management', () => {
       const saveButton = getByTestId('save-status-button')
       await userEvent.click(saveButton)
 
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        const updatedStatusItem = getByTestId('standard-status-1')
+        expect(updatedStatusItem.firstChild).toHaveStyle('background-color: #F0E8EF')
       })
-      const updatedStatusItem = getByTestId('standard-status-1')
-      expect(updatedStatusItem.firstChild).toHaveStyle('background-color: #F0E8EF')
     })
 
     it('should delete a custom status item', async () => {
-      const {getByTestId, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: true,
       })
+      await findByTestId('custom-status-2')
       expect(queryAllByTestId(/custom-status-[0-9]/)).toHaveLength(2)
       expect(queryAllByTestId(/custom-status-new-[0-2]/)).toHaveLength(1)
       const statusToDelete = getByTestId('custom-status-2')
 
       const deleteButton = statusToDelete?.querySelectorAll('button')[1]
       await userEvent.click(deleteButton)
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
-      const confirmDeleteButton = getByTestId('confirm-button')
+      const confirmDeleteButton = await findByTestId('confirm-button')
       await userEvent.click(confirmDeleteButton)
       await waitFor(() => expect(queryAllByTestId(/custom-status-[0-9]/)).toHaveLength(1))
       expect(queryAllByTestId(/custom-status-new-[0-2]/)).toHaveLength(2)
@@ -175,11 +165,8 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should pick edit color & name of custom status item', async () => {
-      const {getByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
-      const customStatusItem = getByTestId('custom-status-1')
+      const {findByTestId, getByTestId} = renderGradingStatusManagement({isRootAccount: true})
+      const customStatusItem = await findByTestId('custom-status-1')
 
       const customEditButton = customStatusItem?.querySelector('button') as Element
       await userEvent.click(customEditButton)
@@ -191,12 +178,13 @@ describe('Account Grading Status Management', () => {
 
       const saveButton = getByTestId('save-status-button')
       await userEvent.click(saveButton)
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+
+      await waitFor(() => {
+        const customStatusItemUpdated = getByTestId('custom-status-1')
+        expect(customStatusItemUpdated.textContent).toContain('New Status 10')
       })
 
       const customStatusItemUpdated = getByTestId('custom-status-1')
-      expect(customStatusItemUpdated.textContent).toContain('New Status 10')
 
       // Verify icon is still present after update (from mutation response)
       const icon = customStatusItemUpdated.querySelector('img')
@@ -207,10 +195,10 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should add a new custom status item', async () => {
-      const {getByTestId, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: true,
       })
+      await findByTestId('custom-status-2')
       const newStatusItem = getByTestId('custom-status-new-0').querySelector('span') as Element
       await userEvent.click(newStatusItem)
 
@@ -222,9 +210,8 @@ describe('Account Grading Status Management', () => {
 
       const saveButton = getByTestId('save-status-button')
       await userEvent.click(saveButton)
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
+
+      await waitFor(() => expect(queryAllByTestId(/custom-status-[0-9]/)).toHaveLength(3))
 
       const customStatusItems = queryAllByTestId(/custom-status-[0-9]/)
       expect(customStatusItems).toHaveLength(3)
@@ -243,10 +230,10 @@ describe('Account Grading Status Management', () => {
 
   describe('when the account is a sub account', () => {
     it('should render the component and children successfully', async () => {
-      const {getByText, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: false})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByText, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: false,
       })
+      await findByTestId('custom-status-2')
       expect(getByText('Standard Statuses')).toBeInTheDocument()
       expect(getByText('Custom Statuses')).toBeInTheDocument()
 
@@ -257,10 +244,10 @@ describe('Account Grading Status Management', () => {
     })
 
     it('should display status but not allow editing or deleting them', async () => {
-      const {getByTestId, queryAllByTestId} = renderGradingStatusManagement({isRootAccount: false})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId, getByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: false,
       })
+      await findByTestId('standard-status-1')
       expect(queryAllByTestId('edit-status-popover')).toHaveLength(0)
 
       const standardStatusItem = getByTestId('standard-status-1')
@@ -280,15 +267,12 @@ describe('Account Grading Status Management', () => {
 
   describe('icon display', () => {
     it('displays icons for all standard statuses', async () => {
-      const {queryAllByTestId} = renderGradingStatusManagement({
+      const {findAllByTestId} = renderGradingStatusManagement({
         isRootAccount: true,
-      })
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
       })
 
       // Get all standard status items
-      const standardStatusItems = queryAllByTestId(/standard-status-/)
+      const standardStatusItems = await findAllByTestId(/standard-status-/)
       expect(standardStatusItems.length).toBeGreaterThanOrEqual(5)
 
       // Each standard status should have an icon
@@ -301,12 +285,9 @@ describe('Account Grading Status Management', () => {
     })
 
     it('displays icons for all custom statuses', async () => {
-      const {queryAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
+      const {findAllByTestId} = renderGradingStatusManagement({isRootAccount: true})
 
-      const customStatusItems = queryAllByTestId(/custom-status-[0-9]/)
+      const customStatusItems = await findAllByTestId(/custom-status-[0-9]/)
       expect(customStatusItems.length).toBeGreaterThanOrEqual(2)
 
       // Each custom status should have an icon
@@ -319,13 +300,12 @@ describe('Account Grading Status Management', () => {
     })
 
     it('displays icons for both standard and custom statuses in sub accounts', async () => {
-      const {queryAllByTestId} = renderGradingStatusManagement({isRootAccount: false})
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      const {findAllByTestId, queryAllByTestId} = renderGradingStatusManagement({
+        isRootAccount: false,
       })
 
       // Standard statuses should have icons
-      const standardStatusItems = queryAllByTestId(/standard-status-/)
+      const standardStatusItems = await findAllByTestId(/standard-status-/)
       standardStatusItems.forEach(item => {
         const icon = item.querySelector('img')
         expect(icon).not.toBeNull()

@@ -98,7 +98,8 @@ describe('RubricForm Tests', () => {
     const {getByTestId} = renderComponent()
     const deleteButton = getByTestId('delete-rubric-modal-button')
     fireEvent.click(deleteButton)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getSRAlert()).toContain('Rubric deleted successfully')
+    await waitFor(() => {
+      expect(getSRAlert()).toContain('Rubric deleted successfully')
+    })
   })
 })

@@ -36,15 +36,20 @@ import {http, HttpResponse} from 'msw'
 const server = setupServer(
   // Pagination handlers (must come first to avoid being caught by wildcard patterns)
   http.get('*/nextPageAssignment*', () =>
-    HttpResponse.json(SecondAssignmentUsedLocations.map(location => JSON.parse(JSON.stringify(location)))),
+    HttpResponse.json(
+      SecondAssignmentUsedLocations.map(location => JSON.parse(JSON.stringify(location))),
+    ),
   ),
   http.get('*/nextPage*', () =>
     HttpResponse.json(secondUsedLocations.map(location => JSON.parse(JSON.stringify(location)))),
   ),
   http.get('*/account_used_locations', () =>
-    HttpResponse.json(DefaultAccountUsedLocations.map(location => JSON.parse(JSON.stringify(location))), {
-      headers: {Link: '<nextPage>; rel="next"'},
-    }),
+    HttpResponse.json(
+      DefaultAccountUsedLocations.map(location => JSON.parse(JSON.stringify(location))),
+      {
+        headers: {Link: '<nextPage>; rel="next"'},
+      },
+    ),
   ),
   http.get('*/used_locations/:courseId', ({request}) => {
     // This is for loading assignments for a specific course
@@ -55,9 +60,12 @@ const server = setupServer(
   }),
   http.get('*/used_locations', () => {
     // General used locations (no course ID in path)
-    return HttpResponse.json(DefaultUsedLocations.map(location => JSON.parse(JSON.stringify(location))), {
-      headers: {Link: '<nextPage>; rel="next"'},
-    })
+    return HttpResponse.json(
+      DefaultUsedLocations.map(location => JSON.parse(JSON.stringify(location))),
+      {
+        headers: {Link: '<nextPage>; rel="next"'},
+      },
+    )
   }),
 )
 
@@ -88,9 +96,8 @@ describe('UsedLocationsModal', () => {
     }
   }
   it('should render a modal', async () => {
-    const {getByTestId} = renderUsedLocationsModal()
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('used-locations-modal')).toBeInTheDocument()
+    const {findByTestId} = renderUsedLocationsModal()
+    expect(await findByTestId('used-locations-modal')).toBeInTheDocument()
   })
 
   it('should call the handleClose function when the close button is clicked', () => {
@@ -101,52 +108,42 @@ describe('UsedLocationsModal', () => {
   })
 
   it('should render concluded pill if the course is concluded', async () => {
-    const {getByTestId} = renderUsedLocationsModal()
+    const {findByTestId} = renderUsedLocationsModal()
     const concludedCourse = DefaultUsedLocations.find(location => location['concluded?'])
-    await new Promise(resolve => setTimeout(resolve, 0))
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId(`concluded-course-${concludedCourse?.id}-pill`)).toBeInTheDocument()
+    expect(await findByTestId(`concluded-course-${concludedCourse?.id}-pill`)).toBeInTheDocument()
   })
 
   describe('2 pages of used locations', () => {
     it('should make 2 calls to the API to load the next page', async () => {
-      renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      // Test passes if the component loads pages successfully
+      const {findByTestId} = renderUsedLocationsModal()
+      // The second page is only rendered once both API calls have resolved
+      expect(
+        await findByTestId(`used-locations-modal-course-${secondUsedLocations[0].id}`),
+      ).toBeInTheDocument()
     })
 
     it('should load the second page of used locations', async () => {
-      const {getByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-course-${secondUsedLocations[0].id}`)
       expect(getByTestId('used-locations-modal')).toBeInTheDocument()
       expect(
         getByTestId(`used-locations-modal-course-${DefaultUsedLocations[0].id}`),
-      ).toBeInTheDocument()
-      expect(
-        getByTestId(`used-locations-modal-course-${secondUsedLocations[0].id}`),
       ).toBeInTheDocument()
     })
   })
 
   describe('show accounts used locations', () => {
     it('should load the page of account used locations', async () => {
-      const {getByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-account-${DefaultAccountUsedLocations[0].id}`)
       expect(getByTestId('used-locations-modal')).toBeInTheDocument()
-      expect(
-        getByTestId(`used-locations-modal-account-${DefaultAccountUsedLocations[0].id}`),
-      ).toBeInTheDocument()
     })
   })
 
   describe('filtering', () => {
     it('should show all assignments if there is no filter', async () => {
-      const {getByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-course-${DefaultUsedLocations[0].id}`)
       DefaultUsedLocations.forEach(location => {
         expect(getByTestId(`used-locations-modal-course-${location.id}`)).toBeInTheDocument()
         location.assignments.forEach(assignment => {
@@ -158,9 +155,8 @@ describe('UsedLocationsModal', () => {
     })
 
     it('should show the course and all its assignments if it matches the query even if the assignment names do not match', async () => {
-      const {getByTestId, queryByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, queryByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-course-${DefaultUsedLocations[0].id}`)
       const filterInput = getByTestId('used-locations-modal-search-input')
       fireEvent.change(filterInput, {target: {value: DefaultUsedLocations[0].name}})
       expect(
@@ -180,9 +176,8 @@ describe('UsedLocationsModal', () => {
     })
 
     it('should show the course names for all assignments that match the query, even if the course name does not match', async () => {
-      const {getByTestId, queryByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, queryByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-course-${DefaultUsedLocations[0].id}`)
       const filterInput = getByTestId('used-locations-modal-search-input')
       fireEvent.change(filterInput, {target: {value: DefaultUsedLocations[0].assignments[0].title}})
       expect(
@@ -197,9 +192,8 @@ describe('UsedLocationsModal', () => {
     })
 
     it('should show course and assignments if both of them match the query', async () => {
-      const {getByTestId, queryByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {getByTestId, queryByTestId, findByTestId} = renderUsedLocationsModal()
+      await findByTestId(`used-locations-modal-course-${DefaultUsedLocations[0].id}`)
       const filterInput = getByTestId('used-locations-modal-search-input')
       fireEvent.change(filterInput, {target: {value: 'Same Name'}})
       DefaultUsedLocations.find(location => location.name === 'Same Name')?.assignments.forEach(
@@ -229,41 +223,35 @@ describe('UsedLocationsModal', () => {
     })
 
     it('should render Load Assignments button', async () => {
-      const {getByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId} = renderUsedLocationsModal()
       expect(
-        getByTestId(
+        await findByTestId(
           `used-locations-modal-load-assignments-button-${courseWithAsyncAssignments.id}`,
         ),
       ).toBeInTheDocument()
     })
 
     it('should Load Assignments after click Load Assignments button', async () => {
-      const {getByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const button = getByTestId(
+      const {getByTestId, findByTestId} = renderUsedLocationsModal()
+      const button = await findByTestId(
         `used-locations-modal-load-assignments-button-${courseWithAsyncAssignments.id}`,
       )
       fireEvent.click(button)
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await findByTestId(`used-locations-modal-assignment-${DefaultAssignmentUsedLocations[0].id}`)
       DefaultAssignmentUsedLocations.forEach(assignment => {
         expect(getByTestId(`used-locations-modal-assignment-${assignment.id}`)).toBeInTheDocument()
       })
     })
 
     it('should Load assignments second page  after second click into Load Assignments button', async () => {
-      const {getByTestId, queryByTestId} = renderUsedLocationsModal()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const button = getByTestId(
+      const {getByTestId, queryByTestId, findByTestId} = renderUsedLocationsModal()
+      const button = await findByTestId(
         `used-locations-modal-load-assignments-button-${courseWithAsyncAssignments.id}`,
       )
       fireEvent.click(button)
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await findByTestId(`used-locations-modal-assignment-${DefaultAssignmentUsedLocations[0].id}`)
       fireEvent.click(button)
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await findByTestId(`used-locations-modal-assignment-${SecondAssignmentUsedLocations[0].id}`)
       DefaultAssignmentUsedLocations.forEach(assignment => {
         expect(getByTestId(`used-locations-modal-assignment-${assignment.id}`)).toBeInTheDocument()
       })

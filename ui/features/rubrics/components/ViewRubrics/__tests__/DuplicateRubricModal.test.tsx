@@ -159,7 +159,8 @@ describe('RubricForm Tests', () => {
     const {getByTestId} = renderComponent()
     const duplicateButton = getByTestId('duplicate-rubric-modal-button')
     fireEvent.click(duplicateButton!)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getSRAlert()).toContain('Rubric duplicated successfully')
+    await waitFor(() => {
+      expect(getSRAlert()).toContain('Rubric duplicated successfully')
+    })
   })
 })

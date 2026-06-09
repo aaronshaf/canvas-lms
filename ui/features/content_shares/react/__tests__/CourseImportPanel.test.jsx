@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent, act} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import useManagedCourseSearchApi from '@canvas/direct-sharing/react/effects/useManagedCourseSearchApi'
@@ -83,10 +83,9 @@ describe('CourseImportPanel', () => {
     fireEvent.click(getByText(/select a course/i))
     fireEvent.click(getByText('abc'))
     const copyButton = getByText(/import/i).closest('button')
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      expect(copyButton.getAttribute('disabled')).toBe(null)
     })
-    expect(copyButton.getAttribute('disabled')).toBe(null)
   })
 
   it('disables the import button again when a course search is initiated', async () => {
@@ -95,8 +94,12 @@ describe('CourseImportPanel', () => {
     const input = getByLabelText(/select a course/i)
     fireEvent.click(input)
     fireEvent.click(getByText('abc'))
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      expect(
+        getByText(/import/i)
+          .closest('button')
+          .getAttribute('disabled'),
+      ).toBe(null)
     })
     fireEvent.change(input, {target: {value: 'foo'}})
     expect(
@@ -125,7 +128,7 @@ describe('CourseImportPanel', () => {
         {id: '2', name: 'Module 2'},
       ])
     })
-    const {getByText, getAllByText, getByLabelText, queryByText} = render(
+    const {getByText, getAllByText, getByLabelText, queryByText, findByText} = render(
       <CourseImportPanel contentShare={share} onImport={onImport} />,
     )
     fireEvent.click(getByLabelText(/select a course/i))
@@ -136,14 +139,11 @@ describe('CourseImportPanel', () => {
     expect(queryByText('Import')).toBeNull()
     expect(getByText('Close')).toBeInTheDocument()
     expect(getAllByText(/start/i)).not.toHaveLength(0)
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
+    expect(await findByText(/success/)).toBeInTheDocument()
     expect(capturedRequest).toMatchObject({
       migration_type: 'canvas_cartridge_importer',
       settings: {content_export_id: share.content_export.id, insert_into_module_id: '1'},
     })
-    expect(getByText(/success/)).toBeInTheDocument()
     expect(queryByText('Import')).toBeNull()
     expect(getByText('Close')).toBeInTheDocument()
 
@@ -200,17 +200,14 @@ describe('CourseImportPanel', () => {
       )
       const share = mockShare()
       const onImport = vi.fn()
-      const {getByText, getByLabelText, queryByText} = render(
+      const {getByText, getByLabelText, queryByText, findByText} = render(
         <CourseImportPanel contentShare={share} onImport={onImport} />,
       )
       const input = getByLabelText(/select a course/i)
       fireEvent.click(input)
       fireEvent.click(getByText('abc'))
       fireEvent.click(getByText('Import'))
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
-      })
-      expect(getByText(/problem/i)).toBeInTheDocument()
+      expect(await findByText(/problem/i)).toBeInTheDocument()
       expect(queryByText('Import')).toBeNull()
       expect(getByText('Close')).toBeInTheDocument()
       expect(onImport).toHaveBeenCalledTimes(1)

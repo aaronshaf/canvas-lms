@@ -196,10 +196,9 @@ describe('view of received content', () => {
 
     fireEvent.click(getByText(/manage options/i))
     fireEvent.click(getByText('Preview'))
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      expect(document.querySelector('iframe')).toBeInTheDocument()
     })
-    expect(document.querySelector('iframe')).toBeInTheDocument()
   })
 
   it('displays the import tray when requested', async () => {
@@ -260,10 +259,9 @@ describe('view of received content', () => {
         expect(getByTestId('received-table-row-unread')).toBeInTheDocument()
       })
       fireEvent.click(getByTestId('received-table-row-unread'))
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        expect(apiCalled).toBeTruthy()
       })
-      expect(apiCalled).toBeTruthy()
     })
 
     it('updates the unread dot', async () => {
@@ -272,10 +270,9 @@ describe('view of received content', () => {
         expect(getByTestId('received-table-row-unread')).toBeInTheDocument()
       })
       fireEvent.click(getByTestId('received-table-row-unread'))
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        expect(queryByTestId('received-table-row-unread')).toBeNull()
       })
-      expect(queryByTestId('received-table-row-unread')).toBeNull()
     })
   })
 
@@ -306,10 +303,9 @@ describe('view of received content', () => {
       })
       fireEvent.click(getByText(/manage options/i))
       fireEvent.click(getByText('Remove'))
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        expect(queryByText(assignmentShare.name)).toBeNull()
       })
-      expect(queryByText(assignmentShare.name)).toBeNull()
     })
 
     it('does nothing when user declines to remove', async () => {
@@ -330,11 +326,10 @@ describe('view of received content', () => {
       fireEvent.click(getByText(/manage options/i))
       fireEvent.click(getByText('Remove'))
       // Give a moment for any async operations
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        expect(deleteCalled).toBe(false)
+        expect(getByText(assignmentShare.name)).toBeInTheDocument()
       })
-      expect(deleteCalled).toBe(false)
-      expect(getByText(assignmentShare.name)).toBeInTheDocument()
     })
 
     it('displays an error when the fetch fails', async () => {
@@ -353,12 +348,11 @@ describe('view of received content', () => {
       })
       fireEvent.click(getByText(/manage options/i))
       fireEvent.click(getByText('Remove'))
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => {
+        expect(showFlashAlert).toHaveBeenCalledWith(
+          expect.objectContaining({message: 'There was an error removing the item'}),
+        )
       })
-      expect(showFlashAlert).toHaveBeenCalledWith(
-        expect.objectContaining({message: 'There was an error removing the item'}),
-      )
     })
   })
 })

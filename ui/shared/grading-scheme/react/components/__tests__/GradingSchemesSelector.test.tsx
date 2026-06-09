@@ -84,17 +84,15 @@ describe('GradingSchemesSelector', () => {
     server.resetHandlers()
   })
   it('should render a dropdown and view, copy, and new grading scheme buttons, and loads default scheme and scheme summaries', async () => {
-    const {getByTestId} = renderGradingSchemesSelector()
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading-schemes-selector-view-button')).toBeInTheDocument()
+    const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+    expect(await findByTestId('grading-schemes-selector-view-button')).toBeInTheDocument()
     expect(getByTestId('grading-schemes-selector-copy-button')).toBeInTheDocument()
     expect(getByTestId('grading-schemes-selector-new-grading-scheme-button')).toBeInTheDocument()
   })
 
   it('should render disabled unless canSet is true', async () => {
-    const {getByTestId} = renderGradingSchemesSelector({canSet: false})
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading-schemes-selector-view-button')).not.toBeDisabled()
+    const {getByTestId, findByTestId} = renderGradingSchemesSelector({canSet: false})
+    expect(await findByTestId('grading-schemes-selector-view-button')).not.toBeDisabled()
     expect(getByTestId('grading-schemes-selector-dropdown')).toBeDisabled()
   })
 
@@ -127,9 +125,8 @@ describe('GradingSchemesSelector', () => {
     })
 
     it('should not make an api call when the default scheme is selected', async () => {
-      const {getByTestId} = renderGradingSchemesSelector()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const defaultScheme = getByTestId('grading-schemes-selector-default-option')
       fireEvent.click(defaultScheme)
@@ -139,9 +136,8 @@ describe('GradingSchemesSelector', () => {
     })
 
     it('should open the view modal when the view button is clicked for the default scheme', async () => {
-      const {getByTestId} = renderGradingSchemesSelector()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const defaultScheme = getByTestId('grading-schemes-selector-default-option')
       fireEvent.click(defaultScheme)
@@ -151,43 +147,37 @@ describe('GradingSchemesSelector', () => {
     })
 
     it('should open the view modal when the view button is clicked for a non-default scheme', async () => {
-      const {getByTestId} = renderGradingSchemesSelector()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const scheme = getByTestId('grading-schemes-selector-option-1')
       fireEvent.click(scheme)
       const viewButton = getByTestId('grading-schemes-selector-view-button')
       fireEvent.click(viewButton)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(getByTestId('grading-scheme-view-modal')).toBeInTheDocument()
+      expect(await findByTestId('grading-scheme-view-modal')).toBeInTheDocument()
     })
 
     it('opened view modal data should match course default (if any) if no other is selected', async () => {
-      const {getByTestId} = renderGradingSchemesSelector({courseDefaultSchemeId: '3'})
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector({courseDefaultSchemeId: '3'})
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const scheme = getByTestId('grading-schemes-selector-option-3')
       const nameOfCourseDefaultScheme = scheme.textContent
       const viewButton = getByTestId('grading-schemes-selector-view-button')
       fireEvent.click(viewButton)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const gradeModalTitle = getByTestId('grading-scheme-view-modal-title').textContent
+      const gradeModalTitle = (await findByTestId('grading-scheme-view-modal-title')).textContent
       expect(gradeModalTitle).toBe(nameOfCourseDefaultScheme)
     })
 
     it('should open the edit modal when the edit button is clicked', async () => {
-      const {getByTestId} = renderGradingSchemesSelector()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const scheme = getByTestId('grading-schemes-selector-option-1')
       fireEvent.click(scheme)
       const viewButton = getByTestId('grading-schemes-selector-view-button')
       fireEvent.click(viewButton)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const editButton = getByTestId('grading-scheme-1-edit-button')
+      const editButton = await findByTestId('grading-scheme-1-edit-button')
       fireEvent.click(editButton)
       expect(getByTestId('grading-scheme-edit-modal')).toBeInTheDocument()
     })
@@ -230,29 +220,28 @@ describe('GradingSchemesSelector', () => {
         }),
       )
 
-      const {getByTestId} = renderGradingSchemesSelector()
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const dropdown = getByTestId('grading-schemes-selector-dropdown')
+      const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+      const dropdown = await findByTestId('grading-schemes-selector-dropdown')
       fireEvent.click(dropdown)
       const scheme = getByTestId('grading-schemes-selector-option-1')
       fireEvent.click(scheme)
       const viewButton = getByTestId('grading-schemes-selector-view-button')
       fireEvent.click(viewButton)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const editButton = getByTestId('grading-scheme-1-edit-button')
+      const editButton = await findByTestId('grading-scheme-1-edit-button')
       fireEvent.click(editButton)
       const input = getByTestId('grading-scheme-name-input')
       fireEvent.change(input, {target: {value: 'New Name'}})
       const saveButton = getByTestId('grading-scheme-edit-modal-update-button')
       fireEvent.click(saveButton)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(updateData).toEqual({
-        title: 'New Name',
-        id: '1',
-        points_based: false,
-        scaling_factor: 1,
-        data: AccountGradingSchemes.find(accountScheme => accountScheme.id === '1')?.data,
-      })
+      await waitFor(() =>
+        expect(updateData).toEqual({
+          title: 'New Name',
+          id: '1',
+          points_based: false,
+          scaling_factor: 1,
+          data: AccountGradingSchemes.find(accountScheme => accountScheme.id === '1')?.data,
+        }),
+      )
     })
   })
   it('should create a new scheme when the new grading scheme button is clicked', async () => {

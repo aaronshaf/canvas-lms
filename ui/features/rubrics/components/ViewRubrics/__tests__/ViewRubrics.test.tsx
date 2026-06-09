@@ -653,9 +653,10 @@ describe.skip('ViewRubrics Tests', () => {
 
       fireEvent.click(getByTestId('rubric-options-1-button'))
       fireEvent.click(getByTestId('archive-rubric-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      waitFor(() => getAllByText('Rubric archived successfully'))
-      expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getAllByText('Rubric archived successfully')[0]).toBeInTheDocument()
+        expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
+      })
       fireEvent.click(getByText('Archived'))
       expect(getByTestId('rubric-row-1')).toHaveTextContent('Rubric 1')
       expect(getByTestId('archived-rubrics-panel').querySelectorAll('tr')).toHaveLength(3)
@@ -677,9 +678,10 @@ describe.skip('ViewRubrics Tests', () => {
       expect(getByTestId('archive-rubric-button')).toHaveTextContent('Un-Archive')
 
       fireEvent.click(getByTestId('archive-rubric-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      waitFor(() => getAllByText('Rubric un-archived successfully'))
-      expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getAllByText('Rubric un-archived successfully')[0]).toBeInTheDocument()
+        expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
+      })
 
       fireEvent.click(getByText('Saved'))
       expect(getByTestId('rubric-row-2')).toHaveTextContent('Rubric 2')
@@ -699,9 +701,10 @@ describe.skip('ViewRubrics Tests', () => {
 
       fireEvent.click(getByTestId('rubric-options-1-button'))
       fireEvent.click(getByTestId('archive-rubric-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      waitFor(() => getAllByText('Rubric archived successfully'))
-      expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getAllByText('Rubric archived successfully')[0]).toBeInTheDocument()
+        expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
+      })
       fireEvent.click(getByText('Archived'))
       expect(getByTestId('rubric-row-1')).toHaveTextContent('Rubric 1')
       expect(getByTestId('archived-rubrics-panel').querySelectorAll('tr')).toHaveLength(3)
@@ -723,9 +726,10 @@ describe.skip('ViewRubrics Tests', () => {
       expect(getByTestId('archive-rubric-button')).toHaveTextContent('Un-Archive')
 
       fireEvent.click(getByTestId('archive-rubric-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      waitFor(() => getAllByText('Rubric un-archived successfully'))
-      expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getAllByText('Rubric un-archived successfully')[0]).toBeInTheDocument()
+        expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
+      })
 
       fireEvent.click(getByText('Saved'))
       expect(getByTestId('rubric-row-2')).toHaveTextContent('Rubric 2')

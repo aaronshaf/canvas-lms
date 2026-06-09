@@ -18,7 +18,7 @@
 
 import React from 'react'
 import $ from 'jquery'
-import {fireEvent, render, screen} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import chicago from 'timezone/America/Chicago'
 import * as tz from '@instructure/moment-utils'
 import tzInTest from '@instructure/moment-utils/specHelpers'
@@ -248,9 +248,9 @@ describe('GradingPeriodForm', () => {
       setDateInputValue('End Date', 'Jan 7, 2016 12pm')
       setDateInputValue('End Date', 'Dec 31, 2015 12pm')
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(screen.getByLabelText('Close Date')).toHaveValue('Jan 7, 2016, 12:00 PM')
+      await waitFor(() =>
+        expect(screen.getByLabelText('Close Date')).toHaveValue('Jan 7, 2016, 12:00 PM'),
+      )
     })
 
     it('updates to match "End Date" after being cleared and "End Date" changes', async () => {
@@ -259,9 +259,9 @@ describe('GradingPeriodForm', () => {
       setDateInputValue('Close Date', '')
       setDateInputValue('End Date', 'Dec 31, 2015 12:34')
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(screen.getByLabelText('Close Date')).toHaveValue('Dec 31, 2015, 12:34 PM')
+      await waitFor(() =>
+        expect(screen.getByLabelText('Close Date')).toHaveValue('Dec 31, 2015, 12:34 PM'),
+      )
     })
 
     it('sets the seconds value to 59 when emitting the updated date', () => {

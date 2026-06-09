@@ -84,9 +84,8 @@ describe('GradingSchemesSelector copy button tests', () => {
   })
 
   it('should open the duplicate modal when the copy button is clicked for the default scheme', async () => {
-    const {getByTestId} = renderGradingSchemesSelector()
-    await new Promise(resolve => setTimeout(resolve, 0))
-    const dropdown = getByTestId('grading-schemes-selector-dropdown')
+    const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+    const dropdown = await findByTestId('grading-schemes-selector-dropdown')
     fireEvent.click(dropdown)
     const defaultScheme = getByTestId('grading-schemes-selector-default-option')
     fireEvent.click(defaultScheme)
@@ -96,16 +95,14 @@ describe('GradingSchemesSelector copy button tests', () => {
   })
 
   it('should open the duplicate modal when the copy button is clicked for a course scheme', async () => {
-    const {getByTestId} = renderGradingSchemesSelector()
-    await new Promise(resolve => setTimeout(resolve, 0))
-    const dropdown = getByTestId('grading-schemes-selector-dropdown')
+    const {getByTestId, findByTestId} = renderGradingSchemesSelector()
+    const dropdown = await findByTestId('grading-schemes-selector-dropdown')
     fireEvent.click(dropdown)
     const scheme = getByTestId('grading-schemes-selector-option-1')
     fireEvent.click(scheme)
     const copyButton = getByTestId('grading-schemes-selector-copy-button')
     fireEvent.click(copyButton)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading-scheme-duplicate-modal')).toBeInTheDocument()
+    expect(await findByTestId('grading-scheme-duplicate-modal')).toBeInTheDocument()
   })
 
   it('should make an api call when the duplicate button is clicked and then open the edit modal', async () => {

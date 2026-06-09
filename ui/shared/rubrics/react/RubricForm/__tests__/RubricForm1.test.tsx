@@ -436,21 +436,19 @@ describe('RubricForm Tests', () => {
       it('opens the criterion modal when the add criterion button is clicked', async () => {
         queryClient.setQueryData(['fetch-rubric', '1', '1', ''], RUBRICS_QUERY_RESPONSE)
 
-        const {getByTestId, queryByTestId} = renderComponent({rubricId: '1'})
+        const {getByTestId, queryByTestId, findByTestId} = renderComponent({rubricId: '1'})
         expect(queryByTestId('rubric-criterion-modal')).toBeNull()
         fireEvent.click(getByTestId('add-criterion-button'))
 
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+        expect(await findByTestId('rubric-criterion-modal')).toBeInTheDocument()
       })
 
       it('does not save new criterion when the cancel button is clicked', async () => {
         queryClient.setQueryData(['fetch-rubric', '1', '1', ''], RUBRICS_QUERY_RESPONSE)
 
-        const {getByTestId, queryAllByTestId} = renderComponent({rubricId: '1'})
+        const {getByTestId, queryAllByTestId, findByTestId} = renderComponent({rubricId: '1'})
         fireEvent.click(getByTestId('add-criterion-button'))
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+        expect(await findByTestId('rubric-criterion-modal')).toBeInTheDocument()
         fireEvent.change(getByTestId('rubric-criterion-name-input'), {
           target: {value: 'New Criterion Test'},
         })
@@ -461,12 +459,11 @@ describe('RubricForm Tests', () => {
       it('saves new criterion when the save button is clicked', async () => {
         queryClient.setQueryData(['fetch-rubric', '1', '1', ''], RUBRICS_QUERY_RESPONSE)
 
-        const {getByTestId, queryAllByTestId} = renderComponent({rubricId: '1'})
+        const {getByTestId, queryAllByTestId, findByTestId} = renderComponent({rubricId: '1'})
         expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(2)
 
         fireEvent.click(getByTestId('add-criterion-button'))
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+        expect(await findByTestId('rubric-criterion-modal')).toBeInTheDocument()
         fireEvent.change(getByTestId('rubric-criterion-name-input'), {
           target: {value: 'New Criterion Test'},
         })
@@ -480,12 +477,11 @@ describe('RubricForm Tests', () => {
       it('updates existing criterion when the save button is clicked', async () => {
         queryClient.setQueryData(['fetch-rubric', '1', '1', ''], RUBRICS_QUERY_RESPONSE)
 
-        const {getByTestId, queryAllByTestId} = renderComponent({rubricId: '1'})
+        const {getByTestId, queryAllByTestId, findByTestId} = renderComponent({rubricId: '1'})
         expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(2)
 
         fireEvent.click(queryAllByTestId('rubric-criteria-row-edit-button')[0])
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+        expect(await findByTestId('rubric-criterion-modal')).toBeInTheDocument()
         fireEvent.change(getByTestId('rubric-criterion-name-input'), {
           target: {value: 'Updated Criterion Test'},
         })
@@ -499,12 +495,11 @@ describe('RubricForm Tests', () => {
       it('does not update existing criterion when the cancel button is clicked', async () => {
         queryClient.setQueryData(['fetch-rubric', '1', '1', ''], RUBRICS_QUERY_RESPONSE)
 
-        const {getByTestId, queryAllByTestId} = renderComponent({rubricId: '1'})
+        const {getByTestId, queryAllByTestId, findByTestId} = renderComponent({rubricId: '1'})
         expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(2)
 
         fireEvent.click(queryAllByTestId('rubric-criteria-row-edit-button')[0])
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+        expect(await findByTestId('rubric-criterion-modal')).toBeInTheDocument()
         fireEvent.change(getByTestId('rubric-criterion-name-input'), {
           target: {value: 'Updated Criterion Test'},
         })
