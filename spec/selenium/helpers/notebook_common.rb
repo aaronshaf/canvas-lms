@@ -69,4 +69,21 @@ module NotebookCommon
       }
     )
   end
+
+  def create_studynote_without_usertext
+    @studynote_a_no_text = StudyNote.create!(
+      user: @student,
+      course: @course,
+      root_account: @course.root_account,
+      learning_object: @page_a,
+      reaction: ["Confusing"],
+      workflow_state: "active",
+      highlight_data: {
+        selectedText: "energy",
+        textPosition: { "end" => 77, "start" => 71 },
+        range: { "endOffset" => 41, "startOffset" => 35, "endContainer" => "/p[1]", "startContainer" => "/p[1]" },
+        pageLastModifiedAt: @page_a.updated_at.iso8601
+      }
+    )
+  end
 end

@@ -29,6 +29,10 @@ module NotebookPage
     '#notebook_mount_point [data-testid="notebook-button"]'
   end
 
+  def wiki_page_highlight_content_selector(note_id)
+    "span.highlight-content[data-highlight-id='#{note_id}']"
+  end
+
   def notebook_panel_selector
     '[data-testid="notebook-panel"]'
   end
@@ -37,8 +41,36 @@ module NotebookPage
     '[data-testid="notes-grid"]'
   end
 
-  def note_card_selector
+  def all_note_cards_selector
     'div[data-testid^="note-card-"]'
+  end
+
+  def note_card_selector(note_id)
+    "div[data-testid='note-card-#{note_id}']"
+  end
+
+  def note_card_edit_button_selector(note_id)
+    "button[data-testid='note-card-#{note_id}-edit']"
+  end
+
+  def note_card_text_area_selector(note_id)
+    "div[data-testid='note-card-#{note_id}'] textarea"
+  end
+
+  def note_card_text_save_button_selector(note_id)
+    "button[data-testid='note-card-#{note_id}-save']"
+  end
+
+  def note_card_text_cancel_button_selector(note_id)
+    "button[data-testid='note-card-#{note_id}-cancel']"
+  end
+
+  def note_card_delete_button_selector(note_id)
+    "button[data-testid='note-card-#{note_id}-delete']"
+  end
+
+  def note_card_confirm_delete_button_selector(note_id)
+    "button[data-testid='note-card-#{note_id}-confirm-delete']"
   end
 
   def note_card_link_selector(note_id)
@@ -56,6 +88,10 @@ module NotebookPage
     f(notebook_button_selector)
   end
 
+  def wiki_page_highlight_content(note_id)
+    f(wiki_page_highlight_content_selector(note_id))
+  end
+
   def notebook_panel
     f(notebook_panel_selector)
   end
@@ -64,8 +100,36 @@ module NotebookPage
     f(notes_grid_selector)
   end
 
-  def note_cards
-    ff(note_card_selector)
+  def all_note_cards
+    ff(all_note_cards_selector)
+  end
+
+  def note_card(note_id)
+    f(note_card_selector(note_id))
+  end
+
+  def note_card_edit_button(note_id)
+    f(note_card_edit_button_selector(note_id))
+  end
+
+  def note_card_text_area(note_id)
+    f(note_card_text_area_selector(note_id))
+  end
+
+  def note_card_text_save_button(note_id)
+    f(note_card_text_save_button_selector(note_id))
+  end
+
+  def note_card_text_cancel_button(note_id)
+    f(note_card_text_cancel_button_selector(note_id))
+  end
+
+  def note_card_delete_button(note_id)
+    f(note_card_delete_button_selector(note_id))
+  end
+
+  def note_card_confirm_delete_button(note_id)
+    f(note_card_confirm_delete_button_selector(note_id))
   end
 
   def note_card_link(note_id)
@@ -85,5 +149,32 @@ module NotebookPage
     expect(notebook_button).to be_displayed
     notebook_button.click
     expect(notebook_panel).to be_displayed
+  end
+
+  def click_edit_user_text_button(study_note)
+    expect(note_card_edit_button(study_note.id)).to be_displayed
+    note_card_edit_button(study_note.id).click
+  end
+
+  def fill_in_user_text(study_note, text)
+    expect(note_card_text_area(study_note.id)).to be_displayed
+    note_card_text_area(study_note.id).send_keys(text)
+  end
+
+  def click_save_user_text_button(study_note)
+    expect(note_card_text_save_button(study_note.id)).to be_displayed
+    note_card_text_save_button(study_note.id).click
+  end
+
+  def click_cancel_edit_user_text_button(study_note)
+    expect(note_card_text_cancel_button(study_note.id)).to be_displayed
+    note_card_text_cancel_button(study_note.id).click
+  end
+
+  def delete_study_note(study_note)
+    expect(note_card_delete_button(study_note.id)).to be_displayed
+    note_card_delete_button(study_note.id).click
+    expect(note_card_confirm_delete_button(study_note.id)).to be_displayed
+    note_card_confirm_delete_button(study_note.id).click
   end
 end

@@ -38,15 +38,15 @@ describe "notebook index page" do
   it "renders the student's notes across pages with their reaction pills" do
     visit_notebook_index(@course)
     expect(notes_grid).to be_displayed
-    expect(note_cards.size).to eq(2)
+    expect(all_note_cards.size).to eq(2)
 
     # Scope reaction asserts to the card containing each user_text so a
     # swapped-label regression (Important <-> Unclear) would fail.
-    first_note_card = note_cards.find { |card| card.text.include?("first note") }
+    first_note_card = note_card(@studynote_a.id)
     expect(first_note_card.text).to include("Important")
     expect(first_note_card.text).to include("light")
 
-    second_note_card = note_cards.find { |card| card.text.include?("second note") }
+    second_note_card = note_card(@studynote_b.id)
     expect(second_note_card.text).to include("Unclear")
     expect(second_note_card.text).to include("glucose")
   end
