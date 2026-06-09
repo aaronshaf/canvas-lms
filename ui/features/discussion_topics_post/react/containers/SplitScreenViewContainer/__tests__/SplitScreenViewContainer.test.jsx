@@ -569,12 +569,14 @@ describe('SplitScreenViewContainer', () => {
       ]
       mocks[2].result.data.legacyNode.entryParticipant.rating = true
 
-      const {findAllByTestId, queryByTestId} = setup(defaultProps({relativeEntryId: '10'}), mocks)
+      const {findAllByTestId, findByTestId, queryByTestId} = setup(
+        defaultProps({relativeEntryId: '10'}),
+        mocks,
+      )
       const likeButtons = await findAllByTestId('like-button')
 
       expect(likeButtons).toHaveLength(2)
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(queryByTestId('liked-icon')).toBeTruthy()
+      expect(await findByTestId('liked-icon')).toBeTruthy()
       fireEvent.click(queryByTestId('liked-icon'))
       await waitFor(() => expect(setOnSuccess.mock.calls).toHaveLength(1))
       expect(setOnFailure.mock.calls).toHaveLength(0)

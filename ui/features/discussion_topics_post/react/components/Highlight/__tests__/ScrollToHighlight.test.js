@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {waitFor} from '@testing-library/react'
 import {scrollToHighlight} from '../ScrollToHighlight'
 
 class MockElement {
@@ -127,8 +128,7 @@ describe('ScrollToHighlight', () => {
         })
         mockWindow._eventListeners[userInput.eventName](userInput.eventData)
         await mockWindow.offestTimeMS(1)
-        await new Promise(resolve => setTimeout(resolve, 0))
-        expect(result).toBe('SCROLL_ABORTED')
+        await waitFor(() => expect(result).toBe('SCROLL_ABORTED'))
       })
     })
   })

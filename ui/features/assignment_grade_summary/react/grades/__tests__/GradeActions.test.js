@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {waitFor} from '@testing-library/dom'
 import * as GradeActions from '../GradeActions'
 import * as GradesApi from '../GradesApi'
 import configureStore from '../../configureStore'
@@ -188,9 +189,10 @@ describe('GradeSummary GradeActions', () => {
     test('sets the "set selected provisional grades" status to "failure" when a failure occurs', async () => {
       acceptGraderGrades()
       await selectProvisionalGradeDeferred.reject(new Error('server error'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const {bulkSelectProvisionalGradeStatuses} = store.getState().grades
-      expect(bulkSelectProvisionalGradeStatuses['1101']).toBe(GradeActions.FAILURE)
+      await waitFor(() => {
+        const {bulkSelectProvisionalGradeStatuses} = store.getState().grades
+        expect(bulkSelectProvisionalGradeStatuses['1101']).toBe(GradeActions.FAILURE)
+      })
     })
   })
 
@@ -282,9 +284,10 @@ describe('GradeSummary GradeActions', () => {
       test('sets the "set selected provisional grade" status to "failure" when a failure occurs', async () => {
         selectProvisionalGrade()
         await selectProvisionalGradeDeferred.reject(new Error('server error'))
-        await new Promise(resolve => setTimeout(resolve, 0))
-        const {selectProvisionalGradeStatuses} = store.getState().grades
-        expect(selectProvisionalGradeStatuses['1111']).toBe(GradeActions.FAILURE)
+        await waitFor(() => {
+          const {selectProvisionalGradeStatuses} = store.getState().grades
+          expect(selectProvisionalGradeStatuses['1111']).toBe(GradeActions.FAILURE)
+        })
       })
     })
 
@@ -487,10 +490,11 @@ describe('GradeSummary GradeActions', () => {
 
         test('sets the "update grade" status to "failure"', async () => {
           await selectAndReject()
-          await new Promise(resolve => setTimeout(resolve, 0))
-          const {updateGradeStatuses} = store.getState().grades
-          const statusInfo = updateGradeStatuses.find(info => info.gradeInfo.studentId === '1111')
-          expect(statusInfo.status).toBe(GradeActions.FAILURE)
+          await waitFor(() => {
+            const {updateGradeStatuses} = store.getState().grades
+            const statusInfo = updateGradeStatuses.find(info => info.gradeInfo.studentId === '1111')
+            expect(statusInfo.status).toBe(GradeActions.FAILURE)
+          })
         })
 
         test('does not select the provisional grade through the api', async () => {
@@ -540,9 +544,10 @@ describe('GradeSummary GradeActions', () => {
         test('sets the "set selected provisional grade" status to "failure" when a failure occurs', async () => {
           await selectAndResolve()
           await selectProvisionalGradeDeferred.reject(new Error('server error'))
-          await new Promise(resolve => setTimeout(resolve, 0))
-          const {selectProvisionalGradeStatuses} = store.getState().grades
-          expect(selectProvisionalGradeStatuses['1111']).toBe(GradeActions.FAILURE)
+          await waitFor(() => {
+            const {selectProvisionalGradeStatuses} = store.getState().grades
+            expect(selectProvisionalGradeStatuses['1111']).toBe(GradeActions.FAILURE)
+          })
         })
       })
 
@@ -745,10 +750,13 @@ describe('GradeSummary GradeActions', () => {
 
           test('sets the "update grade" status to "failure"', async () => {
             await selectAndReject()
-            await new Promise(resolve => setTimeout(resolve, 0))
-            const {updateGradeStatuses} = store.getState().grades
-            const statusInfo = updateGradeStatuses.find(info => info.gradeInfo.studentId === '1111')
-            expect(statusInfo.status).toBe(GradeActions.FAILURE)
+            await waitFor(() => {
+              const {updateGradeStatuses} = store.getState().grades
+              const statusInfo = updateGradeStatuses.find(
+                info => info.gradeInfo.studentId === '1111',
+              )
+              expect(statusInfo.status).toBe(GradeActions.FAILURE)
+            })
           })
 
           test('does not select the provisional grade through the api', async () => {

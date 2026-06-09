@@ -278,7 +278,7 @@ describe('Enhanced Individual Gradebook', () => {
       })
       mockSearchParams({student: '5', assignment: '1'})
       // dropdowns
-      const {getByTestId} = renderEnhancedIndividualGradebook()
+      const {getByTestId, findByTestId} = renderEnhancedIndividualGradebook()
       const sortSelect = getByTestId('sort-select')
       expect(sortSelect).toBeInTheDocument()
       expect(sortSelect).toHaveTextContent('By Due Date')
@@ -333,8 +333,7 @@ describe('Enhanced Individual Gradebook', () => {
       ).toBeInTheDocument()
 
       // grading results
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const gradingResults = getByTestId('grading-results')
+      const gradingResults = await findByTestId('grading-results')
       expect(gradingResults).toBeInTheDocument()
       expect(
         within(gradingResults).getByText('Grade for Student 1 - Missing Assignment 1'),

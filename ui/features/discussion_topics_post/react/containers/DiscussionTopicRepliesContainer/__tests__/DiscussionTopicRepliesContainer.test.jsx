@@ -173,8 +173,8 @@ describe('DiscussionTopicRepliesContainer', () => {
 
     fireEvent.click(getByTestId(`mark-as-read-${entry.id}`))
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(setOnFailure).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(setOnFailure).not.toHaveBeenCalled()
+    })
   })
 })

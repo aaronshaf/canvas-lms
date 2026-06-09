@@ -285,9 +285,6 @@ describe('ProcessGradebookUpload.upload', () => {
 
     await ProcessGradebookUpload.upload(gradebook)
 
-    // Wait a bit to ensure no dangling promises
-    await new Promise(resolve => setTimeout(resolve, 0))
-
     expect(goToGradebookStub).toHaveBeenCalled()
   })
 })

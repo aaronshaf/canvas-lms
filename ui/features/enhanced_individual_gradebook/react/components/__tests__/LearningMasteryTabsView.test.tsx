@@ -132,8 +132,6 @@ describe('Enhanced Individual Wrapper Gradebook', () => {
       expect(gradebookExportLink).toHaveTextContent('Download Scores Generated on')
 
       // content selection query params
-      await new Promise(resolve => setTimeout(resolve, 0))
-
       const contentSelectionStudent = await findByTestId(
         'learning-mastery-content-selection-student',
       )
@@ -194,8 +192,6 @@ describe('Enhanced Individual Wrapper Gradebook', () => {
       expect(gradebookExportLink).toHaveTextContent('Download Scores Generated on')
 
       // content selection query params
-      await new Promise(resolve => setTimeout(resolve, 0))
-
       const contentSelectionStudent = await findByTestId(
         'learning-mastery-content-selection-student',
       )
@@ -261,8 +257,6 @@ describe('Enhanced Individual Wrapper Gradebook', () => {
       const hideStudentNamesCheckbox = getByTestId('hide-student-names-checkbox')
       expect(hideStudentNamesCheckbox).toBeInTheDocument()
       expect(hideStudentNamesCheckbox).not.toBeChecked()
-
-      await new Promise(resolve => setTimeout(resolve, 0))
 
       // Content selection
       const contentSelectionStudent = await findByTestId(
@@ -335,8 +329,6 @@ describe('Enhanced Individual Wrapper Gradebook', () => {
 
       const gradebookHistoryLink = getByTestId('gradebook-history-link')
       expect(gradebookHistoryLink).toBeInTheDocument()
-
-      await new Promise(resolve => setTimeout(resolve, 0))
 
       const contentSelectionStudent = await findByTestId('content-selection-student')
       expect(within(contentSelectionStudent).getByText('No Student Selected')).toBeInTheDocument()

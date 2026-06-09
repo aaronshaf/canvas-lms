@@ -18,11 +18,9 @@
 
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
+import {waitFor} from '@testing-library/dom'
 import ProcessGradebookUpload from '../process_gradebook_upload'
 import fakeENV from '@canvas/test-utils/fakeENV'
-
-// Helper to wait for async operations
-const waitForAsync = () => new Promise(resolve => setTimeout(resolve, 0))
 
 // Define constants
 const oldAssignment1 = {id: 1, title: 'Old Assignment 1', points_possible: 25, published: true}
@@ -70,9 +68,8 @@ describe('ProcessGradebookUpload.createIndividualAssignment', () => {
 
   test('properly creates a new assignment', async () => {
     ProcessGradebookUpload.createIndividualAssignment(oldAssignment1)
-    await waitForAsync()
+    await waitFor(() => expect(capturedRequest).not.toBeNull())
 
-    expect(capturedRequest).not.toBeNull()
     equalAssignment(capturedRequest.assignment, oldAssignment1)
   })
 })
@@ -113,7 +110,7 @@ describe('ProcessGradebookUpload.createAssignments', () => {
   test('sends no data to server and returns an empty array if given no assignments', async () => {
     const gradebook = {assignments: []}
     const responses = ProcessGradebookUpload.createAssignments(gradebook)
-    await waitForAsync()
+    await Promise.all(responses)
 
     expect(capturedRequests).toHaveLength(0)
     expect(responses).toHaveLength(0)
@@ -123,8 +120,8 @@ describe('ProcessGradebookUpload.createAssignments', () => {
     const gradebook = {
       assignments: [oldAssignment1, oldAssignment2, newAssignment1, newAssignment2],
     }
-    ProcessGradebookUpload.createAssignments(gradebook)
-    await waitForAsync()
+    const responses = ProcessGradebookUpload.createAssignments(gradebook)
+    await Promise.all(responses)
 
     expect(capturedRequests).toHaveLength(2)
     equalAssignment(capturedRequests[0].assignment, newAssignment1)
@@ -135,8 +132,8 @@ describe('ProcessGradebookUpload.createAssignments', () => {
     const gradebook = {
       assignments: [newAssignment1],
     }
-    ProcessGradebookUpload.createAssignments(gradebook)
-    await waitForAsync()
+    const responses = ProcessGradebookUpload.createAssignments(gradebook)
+    await Promise.all(responses)
 
     expect(capturedRequests[0].calculate_grades).toBe(false)
   })

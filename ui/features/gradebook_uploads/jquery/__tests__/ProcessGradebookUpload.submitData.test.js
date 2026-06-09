@@ -18,11 +18,9 @@
 
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
+import {waitFor} from '@testing-library/dom'
 import ProcessGradebookUpload from '../process_gradebook_upload'
 import fakeENV from '@canvas/test-utils/fakeENV'
-
-// Helper to wait for async operations
-const waitForAsync = () => new Promise(resolve => setTimeout(resolve, 0))
 
 const progressQueued = {id: 1, workflow_state: 'queued'}
 const progressCompleted = {id: 1, workflow_state: 'completed'}
@@ -74,8 +72,7 @@ describe('ProcessGradebookUpload.submitGradeData', () => {
         2: {excuse: true},
       },
     }
-    ProcessGradebookUpload.submitGradeData(gradeData)
-    await waitForAsync()
+    await ProcessGradebookUpload.submitGradeData(gradeData)
 
     expect(capturedRequest).not.toBeNull()
     expect(capturedRequest.grade_data[1][1].posted_grade).toBe('20')
@@ -132,8 +129,7 @@ describe('ProcessGradebookUpload.submitCustomColumnData', () => {
       ],
       custom_columns: [customColumn],
     }
-    ProcessGradebookUpload.submitCustomColumnData(customColumnsData, gradebook)
-    await waitForAsync()
+    await ProcessGradebookUpload.submitCustomColumnData(customColumnsData, gradebook)
 
     expect(capturedRequest).not.toBeNull()
     expect(capturedRequest).toEqual({
@@ -195,8 +191,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toEqual([
@@ -218,8 +214,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toEqual([
@@ -244,8 +240,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(2)
   })
@@ -263,8 +259,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toEqual([
@@ -282,8 +278,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(0)
   })
@@ -297,8 +293,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores[0].override_score).toBe('78.34')
@@ -317,8 +313,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toHaveLength(2)
@@ -341,8 +337,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toHaveLength(1)
@@ -365,8 +361,8 @@ describe('ProcessGradebookUpload.createOverrideUpdateRequests', () => {
         },
       ],
     }
-    ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
-    await waitForAsync()
+    const requests = ProcessGradebookUpload.createOverrideUpdateRequests(gradebook)
+    await Promise.all(requests)
 
     expect(capturedRequests).toHaveLength(1)
     expect(capturedRequests[0].override_scores).toEqual([

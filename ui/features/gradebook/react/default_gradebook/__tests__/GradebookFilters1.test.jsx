@@ -17,6 +17,7 @@
  */
 
 import {map} from 'es-toolkit/compat'
+import {waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {createGradebook} from './GradebookSpecHelper'
@@ -360,8 +361,9 @@ describe('Gradebook#updateCurrentModule', () => {
 
   it('saves settings with the new filter setting', async () => {
     gradebook.updateCurrentModule('1')
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(gradebook.getFilterColumnsBySetting('contextModuleId')).toBe('1')
+    await waitFor(() => {
+      expect(gradebook.getFilterColumnsBySetting('contextModuleId')).toBe('1')
+    })
   })
 
   it('has no effect when the module has not changed', () => {
@@ -422,8 +424,9 @@ describe('Gradebook#updateCurrentAssignmentGroup', () => {
 
   it('saves settings with the new filter setting', async () => {
     gradebook.updateCurrentAssignmentGroup('1')
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(gradebook.getFilterColumnsBySetting('assignmentGroupId')).toBe('1')
+    await waitFor(() => {
+      expect(gradebook.getFilterColumnsBySetting('assignmentGroupId')).toBe('1')
+    })
   })
 
   it('has no effect when the assignment group has not changed', () => {

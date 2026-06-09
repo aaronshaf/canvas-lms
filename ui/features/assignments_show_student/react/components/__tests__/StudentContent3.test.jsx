@@ -236,8 +236,7 @@ describe('Assignment Student Content View', () => {
         </MockedQueryProvider>,
       )
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(initializeReaderButton).not.toHaveBeenCalled()
+      await waitFor(() => expect(initializeReaderButton).not.toHaveBeenCalled())
     })
   })
 })

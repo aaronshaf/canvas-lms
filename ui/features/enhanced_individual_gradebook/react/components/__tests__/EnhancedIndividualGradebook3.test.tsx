@@ -57,13 +57,12 @@ const mockUserSettings = (mockGet = true) => {
 const mockSearchParams = (defaultSearchParams = {}) => {
   const setSearchParamsMock = vi.fn()
   const searchParamsMock = new URLSearchParams(defaultSearchParams)
-  vi
-    .spyOn(ReactRouterDom, 'useSearchParams')
-    .mockReturnValue([searchParamsMock, setSearchParamsMock])
+  vi.spyOn(ReactRouterDom, 'useSearchParams').mockReturnValue([
+    searchParamsMock,
+    setSearchParamsMock,
+  ])
   return {searchParamsMock, setSearchParamsMock}
 }
-
-const CUSTOM_TIMEOUT_LIMIT = 1000
 
 describe('Enhanced Individual Gradebook', () => {
   beforeEach(() => {
@@ -108,11 +107,9 @@ describe('Enhanced Individual Gradebook', () => {
   describe('student dropdown handler tests', () => {
     it('should change student query param when student dropdown is changed to valid student', async () => {
       const {searchParamsMock, setSearchParamsMock} = mockSearchParams()
-      const {getByTestId} = renderEnhancedIndividualGradebook()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId} = renderEnhancedIndividualGradebook()
       expect(searchParamsMock.get('student')).toBe(null)
-      await new Promise(resolve => setTimeout(resolve, CUSTOM_TIMEOUT_LIMIT))
-      const contentSelectionStudent = getByTestId('content-selection-student-select')
+      const contentSelectionStudent = await findByTestId('content-selection-student-select')
       expect(contentSelectionStudent).toBeInTheDocument()
       fireEvent.change(contentSelectionStudent, {target: {value: '5'}})
       expect(searchParamsMock.get('student')).toBe('5')
@@ -120,22 +117,18 @@ describe('Enhanced Individual Gradebook', () => {
     })
     it('should remove student query param when no student is selected', async () => {
       const {searchParamsMock, setSearchParamsMock} = mockSearchParams({student: '5'})
-      await new Promise(resolve => setTimeout(resolve, 0))
-      const {getByTestId} = renderEnhancedIndividualGradebook()
-      await new Promise(resolve => setTimeout(resolve, CUSTOM_TIMEOUT_LIMIT))
+      const {findByTestId} = renderEnhancedIndividualGradebook()
       expect(searchParamsMock.get('student')).toBe('5')
-      const contentSelectionStudent = getByTestId('content-selection-student-select')
+      const contentSelectionStudent = await findByTestId('content-selection-student-select')
       fireEvent.change(contentSelectionStudent, {target: {value: '-1'}})
       expect(searchParamsMock.get('student')).toBe(null)
       expect(setSearchParamsMock).toHaveBeenCalledWith(searchParamsMock)
     })
     it('should change assignment query param when assignment dropdown is changed to valid assingment', async () => {
       const {searchParamsMock, setSearchParamsMock} = mockSearchParams()
-      const {getByTestId} = renderEnhancedIndividualGradebook()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId} = renderEnhancedIndividualGradebook()
       expect(searchParamsMock.get('assignment')).toBe(null)
-      await new Promise(resolve => setTimeout(resolve, CUSTOM_TIMEOUT_LIMIT))
-      const contentSelectionAssignment = getByTestId('content-selection-assignment-select')
+      const contentSelectionAssignment = await findByTestId('content-selection-assignment-select')
       expect(contentSelectionAssignment).toBeInTheDocument()
       fireEvent.change(contentSelectionAssignment, {target: {value: '1'}})
       expect(searchParamsMock.get('assignment')).toBe('1')
@@ -143,11 +136,9 @@ describe('Enhanced Individual Gradebook', () => {
     })
     it('should remove assignment query param when no assignment is selected', async () => {
       const {searchParamsMock, setSearchParamsMock} = mockSearchParams({assignment: '1'})
-      const {getByTestId} = renderEnhancedIndividualGradebook()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      const {findByTestId} = renderEnhancedIndividualGradebook()
       expect(searchParamsMock.get('assignment')).toBe('1')
-      await new Promise(resolve => setTimeout(resolve, CUSTOM_TIMEOUT_LIMIT))
-      const contentSelectionAssignment = getByTestId('content-selection-assignment-select')
+      const contentSelectionAssignment = await findByTestId('content-selection-assignment-select')
       expect(contentSelectionAssignment).toBeInTheDocument()
       fireEvent.change(contentSelectionAssignment, {target: {value: '-1'}})
       expect(searchParamsMock.get('assignment')).toBe(null)

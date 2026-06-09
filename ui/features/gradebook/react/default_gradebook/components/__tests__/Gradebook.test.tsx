@@ -21,7 +21,7 @@
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import {cleanup, render, within} from '@testing-library/react'
+import {cleanup, render, waitFor, within} from '@testing-library/react'
 import {defaultGradebookProps} from '../../__tests__/GradebookSpecHelper'
 import {darken, defaultColors} from '../../constants/colors'
 import Gradebook from '../../Gradebook'
@@ -361,7 +361,7 @@ describe('TotalGradeOverrideTrayProvider tests', () => {
       ...defaultGradebookProps.gradebookEnv,
       custom_grade_statuses_enabled: true,
     }
-    const {queryByTestId} = render(
+    const {findByTestId} = render(
       <Gradebook
         {...defaultGradebookProps}
         isSubmissionDataLoaded={true}
@@ -371,8 +371,7 @@ describe('TotalGradeOverrideTrayProvider tests', () => {
       />,
     )
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(queryByTestId('total-grade-override-tray')).toBeInTheDocument()
+    expect(await findByTestId('total-grade-override-tray')).toBeInTheDocument()
   })
 
   it('should not render the total grade override tray with FF OFF', async () => {
@@ -396,7 +395,8 @@ describe('TotalGradeOverrideTrayProvider tests', () => {
       />,
     )
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(queryByTestId('total-grade-override-tray')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(queryByTestId('total-grade-override-tray')).not.toBeInTheDocument()
+    })
   })
 })

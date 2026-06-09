@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {waitFor} from '@testing-library/react'
 import {createGradebook} from './GradebookSpecHelper'
 
 describe('Gradebook', () => {
@@ -83,21 +84,21 @@ describe('Gradebook', () => {
       gradebook.setAssignmentsLoaded()
     }
 
-    const waitForTick = () => new Promise(resolve => setTimeout(resolve, 0))
-
     it('does not finish rendering the UI when student ids are not loaded', async () => {
       createInitializedGradebook()
       gradebook.setStudentIdsLoaded(false)
       gradebook._updateEssentialDataLoaded()
-      await waitForTick()
-      expect(gradebook.finishRenderingUI).not.toHaveBeenCalled()
+      await waitFor(() => {
+        expect(gradebook.finishRenderingUI).not.toHaveBeenCalled()
+      })
     })
 
     it('does not finish rendering the UI when context modules are not loaded', async () => {
       createInitializedGradebook({isModulesLoading: true})
       gradebook._updateEssentialDataLoaded()
-      await waitForTick()
-      expect(gradebook.finishRenderingUI).not.toHaveBeenCalled()
+      await waitFor(() => {
+        expect(gradebook.finishRenderingUI).not.toHaveBeenCalled()
+      })
     })
   })
 })

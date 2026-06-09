@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent, act} from '@testing-library/react'
+import {render, fireEvent, act, waitFor} from '@testing-library/react'
 import tz from 'timezone'
 import tzInTest from '@instructure/moment-utils/specHelpers'
 import tokyo from 'timezone/Asia/Tokyo'
@@ -98,7 +98,7 @@ async function renderBulkEditAndWait(overrides = {}, assignments = standardAssig
     }),
   )
   const result = renderBulkEdit(overrides)
-  await flushPromises()
+  await waitFor(() => expect(result.queryAllByLabelText('Due At').length).toBeGreaterThan(0))
   result.assignments = assignments
   return result
 }
@@ -152,7 +152,7 @@ describe('Assignment Bulk Edit - Save Multiple', () => {
     changeAndBlurInput(getAllByLabelText('Due At')[1], dueAtDate)
     changeAndBlurInput(getAllByLabelText('Due At')[2], dueAtDate)
     fireEvent.click(getByText('Save'))
-    await flushPromises()
+    await waitFor(() => expect(capturedRequests.length).toBeGreaterThan(0))
     const body = capturedRequests[0].body
     expect(body).toMatchObject([
       {
