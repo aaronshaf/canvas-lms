@@ -67,11 +67,11 @@ Three reports reveal whether the failure pattern is consistent or varies.
 | `SpecTimeLimit::Error` | Under-set timeout or test too slow | Case 02, Case 03 |
 | `NoSuchElementError` after refresh | Deferred AJAX miss | Case 04 Pattern B/D |
 | `RuntimeError` from JS console | CDP artifact | Case 04 Pattern A |
-| `ExpectationNotMetError` (wrong value) | DB ordering / global state | Case 04 Pattern C, Case 05 |
-| "expected X but nothing was raised" | Global state contamination | Case 05 |
+| `ExpectationNotMetError` (wrong value) | DB ordering / global state | Case 04 Pattern C, Case 12 |
+| "expected X but nothing was raised" | Global state contamination | Case 12 |
 | `NoSuchElementError` on AJAX-loaded content | JS init race or browser cache | Case 06 |
 | Error in `prepend_before` / `after` hook | Previous test left browser state | Case 07 |
-| Multiple tests always fail together | Shared environment variable | Case 05, Case 06 (env) |
+| Multiple tests always fail together | Shared environment variable | Case 12, Case 06 (env) |
 | `RuntimeError: Don't know how to build task` (all tests) | Conditional task loading with stale guard | Case 08 |
 
 ### 4c. Implement the fix

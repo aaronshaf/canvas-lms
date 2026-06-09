@@ -28,12 +28,67 @@ the skill is regenerated. Each case documents the full failure sequence and
 the root cause, which prevents the same mistake from being made again as new
 cases are added.
 
+## Failure-Mechanism Lookup
+
+Use this table to jump to the right case from the error signature.
+
+| Error / Signal | Pattern | Case |
+|---|---|---|
+| `SpecTimeLimit::Error` with under-set `custom_timeout` | Timeout budget | 02 |
+| `SpecTimeLimit::Error` at 60s cap | Cap optimisation | 03 |
+| `RuntimeError` from JS console (CDP session) | Browser artifact | 04A |
+| `NoSuchElementError` after page load / refresh | Deferred AJAX miss | 04B |
+| `ExpectationNotMetError` wrong value, DB ordering | DB ordering assumption | 04C |
+| `ExpectationNotMetError` after navigate-away | AJAX pref save race | 04D |
+| All tests fail together, all retries, varies by worker | Process state contamination | 12 |
+| `NoSuchElementError` on AJAX list, zero `Processing by` | JS bundle init race | 06A |
+| AJAX list empty despite DB data, `loaded: true` | Browser HTTP cache | 06B |
+| Error in `prepend_before` / `after` hook, wrong screenshot | Browser state leak | 07 |
+| Test depends on data contract from a pipeline | Pipeline substitution | 01 |
+| InstUI portal never mounts (`findByRole` timeout) | rAF starvation | 09 |
+| Mixed `fireEvent`/`userEvent` on `CanvasAsyncSelect` | Focus/blur race | 10 |
+| Unguarded ref + `isLoading` in observer effect deps | React stuck ref | 11 |
+
 ## Case File Naming
 
-Cases are numbered sequentially: `case_01.md`, `case_02.md`, etc.  
-See `case_01.md` in this folder for the reference example of the expected
-structure (context, failure sequence, correct fix, core rule, and dictionary
-of terms).
+Active cases live in `kb/`. Cases that have been merged into another case
+or are no longer actively referenced move to `kb/archive/` — they keep
+their original filenames so JIRA and commit references remain valid, but
+don't clutter the active listing. The lookup table above only references
+active cases.
+
+See `case_01.md` for the reference example of the expected structure
+(context, failure sequence, correct fix, core rule, and dictionary of
+terms).
+
+## Periodic Review
+
+Every 3–4 batches, review the KB for redundancies and regrouping. Check
+whether cases that were filed by JIRA should be merged by failure mechanism.
+See the QE-147 session for an example of this review.
+
+## Archiving Cases
+
+When a case is merged into another or heavily rewritten, move the original
+to `archive/` rather than editing it in place. This preserves a clean
+audit trail — JIRA comments and commit messages that reference the old
+case number still find the original content.
+
+**When to archive:**
+- A case is consolidated into a broader case (e.g. Cases 05 + 08 →
+  Case 12). Archive the originals, create a new numbered case.
+- A case is made obsolete by a framework-level fix that eliminates the
+  failure class entirely.
+
+**When NOT to archive (edit in place instead):**
+- Adding a new pattern to an existing case (e.g. Case 04 Pattern B
+  gets the `ff()` vs `f()` note).
+- Updating file paths, line numbers, or JIRA references.
+- Correcting factual errors.
+
+**Format:** Add a one-line `**Archived:**` header at the top of the
+archived file stating where the content was merged to and why, then
+preserve the original content below unchanged.
 
 ## Style Guidelines
 

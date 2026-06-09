@@ -95,25 +95,9 @@ error.
 
 ---
 
-## Uncontrolled Environment Variable (Companion Pattern)
+## Related: Process-Level State Contamination
 
-The cloudfront_transition_spec tests (also QE-144) exhibited a related
-pattern: `ApplicationController.test_cluster?` varied between CI workers,
-causing `effective_host` to rewrite domain names on some workers. Three
-tests always failed together because they all depended on the rake task
-finding domains by their original host names.
-
-**Fix:** Stub the environment variable in the shared `before` block:
-```ruby
-allow(ApplicationController).to receive(:test_cluster?).and_return(false)
-```
-
-**How to recognise:**
-- Multiple tests in the same file always fail together
-- The error values contain environment-specific data (cluster names,
-  transformed hostnames)
-- The test setup mocks most external dependencies but misses one
-  environment-sensitive method
-
-This is similar to Case 05 (global state contamination) but the source is
-the CI worker environment rather than a mutable class variable.
+The cloudfront_transition_spec tests (also QE-144) exhibited an
+environment-variable contamination pattern. This has been moved to
+**Case 12 Pattern D** which consolidates all process-level state
+contamination patterns.

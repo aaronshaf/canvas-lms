@@ -1,4 +1,12 @@
+**Archived:** Merged into Case 12 Pattern C — Process-Level State Contamination (QE-147).
+
 # KB Case 08 — Conditional Task Loading with Stale Guard (QE-146)
+
+Original content preserved below for reference.
+
+---
+
+# (Original) Conditional Task Loading with Stale Guard (QE-146)
 
 ## Context
 

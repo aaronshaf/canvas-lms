@@ -1,3 +1,5 @@
+**Archived:** Merged into Case 12 — Process-Level State Contamination (QE-147).
+
 # KB Case 05 — Global State Contamination via Mutable Class Variables (QE-142)
 
 ## Context
