@@ -55,7 +55,9 @@
             <div class="<%= otp_via_sms_in_us_region? ? "col-xs-12 col-sm-12 col-md-6" : "col-xs-12" %>">
               <h3><%= t("Use Authenticator App") %></h3>
               <%
-                provisioning_uri = ROTP::TOTP.new(session[:pending_otp_secret_key]).provisioning_uri("#{@domain_root_account.name} Canvas- #{@current_pseudonym.unique_id}")
+                env = Canvas.environment
+                env_tag = "[#{env}] " unless env == "production"
+                provisioning_uri = ROTP::TOTP.new(session[:pending_otp_secret_key]).provisioning_uri("#{env_tag}#{@domain_root_account.name} Canvas- #{@current_pseudonym.unique_id}")
                 qr_code = RQRCode::QRCode.new(provisioning_uri, level: :l)
               %>
               <div class="otp-qr-code">

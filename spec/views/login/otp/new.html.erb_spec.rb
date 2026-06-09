@@ -52,6 +52,32 @@ describe "login/otp/new" do
       doc = Nokogiri::HTML5(rendered)
       expect(doc.text).to include("Multi-Factor Authentication (MFA) enhances security by requiring a physical device and your Canvas login password.")
     end
+
+    it "renders the QR code img tag" do
+      render
+      doc = Nokogiri::HTML5(rendered)
+      img = doc.at_css(".otp-qr-code img")
+      expect(img).not_to be_nil
+      expect(img["src"]).to start_with("data:image/png;base64,")
+      expect(img["alt"]).to eql("Time-based one-time password (TOTP) QR code")
+    end
+
+    describe "QR code provisioning URI" do
+      let(:totp) { instance_double(ROTP::TOTP, provisioning_uri: "otpauth://totp/stub") }
+
+      before { allow(ROTP::TOTP).to receive(:new).with("123456").and_return(totp) }
+
+      it "prefixes the label with the env tag in non-production" do
+        render
+        expect(totp).to have_received(:provisioning_uri).with("[test] Domain Account Canvas- unique_id_123")
+      end
+
+      it "omits the env tag in production" do
+        allow(Canvas).to receive(:environment).and_return("production")
+        render
+        expect(totp).to have_received(:provisioning_uri).with("Domain Account Canvas- unique_id_123")
+      end
+    end
   end
 
   context "with verification code sent to mobile" do
