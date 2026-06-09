@@ -231,6 +231,33 @@ describe Api::V1::AiExperience do
       end
     end
 
+    context "completed_count and total_students" do
+      it "includes completed_count when can_manage and opt is provided" do
+        json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true, completed_count: 7)
+        expect(json[:completed_count]).to eq(7)
+      end
+
+      it "includes total_students when can_manage and opt is provided" do
+        json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true, total_students: 20)
+        expect(json[:total_students]).to eq(20)
+      end
+
+      it "excludes completed_count when opt is not provided" do
+        json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
+        expect(json).not_to have_key(:completed_count)
+      end
+
+      it "excludes completed_count when can_manage is false" do
+        json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: false, completed_count: 5)
+        expect(json).not_to have_key(:completed_count)
+      end
+
+      it "excludes total_students when can_manage is false" do
+        json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: false, total_students: 20)
+        expect(json).not_to have_key(:total_students)
+      end
+    end
+
     describe "failed_context_file_names" do
       it "includes failed_context_file_names when can_manage and value is present" do
         json = api.ai_experience_json(@ai_experience,

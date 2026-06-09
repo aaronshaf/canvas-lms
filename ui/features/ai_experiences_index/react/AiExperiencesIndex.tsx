@@ -25,6 +25,7 @@ import {Spinner} from '@instructure/ui-spinner'
 import {Text} from '@instructure/ui-text'
 import {Button} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
+import {Pagination} from '@instructure/ui-pagination'
 import {IconAddLine, IconAiColoredSolid} from '@instructure/ui-icons'
 import {showFlashError} from '@instructure/platform-alerts'
 import doFetchApi from '@canvas/do-fetch-api-effect'
@@ -39,6 +40,9 @@ const AiExperiencesIndex: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [canManage, setCanManage] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalStudents, setTotalStudents] = useState(0)
   const [deleteTarget, setDeleteTarget] = useState<{id: number; title: string} | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const createButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -52,12 +56,21 @@ const AiExperiencesIndex: React.FC = () => {
           throw new Error('Could not find course ID in environment')
         }
 
-        const {json: data} = await doFetchApi<{experiences: AiExperience[]; can_manage: boolean}>({
+        const {json: data} = await doFetchApi<{
+          experiences: AiExperience[]
+          can_manage: boolean
+          total_students: number | null
+          total_pages: number
+          current_page: number
+        }>({
           path: `/api/v1/courses/${courseId}/ai_experiences`,
+          params: {page: currentPage},
         })
 
         setExperiences(data!.experiences)
         setCanManage(data!.can_manage)
+        setTotalPages(data!.total_pages ?? 1)
+        setTotalStudents(data!.total_students ?? 0)
       } catch (err) {
         // TODO: Show flash alert to user for fetch error
         setError(err instanceof Error ? err.message : 'An error occurred')
@@ -67,16 +80,11 @@ const AiExperiencesIndex: React.FC = () => {
     }
 
     fetchExperiences()
-  }, [])
+  }, [currentPage])
 
   const handleEdit = (id: number) => {
     const courseId = ENV.COURSE_ID
     window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${id}/edit`)
-  }
-
-  const handleTestConversation = (id: number) => {
-    const courseId = ENV.COURSE_ID
-    window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${id}?preview=true`)
   }
 
   const handleDelete = (id: number) => {
@@ -115,33 +123,6 @@ const AiExperiencesIndex: React.FC = () => {
   }
 
   const handleCancelDelete = () => setDeleteTarget(null)
-
-  const handlePublishToggle = async (id: number, newState: 'published' | 'unpublished') => {
-    try {
-      const courseId = ENV.COURSE_ID
-
-      const {json: updatedExperience} = await doFetchApi<AiExperience>({
-        path: `/api/v1/courses/${courseId}/ai_experiences/${id}`,
-        method: 'PUT',
-        body: {ai_experience: {workflow_state: newState}},
-      })
-
-      // Update the local state
-      setExperiences(prevExperiences =>
-        prevExperiences.map(exp =>
-          exp.id === id
-            ? {
-                ...exp,
-                workflow_state: newState,
-                can_unpublish: updatedExperience?.can_unpublish,
-              }
-            : exp,
-        ),
-      )
-    } catch {
-      showFlashError(I18n.t('Failed to update Knowledge Chat. Please try again.'))()
-    }
-  }
 
   const handleCreateNew = () => {
     const courseId = ENV.COURSE_ID
@@ -210,14 +191,34 @@ const AiExperiencesIndex: React.FC = () => {
       {experiences.length === 0 ? (
         <AIExperiencesEmptyState canManage={canManage} onCreateNew={handleCreateNew} />
       ) : (
-        <AIExperienceList
-          canManage={canManage}
-          experiences={experiences}
-          onEdit={handleEdit}
-          onTestConversation={handleTestConversation}
-          onPublishToggle={handlePublishToggle}
-          onDelete={handleDelete}
-        />
+        <>
+          <AIExperienceList
+            canManage={canManage}
+            experiences={experiences}
+            totalStudents={totalStudents}
+            onEdit={handleEdit}
+            onPublishChange={(id, newState) =>
+              setExperiences(prev =>
+                prev.map(exp => (exp.id === id ? {...exp, workflow_state: newState} : exp)),
+              )
+            }
+            onDelete={handleDelete}
+          />
+          {totalPages > 1 && (
+            <Pagination
+              as="nav"
+              variant="compact"
+              margin="small 0 0 0"
+              currentPage={currentPage}
+              totalPageNumber={totalPages}
+              onPageChange={(page: number) => setCurrentPage(page)}
+              labelNext={I18n.t('Next page')}
+              labelPrev={I18n.t('Previous page')}
+              aria-label={I18n.t('Knowledge Chats pagination')}
+              data-testid="ai-experiences-pagination"
+            />
+          )}
+        </>
       )}
 
       <Modal

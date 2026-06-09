@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -22,6 +22,10 @@ import userEvent from '@testing-library/user-event'
 import AIExperienceList from '../AIExperienceList'
 import type {AiExperience} from '../../types'
 
+vi.mock('@canvas/do-fetch-api-effect', () => ({
+  default: vi.fn().mockResolvedValue({json: {}}),
+}))
+
 const mockExperiences: AiExperience[] = [
   {
     id: 1,
@@ -32,6 +36,8 @@ const mockExperiences: AiExperience[] = [
     learning_objective: 'Learn to handle complaints',
     pedagogical_guidance: 'A customer calls about billing',
     created_at: '2025-01-15T10:30:00Z',
+    can_unpublish: true,
+    context_ready: true,
   },
   {
     id: 2,
@@ -42,6 +48,8 @@ const mockExperiences: AiExperience[] = [
     learning_objective: 'Learn to close deals',
     pedagogical_guidance: 'A potential customer is interested',
     created_at: '2025-01-10T14:20:00Z',
+    can_unpublish: true,
+    context_ready: true,
   },
 ]
 
@@ -49,14 +57,14 @@ const defaultProps = {
   canManage: true,
   experiences: mockExperiences,
   onEdit: vi.fn(),
-  onTestConversation: vi.fn(),
-  onPublishToggle: vi.fn(),
+  onPublishChange: vi.fn(),
   onDelete: vi.fn(),
 }
 
 describe('AIExperienceList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(global as any).ENV = {COURSE_ID: 123}
   })
 
   it('renders all experiences passed as props', () => {
@@ -73,76 +81,29 @@ describe('AIExperienceList', () => {
     expect(screen.getByText(/Created on January 10, 2025/)).toBeInTheDocument()
   })
 
-  it('shows correct publish status for each experience', () => {
+  it('shows publish buttons for each experience', () => {
     render(<AIExperienceList {...defaultProps} />)
-
-    expect(screen.getByText('Published')).toBeInTheDocument()
-    expect(screen.getByText('Not published')).toBeInTheDocument()
+    expect(screen.getAllByTestId('ai-experience-publish-button')).toHaveLength(2)
   })
 
   it('calls onEdit when edit menu item is clicked', async () => {
     const user = userEvent.setup()
     render(<AIExperienceList {...defaultProps} />)
 
-    // Click the menu button for the first experience
     const menuButtons = screen.getAllByTestId('ai-experience-menu')
     await user.click(menuButtons[0])
-
-    // Click the Edit menu item
-    const editButton = screen.getByText('Edit')
-    await user.click(editButton)
+    await user.click(screen.getByText('Edit'))
 
     expect(defaultProps.onEdit).toHaveBeenCalledWith(1)
-  })
-
-  it('calls onTestConversation when test conversation menu item is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceList {...defaultProps} />)
-
-    // Click the menu button for the first experience
-    const menuButtons = screen.getAllByTestId('ai-experience-menu')
-    await user.click(menuButtons[0])
-
-    // Click the Test Conversation menu item
-    const testButton = screen.getByText('Test Conversation')
-    await user.click(testButton)
-
-    expect(defaultProps.onTestConversation).toHaveBeenCalledWith(1)
-  })
-
-  it('calls onPublishToggle when publish button is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceList {...defaultProps} />)
-
-    // Click the publish button for the unpublished experience (second one)
-    const publishButtons = screen.getAllByTestId('ai-experience-publish-toggle')
-    await user.click(publishButtons[1]) // Second experience is unpublished
-
-    expect(defaultProps.onPublishToggle).toHaveBeenCalledWith(2, 'published')
-  })
-
-  it('calls onPublishToggle with unpublished when unpublish button is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceList {...defaultProps} />)
-
-    // Click the unpublish button for the published experience (first one)
-    const publishButtons = screen.getAllByTestId('ai-experience-publish-toggle')
-    await user.click(publishButtons[0]) // First experience is published
-
-    expect(defaultProps.onPublishToggle).toHaveBeenCalledWith(1, 'unpublished')
   })
 
   it('calls onDelete when delete menu item is clicked', async () => {
     const user = userEvent.setup()
     render(<AIExperienceList {...defaultProps} />)
 
-    // Click the menu button for the first experience
     const menuButtons = screen.getAllByTestId('ai-experience-menu')
     await user.click(menuButtons[0])
-
-    // Click the Delete menu item
-    const deleteButton = screen.getByText('Delete')
-    await user.click(deleteButton)
+    await user.click(screen.getByText('Delete'))
 
     expect(defaultProps.onDelete).toHaveBeenCalledWith(1)
   })
@@ -152,5 +113,12 @@ describe('AIExperienceList', () => {
 
     expect(screen.queryByText('Customer Service Training')).not.toBeInTheDocument()
     expect(screen.queryByText('Sales Simulation')).not.toBeInTheDocument()
+  })
+
+  it('passes totalStudents to each row', () => {
+    render(<AIExperienceList {...defaultProps} totalStudents={20} />)
+    // With no completed_count on the experiences, no completion badges render —
+    // just verify the list renders without error
+    expect(screen.getByText('Customer Service Training')).toBeInTheDocument()
   })
 })

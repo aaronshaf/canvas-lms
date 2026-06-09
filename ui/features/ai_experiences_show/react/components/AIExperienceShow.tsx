@@ -35,7 +35,7 @@ import {AIExperience} from '../../types'
 import {FileList} from '@canvas/canvas-file-upload/react/FileList'
 import LLMConversationView from '@canvas/ai-experiences/react/components/LLMConversationView'
 import ConversationLanding from '@canvas/ai-experiences/react/components/ConversationLanding'
-import AIExperiencePublishButton from './AIExperiencePublishButton'
+import AIExperiencePublishButton from '@canvas/ai-experiences/react/components/AIExperiencePublishButton'
 import AIConversationsContainer from '@canvas/ai-experiences/react/components/AIConversationsContainer'
 import EvaluationMetricsSection from '@canvas/ai-experiences/react/components/EvaluationMetricsSection'
 import {navyButtonTheme, roundedTheme} from '@canvas/ai-experiences/react/brand'
@@ -106,7 +106,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
       })
       showFlashSuccess(I18n.t('Knowledge Chat deleted successfully'))()
       window.location.href = sanitizeUrl(`/courses/${aiExperience.course_id}/ai_experiences`)
-    } catch (_error) {
+    } catch {
       showFlashError(I18n.t('Failed to delete Knowledge Chat'))()
       setIsDeleting(false)
       setIsDeleteModalOpen(false)

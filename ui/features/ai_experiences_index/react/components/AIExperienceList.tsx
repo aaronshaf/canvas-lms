@@ -17,57 +17,54 @@
  */
 
 import React from 'react'
-import {View} from '@instructure/ui-view'
+import {InstUISettingsProvider} from '@instructure/emotion'
+import {Flex} from '@instructure/ui-flex'
 import AIExperienceRow from './AIExperienceRow'
+import {roundedTheme} from '@canvas/ai-experiences/react/brand'
 import type {AiExperience} from '../types'
 
 interface AIExperienceListProps {
   canManage: boolean
   experiences: AiExperience[]
+  totalStudents?: number
   onEdit: (id: number) => void
-  onTestConversation: (id: number) => void
-  onPublishToggle: (id: number, newState: 'published' | 'unpublished') => void
+  onPublishChange: (id: number, newState: 'published' | 'unpublished') => void
   onDelete: (id: number) => void
 }
 
 const AIExperienceList: React.FC<AIExperienceListProps> = ({
   canManage,
   experiences,
+  totalStudents,
   onEdit,
-  onTestConversation,
-  onPublishToggle,
+  onPublishChange,
   onDelete,
 }) => {
   return (
-    <View
-      as="div"
-      background="primary"
-      borderWidth="small"
-      borderColor="primary"
-      borderRadius="medium"
-    >
-      {experiences.map((experience, index) => (
-        <React.Fragment key={experience.id}>
-          <AIExperienceRow
-            canManage={canManage}
-            id={experience.id}
-            title={experience.title}
-            workflowState={experience.workflow_state}
-            canUnpublish={experience.can_unpublish ?? true}
-            contextReady={experience.context_ready ?? true}
-            createdAt={experience.created_at}
-            submissionStatus={experience.submission_status}
-            onEdit={onEdit}
-            onTestConversation={onTestConversation}
-            onPublishToggle={onPublishToggle}
-            onDelete={onDelete}
-          />
-          {index < experiences.length - 1 && (
-            <View as="div" borderWidth="0 0 small 0" borderColor="primary" />
-          )}
-        </React.Fragment>
-      ))}
-    </View>
+    <InstUISettingsProvider theme={roundedTheme}>
+      <Flex direction="column" gap="small">
+        {experiences.map(experience => (
+          <Flex.Item key={experience.id}>
+            <AIExperienceRow
+              canManage={canManage}
+              id={experience.id}
+              title={experience.title}
+              description={experience.description}
+              workflowState={experience.workflow_state}
+              canUnpublish={experience.can_unpublish ?? true}
+              contextReady={experience.context_ready ?? true}
+              createdAt={experience.created_at}
+              submissionStatus={experience.submission_status}
+              completedCount={experience.completed_count}
+              totalStudents={totalStudents}
+              onEdit={onEdit}
+              onPublishChange={onPublishChange}
+              onDelete={onDelete}
+            />
+          </Flex.Item>
+        ))}
+      </Flex>
+    </InstUISettingsProvider>
   )
 }
 

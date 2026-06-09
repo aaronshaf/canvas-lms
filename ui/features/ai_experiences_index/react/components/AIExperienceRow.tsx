@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {useScope as useI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
@@ -25,22 +25,23 @@ import {Link} from '@instructure/ui-link'
 import {IconButton} from '@instructure/ui-buttons'
 import {Menu} from '@instructure/ui-menu'
 import {Pill} from '@instructure/ui-pill'
-import {Spinner} from '@instructure/ui-spinner'
-import {Tooltip} from '@instructure/ui-tooltip'
-import {IconPublishSolid, IconUnpublishedLine, IconMoreLine} from '@instructure/ui-icons'
+import {IconMoreLine} from '@instructure/ui-icons'
+import AIExperiencePublishButton from '@canvas/ai-experiences/react/components/AIExperiencePublishButton'
 
 interface AIExperienceRowProps {
   canManage: boolean
   id: number
   title: string
+  description?: string
   workflowState: 'published' | 'unpublished'
   canUnpublish: boolean
   contextReady: boolean
   createdAt: string
   submissionStatus?: 'not_started' | 'in_progress' | 'completed'
+  completedCount?: number
+  totalStudents?: number
   onEdit: (id: number) => void
-  onTestConversation: (id: number) => void
-  onPublishToggle: (id: number, newState: 'published' | 'unpublished') => void
+  onPublishChange: (id: number, newState: 'published' | 'unpublished') => void
   onDelete: (id: number) => void
 }
 
@@ -48,14 +49,16 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
   canManage,
   id,
   title,
+  description,
   workflowState,
   canUnpublish,
   contextReady,
   createdAt,
   submissionStatus,
+  completedCount,
+  totalStudents,
   onEdit,
-  onTestConversation,
-  onPublishToggle,
+  onPublishChange,
   onDelete,
 }) => {
   const I18n = useI18nScope('ai_experiences')
@@ -66,175 +69,64 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
     day: 'numeric',
   })
 
-  const [loadingProgress, setLoadingProgress] = useState(false)
-  const [fetchedProgressPercentage, setFetchedProgressPercentage] = useState<number | null>(null)
-
-  // Fetch progress data when status is in_progress
-  useEffect(() => {
-    const fetchProgress = async () => {
-      if (submissionStatus !== 'in_progress' || canManage) {
-        return
-      }
-
-      setLoadingProgress(true)
-      try {
-        const courseId = ENV.COURSE_ID
-        const response = await fetch(
-          `/api/v1/courses/${courseId}/ai_experiences/${id}/conversations`,
-          {
-            headers: {
-              Accept: 'application/json',
-            },
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch progress')
-        }
-
-        const data = await response.json()
-        console.log('Progress data for experience', id, ':', data.progress)
-        const percentage = data.progress?.percentage ?? 0
-        setFetchedProgressPercentage(percentage)
-      } catch (err) {
-        // On error, default to 0%
-        setFetchedProgressPercentage(0)
-      } finally {
-        setLoadingProgress(false)
-      }
-    }
-
-    fetchProgress()
-  }, [submissionStatus, id, canManage])
-
-  const handlePublishToggle = () => {
-    // Only allow toggle if published and can unpublish, or if unpublished and can publish
-    if ((isPublished && !canUnpublish) || (!isPublished && !contextReady)) return
-
-    const newState = isPublished ? 'unpublished' : 'published'
-    onPublishToggle(id, newState)
-  }
-
-  return (
-    <View as="div" background="primary" padding="x-small small">
-      <Flex justifyItems="space-between" alignItems="center">
-        <Flex.Item shouldGrow shouldShrink>
-          <View as="div" margin="0 0 0 small">
-            <Link
-              data-testid="ai-experiences-index-show-link"
-              href={`/courses/${ENV.COURSE_ID}/ai_experiences/${id}`}
-              isWithinText={false}
-              themeOverride={{
-                color: 'inherit',
-                hoverColor: 'inherit',
-                fontWeight: 700,
-              }}
-              style={{
-                fontSize: '1.125rem',
-                textDecoration: 'none',
-              }}
-            >
-              {title}
-            </Link>
-            <View as="div">
-              <Text size="small" color="secondary">
-                {I18n.t('Created on %{date}', {date: formattedDate})}
-              </Text>
-            </View>
-          </View>
-        </Flex.Item>
-
-        {!canManage && submissionStatus && (
-          <Flex.Item>
-            <View as="div" margin="0 small 0 0">
-              {loadingProgress ? (
-                <View as="span" aria-live="polite" aria-busy={true}>
-                  <Spinner renderTitle={I18n.t('Loading progress')} size="x-small" />
-                </View>
-              ) : (
-                <Pill
-                  color={
-                    submissionStatus === 'completed'
-                      ? 'success'
-                      : submissionStatus === 'in_progress'
-                        ? 'info'
-                        : undefined
-                  }
-                >
-                  {submissionStatus === 'not_started' && I18n.t('Not Started')}
-                  {submissionStatus === 'in_progress' &&
-                    I18n.t('In Progress (%{percentage}%)', {
-                      percentage: fetchedProgressPercentage ?? 0,
-                    })}
-                  {submissionStatus === 'completed' && I18n.t('Completed')}
-                </Pill>
-              )}
+  if (canManage) {
+    return (
+      <View
+        as="div"
+        background="primary"
+        padding="x-small small"
+        borderWidth="small"
+        borderColor="primary"
+        borderRadius="medium"
+      >
+        <Flex justifyItems="space-between" alignItems="center">
+          <Flex.Item shouldGrow shouldShrink>
+            <View as="div" margin="0 0 0 small">
+              <Link
+                data-testid="ai-experiences-index-show-link"
+                href={`/courses/${ENV.COURSE_ID}/ai_experiences/${id}`}
+                isWithinText={false}
+                themeOverride={{
+                  color: 'inherit',
+                  hoverColor: 'inherit',
+                  fontWeight: 700,
+                }}
+                style={{
+                  fontSize: '1.125rem',
+                  textDecoration: 'none',
+                }}
+              >
+                {title}
+              </Link>
+              <View as="div">
+                <Text size="small" color="secondary">
+                  {I18n.t('Created on %{date}', {date: formattedDate})}
+                </Text>
+              </View>
             </View>
           </Flex.Item>
-        )}
 
-        {canManage && (
           <Flex.Item>
             <Flex alignItems="center" gap="small">
+              {completedCount !== undefined && totalStudents !== undefined && (
+                <Flex.Item>
+                  <Text size="small" color="secondary" data-testid="ai-experience-completion-count">
+                    {I18n.t('%{completed}/%{total} completed', {
+                      completed: completedCount,
+                      total: totalStudents,
+                    })}
+                  </Text>
+                </Flex.Item>
+              )}
               <Flex.Item>
-                <Text size="small" color="secondary">
-                  {isPublished ? I18n.t('Published') : I18n.t('Not published')}
-                </Text>
-              </Flex.Item>
-              <Flex.Item>
-                {(isPublished && !canUnpublish) || (!isPublished && !contextReady) ? (
-                  <Tooltip
-                    renderTip={
-                      isPublished
-                        ? I18n.t(
-                            'Cannot unpublish: students have started conversations or source files are still processing',
-                          )
-                        : I18n.t('Cannot publish: source files are still processing')
-                    }
-                    on={['hover', 'focus']}
-                  >
-                    <IconButton
-                      size="small"
-                      withBackground={false}
-                      withBorder={false}
-                      onClick={handlePublishToggle}
-                      interaction="disabled"
-                      screenReaderLabel={
-                        isPublished
-                          ? I18n.t(
-                              'Cannot unpublish - students have conversations or source files are still processing',
-                            )
-                          : I18n.t('Cannot publish - source files are still processing')
-                      }
-                      data-testid="ai-experience-publish-toggle"
-                    >
-                      {isPublished ? (
-                        <IconPublishSolid color="success" size="x-small" />
-                      ) : (
-                        <IconUnpublishedLine color="secondary" size="x-small" />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                ) : (
-                  <IconButton
-                    size="small"
-                    withBackground={false}
-                    withBorder={false}
-                    onClick={handlePublishToggle}
-                    screenReaderLabel={
-                      isPublished
-                        ? I18n.t('Unpublish Knowledge Chat')
-                        : I18n.t('Publish Knowledge Chat')
-                    }
-                    data-testid="ai-experience-publish-toggle"
-                  >
-                    {isPublished ? (
-                      <IconPublishSolid color="success" size="x-small" />
-                    ) : (
-                      <IconUnpublishedLine color="secondary" size="x-small" />
-                    )}
-                  </IconButton>
-                )}
+                <AIExperiencePublishButton
+                  experienceId={String(id)}
+                  courseId={ENV.COURSE_ID!}
+                  isPublished={isPublished}
+                  canUnpublish={canUnpublish}
+                  contextReady={contextReady}
+                  onPublishChange={newState => onPublishChange(id, newState)}
+                />
               </Flex.Item>
               <Flex.Item>
                 <Menu
@@ -257,12 +149,6 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
                     {I18n.t('Edit')}
                   </Menu.Item>
                   <Menu.Item
-                    data-testid="ai-experiences-index-test-conversation-menu-item"
-                    onSelect={() => onTestConversation(id)}
-                  >
-                    {I18n.t('Test Conversation')}
-                  </Menu.Item>
-                  <Menu.Item
                     data-testid="ai-experiences-index-delete-menu-item"
                     onSelect={() => onDelete(id)}
                   >
@@ -272,7 +158,72 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
               </Flex.Item>
             </Flex>
           </Flex.Item>
-        )}
+        </Flex>
+      </View>
+    )
+  }
+
+  return (
+    <View
+      as="div"
+      background="primary"
+      padding="medium small"
+      borderWidth="small"
+      borderColor="primary"
+      borderRadius="large"
+    >
+      <Flex justifyItems="space-between" alignItems="start">
+        <Flex.Item shouldGrow shouldShrink>
+          <View as="div" margin="0 0 0 small">
+            <Link
+              data-testid="ai-experiences-index-show-link"
+              href={`/courses/${ENV.COURSE_ID}/ai_experiences/${id}`}
+              isWithinText={false}
+              themeOverride={{
+                color: 'inherit',
+                hoverColor: 'inherit',
+              }}
+              style={{
+                fontSize: '1.125rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              {title}
+            </Link>
+            {description && (
+              <View as="div" margin="xx-small 0 0 0">
+                <Text color="secondary">{description}</Text>
+              </View>
+            )}
+          </View>
+        </Flex.Item>
+
+        {submissionStatus && submissionStatus !== 'in_progress' ? (
+          <Flex.Item>
+            <View as="div" margin="0 small 0 0">
+              <Pill
+                color={submissionStatus === 'completed' ? 'success' : undefined}
+                data-testid="ai-experience-submission-status"
+              >
+                <Text as="span" weight="bold">
+                  {submissionStatus === 'completed' && I18n.t('Completed')}
+                  {submissionStatus === 'not_started' && I18n.t('Not Started')}
+                </Text>
+              </Pill>
+            </View>
+          </Flex.Item>
+        ) : submissionStatus === 'in_progress' ? (
+          <Flex.Item>
+            <View as="div" margin="0 small 0 0">
+              <Pill color="info" data-testid="ai-experience-submission-status">
+                <Text as="span" weight="bold">
+                  {I18n.t('In Progress')}
+                </Text>
+              </Pill>
+            </View>
+          </Flex.Item>
+        ) : null}
       </Flex>
     </View>
   )

@@ -64,6 +64,9 @@ module Api::V1::AiExperience
       json[:evaluation_metrics] = ai_experience.ai_experience_evaluation_metrics.map do |m|
         { name: m.name, description: m.description, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
       end
+
+      json[:completed_count] = opts[:completed_count] if opts.key?(:completed_count)
+      json[:total_students]  = opts[:total_students]  if opts.key?(:total_students)
     end
 
     json

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -21,6 +21,10 @@ import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AIExperienceRow from '../AIExperienceRow'
 
+vi.mock('@canvas/do-fetch-api-effect', () => ({
+  default: vi.fn().mockResolvedValue({json: {}}),
+}))
+
 const defaultProps = {
   canManage: true,
   id: 1,
@@ -30,20 +34,14 @@ const defaultProps = {
   contextReady: true,
   createdAt: '2025-01-15T10:30:00Z',
   onEdit: vi.fn(),
-  onTestConversation: vi.fn(),
-  onPublishToggle: vi.fn(),
+  onPublishChange: vi.fn(),
   onDelete: vi.fn(),
 }
 
 describe('AIExperienceRow', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    global.fetch = vi.fn()
     ;(global as any).ENV = {COURSE_ID: 123}
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
   })
 
   it('renders title and formatted creation date', () => {
@@ -53,120 +51,83 @@ describe('AIExperienceRow', () => {
     expect(screen.getByText(/Created on January 15, 2025/)).toBeInTheDocument()
   })
 
-  it('shows correct publish status', () => {
-    const {rerender} = render(<AIExperienceRow {...defaultProps} />)
-    expect(screen.getByText('Published')).toBeInTheDocument()
-
-    rerender(<AIExperienceRow {...defaultProps} workflowState="unpublished" />)
-    expect(screen.getByText('Not published')).toBeInTheDocument()
-  })
-
-  it('calls onPublishToggle with correct state when publish button clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceRow {...defaultProps} workflowState="unpublished" />)
-
-    const publishButton = screen.getByTestId('ai-experience-publish-toggle')
-    await user.click(publishButton)
-
-    expect(defaultProps.onPublishToggle).toHaveBeenCalledWith(1, 'published')
-  })
-
-  it('calls onEdit when edit menu item is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceRow {...defaultProps} />)
-
-    const menuButton = screen.getByTestId('ai-experience-menu')
-    await user.click(menuButton)
-
-    const editButton = screen.getByText('Edit')
-    await user.click(editButton)
-    expect(defaultProps.onEdit).toHaveBeenCalledWith(1)
-  })
-
-  it('calls onTestConversation when test conversation menu item is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceRow {...defaultProps} />)
-
-    const menuButton = screen.getByTestId('ai-experience-menu')
-    await user.click(menuButton)
-
-    const testButton = screen.getByText('Test Conversation')
-    await user.click(testButton)
-    expect(defaultProps.onTestConversation).toHaveBeenCalledWith(1)
-  })
-
-  it('calls onDelete when delete menu item is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AIExperienceRow {...defaultProps} />)
-
-    const menuButton = screen.getByTestId('ai-experience-menu')
-    await user.click(menuButton)
-
-    const deleteButton = screen.getByText('Delete')
-    await user.click(deleteButton)
-    expect(defaultProps.onDelete).toHaveBeenCalledWith(1)
-  })
-
   it('title is rendered as a clickable link', () => {
-    // Mock ENV.COURSE_ID
-    ;(global as any).ENV = {COURSE_ID: 123}
-
     render(<AIExperienceRow {...defaultProps} />)
 
     const titleLink = screen.getByText('Customer Service Training')
     expect(titleLink).toHaveAttribute('href', '/courses/123/ai_experiences/1')
   })
 
+  it('calls onEdit when edit menu item is clicked', async () => {
+    const user = userEvent.setup()
+    render(<AIExperienceRow {...defaultProps} />)
+
+    await user.click(screen.getByTestId('ai-experience-menu'))
+    await user.click(screen.getByText('Edit'))
+
+    expect(defaultProps.onEdit).toHaveBeenCalledWith(1)
+  })
+
+  it('calls onDelete when delete menu item is clicked', async () => {
+    const user = userEvent.setup()
+    render(<AIExperienceRow {...defaultProps} />)
+
+    await user.click(screen.getByTestId('ai-experience-menu'))
+    await user.click(screen.getByText('Delete'))
+
+    expect(defaultProps.onDelete).toHaveBeenCalledWith(1)
+  })
+
   describe('Teacher view (canManage = true)', () => {
-    it('shows published status text', () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="published" />)
-      expect(screen.getByText('Published')).toBeInTheDocument()
-    })
-
-    it('shows unpublished status text', () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="unpublished" />)
-      expect(screen.getByText('Not published')).toBeInTheDocument()
-    })
-
-    it('shows publish/unpublish button', () => {
+    it('shows publish button', () => {
       render(<AIExperienceRow {...defaultProps} />)
-      expect(screen.getByTestId('ai-experience-publish-toggle')).toBeInTheDocument()
+      expect(screen.getByTestId('ai-experience-publish-button')).toBeInTheDocument()
     })
 
-    it('shows kebab menu', () => {
-      render(<AIExperienceRow {...defaultProps} />)
-      expect(screen.getByTestId('ai-experience-menu')).toBeInTheDocument()
-    })
-
-    it('kebab menu has Edit, Test Conversation, and Delete options', async () => {
+    it('shows kebab menu with Edit and Delete options only', async () => {
       const user = userEvent.setup()
       render(<AIExperienceRow {...defaultProps} />)
 
-      const menuButton = screen.getByTestId('ai-experience-menu')
-      await user.click(menuButton)
+      await user.click(screen.getByTestId('ai-experience-menu'))
 
       expect(screen.getByText('Edit')).toBeInTheDocument()
-      expect(screen.getByText('Test Conversation')).toBeInTheDocument()
       expect(screen.getByText('Delete')).toBeInTheDocument()
+      expect(screen.queryByText('Test Conversation')).not.toBeInTheDocument()
+    })
+
+    it('shows completion count when completedCount and totalStudents are provided', () => {
+      render(<AIExperienceRow {...defaultProps} completedCount={10} totalStudents={15} />)
+      expect(screen.getByTestId('ai-experience-completion-count')).toHaveTextContent(
+        '10/15 completed',
+      )
+    })
+
+    it('does not show completion count when completedCount is not provided', () => {
+      render(<AIExperienceRow {...defaultProps} />)
+      expect(screen.queryByTestId('ai-experience-completion-count')).not.toBeInTheDocument()
+    })
+
+    it('calls onPublishChange after publish button is clicked and API resolves', async () => {
+      const doFetchApi = await import('@canvas/do-fetch-api-effect')
+      vi.mocked(doFetchApi.default).mockResolvedValueOnce({json: {}} as any)
+
+      const user = userEvent.setup()
+      render(<AIExperienceRow {...defaultProps} workflowState="unpublished" contextReady={true} />)
+
+      await user.click(screen.getByTestId('ai-experience-publish-button'))
+
+      await waitFor(() => {
+        expect(defaultProps.onPublishChange).toHaveBeenCalledWith(1, 'published')
+      })
     })
   })
 
   describe('Student view (canManage = false)', () => {
     const studentProps = {...defaultProps, canManage: false}
 
-    it('does not show published status text', () => {
-      render(<AIExperienceRow {...studentProps} workflowState="published" />)
-      expect(screen.queryByText('Published')).not.toBeInTheDocument()
-    })
-
-    it('does not show unpublished status text', () => {
-      render(<AIExperienceRow {...studentProps} workflowState="unpublished" />)
-      expect(screen.queryByText('Not published')).not.toBeInTheDocument()
-    })
-
-    it('does not show publish/unpublish button', () => {
+    it('does not show publish button', () => {
       render(<AIExperienceRow {...studentProps} />)
-      expect(screen.queryByTestId('ai-experience-publish-toggle')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('ai-experience-publish-button')).not.toBeInTheDocument()
     })
 
     it('does not show kebab menu', () => {
@@ -175,16 +136,18 @@ describe('AIExperienceRow', () => {
     })
 
     it('title link is still clickable', () => {
-      ;(global as any).ENV = {COURSE_ID: 123}
       render(<AIExperienceRow {...studentProps} />)
-
-      const titleLink = screen.getByText('Customer Service Training')
-      expect(titleLink).toHaveAttribute('href', '/courses/123/ai_experiences/1')
+      expect(screen.getByText('Customer Service Training')).toHaveAttribute(
+        'href',
+        '/courses/123/ai_experiences/1',
+      )
     })
 
-    it('still shows creation date', () => {
-      render(<AIExperienceRow {...studentProps} />)
-      expect(screen.getByText(/Created on January 15, 2025/)).toBeInTheDocument()
+    it('renders description when provided', () => {
+      render(
+        <AIExperienceRow {...studentProps} description="Practice customer service scenarios" />,
+      )
+      expect(screen.getByText('Practice customer service scenarios')).toBeInTheDocument()
     })
 
     it('displays Not Started pill when submission_status is not_started', () => {
@@ -192,51 +155,9 @@ describe('AIExperienceRow', () => {
       expect(screen.getByText('Not Started')).toBeInTheDocument()
     })
 
-    it('displays spinner then In Progress pill with percentage when submission_status is in_progress', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({progress: {percentage: 35}}),
-      })
-
+    it('displays In Progress pill (no percentage) when submission_status is in_progress', () => {
       render(<AIExperienceRow {...studentProps} submissionStatus="in_progress" />)
-
-      // Initially shows spinner
-      expect(screen.getByTitle('Loading progress')).toBeInTheDocument()
-
-      // After fetch, shows pill with percentage
-      await waitFor(() => {
-        expect(screen.getByText('In Progress (35%)')).toBeInTheDocument()
-      })
-
-      // Spinner should be gone
-      expect(screen.queryByTitle('Loading progress')).not.toBeInTheDocument()
-    })
-
-    it('displays In Progress with 0% when fetch fails', async () => {
-      ;(global.fetch as any).mockRejectedValueOnce(new Error('Network error'))
-
-      render(<AIExperienceRow {...studentProps} submissionStatus="in_progress" />)
-
-      // Initially shows spinner
-      expect(screen.getByTitle('Loading progress')).toBeInTheDocument()
-
-      // After failed fetch, shows pill with 0%
-      await waitFor(() => {
-        expect(screen.getByText('In Progress (0%)')).toBeInTheDocument()
-      })
-    })
-
-    it('displays In Progress with 0% when progress data is missing', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      })
-
-      render(<AIExperienceRow {...studentProps} submissionStatus="in_progress" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('In Progress (0%)')).toBeInTheDocument()
-      })
+      expect(screen.getByText('In Progress')).toBeInTheDocument()
     })
 
     it('displays Completed pill when submission_status is completed', () => {
@@ -244,11 +165,9 @@ describe('AIExperienceRow', () => {
       expect(screen.getByText('Completed')).toBeInTheDocument()
     })
 
-    it('does not display pill when submission_status is undefined', () => {
+    it('does not display a pill when submission_status is undefined', () => {
       render(<AIExperienceRow {...studentProps} />)
-      expect(screen.queryByText('Not Started')).not.toBeInTheDocument()
-      expect(screen.queryByText(/In Progress/)).not.toBeInTheDocument()
-      expect(screen.queryByText('Completed')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('ai-experience-submission-status')).not.toBeInTheDocument()
     })
   })
 
@@ -256,78 +175,6 @@ describe('AIExperienceRow', () => {
     it('never displays submission status pill even when provided', () => {
       render(<AIExperienceRow {...defaultProps} submissionStatus="not_started" />)
       expect(screen.queryByText('Not Started')).not.toBeInTheDocument()
-    })
-  })
-
-  describe('Publish state restrictions', () => {
-    it('disables publish toggle when contextReady is false and unpublished', () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="unpublished" contextReady={false} />)
-
-      const toggleButton = screen.getByTestId('ai-experience-publish-toggle')
-      expect(toggleButton).toHaveAttribute('disabled')
-    })
-
-    it('shows indexing tooltip when contextReady is false', async () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="unpublished" contextReady={false} />)
-
-      expect(
-        screen.getByText('Cannot publish: source files are still processing'),
-      ).toBeInTheDocument()
-    })
-
-    it('disables unpublish toggle when canUnpublish is false and published', () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="published" canUnpublish={false} />)
-
-      const toggleButton = screen.getByTestId('ai-experience-publish-toggle')
-      expect(toggleButton).toHaveAttribute('disabled')
-    })
-
-    it('shows unpublish tooltip when canUnpublish is false', async () => {
-      render(<AIExperienceRow {...defaultProps} workflowState="published" canUnpublish={false} />)
-
-      expect(
-        screen.getByText(
-          'Cannot unpublish: students have started conversations or source files are still processing',
-        ),
-      ).toBeInTheDocument()
-    })
-
-    it('allows publish when contextReady is true and unpublished', async () => {
-      const user = userEvent.setup()
-      render(<AIExperienceRow {...defaultProps} workflowState="unpublished" contextReady={true} />)
-
-      const publishButton = screen.getByTestId('ai-experience-publish-toggle')
-      await user.click(publishButton)
-
-      expect(defaultProps.onPublishToggle).toHaveBeenCalledWith(1, 'published')
-    })
-
-    it('allows unpublish when canUnpublish is true and published', async () => {
-      const user = userEvent.setup()
-      render(<AIExperienceRow {...defaultProps} workflowState="published" canUnpublish={true} />)
-
-      const unpublishButton = screen.getByTestId('ai-experience-publish-toggle')
-      await user.click(unpublishButton)
-
-      expect(defaultProps.onPublishToggle).toHaveBeenCalledWith(1, 'unpublished')
-    })
-
-    it('does not call onPublishToggle when contextReady is false', async () => {
-      const user = userEvent.setup()
-      const onPublishToggle = vi.fn()
-      render(
-        <AIExperienceRow
-          {...defaultProps}
-          workflowState="unpublished"
-          contextReady={false}
-          onPublishToggle={onPublishToggle}
-        />,
-      )
-
-      const publishButton = screen.getByTestId('ai-experience-publish-toggle')
-      await user.click(publishButton)
-
-      expect(onPublishToggle).not.toHaveBeenCalled()
     })
   })
 })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -45,21 +45,33 @@ const mockExperiences = [
     title: 'Customer Service Training',
     workflow_state: 'published',
     created_at: '2025-01-15T10:30:00Z',
+    can_unpublish: true,
+    context_ready: true,
   },
   {
     id: 2,
     title: 'Sales Pitch Practice',
     workflow_state: 'unpublished',
     created_at: '2025-01-16T14:20:00Z',
+    can_unpublish: true,
+    context_ready: true,
   },
 ]
+
+const baseResponse = {
+  experiences: mockExperiences,
+  can_manage: true,
+  total_students: 15,
+  total_pages: 1,
+  current_page: 1,
+}
 
 describe('AiExperiencesIndex', () => {
   describe('empty state', () => {
     it('shows teacher empty state when no experiences exist', async () => {
       server.use(
         http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: [], can_manage: true}),
+          HttpResponse.json({...baseResponse, experiences: [], total_pages: 0}),
         ),
       )
 
@@ -69,11 +81,6 @@ describe('AiExperiencesIndex', () => {
         expect(screen.getByText('No Knowledge Chats created yet.')).toBeInTheDocument(),
       )
       expect(screen.getByText('Create new')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Click the Create New button to start building your first Knowledge Chat.',
-        ),
-      ).toBeInTheDocument()
     })
   })
 
@@ -81,7 +88,7 @@ describe('AiExperiencesIndex', () => {
     it('shows manager subtitle when can_manage is true', async () => {
       server.use(
         http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: [], can_manage: true}),
+          HttpResponse.json({...baseResponse, experiences: []}),
         ),
       )
 
@@ -99,7 +106,12 @@ describe('AiExperiencesIndex', () => {
     it('shows student subtitle when can_manage is false', async () => {
       server.use(
         http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: [], can_manage: false}),
+          HttpResponse.json({
+            ...baseResponse,
+            can_manage: false,
+            experiences: [],
+            total_students: null,
+          }),
         ),
       )
 
@@ -118,9 +130,7 @@ describe('AiExperiencesIndex', () => {
   describe('teacher view', () => {
     it('shows the Create new button when experiences exist', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
       )
 
       render(<AiExperiencesIndex />)
@@ -131,9 +141,7 @@ describe('AiExperiencesIndex', () => {
 
     it('links experience titles to their show page', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
       )
 
       render(<AiExperiencesIndex />)
@@ -147,9 +155,7 @@ describe('AiExperiencesIndex', () => {
 
     it('navigates to edit page when Edit is clicked from the options menu', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
       )
       const user = userEvent.setup()
       render(<AiExperiencesIndex />)
@@ -167,33 +173,22 @@ describe('AiExperiencesIndex', () => {
       ;(window as any).location = originalLocation
     })
 
-    it('navigates to test conversation page when Test Conversation is clicked', async () => {
+    it('does not show a Test Conversation option in the options menu', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
       )
       const user = userEvent.setup()
       render(<AiExperiencesIndex />)
 
       await waitFor(() => expect(screen.getByText('Customer Service Training')).toBeInTheDocument())
-
-      const originalLocation = window.location
-      delete (window as any).location
-      ;(window as any).location = {href: ''}
-
       await user.click(screen.getAllByTestId('ai-experience-menu')[0])
-      await user.click(screen.getByText('Test Conversation'))
 
-      expect(window.location.href).toBe('/courses/123/ai_experiences/1?preview=true')
-      ;(window as any).location = originalLocation
+      expect(screen.queryByText('Test Conversation')).not.toBeInTheDocument()
     })
 
     it('removes experience from list after delete is confirmed', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
         http.delete('/api/v1/courses/123/ai_experiences/:id', () =>
           HttpResponse.json({success: true}),
         ),
@@ -205,7 +200,6 @@ describe('AiExperiencesIndex', () => {
       await user.click(screen.getAllByTestId('ai-experience-menu')[0])
       await user.click(screen.getByText('Delete'))
 
-      // Confirm deletion in the Modal
       await waitFor(() =>
         expect(screen.getByTestId('ai-experience-index-delete-confirm-button')).toBeInTheDocument(),
       )
@@ -218,15 +212,65 @@ describe('AiExperiencesIndex', () => {
 
     it('lists both published and unpublished experiences', async () => {
       server.use(
-        http.get('/api/v1/courses/123/ai_experiences', () =>
-          HttpResponse.json({experiences: mockExperiences, can_manage: true}),
-        ),
+        http.get('/api/v1/courses/123/ai_experiences', () => HttpResponse.json(baseResponse)),
       )
 
       render(<AiExperiencesIndex />)
 
       await waitFor(() => expect(screen.getByText('Customer Service Training')).toBeInTheDocument())
       expect(screen.getByText('Sales Pitch Practice')).toBeInTheDocument()
+    })
+  })
+
+  describe('pagination', () => {
+    it('renders pagination when total_pages is greater than 1', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences', () =>
+          HttpResponse.json({...baseResponse, total_pages: 3, current_page: 1}),
+        ),
+      )
+
+      render(<AiExperiencesIndex />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('ai-experiences-pagination')).toBeInTheDocument(),
+      )
+    })
+
+    it('does not render pagination when total_pages is 1', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences', () =>
+          HttpResponse.json({...baseResponse, total_pages: 1}),
+        ),
+      )
+
+      render(<AiExperiencesIndex />)
+
+      await waitFor(() => expect(screen.getByText('Customer Service Training')).toBeInTheDocument())
+      expect(screen.queryByTestId('ai-experiences-pagination')).not.toBeInTheDocument()
+    })
+
+    it('fetches the next page when a page number is clicked', async () => {
+      const requests: string[] = []
+
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences', ({request}) => {
+          requests.push(new URL(request.url).search)
+          return HttpResponse.json({...baseResponse, total_pages: 2, current_page: 1})
+        }),
+      )
+
+      const user = userEvent.setup({pointerEventsCheck: 0})
+      render(<AiExperiencesIndex />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('ai-experiences-pagination')).toBeInTheDocument(),
+      )
+
+      await user.click(screen.getByText('2'))
+
+      await waitFor(() => expect(requests.length).toBeGreaterThan(1))
+      expect(requests.at(-1)).toContain('page=2')
     })
   })
 })

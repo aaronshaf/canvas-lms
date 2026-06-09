@@ -18,10 +18,10 @@
 
 import '@instructure/canvas-theme'
 import React from 'react'
-import {cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
+import {render, screen, fireEvent, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import AIExperiencePublishButton from '../components/AIExperiencePublishButton'
+import AIExperiencePublishButton from '@canvas/ai-experiences/react/components/AIExperiencePublishButton'
 
 const server = setupServer(
   http.put('/api/v1/courses/123/ai_experiences/1', () => {

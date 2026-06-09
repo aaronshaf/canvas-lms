@@ -29,4 +29,6 @@ export type AiExperience = {
   can_unpublish?: boolean
   context_ready?: boolean
   submission_status?: 'not_started' | 'in_progress' | 'completed'
+  completed_count?: number
+  total_students?: number
 }

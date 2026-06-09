@@ -124,6 +124,83 @@ describe AiExperiencesController, type: :request do
         expect(published_exp["learning_objective"]).to eq("Test objective")
       end
 
+      context "completion counts" do
+        it "includes completed_count and total_students in each experience" do
+          @ai_experience.update_column(:workflow_state, "published")
+          @ai_experience.ai_conversations.create!(
+            llm_conversation_id: SecureRandom.uuid,
+            user: @student,
+            course: @course,
+            root_account: @course.root_account,
+            account: @course.root_account,
+            workflow_state: "active",
+            all_objectives_met: true
+          )
+
+          get "/courses/#{@course.id}/ai_experiences.json"
+          json_response = json_parse(response.body)
+          exp = json_response["experiences"].find { |e| e["id"] == @ai_experience.id }
+
+          expect(exp["completed_count"]).to eq(1)
+          expect(json_response["total_students"]).to eq(1)
+        end
+
+        it "returns 0 completed_count when no students have completed" do
+          @ai_experience.update_column(:workflow_state, "published")
+
+          get "/courses/#{@course.id}/ai_experiences.json"
+          json_response = json_parse(response.body)
+          exp = json_response["experiences"].find { |e| e["id"] == @ai_experience.id }
+
+          expect(exp["completed_count"]).to eq(0)
+        end
+      end
+
+      context "pagination" do
+        it "includes total_pages and current_page in the response" do
+          get "/courses/#{@course.id}/ai_experiences.json"
+          json_response = json_parse(response.body)
+
+          expect(json_response).to have_key("total_pages")
+          expect(json_response).to have_key("current_page")
+          expect(json_response["current_page"]).to eq(1)
+        end
+
+        it "paginates results with per_page param" do
+          16.times do |i|
+            @course.ai_experiences.create!(
+              title: "Experience #{i}",
+              facts: "Facts",
+              learning_objective: "Objective",
+              pedagogical_guidance: "Guidance"
+            )
+          end
+
+          get "/courses/#{@course.id}/ai_experiences.json", params: { per_page: 15 }
+          json_response = json_parse(response.body)
+
+          expect(json_response["experiences"].length).to eq(15)
+          expect(json_response["total_pages"]).to be >= 2
+        end
+
+        it "returns page 2 when requested" do
+          16.times do |i|
+            @course.ai_experiences.create!(
+              title: "Experience #{i}",
+              facts: "Facts",
+              learning_objective: "Objective",
+              pedagogical_guidance: "Guidance"
+            )
+          end
+
+          get "/courses/#{@course.id}/ai_experiences.json", params: { page: 2, per_page: 15 }
+          json_response = json_parse(response.body)
+
+          expect(json_response["current_page"]).to eq(2)
+          expect(json_response["experiences"].length).to be >= 1
+        end
+      end
+
       context "when experiences have in_progress index status" do
         before do
           @ai_experience.update_columns(

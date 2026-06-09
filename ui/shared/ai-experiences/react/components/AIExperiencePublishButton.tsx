@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -23,7 +23,7 @@ import {Tooltip} from '@instructure/ui-tooltip'
 import {IconCompleteLine, IconMinimizeLine} from '@instructure/ui-icons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
-import {publishedButtonTheme, buttonTheme} from '../../../../shared/ai-experiences/react/brand'
+import {publishedButtonTheme, buttonTheme} from '../brand'
 
 const I18n = createI18nScope('ai_experiences_show')
 

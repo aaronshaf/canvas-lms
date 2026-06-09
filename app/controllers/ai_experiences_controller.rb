@@ -100,6 +100,13 @@ class AiExperiencesController < ApplicationController
 
     sync_in_progress_index_statuses(@experiences, @context.root_account)
 
+    per_page     = Api.per_page_for(self, default: 15)
+    @experiences = Api.paginate(@experiences,
+                                self,
+                                api_v1_course_ai_experiences_url,
+                                per_page:,
+                                total_entries: @experiences.count)
+
     set_active_tab "ai_experiences"
     add_crumb t("#crumbs.ai_experiences", "AI Experiences")
     respond_to do |format|
@@ -109,10 +116,19 @@ class AiExperiencesController < ApplicationController
         render
       end
       format.json do
-        experiences_json = can_manage ? experiences_json_for_teacher(can_manage) : experiences_json_for_student(can_manage)
+        student_ids      = can_manage ? @context.students.distinct.pluck(:id) : []
+        experiences_json = if can_manage
+                             experiences_json_for_teacher(can_manage, student_ids)
+                           else
+                             experiences_json_for_student(can_manage)
+                           end
+
         render json: {
           experiences: experiences_json,
-          can_manage:
+          can_manage:,
+          total_students: can_manage ? student_ids.size : nil,
+          total_pages: @experiences.total_pages,
+          current_page: @experiences.current_page
         }
       end
     end
@@ -325,10 +341,11 @@ class AiExperiencesController < ApplicationController
     conversations_by_user = latest_conversations.index_by(&:user_id)
 
     # Compute snapshot counts
-    users_with_conversation = latest_conversations.to_set(&:user_id)
-    completed_count = latest_conversations.count(&:completed?)
-    in_progress_count = latest_conversations.count { |c| c.active? && !c.completed? }
-    not_started_count = student_ids.count { |id| !users_with_conversation.include?(id) }
+    counts = AiExperiences::ConversationSnapshotService
+             .counts_from_conversations(latest_conversations, student_ids)
+    completed_count   = counts[:completed]
+    in_progress_count = counts[:in_progress]
+    not_started_count = counts[:not_started]
     total_objectives = begin
       AiExperiences::ConversationContextStatsService.new(account: @context.root_account)
                                                     .total_objectives(context_id: @experience.llm_conversation_context_id)
@@ -484,8 +501,19 @@ class AiExperiencesController < ApplicationController
     end
   end
 
-  def experiences_json_for_teacher(can_manage)
-    ai_experiences_json(@experiences, current_principal, session, can_manage:)
+  def experiences_json_for_teacher(can_manage, student_ids)
+    snapshots = AiExperiences::ConversationSnapshotService
+                .batch_snapshots(experience_ids: @experiences.map(&:id), student_ids:)
+
+    @experiences.map do |experience|
+      snap = snapshots[experience.id] || { completed: 0 }
+      ai_experience_json(experience,
+                         current_principal,
+                         session,
+                         can_manage:,
+                         completed_count: snap[:completed],
+                         total_students: student_ids.size)
+    end
   end
 
   def experiences_json_for_student(can_manage)
