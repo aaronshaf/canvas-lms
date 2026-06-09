@@ -167,7 +167,7 @@ describe('GroupModal', () => {
         ),
       )
       const user = userEvent.setup(USER_EVENT_OPTIONS)
-      const {getByTestId, getAllByText, getByPlaceholderText} = render(
+      const {getByTestId, getAllByText, findAllByText, getByPlaceholderText} = render(
         <GroupModal
           groupCategory={groupCategory}
           group={group}
@@ -188,7 +188,7 @@ describe('GroupModal', () => {
       )
       await user.click(getByTestId('group-modal-save-button'))
       expect(getAllByText(/saving/i)).toBeTruthy()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(onSave).toHaveBeenCalled())
       expect(capturedBody).toMatchObject({
         group_category_id: '1',
         isFull: '',
@@ -197,7 +197,6 @@ describe('GroupModal', () => {
       })
       expect(getAllByText(/success/i)).toBeTruthy()
       expect(onDismiss).toHaveBeenCalled()
-      expect(onSave).toHaveBeenCalled()
     })
 
     it('creates a student organized group and reports status', async () => {
@@ -223,7 +222,7 @@ describe('GroupModal', () => {
       await user.type(getByPlaceholderText('Name'), 'Student Organized')
       await user.click(getByTestId('group-modal-save-button'))
       expect(getAllByText(/saving/i)).toBeTruthy()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(onSave).toHaveBeenCalled())
       expect(capturedBody).toMatchObject({
         group_category_id: '1',
         join_level: 'invitation_only',
@@ -305,7 +304,7 @@ describe('GroupModal', () => {
       await user.type(getByPlaceholderText('Number'), '{selectall}{backspace}3')
       await user.click(getByTestId('group-modal-save-button'))
       expect(getAllByText(/saving/i)).toBeTruthy()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(onSave).toHaveBeenCalled())
       expect(capturedBody).toMatchObject({
         group_category_id: '1',
         isFull: '',
@@ -340,7 +339,7 @@ describe('GroupModal', () => {
       await user.type(getByPlaceholderText('Name'), 'Sleepy Hollow')
       await user.click(getByTestId('group-modal-save-button'))
       expect(getAllByText(/saving/i)).toBeTruthy()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(onSave).toHaveBeenCalled())
       expect(capturedBody).toMatchObject({
         group_category_id: '1',
         join_level: 'invitation_only',
@@ -375,7 +374,7 @@ describe('GroupModal', () => {
       await user.type(getByPlaceholderText('Name'), 'Name Only')
       await user.click(getByTestId('group-modal-save-button'))
       expect(getAllByText(/saving/i)).toBeTruthy()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(onSave).toHaveBeenCalled())
       expect(capturedBody).toMatchObject({
         group_category_id: '1',
         name: 'Name Only',
@@ -407,12 +406,13 @@ describe('GroupModal', () => {
       await user.type(getByPlaceholderText('Number'), '{selectall}{backspace}')
       expect(getByPlaceholderText('Number')).toHaveAttribute('value', '')
       await user.click(getByTestId('group-modal-save-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(capturedBody).toMatchObject({
-        group_category_id: '1',
-        isFull: '',
-        max_membership: '',
-        name: 'Empty Group Limit',
+      await waitFor(() => {
+        expect(capturedBody).toMatchObject({
+          group_category_id: '1',
+          isFull: '',
+          max_membership: '',
+          name: 'Empty Group Limit',
+        })
       })
     })
   })
@@ -434,7 +434,7 @@ describe('GroupModal', () => {
           () => new HttpResponse(null, {status: 400}),
         ),
       )
-      const {getByText, getByPlaceholderText} = render(
+      const {getByText, findByText, getByPlaceholderText} = render(
         <GroupModal
           groupCategory={groupCategory}
           group={group}
@@ -447,8 +447,7 @@ describe('GroupModal', () => {
       )
       await user.type(getByPlaceholderText('Name'), 'foo')
       await user.click(getByText('Save'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(getByText(/error/i)).toBeInTheDocument()
+      expect(await findByText(/error/i)).toBeInTheDocument()
     })
 
     it('errors on attempting to save membership limit that is less than its current members', async () => {

@@ -18,7 +18,7 @@
 
 import '@instructure/canvas-theme'
 import React from 'react'
-import {cleanup, render, fireEvent} from '@testing-library/react'
+import {cleanup, render, fireEvent, waitFor} from '@testing-library/react'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
 
 const defaultProps = () => ({
@@ -44,8 +44,9 @@ test('closes the ConfirmDeleteModal when cancel pressed', async () => {
   const cancelButton = await findByText('Cancel')
   fireEvent.click(cancelButton)
 
-  await new Promise(resolve => setTimeout(resolve, 0))
-  expect(onHide).toHaveBeenCalledWith(false, false)
+  await waitFor(() => {
+    expect(onHide).toHaveBeenCalledWith(false, false)
+  })
 })
 
 test('shows spinner on delete', async () => {

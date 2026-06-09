@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {Provider} from 'react-redux'
 import {merge} from 'es-toolkit/compat'
@@ -220,9 +220,9 @@ describe('AnnouncementsIndex component', function () {
     if (componentRef) {
       componentRef.onManageAnnouncement(null, {action: 'delete'})
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(componentRef.deleteModal).toBeTruthy()
+      await waitFor(() => {
+        expect(componentRef.deleteModal).toBeTruthy()
+      })
       componentRef.deleteModal.hide()
     }
   })
@@ -253,9 +253,9 @@ describe('AnnouncementsIndex component', function () {
     if (componentRef) {
       componentRef.onManageAnnouncement(null, {action: 'lock'})
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(lockSpy).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(lockSpy).toHaveBeenCalledTimes(1)
+      })
     }
   })
 })

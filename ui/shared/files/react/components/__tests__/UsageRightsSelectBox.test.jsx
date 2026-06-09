@@ -18,7 +18,7 @@
 
 import $ from 'jquery'
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, waitFor} from '@testing-library/react'
 import UsageRightsSelectBox from '../UsageRightsSelectBox'
 
 const ok = x => expect(x).toBeTruthy()
@@ -63,12 +63,9 @@ describe('UsageRightsSelectBox', () => {
       render(<UsageRightsSelectBox showMessage={false} ref={ref} />)
     })
 
-    // Wait for next tick to allow state updates
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      equal(ref.current.state.licenseOptions[0].id, 'cc_some_option', 'sets data just fine')
     })
-
-    equal(ref.current.state.licenseOptions[0].id, 'cc_some_option', 'sets data just fine')
   })
 
   test('inserts copyright into textbox when passed in', () => {
@@ -89,12 +86,9 @@ describe('UsageRightsSelectBox', () => {
       render(<UsageRightsSelectBox {...props} ref={ref} />)
     })
 
-    // Wait for next tick to allow state updates
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      equal(ref.current.creativeCommons.value, 'cc_some_option', 'shows creative commons option')
     })
-
-    equal(ref.current.creativeCommons.value, 'cc_some_option', 'shows creative commons option')
   })
 
   $('div.error_box').remove()

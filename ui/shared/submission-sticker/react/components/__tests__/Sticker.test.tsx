@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import Sticker from '../Sticker'
@@ -218,9 +218,7 @@ describe('Sticker', () => {
       })
       fireEvent.click(newSticker)
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(props.onStickerChange).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect(props.onStickerChange).toHaveBeenCalledTimes(1))
       expect(props.onStickerChange).toHaveBeenLastCalledWith('book')
     })
 
@@ -238,9 +236,7 @@ describe('Sticker', () => {
       })
       fireEvent.click(newSticker)
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(props.onStickerChange).toHaveBeenCalledTimes(2)
+      await waitFor(() => expect(props.onStickerChange).toHaveBeenCalledTimes(2))
       expect(props.onStickerChange).toHaveBeenNthCalledWith(1, 'book')
       expect(props.onStickerChange).toHaveBeenNthCalledWith(2, 'grad')
     })
@@ -270,9 +266,7 @@ describe('Sticker', () => {
       })
       fireEvent.click(newSticker)
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(props.onStickerChange).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect(props.onStickerChange).toHaveBeenCalledTimes(1))
       expect(props.onStickerChange).toHaveBeenLastCalledWith('book')
     })
 
@@ -285,9 +279,7 @@ describe('Sticker', () => {
       const removeStickerButton = getByTestId('sticker-remove')
       fireEvent.click(removeStickerButton)
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(props.onStickerChange).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect(props.onStickerChange).toHaveBeenCalledTimes(1))
       expect(props.onStickerChange).toHaveBeenLastCalledWith(null)
     })
   })

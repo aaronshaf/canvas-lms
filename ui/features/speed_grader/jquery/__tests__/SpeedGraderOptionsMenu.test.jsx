@@ -18,6 +18,7 @@
 
 import 'jquery-migrate'
 import '@canvas/jquery/jquery.ajaxJSON'
+import {waitFor} from '@testing-library/dom'
 
 describe('SpeedGrader Options Menu', () => {
   let fixtures
@@ -97,39 +98,33 @@ describe('SpeedGrader Options Menu', () => {
     fixtures.remove()
   })
 
-  const awhile = () => new Promise(resolve => setTimeout(resolve, 0))
-
   it('refreshes the page on submit for classic quizzes', async () => {
-    await awhile()
     const form = document.getElementById('settings_form')
     const event = new Event('submit')
     form.dispatchEvent(event)
     await saveUserSettings
-    expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled()
+    await waitFor(() => expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled())
   })
 
   it('refreshes the page on submit when "hide names" changes', async () => {
-    await awhile()
     document.getElementById('hide_student_names').checked = true
     const form = document.getElementById('settings_form')
     const event = new Event('submit')
     form.dispatchEvent(event)
     await saveUserSettings
-    expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled()
+    await waitFor(() => expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled())
   })
 
   it('refreshes the page on submit when "sort by" changes', async () => {
-    await awhile()
     document.getElementById('eg_sort_by').selectedIndex = 1
     const form = document.getElementById('settings_form')
     const event = new Event('submit')
     form.dispatchEvent(event)
     await saveUserSettings
-    expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled()
+    await waitFor(() => expect(SpeedGraderHelpers.reloadPage).toHaveBeenCalled())
   })
 
   it('does not refresh the page on submit when "grade by question" changes', async () => {
-    await awhile()
     document.getElementById('enable_speedgrader_grade_by_question').checked = true
     const form = document.getElementById('settings_form')
     const event = new Event('submit')
@@ -149,7 +144,6 @@ describe('SpeedGrader Options Menu', () => {
   })
 
   it('sends a postMessage only when "grade_by_question" changes', async () => {
-    await awhile()
     const postMessageStub = vi.spyOn(QuizzesNextSpeedGrading, 'postGradeByQuestionChangeMessage')
     const checkbox = document.getElementById('enable_speedgrader_grade_by_question')
     const form = document.getElementById('settings_form')

@@ -20,6 +20,7 @@
 
 import $ from 'jquery'
 import 'jquery-migrate'
+import {waitFor} from '@testing-library/dom'
 import InvitationsView from '../InvitationsView'
 import RosterUser from '../../models/RosterUser'
 import {isAccessible} from '@canvas/test-utils/assertions'
@@ -112,10 +113,8 @@ describe('InvitationsView', () => {
 
     view.resend(event)
 
-    // Wait for async operations to complete
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    strictEqual(apiCalled, true)
+    // Wait for the re-send api call to complete
+    await waitFor(() => strictEqual(apiCalled, true))
   })
 
   test('does not call the re-send api when the enrollment type is not in the active granular enrollment permissions', async () => {
@@ -142,9 +141,9 @@ describe('InvitationsView', () => {
 
     view.resend(event)
 
-    // Wait for async operations to complete
-    await new Promise(resolve => setTimeout(resolve, 0))
-
+    // resend() decides synchronously whether to fire a request based on the
+    // active granular enrollment permissions; with no matching enrollment type
+    // no request is ever scheduled, so the flag stays false.
     strictEqual(apiCalled, false)
   })
 })

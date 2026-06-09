@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, waitFor} from '@testing-library/react'
 import ConditionalRelease from '../index'
 
 describe('ConditionalRelease Editor', () => {
@@ -62,9 +62,7 @@ describe('ConditionalRelease Editor', () => {
     const component = render(<ConditionalRelease.Editor ref={ref} env={assignmentEnv} type="foo" />)
 
     // Wait for editor to be created
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
+    await waitFor(() => expect(editor).not.toBeNull())
 
     return {
       ...component,

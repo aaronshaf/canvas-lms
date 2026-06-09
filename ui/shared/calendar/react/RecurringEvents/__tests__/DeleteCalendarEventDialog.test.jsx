@@ -142,8 +142,6 @@ describe('DeleteCalendarEventDialog', () => {
       expect(handleDeleting).toHaveBeenCalled()
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
     await waitFor(() =>
       expect(handleDeleted).toHaveBeenCalledWith([
         {title: 'deleted event', workflow_state: 'deleted'},
@@ -172,9 +170,7 @@ describe('DeleteCalendarEventDialog', () => {
       await userEvent.click(getByTestId(`${testIdPrefix}delete-button`))
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(capturedBody?.which).toEqual('one')
+    await waitFor(() => expect(capturedBody?.which).toEqual('one'))
   })
 
   it('sends which=following when "this and all following" is selected', async () => {
@@ -199,9 +195,7 @@ describe('DeleteCalendarEventDialog', () => {
       await userEvent.click(getByTestId(`${testIdPrefix}delete-button`))
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(capturedBody?.which).toEqual('following')
+    await waitFor(() => expect(capturedBody?.which).toEqual('following'))
   })
 
   it('sends which=all when "all events" is selected', async () => {
@@ -226,9 +220,7 @@ describe('DeleteCalendarEventDialog', () => {
       await userEvent.click(getByTestId(`${testIdPrefix}delete-button`))
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(capturedBody?.which).toEqual('all')
+    await waitFor(() => expect(capturedBody?.which).toEqual('all'))
   })
 
   describe('while delete is in flight', () => {

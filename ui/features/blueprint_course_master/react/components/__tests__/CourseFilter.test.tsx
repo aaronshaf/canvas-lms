@@ -35,7 +35,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CourseFilter from '../CourseFilter'
 import getSampleData from './getSampleData'
@@ -88,8 +88,9 @@ describe('CourseFilter', () => {
     const {getByPlaceholderText} = render(<CourseFilter {...props} />)
     const input = getByPlaceholderText('Search by title, short name, or SIS ID')
     fireEvent.change(input, {target: {value: 'aa'}})
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(props.onChange).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(props.onChange).not.toHaveBeenCalled()
+    })
   })
 
   it('onChange fired when 3 chars are entered in search text input', async () => {
@@ -98,8 +99,9 @@ describe('CourseFilter', () => {
     const {getByPlaceholderText} = render(<CourseFilter {...props} />)
     const input = getByPlaceholderText('Search by title, short name, or SIS ID')
     fireEvent.change(input, {target: {value: 'aaa'}})
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(props.onChange).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(props.onChange).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('CourseFilter > Filter behavior', () => {
@@ -176,8 +178,9 @@ describe('CourseFilter', () => {
       const {getByPlaceholderText} = render(<CourseFilter {...props} />)
       const input = getByPlaceholderText('Search by title, short name, or SIS ID')
       fireEvent.change(input, {target: {value: 'al'}})
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(props.onChange).not.toHaveBeenCalled()
+      await waitFor(() => {
+        expect(props.onChange).not.toHaveBeenCalled()
+      })
     })
 
     it('emits a search payload at the 3-char minimum threshold', async () => {
@@ -187,8 +190,9 @@ describe('CourseFilter', () => {
       const {getByPlaceholderText} = render(<CourseFilter {...props} />)
       const input = getByPlaceholderText('Search by title, short name, or SIS ID')
       fireEvent.change(input, {target: {value: 'sis'}})
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(onChangeMock).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(onChangeMock).toHaveBeenCalledTimes(1)
+      })
       expect(onChangeMock.mock.calls[0][0].search).toBe('sis')
     })
 

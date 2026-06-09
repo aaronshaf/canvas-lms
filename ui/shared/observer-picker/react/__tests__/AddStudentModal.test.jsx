@@ -53,8 +53,9 @@ describe('Add Student Modal', () => {
     await act(async () => {
       fireEvent.click(addStudentButton)
     })
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(requestMade).toBe(true)
+    await waitFor(() => {
+      expect(requestMade).toBe(true)
+    })
   })
 
   it('does not request the pairing api when the pairing code input is empty', async () => {
@@ -65,16 +66,15 @@ describe('Add Student Modal', () => {
         return HttpResponse.json({response: {ok: true}})
       }),
     )
-    const {getByTestId, getByText} = render(<AddStudentModal {...defaultProps} />)
+    const {getByTestId, findByText} = render(<AddStudentModal {...defaultProps} />)
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: ''}}) // setting to '' just to make the test case explicit
     await act(async () => {
       fireEvent.click(addStudentButton)
     })
-    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(await findByText('Please provide a pairing code.')).toBeInTheDocument()
     expect(requestMade).toBe(false)
-    expect(getByText('Please provide a pairing code.')).toBeInTheDocument()
   })
 
   it('calls onStudentPaired when a new student is paired successfully', async () => {

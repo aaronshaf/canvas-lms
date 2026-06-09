@@ -209,8 +209,8 @@ describe('CourseRestore', () => {
 
     expect(courseRestore.get('workflow_state')).toBe('unpublished')
     expect(courseRestore.get('restored')).toBe(true)
-    // Wait for next tick to ensure jQuery deferred state is updated
-    await new Promise(resolve => setTimeout(resolve, 0))
+    // The Deferred is thenable; awaiting it guarantees its state is settled
+    await dfd
     expect(dfd.state()).toBe('resolved')
   })
 })

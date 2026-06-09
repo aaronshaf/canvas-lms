@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {waitFor} from '@testing-library/dom'
 import type {FeatureConfig, FeatureLifecycle} from '../featureRegistry'
 
 const createMockLifecycle = (overrides: Partial<FeatureLifecycle> = {}): FeatureLifecycle => ({
@@ -79,9 +80,9 @@ describe('FeatureRegistry', () => {
       )
 
       // Wait for async mount
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(mountFn).toHaveBeenCalled()
+      await waitFor(() => {
+        expect(mountFn).toHaveBeenCalled()
+      })
     })
   })
 
@@ -241,9 +242,9 @@ describe('FeatureRegistry', () => {
         }),
       )
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already mounted'))
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already mounted'))
+      })
 
       consoleSpy.mockRestore()
     })

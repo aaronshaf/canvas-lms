@@ -20,6 +20,7 @@ import Subject from '../page_blurred'
 import K from '../../constants'
 import $ from 'jquery'
 import 'jquery-migrate'
+import {waitFor} from '@testing-library/dom'
 
 // Mock window.blur since jsdom doesn't implement it
 Object.defineProperty(window, 'blur', {
@@ -40,8 +41,7 @@ describe('Quizzes::LogAuditing::EventTrackers::PageBlurred', () => {
     tracker.install(capture)
     $(window).blur()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(capture).toHaveBeenCalled()
+    await waitFor(() => expect(capture).toHaveBeenCalled())
   })
 
   it('does not send events if in iframe (for RCE focusing)', () => {

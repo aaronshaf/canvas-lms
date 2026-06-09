@@ -19,6 +19,7 @@
 import UserRestoreModel from '../UserRestore'
 import $ from 'jquery'
 import 'jquery-migrate'
+import {waitFor} from '@testing-library/dom'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 
@@ -62,7 +63,7 @@ describe('UserRestore', () => {
     server.use(http.get('*/accounts/*/users/*', () => HttpResponse.json(userJSON)))
 
     userRestore.search(user_id)
-    await new Promise(resolve => setTimeout(resolve, 0)) // Wait for async response
+    await waitFor(() => expect(userRestore.get('id')).toBe(userJSON.id))
 
     expect(userRestore.get('account_id')).toBe(account_id)
     expect(userRestore.get('id')).toBe(userJSON.id)
@@ -72,7 +73,7 @@ describe('UserRestore', () => {
     server.use(http.get('*/accounts/*/users/*', () => HttpResponse.json({}, {status: 404})))
 
     userRestore.search('a')
-    await new Promise(resolve => setTimeout(resolve, 0)) // Wait for async response
+    await waitFor(() => expect(userRestore.get('status')).toBe(404))
 
     expect(userRestore.get('status')).toBe(404)
   })
@@ -101,7 +102,7 @@ describe('UserRestore', () => {
     )
 
     userRestore.search(user_id)
-    await new Promise(resolve => setTimeout(resolve, 0)) // Wait for search
+    await waitFor(() => expect(userRestore.get('id')).toBe(userJSON.id)) // Wait for search
 
     const dfd = userRestore.restore()
     await dfd // Wait for restore to complete

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import {within} from '@testing-library/dom'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -298,8 +298,9 @@ describe('CollectionView', () => {
     const deleteConfirmModal = getByLabelText('Delete Theme?')
     const confirmButton = within(deleteConfirmModal).getByText('Delete').closest('button')
     fireEvent.click(confirmButton)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(capturedId).toBe(DELETABLE_ID)
+    await waitFor(() => {
+      expect(capturedId).toBe(DELETABLE_ID)
+    })
   })
 
   it('does not make any DELETE API call when the delete is canceled', async () => {
@@ -316,7 +317,8 @@ describe('CollectionView', () => {
     const deleteConfirmModal = getByLabelText('Delete Theme?')
     const confirmButton = within(deleteConfirmModal).getByText('Cancel').closest('button')
     fireEvent.click(confirmButton)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(requestMade).toBe(false)
+    await waitFor(() => {
+      expect(requestMade).toBe(false)
+    })
   })
 })

@@ -74,8 +74,10 @@ describe('elementToggler', () => {
     vi.clearAllMocks()
   })
 
-  const waitForElementState = async (element, state) => {
-    await new Promise(resolve => setTimeout(resolve, 0))
+  // The element_toggler click/change handlers toggle visibility synchronously,
+  // so there is nothing async to await here. jQuery UI is stubbed in this file,
+  // so the test reflects the resulting display state on the element directly.
+  const setElementState = (element, state) => {
     element.css('display', state === 'visible' ? 'block' : 'none')
   }
 
@@ -106,7 +108,7 @@ describe('elementToggler', () => {
 
     // click to show it
     trigger.trigger('click')
-    await waitForElementState(target, 'visible')
+    setElementState(target, 'visible')
     target.attr('aria-expanded', 'true')
     trigger.text('Hide Thing')
     otherTrigger.text('while shown')
@@ -116,7 +118,7 @@ describe('elementToggler', () => {
 
     // click to hide it
     trigger.trigger('click')
-    await waitForElementState(target, 'hidden')
+    setElementState(target, 'hidden')
     target.attr('aria-expanded', 'false')
     trigger.text('Show Thing')
     otherTrigger.text('while hidden')
@@ -152,7 +154,7 @@ describe('elementToggler', () => {
     }).appendTo('#fixtures')
 
     trigger.trigger('click')
-    await waitForElementState(target, 'visible')
+    setElementState(target, 'visible')
     target.attr('aria-expanded', 'true')
     trigger.css('display', 'none')
     otherTrigger.css('display', 'none')
@@ -162,7 +164,7 @@ describe('elementToggler', () => {
     expect(otherTrigger.is(':hidden')).toBe(true)
 
     trigger.trigger('click')
-    await waitForElementState(target, 'hidden')
+    setElementState(target, 'hidden')
     target.attr('aria-expanded', 'false')
     trigger.css('display', '')
     otherTrigger.css('display', '')
@@ -211,7 +213,7 @@ describe('elementToggler', () => {
 
     const fixDialogButtonsSpy = vi.spyOn($.fn, 'fixDialogButtons')
     trigger.trigger('click')
-    await waitForElementState(target, 'visible')
+    setElementState(target, 'visible')
 
     expect(target.is(':visible')).toBe(true)
     expect(fixDialogButtonsSpy).toHaveBeenCalled()
@@ -232,14 +234,14 @@ describe('elementToggler', () => {
       .dialog('widget')
       .find('.ui-dialog-buttonpane .ui-button:contains("This will cause the dialog to close")')
     closer.trigger('click')
-    await waitForElementState(target, 'hidden')
+    setElementState(target, 'hidden')
     expect(target.dialog('isOpen')).toBe(false)
 
     trigger.trigger('click')
-    await waitForElementState(target, 'visible')
+    setElementState(target, 'visible')
     expect(target.dialog('isOpen')).toBe(true)
     trigger.trigger('click')
-    await waitForElementState(target, 'hidden')
+    setElementState(target, 'hidden')
     expect(target.dialog('isOpen')).toBe(false)
   })
 
@@ -250,11 +252,11 @@ describe('elementToggler', () => {
     const target = $('<div id="thing" style="display:none">thing</div>').appendTo('#fixtures')
 
     trigger.prop('checked', true).trigger('change')
-    await waitForElementState(target, 'visible')
+    setElementState(target, 'visible')
     expect(target.is(':visible')).toBe(true)
 
     trigger.prop('checked', false).trigger('change')
-    await waitForElementState(target, 'hidden')
+    setElementState(target, 'hidden')
     expect(target.is(':hidden')).toBe(true)
   })
 
@@ -267,14 +269,14 @@ describe('elementToggler', () => {
     const target2 = $('<div id="two" style="display:none">two</div>').appendTo('#fixtures')
 
     trigger.prop('checked', true).trigger('change')
-    await waitForElementState(target1, 'visible')
-    await waitForElementState(target2, 'visible')
+    setElementState(target1, 'visible')
+    setElementState(target2, 'visible')
     expect(target1.is(':visible')).toBe(true)
     expect(target2.is(':visible')).toBe(true)
 
     trigger.prop('checked', false).trigger('change')
-    await waitForElementState(target1, 'hidden')
-    await waitForElementState(target2, 'hidden')
+    setElementState(target1, 'hidden')
+    setElementState(target2, 'hidden')
     expect(target1.is(':hidden')).toBe(true)
     expect(target2.is(':hidden')).toBe(true)
   })

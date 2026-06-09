@@ -49,8 +49,6 @@ describe('ExternalApps Lti2Iframe', () => {
       origin: window.origin,
     })
     window.dispatchEvent(event)
-    // Wait for the next tick to ensure the message event is processed
-    await new Promise(resolve => setTimeout(resolve, 0))
   }
 
   it('renders the given children', () => {

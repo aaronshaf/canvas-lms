@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {waitFor} from '@testing-library/dom'
 import Actions from '../actions'
 import {uploadFile as rawUploadFile} from '@canvas/upload-file'
 import Helpers from '../helpers'
@@ -154,7 +155,9 @@ describe('Course Settings Actions', () => {
     await Actions.prepareSetImage(null, 1, 'image', 1, mockAjaxLib)(dispatch)
 
     // Wait for all promises to resolve
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      expect(dispatches).toHaveLength(1)
+    })
 
     expect(mockAjaxLib.get).toHaveBeenCalledWith('/api/v1/files/1')
     expect(mockAjaxLib.put).toHaveBeenCalledTimes(1)
@@ -286,7 +289,9 @@ describe('Course Settings Actions', () => {
     await Actions.uploadFile(fakeDragonDropEvent, 1, 'image', mockAjaxLib)(dispatch)
 
     // Wait for all promises to resolve
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => {
+      expect(dispatches).toHaveLength(2)
+    })
 
     expect(dispatches).toEqual([
       expect.objectContaining({type: 'UPLOADING_IMAGE'}),
