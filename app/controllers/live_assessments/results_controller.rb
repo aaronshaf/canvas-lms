@@ -189,7 +189,7 @@ module LiveAssessments
       serialized = Canvas::APIArraySerializer.new(results, {
                                                     each_serializer: LiveAssessments::ResultSerializer,
                                                     controller: self,
-                                                    scope: @current_user,
+                                                    scope: current_principal,
                                                     root: false,
                                                     include_root: false
                                                   }).as_json

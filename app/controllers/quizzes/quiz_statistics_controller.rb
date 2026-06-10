@@ -294,7 +294,7 @@ class Quizzes::QuizStatisticsController < ApplicationController
   def serialize(statistics)
     Canvas::APIArraySerializer.new([statistics], {
                                      controller: self,
-                                     scope: @current_user,
+                                     scope: current_principal,
                                      each_serializer: Quizzes::QuizStatisticsSerializer,
                                      root: :quiz_statistics,
                                      include_root: false

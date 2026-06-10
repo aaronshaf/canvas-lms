@@ -21,7 +21,7 @@ describe Quizzes::QuizSerializer do
   def quiz_serializer(options = {})
     options.reverse_merge!({
                              controller:,
-                             scope: @user,
+                             scope: @user.principal,
                              session: @session
                            })
     Quizzes::QuizSerializer.new(@quiz, options)
@@ -291,10 +291,10 @@ describe Quizzes::QuizSerializer do
     it "is only present when the user can grade the quiz" do
       course_with_teacher(active_all: true)
       course_quiz(active: true)
-      expect(quiz_serializer(scope: @teacher).as_json[:quiz][:preview_url])
+      expect(quiz_serializer(scope: @teacher.principal).as_json[:quiz][:preview_url])
         .to eq controller.send(:course_quiz_take_url, @quiz.context, @quiz, preview: "1")
       course_with_student(active_all: true, course: @course)
-      expect(quiz_serializer(scope: @student).as_json[:quiz]).not_to have_key :preview_url
+      expect(quiz_serializer(scope: @student.principal).as_json[:quiz]).not_to have_key :preview_url
     end
   end
 
@@ -409,7 +409,7 @@ describe Quizzes::QuizSerializer do
   it "displays overridden dates for students" do
     course_with_student(active_all: true)
     course_quiz(active: true)
-    serializer = quiz_serializer(scope: @student)
+    serializer = quiz_serializer(scope: @student.principal)
     student_overrides = {
       due_at: 5.minutes.from_now,
       lock_at: nil,
@@ -477,11 +477,11 @@ describe Quizzes::QuizSerializer do
 
       it "returns the value for DA" do
         @quiz.only_visible_to_overrides = true
-        json = quiz_serializer(scope: @teacher).as_json
+        json = quiz_serializer(scope: @teacher.principal).as_json
         expect(json[:quiz][:only_visible_to_overrides]).to be_truthy
 
         @quiz.only_visible_to_overrides = false
-        json = quiz_serializer(scope: @teacher).as_json
+        json = quiz_serializer(scope: @teacher.principal).as_json
         expect(json[:quiz]).to have_key :only_visible_to_overrides
         expect(json[:quiz][:only_visible_to_overrides]).to be_falsey
       end
@@ -495,7 +495,7 @@ describe Quizzes::QuizSerializer do
 
       it "is not in the hash" do
         @quiz.only_visible_to_overrides = true
-        json = quiz_serializer(scope: @student).as_json
+        json = quiz_serializer(scope: @student.principal).as_json
         expect(json[:quiz]).not_to have_key :only_visible_to_overrides
       end
     end

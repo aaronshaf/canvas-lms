@@ -242,7 +242,7 @@ describe Quizzes::QuizzesApiController, type: :request do
                          "Accept" => "application/vnd.api+json")
         @json = @json.fetch("quizzes").map(&:with_indifferent_access)
         expect(@json).to match_array [
-          Quizzes::QuizApiSerializer.new(@quiz, scope: @user, controller:, session:)
+          Quizzes::QuizApiSerializer.new(@quiz, scope: @user.principal, controller:, session:)
                                     .as_json[:quiz].with_indifferent_access
         ]
       end
@@ -260,7 +260,7 @@ describe Quizzes::QuizzesApiController, type: :request do
 
       it "renders with QuizApiSerializer" do
         expect(json).to eq(
-          Quizzes::QuizApiSerializer.new(quiz, scope: @user, controller:, session:)
+          Quizzes::QuizApiSerializer.new(quiz, scope: @user.principal, controller:, session:)
           .as_json[:quiz].with_indifferent_access
         )
       end
@@ -304,7 +304,7 @@ describe Quizzes::QuizzesApiController, type: :request do
         @course.reload
         @quiz = @course.quizzes.first
         expect(@json).to match_array [
-          Quizzes::QuizApiSerializer.new(@quiz, scope: @user, controller:, session:)
+          Quizzes::QuizApiSerializer.new(@quiz, scope: @user.principal, controller:, session:)
                                     .as_json[:quiz].with_indifferent_access
         ]
       end

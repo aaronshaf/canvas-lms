@@ -61,7 +61,7 @@ module Polling
     private
 
     def can_view_results?
-      object.has_public_results? || poll.grants_right?(current_user, session, :update)
+      object.has_public_results? || poll.grants_right?(current_principal, session, :update)
     end
 
     def teacher_keys

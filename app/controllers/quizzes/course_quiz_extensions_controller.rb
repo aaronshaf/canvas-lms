@@ -148,7 +148,7 @@ class Quizzes::CourseQuizExtensionsController < ApplicationController
     serialized_set = Canvas::APIArraySerializer.new(quiz_extensions, {
                                                       each_serializer: Quizzes::QuizExtensionSerializer,
                                                       controller: self,
-                                                      scope: @current_user,
+                                                      scope: current_principal,
                                                       root: false,
                                                       include_root: false
                                                     }).as_json

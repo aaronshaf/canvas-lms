@@ -24,7 +24,7 @@ shared_examples_for "QuizReportSerializer Associations" do
 
     serializer = Quizzes::QuizReportSerializer.new(statistics, {
                                                      controller:,
-                                                     scope: user,
+                                                     scope: user.principal,
                                                      session:,
                                                      includes: ["file"]
                                                    })
@@ -39,7 +39,7 @@ shared_examples_for "QuizReportSerializer Associations" do
 
     serializer = Quizzes::QuizReportSerializer.new(statistics, {
                                                      controller:,
-                                                     scope: user,
+                                                     scope: user.principal,
                                                      session:,
                                                      includes: ["progress"]
                                                    })
@@ -54,7 +54,7 @@ describe Quizzes::QuizReportSerializer do
   subject do
     Quizzes::QuizReportSerializer.new(statistics, {
                                         controller:,
-                                        scope: user,
+                                        scope: user.principal,
                                         session:
                                       })
   end

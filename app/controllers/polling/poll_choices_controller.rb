@@ -195,7 +195,7 @@ module Polling
                                        controller: self,
                                        root: :poll_choices,
                                        meta:,
-                                       scope: @current_user,
+                                       scope: current_principal,
                                        include_root: false
                                      }).as_json
     end

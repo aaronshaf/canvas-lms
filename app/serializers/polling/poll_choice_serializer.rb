@@ -43,7 +43,7 @@ module Polling
     private
 
     def is_teacher?
-      poll.grants_right?(current_user, session, :update)
+      poll.grants_right?(current_principal, session, :update)
     end
 
     def teacher_keys
@@ -52,7 +52,7 @@ module Polling
 
     def student_keys
       keys = %i[id text position]
-      keys << :is_correct if poll.closed_and_viewable_for?(current_user)
+      keys << :is_correct if poll.closed_and_viewable_for?(current_principal)
       keys
     end
   end

@@ -37,6 +37,6 @@ class AttachmentSerializer < Canvas::APISerializer
   end
 
   def serializable_object(...)
-    attachment_json(object, current_user)
+    attachment_json(object, current_principal)
   end
 end

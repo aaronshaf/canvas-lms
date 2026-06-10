@@ -119,7 +119,7 @@ class Quizzes::QuizzesController < ApplicationController
         mc_status = setup_master_course_restrictions(scoped_new_quizzes_index, @context)
       end
       serializer_options = [@context,
-                            @current_user,
+                            current_principal,
                             session,
                             {
                               permissions: quiz_options,
@@ -296,7 +296,7 @@ class Quizzes::QuizzesController < ApplicationController
         LOCKDOWN_BROWSER: @quiz.require_lockdown_browser?,
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
         CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
-        QUIZ: quiz_json(@quiz, @context, @current_user, session),
+        QUIZ: quiz_json(@quiz, @context, current_principal, session),
         QUIZ_DETAILS_URL: course_quiz_managed_quiz_data_url(@context.id, @quiz.id),
         QUIZZES_URL: course_quizzes_url(@context),
         MAX_GROUP_CONVERSATION_SIZE: Conversation.max_group_conversation_size,
@@ -396,7 +396,7 @@ class Quizzes::QuizzesController < ApplicationController
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
         CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
         DUE_DATE_REQUIRED_FOR_ACCOUNT: AssignmentUtil.due_date_required_for_account?(@context),
-        QUIZ: quiz_json(@quiz, @context, @current_user, session),
+        QUIZ: quiz_json(@quiz, @context, current_principal, session),
         QUIZZES_URL: course_quizzes_url(@context),
         QUIZ_IP_FILTERS_URL: api_v1_course_quiz_ip_filters_url(@context, @quiz),
         CONTEXT_ACTION_SOURCE: :quizzes,

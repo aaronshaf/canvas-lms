@@ -334,7 +334,7 @@ class Quizzes::QuizzesApiController < ApplicationController
           @quizzes = Api.paginate(scope, self, api_route)
 
           {
-            json: quizzes_json(@quizzes, @context, @current_user, session),
+            json: quizzes_json(@quizzes, @context, current_principal, session),
             link: response.headers["Link"].to_s
           }
         end
@@ -584,7 +584,7 @@ class Quizzes::QuizzesApiController < ApplicationController
     render json: quiz_json(
       @quiz,
       @context,
-      @current_user,
+      current_principal,
       session,
       {},
       Quizzes::QuizApiSerializer

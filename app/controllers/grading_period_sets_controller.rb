@@ -101,7 +101,7 @@ class GradingPeriodSetsController < ApplicationController
         serialized_set = GradingPeriodSetSerializer.new(
           grading_period_set,
           controller: self,
-          scope: @current_user,
+          scope: current_principal,
           root: true
         )
 
@@ -195,7 +195,7 @@ class GradingPeriodSetsController < ApplicationController
                                      controller: self,
                                      root: :grading_period_sets,
                                      meta:,
-                                     scope: @current_user,
+                                     scope: current_principal,
                                      include_root: false
                                    })
   end

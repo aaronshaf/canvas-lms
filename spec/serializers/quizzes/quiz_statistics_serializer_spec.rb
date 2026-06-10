@@ -21,7 +21,7 @@ describe Quizzes::QuizStatisticsSerializer do
   subject do
     Quizzes::QuizStatisticsSerializer.new(statistics, {
                                             controller:,
-                                            scope: user,
+                                            scope: user.principal,
                                             session:
                                           })
   end

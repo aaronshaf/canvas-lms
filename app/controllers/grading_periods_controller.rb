@@ -346,7 +346,7 @@ class GradingPeriodsController < ApplicationController
                                      each_serializer: GradingPeriodSerializer,
                                      controller: self,
                                      root: :grading_periods,
-                                     scope: @current_user,
+                                     scope: current_principal,
                                      include_root: false
                                    }).as_json
   end
@@ -359,7 +359,7 @@ class GradingPeriodsController < ApplicationController
                                      controller: self,
                                      root: :grading_periods,
                                      meta:,
-                                     scope: @current_user,
+                                     scope: current_principal,
                                      include_root: false
                                    }).as_json
   end

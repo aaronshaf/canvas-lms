@@ -255,7 +255,7 @@ class Quizzes::QuizReportsController < ApplicationController
                                           controller: self,
                                           root: false,
                                           include_root: false,
-                                          scope: @current_user,
+                                          scope: current_principal,
                                           includes:
                                         }).as_json
     end
@@ -267,7 +267,7 @@ class Quizzes::QuizReportsController < ApplicationController
     serialized_set = Canvas::APIArraySerializer.new(stats, {
                                                       each_serializer: Quizzes::QuizReportSerializer,
                                                       controller: self,
-                                                      scope: @current_user,
+                                                      scope: current_principal,
                                                       root: false,
                                                       include_root: false,
                                                       includes:,

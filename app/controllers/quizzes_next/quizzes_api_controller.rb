@@ -58,7 +58,7 @@ class QuizzesNext::QuizzesApiController < ApplicationController
         quiz_data = ListNewQuizzesWithQuestionCountService.new(@context, @current_user, request.host_with_port, @domain_root_account, assignments).question_count
         @quizzes = merge_question_counts(@quizzes, quiz_data)
         {
-          json: quizzes_next_json(@quizzes, @context, @current_user, session),
+          json: quizzes_next_json(@quizzes, @context, current_principal, session),
           link: response.headers["Link"].to_s
         }
       end

@@ -72,7 +72,7 @@ module QuizzesNext
     end
 
     def can_update
-      object.grants_right?(current_user, :update)
+      object.grants_right?(current_principal, :update)
     end
 
     def html_url

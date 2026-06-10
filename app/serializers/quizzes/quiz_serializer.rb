@@ -293,7 +293,7 @@ module Quizzes
     alias_method :unpublishable, :can_unpublish
 
     def can_update
-      quiz.grants_right?(current_user, :update)
+      quiz.grants_right?(current_principal, :update)
     end
 
     def important_dates
@@ -420,11 +420,11 @@ module Quizzes
     end
 
     def user_may_grade?
-      context.grants_right?(current_user, :manage_grades)
+      context.grants_right?(current_principal, :manage_grades)
     end
 
     def user_may_manage?
-      context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
     end
 
     def user_finder

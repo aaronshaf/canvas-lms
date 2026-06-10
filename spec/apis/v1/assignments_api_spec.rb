@@ -11293,7 +11293,7 @@ describe AssignmentsApiController, type: :request do
         annotatable_attachment: attachment,
         submission_types: "student_annotation"
       )
-      result = assignment_json(assignment, @user, {})
+      result = assignment_json(assignment, @user.principal, {})
       expect(result["annotatable_attachment_id"]).to eq attachment.id
     end
 

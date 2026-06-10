@@ -33,7 +33,7 @@ module Polling
     end
 
     def filter(_keys)
-      if object.grants_right?(current_user, session, :update)
+      if object.grants_right?(current_principal, session, :update)
         student_keys + teacher_keys
       else
         student_keys

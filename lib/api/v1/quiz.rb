@@ -108,7 +108,7 @@ module Api::V1::Quiz
     meta[:primaryCollection] = "quizzes"
     add_meta_permissions!(meta)
     Canvas::APIArraySerializer.new(@quizzes,
-                                   scope: @current_user,
+                                   scope: current_principal,
                                    controller: self,
                                    root: :quizzes,
                                    self_quiz_submissions: @quiz_submissions,

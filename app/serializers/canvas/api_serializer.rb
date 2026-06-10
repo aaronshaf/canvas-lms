@@ -74,8 +74,7 @@ module Canvas
     # serializer.
     attr_reader :sideloads
 
-    alias_method :user, :scope
-    alias_method :current_user, :user
+    alias_method :current_principal, :scope
 
     def_delegators :@controller,
                    :polymorphic_url,
@@ -106,6 +105,11 @@ module Canvas
         raise ArgumentError, "You must pass a controller to APISerializer!"
       end
     end
+
+    def user
+      current_principal&.user
+    end
+    alias_method :current_user, :user
 
     def stringify_json_ids?
       @controller.send(:stringify_json_ids?)

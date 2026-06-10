@@ -19,15 +19,20 @@
 
 describe Canvas::APISerializer do
   let(:controller) { ActiveModel::FakeController.new }
-  let(:options) { { scope: {}, controller: } }
+  let(:user) { User.new }
+  let(:options) { { scope: user.principal, controller: } }
   let(:serializer) { Canvas::APISerializer.new({}, options) }
 
-  it "aliases user to options[:scope]" do
-    expect(serializer.user).to eq options[:scope]
+  it "aliases current_principal to options[:scope]" do
+    expect(serializer.current_principal).to be options[:scope]
+  end
+
+  it "delegates user to current_principal" do
+    expect(serializer.user).to be user
   end
 
   it "aliases current_user to user" do
-    expect(serializer.user).to eq serializer.current_user
+    expect(serializer.user).to be serializer.current_user
   end
 
   %i[stringify_json_ids? accepts_jsonapi? session context].each do |method|
