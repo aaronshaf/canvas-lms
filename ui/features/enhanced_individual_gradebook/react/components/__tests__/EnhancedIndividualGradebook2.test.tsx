@@ -18,7 +18,6 @@
 
 import React from 'react'
 import $ from 'jquery'
-import axios from 'axios'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {render, fireEvent} from '@testing-library/react'
 import {setGradebookOptions, setupCanvasQueries} from './fixtures'
@@ -33,13 +32,15 @@ import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {type Mocked} from 'vitest'
 
-const server = setupServer()
+const server = setupServer(
+  http.get('/courses/*/gradebook/final_grade_overrides', () =>
+    HttpResponse.json({final_grade_overrides: {}}),
+  ),
+)
 
-vi.mock('axios') // mock axios for final grade override helper API call
 vi.mock('@canvas/do-fetch-api-effect/apiRequest', () => ({
   executeApiRequest: vi.fn(),
 }))
-const mockedAxios = axios as Mocked<typeof axios>
 const mockedExecuteApiRequest = executeApiRequest as Mocked<typeof executeApiRequest>
 const mockUserSettings = (mockGet = true) => {
   if (mockGet) {
@@ -69,9 +70,6 @@ describe('Enhanced Individual Gradebook', () => {
       FEATURES: {
         instui_nav: true,
       },
-    })
-    mockedAxios.get.mockResolvedValue({
-      data: [],
     })
     $.subscribe = vi.fn()
 

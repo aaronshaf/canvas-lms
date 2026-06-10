@@ -18,7 +18,6 @@
 
 import React from 'react'
 import $ from 'jquery'
-import axios from 'axios'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {render, within, fireEvent} from '@testing-library/react'
 import {setGradebookOptions, setupCanvasQueries} from './fixtures'
@@ -29,13 +28,19 @@ import {GradebookSortOrder} from '../../../types/gradebook.d'
 import * as ReactRouterDom from 'react-router-dom'
 import {executeApiRequest} from '@canvas/do-fetch-api-effect/apiRequest'
 import fakeENV from '@canvas/test-utils/fakeENV'
+import {setupServer} from 'msw/node'
+import {http, HttpResponse} from 'msw'
 import {type Mocked} from 'vitest'
 
-vi.mock('axios') // mock axios for final grade override helper API call
+const server = setupServer(
+  http.get('/courses/*/gradebook/final_grade_overrides', () =>
+    HttpResponse.json({final_grade_overrides: {}}),
+  ),
+)
+
 vi.mock('@canvas/do-fetch-api-effect/apiRequest', () => ({
   executeApiRequest: vi.fn(),
 }))
-const mockedAxios = axios as Mocked<typeof axios>
 const mockedExecuteApiRequest = executeApiRequest as Mocked<typeof executeApiRequest>
 const mockUserSettings = (mockGet = true) => {
   if (mockGet) {
@@ -65,6 +70,9 @@ const mockSearchParams = (defaultSearchParams = {}) => {
 }
 
 describe('Enhanced Individual Gradebook', () => {
+  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+  afterAll(() => server.close())
+
   beforeEach(() => {
     const options = setGradebookOptions()
     fakeENV.setup({
@@ -73,15 +81,13 @@ describe('Enhanced Individual Gradebook', () => {
         instui_nav: true,
       },
     })
-    mockedAxios.get.mockResolvedValue({
-      data: [],
-    })
     $.subscribe = vi.fn()
 
     setupCanvasQueries()
   })
 
   afterEach(() => {
+    server.resetHandlers()
     fakeENV.teardown()
     vi.spyOn(ReactRouterDom, 'useSearchParams').mockClear()
     vi.resetAllMocks()

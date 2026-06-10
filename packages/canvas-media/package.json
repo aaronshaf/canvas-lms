@@ -57,7 +57,6 @@
     "@instructure/ui-tooltip": "11.6.0",
     "@instructure/ui-utils": "11.6.0",
     "@instructure/ui-view": "11.6.0",
-    "axios": "^1.15.2",
     "es-toolkit": "^1.42.0",
     "format-message": "^6",
     "format-message-generate-id": "^6",

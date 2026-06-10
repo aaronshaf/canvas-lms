@@ -21,21 +21,25 @@ import {queryClient} from '@instructure/platform-query'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import userSettings from '@canvas/user-settings'
 import {fireEvent, render, within} from '@testing-library/react'
-import axios from 'axios'
 import $ from 'jquery'
 import * as ReactRouterDom from 'react-router-dom'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import {GradebookSortOrder} from '../../../types/gradebook.d'
 import LearningMasteryTabsView from '../LearningMasteryTabsView'
 import {OUTCOME_ROLLUP_QUERY_RESPONSE, setGradebookOptions, setupCanvasQueries} from './fixtures'
-import {type Mocked} from 'vitest'
+import {setupServer} from 'msw/node'
+import {http, HttpResponse} from 'msw'
 
-vi.mock('axios') // mock axios for final grade override helper API call
+const server = setupServer(
+  http.get('/courses/*/gradebook/final_grade_overrides', () =>
+    HttpResponse.json({final_grade_overrides: {}}),
+  ),
+)
+
 vi.mock('@canvas/do-fetch-api-effect/apiRequest', () => ({
   executeApiRequest: vi.fn(),
 }))
 
-const mockedAxios = axios as Mocked<typeof axios>
 const mockUserSettings = (mockGet = true) => {
   if (mockGet) {
     vi.spyOn(userSettings, 'contextGet').mockImplementation(input => {
@@ -64,17 +68,18 @@ const mockSearchParams = (defaultSearchParams = {}) => {
 }
 
 describe('Enhanced Individual Wrapper Gradebook', () => {
+  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+  afterAll(() => server.close())
+
   beforeEach(() => {
     ;(window.ENV as any) = setGradebookOptions({outcome_gradebook_enabled: true})
     window.ENV.FEATURES = {instui_nav: true}
-    mockedAxios.get.mockResolvedValue({
-      data: [],
-    })
     $.subscribe = vi.fn()
 
     setupCanvasQueries()
   })
   afterEach(() => {
+    server.resetHandlers()
     vi.spyOn(ReactRouterDom, 'useSearchParams').mockClear()
     vi.resetAllMocks()
   })

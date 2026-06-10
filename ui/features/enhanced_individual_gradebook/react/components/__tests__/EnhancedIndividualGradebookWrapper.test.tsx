@@ -22,10 +22,16 @@ import {render} from '@testing-library/react'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {setGradebookOptions, setupCanvasQueries} from './fixtures'
 // import EnhancedIndividualGradebookWrapper from '../EnhancedIndividualGradebookWrapper'
-import axios from 'axios'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import * as ReactRouterDom from 'react-router-dom'
-import {type Mocked} from 'vitest'
+import {setupServer} from 'msw/node'
+import {http, HttpResponse} from 'msw'
+
+const server = setupServer(
+  http.get('/courses/*/gradebook/final_grade_overrides', () =>
+    HttpResponse.json({final_grade_overrides: {}}),
+  ),
+)
 
 // Stub component to avoid loading EnhancedIndividualGradebookWrapper and its dependencies
 const EnhancedIndividualGradebookWrapper = () => {
@@ -37,7 +43,6 @@ const EnhancedIndividualGradebookWrapper = () => {
   )
 }
 
-vi.mock('axios') // mock axios for final grade override helper API call
 vi.mock('@canvas/do-fetch-api-effect/apiRequest', () => ({
   executeApiRequest: vi.fn(),
 }))
@@ -52,30 +57,30 @@ vi.mock('@canvas/outcome-gradebook-grid', () => ({
   },
 }))
 
-const mockedAxios = axios as Mocked<typeof axios>
-
 const mockSearchParams = (defaultSearchParams = {}) => {
   const setSearchParamsMock = vi.fn()
   const searchParamsMock = new URLSearchParams(defaultSearchParams)
-  vi
-    .spyOn(ReactRouterDom, 'useSearchParams')
-    .mockReturnValue([searchParamsMock, setSearchParamsMock])
+  vi.spyOn(ReactRouterDom, 'useSearchParams').mockReturnValue([
+    searchParamsMock,
+    setSearchParamsMock,
+  ])
   return {searchParamsMock, setSearchParamsMock}
 }
 
 describe('Enhanced Individual Wrapper Gradebook', () => {
+  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+  afterAll(() => server.close())
+
   beforeEach(() => {
     ;(window.ENV as any) = setGradebookOptions()
     window.ENV.FEATURES = {instui_nav: true}
-    mockedAxios.get.mockResolvedValue({
-      data: [],
-    })
     $.subscribe = vi.fn()
 
     setupCanvasQueries()
     mockSearchParams()
   })
   afterEach(() => {
+    server.resetHandlers()
     vi.clearAllMocks()
   })
 
@@ -107,9 +112,6 @@ describe('Enhanced Individual Wrapper Gradebook', () => {
   it('renders the learning_mastery_tabs view when outcome_gradebook_enabled is true', async () => {
     ;(window.ENV as any) = setGradebookOptions({outcome_gradebook_enabled: true})
     window.ENV.FEATURES = {instui_nav: true}
-    mockedAxios.get.mockResolvedValue({
-      data: [],
-    })
     $.subscribe = vi.fn()
 
     const {queryByTestId} = renderEnhancedIndividualGradebookWrapper()
