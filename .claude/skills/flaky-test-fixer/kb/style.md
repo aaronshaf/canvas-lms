@@ -580,4 +580,50 @@ useEffect(() => {
 
 ---
 
-<!-- Add new rules below as S-15, S-16, … -->
+## S-15 — Wait for button-enabled state before clicking a conditionally-disabled button
+
+**Rule:** When a test clicks a button that starts in a disabled state and
+becomes enabled only after a preceding async action, insert
+`await waitFor(() => expect(button).not.toBeDisabled())` between the
+enabling action and the dependent click. Never assume React has flushed
+state updates between two sequential `fireEvent.click` calls.
+
+**Why:** `fireEvent.click` is synchronous. After an action that triggers
+React state updates, the component is not guaranteed to have re-rendered
+before the next `fireEvent.click` fires. Clicking a disabled button
+dispatches the DOM event but React's synthetic event system does not call
+the `onClick` handler — the action silently has no effect, and any
+downstream `waitFor` then times out.
+
+The flakiness pattern: fast local runs often succeed because the flush
+happens within the same microtask; CI load delays it enough to expose the
+race.
+
+**How to apply:**
+1. Identify any click target that is described (or observed) as starting
+   disabled.
+2. Find the action that enables it (usually a prior click or form change
+   that triggers state validation).
+3. Insert a `waitFor` between those two points:
+
+```tsx
+// BAD — silent no-op when React hasn't flushed yet
+fireEvent.click(getByTestId('criterion-save'))
+fireEvent.click(getByTestId('save-button'))   // ← may be disabled
+
+// GOOD — confirm precondition before acting
+fireEvent.click(getByTestId('criterion-save'))
+await waitFor(() => expect(getByTestId('save-button')).not.toBeDisabled())
+fireEvent.click(getByTestId('save-button'))
+```
+
+**Contrast with S-11:** S-11 covers the event-sequence race inside
+`CanvasAsyncSelect` (open vs. select interactions). S-15 is the broader
+rule: any click target whose disabled state depends on prior async state
+requires an explicit enabled-check before the click.
+
+*Introduced: Case 13*
+
+---
+
+<!-- Add new rules below as S-16, S-17, … -->

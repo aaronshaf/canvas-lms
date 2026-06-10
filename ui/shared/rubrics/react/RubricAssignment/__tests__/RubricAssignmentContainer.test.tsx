@@ -162,7 +162,7 @@ describe('RubricAssignmentContainer Tests', () => {
       expect(getByTestId('save-rubric-button')).toBeDisabled()
     })
 
-    it('should save a new rubric and display the Rubric title, edit, preview, and remove buttons', async () => {
+    it('should save a new rubric and display the Rubric title, edit, preview, and remove buttons', async () => {  // fixed with QE-154
       const {getByTestId, findByTestId} = renderComponent()
       fireEvent.click(getByTestId('create-assignment-rubric-button'))
       const titleInput = await findByTestId('rubric-form-title')
@@ -174,6 +174,7 @@ describe('RubricAssignmentContainer Tests', () => {
         target: {value: 'New Criterion Test'},
       })
       fireEvent.click(getByTestId('rubric-criterion-save'))
+      await waitFor(() => expect(getByTestId('save-rubric-button')).not.toBeDisabled())
       fireEvent.click(getByTestId('save-rubric-button'))
 
       await waitFor(() => {
@@ -186,7 +187,7 @@ describe('RubricAssignmentContainer Tests', () => {
       })
     }, 30000)
 
-    it('should call onRubricChange callback when a new rubric is saved', async () => {
+    it('should call onRubricChange callback when a new rubric is saved', async () => {  // fixed with QE-154
       const onRubricChange = vi.fn()
       const {getByTestId, findByTestId} = renderComponent({onRubricChange})
       fireEvent.click(getByTestId('create-assignment-rubric-button'))
@@ -200,6 +201,7 @@ describe('RubricAssignmentContainer Tests', () => {
         target: {value: 'New Criterion Test'},
       })
       fireEvent.click(getByTestId('rubric-criterion-save'))
+      await waitFor(() => expect(getByTestId('save-rubric-button')).not.toBeDisabled())
       fireEvent.click(getByTestId('save-rubric-button'))
 
       await waitFor(() => expect(onRubricChange).toHaveBeenCalledWith(RUBRIC, RUBRIC_ASSOCIATION))
