@@ -76,6 +76,46 @@ RSpec.describe Canvas::OAuth::GrantTypes::RefreshToken do # rubocop:disable RSpe
         expect { refresh_token_instance.send(:validate_type) }.to raise_error(Canvas::OAuth::RequestError)
       end
     end
+
+    context "with resource parameter (RFC 8707)" do
+      let(:resource) { "https://mcp.instructure.com" }
+
+      context "when resource is in allowed_audiences" do
+        let(:opts) { { refresh_token: "test_refresh_token", resource: } }
+
+        before { key.update!(allowed_audiences: [resource]) }
+
+        it "does not raise" do
+          expect { refresh_token_instance.send(:validate_type) }.not_to raise_error
+        end
+      end
+
+      context "when resource is not in allowed_audiences" do
+        let(:opts) { { refresh_token: "test_refresh_token", resource: } }
+
+        before { key.update!(allowed_audiences: ["https://other.instructure.com"]) }
+
+        it "raises Canvas::OAuth::RequestError with :invalid_target" do
+          expect { refresh_token_instance.send(:validate_type) }.to raise_error(Canvas::OAuth::RequestError)
+        end
+      end
+
+      context "when resource is not a valid URI" do
+        let(:opts) { { refresh_token: "test_refresh_token", resource: "not-a-uri" } }
+
+        it "raises Canvas::OAuth::RequestError with :invalid_target" do
+          expect { refresh_token_instance.send(:validate_type) }.to raise_error(Canvas::OAuth::RequestError)
+        end
+      end
+
+      context "when resource uses a non-http scheme" do
+        let(:opts) { { refresh_token: "test_refresh_token", resource: "ftp://mcp.instructure.com" } }
+
+        it "raises Canvas::OAuth::RequestError with :invalid_target" do
+          expect { refresh_token_instance.send(:validate_type) }.to raise_error(Canvas::OAuth::RequestError)
+        end
+      end
+    end
   end
 
   describe "#generate_token" do

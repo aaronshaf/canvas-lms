@@ -110,6 +110,8 @@ module Canvas::OAuth
 
         raise Canvas::OAuth::InvalidRequestError, @provider.error_message unless @provider.valid?
         raise Canvas::OAuth::InvalidScopeError, @provider.missing_scopes unless @provider.valid_scopes?
+
+        validate_resource
       end
 
       def generate_token

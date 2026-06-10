@@ -48,7 +48,8 @@ class OAuth2ProviderController < ApplicationController
         code_challenge: params[:code_challenge],
         code_challenge_method: params[:code_challenge_method]
       },
-      sec_fetch_dest: request.headers["Sec-Fetch-Dest"]
+      sec_fetch_dest: request.headers["Sec-Fetch-Dest"],
+      resource: params[:resource]
     )
 
     raise Canvas::OAuth::RequestError, :invalid_client_id unless provider.has_valid_key?
@@ -64,6 +65,13 @@ class OAuth2ProviderController < ApplicationController
                                                                 error: "invalid_scope",
                                                                 error_description: "A requested scope is invalid, unknown, malformed, or exceeds the scope granted by the resource owner. " \
                                                                                    "The following scopes were requested, but not granted: #{provider.missing_scopes.to_sentence(locale: :en)}")
+    end
+
+    if params[:resource].present? && !provider.valid_resource?
+      return redirect_to Canvas::OAuth::Provider.final_redirect(self,
+                                                                state: params[:state],
+                                                                error: "invalid_target",
+                                                                error_description: "The requested resource is invalid, missing, unknown, or malformed.")
     end
 
     unless provider.key.authorized_for_account?(@domain_root_account)

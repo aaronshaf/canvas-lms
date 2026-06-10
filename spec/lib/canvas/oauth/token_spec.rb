@@ -74,6 +74,17 @@ module Canvas::OAuth
       end
     end
 
+    describe "#resource" do
+      it "returns nil when not set" do
+        expect(token.resource).to be_nil
+      end
+
+      it "returns the stored resource array" do
+        allow(token).to receive(:cached_code_entry).and_return('{"resource":["https://mcp.instructure.com"]}')
+        expect(token.resource).to eq ["https://mcp.instructure.com"]
+      end
+    end
+
     describe "#code_data" do
       it "parses the json from the cache" do
         hash = token.code_data
@@ -318,7 +329,7 @@ module Canvas::OAuth
       end
 
       it "sets the new data hash into redis with 10 min ttl" do
-        code_data = { user: 1, real_user: 2, client_id: 3, scopes: nil, purpose: nil, remember_access: nil }
+        code_data = { user: 1, real_user: 2, client_id: 3, scopes: nil, purpose: nil, remember_access: nil, resource: nil }
         # should have 10 min (in seconds) ttl passed as second param
         expect(redis).to receive(:setex).with("oauth2:brand_new_code", 600, code_data.to_json)
         allow(Canvas).to receive_messages(redis:)

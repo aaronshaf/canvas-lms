@@ -15,6 +15,15 @@ module Canvas::OAuth
         @_token = @provider.token_for(@opts[:code])
         raise Canvas::OAuth::RequestError, :invalid_authorization_code unless @_token.is_for_valid_code?
         raise Canvas::OAuth::RequestError, :incorrect_client unless [@_token.key.global_id, @_token.key.id].include? @_token.client_id.to_i
+
+        authorized = normalize_resource(@_token.resource)
+        requested = normalize_resource(@opts[:resource])
+
+        if authorized != requested
+          raise Canvas::OAuth::RequestError, :invalid_target unless authorized.present? && requested.present? && requested.all? { |r| authorized.include?(r) }
+        end
+
+        validate_resource
       end
 
       def generate_token

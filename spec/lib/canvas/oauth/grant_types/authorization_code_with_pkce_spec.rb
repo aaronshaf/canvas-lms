@@ -32,7 +32,7 @@ RSpec.describe Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE do # rubocop
     allow(provider).to receive(:is_authorized_by?).with(secret).and_return(true)
     allow(provider).to receive_messages(has_valid_key?: true, token_for: token)
 
-    allow(token).to receive_messages(is_for_valid_code?: true, key:, client_id:)
+    allow(token).to receive_messages(is_for_valid_code?: true, key:, client_id:, resource: nil)
   end
 
   describe "#allow_public_client?" do

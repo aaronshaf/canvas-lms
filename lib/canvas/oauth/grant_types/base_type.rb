@@ -3,6 +3,8 @@
 module Canvas::OAuth
   module GrantTypes
     class BaseType
+      include Canvas::OAuth::ResourceIndicators
+
       attr_reader :opts, :provider
 
       # TODO: INTEROP-10672 — accept both vanity and canonical aud
@@ -64,6 +66,18 @@ module Canvas::OAuth
 
       def generate_token
         raise "Abstract Method"
+      end
+
+      def validate_resource
+        resources = normalize_resource(@opts[:resource])
+        return if resources.empty?
+
+        raise Canvas::OAuth::RequestError, :invalid_target if provider.key.nil?
+
+        resources.each do |resource|
+          raise Canvas::OAuth::RequestError, :invalid_target unless valid_resource_uri?(resource)
+          raise Canvas::OAuth::RequestError, :invalid_target unless valid_audience?(resource, provider.key)
+        end
       end
     end
   end

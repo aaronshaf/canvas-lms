@@ -19,17 +19,20 @@
 
 module Canvas::OAuth
   class Provider
+    include Canvas::OAuth::ResourceIndicators
+
     OAUTH2_OOB_URI = "urn:ietf:wg:oauth:2.0:oob"
 
     attr_reader :client_id, :scopes, :purpose
 
-    def initialize(client_id, redirect_uri = "", scopes = [], purpose = nil, key: nil, pkce: {}, sec_fetch_dest: nil)
+    def initialize(client_id, redirect_uri = "", scopes = [], purpose = nil, key: nil, pkce: {}, sec_fetch_dest: nil, resource: nil)
       @client_id = client_id
       @redirect_uri = redirect_uri
       @scopes = scopes
       @purpose = purpose
       @pkce = pkce
       @sec_fetch_dest = sec_fetch_dest
+      @resource = resource
 
       # Some grant types have already loaded the developer key. If that's the case allow
       # passing the key into this provider rather than re-querying for it.
@@ -132,11 +135,18 @@ module Canvas::OAuth
     end
 
     def session_hash
-      { client_id: @client_id, redirect_uri:, scopes:, purpose:, code_challenge:, code_challenge_method: }
+      { client_id: @client_id, redirect_uri:, scopes:, purpose:, code_challenge:, code_challenge_method:, resource: @resource }
     end
 
     def valid_scopes?
       @scopes.present? && @scopes.all? { |scope| key.scopes.include?(scope) }
+    end
+
+    def valid_resource?
+      resources = normalize_resource(@resource)
+      return true if resources.empty?
+
+      resources.all? { |resource| valid_resource_uri?(resource) && valid_audience?(resource, key) }
     end
 
     def missing_scopes
@@ -162,7 +172,8 @@ module Canvas::OAuth
         remember_access: options&.dig(:remember_access),
         purpose: oauth_session&.dig(:purpose),
         code_challenge: oauth_session&.dig(:code_challenge),
-        code_challenge_method: oauth_session&.dig(:code_challenge_method)
+        code_challenge_method: oauth_session&.dig(:code_challenge_method),
+        resource: oauth_session&.dig(:resource)
       }
 
       code = Canvas::OAuth::Token.generate_code_for(current_user.global_id, real_user&.global_id, oauth_session[:client_id], options)

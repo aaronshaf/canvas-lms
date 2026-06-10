@@ -21,6 +21,8 @@ module Canvas::OAuth
         @_token = @provider.token_for_refresh_token(@opts[:refresh_token])
         raise Canvas::OAuth::RequestError, :invalid_refresh_token unless @_token
         raise Canvas::OAuth::RequestError, :incorrect_client unless @_token.access_token.developer_key_id == @_token.key.id
+
+        validate_resource
       end
 
       def generate_token

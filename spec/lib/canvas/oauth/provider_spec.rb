@@ -483,6 +483,16 @@ module Canvas::OAuth
         provider = Provider.new("123", "some uri", "userinfo,full_access")
         expect(provider.session_hash[:scopes]).to eq "userinfo,full_access"
       end
+
+      it "includes resource as raw value" do
+        provider = Provider.new("123", "some uri", [], nil, resource: "https://mcp.instructure.com")
+        expect(provider.session_hash[:resource]).to eq "https://mcp.instructure.com"
+      end
+
+      it "includes resource as nil when not provided" do
+        provider = Provider.new("123", "some uri")
+        expect(provider.session_hash[:resource]).to be_nil
+      end
     end
 
     context "scopes" do
@@ -501,6 +511,42 @@ module Canvas::OAuth
           it "returns false" do
             expect(provider.valid_scopes?).to be(false)
           end
+        end
+      end
+
+      describe "#valid_resource?" do
+        let(:resource) { "https://mcp.instructure.com" }
+        let(:developer_key) { DeveloperKey.create!(allowed_audiences: [resource]) }
+        let(:provider) { Provider.new(developer_key.id, "some_uri", [], nil, resource:) }
+
+        it "returns true when resource is in allowed_audiences" do
+          expect(provider.valid_resource?).to be(true)
+        end
+
+        it "returns true when no resource is requested" do
+          expect(Provider.new(developer_key.id, "some_uri").valid_resource?).to be(true)
+        end
+
+        it "returns false when resource is not in allowed_audiences" do
+          provider = Provider.new(developer_key.id, "some_uri", [], nil, resource: "https://other.instructure.com")
+          expect(provider.valid_resource?).to be(false)
+        end
+
+        it "returns false when resource is not an absolute URI" do
+          provider = Provider.new(developer_key.id, "some_uri", [], nil, resource: "not-a-uri")
+          expect(provider.valid_resource?).to be(false)
+        end
+
+        it "returns false when resource URI has a fragment" do
+          provider = Provider.new(developer_key.id, "some_uri", [], nil, resource: "#{resource}#frag")
+          expect(provider.valid_resource?).to be(false)
+        end
+
+        it "returns true when all resources in array are in allowed_audiences" do
+          second = "https://canvas.instructure.com"
+          developer_key.update!(allowed_audiences: [resource, second])
+          provider = Provider.new(developer_key.id, "some_uri", [], nil, resource: [resource, second])
+          expect(provider.valid_resource?).to be(true)
         end
       end
 

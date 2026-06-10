@@ -485,6 +485,43 @@ describe OAuth2ProviderController do
         end
       end
     end
+
+    context "with resource parameter (RFC 8707)" do
+      let(:resource) { "https://mcp.instructure.com" }
+      let(:auth_params) do
+        { client_id: key.id, redirect_uri: Canvas::OAuth::Provider::OAUTH2_OOB_URI, response_type: "code" }
+      end
+
+      before { user_session(user_with_pseudonym(account: Account.default)) }
+
+      context "when resource is in allowed_audiences" do
+        before { key.update!(allowed_audiences: [resource]) }
+
+        it "stores resource in session and redirects to confirmation" do
+          get :auth, params: auth_params.merge(resource:)
+          expect(session[:oauth2][:resource]).to eq resource
+          expect(response).to redirect_to(oauth2_auth_confirm_url)
+        end
+      end
+
+      context "when resource is not in allowed_audiences" do
+        before { key.update!(allowed_audiences: ["https://other.instructure.com"]) }
+
+        it "redirects with invalid_target error" do
+          get :auth, params: auth_params.merge(resource:)
+          expect(response).to be_redirect
+          expect(response.location).to include("error=invalid_target")
+        end
+      end
+
+      context "when resource is not a valid absolute URI" do
+        it "redirects with invalid_target error" do
+          get :auth, params: auth_params.merge(resource: "not-a-uri")
+          expect(response).to be_redirect
+          expect(response.location).to include("error=invalid_target")
+        end
+      end
+    end
   end
 
   describe "GET confirm" do
@@ -1316,6 +1353,57 @@ describe OAuth2ProviderController do
             it { is_expected.to have_http_status :ok }
           end
         end
+
+        context "with resource parameter" do
+          let(:resource) { "https://mcp.instructure.com" }
+
+          context "when resource is in allowed_audiences" do
+            before { key.update!(allowed_audiences: [resource]) }
+
+            it "returns 200" do
+              parameters = { grant_type: "client_credentials", resource: }.merge(client_credentials_params)
+              post :token, params: parameters
+              expect(response).to have_http_status :ok
+            end
+          end
+
+          context "when resource is not in allowed_audiences" do
+            before { key.update!(allowed_audiences: ["https://other.instructure.com"]) }
+
+            it "returns invalid_target error" do
+              parameters = { grant_type: "client_credentials", resource: }.merge(client_credentials_params)
+              post :token, params: parameters
+              expect(response).to have_http_status :bad_request
+              expect(response.parsed_body["error"]).to eq "invalid_target"
+            end
+          end
+
+          context "when resource is not a valid absolute URI" do
+            let(:resource) { "not-a-uri" }
+
+            before { key.update!(allowed_audiences: [resource]) }
+
+            it "returns invalid_target error" do
+              parameters = { grant_type: "client_credentials", resource: }.merge(client_credentials_params)
+              post :token, params: parameters
+              expect(response).to have_http_status :bad_request
+              expect(response.parsed_body["error"]).to eq "invalid_target"
+            end
+          end
+
+          context "when resource contains a fragment" do
+            let(:resource) { "https://mcp.instructure.com#section" }
+
+            before { key.update!(allowed_audiences: [resource]) }
+
+            it "returns invalid_target error" do
+              parameters = { grant_type: "client_credentials", resource: }.merge(client_credentials_params)
+              post :token, params: parameters
+              expect(response).to have_http_status :bad_request
+              expect(response.parsed_body["error"]).to eq "invalid_target"
+            end
+          end
+        end
       end
     end
   end
@@ -1344,7 +1432,7 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { code_challenge: nil, code_challenge_method: nil, purpose: nil, remember_access: nil, scopes: nil }
+        { code_challenge: nil, code_challenge_method: nil, purpose: nil, remember_access: nil, scopes: nil, resource: nil }
       ).and_return("code")
       oauth_accept
 
@@ -1358,7 +1446,7 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { scopes:, remember_access: nil, purpose: nil, code_challenge: nil, code_challenge_method: nil }
+        { scopes:, remember_access: nil, purpose: nil, code_challenge: nil, code_challenge_method: nil, resource: nil }
       ).and_return("code")
 
       oauth_accept
@@ -1369,7 +1457,7 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { scopes: nil, remember_access: "1", purpose: nil, code_challenge: nil, code_challenge_method: nil }
+        { scopes: nil, remember_access: "1", purpose: nil, code_challenge: nil, code_challenge_method: nil, resource: nil }
       ).and_return("code")
       post :accept, params: { remember_access: "1", custom_csrf_token: }, session: session_hash
     end
@@ -1420,6 +1508,7 @@ describe OAuth2ProviderController do
             purpose: nil,
             code_challenge:,
             code_challenge_method:,
+            resource: nil,
           }
         ).and_return("code")
 

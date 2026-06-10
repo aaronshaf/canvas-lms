@@ -28,6 +28,7 @@ module Canvas::OAuth
     SCOPES_KEY = "scopes"
     PURPOSE_KEY = "purpose"
     REMEMBER_ACCESS = "remember_access"
+    RESOURCE_KEY = "resource"
 
     def initialize(key, code, access_token = nil)
       @key = key
@@ -68,6 +69,10 @@ module Canvas::OAuth
 
     def remember_access?
       @remember_access ||= !!code_data[REMEMBER_ACCESS]
+    end
+
+    def resource
+      code_data[RESOURCE_KEY]
     end
 
     def code_data
@@ -170,7 +175,8 @@ module Canvas::OAuth
         CLIENT_KEY => client_id,
         SCOPES_KEY => options[:scopes],
         PURPOSE_KEY => options[:purpose],
-        REMEMBER_ACCESS => options[:remember_access]
+        REMEMBER_ACCESS => options[:remember_access],
+        RESOURCE_KEY => options[:resource]
       }
       Canvas.redis.setex("#{REDIS_PREFIX}#{code}", 10.minutes.to_i, code_data.to_json)
 
