@@ -207,6 +207,64 @@ describe "User Profile API", type: :request do
     expect(json["primary_email"]).to be_nil
   end
 
+  context "PII gating for cross-user profile lookups (ULTI-575)" do
+    before :once do
+      @course.offer!
+      @student.enrollments.where(course: @course).update_all(workflow_state: "active")
+      @student.pseudonym.update!(integration_id: "INT-9001")
+      course_with_teacher(course: @course, active_all: true)
+      @teacher = @user
+    end
+
+    it "withholds login_id and integration_id from a teacher with only :read_profile" do
+      RoleOverride.create!(context: Account.default, permission: "read_sis", role: teacher_role, enabled: false)
+      RoleOverride.create!(context: Account.default, permission: "read_email_addresses", role: teacher_role, enabled: false)
+      @user = @teacher
+      json = api_call(:get,
+                      "/api/v1/users/#{@student.id}/profile",
+                      controller: "profile",
+                      action: "settings",
+                      user_id: @student.to_param,
+                      format: "json")
+      expect(json["id"]).to eq @student.id
+      expect(json["login_id"]).to be_nil
+      expect(json["integration_id"]).to be_nil
+      expect(json["sis_user_id"]).to be_nil
+      expect(json["primary_email"]).to be_nil
+    end
+
+    it "still returns login_id and integration_id when caller has the corresponding permissions" do
+      RoleOverride.create!(context: Account.default, permission: "read_sis", role: teacher_role, enabled: true)
+      RoleOverride.create!(context: Account.default, permission: "read_email_addresses", role: teacher_role, enabled: true)
+      @user = @teacher
+      json = api_call(:get,
+                      "/api/v1/users/#{@student.id}/profile",
+                      controller: "profile",
+                      action: "settings",
+                      user_id: @student.to_param,
+                      format: "json")
+      expect(json["login_id"]).to eq "pvuser@example.com"
+      expect(json["integration_id"]).to eq "INT-9001"
+      expect(json["sis_user_id"]).to eq "sis-user-id"
+    end
+
+    it "still returns the caller's own login_id when looking up self" do
+      @user = @student
+      json = api_call(:get,
+                      "/api/v1/users/self/profile",
+                      controller: "profile",
+                      action: "settings",
+                      user_id: "self",
+                      format: "json")
+      expect(json["login_id"]).to eq "pvuser@example.com"
+      # integration_id is gated by :read_sis even for self; the student has no
+      # role override granting it, so the value remains nil. Pre-ULTI-575 the
+      # key was present with a value (leak); post-fix the key is still present
+      # but the value is nil — matching how :sis_user_id was already gated.
+      expect(json["integration_id"]).to be_nil
+    end
+  end
+
   it "returns this user's avatars, if allowed" do
     @user = @student
     @student.register

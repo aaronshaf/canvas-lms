@@ -49,9 +49,16 @@ module Api::V1::UserProfile
                               type: :implicit,
                               require_sis: false,
                               current_user: current_principal)
-    json[:login_id] ||= pseudo&.unique_id
+    # login_id and integration_id are PII (login_id is the SSO/email identifier
+    # at SAML institutions; integration_id ties Canvas to the SIS/HR system).
+    # Gate them with the same permissions that already gate primary_email and
+    # sis_user_id above — without this, a caller holding only :read_profile
+    # (e.g. a teacher viewing a student) can enumerate them via /profile.
+    # The keys themselves stay present so existing API consumers that read them
+    # unconditionally don't see a schema change; only the values are gated.
+    json[:login_id] ||= user.grants_right?(current_principal, :read_email_addresses) ? pseudo&.unique_id : nil
     json[:sis_user_id] ||= pseudo&.sis_user_id if user.grants_right?(current_principal, :read_sis)
-    json[:integration_id] ||= pseudo&.integration_id
+    json[:integration_id] ||= user.grants_right?(current_principal, :read_sis) ? pseudo&.integration_id : nil
     zone = user.time_zone || @domain_root_account.try(:default_time_zone) || Time.zone
     json[:time_zone] = zone.tzinfo.name
     json[:locale] = user.locale
