@@ -25,7 +25,7 @@ describe AiExperienceContextFile do
       title: "Test Experience",
       description: "Test description",
       facts: "Test facts",
-      learning_objective: "Test objective",
+      learning_objectives: ["Test objective"],
       pedagogical_guidance: "Test guidance",
       course:
     )

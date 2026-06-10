@@ -25,7 +25,7 @@ describe AiExperienceEvaluationMetric do
       title: "Test Experience",
       description: "Test description",
       facts: "Test facts",
-      learning_objective: "Test objective",
+      learning_objectives: ["Test objective"],
       pedagogical_guidance: "Test guidance",
       course:
     )
@@ -95,7 +95,7 @@ describe AiExperienceEvaluationMetric do
       other_experience = AiExperience.create!(
         title: "Other Experience",
         facts: "Other facts",
-        learning_objective: "Other objective",
+        learning_objectives: ["Other objective"],
         pedagogical_guidance: "Other guidance",
         course:
       )

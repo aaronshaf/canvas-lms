@@ -29,18 +29,18 @@ describe AiExperience do
       title: "Test AI Experience",
       description: "A test AI experience",
       facts: "These are test facts",
-      learning_objective: "Learn something useful",
+      learning_objectives: ["Learn something useful"],
       pedagogical_guidance: "A test pedagogical guidance",
       course:
     }
   end
 
   describe "validations" do
-    it "requires title, learning_objective, and pedagogical_guidance" do
-      experience = AiExperience.new(valid_attributes.except(:title, :learning_objective, :pedagogical_guidance))
+    it "requires title, learning_objectives, and pedagogical_guidance" do
+      experience = AiExperience.new(valid_attributes.except(:title, :learning_objectives, :pedagogical_guidance))
       expect(experience).not_to be_valid
       expect(experience.errors[:title]).to include("can't be blank")
-      expect(experience.errors[:learning_objective]).to include("can't be blank")
+      expect(experience.errors[:learning_objectives]).to include("can't be blank")
       expect(experience.errors[:pedagogical_guidance]).to include("can't be blank")
     end
 
@@ -65,15 +65,28 @@ describe AiExperience do
         expect(experience.errors[:pedagogical_guidance]).to be_present
       end
 
-      it "accepts learning_objective at the cap" do
-        experience = AiExperience.new(valid_attributes.merge(learning_objective: "a" * max))
+      it "accepts a learning_objectives item at the cap" do
+        experience = AiExperience.new(valid_attributes.merge(learning_objectives: ["a" * max]))
         expect(experience).to be_valid
       end
 
-      it "rejects learning_objective over the cap" do
-        experience = AiExperience.new(valid_attributes.merge(learning_objective: "a" * (max + 1)))
+      it "rejects a learning_objectives item over the cap" do
+        experience = AiExperience.new(valid_attributes.merge(learning_objectives: ["a" * (max + 1)]))
         expect(experience).not_to be_valid
-        expect(experience.errors[:learning_objective]).to be_present
+        expect(experience.errors[:learning_objectives]).to be_present
+      end
+
+      it "rejects more than #{AiExperience::LEARNING_OBJECTIVES_MAX_COUNT} learning objectives" do
+        too_many = Array.new(AiExperience::LEARNING_OBJECTIVES_MAX_COUNT + 1) { |i| "Objective #{i + 1}" }
+        experience = AiExperience.new(valid_attributes.merge(learning_objectives: too_many))
+        expect(experience).not_to be_valid
+        expect(experience.errors[:learning_objectives]).to be_present
+      end
+
+      it "accepts exactly #{AiExperience::LEARNING_OBJECTIVES_MAX_COUNT} learning objectives" do
+        max_count = Array.new(AiExperience::LEARNING_OBJECTIVES_MAX_COUNT) { |i| "Objective #{i + 1}" }
+        experience = AiExperience.new(valid_attributes.merge(learning_objectives: max_count))
+        expect(experience).to be_valid
       end
 
       it "accepts facts at the cap" do
@@ -262,7 +275,7 @@ describe AiExperience do
             "data" => {
               "scenario" => valid_attributes[:pedagogical_guidance],
               "facts" => valid_attributes[:facts],
-              "learning_objectives" => valid_attributes[:learning_objective]
+              "learning_objectives" => valid_attributes[:learning_objectives]
             },
             "prompt_id" => "prompt-uuid"
           }
@@ -344,7 +357,7 @@ describe AiExperience do
             "data" => {
               "scenario" => "Updated scenario",
               "facts" => "Updated facts",
-              "learning_objectives" => "Updated objectives"
+              "learning_objectives" => ["Updated objectives"]
             }
           }
         }
@@ -367,8 +380,8 @@ describe AiExperience do
         expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
-      it "updates conversation_context when learning_objective changes" do
-        experience.update!(learning_objective: "Updated objectives")
+      it "updates conversation_context when learning_objectives changes" do
+        experience.update!(learning_objectives: ["Updated objectives"])
 
         expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end

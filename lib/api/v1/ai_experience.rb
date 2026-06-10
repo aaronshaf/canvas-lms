@@ -22,7 +22,7 @@ module Api::V1::AiExperience
   include Api::V1::User
 
   API_JSON_OPTS = {
-    only: %w[id title description facts learning_objective pedagogical_guidance workflow_state course_id context_index_status created_at updated_at]
+    only: %w[id title description facts learning_objectives pedagogical_guidance workflow_state course_id context_index_status created_at updated_at]
   }.freeze
 
   CONVERSATION_JSON_OPTS = {

@@ -24,7 +24,7 @@ describe Api::V1::AiExperience do
       title: "Customer Service Training",
       description: "Practice customer service scenarios",
       facts: "You are a customer service representative",
-      learning_objective: "Learn customer service skills",
+      learning_objectives: ["Learn customer service skills"],
       pedagogical_guidance: "Handle billing issues"
     )
   end
@@ -35,7 +35,7 @@ describe Api::V1::AiExperience do
   describe "ai_experience_json" do
     it "includes all specified attributes when can_manage is true" do
       json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
-      expected_fields = %w[id title description facts learning_objective pedagogical_guidance workflow_state course_id context_index_status created_at updated_at]
+      expected_fields = %w[id title description facts learning_objectives pedagogical_guidance workflow_state course_id context_index_status created_at updated_at]
 
       expected_fields.each do |field|
         expect(json).to have_key(field)
@@ -49,7 +49,7 @@ describe Api::V1::AiExperience do
       expect(json["title"]).to eq @ai_experience.title
       expect(json["description"]).to eq @ai_experience.description
       expect(json["facts"]).to eq @ai_experience.facts
-      expect(json["learning_objective"]).to eq @ai_experience.learning_objective
+      expect(json["learning_objectives"]).to eq @ai_experience.learning_objectives
       expect(json["pedagogical_guidance"]).to eq @ai_experience.pedagogical_guidance
       expect(json["workflow_state"]).to eq @ai_experience.workflow_state
       expect(json["course_id"]).to eq @ai_experience.course_id
@@ -65,11 +65,11 @@ describe Api::V1::AiExperience do
         expect(json).not_to have_key(:pedagogical_guidance)
       end
 
-      it "includes learning_objective in JSON" do
+      it "includes learning_objectives in JSON" do
         json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: false)
 
-        expect(json).to have_key("learning_objective")
-        expect(json["learning_objective"]).to eq @ai_experience.learning_objective
+        expect(json).to have_key("learning_objectives")
+        expect(json["learning_objectives"]).to eq @ai_experience.learning_objectives
       end
 
       it "includes basic fields in JSON" do
@@ -91,10 +91,10 @@ describe Api::V1::AiExperience do
         expect(json).not_to have_key("pedagogical_guidance")
       end
 
-      it "still includes learning_objective by default" do
+      it "still includes learning_objectives by default" do
         json = api.ai_experience_json(@ai_experience, @teacher, session)
 
-        expect(json).to have_key("learning_objective")
+        expect(json).to have_key("learning_objectives")
       end
     end
 

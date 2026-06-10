@@ -466,7 +466,7 @@ class AiExperiencesController < ApplicationController
 
   def experience_params
     base_params = %i[title description facts learning_objective pedagogical_guidance workflow_state]
-    params.expect(ai_experience: [*base_params, { context_file_ids: [], evaluation_metrics: [%i[name description enabled visible_to_learners]] }])
+    params.expect(ai_experience: [*base_params, { learning_objectives: [], context_file_ids: [], evaluation_metrics: [%i[name description enabled visible_to_learners]] }])
   end
 
   # Reject context_file_ids that reference attachments outside this course.

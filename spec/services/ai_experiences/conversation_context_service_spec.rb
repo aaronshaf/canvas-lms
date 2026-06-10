@@ -30,7 +30,7 @@ describe AiExperiences::ConversationContextService do
       title: "Test Experience",
       pedagogical_guidance: "Test scenario",
       facts: "Test facts",
-      learning_objective: "Test objectives"
+      learning_objectives: ["Test objectives"]
     ) do |exp|
       exp.define_singleton_method(:create_conversation_context) {} # Stub callback
     end
@@ -65,7 +65,7 @@ describe AiExperiences::ConversationContextService do
           "data" => {
             "scenario" => "Test scenario",
             "facts" => "Test facts",
-            "learning_objectives" => "Test objectives"
+            "learning_objectives" => ["Test objectives"]
           },
           "prompt_id" => "prompt-uuid"
         }
@@ -86,7 +86,7 @@ describe AiExperiences::ConversationContextService do
             "data" => hash_including(
               "scenario" => "Test scenario",
               "facts" => "Test facts",
-              "learning_objectives" => "Test objectives"
+              "learning_objectives" => ["Test objectives"]
             )
           )
         )
@@ -118,7 +118,7 @@ describe AiExperiences::ConversationContextService do
             "data" => hash_including(
               "scenario" => "Test scenario",
               "facts" => "Test facts",
-              "learning_objectives" => "Test objectives"
+              "learning_objectives" => ["Test objectives"]
             )
           )
         )
@@ -210,7 +210,7 @@ describe AiExperiences::ConversationContextService do
           "data" => {
             "scenario" => "Updated scenario",
             "facts" => "Updated facts",
-            "learning_objectives" => "Updated objectives"
+            "learning_objectives" => ["Updated objectives"]
           }
         }
       }
@@ -226,7 +226,7 @@ describe AiExperiences::ConversationContextService do
             "data" => hash_including(
               "scenario" => "Test scenario",
               "facts" => "Test facts",
-              "learning_objectives" => "Test objectives"
+              "learning_objectives" => ["Test objectives"]
             )
           )
         )

@@ -28,7 +28,7 @@ describe AiExperiencesController, type: :request do
       title: "Customer Service Training",
       description: "Practice customer service scenarios",
       facts: "You are a customer service representative helping customers with billing issues.",
-      learning_objective: "Students will learn to handle customer complaints professionally",
+      learning_objectives: ["Students will learn to handle customer complaints professionally"],
       pedagogical_guidance: "A customer calls about incorrect billing"
     )
   end
@@ -46,7 +46,7 @@ describe AiExperiencesController, type: :request do
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Test prompt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           workflow_state: "published"
         )
@@ -64,7 +64,7 @@ describe AiExperiencesController, type: :request do
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Test prompt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           workflow_state: "published"
         )
@@ -109,7 +109,7 @@ describe AiExperiencesController, type: :request do
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Teacher facts",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Teacher guidance",
           workflow_state: "published"
         )
@@ -121,7 +121,7 @@ describe AiExperiencesController, type: :request do
         published_exp = experiences.find { |e| e["id"] == published_experience.id }
         expect(published_exp["facts"]).to eq("Teacher facts")
         expect(published_exp["pedagogical_guidance"]).to eq("Teacher guidance")
-        expect(published_exp["learning_objective"]).to eq("Test objective")
+        expect(published_exp["learning_objectives"]).to eq(["Test objective"])
       end
 
       context "completion counts" do
@@ -171,7 +171,7 @@ describe AiExperiencesController, type: :request do
             @course.ai_experiences.create!(
               title: "Experience #{i}",
               facts: "Facts",
-              learning_objective: "Objective",
+              learning_objectives: ["Objective"],
               pedagogical_guidance: "Guidance"
             )
           end
@@ -188,7 +188,7 @@ describe AiExperiencesController, type: :request do
             @course.ai_experiences.create!(
               title: "Experience #{i}",
               facts: "Facts",
-              learning_objective: "Objective",
+              learning_objectives: ["Objective"],
               pedagogical_guidance: "Guidance"
             )
           end
@@ -286,14 +286,14 @@ describe AiExperiencesController, type: :request do
         unpublished_experience = @course.ai_experiences.create!(
           title: "Unpublished Experience",
           facts: "Test prompt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           workflow_state: "unpublished"
         )
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Test prompt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           workflow_state: "published"
         )
@@ -316,7 +316,7 @@ describe AiExperiencesController, type: :request do
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Secret teacher facts",
-          learning_objective: "Student objective",
+          learning_objectives: ["Student objective"],
           pedagogical_guidance: "Secret teacher guidance",
           workflow_state: "published"
         )
@@ -334,7 +334,7 @@ describe AiExperiencesController, type: :request do
         published_experience = @course.ai_experiences.create!(
           title: "Published Experience",
           facts: "Secret teacher facts",
-          learning_objective: "Student can see this",
+          learning_objectives: ["Student can see this"],
           pedagogical_guidance: "Secret teacher guidance",
           workflow_state: "published"
         )
@@ -344,7 +344,7 @@ describe AiExperiencesController, type: :request do
         experiences = json_response["experiences"]
 
         published_exp = experiences.find { |e| e["id"] == published_experience.id }
-        expect(published_exp["learning_objective"]).to eq("Student can see this")
+        expect(published_exp["learning_objectives"]).to eq(["Student can see this"])
       end
 
       context "with submission status" do
@@ -352,7 +352,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -369,7 +369,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -396,7 +396,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -423,7 +423,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -450,7 +450,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -476,7 +476,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -518,7 +518,7 @@ describe AiExperiencesController, type: :request do
           published_experience = @course.ai_experiences.create!(
             title: "Published Experience",
             facts: "Test prompt",
-            learning_objective: "Test objective",
+            learning_objectives: ["Test objective"],
             pedagogical_guidance: "Test guidance",
             workflow_state: "published"
           )
@@ -622,7 +622,7 @@ describe AiExperiencesController, type: :request do
         json_response = json_parse(response.body)
         expect(json_response["facts"]).to eq(@ai_experience.facts)
         expect(json_response["pedagogical_guidance"]).to eq(@ai_experience.pedagogical_guidance)
-        expect(json_response["learning_objective"]).to eq(@ai_experience.learning_objective)
+        expect(json_response["learning_objectives"]).to eq(@ai_experience.learning_objectives)
       end
 
       context "when context_id is present" do
@@ -678,7 +678,7 @@ describe AiExperiencesController, type: :request do
         @ai_experience.update!(workflow_state: "published")
         get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
-        expect(json_response["learning_objective"]).to eq(@ai_experience.learning_objective)
+        expect(json_response["learning_objectives"]).to eq(@ai_experience.learning_objectives)
       end
 
       it "returns forbidden for unpublished experiences" do
@@ -753,7 +753,7 @@ describe AiExperiencesController, type: :request do
              params: {
                ai_experience: {
                  title: "New Experience",
-                 learning_objective: "Test objective",
+                 learning_objectives: ["Test objective"],
                  pedagogical_guidance: "Test guidance"
                }
              }
@@ -770,7 +770,7 @@ describe AiExperiencesController, type: :request do
           title: "New Experience",
           description: "A test experience",
           facts: "Test prompt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
@@ -784,14 +784,14 @@ describe AiExperiencesController, type: :request do
         expect(created_experience.title).to eq("New Experience")
         expect(created_experience.description).to eq("A test experience")
         expect(created_experience.facts).to eq("Test prompt")
-        expect(created_experience.learning_objective).to eq("Test objective")
+        expect(created_experience.learning_objectives).to eq(["Test objective"])
         expect(created_experience.pedagogical_guidance).to eq("Test pedagogical guidance")
       end
 
       it "returns bad request with invalid params" do
         invalid_params = {
           title: "", # title is required
-          learning_objective: "", # learning_objective is required
+          learning_objectives: [], # learning_objectives is required
           pedagogical_guidance: "" # pedagogical_guidance is required
         }
 
@@ -805,7 +805,7 @@ describe AiExperiencesController, type: :request do
       it "creates a new AI experience without facts (facts is optional)" do
         experience_params = {
           title: "New Experience Without Facts",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
@@ -818,14 +818,14 @@ describe AiExperiencesController, type: :request do
         created_experience = AiExperience.last
         expect(created_experience.title).to eq("New Experience Without Facts")
         expect(created_experience.facts).to be_nil
-        expect(created_experience.learning_objective).to eq("Test objective")
+        expect(created_experience.learning_objectives).to eq(["Test objective"])
         expect(created_experience.pedagogical_guidance).to eq("Test pedagogical guidance")
       end
 
       it "sets the correct associations for course, account, and root_account" do
         experience_params = {
           title: "New Experience",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
@@ -841,7 +841,7 @@ describe AiExperiencesController, type: :request do
         attachment = attachment_model(context: @course, size: 1.megabyte)
         experience_params = {
           title: "New Experience with Files",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           context_file_ids: [attachment.id]
         }
@@ -858,7 +858,7 @@ describe AiExperiencesController, type: :request do
         other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
         experience_params = {
           title: "Cross-tenant attempt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           context_file_ids: [other_course_attachment.id]
         }
@@ -876,7 +876,7 @@ describe AiExperiencesController, type: :request do
         attachment.destroy # soft delete (file_state = 'deleted')
         experience_params = {
           title: "Deleted attachment attempt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           context_file_ids: [attachment.id]
         }
@@ -894,7 +894,7 @@ describe AiExperiencesController, type: :request do
         bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
         experience_params = {
           title: "Mixed",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           context_file_ids: [good_attachment.id, bad_attachment.id]
         }
@@ -914,7 +914,7 @@ describe AiExperiencesController, type: :request do
         personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
         experience_params = {
           title: "Personal file attempt",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance",
           context_file_ids: [personal_attachment.id]
         }
@@ -939,21 +939,21 @@ describe AiExperiencesController, type: :request do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_created", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance" } }
       end
 
       it "increments total_published when created as published" do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_published", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", workflow_state: "published" } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance", workflow_state: "published" } }
       end
 
       it "does not increment total_published when created as unpublished" do
         expect(InstStatsd::Statsd).not_to receive(:increment).with("ai_experiences.total_published", anything)
         allow(InstStatsd::Statsd).to receive(:increment)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance" } }
       end
 
       it "increments total_with_source_files when created with files" do
@@ -961,14 +961,14 @@ describe AiExperiencesController, type: :request do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_with_source_files", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", context_file_ids: [attachment.id] } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance", context_file_ids: [attachment.id] } }
       end
 
       it "does not increment total_with_source_files when created without files" do
         expect(InstStatsd::Statsd).not_to receive(:increment).with("ai_experiences.total_with_source_files", anything)
         allow(InstStatsd::Statsd).to receive(:increment)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance" } }
       end
 
       it "does not emit metrics on failure" do
@@ -981,7 +981,7 @@ describe AiExperiencesController, type: :request do
         expect(InstStatsd::Statsd).not_to receive(:increment)
         allow_any_instance_of(Api).to receive(:api_find).and_return(Account.default)
         post "/courses/#{@course.id}/ai_experiences.json",
-             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
+             params: { ai_experience: { title: "New", learning_objectives: ["obj"], pedagogical_guidance: "guidance" } }
       end
     end
 
@@ -991,7 +991,7 @@ describe AiExperiencesController, type: :request do
       it "returns forbidden" do
         experience_params = {
           title: "New Experience",
-          learning_objective: "Test objective",
+          learning_objectives: ["Test objective"],
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
@@ -1030,7 +1030,7 @@ describe AiExperiencesController, type: :request do
           title: "Updated Experience",
           description: "Updated description",
           facts: "Updated prompt",
-          learning_objective: "Updated objective",
+          learning_objectives: ["Updated objective"],
           pedagogical_guidance: "Updated pedagogical guidance"
         }
 
@@ -1042,14 +1042,14 @@ describe AiExperiencesController, type: :request do
         expect(@ai_experience.title).to eq("Updated Experience")
         expect(@ai_experience.description).to eq("Updated description")
         expect(@ai_experience.facts).to eq("Updated prompt")
-        expect(@ai_experience.learning_objective).to eq("Updated objective")
+        expect(@ai_experience.learning_objectives).to eq(["Updated objective"])
         expect(@ai_experience.pedagogical_guidance).to eq("Updated pedagogical guidance")
       end
 
       it "returns bad request with invalid params" do
         invalid_params = {
           title: "", # title is required
-          learning_objective: "", # learning_objective is required
+          learning_objectives: [], # learning_objectives is required
           pedagogical_guidance: "" # pedagogical_guidance is required
         }
 
@@ -1420,7 +1420,7 @@ describe AiExperiencesController, type: :request do
         end
 
         it "returns 404 for create" do
-          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: { title: "Test", facts: "Test", learning_objective: "Test", pedagogical_guidance: "Test" } }
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: { title: "Test", facts: "Test", learning_objectives: ["Test"], pedagogical_guidance: "Test" } }
           expect(response).to have_http_status(:not_found)
         end
 
@@ -1694,7 +1694,7 @@ describe AiExperiencesController, type: :request do
       it "returns 404 for conversation from different experience" do
         other_experience = @course.ai_experiences.create!(
           title: "Other Experience",
-          learning_objective: "Test",
+          learning_objectives: ["Test"],
           pedagogical_guidance: "Test"
         )
 

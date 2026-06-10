@@ -23,7 +23,7 @@ describe AiConversation do
   let(:ai_experience) do
     AiExperience.create!(
       title: "Test Experience",
-      learning_objective: "Test learning objective",
+      learning_objectives: ["Test learning objective"],
       pedagogical_guidance: "Test pedagogical guidance",
       course:
     )

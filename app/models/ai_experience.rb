@@ -51,7 +51,22 @@ class AiExperience < ApplicationRecord
 
   validates :title, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }, allow_nil: true
-  validates :learning_objective, presence: true, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }
+  LEARNING_OBJECTIVES_MAX_COUNT = 10
+
+  validates :learning_objectives, presence: true
+  validate :learning_objectives_items_valid
+
+  def learning_objectives_items_valid
+    return unless learning_objectives.is_a?(Array)
+
+    if learning_objectives.empty?
+      errors.add(:learning_objectives, "can't be blank")
+    elsif learning_objectives.length > LEARNING_OBJECTIVES_MAX_COUNT
+      errors.add(:learning_objectives, "cannot exceed #{LEARNING_OBJECTIVES_MAX_COUNT} items")
+    elsif learning_objectives.any? { |o| o.to_s.strip.length > TEACHER_AUTHORED_FIELD_MAX }
+      errors.add(:learning_objectives, "each item must be #{TEACHER_AUTHORED_FIELD_MAX} characters or less")
+    end
+  end
   validates :pedagogical_guidance, presence: true, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }
   validates :facts, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }, allow_nil: true
   validates :workflow_state, presence: true, inclusion: { in: %w[unpublished published deleted] }
@@ -292,7 +307,7 @@ class AiExperience < ApplicationRecord
   def should_update_context?
     return false unless llm_conversation_context_id.present?
 
-    context_changed = saved_change_to_pedagogical_guidance? || saved_change_to_facts? || saved_change_to_learning_objective?
+    context_changed = saved_change_to_pedagogical_guidance? || saved_change_to_facts? || saved_change_to_learning_objectives?
     context_changed ||= @context_files_changed.present?
     context_changed ||= @evaluation_metrics_changed.present?
     @context_files_changed = nil

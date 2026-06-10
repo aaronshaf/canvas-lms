@@ -124,7 +124,7 @@ class AiConversationsController < ApplicationController
         root_account_uuid: @context.root_account.uuid,
         conversation_context_id: @experience.llm_conversation_context_id,
         facts: @experience.facts,
-        learning_objectives: @experience.learning_objective,
+        learning_objectives: @experience.learning_objectives,
         scenario: @experience.pedagogical_guidance
       )
     end

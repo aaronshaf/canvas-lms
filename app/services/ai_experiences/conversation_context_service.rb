@@ -78,7 +78,7 @@ module AiExperiences
       data = {
         scenario: ai_experience.pedagogical_guidance,
         facts: ai_experience.facts,
-        learning_objectives: ai_experience.learning_objective,
+        learning_objectives: ai_experience.learning_objectives,
         root_account_uuid: ai_experience.course.root_account.uuid
       }
 

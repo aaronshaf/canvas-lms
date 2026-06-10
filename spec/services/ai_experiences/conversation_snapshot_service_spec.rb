@@ -25,7 +25,7 @@ describe AiExperiences::ConversationSnapshotService do
     @experience = @course.ai_experiences.create!(
       title: "Test Experience",
       facts: "Facts",
-      learning_objective: "Objective",
+      learning_objectives: ["Objective"],
       pedagogical_guidance: "Guidance",
       workflow_state: "published"
     )
@@ -94,7 +94,7 @@ describe AiExperiences::ConversationSnapshotService do
       exp2 = @course.ai_experiences.create!(
         title: "Second Experience",
         facts: "Facts",
-        learning_objective: "Objective",
+        learning_objectives: ["Objective"],
         pedagogical_guidance: "Guidance",
         workflow_state: "published"
       )
@@ -109,7 +109,7 @@ describe AiExperiences::ConversationSnapshotService do
       exp2 = @course.ai_experiences.create!(
         title: "Second Experience",
         facts: "Facts",
-        learning_objective: "Objective",
+        learning_objectives: ["Objective"],
         pedagogical_guidance: "Guidance",
         workflow_state: "published"
       )

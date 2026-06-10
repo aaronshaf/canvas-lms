@@ -31,7 +31,7 @@ describe AiExperiences::ConversationContextDocumentsService do
       title: "Test Experience",
       pedagogical_guidance: "Test scenario",
       facts: "Test facts",
-      learning_objective: "Test objectives"
+      learning_objectives: ["Test objectives"]
     ) do |exp|
       exp.define_singleton_method(:create_conversation_context) {} # Stub callback
     end
