@@ -58,7 +58,7 @@ shared_examples_for "learning object with due dates" do
         override.title = nil
         override.save!
 
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 3
         expect(dates_hash.pluck(:title)).to eq ["Everyone else", "Summer session", "2 students"]
       end
@@ -185,11 +185,11 @@ shared_examples_for "learning object with due dates" do
     end
 
     it "only returns active overrides" do
-      expect(overridable.dates_hash_visible_to(@teacher).size).to eq 2
+      expect(overridable.dates_hash_visible_to(@teacher.principal).size).to eq 2
     end
 
     it "includes the original date as a hash" do
-      dates_hash = overridable.dates_hash_visible_to(@teacher)
+      dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
       expect(dates_hash.size).to eq 2
 
       dates_hash.sort_by! { |d| d[:title].to_s }
@@ -199,7 +199,7 @@ shared_examples_for "learning object with due dates" do
 
     it "translates the 'Everyone else' title based on locale" do
       I18n.with_locale(:"fr-CA") do
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         dates_hash.sort_by! { |d| d[:title].to_s }
         expect(dates_hash[0][:title]).to eq "Tous les autres"
       end
@@ -210,7 +210,7 @@ shared_examples_for "learning object with due dates" do
       empty_course = Course.create!(name: "empty course")
       Assignment.create!(course: empty_course, due_at: 1.week.from_now)
       I18n.with_locale(:"fr-CA") do
-        dates_hash = overridable.dates_hash_visible_to(@admin)
+        dates_hash = overridable.dates_hash_visible_to(nil)
         expect(dates_hash[0][:title]).to eq "Tous"
       end
     end
@@ -221,7 +221,7 @@ shared_examples_for "learning object with due dates" do
       override2.override_due_at(8.days.from_now)
       override2.save!
 
-      dates_hash = overridable.dates_hash_visible_to(@teacher)
+      dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
       expect(dates_hash.size).to eq 2
 
       dates_hash.sort_by! { |d| d[:title] }
@@ -234,7 +234,7 @@ shared_examples_for "learning object with due dates" do
         override.destroy!
         empty_course = Course.create!(name: "empty course")
         Assignment.create!(course: empty_course, due_at: 1.week.from_now)
-        dates_hash = overridable.dates_hash_visible_to(@admin)
+        dates_hash = overridable.dates_hash_visible_to(nil)
         expect(dates_hash.size).to eq 1
         expect(dates_hash[0][:title]).to eq "Everyone"
         expect(dates_hash[0][:base]).to be true
@@ -245,7 +245,7 @@ shared_examples_for "learning object with due dates" do
         empty_course = Course.create!(name: "empty course")
         mastery_paths_assignment = Assignment.create!(course: empty_course, only_visible_to_overrides: true)
         mastery_paths_assignment.assignment_overrides.create!(set_type: "Noop", title: "Mastery Paths")
-        dates_hash = mastery_paths_assignment.dates_hash_visible_to(@admin)
+        dates_hash = mastery_paths_assignment.dates_hash_visible_to(nil)
         expect(dates_hash.size).to eq 1
         expect(dates_hash[0][:title]).to eq "Mastery Paths"
       end
@@ -264,7 +264,7 @@ shared_examples_for "learning object with due dates" do
       end
 
       it "returns the module overrides" do
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 2
         expect(dates_hash[0][:set_type]).to eq "CourseSection"
         expect(dates_hash[1][:set_type]).to eq "ADHOC"
@@ -281,7 +281,7 @@ shared_examples_for "learning object with due dates" do
         override_student.save!
 
         # both module overrides should be overridden by the object's overrides
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 2
         expect(dates_hash[0][:set_type]).to eq "CourseSection"
         expect(dates_hash[0][:id]).to eq override.id
@@ -292,7 +292,7 @@ shared_examples_for "learning object with due dates" do
       it "includes course overrides" do
         course_override = overridable.assignment_overrides.create!(set: course, due_at: 7.days.from_now)
 
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 3
         expect(dates_hash[0][:set_type]).to eq "CourseSection"
         expect(dates_hash[0][:id]).to eq override.id
@@ -307,7 +307,7 @@ shared_examples_for "learning object with due dates" do
         override_student = unassigned_override.assignment_override_students.build
         override_student.user = @student
         override_student.save!
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 1
         expect(dates_hash[0][:set_type]).to eq "CourseSection"
         expect(dates_hash[0][:id]).to eq override.id
@@ -328,7 +328,7 @@ shared_examples_for "learning object with due dates" do
         override_student1.save!
 
         # ensure the second student still appears in the dates hash
-        dates_hash = overridable.dates_hash_visible_to(@teacher)
+        dates_hash = overridable.dates_hash_visible_to(@teacher.principal)
         expect(dates_hash.size).to eq 3
         expect(dates_hash[0][:set_type]).to eq "CourseSection"
         expect(dates_hash[0][:id]).to eq override.id
@@ -1084,7 +1084,7 @@ describe "preload_override_data_for_objects" do
           lock_at: 3.days.from_now
         )
 
-        hash = assignment.override_aware_due_date_hash(student, user_is_admin: false)
+        hash = assignment.override_aware_due_date_hash(student.principal, user_is_admin: false)
 
         expect(hash).to have_key(:due_date)
         expect(hash).not_to have_key(:unlock_at)
@@ -1102,7 +1102,7 @@ describe "preload_override_data_for_objects" do
           lock_at: 3.days.from_now
         )
 
-        hash = assignment.override_aware_due_date_hash(student, user_is_admin: false)
+        hash = assignment.override_aware_due_date_hash(student.principal, user_is_admin: false)
 
         expect(hash).to have_key(:due_date)
         expect(hash).to have_key(:unlock_at)
@@ -1116,7 +1116,7 @@ describe "preload_override_data_for_objects" do
           due_at: 2.days.from_now
         )
 
-        hash = assignment.override_aware_due_date_hash(student, user_is_admin: false)
+        hash = assignment.override_aware_due_date_hash(student.principal, user_is_admin: false)
 
         expect(hash).to have_key(:unlock_at)
         expect(hash).to have_key(:lock_at)
@@ -1142,7 +1142,7 @@ describe "preload_override_data_for_objects" do
         )
 
         peer_review_sub = assignment.reload.peer_review_sub_assignment
-        hash = peer_review_sub.override_aware_due_date_hash(student, user_is_admin: false)
+        hash = peer_review_sub.override_aware_due_date_hash(student.principal, user_is_admin: false)
 
         expect(hash).to have_key(:due_date)
         expect(hash).to have_key(:unlock_at)
@@ -1169,7 +1169,7 @@ describe "preload_override_data_for_objects" do
           lock_at: 4.days.from_now
         )
 
-        hash = assignment.override_aware_due_date_hash(student, user_is_admin: false)
+        hash = assignment.override_aware_due_date_hash(student.principal, user_is_admin: false)
 
         expect(hash[:unlock_at]).to eq(override.unlock_at)
         expect(hash[:lock_at]).to eq(override.lock_at)
@@ -1205,7 +1205,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1236,7 +1236,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1262,7 +1262,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1291,7 +1291,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1319,7 +1319,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false,
@@ -1347,7 +1347,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false,
@@ -1375,7 +1375,7 @@ describe "preload_override_data_for_objects" do
         assignment.reload
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false,
@@ -1395,7 +1395,7 @@ describe "preload_override_data_for_objects" do
         )
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1421,7 +1421,7 @@ describe "preload_override_data_for_objects" do
         course.disable_feature!(:peer_review_allocation_and_grading)
 
         tag_info = assignment.context_module_tag_info(
-          teacher,
+          teacher.principal,
           course,
           user_is_admin: true,
           has_submission: false
@@ -1437,7 +1437,7 @@ describe "preload_override_data_for_objects" do
         )
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1453,7 +1453,7 @@ describe "preload_override_data_for_objects" do
         )
 
         tag_info = assignment.context_module_tag_info(
-          student,
+          student.principal,
           course,
           user_is_admin: false,
           has_submission: false
@@ -1503,7 +1503,7 @@ describe "preload_override_data_for_objects" do
         )
 
         tag_info = assignment.context_module_tag_info(
-          teacher,
+          teacher.principal,
           course,
           user_is_admin: true,
           has_submission: false

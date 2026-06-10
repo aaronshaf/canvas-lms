@@ -20,8 +20,8 @@
 class OverrideTooltipPresenter < OverrideListPresenter
   DEFAULT_MAX_DATES = 10
 
-  def initialize(assignment = nil, user = nil, opts = {})
-    super(assignment, user)
+  def initialize(assignment = nil, principal = nil, opts = {})
+    super(assignment, principal)
     @opts = opts
   end
 

@@ -30,7 +30,7 @@
   <% if show_legacy_todo_list %>
     <% cache_opts = (contexts.present? ? {} : { expires_in: 3.minutes }) %>
       <% cache(safe_cache_key([@current_user, @current_user&.cache_key(:todo_list), contexts, show_legacy_todo_list, "to_do_list_view"]), cache_opts) do %>
-        <% presenter = ToDoListPresenter.new(self, @current_user, contexts) %>
+        <% presenter = ToDoListPresenter.new(self, current_principal, contexts) %>
     <% if presenter.any_assignments? %>
       <h2 class="todo-list-header" tabindex="-1">
         <% if Account.site_admin.feature_enabled?(:render_both_to_do_lists) && additional_title_context %>

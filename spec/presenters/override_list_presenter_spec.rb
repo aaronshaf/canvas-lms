@@ -37,26 +37,26 @@ describe OverrideListPresenter do
   let(:user) { student_in_course(course:, name: "Testing").user }
   let(:second_user) { student_in_course(course:, name: "Testing 2").user }
   let(:overridden_assignment) { assignment }
-  let(:presenter) { OverrideListPresenter.new assignment, user }
+  let(:presenter) { OverrideListPresenter.new assignment, user.principal }
 
   describe "#initialize" do
-    it "keeps a reference to the user" do
-      presenter = OverrideListPresenter.new nil, user
-      expect(presenter.user).to eq user
+    it "keeps a reference to the principal" do
+      presenter = OverrideListPresenter.new nil, user.principal
+      expect(presenter.principal).to eq user.principal
     end
 
-    context "assignment present? and user present?" do
-      it "stores a reference to the overridden assignment for that user" do
-        presenter = OverrideListPresenter.new assignment, user
+    context "assignment present? and principal present?" do
+      it "stores a reference to the overridden assignment for that principal" do
+        presenter = OverrideListPresenter.new assignment, user.principal
         expect(presenter.assignment).to eq overridden_assignment
       end
     end
 
-    context "assignment or user not present?" do
+    context "assignment or principal not present?" do
       it "stores the assignment as nil if assignment not present?" do
-        presenter = OverrideListPresenter.new nil, user
+        presenter = OverrideListPresenter.new nil, user.principal
         expect(presenter.assignment).to be_nil
-        expect(presenter.user).to eq user
+        expect(presenter.principal).to eq user.principal
       end
     end
   end
@@ -130,7 +130,7 @@ describe OverrideListPresenter do
     end
 
     it "returns false if its assignment is nil" do
-      presenter = OverrideListPresenter.new nil, user
+      presenter = OverrideListPresenter.new nil, user.principal
       expect(presenter.multiple_due_dates?).to be false
     end
   end
@@ -164,7 +164,7 @@ describe OverrideListPresenter do
         override.assignment_override_students.create!(user: second_user, assignment:)
         override.save!
 
-        @due_date = presenter.assignment.dates_hash_visible_to(user).first
+        @due_date = presenter.assignment.dates_hash_visible_to(user.principal).first
       end
 
       it "returns a dynamically generated title based on the number of current and invited users" do
@@ -207,7 +207,7 @@ describe OverrideListPresenter do
     end
 
     it "returns empty array if assignment is not present" do
-      presenter = OverrideListPresenter.new nil, user
+      presenter = OverrideListPresenter.new nil, user.principal
       expect(presenter.visible_due_dates).to eq []
     end
 
@@ -218,8 +218,8 @@ describe OverrideListPresenter do
         @overridden_assignment = course.assignments.create!(title: "Overridden Assignment")
         @teacher = teacher_in_course(course:, name: "Testing").user
         allow(AssignmentOverrideApplicator).to receive(:assignment_overridden_for)
-          .with(@overridden_assignment, @teacher).and_return @overridden_assignment
-        @presenter = OverrideListPresenter.new @overridden_assignment, @teacher
+          .with(@overridden_assignment, @teacher.principal).and_return @overridden_assignment
+        @presenter = OverrideListPresenter.new @overridden_assignment, @teacher.principal
       end
 
       context "when all sections have overrides" do

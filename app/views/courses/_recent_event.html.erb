@@ -89,7 +89,7 @@
             <%= t({ one: "1 point", other: "%{count} points" }, count: round_if_whole(recent_event.points_possible)) %>
             &bullet;
           <% end %>
-          <%= due_at(recent_event, @current_user) %>
+          <%= due_at(recent_event, current_principal) %>
         <% else %>
           <%= datetime_string(recent_event.start_at) %>
         <% end %>

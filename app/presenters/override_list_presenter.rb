@@ -18,14 +18,14 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 class OverrideListPresenter
-  attr_reader :assignment, :user
+  attr_reader :assignment, :principal
 
   include TextHelper
 
-  def initialize(assignment = nil, user = nil)
-    @user = user
+  def initialize(assignment = nil, principal = nil)
+    @principal = principal
     if assignment.present?
-      @assignment = AssignmentOverrideApplicator.assignment_overridden_for(assignment, user)
+      @assignment = AssignmentOverrideApplicator.assignment_overridden_for(assignment, principal&.user)
     end
   end
 
@@ -86,7 +86,7 @@ class OverrideListPresenter
   def visible_due_dates
     return [] unless assignment
 
-    overrides = assignment.dates_hash_visible_to(user)
+    overrides = assignment.dates_hash_visible_to(principal)
     overrides = convert_non_collaborative_groups_to_tags_v2(overrides)
 
     overrides.map do |due_date|

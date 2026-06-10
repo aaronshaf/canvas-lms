@@ -174,19 +174,19 @@ class Quizzes::QuizAssignmentOverridesController < ApplicationController
     render({
              json: {
                quiz_assignment_overrides: quizzes.map do |quiz|
-                 serialize_overrides(quiz, @current_user, can_manage)
+                 serialize_overrides(quiz, can_manage)
                end
              }
            })
   end
 
-  def serialize_overrides(quiz, user, include_all_dates)
+  def serialize_overrides(quiz, include_all_dates)
     {}.tap do |quiz_overrides|
       quiz_overrides[:quiz_id] = quiz.id
-      quiz_overrides[:due_dates] = quiz.dates_hash_visible_to(user)
+      quiz_overrides[:due_dates] = quiz.dates_hash_visible_to(current_principal)
 
       if include_all_dates
-        quiz_overrides[:all_dates] = quiz.dates_hash_visible_to(user, include_all_dates: true)
+        quiz_overrides[:all_dates] = quiz.dates_hash_visible_to(current_principal, include_all_dates: true)
       end
     end
   end

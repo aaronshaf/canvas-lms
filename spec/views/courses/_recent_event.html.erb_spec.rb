@@ -208,6 +208,7 @@ describe "courses/_recent_event" do
       )
 
       assign(:current_user, @student)
+      assign(:current_principal, @student.principal)
 
       render partial: "courses/recent_event", object: @peer_review, locals: { is_hidden: false }
 

@@ -103,7 +103,7 @@ describe OverrideTooltipPresenter do
           lock_at: 4.days.from_now
         )
 
-        presenter = OverrideTooltipPresenter.new(peer_review_sub, student)
+        presenter = OverrideTooltipPresenter.new(peer_review_sub, student.principal)
         summary = presenter.due_date_summary
 
         expect(summary).to be_an(Array)
@@ -138,7 +138,7 @@ describe OverrideTooltipPresenter do
           lock_at: 4.days.from_now
         )
 
-        presenter = OverrideTooltipPresenter.new(assignment, student)
+        presenter = OverrideTooltipPresenter.new(assignment, student.principal)
         summary = presenter.due_date_summary
 
         expect(summary).to be_an(Array)
@@ -171,7 +171,7 @@ describe OverrideTooltipPresenter do
           lock_at: 4.days.from_now
         )
 
-        presenter = OverrideTooltipPresenter.new(assignment, student)
+        presenter = OverrideTooltipPresenter.new(assignment, student.principal)
         summary = presenter.due_date_summary
 
         expect(summary).to be_an(Array)

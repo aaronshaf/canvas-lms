@@ -52,12 +52,12 @@ describe AssignmentsHelper do
     end
 
     it "renders due date" do
-      expect(due_at(@assignment, @teacher)).to eq datetime_string(@due_date)
+      expect(due_at(@assignment, @teacher.principal)).to eq datetime_string(@due_date)
     end
 
     it "renders no due date when none present" do
       @assignment.due_at = nil
-      expect(due_at(@assignment, @teacher)).to eq "No Due Date"
+      expect(due_at(@assignment, @teacher.principal)).to eq "No Due Date"
     end
 
     context "with multiple due dates" do
@@ -69,16 +69,16 @@ describe AssignmentsHelper do
       end
 
       it "renders multiple dates" do
-        expect(due_at(@assignment, @teacher)).to eq "Multiple Due Dates"
+        expect(due_at(@assignment, @teacher.principal)).to eq "Multiple Due Dates"
       end
 
       it "renders override date when it applies to all assignees" do
         @assignment.only_visible_to_overrides = true
-        expect(due_at(@assignment, @teacher)).to eq datetime_string(@section_due_date)
+        expect(due_at(@assignment, @teacher.principal)).to eq datetime_string(@section_due_date)
       end
 
       it "renders applicable date to student" do
-        expect(due_at(@assignment, @student)).to eq datetime_string(@section_due_date)
+        expect(due_at(@assignment, @student.principal)).to eq datetime_string(@section_due_date)
       end
     end
   end

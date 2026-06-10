@@ -866,9 +866,8 @@ module ApplicationHelper
   end
 
   # render a link with a tooltip containing a summary of due dates
-  def multiple_due_date_tooltip(assignment, user, opts = {})
-    user ||= @current_user
-    presenter = OverrideTooltipPresenter.new(assignment, user, opts)
+  def multiple_due_date_tooltip(assignment, principal, opts = {})
+    presenter = OverrideTooltipPresenter.new(assignment, principal || current_principal, opts)
     render "shared/vdd_tooltip", presenter:
   end
 

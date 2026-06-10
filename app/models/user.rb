@@ -3033,7 +3033,7 @@ class User < ApplicationRecord
     sorted_events = events.sort_by do |e|
       due_date = e.start_at
       if e.respond_to? :dates_hash_visible_to
-        e.dates_hash_visible_to(self).any? do |due_hash|
+        e.dates_hash_visible_to(principal).any? do |due_hash|
           due_date = due_hash[:due_at] if due_hash[:due_at]
         end
       end
@@ -3075,8 +3075,8 @@ class User < ApplicationRecord
   def select_upcoming_assignments(assignments, opts)
     time = opts[:time] || Time.zone.now
     assignments.select do |a|
-      if a.context.grants_any_right?(self, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-        a.dates_hash_visible_to(self).any? do |due_hash|
+      if a.context.grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        a.dates_hash_visible_to(principal).any? do |due_hash|
           due_hash[:due_at] && due_hash[:due_at] >= time && due_hash[:due_at] <= opts[:end_at]
         end
       else

@@ -21,14 +21,14 @@ class ToDoListPresenter
   ASSIGNMENT_LIMIT = 100
   VISIBLE_LIMIT = 5
 
-  attr_reader :needs_grading, :needs_moderation, :needs_submitting, :needs_reviewing
+  attr_reader :needs_grading, :needs_moderation, :needs_submitting, :needs_reviewing, :principal
 
-  def initialize(view, user, contexts)
+  def initialize(view, principal, contexts)
     @view = view
-    @user = user
+    @principal = principal
     @contexts = contexts
 
-    if user
+    if principal&.user
       @needs_grading = assignments_needing(:grading)
       # at this point, we also have to check all sub_assignments that need submitting
       sub_assignments_needing_grading = assignments_needing(:grading, is_sub_assignment: true)
@@ -50,18 +50,18 @@ class ToDoListPresenter
         @needs_submitting += sub_assignments_needing_submitting
       end
 
-      assessment_requests = user.submissions_needing_peer_review(contexts:, limit: ASSIGNMENT_LIMIT)
+      assessment_requests = principal.user.submissions_needing_peer_review(contexts:, limit: ASSIGNMENT_LIMIT)
       @needs_reviewing = assessment_requests.filter_map do |ar|
-        AssessmentRequestPresenter.new(view, ar, user) if ar.asset.assignment.published?
+        AssessmentRequestPresenter.new(view, ar, principal) if ar.asset.assignment.published?
       end
 
       # Add PeerReviewSubAssignment items for dually-enrolled users (e.g., TAs
       # with both teacher and student enrollments) so they see peer review
       # submission items in the teacher-facing to-do list. The scope already
       # filters to courses with peer_review_allocation_and_grading enabled.
-      peer_review_sub_assignment_presenters = user.peer_review_sub_assignments_needing_submitting(
+      peer_review_sub_assignment_presenters = principal.user.peer_review_sub_assignments_needing_submitting(
         contexts:, limit: ASSIGNMENT_LIMIT
-      ).map { |prsa| AssignmentPresenter.new(@view, prsa, @user, :submitting) }
+      ).map { |prsa| AssignmentPresenter.new(@view, prsa, principal, :submitting) }
       @needs_submitting += peer_review_sub_assignment_presenters
       @needs_submitting.sort_by! { |a| a.due_at || a.updated_at }
 
@@ -69,13 +69,13 @@ class ToDoListPresenter
       # from the assignments involved. not just the contexts handed in.
       deduped_courses = (@needs_grading.map(&:context) + @needs_moderation.map(&:context) +
         @needs_submitting.map(&:context) + @needs_reviewing.map(&:context)).uniq
-      course_to_permissions = @user.precalculate_permissions_for_courses(deduped_courses, [:manage_grades])
+      course_to_permissions = principal.user.precalculate_permissions_for_courses(deduped_courses, [:manage_grades])
 
       @needs_grading = @needs_grading.select do |assignment|
         if course_to_permissions
           course_to_permissions[assignment.context.global_id]&.fetch(:manage_grades, false)
         else
-          assignment.context.grants_right?(@user, :manage_grades)
+          assignment.context.grants_right?(principal, :manage_grades)
         end
       end
     else
@@ -98,9 +98,9 @@ class ToDoListPresenter
   end
 
   def assignments_needing(type, opts = {})
-    if @user
-      @user.send(:"assignments_needing_#{type}", contexts: @contexts, limit: ASSIGNMENT_LIMIT, **opts).map do |assignment|
-        AssignmentPresenter.new(@view, assignment, @user, type)
+    if principal&.user
+      principal.user.send(:"assignments_needing_#{type}", contexts: @contexts, limit: ASSIGNMENT_LIMIT, **opts).map do |assignment|
+        AssignmentPresenter.new(@view, assignment, principal, type)
       end
     else
       []
@@ -108,13 +108,13 @@ class ToDoListPresenter
   end
 
   def ungraded_quizzes_needing_submitting
-    @user.ungraded_quizzes(contexts: @contexts, limit: ASSIGNMENT_LIMIT, needing_submitting: true).map do |quiz|
-      AssignmentPresenter.new(@view, quiz, @user, :submitting)
+    principal.user.ungraded_quizzes(contexts: @contexts, limit: ASSIGNMENT_LIMIT, needing_submitting: true).map do |quiz|
+      AssignmentPresenter.new(@view, quiz, principal, :submitting)
     end
   end
 
   def any_assignments?
-    @user && (
+    principal&.user && (
       @needs_grading.present? ||
       @needs_moderation.present? ||
       @needs_submitting.present? ||
@@ -146,36 +146,36 @@ class ToDoListPresenter
   end
 
   class AssignmentPresenter
-    attr_reader :assignment
+    attr_reader :assignment, :principal
 
     delegate :title, :submission_action_string, :points_possible, :due_at, :updated_at, :peer_reviews_due_at, :context, :sub_assignment_tag, to: :assignment
 
-    def initialize(view, assignment, user, type)
+    def initialize(view, assignment, principal, type)
       @view = view
       @assignment = assignment
-      @assignment = @assignment.overridden_for(user) if type == :submitting
-      @user = user
+      @assignment = @assignment.overridden_for(principal.user) if type == :submitting
+      @principal = principal
       @type = type
     end
 
     def needs_moderation_icon_data
-      @view.icon_data(context: assignment.context, current_user: @user, recent_event: assignment)
+      @view.icon_data(context: assignment.context, current_user: principal.user, recent_event: assignment)
     end
 
     def needs_submitting_icon_data
-      @view.icon_data(context: assignment.context, current_user: @user, recent_event: assignment, student_only: true)
+      @view.icon_data(context: assignment.context, current_user: principal.user, recent_event: assignment, student_only: true)
     end
 
     def context_name
-      @assignment.context.nickname_for(@user)
+      @assignment.context.nickname_for(principal.user)
     end
 
     def short_context_name
-      @assignment.context.nickname_for(@user, :short_name)
+      @assignment.context.nickname_for(principal.user, :short_name)
     end
 
     def needs_grading_count
-      @needs_grading_count ||= Assignments::NeedsGradingCountQuery.new([@assignment], @user).count[@assignment.global_id]
+      @needs_grading_count ||= Assignments::NeedsGradingCountQuery.new([@assignment], principal.user).count[@assignment.global_id]
     end
 
     def needs_grading_badge
@@ -251,7 +251,7 @@ class ToDoListPresenter
     end
 
     def formatted_due_date
-      @view.due_at(assignment, @user)
+      @view.due_at(assignment, principal)
     end
 
     def formatted_peer_review_due_date
@@ -277,16 +277,16 @@ class ToDoListPresenter
 
   class AssessmentRequestPresenter
     delegate :context, :context_name, :short_context_name, to: :assignment_presenter
-    attr_reader :assignment
+    attr_reader :assignment, :principal
 
     include ApplicationHelper
     include AssignmentsHelper
     include Rails.application.routes.url_helpers
 
-    def initialize(view, assessment_request, user)
+    def initialize(view, assessment_request, principal)
       @view = view
       @assessment_request = assessment_request
-      @user = user
+      @principal = principal
       @assignment = assessment_request.asset.assignment
     end
 
@@ -295,7 +295,7 @@ class ToDoListPresenter
     end
 
     def assignment_presenter
-      AssignmentPresenter.new(@view, @assignment, @user, :reviewing)
+      AssignmentPresenter.new(@view, @assignment, principal, :reviewing)
     end
 
     def submission_path

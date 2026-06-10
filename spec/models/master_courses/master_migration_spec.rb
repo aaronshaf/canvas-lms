@@ -3660,9 +3660,9 @@ describe MasterCourses::MasterMigration do
 
         a_to = @copy_to.assignments.where(migration_id: mig_id(a)).first
         q_to = @copy_to.quizzes.where(migration_id: mig_id(q)).first
-        ares1 = a_to.context_module_tag_info(student, @copy_to, has_submission: false)
+        ares1 = a_to.context_module_tag_info(student.principal, @copy_to, has_submission: false)
         expect(ares1[:due_date]).to be_nil
-        qres1 = q_to.context_module_tag_info(student, @copy_to, has_submission: false)
+        qres1 = q_to.context_module_tag_info(student.principal, @copy_to, has_submission: false)
         expect(qres1[:due_date]).to be_nil
         due_at = 1.day.from_now
         Timecop.freeze(1.minute.from_now) do
@@ -3671,11 +3671,11 @@ describe MasterCourses::MasterMigration do
           run_master_migration
         end
         expect(a_to.reload.due_at.to_i).to eq due_at.to_i
-        ares2 = a_to.context_module_tag_info(student, @copy_to, has_submission: false)
+        ares2 = a_to.context_module_tag_info(student.principal, @copy_to, has_submission: false)
         expect(ares2[:due_date]).to eq due_at.iso8601
 
         expect(q_to.reload.due_at.to_i).to eq due_at.to_i
-        qres2 = q_to.context_module_tag_info(student, @copy_to, has_submission: false)
+        qres2 = q_to.context_module_tag_info(student.principal, @copy_to, has_submission: false)
         expect(qres2[:due_date]).to eq due_at.iso8601
       end
     end

@@ -69,16 +69,16 @@ module AssignmentsHelper
     end
   end
 
-  def due_at(assignment, user)
-    if assignment.multiple_due_dates_apply_to?(user)
-      overrides = assignment.dates_hash_visible_to(user)
+  def due_at(assignment, principal)
+    if assignment.multiple_due_dates_apply_to?(principal&.user)
+      overrides = assignment.dates_hash_visible_to(principal)
       if overrides.length > 1
         multiple_due_dates
       else
-        single_due_at(assignment, user)
+        single_due_at(assignment, principal&.user)
       end
     else
-      single_due_at(assignment, user)
+      single_due_at(assignment, principal&.user)
     end
   end
 

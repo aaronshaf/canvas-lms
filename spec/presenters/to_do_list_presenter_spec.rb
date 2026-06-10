@@ -40,12 +40,12 @@ describe "ToDoListPresenter" do
     end
 
     it "returns moderated assignments that user is the final grader for" do
-      presenter = ToDoListPresenter.new(nil, final_grader, nil)
+      presenter = ToDoListPresenter.new(nil, final_grader.principal, nil)
       expect(presenter.needs_moderation.first.title).to eq "report"
     end
 
     it "does not return moderated assignments that user is not the final grader for" do
-      presenter = ToDoListPresenter.new(nil, grader, nil)
+      presenter = ToDoListPresenter.new(nil, grader.principal, nil)
       expect(presenter.needs_moderation).to be_empty
     end
   end
@@ -83,13 +83,13 @@ describe "ToDoListPresenter" do
     end
 
     it "returns for assignments that need grading for a teacher that is a grader" do
-      presenter = ToDoListPresenter.new(nil, grader, nil)
+      presenter = ToDoListPresenter.new(nil, grader.principal, nil)
       expect(presenter.needs_grading.map(&:title)).to contain_exactly("assignment1", "assignment2")
     end
 
     it "does not explode if the teacher is also a cross-shard site admin" do
       expect_any_instantiation_of(grader).to receive(:roles).and_return(["consortium_admin"])
-      presenter = ToDoListPresenter.new(nil, grader, nil)
+      presenter = ToDoListPresenter.new(nil, grader.principal, nil)
       expect(presenter.needs_grading.map(&:title)).to contain_exactly("assignment1", "assignment2")
     end
 
@@ -99,7 +99,7 @@ describe "ToDoListPresenter" do
                            role: teacher_role,
                            enabled: false)
 
-      presenter = ToDoListPresenter.new(nil, grader, nil)
+      presenter = ToDoListPresenter.new(nil, grader.principal, nil)
       expect(presenter.needs_grading.size).to eq(0)
     end
 
@@ -107,10 +107,10 @@ describe "ToDoListPresenter" do
       grading = Assignment.where(title: "assignment1").first
       grading.grade_student(student, grade: "1", grader:, provisional: true)
 
-      presenter = ToDoListPresenter.new(nil, grader, nil)
+      presenter = ToDoListPresenter.new(nil, grader.principal, nil)
       expect(presenter.needs_grading.map(&:title)).to contain_exactly("assignment2")
 
-      presenter = ToDoListPresenter.new(nil, final_grader, nil)
+      presenter = ToDoListPresenter.new(nil, final_grader.principal, nil)
       expect(presenter.needs_moderation.map(&:title)).to contain_exactly("assignment1")
     end
 
@@ -125,7 +125,7 @@ describe "ToDoListPresenter" do
       end
 
       it "returns discussion checkpoint assignments that need grading" do
-        presenter = ToDoListPresenter.new(nil, grader, nil)
+        presenter = ToDoListPresenter.new(nil, grader.principal, nil)
         expect(presenter.needs_grading.map(&:title)).to include(@reply_to_topic.title)
       end
     end
@@ -142,7 +142,7 @@ describe "ToDoListPresenter" do
       end
 
       it "returns 0 required replies instead of raising NoMethodError on the nil topic" do
-        presenter = ToDoListPresenter.new(nil, grader, nil)
+        presenter = ToDoListPresenter.new(nil, grader.principal, nil)
         orphaned_sub = presenter.needs_grading.find(&:sub_assignment?)
 
         expect(orphaned_sub).not_to be_nil
@@ -163,7 +163,7 @@ describe "ToDoListPresenter" do
       end
 
       it "returns discussion checkpoints that need submitting" do
-        presenter = ToDoListPresenter.new(self, @user, nil)
+        presenter = ToDoListPresenter.new(self, @user.principal, nil)
         expect(presenter.needs_submitting.map(&:title)).to include(@reply_to_topic.title)
         expect(presenter.needs_submitting.map(&:sub_assignment_tag)).to match_array([
                                                                                       @reply_to_topic.sub_assignment_tag,
@@ -174,7 +174,7 @@ describe "ToDoListPresenter" do
       it "returns the correct assignment_path for discussion checkpoints that need submitting" do
         view_stub = instance_double(ApplicationController)
         allow(view_stub).to receive(:course_assignment_path).and_return("path/to/assignment")
-        presenter = ToDoListPresenter.new(view_stub, @user, nil)
+        presenter = ToDoListPresenter.new(view_stub, @user.principal, nil)
         expect(presenter.needs_submitting.last.assignment_path).to eq "path/to/assignment"
       end
     end
@@ -200,7 +200,7 @@ describe "ToDoListPresenter" do
     end
 
     it "does not blow up" do
-      presenter = ToDoListPresenter.new(nil, reviewer, [course1])
+      presenter = ToDoListPresenter.new(nil, reviewer.principal, [course1])
       # basically checking that ToDoListPresenter.initialize didn't raise and error
       expect(presenter).not_to be_nil
     end
@@ -208,7 +208,7 @@ describe "ToDoListPresenter" do
     it "returns the assignment path when the assessor has not submitted their assignment" do
       view_stub = instance_double(ApplicationController)
       @assignment.update({ anonymous_peer_reviews: false })
-      presenter = ToDoListPresenter.new(view_stub, reviewer, [course1])
+      presenter = ToDoListPresenter.new(view_stub, reviewer.principal, [course1])
       expect(presenter.needs_reviewing.last.submission_path).to eq "/courses/#{course1.id}/assignments/#{@assignment.id}?reviewee_id=#{reviewee.id}"
     end
 
@@ -216,13 +216,13 @@ describe "ToDoListPresenter" do
       @assignment.submit_homework(reviewer, body: "you say tomato...")
       view_stub = instance_double(ApplicationController)
       @assignment.update({ anonymous_peer_reviews: false })
-      presenter = ToDoListPresenter.new(view_stub, reviewer, [course1])
+      presenter = ToDoListPresenter.new(view_stub, reviewer.principal, [course1])
       expect(presenter.needs_reviewing.last.submission_path).to eq "/courses/#{course1.id}/assignments/#{@assignment.id}/submissions/#{reviewee.id}"
     end
 
     it "returns the correct assignment path for anonymous peer reviews when the assessor has not submitted their assignment" do
       @assignment.update({ anonymous_peer_reviews: true })
-      presenter = ToDoListPresenter.new(nil, reviewer, [course1])
+      presenter = ToDoListPresenter.new(nil, reviewer.principal, [course1])
 
       expect(presenter.needs_reviewing.last.submission_path).to include("anonymous_asset_id")
     end
@@ -230,13 +230,13 @@ describe "ToDoListPresenter" do
     it "returns the correct submission path for anonymous peer reviews when the assessor has submitted their assignment" do
       @assignment.submit_homework(reviewer, body: "you say tomato...")
       @assignment.update({ anonymous_peer_reviews: true })
-      presenter = ToDoListPresenter.new(nil, reviewer, [course1])
+      presenter = ToDoListPresenter.new(nil, reviewer.principal, [course1])
 
       expect(presenter.needs_reviewing.last.submission_path).to include("anonymous_submissions")
     end
 
     it "does not filter legacy AssessmentRequest items from needs_reviewing when feature is not enabled" do
-      presenter = ToDoListPresenter.new(nil, reviewer, [course1])
+      presenter = ToDoListPresenter.new(nil, reviewer.principal, [course1])
       expect(presenter.needs_reviewing).not_to be_empty
     end
 
@@ -273,17 +273,17 @@ describe "ToDoListPresenter" do
       end
 
       it "includes PRSA items from the student course in needs_submitting on the dashboard" do
-        presenter = ToDoListPresenter.new(nil, mixed_user, nil)
+        presenter = ToDoListPresenter.new(nil, mixed_user.principal, nil)
         expect(presenter.needs_submitting.map { |a| a.assignment.id }).to include(prsa.id)
       end
 
       it "does not include PRSA items when scoped to the teacher course" do
-        presenter = ToDoListPresenter.new(nil, mixed_user, [teacher_course])
+        presenter = ToDoListPresenter.new(nil, mixed_user.principal, [teacher_course])
         expect(presenter.needs_submitting.map { |a| a.assignment.id }).not_to include(prsa.id)
       end
 
       it "links to the peer reviews page for PRSA items" do
-        presenter = ToDoListPresenter.new(self, mixed_user, nil)
+        presenter = ToDoListPresenter.new(self, mixed_user.principal, nil)
         prsa_presenter = presenter.needs_submitting.find { |a| a.assignment.is_a?(PeerReviewSubAssignment) }
         expect(prsa_presenter.assignment_path).to eq "/courses/#{student_course.id}/assignments/#{prsa.parent_assignment_id}/peer_reviews"
       end
@@ -297,13 +297,13 @@ describe "ToDoListPresenter" do
       it "returns the correct assignment path with reviewee_id for peer reviews" do
         view_stub = instance_double(ApplicationController)
         course1.assignments.last.update({ anonymous_peer_reviews: false })
-        presenter = ToDoListPresenter.new(view_stub, reviewer, [course1])
+        presenter = ToDoListPresenter.new(view_stub, reviewer.principal, [course1])
         expect(presenter.needs_reviewing.last.submission_path).to eq "/courses/#{course1.id}/assignments/#{course1.assignments.last.id}?reviewee_id=#{reviewee.id}"
       end
 
       it "returns the correct assignment path with anonymous_asset_id for anonymous peer reviews" do
         course1.assignments.last.update({ anonymous_peer_reviews: true })
-        presenter = ToDoListPresenter.new(nil, reviewer, [course1])
+        presenter = ToDoListPresenter.new(nil, reviewer.principal, [course1])
 
         expect(presenter.needs_reviewing.last.submission_path).to include("anonymous_asset_id")
       end
@@ -335,19 +335,19 @@ describe "ToDoListPresenter" do
     end
 
     it "includes peer review sub assignments in needs_grading when feature flag is enabled" do
-      presenter = ToDoListPresenter.new(nil, teacher, [course])
+      presenter = ToDoListPresenter.new(nil, teacher.principal, [course])
       expect(presenter.needs_grading.map(&:assignment)).to include(@peer_review_sub_assignment)
     end
 
     it "does not include peer review sub assignments when feature flag is disabled" do
       course.account.disable_feature!(:peer_review_allocation_and_grading)
-      presenter = ToDoListPresenter.new(nil, teacher, [course])
+      presenter = ToDoListPresenter.new(nil, teacher.principal, [course])
       expect(presenter.needs_grading.map(&:assignment)).not_to include(@peer_review_sub_assignment)
     end
 
     it "does not include peer review sub assignments without submissions" do
       @peer_review_sub_assignment.submissions.destroy_all
-      presenter = ToDoListPresenter.new(nil, teacher, [course])
+      presenter = ToDoListPresenter.new(nil, teacher.principal, [course])
       expect(presenter.needs_grading.map(&:assignment)).not_to include(@peer_review_sub_assignment)
     end
   end

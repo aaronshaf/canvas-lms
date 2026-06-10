@@ -37,12 +37,12 @@ module Interfaces
         return nil unless object.graded?
 
         return Loaders::DatesOverridableLoader.for.load(object.assignment).then do |preloaded_assignment|
-          preloaded_assignment&.dates_hash_visible_to(current_user)
+          preloaded_assignment&.dates_hash_visible_to(current_principal)
         end
       end
 
       Loaders::DatesOverridableLoader.for.load(object).then do |preloaded_object|
-        preloaded_object.dates_hash_visible_to(current_user)
+        preloaded_object.dates_hash_visible_to(current_principal)
       end
     end
   end

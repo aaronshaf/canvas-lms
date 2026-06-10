@@ -450,14 +450,14 @@ module DatesOverridable
     end
   end
 
-  def dates_hash_visible_to(user, include_all_dates: false)
-    all_dates = include_all_dates ? all_due_dates : all_dates_visible_to(user)
+  def dates_hash_visible_to(principal, include_all_dates: false)
+    all_dates = include_all_dates ? all_due_dates : all_dates_visible_to(principal&.user)
     return [due_date_hash] unless all_dates
 
     assignment_overrides = all_dates.filter_map { |o| o[:override].presence }
     # only need to check for overridden assignees if there are module overrides
     visible_users_ids, overridden_targets = if assignment_overrides.any?(&:context_module_id)
-                                              user_ids = AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, user).select(:user_id)
+                                              user_ids = AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, principal&.user).select(:user_id)
                                               duplicate_overrides = get_overridden_assignees(assignment_overrides, user_ids)
                                               [user_ids, duplicate_overrides]
                                             end
@@ -563,14 +563,14 @@ module DatesOverridable
     }
   end
 
-  def override_aware_due_date_hash(user, user_is_admin: false, assignment_object: self)
+  def override_aware_due_date_hash(principal, user_is_admin: false, assignment_object: self)
     hash = {}
     if user_is_admin && assignment_object.has_too_many_overrides && !(assignment_object.is_a?(AbstractAssignment) && assignment_object.has_sub_assignments)
       hash[:has_many_overrides] = true
-    elsif assignment_object.multiple_due_dates_apply_to?(user)
-      hash[:vdd_tooltip] = OverrideTooltipPresenter.new(assignment_object, user).as_json
+    elsif assignment_object.multiple_due_dates_apply_to?(principal.user)
+      hash[:vdd_tooltip] = OverrideTooltipPresenter.new(assignment_object, principal).as_json
     else
-      overridden = assignment_object.overridden_for(user)
+      overridden = assignment_object.overridden_for(principal.user)
       first_due_date = assignment_object.all_due_dates[0]
 
       if overridden.due_at || (user_is_admin && first_due_date && first_due_date[:due_at])
@@ -586,27 +586,27 @@ module DatesOverridable
     hash
   end
 
-  def context_module_tag_info(user, context, has_submission:, user_is_admin: false, peer_review_has_submission: false, peer_review_is_excused: false)
-    return {} unless user
+  def context_module_tag_info(principal, context, has_submission:, user_is_admin: false, peer_review_has_submission: false, peer_review_is_excused: false)
+    return {} unless principal&.user
 
     association(:context).target ||= context
     tag_info = Rails.cache.fetch_with_batched_keys(
-      ["context_module_tag_info3", user.cache_key(:enrollments), user.cache_key(:groups)].cache_key,
+      ["context_module_tag_info3", principal.user.cache_key(:enrollments), principal.user.cache_key(:groups)].cache_key,
       batch_object: self,
       batched_keys: :availability
     ) do
-      override_aware_due_date_hash(user, user_is_admin:, assignment_object: self)
+      override_aware_due_date_hash(principal, user_is_admin:, assignment_object: self)
     end
     tag_info[:points_possible] = points_possible unless try(:quiz_type) == "survey"
 
-    if user && tag_info[:due_date]
+    if tag_info[:due_date]
       if tag_info[:due_date] < Time.zone.now &&
          (is_a?(Quizzes::Quiz) || (is_a?(AbstractAssignment) && expects_submission?)) &&
          !has_submission
         submission = if is_a?(Quizzes::Quiz)
-                       quiz_submissions.find_by(user:)
+                       quiz_submissions.find_by(user: principal.user)
                      else
-                       submissions.find_by(user:)
+                       submissions.find_by(user: principal.user)
                      end
         tag_info[:past_due] = true unless submission&.excused?
       end
@@ -621,7 +621,7 @@ module DatesOverridable
         sub_assignment_hash[:points_possible] = sub_assignment.points_possible if sub_assignment.points_possible
         sub_assignment_hash[:replies_required] = discussion_topic.reply_to_entry_required_count if sub_assignment_hash[:sub_assignment_tag] == CheckpointLabels::REPLY_TO_ENTRY
 
-        override_aware_due_date_hash(user, user_is_admin:, assignment_object: sub_assignment).merge(sub_assignment_hash)
+        override_aware_due_date_hash(principal, user_is_admin:, assignment_object: sub_assignment).merge(sub_assignment_hash)
       end
     end
 
@@ -636,10 +636,10 @@ module DatesOverridable
         }
 
         peer_review_info.merge!(
-          override_aware_due_date_hash(user, user_is_admin:, assignment_object: peer_review_sub)
+          override_aware_due_date_hash(principal, user_is_admin:, assignment_object: peer_review_sub)
         )
 
-        if user && peer_review_info[:due_date]
+        if peer_review_info[:due_date]
           if peer_review_info[:due_date] < Time.zone.now &&
              peer_review_sub.expects_submission? &&
              !peer_review_has_submission &&

@@ -22,7 +22,7 @@
     <span class='value'>
           <span class="date_text">
             <% if @assignment.multiple_due_dates? %>
-              <%= multiple_due_date_tooltip(@assignment, @current_user) %>
+              <%= multiple_due_date_tooltip(@assignment, current_principal) %>
             <% elsif @assignment.due_at %>
               <%= t(:date_time_by,
                     "%{date} by %{time}",

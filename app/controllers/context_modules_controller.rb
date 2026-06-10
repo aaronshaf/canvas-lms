@@ -760,14 +760,14 @@ class ContextModulesController < ApplicationController
                          peer_review_has_submission = peer_review_sub && submitted_peer_review_ids.include?(peer_review_sub.id)
                          peer_review_is_excused = peer_review_sub && excused_peer_review_ids.include?(peer_review_sub.id)
 
-                         tag.assignment.context_module_tag_info(@current_user,
+                         tag.assignment.context_module_tag_info(current_principal,
                                                                 @context,
                                                                 user_is_admin:,
                                                                 has_submission: submitted_assignment_ids.include?(tag.assignment.id),
                                                                 peer_review_has_submission:,
                                                                 peer_review_is_excused:)
                        elsif tag.content_type_quiz?
-                         tag.content.context_module_tag_info(@current_user,
+                         tag.content.context_module_tag_info(current_principal,
                                                              @context,
                                                              user_is_admin:,
                                                              has_submission: submitted_quiz_ids.include?(tag.content.id))

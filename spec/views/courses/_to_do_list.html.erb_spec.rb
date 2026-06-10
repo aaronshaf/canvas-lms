@@ -57,7 +57,7 @@ describe "courses/_to_do_list" do
         expect(response).to include "Grade GradeMe"
         expect(response).to include "15 points"
         expect(response).to include "My Awesome Course"
-        expect(response).to include due_at(@assignment, @user)
+        expect(response).to include due_at(@assignment, @user.principal)
         expect(response).to include "2"
         expect(response).to include "2 submissions need grading"
         expect(response).to include "Ignore GradeMe until new submission"
@@ -81,7 +81,7 @@ describe "courses/_to_do_list" do
         expect(response).to include "Grade GradeMe"
         expect(response).to include "15 points"
         expect(response).to include "My Awesome Course"
-        expect(response).to include due_at(@assignment, @user)
+        expect(response).to include due_at(@assignment, @user.principal)
         expect(response).to include "999+"
         expect(response).to include "More than 999 submissions need grading"
       end
