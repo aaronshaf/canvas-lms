@@ -199,7 +199,6 @@ development:
       #   dark_theme_url: "http://localhost:3002/themes/horizon_dark.json"
       #   public_app_config:
       #     hosts:
-      #       analytics_dashboard: "http://localhost:3001"
       #       common_cartridge_viewer: "https://common-cartridge-viewer.netlify.app"
       #       ignite: "https://career-agent-dev.journey.nonprod.inseng.io"
       #       journey: "https://journey-server-dev.journey.nonprod.inseng.io"
