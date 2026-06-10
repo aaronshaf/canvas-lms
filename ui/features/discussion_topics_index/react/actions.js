@@ -103,7 +103,7 @@ actions.updateDiscussion = function (
     apiClient
       .updateDiscussion(getState(), discussion, updatedFields)
       .then(res => {
-        const newDiscussion = res.data
+        const newDiscussion = res.json
 
         // Students lose the manage menu if they close a discussion that they
         // created. This can ruin the focus, and we need to correct it here
@@ -300,7 +300,7 @@ actions.fetchUserSettings = function () {
     apiClient
       .getUserSettings(getState())
       .then(resp => {
-        dispatch(actions.getUserSettingsSuccess(resp.data))
+        dispatch(actions.getUserSettingsSuccess(resp.json))
       })
       .catch(err => {
         dispatch(actions.getUserSettingsFail({err}))
@@ -314,7 +314,7 @@ actions.fetchCourseSettings = function () {
     apiClient
       .getCourseSettings(getState())
       .then(resp => {
-        dispatch(actions.getCourseSettingsSuccess(resp.data))
+        dispatch(actions.getCourseSettingsSuccess(resp.json))
       })
       .catch(err => {
         dispatch(actions.getCourseSettingsFail({err}))
@@ -330,11 +330,11 @@ function saveCourseSettings(dispatch, getState, userSettings, courseSettings) {
       // reads the saved values when isSavingSettings flips to false
       if (window.ENV?.COURSE_DISCUSSION_SETTINGS) {
         window.ENV.COURSE_DISCUSSION_SETTINGS.use_default =
-          resp.data.use_default_discussion_settings
-        window.ENV.COURSE_DISCUSSION_SETTINGS.defaults = resp.data.default_discussion_settings || {}
+          resp.json.use_default_discussion_settings
+        window.ENV.COURSE_DISCUSSION_SETTINGS.defaults = resp.json.default_discussion_settings || {}
       }
       $.screenReaderFlashMessage(I18n.t('Saved discussion settings successfully'))
-      dispatch(actions.savingSettingsSuccess({userSettings, courseSettings: resp.data}))
+      dispatch(actions.savingSettingsSuccess({userSettings, courseSettings: resp.json}))
     })
     .catch(err => {
       $.screenReaderFlashMessage(I18n.t('Error saving discussion settings'))
@@ -351,10 +351,10 @@ actions.saveSettings = function (userSettings, courseSettings) {
       .saveUserSettings(getState(), userSettingsCopy)
       .then(resp => {
         if (courseSettings) {
-          saveCourseSettings(dispatch, getState, resp.data, courseSettings)
+          saveCourseSettings(dispatch, getState, resp.json, courseSettings)
         } else {
           $.screenReaderFlashMessage(I18n.t('Saved discussion settings successfully'))
-          dispatch(actions.savingSettingsSuccess({userSettings: resp.data}))
+          dispatch(actions.savingSettingsSuccess({userSettings: resp.json}))
         }
       })
       .catch(err => {
@@ -371,7 +371,7 @@ actions.duplicateDiscussion = function (discussionId) {
     apiClient
       .duplicateDiscussion(getState(), discussionId)
       .then(response => {
-        const newDiscussion = response.data
+        const newDiscussion = response.json
         newDiscussion.focusOn = 'title'
         const successMessage = I18n.t('Duplication of %{title} succeeded', {
           title: newDiscussion.title,

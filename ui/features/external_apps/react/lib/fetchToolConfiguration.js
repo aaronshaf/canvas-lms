@@ -16,12 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export default async function fetchToolConfiguration(clientId, showUrl, errorHandler) {
   try {
-    const response = await axios.get(showToolConfigUrl(clientId, showUrl))
-    return response.data.tool_configuration
+    const {json} = await doFetchApi({path: showToolConfigUrl(clientId, showUrl)})
+    return json.tool_configuration
   } catch (error) {
     errorHandler(error, clientId)
   }

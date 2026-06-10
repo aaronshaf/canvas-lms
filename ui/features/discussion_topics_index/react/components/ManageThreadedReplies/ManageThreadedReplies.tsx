@@ -136,7 +136,7 @@ const ManageThreadedReplies: React.FC<ManageThreadedRepliesProps> = ({
         notThreaded,
       })
 
-      if (response.data.success === 'true') {
+      if ((response.json as any)?.success === 'true') {
         setModalClose(true)
         setOnSuccess(I18n.t('Discussions updated successfully.'), false)
       } else {

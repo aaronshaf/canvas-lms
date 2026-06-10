@@ -17,6 +17,7 @@
  */
 
 import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {encodeQueryString} from '@instructure/query-string-encoding'
 import makePromisePool from '@canvas/make-promise-pool'
 
@@ -50,7 +51,7 @@ export function lockAnnouncements({contextType, contextId}, announcements, locke
     announcements,
     annId => {
       const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/${annId}`
-      return axios.put(url, {locked})
+      return doFetchApi({path: url, method: 'PUT', body: {locked}})
     },
     {
       poolSize: MAX_CONCURRENT_REQS,
@@ -63,7 +64,7 @@ export function deleteAnnouncements({contextType, contextId}, announcements) {
     announcements,
     annId => {
       const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/${annId}`
-      return axios.delete(url)
+      return doFetchApi({path: url, method: 'DELETE'})
     },
     {
       poolSize: MAX_CONCURRENT_REQS,
@@ -75,22 +76,28 @@ export function markAllAnnouncementRead({contextType, contextId}) {
   const queryString = encodeQueryString({
     only_announcements: true,
   })
-  return axios.put(`/api/v1/${contextType}s/${contextId}/discussion_topics/read_all?${queryString}`)
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/discussion_topics/read_all?${queryString}`,
+    method: 'PUT',
+  })
 }
 
 export function getExternalFeeds({contextType, contextId}) {
   const params = encodeQueryString([{per_page: 100}])
-  return axios.get(`/api/v1/${contextType}s/${contextId}/external_feeds?${params}`)
+  return doFetchApi({path: `/api/v1/${contextType}s/${contextId}/external_feeds?${params}`})
 }
 
 export function deleteExternalFeed({contextType, contextId}, feedId) {
-  return axios.delete(`/api/v1/${contextType}s/${contextId}/external_feeds/${feedId}`)
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/external_feeds/${feedId}`,
+    method: 'DELETE',
+  })
 }
 
 export function addExternalFeed({contextType, contextId}, {url, verbosity, header_match}) {
-  return axios.post(`/api/v1/${contextType}s/${contextId}/external_feeds`, {
-    url,
-    verbosity,
-    header_match,
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/external_feeds`,
+    method: 'POST',
+    body: {url, verbosity, header_match},
   })
 }

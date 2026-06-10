@@ -17,7 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const I18n = createI18nScope('Navigation')
 
@@ -30,9 +30,9 @@ export type ExternalTool = {
 }
 
 export const getExternalApps = async (): Promise<ExternalTool[]> => {
-  const {data: tools} = await axios.get(
-    `/api/v1/accounts/${window.ENV.ACCOUNT_ID}/lti_apps/launch_definitions?per_page=50&placements[]=global_navigation&only_visible=true`,
-  )
+  const {json: tools} = await doFetchApi({
+    path: `/api/v1/accounts/${window.ENV.ACCOUNT_ID}/lti_apps/launch_definitions?per_page=50&placements[]=global_navigation&only_visible=true`,
+  })
   if (!Array.isArray(tools)) return []
   return tools
     .map((tool: any) => {
@@ -78,7 +78,7 @@ export type ActiveTray =
   | 'history'
   | 'profile'
 
-const EXTERNAL_TOOLS_REGEX = /^\/accounts\/[^\/]*\/(external_tools)/
+const EXTERNAL_TOOLS_REGEX = /^\/accounts\/[^/]*\/(external_tools)/
 const ACTIVE_ROUTE_REGEX =
   /^\/(courses|groups|accounts|grades|calendar|conversations|profile)|^#history/
 export function getActiveItem(): ActiveTray | '' {

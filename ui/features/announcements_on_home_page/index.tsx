@@ -19,7 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {Heading} from '@instructure/ui-heading'
 import {Spinner} from '@instructure/ui-spinner'
 import {View} from '@instructure/ui-view'
@@ -57,9 +57,8 @@ if (ENV.SHOW_ANNOUNCEMENTS) {
         include: ['sections', 'sections_user_count'],
       }
 
-      axios
-        .get(url, {params})
-        .then(response => {
+      doFetchApi({path: url, params})
+        .then(({json}) => {
           if (_homeRoot)
             rerender(
               _homeRoot,
@@ -73,7 +72,7 @@ if (ENV.SHOW_ANNOUNCEMENTS) {
                   {I18n.t('Recent Announcements')}
                 </Heading>
                 {/* @ts-expect-error TS7006 (typescriptify) */}
-                {response.data.map(announcement => (
+                {json.map(announcement => (
                   <AnnouncementRow key={announcement.id} announcement={announcement} />
                 ))}
               </View>,

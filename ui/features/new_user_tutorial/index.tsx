@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {legacyRender} from '@canvas/react'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import NewUserTutorialToggleButton from './react/NewUserTutorialToggleButton'
 import TutorialTray from './react/trays/TutorialTray'
 import getProperTray from './react/util/getProperTray'
@@ -33,20 +33,22 @@ const initializeNewUserTutorials = () => {
     splitAssetString(window.ENV.context_asset_string)?.[0] === 'courses'
   ) {
     const API_URL = '/api/v1/users/self/new_user_tutorial_statuses'
-    return axios.get(API_URL).then(response => {
+    return doFetchApi<any>({path: API_URL}).then(({json}) => {
       let onPageToggleButton: NewUserTutorialToggleButton | null = null
       const trayObj = getProperTray()
       if (!trayObj) {
         throw new Error('No tray found')
       }
-      const collapsedStatus = response.data.new_user_tutorial_statuses.collapsed[trayObj.pageName]
+      const collapsedStatus = json.new_user_tutorial_statuses.collapsed[trayObj.pageName]
       const store = createTutorialStore({
         isCollapsed: collapsedStatus,
       })
 
       store.addChangeListener(() => {
-        axios.put(`${API_URL}/${trayObj.pageName}`, {
-          collapsed: store.getState().isCollapsed,
+        doFetchApi({
+          path: `${API_URL}/${trayObj.pageName}`,
+          method: 'PUT',
+          body: {collapsed: store.getState().isCollapsed},
         })
       })
 

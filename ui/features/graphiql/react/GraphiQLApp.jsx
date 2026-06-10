@@ -19,18 +19,14 @@
 import React from 'react'
 import {GraphiQL} from 'graphiql'
 import {explorerPlugin} from '@graphiql/plugin-explorer'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import 'graphiql/style.css'
 import '@graphiql/plugin-explorer/style.css'
 
 const explorer = explorerPlugin()
 
 function fetcher(params) {
-  return axios
-    .post('/api/graphql', JSON.stringify(params), {
-      headers: {'Content-Type': 'application/json'},
-    })
-    .then(({data}) => data)
+  return doFetchApi({path: '/api/graphql', method: 'POST', body: params}).then(({json}) => json)
 }
 
 export default function GraphiQLApp() {

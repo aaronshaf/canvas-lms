@@ -34,7 +34,7 @@ import {
 } from '@instructure/ui-icons'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {uniqBy} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import UserLink from './UserLink'
@@ -90,9 +90,9 @@ export default class CoursesListRow extends React.Component {
 
   getSections = () =>
     this.promiseToGetSections ||
-    (this.promiseToGetSections = axios.get(
-      `/api/v1/courses/${this.props.id}/sections?per_page=100`,
-    )).then(resp => resp.data)
+    (this.promiseToGetSections = doFetchApi({
+      path: `/api/v1/courses/${this.props.id}/sections?per_page=100`,
+    })).then(({json}) => json)
 
   uniqueTeachers = () => uniqBy(this.props.teachers, 'id')
 

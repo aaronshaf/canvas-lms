@@ -20,7 +20,8 @@ import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button} from '@instructure/ui-buttons'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
+import {reloadWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('new_user_tutorial')
 
@@ -56,7 +57,9 @@ const ConfirmEndTutorialDialog: ConfirmEndTutorialDialogComponent = ({
         &nbsp;
         <Button
           onClick={() =>
-            axios.put(API_URL, {state: 'off'}).then(() => ConfirmEndTutorialDialog.onSuccess())
+            doFetchApi({path: API_URL, method: 'PUT', body: {state: 'off'}}).then(() =>
+              ConfirmEndTutorialDialog.onSuccess(),
+            )
           }
           color="primary"
         >
@@ -67,6 +70,6 @@ const ConfirmEndTutorialDialog: ConfirmEndTutorialDialogComponent = ({
   )
 }
 
-ConfirmEndTutorialDialog.onSuccess = () => window.location.reload()
+ConfirmEndTutorialDialog.onSuccess = () => reloadWindow()
 
 export default ConfirmEndTutorialDialog

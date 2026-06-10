@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
 import {legacyRender} from '@canvas/react'
@@ -56,11 +56,15 @@ class ModuleSequenceFooter extends Component<ModuleSequenceFooterProps, ModuleSe
 
   onStudentGroupSelected(selectedStudentGroupId: string) {
     if (selectedStudentGroupId !== '0') {
-      axios.put(`/api/v1/courses/${this.props.courseId}/gradebook_settings`, {
-        gradebook_settings: {
-          filter_rows_by: {
-            student_group_id: selectedStudentGroupId,
-            student_group_ids: [selectedStudentGroupId],
+      doFetchApi({
+        path: `/api/v1/courses/${this.props.courseId}/gradebook_settings`,
+        method: 'PUT',
+        body: {
+          gradebook_settings: {
+            filter_rows_by: {
+              student_group_id: selectedStudentGroupId,
+              student_group_ids: [selectedStudentGroupId],
+            },
           },
         },
       })

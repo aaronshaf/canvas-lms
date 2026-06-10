@@ -32,7 +32,7 @@ import deleteItemTemplate from '../jst/deleteItem.handlebars'
 import reservationOverLimitDialog from '../jst/reservationOverLimitDialog.handlebars'
 import MessageParticipantsDialog from '@canvas/calendar/jquery/MessageParticipantsDialog'
 import preventDefault from '@canvas/util/preventDefault'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {encodeQueryString} from '@instructure/query-string-encoding'
 import {publish} from 'jquery-tinypubsub'
 import '@canvas/jquery/jquery.ajaxJSON'
@@ -370,21 +370,20 @@ export default class ShowEventDetailsDialog {
       this.event.object.parent_event_id != null
     ) {
       const MAX_PAGE_SIZE = 25
-      axios
-        .get(
-          `api/v1/calendar_events/${this.event.object.parent_event_id}/participants?per_page=${MAX_PAGE_SIZE}`,
-        )
-        .then(response => {
-          if (response.data && response.data.length) {
+      doFetchApi({
+        path: `api/v1/calendar_events/${this.event.object.parent_event_id}/participants?per_page=${MAX_PAGE_SIZE}`,
+      })
+        .then(({json}) => {
+          if (json && json.length) {
             const ul = document.createElement('ul')
             const $ul = $(ul)
-            response.data.forEach(p => {
+            json.forEach(p => {
               const _li = document.createElement('li')
               _li.textContent = p.display_name
               ul.appendChild(_li)
             })
 
-            if (response.data.length > MAX_PAGE_SIZE - 1) {
+            if (json.length > MAX_PAGE_SIZE - 1) {
               const _lidot = document.createElement('li')
               _lidot.textContent = '(...)'
               ul.appendChild(_lidot)

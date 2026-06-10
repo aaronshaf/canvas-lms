@@ -38,7 +38,7 @@ import '@canvas/jquery/jquery.instructure_forms'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import EventDataSource from '@canvas/calendar/jquery/EventDataSource'
 import MessageParticipantsDialog from '@canvas/calendar/jquery/MessageParticipantsDialog'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {assignLocation} from '@canvas/util/globalUtils'
 import AppointmentGroupList from './AppointmentGroupList'
 import ContextSelector from './ContextSelector'
@@ -123,39 +123,35 @@ class EditPage extends React.Component {
   }
 
   componentDidMount() {
-    axios
-      .get(
-        // @ts-expect-error TS2339 (typescriptify)
-        `/api/v1/appointment_groups/${this.props.appointment_group_id}?include[]=appointments&include[]=child_events`,
+    doFetchApi<any>({
+      // @ts-expect-error TS2339 (typescriptify)
+      path: `/api/v1/appointment_groups/${this.props.appointment_group_id}?include[]=appointments&include[]=child_events`,
+    }).then(({json}) => {
+      const formValues = parseFormValues(json)
+      this.setState(
+        {
+          formValues,
+          appointmentGroup: json,
+          selectedContexts: new Set(json.context_codes),
+          selectedSubContexts: new Set(json.sub_context_codes),
+        },
+        () => {
+          // Handle setting some pesky values
+          // @ts-expect-error TS2339 (typescriptify)
+          $('.EditPage__Options-LimitUsersPerSlot', this.optionFields).val(
+            formValues.limitUsersPerSlot,
+          )
+          // @ts-expect-error TS2339 (typescriptify)
+          $('.EditPage__Options-LimitSlotsPerUser', this.optionFields).val(
+            formValues.limitSlotsPerUser,
+          )
+        },
       )
-      .then(response => {
-        const formValues = parseFormValues(response.data)
-        this.setState(
-          {
-            formValues,
-            appointmentGroup: response.data,
-            selectedContexts: new Set(response.data.context_codes),
-            selectedSubContexts: new Set(response.data.sub_context_codes),
-          },
-          () => {
-            // Handle setting some pesky values
-            // @ts-expect-error TS2339 (typescriptify)
-            $('.EditPage__Options-LimitUsersPerSlot', this.optionFields).val(
-              formValues.limitUsersPerSlot,
-            )
-            // @ts-expect-error TS2339 (typescriptify)
-            $('.EditPage__Options-LimitSlotsPerUser', this.optionFields).val(
-              formValues.limitSlotsPerUser,
-            )
-          },
-        )
-      })
+    })
 
-    axios.get('/api/v1/calendar_events/visible_contexts').then(response => {
+    doFetchApi({path: '/api/v1/calendar_events/visible_contexts'}).then(({json}) => {
       // @ts-expect-error TS7006 (typescriptify)
-      const contexts = response.data.contexts.filter(context =>
-        context.asset_string.match(/^course_/),
-      )
+      const contexts = json.contexts.filter(context => context.asset_string.match(/^course_/))
       this.setState({
         contexts,
         eventDataSource: new EventDataSource(contexts),
@@ -233,9 +229,11 @@ class EditPage extends React.Component {
     // @ts-expect-error TS2339 (typescriptify)
     if (!this.state.isDeleting) {
       this.setState({isDeleting: true}, () => {
-        axios
+        doFetchApi({
           // @ts-expect-error TS2339 (typescriptify)
-          .delete(`/api/v1/appointment_groups/${this.props.appointment_group_id}`)
+          path: `/api/v1/appointment_groups/${this.props.appointment_group_id}`,
+          method: 'DELETE',
+        })
           .then(() => {
             assignLocation('/calendar')
           })
@@ -314,8 +312,7 @@ class EditPage extends React.Component {
       },
     }
 
-    axios
-      .put(url, requestObj)
+    doFetchApi({path: url, method: 'PUT', body: requestObj})
       .then(() => {
         assignLocation('/calendar?edit_appointment_group_success=1')
       })

@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export default async function install13Tool(client_id, createUrl, verify_uniqueness = false) {
-  const params = {client_id}
+  const body = {client_id}
   if (verify_uniqueness) {
-    params.external_tool = {verify_uniqueness}
+    body.external_tool = {verify_uniqueness}
   }
-  const response = await axios.post(createUrl, params)
-  return response.data
+  const {json} = await doFetchApi({path: createUrl, method: 'POST', body})
+  return json
 }

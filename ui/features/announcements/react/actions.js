@@ -92,7 +92,7 @@ actions.getExternalFeeds = function () {
     apiClient
       .getExternalFeeds(getState())
       .then(resp => {
-        dispatch(actions.loadingExternalFeedSuccess({feeds: resp.data}))
+        dispatch(actions.loadingExternalFeedSuccess({feeds: resp.json}))
       })
       .catch(err => {
         dispatch(
@@ -262,7 +262,7 @@ actions.addExternalFeed = function (payload) {
     apiClient
       .addExternalFeed(getState(), payload)
       .then(resp => {
-        dispatch(actions.addExternalFeedSuccess({feed: resp.data}))
+        dispatch(actions.addExternalFeedSuccess({feed: resp.json}))
         const successMessage = I18n.t('External feed successfully added')
         $.screenReaderFlashMessage(successMessage)
         dispatch(notificationActions.notifyInfo({message: successMessage}))

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {asAxios, getPrefetchedXHR} from '@canvas/util/xhr'
 
 export function getDiscussions({contextType: _contextType, contextId: _contextId}, {page}) {
@@ -29,57 +29,71 @@ export function getDiscussions({contextType: _contextType, contextId: _contextId
 
 export function updateDiscussion({contextType, contextId}, discussion, updatedFields) {
   const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/${discussion.id}`
-  return axios.put(url, updatedFields)
+  return doFetchApi({path: url, method: 'PUT', body: updatedFields})
 }
 
 export function deleteDiscussion({contextType, contextId}, {discussion}) {
   const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/${discussion.id}`
-  return axios.delete(url)
+  return doFetchApi({path: url, method: 'DELETE'})
 }
 
 export function subscribeToTopic({contextType, contextId}, {id}) {
-  return axios.put(`/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`)
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`,
+    method: 'PUT',
+  })
 }
 
 export function unsubscribeFromTopic({contextType, contextId}, {id}) {
-  return axios.delete(`/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`)
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`,
+    method: 'DELETE',
+  })
 }
 
 export function getUserSettings({currentUserId}) {
-  return axios.get(`/api/v1/users/${currentUserId}/settings`)
+  return doFetchApi({path: `/api/v1/users/${currentUserId}/settings`})
 }
 
 export function getCourseSettings({contextId}) {
-  return axios.get(`/api/v1/courses/${contextId}/settings`)
+  return doFetchApi({path: `/api/v1/courses/${contextId}/settings`})
 }
 
 export function saveCourseSettings({contextId}, settings) {
-  return axios.put(`/api/v1/courses/${contextId}/settings`, settings)
+  return doFetchApi({path: `/api/v1/courses/${contextId}/settings`, method: 'PUT', body: settings})
 }
 
 export function saveUserSettings({currentUserId}, settings) {
-  return axios.put(`/api/v1/users/${currentUserId}/settings`, settings)
+  return doFetchApi({
+    path: `/api/v1/users/${currentUserId}/settings`,
+    method: 'PUT',
+    body: settings,
+  })
 }
 
 export function duplicateDiscussion({contextType, contextId}, discussionId) {
-  return axios.post(
-    `/api/v1/${contextType}s/${contextId}/discussion_topics/${discussionId}/duplicate`,
-  )
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/discussion_topics/${discussionId}/duplicate`,
+    method: 'POST',
+  })
 }
 
 export function reorderPinnedDiscussions({contextType, contextId}, order) {
-  const postData = {order: order.join(',')}
   const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/reorder`
-  return axios.post(url, postData)
+  return doFetchApi({path: url, method: 'POST', body: {order: order.join(',')}})
 }
 
 export function migrateDiscussionDisallowThreadedReplies({contextId}) {
-  return axios.put(`/api/v1/courses/${contextId}/discussion_topics/migrate_disallow`)
+  return doFetchApi({
+    path: `/api/v1/courses/${contextId}/discussion_topics/migrate_disallow`,
+    method: 'PUT',
+  })
 }
 
 export function updateDiscussionTopicTypes({contextId, threaded, notThreaded}) {
-  return axios.put(`/api/v1/courses/${contextId}/discussion_topics/update_discussion_types`, {
-    threaded,
-    not_threaded: notThreaded,
+  return doFetchApi({
+    path: `/api/v1/courses/${contextId}/discussion_topics/update_discussion_types`,
+    method: 'PUT',
+    body: {threaded, not_threaded: notThreaded},
   })
 }

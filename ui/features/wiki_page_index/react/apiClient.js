@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import makePromisePool from '@canvas/make-promise-pool'
 
 const MAX_CONCURRENT_REQS = 5
@@ -26,7 +26,7 @@ export function deletePages(contextName, contextId, pageUrls) {
     pageUrls,
     pageUrl => {
       const url = `/api/v1/${contextName}/${contextId}/pages/${pageUrl}`
-      return axios.delete(url)
+      return doFetchApi({path: url, method: 'DELETE'})
     },
     {
       poolSize: MAX_CONCURRENT_REQS,
