@@ -14,8 +14,8 @@
         {{#each lock_info.context_module.prerequisites}}{{#ifEqual this.type "context_module"}}
           {{#if this.name}}
             <li>
-              {{#ifAll ../../../../modules_path this.id}}
-                <a href="{{../../../../modules_path}}/{{this.id}}">{{this.name}}</a>
+              {{#ifAll ../modules_path this.id}}
+                <a href="{{../modules_path}}/{{this.id}}">{{this.name}}</a>
               {{else}}
                 {{this.name}}
               {{/ifAll}}

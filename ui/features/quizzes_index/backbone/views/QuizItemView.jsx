@@ -279,7 +279,7 @@ export default class ItemView extends Backbone.View {
     const courseId = $dataSpan.attr('data-quiz-context-id')
     const itemName = $dataSpan.attr('data-quiz-name')
     const itemContentId = $dataSpan.attr('data-quiz-id')
-    const iconType = $dataSpan.attr('data-is-lti-quiz') ? 'lti-quiz' : 'quiz'
+    const iconType = $dataSpan.attr('data-is-lti-quiz') === 'true' ? 'lti-quiz' : 'quiz'
     const pointsPossible = this.model.get('points_possible')
     this.renderItemAssignToTray(true, returnFocusTo, {
       courseId,

@@ -277,7 +277,27 @@ AgendaView.prototype.eventBoxToHash = function (events) {
     date: this.formattedDayString(event),
     accessibleDate: this.formattedLongDayString(event),
     isToday,
-    events,
+    events: map(events, this.eventToHash),
+  }
+}
+
+AgendaView.prototype.eventToHash = function (event) {
+  return {
+    id: event.id,
+    title: event.title,
+    assignment: event.assignment,
+    allDay: event.allDay,
+    can_edit: event.can_edit,
+    appointmentGroupEventStatus: event.appointmentGroupEventStatus,
+    reservedUsers: event.reservedUsers,
+    contextInfo: event.contextInfo,
+    originalStart: event.originalStart,
+    end: event.end,
+    contextCode: event.contextCode(),
+    readableType: event.readableType(),
+    iconType: event.iconType(),
+    isCompleted: event.isCompleted(),
+    isAppointmentGroupEvent: event.isAppointmentGroupEvent(),
   }
 }
 

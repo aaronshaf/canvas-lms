@@ -268,7 +268,13 @@ export default class RosterView extends Backbone.View {
   }
 
   toJSON() {
-    return this
+    return {
+      canAddCategories: this.canAddCategories(),
+      isHorizonCourse: this.isHorizonCourse(),
+      course_id: this.course_id(),
+      permissions: this.permissions,
+      course: this.course,
+    }
   }
 
   onFail(xhr) {

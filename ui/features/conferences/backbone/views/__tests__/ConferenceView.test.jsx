@@ -223,6 +223,12 @@ describe('ConferenceView', () => {
     createConferenceView(adobeConnectConference)
     const link = container.querySelector('#adobe-connect-playback-link')
     expect(link).toHaveAttribute('href', 'www.blah.com')
+    // guards the handlebars ../ depth fix (broke on the handlebars 1.3 -> 4.x
+    // upgrade): the recording-scoped paths must resolve to the recording, and
+    // the conference-scoped delete url to the conference.
+    expect(link).toHaveAttribute('data-id', '954cc3')
+    const deleteButton = container.querySelector('.ig-button[data-action="delete"]')
+    expect(deleteButton).toHaveAttribute('data-url', '/api/v1/courses/1/conferences/1')
   })
 
   it('is accessible', async () => {

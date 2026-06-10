@@ -76,11 +76,15 @@ export default class UndatedEventsList {
     return this.dataSource.getEvents(null, null, this.visibleContextList, events => {
       clearTimeout(loadingTimer)
       loadingDfd.resolve()
-      events.forEach(e => {
-        e.details_url = e.fullDetailsURL()
-        e.icon = e.iconType()
-      })
-      this.div.html(undatedEventsTemplate({events}))
+      const templateEvents = events.map(e => ({
+        id: e.id,
+        title: e.title,
+        contextCode: e.contextCode(),
+        details_url: e.fullDetailsURL(),
+        icon: e.iconType(),
+        isCompleted: e.isCompleted(),
+      }))
+      this.div.html(undatedEventsTemplate({events: templateEvents}))
 
       events.forEach(e => {
         this.div.find(`.${e.id}`).data('calendarEvent', e)

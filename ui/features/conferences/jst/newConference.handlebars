@@ -99,9 +99,9 @@
         <div class="ig-row__layout">
           <div class="ig-info">
             <div class="ig-details">
-              {{#if ../../isAdobeConnect}}
-              <a id="adobe-connect-playback-link" href="{{../playback_url}}" target="_blank" class="ig-title"
-                style="line-height: inherit;" data-id="{{../recording_id}}" data-format="presentation">
+              {{#if ../isAdobeConnect}}
+              <a id="adobe-connect-playback-link" href="{{playback_url}}" target="_blank" class="ig-title"
+                style="line-height: inherit;" data-id="{{recording_id}}" data-format="presentation">
                 {{title}}
               </a>
               {{else}}
@@ -110,13 +110,13 @@
               {{#each playback_formats}}
               {{#if show_to_students}}
               <a href="{{url}}" target="_blank" class="ig-title" style="line-height: inherit;"
-                data-id="{{../../recording_id}}" data-format="presentation">
+                data-id="{{../recording_id}}" data-format="presentation">
                 {{#t "type"}}{{type}}{{/t}}
               </a>
               {{else}}
-              {{#if ../../../../permissions.manage_recordings}}
+              {{#if ../../permissions.manage_recordings}}
               <a href="{{url}}" target="_blank" class="ig-title" style="line-height: inherit;"
-                data-id="{{../../recording_id}}" data-format="presentation">
+                data-id="{{../recording_id}}" data-format="presentation">
                 {{#t "type"}}{{type}}{{/t}}
               </a>
               {{/if}}
@@ -129,7 +129,7 @@
             </div>
           </div>
           {{#if ../permissions.manage_recordings}}
-          <div class="ig-button" data-id="{{recording_id}}" data-action="delete" data-url="{{../../url}}">
+          <div class="ig-button" data-id="{{recording_id}}" data-action="delete" data-url="{{../url}}">
             <a href="#" class="btn btn-small icon-trash delete_recording_link" title="{{#t " delete"}}Delete{{/t}}">{{#t
               "delete"}}Delete{{/t}}
             </a>

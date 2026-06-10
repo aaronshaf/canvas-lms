@@ -665,6 +665,43 @@ describe('AssignmentListItemViewSpec', () => {
     expect(view.$('.assign-to-link')).toHaveLength(0)
   })
 
+  test('opens the Assign To tray with isCheckpoint false for a non-checkpointed assignment', () => {
+    const model = buildAssignment({
+      id: 1,
+      title: 'Foo',
+      can_update: true,
+      submission_types: ['online_text_entry'],
+      checkpoints: [],
+    })
+    const view = createView(model, {
+      individualAssignmentPermissions: {manage_assign_to: true},
+    })
+    const renderTray = vi.spyOn(view, 'renderItemAssignToTray').mockImplementation(() => {})
+
+    view.onAssign({preventDefault: () => {}, target: view.$('.assign-to-link')[0]})
+
+    expect(renderTray).toHaveBeenCalledTimes(1)
+    expect(renderTray.mock.calls[0][2].isCheckpoint).toBe(false)
+  })
+
+  test('opens the Assign To tray with isCheckpoint true for a checkpointed assignment', () => {
+    const model = buildAssignment({
+      id: 1,
+      title: 'Foo',
+      can_update: true,
+      submission_types: ['online_text_entry'],
+    })
+    const view = createView(model, {
+      individualAssignmentPermissions: {manage_assign_to: true},
+    })
+    view.$('.assign-to-link-resources').attr('data-assignment-has-checkpoint', 'true')
+    const renderTray = vi.spyOn(view, 'renderItemAssignToTray').mockImplementation(() => {})
+
+    view.onAssign({preventDefault: () => {}, target: view.$('.assign-to-link')[0]})
+
+    expect(renderTray.mock.calls[0][2].isCheckpoint).toBe(true)
+  })
+
   test('can move when userIsAdmin is true', () => {
     const view = createView(assignment1(), {
       userIsAdmin: true,

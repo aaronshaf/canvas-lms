@@ -40,7 +40,7 @@
                       {{#truncate title 60}}{{/truncate}}
                     {{/if}}
                   {{else}}
-                    {{#ifAll ../../../meta.displayAppointmentEvents isAppointmentGroupEvent}}
+                    {{#ifAll ../../meta.displayAppointmentEvents isAppointmentGroupEvent}}
                       {{appointmentGroupEventStatus}}
                     {{else}}
                       {{#truncate title 60}}{{/truncate}}
@@ -81,7 +81,7 @@
                         {{#truncate title 60}}{{/truncate}}
                       {{/if}}
                     {{else}}
-                      {{#ifAll ../../../meta.displayAppointmentEvents isAppointmentGroupEvent}}
+                      {{#ifAll ../../meta.displayAppointmentEvents isAppointmentGroupEvent}}
                         {{appointmentGroupEventStatus}}
                       {{else}}
                         {{#truncate title 60}}{{/truncate}}

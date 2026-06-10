@@ -167,6 +167,33 @@ describe('QuizItemView', () => {
     )
   })
 
+  const triggerAssign = (view, isLtiQuizAttr) => {
+    const link = $(
+      `<a class="assign-to-link"><span class="assign-to-link-resources"` +
+        ` data-quiz-context-id="1" data-quiz-name="Foo" data-quiz-id="1"` +
+        ` data-is-lti-quiz="${isLtiQuizAttr}"></span></a>`,
+    )
+    view.$el.append(link)
+    const renderTray = vi.spyOn(view, 'renderItemAssignToTray').mockImplementation(() => {})
+    view.onAssign({preventDefault: () => {}, target: link[0]})
+    return renderTray
+  }
+
+  it('opens the Assign To tray with a regular quiz icon when data-is-lti-quiz is "false"', () => {
+    const view = createView(createQuiz({id: 1, title: 'Foo'}), {canManage: true})
+    const renderTray = triggerAssign(view, 'false')
+
+    expect(renderTray).toHaveBeenCalledTimes(1)
+    expect(renderTray.mock.calls[0][2].iconType).toBe('quiz')
+  })
+
+  it('opens the Assign To tray with an lti-quiz icon when data-is-lti-quiz is "true"', () => {
+    const view = createView(createQuiz({id: 1, title: 'Foo'}), {canManage: true})
+    const renderTray = triggerAssign(view, 'true')
+
+    expect(renderTray.mock.calls[0][2].iconType).toBe('lti-quiz')
+  })
+
   it('has correct SpeedGrader link for new quizzes', () => {
     const quiz = createQuiz({
       id: 1,

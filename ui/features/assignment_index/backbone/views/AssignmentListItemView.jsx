@@ -796,7 +796,7 @@ export default (AssignmentListItemView = (function () {
       const itemContentId = $dataSpan.attr('data-assignment-id')
       const pointsPossible = this.model.get('points_possible')
       const iconType = $dataSpan.attr('data-assignment-type')
-      const isCheckpoint = $dataSpan.attr('data-assignment-has-checkpoint')
+      const isCheckpoint = $dataSpan.attr('data-assignment-has-checkpoint') === 'true'
       this.renderItemAssignToTray(true, returnFocusTo, {
         courseId,
         itemName,
