@@ -25,11 +25,9 @@ module Lti::MembershipService
         course_with_teacher
       end
 
-      let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-
       describe "#initialize" do
         it "sets sane defaults when no options are set" do
-          collator = CourseLisPersonCollator.new(@course, teacher_principal)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal)
 
           expect(collator.role).to be_nil
           expect(collator.per_page).to eq(Api::PER_PAGE)
@@ -40,7 +38,7 @@ module Lti::MembershipService
           opts = {
             page: -1
           }
-          collator = CourseLisPersonCollator.new(@course, teacher_principal, opts)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal, opts)
 
           expect(collator.page).to eq(1)
         end
@@ -49,7 +47,7 @@ module Lti::MembershipService
           opts = {
             per_page: -1
           }
-          collator = CourseLisPersonCollator.new(@course, teacher_principal, opts)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal, opts)
 
           expect(collator.per_page).to eq(Api::PER_PAGE)
         end
@@ -58,13 +56,13 @@ module Lti::MembershipService
           opts = {
             per_page: Api::MAX_PER_PAGE + 1
           }
-          collator = CourseLisPersonCollator.new(@course, teacher_principal, opts)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal, opts)
 
           expect(collator.per_page).to eq(Api::MAX_PER_PAGE)
         end
 
         it "generates a list of ::IMS::LTI::Models::Membership objects" do
-          collator = CourseLisPersonCollator.new(@course, teacher_principal)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal)
           memberships = collator.memberships
           @teacher.reload
           membership = memberships[0]
@@ -84,7 +82,7 @@ module Lti::MembershipService
 
         it "sends old_id when present" do
           Lti::V1p1::Asset.opaque_identifier_for(@teacher)
-          collator = CourseLisPersonCollator.new(@course, teacher_principal)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal)
           UserPastLtiId.create!(user: @teacher, context: @course, user_lti_id: @teacher.lti_id, user_lti_context_id: "old_lti_id", user_uuid: "old")
           memberships = collator.memberships
           expect(memberships[0].member.user_id).to eq("old_lti_id")
@@ -93,7 +91,7 @@ module Lti::MembershipService
 
       describe "#context" do
         it "returns a course for the context" do
-          collator = CourseLisPersonCollator.new(@course, teacher_principal)
+          collator = CourseLisPersonCollator.new(@course, @teacher.principal)
 
           expect(collator.context).to eq(@course)
         end
@@ -106,10 +104,8 @@ module Lti::MembershipService
       course_with_teacher
     end
 
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-
     it "does not show enrollment roles from other courses" do
-      collator = CourseLisPersonCollator.new(@course, teacher_principal)
+      collator = CourseLisPersonCollator.new(@course, @teacher.principal)
       Lti::V1p1::Asset.opaque_identifier_for(@teacher, context: @course)
       course_with_student(user: @teacher)
       memberships = collator.memberships
@@ -117,7 +113,7 @@ module Lti::MembershipService
     end
 
     it "does not show past_lti_ids from other contexts" do
-      collator = CourseLisPersonCollator.new(@course, teacher_principal)
+      collator = CourseLisPersonCollator.new(@course, @teacher.principal)
       course_with_teacher(user: @teacher)
       Lti::V1p1::Asset.opaque_identifier_for(@teacher, context: @course)
       UserPastLtiId.create!(user_id: @teacher,
@@ -139,7 +135,7 @@ module Lti::MembershipService
       end
 
       it "properly outputs multiple membership roles for membership" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal)
         memberships = collator.memberships
         membership = memberships[0]
 
@@ -156,7 +152,7 @@ module Lti::MembershipService
       it "excludes membership roles for non-active enrollments" do
         enrollment = @teacher.enrollments.where(type: "TeacherEnrollment").first
         enrollment.deactivate
-        collator = CourseLisPersonCollator.new(@course, teacher_principal)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal)
         memberships = collator.memberships
         membership = memberships[0]
 
@@ -192,7 +188,7 @@ module Lti::MembershipService
       end
 
       it "outputs the users in a course with their respective roles" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal)
         memberships = collator.memberships
 
         expect(memberships.size).to eq(5)
@@ -217,7 +213,7 @@ module Lti::MembershipService
       end
 
       it "adds the sis_id to the payload if present" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal)
         memberships = collator.memberships
 
         @teacher.reload
@@ -245,16 +241,14 @@ module Lti::MembershipService
       allow(Api).to receive(:per_page).and_return(1)
     end
 
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-
     context "OAuth 1" do
       subject do
         [collator_one, collator_two, collator_three].flat_map { |ms| ms.memberships.map { |m| m.member.user_id } }
       end
 
-      let(:collator_one) { CourseLisPersonCollator.new(@course, teacher_principal, per_page: 2, page: 1) }
-      let(:collator_two) { CourseLisPersonCollator.new(@course, teacher_principal, per_page: 2, page: 2) }
-      let(:collator_three) { CourseLisPersonCollator.new(@course, teacher_principal, per_page: 2, page: 3) }
+      let(:collator_one) { CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 2, page: 1) }
+      let(:collator_two) { CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 2, page: 2) }
+      let(:collator_three) { CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 2, page: 3) }
 
       it "does not render duplicate items when paginating" do
         expect(subject.length).to eq subject.uniq.length
@@ -267,21 +261,21 @@ module Lti::MembershipService
 
     describe "#memberships" do
       it "returns the number of memberships specified by the per_page params" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 1)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 1)
 
         expect(collator.memberships.size).to eq(1)
 
-        collator = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 3, page: 1)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 3, page: 1)
 
         expect(collator.memberships.size).to eq(3)
       end
 
       it "returns the right page of memberships based on the page param" do
-        collator1 = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 1)
-        collator2 = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 2)
-        collator3 = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 3)
-        collator4 = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 4)
-        collator5 = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 5)
+        collator1 = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 1)
+        collator2 = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 2)
+        collator3 = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 3)
+        collator4 = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 4)
+        collator5 = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 5)
         user_ids = [
           collator1.memberships.first.member.user_id,
           collator2.memberships.first.member.user_id,
@@ -296,12 +290,12 @@ module Lti::MembershipService
 
     describe "#next_page?" do
       it "returns true when there is an additional page of results" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 1)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 1)
         expect(collator.next_page?).to be(true)
       end
 
       it "returns false when there are no more pages" do
-        collator = CourseLisPersonCollator.new(@course, teacher_principal, per_page: 1, page: 5)
+        collator = CourseLisPersonCollator.new(@course, @teacher.principal, per_page: 1, page: 5)
         collator.memberships
         expect(collator.next_page?).to be(false)
       end

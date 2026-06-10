@@ -231,7 +231,7 @@ class PlannerController < ApplicationController
                      current_principal
                    else
                      authorized_action(@user, current_principal, :read_as_parent)
-                     Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+                     @user.principal
                    end
     elsif params.key?(:observed_user_id)
       if (!params.key?(:context_codes) || params[:context_codes].empty?) && !include_visible_courses
@@ -239,7 +239,7 @@ class PlannerController < ApplicationController
       end
 
       @user = api_find(User, params[:observed_user_id])
-      @principal = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+      @principal = @user.principal
       unless include_visible_courses
         valid_course_ids = @current_user.observer_enrollments.active.where(associated_user_id: params[:observed_user_id]).shard(@current_user).pluck(:course_id)
         params[:context_codes] = params[:context_codes].select do |code|

@@ -45,7 +45,7 @@ class TestUserApi
 
   def current_user=(value)
     @current_user = value
-    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(value)
+    @current_principal = value.principal
   end
 
   def initialize
@@ -66,8 +66,6 @@ describe Api::V1::User do
     user_with_pseudonym(user: @user)
   end
 
-  let(:admin_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@admin) }
-
   before do
     @test_api = TestUserApi.new
     @test_api.services_enabled = []
@@ -76,23 +74,23 @@ describe Api::V1::User do
 
   context "user_json" do
     it "supports optionally including first_name" do
-      json = @test_api.user_json(@student, admin_principal, {}, ["first_name"], @course)
+      json = @test_api.user_json(@student, @admin.principal, {}, ["first_name"], @course)
       expect(json["first_name"]).to eq @student.first_name
     end
 
     it "supports optionally including last_name" do
-      json = @test_api.user_json(@student, admin_principal, {}, ["last_name"], @course)
+      json = @test_api.user_json(@student, @admin.principal, {}, ["last_name"], @course)
       expect(json["last_name"]).to eq @student.last_name
     end
 
     it "supports optionally providing the avatar if avatars are enabled" do
       @student.account.set_service_availability(:avatars, false)
       @student.account.save!
-      expect(@test_api.user_json(@student, admin_principal, {}, ["avatar_url"], @course)).not_to have_key("avatar_url")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["avatar_url"], @course)).not_to have_key("avatar_url")
       @student.account.set_service_availability(:avatars, true)
       @student.account.save!
-      expect(@test_api.user_json(@student, admin_principal, {}, [], @course)).not_to have_key("avatar_url")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["avatar_url"], @course)["avatar_url"]).to eql "http://host/images/messages/avatar-50.png"
+      expect(@test_api.user_json(@student, @admin.principal, {}, [], @course)).not_to have_key("avatar_url")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["avatar_url"], @course)["avatar_url"]).to eql "http://host/images/messages/avatar-50.png"
     end
 
     it "only loads pseudonyms for the user once, even if there are multiple enrollments" do
@@ -101,14 +99,14 @@ describe Api::V1::User do
       ta_enrollment = ta_in_course(user: @student, course: @course)
       teacher_enrollment = teacher_in_course(user: @student, course: @course)
       @test_api.current_user = @admin
-      @test_api.user_json(@student, admin_principal, {}, [], @course, [ta_enrollment, teacher_enrollment])
+      @test_api.user_json(@student, @admin.principal, {}, [], @course, [ta_enrollment, teacher_enrollment])
     end
 
     it "supports optionally including group_ids" do
       @group = @course.groups.create!(name: "My Group")
       @group.add_user(@student, "accepted", true)
-      expect(@test_api.user_json(@student, admin_principal, {}, [], @course)).not_to have_key("group_ids")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["group_ids"], @course)["group_ids"]).to eq([@group.id])
+      expect(@test_api.user_json(@student, @admin.principal, {}, [], @course)).not_to have_key("group_ids")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["group_ids"], @course)["group_ids"]).to eq([@group.id])
     end
 
     it "uses the correct SIS pseudonym" do
@@ -116,23 +114,23 @@ describe Api::V1::User do
       @account2 = Account.create!
       @user.pseudonyms.create!(unique_id: "abc", account: @account2) { |p| p.sis_user_id = "abc" }
       @user.pseudonyms.create!(unique_id: "xyz", account: Account.default) { |p| p.sis_user_id = "xyz" }
-      expect(@test_api.user_json(@user, admin_principal, {}, [], Account.default)).to eq({
-                                                                                           "name" => "User",
-                                                                                           "sortable_name" => "User",
-                                                                                           "sis_import_id" => nil,
-                                                                                           "id" => @user.id,
-                                                                                           "created_at" => @user.created_at,
-                                                                                           "short_name" => "User",
-                                                                                           "sis_user_id" => "xyz",
-                                                                                           "integration_id" => nil,
-                                                                                           "login_id" => "xyz"
-                                                                                         })
+      expect(@test_api.user_json(@user, @admin.principal, {}, [], Account.default)).to eq({
+                                                                                            "name" => "User",
+                                                                                            "sortable_name" => "User",
+                                                                                            "sis_import_id" => nil,
+                                                                                            "id" => @user.id,
+                                                                                            "created_at" => @user.created_at,
+                                                                                            "short_name" => "User",
+                                                                                            "sis_user_id" => "xyz",
+                                                                                            "integration_id" => nil,
+                                                                                            "login_id" => "xyz"
+                                                                                          })
     end
 
     it "only tries to search on in region shards" do
       @user = User.create!(name: "User")
       expect(@user).to receive(:in_region_associated_shards).and_call_original
-      @test_api.user_json(@user, admin_principal, {}, [], Account.default)
+      @test_api.user_json(@user, @admin.principal, {}, [], Account.default)
     end
 
     it "shows SIS data to sub account admins" do
@@ -144,7 +142,7 @@ describe Api::V1::User do
 
       course = sub_account.courses.create!
 
-      expect(@test_api.user_json(student, Canvas::AdheresToPolicy::UserPrincipal.new(sub_admin), {}, [], course))
+      expect(@test_api.user_json(student, sub_admin.principal, {}, [], course))
         .to eq({
                  "name" => "User",
                  "sortable_name" => "User",
@@ -166,9 +164,8 @@ describe Api::V1::User do
       course1.enroll_user(teacher, "TeacherEnrollment").accept!
       course2 = course_factory(active_all: true)
       course2.enroll_user(teacher, "StudentEnrollment").accept!
-      teacher_principal = Canvas::AdheresToPolicy::UserPrincipal.new(teacher)
 
-      expect(@test_api.user_json(student, teacher_principal, {}, [], course1))
+      expect(@test_api.user_json(student, teacher.principal, {}, [], course1))
         .to eq({
                  "name" => "User",
                  "sortable_name" => "User",
@@ -180,7 +177,7 @@ describe Api::V1::User do
                  "login_id" => "xyz"
                })
 
-      expect(@test_api.user_json(student, teacher_principal, {}, [], course2))
+      expect(@test_api.user_json(student, teacher.principal, {}, [], course2))
         .to eq({
                  "name" => "User",
                  "sortable_name" => "User",
@@ -201,9 +198,8 @@ describe Api::V1::User do
       course2.enroll_user(teacher, "StudentEnrollment").accept!
       group1 = course1.groups.create!(name: "Group 1")
       group2 = course2.groups.create!(name: "Group 2")
-      teacher_principal = Canvas::AdheresToPolicy::UserPrincipal.new(teacher)
 
-      expect(@test_api.user_json(student, teacher_principal, {}, [], group1))
+      expect(@test_api.user_json(student, teacher.principal, {}, [], group1))
         .to eq({
                  "name" => "User",
                  "sortable_name" => "User",
@@ -215,7 +211,7 @@ describe Api::V1::User do
                  "login_id" => "xyz"
                })
 
-      expect(@test_api.user_json(student, teacher_principal, {}, [], group2))
+      expect(@test_api.user_json(student, teacher.principal, {}, [], group2))
         .to eq({
                  "name" => "User",
                  "sortable_name" => "User",
@@ -233,17 +229,17 @@ describe Api::V1::User do
       sis_batch = p.account.sis_batches.create
       SisBatch.where(id: sis_batch).update_all(workflow_state: "imported")
       Pseudonym.where(id: p.id).update_all(sis_batch_id: sis_batch.id)
-      expect(@test_api.user_json(@user, admin_principal, {}, [], Account.default)).to eq({
-                                                                                           "name" => "User",
-                                                                                           "sortable_name" => "User",
-                                                                                           "sis_import_id" => sis_batch.id,
-                                                                                           "id" => @user.id,
-                                                                                           "created_at" => @user.created_at,
-                                                                                           "short_name" => "User",
-                                                                                           "sis_user_id" => "xyz",
-                                                                                           "integration_id" => nil,
-                                                                                           "login_id" => "xyz"
-                                                                                         })
+      expect(@test_api.user_json(@user, @admin.principal, {}, [], Account.default)).to eq({
+                                                                                            "name" => "User",
+                                                                                            "sortable_name" => "User",
+                                                                                            "sis_import_id" => sis_batch.id,
+                                                                                            "id" => @user.id,
+                                                                                            "created_at" => @user.created_at,
+                                                                                            "short_name" => "User",
+                                                                                            "sis_user_id" => "xyz",
+                                                                                            "integration_id" => nil,
+                                                                                            "login_id" => "xyz"
+                                                                                          })
     end
 
     it "uses an sis pseudonym from another account if necessary" do
@@ -257,18 +253,18 @@ describe Api::V1::User do
       allow_any_instantiation_of(Account.default).to receive(:trust_exists?).and_return(true)
       allow_any_instantiation_of(Account.default).to receive(:trusted_account_ids).and_return([@account2.id])
       expect(HostUrl).to receive(:context_host).with(@account2).and_return("school1")
-      expect(@test_api.user_json(@user, admin_principal, {}, [], Account.default)).to eq({
-                                                                                           "name" => "User",
-                                                                                           "sortable_name" => "User",
-                                                                                           "id" => @user.id,
-                                                                                           "created_at" => @user.created_at,
-                                                                                           "short_name" => "User",
-                                                                                           "login_id" => "abc",
-                                                                                           "sis_user_id" => "a",
-                                                                                           "integration_id" => nil,
-                                                                                           "root_account" => "school1",
-                                                                                           "sis_import_id" => nil,
-                                                                                         })
+      expect(@test_api.user_json(@user, @admin.principal, {}, [], Account.default)).to eq({
+                                                                                            "name" => "User",
+                                                                                            "sortable_name" => "User",
+                                                                                            "id" => @user.id,
+                                                                                            "created_at" => @user.created_at,
+                                                                                            "short_name" => "User",
+                                                                                            "login_id" => "abc",
+                                                                                            "sis_user_id" => "a",
+                                                                                            "integration_id" => nil,
+                                                                                            "root_account" => "school1",
+                                                                                            "sis_import_id" => nil,
+                                                                                          })
     end
 
     it "uses the correct pseudonym" do
@@ -277,17 +273,17 @@ describe Api::V1::User do
       @user.pseudonyms.create!(unique_id: "abc", account: @account2)
       @pseudonym = @user.pseudonyms.create!(unique_id: "xyz", account: Account.default)
       allow(SisPseudonym).to receive(:for).with(@user, Account.default, type: :implicit, require_sis: false, root_account: Account.default, in_region: true, current_user: @admin).and_return(@pseudonym)
-      expect(@test_api.user_json(@user, admin_principal, {}, [], Account.default)).to eq({
-                                                                                           "name" => "User",
-                                                                                           "sortable_name" => "User",
-                                                                                           "id" => @user.id,
-                                                                                           "created_at" => @user.created_at,
-                                                                                           "short_name" => "User",
-                                                                                           "integration_id" => nil,
-                                                                                           "sis_import_id" => nil,
-                                                                                           "sis_user_id" => nil,
-                                                                                           "login_id" => "xyz",
-                                                                                         })
+      expect(@test_api.user_json(@user, @admin.principal, {}, [], Account.default)).to eq({
+                                                                                            "name" => "User",
+                                                                                            "sortable_name" => "User",
+                                                                                            "id" => @user.id,
+                                                                                            "created_at" => @user.created_at,
+                                                                                            "short_name" => "User",
+                                                                                            "integration_id" => nil,
+                                                                                            "sis_import_id" => nil,
+                                                                                            "sis_user_id" => nil,
+                                                                                            "login_id" => "xyz",
+                                                                                          })
     end
 
     it "requires :view_user_logins to return login_id" do
@@ -297,7 +293,7 @@ describe Api::V1::User do
                            enabled: false)
       @user = User.create!(name: "Test User")
       @user.pseudonyms.create!(unique_id: "abc", account: Account.default)
-      json = @test_api.user_json(@user, admin_principal, {}, [], Account.default)
+      json = @test_api.user_json(@user, @admin.principal, {}, [], Account.default)
       expect(json.keys).not_to include "login_id"
     end
 
@@ -309,7 +305,7 @@ describe Api::V1::User do
       end
 
       it "includes email if requested" do
-        json = @test_api.user_json(@user, admin_principal, {}, ["email"], Account.default)
+        json = @test_api.user_json(@user, @admin.principal, {}, ["email"], Account.default)
         expect(json["email"]).to eq "abc@example.com"
       end
 
@@ -318,7 +314,7 @@ describe Api::V1::User do
                              role: admin_role,
                              permission: "read_email_addresses",
                              enabled: false)
-        json = @test_api.user_json(@user, admin_principal, {}, ["email"], Account.default)
+        json = @test_api.user_json(@user, @admin.principal, {}, ["email"], Account.default)
         expect(json.keys).not_to include "email"
       end
     end
@@ -341,7 +337,7 @@ describe Api::V1::User do
       end
 
       it "returns posted course scores as admin" do
-        json = @test_api.user_json(@student1, admin_principal, {}, [], @course, [@student1_enrollment])
+        json = @test_api.user_json(@student1, @admin.principal, {}, [], @course, [@student1_enrollment])
         expect(json["enrollments"].first["grades"]).to eq({
                                                             "html_url" => "",
                                                             "current_score" => 95.0,
@@ -356,8 +352,7 @@ describe Api::V1::User do
       end
 
       it "does not return unposted course scores as a student" do
-        student_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@student1)
-        json = @test_api.user_json(@student1, student_principal, {}, [], @course, [@student1_enrollment])
+        json = @test_api.user_json(@student1, @student1.principal, {}, [], @course, [@student1_enrollment])
         expect(json["enrollments"].first["grades"]).to eq({
                                                             "html_url" => "",
                                                             "current_score" => 95.0,
@@ -368,8 +363,7 @@ describe Api::V1::User do
       end
 
       it "does not return course scores as another student" do
-        another_student_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@student2)
-        json = @test_api.user_json(@student1, another_student_principal, {}, [], @course, [@student1_enrollment])
+        json = @test_api.user_json(@student1, @student2.principal, {}, [], @course, [@student1_enrollment])
         expect(json["enrollments"].first["grades"].keys).to eq ["html_url"]
       end
     end
@@ -380,9 +374,9 @@ describe Api::V1::User do
       expect(mock_context).to receive(:grants_any_right?).with(@admin, :manage_students, :read_sis, :view_user_logins).and_return(true)
       expect(mock_context).to receive(:grants_right?).with(@admin, {}, :view_user_logins).and_return(true)
       json = if context_to_pass
-               @test_api.user_json(@student, admin_principal, {}, [], context_to_pass)
+               @test_api.user_json(@student, @admin.principal, {}, [], context_to_pass)
              else
-               @test_api.user_json(@student, admin_principal, {}, [])
+               @test_api.user_json(@student, @admin.principal, {}, [])
              end
       expect(json).to eq({
                            "name" => "Sheldon Cooper",
@@ -408,24 +402,24 @@ describe Api::V1::User do
     end
 
     it "outputs uuid in json with includes params present" do
-      expect(@test_api.user_json(@student, admin_principal, {}, [], @course)).not_to have_key("uuid")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["uuid"], @course)).to have_key("uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, [], @course)).not_to have_key("uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["uuid"], @course)).to have_key("uuid")
     end
 
     it "outputs uuid and past_uuid in json with includes params present" do
-      expect(@test_api.user_json(@student, admin_principal, {}, ["uuid"], @course)).not_to have_key("past_uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["uuid"], @course)).not_to have_key("past_uuid")
       UserPastLtiId.create!(user: @student, context: @course, user_lti_id: "old_lti_id", user_lti_context_id: "old_lti_id", user_uuid: "old_uuid")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["uuid"], @course)).to have_key("past_uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["uuid"], @course)).to have_key("past_uuid")
     end
 
     it "includes the user's account UUID when requested" do
-      expect(@test_api.user_json(@student, admin_principal, {}, [], @course)).not_to have_key("account_uuid")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["uuid"], @course)).to have_key("account_uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, [], @course)).not_to have_key("account_uuid")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["uuid"], @course)).to have_key("account_uuid")
     end
 
     it "outputs last_login in json with includes params present" do
-      expect(@test_api.user_json(@student, admin_principal, {}, [], @course)).not_to have_key("last_login")
-      expect(@test_api.user_json(@student, admin_principal, {}, ["last_login"], @course)).to have_key("last_login")
+      expect(@test_api.user_json(@student, @admin.principal, {}, [], @course)).not_to have_key("last_login")
+      expect(@test_api.user_json(@student, @admin.principal, {}, ["last_login"], @course)).to have_key("last_login")
     end
   end
 
@@ -433,8 +427,8 @@ describe Api::V1::User do
     let(:course) { Course.create! }
     let(:student_enrollment) { course_with_user("StudentEnrollment", course:, active_all: true) }
     let(:student) { student_enrollment.user }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(subject) }
-    let(:enrollment_json) { @test_api.enrollment_json(student_enrollment, current_principal, nil) }
+    let(:current_principal) { subject.principal }
+    let(:enrollment_json) { @test_api.enrollment_json(student_enrollment, subject.principal, nil) }
     let(:grades) { enrollment_json.fetch("grades") }
 
     before do
@@ -731,13 +725,11 @@ describe Api::V1::User do
   end
 
   context "user_json_is_admin?" do
-    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
-
     it "supports manually passing the current user" do
       @test_api.context = double
       expect(@test_api.context).to receive(:global_id).and_return(42)
       expect(@test_api.context).to receive(:account).and_return(@test_api.context)
-      expect(@test_api.context).to receive(:grants_any_right?).with(admin_principal, :manage_students, :read_sis, :view_user_logins).and_return(true)
+      expect(@test_api.context).to receive(:grants_any_right?).with(@admin.principal, :manage_students, :read_sis, :view_user_logins).and_return(true)
       @test_api.current_user = @admin
       expect(@test_api.user_json_is_admin?).to be true
     end
@@ -746,17 +738,17 @@ describe Api::V1::User do
       mock_context = double
       expect(mock_context).to receive(:global_id).and_return(42)
       expect(mock_context).to receive(:account).and_return(mock_context)
-      expect(mock_context).to receive(:grants_any_right?).with(admin_principal, :manage_students, :read_sis, :view_user_logins).and_return(true)
+      expect(mock_context).to receive(:grants_any_right?).with(@admin.principal, :manage_students, :read_sis, :view_user_logins).and_return(true)
       @test_api.current_user = @admin
-      expect(@test_api.user_json_is_admin?(mock_context, admin_principal)).to be true
+      expect(@test_api.user_json_is_admin?(mock_context, @admin.principal)).to be true
     end
 
     it "supports loading multiple different things (via args)" do
-      expect(@test_api.user_json_is_admin?(@admin, student_principal)).to be_falsey
-      expect(@test_api.user_json_is_admin?(@student, admin_principal)).to be_truthy
-      expect(@test_api.user_json_is_admin?(@student, admin_principal)).to be_truthy
-      expect(@test_api.user_json_is_admin?(@admin, student_principal)).to be_falsey
-      expect(@test_api.user_json_is_admin?(@admin, student_principal)).to be_falsey
+      expect(@test_api.user_json_is_admin?(@admin, @student.principal)).to be_falsey
+      expect(@test_api.user_json_is_admin?(@student, @admin.principal)).to be_truthy
+      expect(@test_api.user_json_is_admin?(@student, @admin.principal)).to be_truthy
+      expect(@test_api.user_json_is_admin?(@admin, @student.principal)).to be_falsey
+      expect(@test_api.user_json_is_admin?(@admin, @student.principal)).to be_falsey
     end
 
     it "supports loading multiple different things (via member vars)" do

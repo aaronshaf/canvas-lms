@@ -316,6 +316,27 @@ class User < ApplicationRecord
 
   include FeatureFlags
 
+  #
+  # A principal representing this user.
+  #
+  # Do _not_ use to simply convert a {User} to a {AdheresToPolicy::Principal}.
+  # First evaluate if the context you are in the user you currently have
+  # represents an actor initiating some action. If so, you should be plumbing
+  # `current_principal` through (from the controller/view/GraphQL mutation/
+  #  API serializer, etc.).
+  #
+  # This is intended for when you need to call a method that requires a
+  # principal, but you are simply calling it to get information as if it were
+  # from that user's perspective.
+  #
+  # It's also useful in specs to quickly create a principal to test methods
+  # that take principals, not users.
+  #
+  # @return [Canvas::AdheresToPolicy::UserPrincipal]
+  def principal
+    @principal ||= Canvas::AdheresToPolicy::UserPrincipal.new(self)
+  end
+
   def conversations
     # i.e. exclude any where the user has deleted all the messages
     all_conversations.visible.order(last_message_at: :desc, conversation_id: :desc)
@@ -2344,7 +2365,6 @@ class User < ApplicationRecord
 
   def alternate_account_for_course_creation
     Rails.cache.fetch_with_batched_keys("alternate_account_for_course_creation", batch_object: self, batched_keys: :account_users) do
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(self)
       account_users.active.detect do |au|
         break au.account if au.root_account_id == account.id && au.account.grants_right?(principal, :manage_courses_add)
       end
@@ -3371,7 +3391,7 @@ class User < ApplicationRecord
   end
 
   def messageable_user_calculator
-    @messageable_user_calculator ||= MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(self))
+    @messageable_user_calculator ||= MessageableUser::Calculator.new(principal)
   end
 
   delegate :load_messageable_user,
@@ -4121,7 +4141,6 @@ class User < ApplicationRecord
     # This lets the frontend skip the homerooms fetch only for the specific selected account
     # that lacks the permission, rather than blocking all accounts globally.
     active_account_users = account_users.active.shard(in_region_associated_shards).preload(:account)
-    principal = Canvas::AdheresToPolicy::UserPrincipal.new(self)
     viewable_account_ids = if active_account_users.none?
                              nil
                            else

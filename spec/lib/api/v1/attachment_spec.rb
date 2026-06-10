@@ -26,8 +26,6 @@ describe Api::V1::Attachment do
     { host: "example.com" }
   end
 
-  let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
-
   describe "#attachment_json" do
     let(:course) { Course.create! }
     let(:attachment) { attachment_model(content_type: "application/pdf", context: student) }
@@ -41,7 +39,7 @@ describe Api::V1::Attachment do
 
     it "hides the verifier parameter from url in the returned hash when 'disable_adding_uuid_verifier_in_api' ff is enabled" do
       attachment.root_account.enable_feature!(:disable_adding_uuid_verifier_in_api)
-      json = attachment_json(attachment, teacher_principal, {})
+      json = attachment_json(attachment, teacher.principal, {})
       expect(json.fetch("url")).not_to include("verifier")
     end
 
@@ -54,7 +52,7 @@ describe Api::V1::Attachment do
       url_options = {
         location: "course_123"
       }
-      json = attachment_json(attachment, teacher_principal, url_options, params)
+      json = attachment_json(attachment, teacher.principal, url_options, params)
       expect(json.fetch("url")).to include("location=course_123")
     end
 
@@ -63,7 +61,7 @@ describe Api::V1::Attachment do
         include: ["preview_url"],
         submission_id: 2345
       }
-      json = attachment_json(attachment, teacher_principal, {}, params)
+      json = attachment_json(attachment, teacher.principal, {}, params)
       expect(json.fetch("preview_url")).to include("%22submission_id%22:2345")
     end
 
@@ -73,7 +71,7 @@ describe Api::V1::Attachment do
           uploaded_data: stub_file_data("file.svg", "<svg></svg>", "image/svg+xml"),
           content_type: "image/svg+xml"
         )
-      json = attachment_json(a, teacher_principal, {}, {})
+      json = attachment_json(a, teacher.principal, {}, {})
       expect(json.fetch("thumbnail_url")).to eq json.fetch("url")
     end
   end
@@ -84,7 +82,7 @@ describe Api::V1::Attachment do
 
     it "preloads last_attachment_upload_status" do
       file = attachment_model(content_type: "application/pdf", context: course)
-      attachments_json([file], teacher_principal, {}, { skip_permission_checks: true })
+      attachments_json([file], teacher.principal, {}, { skip_permission_checks: true })
       expect(file.association(:last_attachment_upload_status)).to be_loaded
     end
   end

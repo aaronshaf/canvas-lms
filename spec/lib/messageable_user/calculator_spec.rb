@@ -21,10 +21,8 @@
 describe "MessageableUser::Calculator" do
   before do
     @viewing_user = user_factory
-    @calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@viewing_user))
+    @calculator = MessageableUser::Calculator.new(@viewing_user.principal)
   end
-
-  let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
 
   it "is dumpable" do
     @calculator.linked_observer_ids
@@ -82,22 +80,22 @@ describe "MessageableUser::Calculator" do
     end
 
     it "mentionable users should have two students and the teacher when user 1" do
-      calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@u1_s1))
+      calculator = MessageableUser::Calculator.new(@u1_s1.principal)
       expect(calculator.search_in_context_scope(context: @dt, search: "").pluck(:name)).to eq(["User1 Section1", "User2 Section1", "Teacher"])
     end
 
     it "mentionable users should have two students and the teacher when user 3" do
-      calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@u3_s2))
+      calculator = MessageableUser::Calculator.new(@u3_s2.principal)
       expect(calculator.search_in_context_scope(context: @dt, search: "").pluck(:name)).to eq(["User3 Section2", "User4 Section2", "Teacher"])
     end
 
     it "mentionable users should have two students and the teacher when user 5" do
-      calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@u5_s3))
+      calculator = MessageableUser::Calculator.new(@u5_s3.principal)
       expect(calculator.search_in_context_scope(context: @dt, search: "").pluck(:name)).to eq(["User5 Section3", "User6 Section3", "Teacher"])
     end
 
     it "mentionable users should have six students and the teacher when teacher" do
-      calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt, search: "").pluck(:name)).to eq(["User1 Section1", "User2 Section1", "User3 Section2", "User4 Section2", "User5 Section3", "User6 Section3", "Teacher"])
     end
   end
@@ -137,13 +135,13 @@ describe "MessageableUser::Calculator" do
     end
 
     it "will return section members" do
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt1, search: "").pluck(:name)).to match_array(["User1 Section1", "User2 Section1"])
 
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt2, search: "").pluck(:name)).to match_array(["User3 Section2", "User4 Section2"])
 
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt3, search: "").pluck(:name)).to match_array(["User5 Section3", "User6 Section3"])
     end
   end
@@ -183,15 +181,15 @@ describe "MessageableUser::Calculator" do
     end
 
     it "will return the section 1 members" do
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt1, search: "").pluck(:name)).to eq(["User1 Section1", "User2 Section1", "Teacher"])
     end
 
     it "will return an empty collection of section members" do
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt2, search: "").pluck(:name)).to eq([])
 
-      calculator = MessageableUser::Calculator.new(teacher_principal)
+      calculator = MessageableUser::Calculator.new(@teacher.principal)
       expect(calculator.search_in_context_scope(context: @dt3, search: "").pluck(:name)).to eq([])
     end
   end
@@ -524,7 +522,7 @@ describe "MessageableUser::Calculator" do
 
     describe "rails cache" do
       it "shares across calculators with same user" do
-        calc2 = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@viewing_user))
+        calc2 = MessageableUser::Calculator.new(@viewing_user.principal)
         enable_cache do
           @calculator.shard_cached("cache_key") { @expected1 }
           expect(calc2.shard_cached("cache_key")[Shard.current]).to eq @expected1
@@ -532,7 +530,7 @@ describe "MessageableUser::Calculator" do
       end
 
       it "distinguishes users" do
-        calc2 = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(user_factory))
+        calc2 = MessageableUser::Calculator.new(user_factory.principal)
 
         enable_cache do
           @calculator.shard_cached("cache_key") { @expected1 }
@@ -542,7 +540,7 @@ describe "MessageableUser::Calculator" do
       end
 
       it "notices when a user changes" do
-        calc2 = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@viewing_user))
+        calc2 = MessageableUser::Calculator.new(@viewing_user.principal)
 
         enable_cache do
           @calculator.shard_cached("cache_key") { @expected1 }
@@ -576,11 +574,11 @@ describe "MessageableUser::Calculator" do
         allow(@calculator).to receive_messages(method1: expected1)
         allow(@calculator).to receive_messages(method2: expected2)
 
-        calc2 = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@viewing_user))
+        calc2 = MessageableUser::Calculator.new(@viewing_user.principal)
         allow(calc2).to receive_messages(method1: expected1)
         allow(calc2).to receive_messages(method2: expected2)
 
-        calc3 = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@viewing_user))
+        calc3 = MessageableUser::Calculator.new(@viewing_user.principal)
         allow(calc3).to receive_messages(method1: expected1)
         allow(calc3).to receive_messages(method2: expected3)
 
@@ -675,7 +673,7 @@ describe "MessageableUser::Calculator" do
         @observer_enrollment1 = course_with_observer(course: @course1, active_all: true)
         @observer = @observer_enrollment1.user
         @observer_enrollment2 = course_with_observer(course: @course2, user: @observer, active_all: true)
-        @calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@observer))
+        @calculator = MessageableUser::Calculator.new(@observer.principal)
       end
 
       it "handles shard-local observer observing shard-local student" do
@@ -730,7 +728,7 @@ describe "MessageableUser::Calculator" do
         @observer_enrollment2.associated_user = @student2
         @observer_enrollment2.save!
 
-        @calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@observer))
+        @calculator = MessageableUser::Calculator.new(@observer.principal)
       end
 
       it "only includes ids from the current shard" do
@@ -1463,7 +1461,7 @@ describe "MessageableUser::Calculator" do
 
     before do
       Account.current_domain_root_account = Account.default
-      @calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@provider))
+      @calculator = MessageableUser::Calculator.new(@provider.principal)
     end
 
     after do
@@ -1526,7 +1524,7 @@ describe "MessageableUser::Calculator" do
       group.add_user(@provider)
 
       Enrollment.limit_privileges_to_course_section!(@course, @provider, true)
-      calculator = MessageableUser::Calculator.new(Canvas::AdheresToPolicy::UserPrincipal.new(@provider))
+      calculator = MessageableUser::Calculator.new(@provider.principal)
 
       messageable_ids = calculator.messageable_users_in_group(group).map(&:id)
       expect(messageable_ids).not_to include(recipient.id)

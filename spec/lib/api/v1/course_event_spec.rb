@@ -37,8 +37,7 @@ describe Api::V1::CourseEvent do
     false
   end
 
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) if @user }
-  let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) if @student }
+  let(:current_principal) { @user&.principal }
 
   before do
     @request_id = SecureRandom.uuid
@@ -74,7 +73,7 @@ describe Api::V1::CourseEvent do
   end
 
   it "is formatted as a course content event hash" do
-    event = course_event_json(@event, student_principal, @session)
+    event = course_event_json(@event, @student&.principal, @session)
 
     expect(event[:id]).to eq @event.id
     expect(event[:created_at]).to eq @event.created_at.in_time_zone
@@ -91,7 +90,7 @@ describe Api::V1::CourseEvent do
   end
 
   it "is formatted as an array of course content event hashes" do
-    expect(course_events_json(@events, student_principal, @session).size).to eql(@events.size)
+    expect(course_events_json(@events, @student&.principal, @session).size).to eql(@events.size)
   end
 
   it "is formatted as an array of compound course content event hashes" do

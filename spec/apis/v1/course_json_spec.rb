@@ -25,12 +25,9 @@ module Api
       let(:course_json) { CourseJson.new(course, nil, includes, []) }
       let(:includes) { [] }
       let(:user) { instance_double(::User) }
-      let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
-      let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
 
       describe "#to_hash" do
         let_once(:student) { course_with_user("StudentEnrollment", course:, active_all: true).user }
-        let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(student) }
 
         before(:once) do
           grading_period_group = course.grading_period_groups.create!
@@ -45,7 +42,7 @@ module Api
         it "contains information for the grading period even when final grades are hidden" do
           course.update!(hide_final_grades: true)
           includes = [:current_grading_period_scores, :total_scores]
-          enrollments = Api::V1::CourseJson.to_hash(course, student_principal, includes, course.enrollments).fetch("enrollments")
+          enrollments = Api::V1::CourseJson.to_hash(course, student.principal, includes, course.enrollments).fetch("enrollments")
           expect(enrollments.first.keys).to include(
             :current_grading_period_id,
             :current_grading_period_title,
@@ -56,7 +53,7 @@ module Api
 
         it "does not contain information for the period when total scores and period scores are not included" do
           includes = []
-          enrollments = Api::V1::CourseJson.to_hash(course, student_principal, includes, course.enrollments).fetch("enrollments")
+          enrollments = Api::V1::CourseJson.to_hash(course, student.principal, includes, course.enrollments).fetch("enrollments")
           expect(enrollments.first.keys).not_to include(
             :current_grading_period_id,
             :current_grading_period_title,
@@ -71,8 +68,7 @@ module Api
           context "when user is the student" do
             let_once(:student_enrollment) { course_with_user("StudentEnrollment", course:, active_all: true) }
             let_once(:student) { student_enrollment.user }
-            let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(student) }
-            let(:json_hash) { CourseJson.new(course, student_principal, includes, [student_enrollment]).to_hash }
+            let(:json_hash) { CourseJson.new(course, student.principal, includes, [student_enrollment]).to_hash }
             let(:json_enrollments) { json_hash.fetch("enrollments") }
             let(:json_enrollment) { json_enrollments.detect { |enrollment| enrollment.fetch(:user_id) == student.id } }
 
@@ -193,7 +189,7 @@ module Api
             let_once(:student_enrollment) { course_with_user("StudentEnrollment", course:, active_all: true) }
             let_once(:student) { student_enrollment.user }
             let_once(:teacher) { course_with_user("TeacherEnrollment", course:, active_all: true).user }
-            let(:json_hash) { CourseJson.new(course, teacher_principal, includes, [student_enrollment]).to_hash }
+            let(:json_hash) { CourseJson.new(course, teacher.principal, includes, [student_enrollment]).to_hash }
             let(:json_enrollments) { json_hash.fetch("enrollments") }
             let(:json_enrollment) { json_enrollments.detect { |enrollment| enrollment.fetch(:user_id) == student.id } }
 
@@ -278,7 +274,7 @@ module Api
           context "when user is the student" do
             let_once(:student_enrollment) { course_with_user("StudentEnrollment", course:, active_all: true) }
             let_once(:student) { student_enrollment.user }
-            let(:json_hash) { CourseJson.new(course, student_principal, includes, [student_enrollment]).to_hash }
+            let(:json_hash) { CourseJson.new(course, student.principal, includes, [student_enrollment]).to_hash }
             let(:json_enrollments) { json_hash.fetch("enrollments") }
             let(:json_enrollment) { json_enrollments.detect { |enrollment| enrollment.fetch(:user_id) == student.id } }
 
@@ -389,7 +385,7 @@ module Api
             let_once(:student_enrollment) { course_with_user("StudentEnrollment", course:, active_all: true) }
             let_once(:student) { student_enrollment.user }
             let_once(:teacher) { course_with_user("TeacherEnrollment", course:, active_all: true).user }
-            let(:json_hash) { CourseJson.new(course, teacher_principal, includes, [student_enrollment]).to_hash }
+            let(:json_hash) { CourseJson.new(course, teacher.principal, includes, [student_enrollment]).to_hash }
             let(:json_enrollments) { json_hash.fetch("enrollments") }
             let(:json_enrollment) { json_enrollments.detect { |enrollment| enrollment.fetch(:user_id) == student.id } }
 
@@ -619,7 +615,7 @@ module Api
         let(:includes) { %w[these three keys] }
 
         before do
-          @json = CourseJson.new(course, current_principal, includes, enrollments) { hash }
+          @json = CourseJson.new(course, Canvas::AdheresToPolicy::UserPrincipal.new(user), includes, enrollments) { hash }
         end
 
         describe "#course" do
@@ -649,7 +645,7 @@ module Api
 
       describe "#set_sis_course_id" do
         let(:sis_course) { instance_double(::Course, grants_right?: @has_right, sis_source_id: @sis_id, sis_batch_id: @batch, root_account:) }
-        let(:sis_course_json) { CourseJson.new(sis_course, current_principal, includes, []) }
+        let(:sis_course_json) { CourseJson.new(sis_course, Canvas::AdheresToPolicy::UserPrincipal.new(user), includes, []) }
         let(:root_account) { instance_double(::Account, grants_right?: @has_right) }
         let(:hash) { {} }
 
@@ -691,7 +687,7 @@ module Api
 
         it "uses precalculated permissions if available" do
           precalculated_permissions = { read_sis: false, manage_sis: true }
-          course_json_with_perms = CourseJson.new(sis_course, current_principal, includes, [], precalculated_permissions:)
+          course_json_with_perms = CourseJson.new(sis_course, Canvas::AdheresToPolicy::UserPrincipal.new(user), includes, [], precalculated_permissions:)
           expect(sis_course).not_to receive(:grants_right?)
           course_json_with_perms.set_sis_course_id(hash)
           expect(hash["sis_course_id"]).to eq 1357

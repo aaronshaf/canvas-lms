@@ -143,6 +143,7 @@ module AdheresToPolicy
             current = ::Canvas::AdheresToPolicy::Current.principal
             next current if current && current.user.equal?(user)
 
+            # Avoid User#principal, since it's fairly likely that `user` will be a double
             ::Canvas::AdheresToPolicy::UserPrincipal.new(user)
           end
         end

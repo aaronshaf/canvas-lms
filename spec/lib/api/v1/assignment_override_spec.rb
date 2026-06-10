@@ -179,7 +179,7 @@ describe Api::V1::AssignmentOverride do
   describe "interpret_batch_assignment_overrides_data" do
     subject { test_class.new }
 
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+    let(:current_principal) { @teacher.principal }
 
     before(:once) do
       course_with_teacher(active_all: true)
@@ -370,7 +370,7 @@ describe Api::V1::AssignmentOverride do
   end
 
   describe "#assignment_overrides_json" do
-    subject(:assignment_overrides_json) { test_class.new.assignment_overrides_json([@override], Canvas::AdheresToPolicy::UserPrincipal.new(@student)) }
+    subject(:assignment_overrides_json) { test_class.new.assignment_overrides_json([@override], @student.principal) }
 
     before :once do
       course_model
@@ -406,8 +406,7 @@ describe Api::V1::AssignmentOverride do
           "title" => @group.name,
           "unassign_item" => false
         }
-        principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
-        expect(test_class.new.assignment_overrides_json([@group_override], principal).first).to eq expected_result
+        expect(test_class.new.assignment_overrides_json([@group_override], @teacher.principal).first).to eq expected_result
       end
     end
 
@@ -436,8 +435,7 @@ describe Api::V1::AssignmentOverride do
           "unassign_item" => false
         }
         test = test_class.new
-        principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
-        expect(test.assignment_overrides_json([@override], principal).first).to eq expected_result
+        expect(test.assignment_overrides_json([@override], @teacher.principal).first).to eq expected_result
       end
 
       it "removes the 'title' of the override for users without differentiation tag read permissions" do
@@ -452,8 +450,7 @@ describe Api::V1::AssignmentOverride do
           "unassign_item" => false
         }
         test = test_class.new
-        principal = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
-        expect(test.assignment_overrides_json([@override], principal).first).to eq expected_result
+        expect(test.assignment_overrides_json([@override], @student.principal).first).to eq expected_result
       end
     end
 
@@ -477,8 +474,7 @@ describe Api::V1::AssignmentOverride do
           @adhoc_override.assignment_override_students.create!(user: @student)
         end
 
-        principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
-        expect(test_class.new.assignment_overrides_json([@override], principal).first[:student_ids]).to eq [@student.id]
+        expect(test_class.new.assignment_overrides_json([@override], @teacher.principal).first[:student_ids]).to eq [@student.id]
       end
     end
   end
@@ -573,10 +569,9 @@ describe Api::V1::AssignmentOverride do
         )
 
         test_instance = test_class.new
-        current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
         json = test_instance.assignment_override_json(
           parent_override,
-          current_principal:,
+          current_principal: @teacher.principal,
           student_names: nil,
           module_names: nil,
           include_child_override_due_dates: nil,
@@ -605,10 +600,9 @@ describe Api::V1::AssignmentOverride do
         )
 
         test_instance = test_class.new
-        current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
         json = test_instance.assignment_override_json(
           parent_override,
-          current_principal:,
+          current_principal: @teacher.principal,
           student_names: nil,
           module_names: nil,
           include_child_override_due_dates: nil,
@@ -626,10 +620,9 @@ describe Api::V1::AssignmentOverride do
         )
 
         test_instance = test_class.new
-        current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
         json = test_instance.assignment_override_json(
           parent_override,
-          current_principal:,
+          current_principal: @teacher.principal,
           student_names: nil,
           module_names: nil,
           include_child_override_due_dates: nil,
@@ -654,10 +647,9 @@ describe Api::V1::AssignmentOverride do
         )
 
         test_instance = test_class.new
-        current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
         json = test_instance.assignment_override_json(
           parent_override,
-          current_principal:,
+          current_principal: @teacher.principal,
           student_names: nil,
           module_names: nil,
           include_child_override_due_dates: nil,
@@ -713,7 +705,6 @@ describe Api::V1::AssignmentOverride do
       end
 
       test_instance = test_class.new
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
 
       peer_review_query_count = 0
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
@@ -724,7 +715,7 @@ describe Api::V1::AssignmentOverride do
 
       result = test_instance.assignment_overrides_json(
         parent_overrides,
-        principal,
+        @teacher.principal,
         include_names: false,
         include_child_override_due_dates: false,
         include_child_peer_review_override_dates: true
@@ -762,7 +753,6 @@ describe Api::V1::AssignmentOverride do
       end
 
       test_instance = test_class.new
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
 
       peer_review_query_count = 0
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
@@ -773,7 +763,7 @@ describe Api::V1::AssignmentOverride do
 
       test_instance.assignment_overrides_json(
         parent_overrides_with_pr,
-        principal,
+        @teacher.principal,
         include_names: false,
         include_child_override_due_dates: false,
         include_child_peer_review_override_dates: true
@@ -801,7 +791,6 @@ describe Api::V1::AssignmentOverride do
       end
 
       test_instance = test_class.new
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
 
       peer_review_query_count = 0
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
@@ -812,7 +801,7 @@ describe Api::V1::AssignmentOverride do
 
       test_instance.assignment_overrides_json(
         parent_overrides,
-        principal,
+        @teacher.principal,
         include_names: false,
         include_child_override_due_dates: false,
         include_child_peer_review_override_dates: false
@@ -850,10 +839,9 @@ describe Api::V1::AssignmentOverride do
       )
 
       test_instance = test_class.new
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
       result = test_instance.assignment_overrides_json(
         [parent_override1, parent_override2],
-        principal,
+        @teacher.principal,
         include_names: false,
         include_child_override_due_dates: false,
         include_child_peer_review_override_dates: true
@@ -887,10 +875,9 @@ describe Api::V1::AssignmentOverride do
       )
 
       test_instance = test_class.new
-      principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
       result = test_instance.assignment_overrides_json(
         [parent_override1, parent_override2],
-        principal,
+        @teacher.principal,
         include_names: false,
         include_child_override_due_dates: false,
         include_child_peer_review_override_dates: true

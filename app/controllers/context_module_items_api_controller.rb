@@ -860,6 +860,6 @@ class ContextModuleItemsApiController < ApplicationController
     return current_principal unless @student
     return current_principal if @student == @current_user
 
-    @student_or_current_principal ||= Canvas::AdheresToPolicy::UserPrincipal.new(@student)
+    @student_or_current_principal ||= @student.principal
   end
 end

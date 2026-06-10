@@ -21,13 +21,11 @@
 module Lti::MembershipService
   describe PagePresenter do
     let(:base_url) { "https://localhost:3000" }
-    let(:presenter) { PagePresenter.new(@course, teacher_principal, base_url) }
+    let(:presenter) { PagePresenter.new(@course, @teacher.principal, base_url) }
     let(:hash) { presenter.as_json }
-    let(:group_presenter) { PagePresenter.new(@group, student_principal, base_url) }
+    let(:group_presenter) { PagePresenter.new(@group, @student.principal, base_url) }
     let(:group_hash) { group_presenter.as_json }
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) }
+    let(:current_principal) { @user.principal }
 
     context "course with single enrollment" do
       before do

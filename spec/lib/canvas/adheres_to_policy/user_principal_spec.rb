@@ -20,7 +20,7 @@
 
 describe Canvas::AdheresToPolicy::UserPrincipal do
   let_once(:user) { user_with_pseudonym }
-  let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+  let(:principal) { user.principal }
 
   describe "#initialize" do
     it "infers user from pseudonym" do

@@ -31,7 +31,7 @@ describe Interfaces::DiscussionsConnectionInterface do
       end
 
       def current_principal
-        Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user
+        @current_user&.principal
       end
     end
   end

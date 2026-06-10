@@ -1998,7 +1998,7 @@ describe User do
   context "tabs_available" do
     before(:once) { Account.default }
 
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) if @user }
+    let(:current_principal) { @user&.principal }
 
     it "does not include unconfigured external tools" do
       tool = Account.default.context_external_tools.new(consumer_key: "bob", shared_secret: "bob", name: "bob", domain: "example.com")

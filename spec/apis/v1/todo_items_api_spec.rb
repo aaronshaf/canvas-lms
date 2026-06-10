@@ -25,9 +25,8 @@ describe UsersController, type: :request do
   include Api::V1::Assignment
 
   def update_assignment_json
-    user_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
-    @a1_json["assignment"] = controller.assignment_json(@a1, user_principal, session, include_all_dates: true).as_json
-    @a2_json["assignment"] = controller.assignment_json(@a2, user_principal, session, include_all_dates: true).as_json
+    @a1_json["assignment"] = controller.assignment_json(@a1, @user.principal, session, include_all_dates: true).as_json
+    @a2_json["assignment"] = controller.assignment_json(@a2, @user.principal, session, include_all_dates: true).as_json
   end
 
   def strip_secure_params(json)

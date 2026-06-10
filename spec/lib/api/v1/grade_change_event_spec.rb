@@ -53,8 +53,7 @@ end
 describe Api::V1::GradeChangeEvent do
   subject { GradeChangeEventTestHarness.new }
 
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) }
-  let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
+  let(:current_principal) { @user.principal }
 
   before do
     @request_id = SecureRandom.uuid
@@ -93,7 +92,7 @@ describe Api::V1::GradeChangeEvent do
   end
 
   it "is formatted as a grade change event hash" do
-    event = subject.grade_change_event_json(@event, student_principal, @session)
+    event = subject.grade_change_event_json(@event, @student.principal, @session)
 
     expect(event[:id]).to eq @event.id
     expect(event[:created_at]).to eq @event.created_at.in_time_zone
@@ -114,7 +113,7 @@ describe Api::V1::GradeChangeEvent do
   end
 
   it "does not include a value for 'course_override_grade'" do
-    event = subject.grade_change_event_json(@event, student_principal, @session)
+    event = subject.grade_change_event_json(@event, @student.principal, @session)
     expect(event).not_to have_key(:course_override_grade)
   end
 
@@ -122,7 +121,7 @@ describe Api::V1::GradeChangeEvent do
     @excused = @assignment.grade_student(@student, grader: @teacher, excused: true).first
     @event = Auditors::GradeChange.record(submission: @excused)
 
-    event = subject.grade_change_event_json(@event, student_principal, @session)
+    event = subject.grade_change_event_json(@event, @student.principal, @session)
     expect(event[:grade_before]).to eq @submission.grade
     expect(event[:grade_after]).to be_nil
     expect(event[:excused_before]).to be false
@@ -135,7 +134,7 @@ describe Api::V1::GradeChangeEvent do
     @unexcused = @assignment.grade_student(@student, grader: @teacher, excused: false).first
     @event = Auditors::GradeChange.record(submission: @unexcused)
 
-    event = subject.grade_change_event_json(@event, student_principal, @session)
+    event = subject.grade_change_event_json(@event, @student.principal, @session)
     expect(event[:grade_before]).to be_nil
     expect(event[:grade_after]).to be_nil
     expect(event[:excused_before]).to be true
@@ -143,7 +142,7 @@ describe Api::V1::GradeChangeEvent do
   end
 
   it "is formatted as an array of grade change event hashes" do
-    expect(subject.grade_change_events_json(@events, student_principal, @session).size).to eql(@events.size)
+    expect(subject.grade_change_events_json(@events, @student.principal, @session).size).to eql(@events.size)
   end
 
   it "is formatted as an array of compound grade change event hashes" do

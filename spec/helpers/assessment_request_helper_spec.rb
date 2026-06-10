@@ -59,7 +59,7 @@ describe AssessmentRequestHelper do
                                                       assessor: @student2)
     end
 
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user }
+    let(:current_principal) { @current_user&.principal }
 
     it "returns assessment user name" do
       @current_user = @student1

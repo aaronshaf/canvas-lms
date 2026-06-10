@@ -307,7 +307,7 @@ describe "submissions/show" do
       assign(:assignment, @assignment)
       assign(:context, @course)
       assign(:current_user, @student)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+      assign(:current_principal, @student.principal)
       assign(:submission, @submission)
     end
 
@@ -373,7 +373,7 @@ describe "submissions/show" do
 
         before do
           assign(:current_user, teacher)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+          assign(:current_principal, teacher.principal)
         end
 
         it "displays the current grade even when the submission is not posted" do
@@ -408,7 +408,7 @@ describe "submissions/show" do
 
     it "shows SpeedGrader link when user has manage_grades permission" do
       assign(:current_user, @teacher)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+      assign(:current_principal, @teacher.principal)
       render "submissions/show"
       speedgrader_link = html.at_css('a[href*="speed_grader"]')
       expect(speedgrader_link).to be_present
@@ -420,7 +420,7 @@ describe "submissions/show" do
       @course.account.role_overrides.create!(permission: "view_all_grades", role: ta_role, enabled: true)
 
       assign(:current_user, @ta)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@ta))
+      assign(:current_principal, @ta.principal)
       render "submissions/show"
       speedgrader_link = html.at_css('a[href*="speed_grader"]')
       expect(speedgrader_link).to be_present
@@ -428,7 +428,7 @@ describe "submissions/show" do
 
     it "does not show SpeedGrader link when user is a student" do
       assign(:current_user, @student)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+      assign(:current_principal, @student.principal)
       render "submissions/show"
       speedgrader_link = html.at_css('a[href*="speed_grader"]')
       expect(speedgrader_link).not_to be_present
@@ -485,7 +485,7 @@ describe "submissions/show" do
       context "when a teacher is viewing" do
         before do
           assign(:current_user, teacher)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+          assign(:current_principal, teacher.principal)
         end
 
         it "shows all comments when a teacher is viewing" do
@@ -521,7 +521,7 @@ describe "submissions/show" do
       context "when a student is viewing" do
         before do
           assign(:current_user, student)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+          assign(:current_principal, student.principal)
         end
 
         it "shows all comments if the submission is posted" do
@@ -821,7 +821,7 @@ describe "submissions/show" do
       assign(:assignment, assignment)
       assign(:context, @course)
       assign(:current_user, teacher)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+      assign(:current_principal, teacher.principal)
       assign(:submission, sub)
     end
 
@@ -990,7 +990,7 @@ describe "submissions/show" do
       assign(:assignment, assignment)
       assign(:context, @course)
       assign(:current_user, student)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+      assign(:current_principal, student.principal)
       assign(:submission, submission)
     end
 
@@ -1022,7 +1022,7 @@ describe "submissions/show" do
         assign(:submission, upload_submission)
         assign(:context, @course)
         assign(:current_user, student)
-        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+        assign(:current_principal, student.principal)
       end
 
       it "does not render text entry status container" do
@@ -1049,7 +1049,7 @@ describe "submissions/show" do
         assign(:submission, discussion_submission)
         assign(:context, @course)
         assign(:current_user, student)
-        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+        assign(:current_principal, student.principal)
       end
 
       it "renders asset report status container with discussion_topic submission type" do

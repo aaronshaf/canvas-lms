@@ -1237,7 +1237,7 @@ class UsersController < ApplicationController
       ActiveRecord::Associations.preload(assignments, :context) if include_course
       DatesOverridable.preload_override_data_for_objects(assignments)
 
-      user_principal = (user == @current_user) ? current_principal : Canvas::AdheresToPolicy::UserPrincipal.new(user)
+      user_principal = (user == @current_user) ? current_principal : user.principal
       json = assignments.map do |as|
         assmt_json = assignment_json(as, user_principal, session, include_planner_override: planner_overrides)
         assmt_json["course"] = course_json(as.context, user_principal, session, [], nil) if include_course

@@ -376,7 +376,7 @@ describe "gradebooks/grade_summary" do
           before do
             assign(:presenter, presenter)
             assign(:current_user, student)
-            assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+            assign(:current_principal, student.principal)
             render "gradebooks/grade_summary"
           end
 
@@ -417,7 +417,7 @@ describe "gradebooks/grade_summary" do
         before do
           assign(:presenter, presenter)
           assign(:current_user, student)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+          assign(:current_principal, student.principal)
           render "gradebooks/grade_summary"
         end
 
@@ -436,7 +436,7 @@ describe "gradebooks/grade_summary" do
         before do
           assign(:presenter, presenter)
           assign(:current_user, teacher)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+          assign(:current_principal, teacher.principal)
           render "gradebooks/grade_summary"
         end
 
@@ -455,7 +455,7 @@ describe "gradebooks/grade_summary" do
         before do
           assign(:presenter, presenter)
           assign(:current_user, site_admin)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(site_admin))
+          assign(:current_principal, site_admin.principal)
           render "gradebooks/grade_summary"
         end
 
@@ -486,7 +486,7 @@ describe "gradebooks/grade_summary" do
         before do
           assign(:presenter, presenter)
           assign(:current_user, teacher)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+          assign(:current_principal, teacher.principal)
         end
 
         context "when the assignment uses Turnitin" do
@@ -550,7 +550,7 @@ describe "gradebooks/grade_summary" do
         before do
           assign(:presenter, presenter)
           assign(:current_user, site_admin)
-          assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(site_admin))
+          assign(:current_principal, site_admin.principal)
         end
 
         it "always shows plagiarism info when the assignment uses Turnitin" do
@@ -586,7 +586,7 @@ describe "gradebooks/grade_summary" do
 
         assign(:presenter, presenter)
         assign(:current_user, teacher)
-        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+        assign(:current_principal, teacher.principal)
       end
 
       let(:assignment) { course.assignments.create!(submission_types: "online_upload") }
@@ -645,7 +645,7 @@ describe "gradebooks/grade_summary" do
     before(:once) do
       assign(:presenter, GradeSummaryPresenter.new(course, student, student.id))
       assign(:current_user, student)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+      assign(:current_principal, student.principal)
       assign(:context, course)
       assign(:domain_root_account, Account.default)
     end

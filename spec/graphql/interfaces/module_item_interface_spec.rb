@@ -36,7 +36,7 @@ RSpec.describe Interfaces::ModuleItemInterface do
   let(:context) do
     {
       current_user: @teacher,
-      current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+      current_principal: @teacher.principal,
       request: ActionDispatch::Request.new({})
     }
   end

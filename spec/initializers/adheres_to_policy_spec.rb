@@ -20,7 +20,7 @@
 
 describe "adheres_to_policy monkeypatches" do
   let_once(:user) { user_model }
-  let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+  let(:principal) { user.principal }
 
   describe AdheresToPolicy::Canvas do
     describe ".deprecation_check" do
@@ -227,8 +227,8 @@ describe "adheres_to_policy monkeypatches" do
 
         it "reuses Canvas::AdheresToPolicy::Current.principal when grants_right? is called with the User it wraps" do
           expected_principal = AdheresToPolicy::MasqueradingPrincipal.new(
-            Canvas::AdheresToPolicy::UserPrincipal.new(user),
-            Canvas::AdheresToPolicy::UserPrincipal.new(user_model)
+            user.principal,
+            user_model.principal
           )
           Canvas::AdheresToPolicy::Current.principal = expected_principal
 

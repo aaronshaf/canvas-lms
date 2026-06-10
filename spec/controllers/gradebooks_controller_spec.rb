@@ -1019,7 +1019,7 @@ describe GradebooksController do
             mark_as_missing: false,
             only_apply_to_past_due: false
           )
-          @progress = Gradebook::ApplyScoreToUngradedSubmissions.queue_apply_score(course: @course, grader: @teacher, options:)
+          @progress = Gradebook::ApplyScoreToUngradedSubmissions.queue_apply_score(course: @course, grader: @teacher.principal, options:)
         end
 
         describe "FF disabled" do

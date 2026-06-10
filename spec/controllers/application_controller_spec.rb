@@ -182,8 +182,8 @@ RSpec.describe ApplicationController do
       context "user_cache_key" do
         it "sets user_cache_key when user is present" do
           user_factory
-          @controller.instance_variable_set(:@current_user, @user)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+          controller.instance_variable_set(:@current_user, @user)
+          controller.instance_variable_set(:@current_principal, @user.principal)
           allow(@user).to receive(:uuid).and_return("test-uuid")
           expected_hmac = CanvasSecurity.hmac_sha512("test-uuid")
           expect(controller.js_env[:user_cache_key]).to eq(expected_hmac)
@@ -201,7 +201,7 @@ RSpec.describe ApplicationController do
           user_factory
           controller.instance_variable_set(:@domain_root_account, Account.default)
           controller.instance_variable_set(:@current_user, @user)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+          controller.instance_variable_set(:@current_principal, @user.principal)
           allow(controller).to receive(:user_display_json).and_return({})
         end
 
@@ -272,21 +272,21 @@ RSpec.describe ApplicationController do
 
           it "is set to false when the user is an account admin of a different account that is not the parent account of the course" do
             controller.instance_variable_set(:@current_user, @teacher_sub_account_admin)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher_sub_account_admin))
+            controller.instance_variable_set(:@current_principal, @teacher_sub_account_admin.principal)
             controller.instance_variable_set(:@context, @root_account_course)
             expect(controller.js_env[:current_user_is_admin]).to be_falsey
           end
 
           it "is set to true when the user is an account admin of the account that is the parent account of the course" do
             controller.instance_variable_set(:@current_user, @teacher_sub_account_admin)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher_sub_account_admin))
+            controller.instance_variable_set(:@current_principal, @teacher_sub_account_admin.principal)
             controller.instance_variable_set(:@context, @sub_account_course)
             expect(controller.js_env[:current_user_is_admin]).to be_truthy
           end
 
           it "is set to true when the user is an account admin of the root account" do
             controller.instance_variable_set(:@current_user, @admin)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@admin))
+            controller.instance_variable_set(:@current_principal, @admin.principal)
             controller.instance_variable_set(:@context, @root_account_course)
             expect(controller.js_env[:current_user_is_admin]).to be_truthy
           end
@@ -432,7 +432,7 @@ RSpec.describe ApplicationController do
         it "sets the env var to true when the user can use it" do
           course_with_teacher(active_all: true)
           controller.instance_variable_set(:@current_user, @teacher)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+          controller.instance_variable_set(:@current_principal, @teacher.principal)
           controller.instance_variable_set(:@context, @course)
           expect(controller.js_env[:DIRECT_SHARE_ENABLED]).to be_truthy
         end
@@ -440,7 +440,7 @@ RSpec.describe ApplicationController do
         it "sets the env var to false when the user can't use it" do
           course_with_student(active_all: true)
           controller.instance_variable_set(:@current_user, @student)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+          controller.instance_variable_set(:@current_principal, @student.principal)
           controller.instance_variable_set(:@context, @course)
           expect(controller.js_env[:DIRECT_SHARE_ENABLED]).to be_falsey
         end
@@ -448,7 +448,7 @@ RSpec.describe ApplicationController do
         it "sets the env var to false when the context is a group" do
           course_with_teacher(active_all: true)
           controller.instance_variable_set(:@current_user, @teacher)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+          controller.instance_variable_set(:@current_principal, @teacher.principal)
           controller.instance_variable_set(:@context, group_model)
           expect(controller.js_env[:DIRECT_SHARE_ENABLED]).to be_falsey
         end
@@ -461,7 +461,7 @@ RSpec.describe ApplicationController do
 
           it "sets the env var to false if the course is active" do
             controller.instance_variable_set(:@current_user, @teacher)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+            controller.instance_variable_set(:@current_principal, @teacher.principal)
             controller.instance_variable_set(:@context, @course)
             expect(controller.js_env[:DIRECT_SHARE_ENABLED]).to be_falsey
           end
@@ -473,7 +473,7 @@ RSpec.describe ApplicationController do
 
             it "sets the env var to true when the user can use it" do
               controller.instance_variable_set(:@current_user, @teacher)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+              controller.instance_variable_set(:@current_principal, @teacher.principal)
               controller.instance_variable_set(:@context, @course)
               expect(controller.js_env[:DIRECT_SHARE_ENABLED]).to be_truthy
             end
@@ -713,7 +713,7 @@ RSpec.describe ApplicationController do
           user_factory
           controller.instance_variable_set(:@domain_root_account, Account.default)
           controller.instance_variable_set(:@current_user, @user)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+          controller.instance_variable_set(:@current_principal, @user.principal)
           allow(controller).to receive(:user_display_json).and_return({})
         end
 
@@ -904,14 +904,14 @@ RSpec.describe ApplicationController do
             user = user_model
             user.preferences[:underage] = true
             controller.instance_variable_set(:@current_user, user)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user))
+            controller.instance_variable_set(:@current_principal, user.principal)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
           it "returns true if the account's k12 FF is on" do
             allow(BrandConfig).to receive(:k12_config)
             controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            controller.instance_variable_set(:@current_principal, user_model.principal)
             @account.enable_feature!(:k12)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
@@ -921,7 +921,7 @@ RSpec.describe ApplicationController do
             @account.save
             @account.disable_feature!(:k12)
             controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            controller.instance_variable_set(:@current_principal, user_model.principal)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
@@ -929,13 +929,13 @@ RSpec.describe ApplicationController do
             expect(controller).to receive(:k5_user?).and_return(true)
             @account.disable_feature!(:k12)
             controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            controller.instance_variable_set(:@current_principal, user_model.principal)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
           it "returns false otherwise" do
             controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            controller.instance_variable_set(:@current_principal, user_model.principal)
             @account.disable_feature!(:k12)
             expect(controller.send(:potentially_underage_user?)).to be false
           end
@@ -956,7 +956,7 @@ RSpec.describe ApplicationController do
 
             it "if both SUM and SUMAC are disabled" do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.disable_feature!(:send_usage_metrics)
               @account.disable_feature!(:send_usage_metrics_after_consent)
               expect(controller.send(:should_track_usage)).to eq "no_track_usage"
@@ -965,7 +965,7 @@ RSpec.describe ApplicationController do
             it "if the user might be a minor" do
               allow(BrandConfig).to receive(:k12_config)
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics_after_consent)
               @account.enable_feature!(:k12)
               expect(controller.send(:should_track_usage)).to eq "no_track_usage"
@@ -975,7 +975,7 @@ RSpec.describe ApplicationController do
           describe "returns track_usage" do
             it "if SUM is activated" do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics)
               @account.enable_feature!(:cookie_consent_necessary)
               expect(controller.send(:should_track_usage)).to eq "track_usage"
@@ -983,7 +983,7 @@ RSpec.describe ApplicationController do
 
             it "if SUM is activated and the user is potentially underage" do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics)
               @account.enable_feature!(:k12)
               expect(controller.send(:should_track_usage)).to eq "track_usage"
@@ -991,7 +991,7 @@ RSpec.describe ApplicationController do
 
             it "if SUMAC is activated but CCN is not" do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics_after_consent)
               @account.disable_feature!(:cookie_consent_necessary)
               expect(controller.send(:should_track_usage)).to eq "track_usage"
@@ -1001,7 +1001,7 @@ RSpec.describe ApplicationController do
           describe "returns ask_for_consent" do
             it "if SUMAC is activated and CCN is activated" do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics_after_consent)
               @account.enable_feature!(:cookie_consent_necessary)
               expect(controller.send(:should_track_usage)).to eq "ask_for_consent"
@@ -1234,7 +1234,7 @@ RSpec.describe ApplicationController do
           it "with SUM is implied to be ''true''" do
             @account.enable_feature!(:send_usage_metrics)
             controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            controller.instance_variable_set(:@current_principal, user_model.principal)
             mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "io", "cookie!")
             expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("true")
           end
@@ -1242,7 +1242,7 @@ RSpec.describe ApplicationController do
           describe "with SUMAC" do
             before do
               controller.instance_variable_set(:@current_user, user_model)
-              controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+              controller.instance_variable_set(:@current_principal, user_model.principal)
               @account.enable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp", "cookie!")
             end
@@ -1289,8 +1289,9 @@ RSpec.describe ApplicationController do
 
         describe "ONETRUST_CONSENT_DOMAIN_ID" do
           before do
-            controller.instance_variable_set(:@current_user, user_model)
-            controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_model))
+            user = user_model
+            controller.instance_variable_set(:@current_user, user)
+            controller.instance_variable_set(:@current_principal, user.principal)
           end
 
           describe "when it should not be included" do
@@ -1651,7 +1652,7 @@ RSpec.describe ApplicationController do
 
       before do
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
         controller.instance_variable_set(:@context, @user)
       end
 
@@ -1955,7 +1956,7 @@ RSpec.describe ApplicationController do
           allow(controller).to receive(:require_user) { user_model }
 
           controller.instance_variable_set(:@current_user, user)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user))
+          controller.instance_variable_set(:@current_principal, user.principal)
           controller.instance_variable_set(:@context, course)
           controller.instance_variable_set(:@domain_root_account, course.account)
         end
@@ -2870,8 +2871,9 @@ RSpec.describe ApplicationController do
         cookies = ActionDispatch::Cookies::CookieJar.new(controller.request)
         controller.allow_forgery_protection = true
         allow(controller.request).to receive_messages(cookie_jar: cookies, get?: false, head?: false, path: "/non-api/endpoint")
-        controller.instance_variable_set(:@current_user, User.new)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(User.new))
+        user = User.new
+        controller.instance_variable_set(:@current_user, user)
+        controller.instance_variable_set(:@current_principal, user.principal)
         controller.instance_variable_set(:@pseudonym_session, "session-authenticated")
         controller.params[controller.request_forgery_protection_token] = "bogus"
         controller.request.headers["X-CSRF-Token"] = "bogus"
@@ -2949,7 +2951,7 @@ RSpec.describe ApplicationController do
         before do
           user_factory
           controller.instance_variable_set(:@current_user, @user)
-          controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+          controller.instance_variable_set(:@current_principal, @user.principal)
         end
 
         context "when context_account is not present" do
@@ -3663,7 +3665,7 @@ RSpec.describe ApplicationController do
       before do
         user_with_pseudonym
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
         controller.instance_variable_set(:@current_pseudonym, @pseudonym)
         @pseudonym.unique_id = "pseudonym_user"
         @pseudonym.sis_user_id = "pseudonym_sis_456"
@@ -3710,7 +3712,7 @@ RSpec.describe ApplicationController do
         user_session @teacher
         controller.instance_variable_set(:@context, @course)
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
       end
 
       it "returns true on course home page" do
@@ -3771,7 +3773,7 @@ RSpec.describe ApplicationController do
         user_session @student
         controller.instance_variable_set(:@context, @course)
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
       end
 
       it "returns false regardless of page" do
@@ -3800,7 +3802,7 @@ RSpec.describe ApplicationController do
       controller.instance_variable_set(:@context, @course)
       controller.instance_variable_set(:@context_enrollment, @enrollment)
       controller.instance_variable_set(:@current_user, @student)
-      controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+      controller.instance_variable_set(:@current_principal, @student.principal)
     end
 
     it "returns false when context is not a Course" do
@@ -3832,7 +3834,7 @@ RSpec.describe ApplicationController do
     before do
       user_session(@student)
       controller.instance_variable_set(:@current_user, @student)
-      controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+      controller.instance_variable_set(:@current_principal, @student.principal)
     end
 
     it "sets ATHENA in js_env via public_app_config" do
@@ -3852,7 +3854,7 @@ RSpec.describe ApplicationController do
       user_session(@student)
       controller.instance_variable_set(:@context, @course)
       controller.instance_variable_set(:@current_user, @student)
-      controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@student))
+      controller.instance_variable_set(:@current_principal, @student.principal)
     end
 
     shared_examples_for "pages with an immersive reader flag enabled" do
@@ -4036,8 +4038,9 @@ RSpec.describe ApplicationController do
       let(:available_apps) { [CanvasCareer::Constants::App::CAREER_LEARNER] }
 
       it "returns true" do
-        controller.instance_variable_set(:@current_user, user_factory)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_factory))
+        user = user_factory
+        controller.instance_variable_set(:@current_user, user)
+        controller.instance_variable_set(:@current_principal, user.principal)
         expect(controller.show_career_switch?).to be true
       end
     end
@@ -4046,8 +4049,9 @@ RSpec.describe ApplicationController do
       let(:available_apps) { [CanvasCareer::Constants::App::ACADEMIC] }
 
       it "returns false" do
-        controller.instance_variable_set(:@current_user, user_factory)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user_factory))
+        user = user_factory
+        controller.instance_variable_set(:@current_user, user)
+        controller.instance_variable_set(:@current_principal, user.principal)
         expect(controller.show_career_switch?).to be false
       end
     end
@@ -4056,7 +4060,7 @@ RSpec.describe ApplicationController do
   describe "k5 helpers" do
     before do
       controller.instance_variable_set(:@current_user, @user)
-      controller.instance_variable_set(:@current_principal, @user && Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+      controller.instance_variable_set(:@current_principal, @user&.principal)
       controller.instance_variable_set(:@domain_root_account, @account)
     end
 
@@ -4089,7 +4093,7 @@ RSpec.describe ApplicationController do
         user_session @teacher
         controller.instance_variable_set(:@context, @course)
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
       end
 
       context "when the teacher has a quiz migration alert" do
@@ -4147,7 +4151,7 @@ RSpec.describe ApplicationController do
         user_session @student
         controller.instance_variable_set(:@context, @course)
         controller.instance_variable_set(:@current_user, @user)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        controller.instance_variable_set(:@current_principal, @user.principal)
         @quiz_migration_alert =
           QuizMigrationAlert.create!(user_id: @student.id, course_id: @course.id, migration_id: "10000000000040")
       end
@@ -4416,7 +4420,7 @@ describe CoursesController do
       controller.instance_variable_set(:@domain_root_account, Account.default)
       account_admin_user(active_all: true)
       controller.instance_variable_set(:@current_user, @user)
-      controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+      controller.instance_variable_set(:@current_principal, @user.principal)
 
       @master_course = course_factory
       @template = MasterCourses::MasterTemplate.set_as_master_course(@course)
@@ -4838,7 +4842,7 @@ RSpec.describe ApplicationController, "#set_js_env" do
     it "does not set current_context when the user does not have :read or :read_as_admin rights" do
       student = student_in_course(course: context).user
       controller.instance_variable_set(:@current_user, student)
-      controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+      controller.instance_variable_set(:@current_principal, student.principal)
       expect(controller.js_env[:current_context]).to be_nil
     end
 
@@ -4846,7 +4850,7 @@ RSpec.describe ApplicationController, "#set_js_env" do
       it "sets current_context when the user has :read rights" do
         teacher = teacher_in_course(course: context, active_all: true).user
         controller.instance_variable_set(:@current_user, teacher)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+        controller.instance_variable_set(:@current_principal, teacher.principal)
         expect(controller.js_env[:current_context]).to eq(
           {
             id: context.id,
@@ -4860,7 +4864,7 @@ RSpec.describe ApplicationController, "#set_js_env" do
       it "sets current_context when the user has :read_as_admin rights" do
         admin = account_admin_user(account:)
         controller.instance_variable_set(:@current_user, admin)
-        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
+        controller.instance_variable_set(:@current_principal, admin.principal)
         expect(controller.js_env[:current_context]).to eq(
           {
             id: context.id,

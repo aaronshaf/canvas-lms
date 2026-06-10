@@ -1228,7 +1228,7 @@ class FilesController < ApplicationController
 
     render status: :created,
            json: attachment_json(@attachment,
-                                 Canvas::AdheresToPolicy::UserPrincipal.new(@attachment.user),
+                                 @attachment.user.principal,
                                  { verifier: sanitized_verifier },
                                  { include: includes }),
            location: api_v1_attachment_url(@attachment, include: includes)

@@ -50,7 +50,7 @@ describe Api::V1::QuizQuestion do
     let(:question_data) { { "answers" => answers } }
     let(:question) { Quizzes::QuizQuestion.new(question_data:) }
     let(:user) { User.new }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
     let(:session) { nil }
     let(:context) { Course.create!(account:) }
     let(:includes) { [] }
@@ -140,7 +140,7 @@ describe Api::V1::QuizQuestion do
 
         subject = TestableApiQuizQuestion.question_json(
           @question,
-          Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+          @teacher.principal,
           session,
           context: @course,
           includes: [:assessment_question],
@@ -171,7 +171,7 @@ describe Api::V1::QuizQuestion do
       it "sets location tag for student" do
         subject = TestableApiQuizQuestion.question_json(
           @question,
-          @pupil && Canvas::AdheresToPolicy::UserPrincipal.new(@pupil),
+          @pupil&.principal,
           session,
           context: @course,
           censored: true,
@@ -189,7 +189,7 @@ describe Api::V1::QuizQuestion do
         @course.root_account.disable_feature!(:file_association_access)
         subject = TestableApiQuizQuestion.question_json(
           @question,
-          Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+          @teacher.principal,
           session,
           context: @course,
           includes: [:assessment_question],
@@ -215,7 +215,7 @@ describe Api::V1::QuizQuestion do
     let(:answers) { [] }
     let(:question) { Quizzes::QuizQuestion.new(question_data:) }
     let(:user) { User.new }
-    let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:principal) { user.principal }
     let(:account) { Account.create! }
     let(:course) { Course.create!(account:) }
     let(:session) { nil }

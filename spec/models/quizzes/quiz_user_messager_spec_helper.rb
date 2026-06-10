@@ -29,7 +29,7 @@ module Quizzes
 
     def send_message(recipients = "all")
       Quizzes::QuizUserMessager.new(quiz: @quiz,
-                                    principal: teacher_principal,
+                                    principal: @teacher.principal,
                                     conversation: conversation(recipients),
                                     root_account_id: Account.default.id).send
       run_jobs

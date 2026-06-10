@@ -58,7 +58,7 @@ module Assignments
     def initialize(assignments, user = nil)
       @assignments = Array(assignments)
       @user = user
-      @principal = @user && Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+      @principal = @user&.principal
     end
 
     # Returns { assignment.global_id => Integer }, defaults to 0 for unknown keys

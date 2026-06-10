@@ -52,7 +52,7 @@ describe "users/_logins" do
       admin = account_admin_user
       view_context(@account, admin)
       assign(:current_user, admin)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
+      assign(:current_principal, admin.principal)
       render
       expect(response).to have_tag("span#sis_user_id_#{@pseudo.id}", @pseudo.sis_user_id)
       expect(response).to have_tag("span#integration_id_#{@pseudo.id}", @pseudo.integration_id)
@@ -65,7 +65,7 @@ describe "users/_logins" do
       admin = account_admin_user_with_role_changes(role_changes: { "manage_sis" => false }, account: @account)
       view_context(@account, admin)
       assign(:current_user, admin)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
+      assign(:current_principal, admin.principal)
       render
       expect(response).to have_tag("span#sis_user_id_#{@pseudo.id}", @pseudo.sis_user_id)
       expect(response).to have_tag("span#integration_id_#{@pseudo.id}", @pseudo.integration_id)
@@ -83,7 +83,7 @@ describe "users/_logins" do
     it "displays when user has permission to create pseudonym" do
       assign(:domain_root_account, account)
       assign(:current_user, sally)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
+      assign(:current_principal, sally.principal)
       assign(:user, bob)
       render
       expect(response).to have_tag("a.add_pseudonym_link", with: { "data-can-manage-sis" => "true" })
@@ -92,7 +92,7 @@ describe "users/_logins" do
     it "does not display when user lacks permission to create pseudonym" do
       assign(:domain_root_account, account)
       assign(:current_user, bob)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
+      assign(:current_principal, bob.principal)
       assign(:user, sally)
       render
       expect(response).not_to have_tag("a.add_pseudonym_link")
@@ -110,7 +110,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, account)
       assign(:current_user, sally)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
+      assign(:current_principal, sally.principal)
       assign(:user, bob)
       render
       expect(response).to have_tag("a.reset_mfa_link")
@@ -124,7 +124,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, account)
       assign(:current_user, bob)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
+      assign(:current_principal, bob.principal)
       assign(:user, sally)
       render
       expect(response).not_to have_tag("a.reset_mfa_link")
@@ -135,7 +135,7 @@ describe "users/_logins" do
         bob.otp_secret_key = "secret"
         assign(:domain_root_account, account)
         assign(:current_user, sally)
-        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
+        assign(:current_principal, sally.principal)
         assign(:user, bob)
         allow(view).to receive(:can_do).and_call_original
         allow(view).to receive(:can_do).with(bob, anything, :manage, :manage_user_details).and_return(false)
@@ -165,7 +165,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, account)
       assign(:current_user, bob)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
+      assign(:current_principal, bob.principal)
       assign(:user, bob)
       render
       expect(response).to have_tag(".add_holder")
@@ -179,7 +179,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, account)
       assign(:current_user, sally)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
+      assign(:current_principal, sally.principal)
       assign(:user, sally)
       render
       expect(response).to have_tag(".add_holder")
@@ -193,7 +193,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, Account.default)
       assign(:current_user, bob)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
+      assign(:current_principal, bob.principal)
       assign(:user, bob)
       render
       expect(response).not_to have_tag(".add_holder")
@@ -210,7 +210,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, @account)
       assign(:current_user, @user)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+      assign(:current_principal, @user.principal)
       assign(:user, @user)
       render
 
@@ -227,7 +227,7 @@ describe "users/_logins" do
 
       assign(:domain_root_account, @account)
       assign(:current_user, @user)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+      assign(:current_principal, @user.principal)
       assign(:user, @user)
       render
 

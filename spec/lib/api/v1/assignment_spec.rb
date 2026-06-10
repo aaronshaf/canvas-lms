@@ -68,7 +68,7 @@ describe "Api::V1::Assignment" do
 
   describe "#assignment_json" do
     let(:user) { user_model }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
     let(:session) { Object.new }
 
     it "returns json" do
@@ -174,7 +174,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @teacher
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), my_session)
+          json = api.assignment_json(assignment, @teacher.principal, my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
       end
@@ -193,7 +193,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
+          json = api.assignment_json(assignment, @student.principal, my_session)
           expect(json["restrict_quantitative_data"]).to be_truthy
         end
 
@@ -206,7 +206,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
+          json = api.assignment_json(assignment, @student.principal, my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
 
@@ -219,7 +219,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
+          json = api.assignment_json(assignment, @student.principal, my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
       end
@@ -265,7 +265,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns the checkpoints attribute with the correct values for student" do
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, @student.principal, session, { include_checkpoints: true })
           checkpoints = json["checkpoints"]
           first_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_TOPIC }
           second_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_ENTRY }
@@ -282,7 +282,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns the checkpoints attribute with the correct values" do
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, @teacher.principal, session, { include_checkpoints: true })
           checkpoints = json["checkpoints"]
           first_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_TOPIC }
           second_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_ENTRY }
@@ -337,18 +337,18 @@ describe "Api::V1::Assignment" do
       end
 
       it "includes assessment_requests list when the flag is enabled" do
-        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: false })
+        json = api.assignment_json(@assignment, @student1.principal, session, { include_assessment_requests: false })
         expect(json["assessment_requests"]).not_to be_present
       end
 
       it "excludes assessment_requests list when the flag is disabled" do
-        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, @student1.principal, session, { include_assessment_requests: true })
         expect(json["assessment_requests"]).to be_present
       end
 
       it "includes workflow_state, user_id, user_name when anonymous_peer_reviews is false" do
         @assignment.update_attribute(:anonymous_peer_reviews, false)
-        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, @student1.principal, session, { include_assessment_requests: true })
         assessment_request = json["assessment_requests"][0]
         expect(assessment_request["workflow_state"]).to eq @assessment_request.workflow_state
         expect(assessment_request["user_id"]).to eq @assessment_request.user.id
@@ -358,7 +358,7 @@ describe "Api::V1::Assignment" do
 
       it "includes workflow_state, anonymous_id when anonymous_peer_reviews is true" do
         @assignment.update_attribute(:anonymous_peer_reviews, true)
-        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, @student1.principal, session, { include_assessment_requests: true })
         assessment_request = json["assessment_requests"][0]
         expect(assessment_request["workflow_state"]).to eq @assessment_request.workflow_state
         expect(assessment_request["anonymous_id"]).to eq @assessment_request.asset.anonymous_id
@@ -389,7 +389,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns all_dates associated with a checkpointed assignment's sub_assignments" do
-          json = api.assignment_json(@topic.assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), session, { include_all_dates: true, include_discussion_topic: false, override_dates: false })
+          json = api.assignment_json(@topic.assignment, @teacher.principal, session, { include_all_dates: true, include_discussion_topic: false, override_dates: false })
 
           # Should return dates for sub_assignment overrides and the checkpointed due dates
           expect(json["all_dates"].length).to eq 4
@@ -415,7 +415,7 @@ describe "Api::V1::Assignment" do
           )
         end
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
+        json = api.assignment_json(assignment, teacher.principal, session, { include_all_dates: true })
 
         expect(json["all_dates"]).to eq([])
         expect(json["all_dates_count"]).to eq(26)
@@ -532,7 +532,7 @@ describe "Api::V1::Assignment" do
 
         expect(context_module.published?).to be false
         expect(assignment.published?).to be true
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(student), session, { include_can_submit: true })
+        json = api.assignment_json(assignment, student.principal, session, { include_can_submit: true })
         expect(json).to have_key "can_submit"
         expect(json[:can_submit]).to be false
       end
@@ -740,7 +740,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, lock_at: 5.days.from_now)
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
+        json = api.assignment_json(assignment, teacher.principal, session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("open")
@@ -752,7 +752,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: 5.days.from_now, due_at: 10.days.from_now)
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
+        json = api.assignment_json(assignment, teacher.principal, session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("pending")
@@ -764,7 +764,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, lock_at: 5.days.ago, due_at: 10.days.ago)
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
+        json = api.assignment_json(assignment, teacher.principal, session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("closed")
@@ -776,7 +776,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: nil, lock_at: nil)
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
+        json = api.assignment_json(assignment, teacher.principal, session, {})
 
         expect(json).not_to have_key("availability_status")
       end
@@ -786,7 +786,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: 5.days.ago, lock_at: nil)
 
-        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
+        json = api.assignment_json(assignment, teacher.principal, session, {})
 
         expect(json).not_to have_key("availability_status")
       end
@@ -804,7 +804,7 @@ describe "Api::V1::Assignment" do
             lock_at: 10.days.from_now
           )
 
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
+          json = api.assignment_json(assignment, teacher.principal, session, { include_all_dates: true })
 
           expect(json["all_dates"]).to be_present
           open_dates = json["all_dates"].select { |d| d["availability_status"]&.dig("status") == "open" }
@@ -819,7 +819,7 @@ describe "Api::V1::Assignment" do
           teacher = teacher_in_course(course:, active_all: true).user
           assignment = assignment_model(course:, unlock_at: nil, lock_at: nil)
 
-          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
+          json = api.assignment_json(assignment, teacher.principal, session, { include_all_dates: true })
 
           expect(json["all_dates"]).to be_present
           json["all_dates"].each do |date|
@@ -977,7 +977,6 @@ describe "Api::V1::Assignment" do
   describe "update lockdown browser settings" do
     let(:course) { Course.create! }
     let(:teacher) { course.enroll_teacher(User.create!, enrollment_state: "active").user }
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
 
     let(:initial_lockdown_browser_params) do
       ActionController::Parameters.new({
@@ -1011,7 +1010,7 @@ describe "Api::V1::Assignment" do
     end
 
     it "creates and updates lockdown browser settings" do
-      api.update_api_assignment(assignment, initial_lockdown_browser_params, teacher_principal)
+      api.update_api_assignment(assignment, initial_lockdown_browser_params, teacher.principal)
       expect(assignment.settings["lockdown_browser"]).to eq(
         "require_lockdown_browser" => true,
         "require_lockdown_browser_for_results" => false,
@@ -1020,7 +1019,7 @@ describe "Api::V1::Assignment" do
         "access_code" => "magggic code"
       )
 
-      api.update_api_assignment(assignment, lockdown_browser_params, teacher_principal)
+      api.update_api_assignment(assignment, lockdown_browser_params, teacher.principal)
       expect(assignment.settings["lockdown_browser"]).to eq(
         "require_lockdown_browser" => true,
         "require_lockdown_browser_for_results" => true,
@@ -1033,7 +1032,7 @@ describe "Api::V1::Assignment" do
 
   describe "Updating submission type" do
     let(:user) { user_model }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
     let(:course) { course_factory }
     let(:student) { course.enroll_student(User.create!, enrollment_state: "active").user }
     let(:assignment_update_params) do
@@ -1145,7 +1144,7 @@ describe "Api::V1::Assignment" do
 
   describe "update with the 'duplicated_successfully' parameter" do
     let(:user) { user_model }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
     let(:assignment) { assignment_model(workflow_state:, duplicate_of: original_assignment) }
 
     let(:assignment_update_params) do
@@ -1253,7 +1252,7 @@ describe "Api::V1::Assignment" do
   describe "when updating with 'alignment_cloned_successfully'" do
     let(:original_assignment) { assignment_model(workflow_state: "published") }
     let(:assignment) { assignment_model(workflow_state: "outcome_alignment_cloning", duplicate_of: original_assignment) }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user_model) }
+    let(:current_principal) { user_model.principal }
 
     it "updates the state to the original state" do
       params =  ActionController::Parameters.new(alignment_cloned_successfully: true)
@@ -1295,7 +1294,7 @@ describe "Api::V1::Assignment" do
     let_once(:course) { course_model }
     let_once(:account) { assignment.root_account }
     let_once(:user) { user_model }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
 
     context "external tool url" do
       it "creates the assignment with the passed in URL" do
@@ -1443,7 +1442,7 @@ describe "Api::V1::Assignment" do
 
     let(:opts) { {} }
     let(:user) { user_model }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+    let(:current_principal) { user.principal }
 
     context "when param[force_updated_at] is true" do
       let(:assignment_update_params) do
@@ -2061,7 +2060,6 @@ describe "Api::V1::Assignment" do
   describe "transaction rollback when peer review creation fails" do
     let(:course) { course_factory(active_all: true) }
     let(:teacher) { teacher_in_course(course:, active_all: true).user }
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
     let(:section) { course.default_section }
 
     before do
@@ -2084,7 +2082,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2106,7 +2104,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2129,7 +2127,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2160,7 +2158,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(Assignment.count).to eq(initial_assignment_count)
@@ -2182,7 +2180,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.create_api_assignment(assignment, assignment_params, teacher_principal, course)
+          result = api.create_api_assignment(assignment, assignment_params, teacher.principal, course)
 
           expect(result).to eq(:created)
           expect(assignment).to be_persisted
@@ -2210,7 +2208,7 @@ describe "Api::V1::Assignment" do
           }
         )
 
-        result = api.update_api_assignment(existing_assignment, update_params, teacher_principal, course)
+        result = api.update_api_assignment(existing_assignment, update_params, teacher.principal, course)
 
         expect(result).to be(false)
         existing_assignment.reload
@@ -2228,7 +2226,7 @@ describe "Api::V1::Assignment" do
           }
         )
 
-        result = api.update_api_assignment(existing_assignment, update_params, teacher_principal, course)
+        result = api.update_api_assignment(existing_assignment, update_params, teacher.principal, course)
 
         expect(result).to be(false)
         existing_assignment.reload
@@ -2256,7 +2254,7 @@ describe "Api::V1::Assignment" do
             due_at: 6.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2273,7 +2271,7 @@ describe "Api::V1::Assignment" do
             lock_at: 9.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2288,7 +2286,7 @@ describe "Api::V1::Assignment" do
             due_at: 4.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to eq(:ok)
         end
@@ -2302,7 +2300,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
         end
 
         it "rolls back when parent due_at moves past peer review unlock_at and peer_review params have no dates" do
@@ -2316,7 +2314,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2337,7 +2335,7 @@ describe "Api::V1::Assignment" do
             }
           )
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2364,7 +2362,7 @@ describe "Api::V1::Assignment" do
 
           update_params = ActionController::Parameters.new(name: assignment_with_peer_review.name)
 
-          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher_principal, course)
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher.principal, course)
 
           expect(result).to be(false)
           expect(assignment_with_peer_review.errors[:base]).to include(
@@ -2390,7 +2388,7 @@ describe "Api::V1::Assignment" do
             due_at: 5.days.from_now.iso8601
           )
 
-          result = api.update_api_assignment(legacy_assignment, update_params, teacher_principal, course)
+          result = api.update_api_assignment(legacy_assignment, update_params, teacher.principal, course)
 
           expect(result).to eq(:ok)
         end

@@ -419,7 +419,7 @@ class CalendarEventsApiController < ApplicationController
   #
   # @returns [CalendarEvent]
   def user_index
-    render_events_for_user(Canvas::AdheresToPolicy::UserPrincipal.new(@observee), api_v1_user_calendar_events_url)
+    render_events_for_user(@observee.principal, api_v1_user_calendar_events_url)
   end
 
   def render_events_for_user(principal, route_url)

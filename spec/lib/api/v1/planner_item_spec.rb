@@ -37,9 +37,6 @@ describe Api::V1::PlannerItem do
     @student_override = planner_override_model(plannable: @assignment, user: @student, marked_complete: true)
   end
 
-  let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
-  let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-
   let(:planner_item_harness) do
     Class.new do
       include Api::V1::PlannerItem
@@ -82,32 +79,32 @@ describe Api::V1::PlannerItem do
     it "returns with a plannable_date for the respective item" do
       asg_due_at = 1.week.ago
       asg = assignment_model course: @course, submission_types: "online_text_entry", due_at: asg_due_at
-      asg_hash = api.planner_item_json(asg, student_principal, session)
+      asg_hash = api.planner_item_json(asg, @student.principal, session)
       expect(asg_hash[:plannable_date]).to eq asg_due_at
       expect(asg_hash[:plannable]).to include("id", "title", "due_at", "points_possible")
 
       dt_todo_date = 1.week.from_now
       dt = discussion_topic_model course: @course, todo_date: dt_todo_date
-      dt_hash = api.planner_item_json(dt, student_principal, session)
+      dt_hash = api.planner_item_json(dt, @student.principal, session)
       expect(dt_hash[:plannable_date]).to eq dt_todo_date
       expect(dt_hash[:plannable]).to include("id", "title", "todo_date", "assignment_id")
 
       wiki_todo_date = 1.day.ago
       wiki = wiki_page_model course: @course, todo_date: wiki_todo_date
-      wiki_hash = api.planner_item_json(wiki, student_principal, session)
+      wiki_hash = api.planner_item_json(wiki, @student.principal, session)
       expect(wiki_hash[:plannable_date]).to eq wiki_todo_date
       expect(wiki_hash[:plannable]).to include("id", "title", "todo_date")
 
       annc_post_date = 1.day.from_now
       annc = announcement_model context: @course, posted_at: annc_post_date
-      annc_hash = api.planner_item_json(annc, student_principal, session)
+      annc_hash = api.planner_item_json(annc, @student.principal, session)
       expect(annc_hash[:plannable_date]).to eq annc_post_date
       expect(annc_hash[:plannable]).not_to include "todo_date"
       expect(annc_hash[:plannable]).to include("id", "title", "created_at")
 
       event_start_date = 2.days.from_now
       event = calendar_event_model(start_at: event_start_date)
-      event_hash = api.planner_item_json(event, student_principal, session)
+      event_hash = api.planner_item_json(event, @student.principal, session)
       expect(event_hash[:plannable_date]).to eq event_start_date
       expect(event_hash[:plannable].keys).to include("id", "title", "start_at", "end_at", "all_day", "description")
     end
@@ -118,13 +115,13 @@ describe Api::V1::PlannerItem do
                              submission_types: "online_text_entry",
                              due_at: 2.days.ago,
                              lock_at: lock_date
-      hash = api.planner_item_json(asg, student_principal, session)
+      hash = api.planner_item_json(asg, @student.principal, session)
       expect(hash[:plannable]["lock_at"]).to eq lock_date
     end
 
     it "includes lock_at as nil when not set" do
       asg = assignment_model course: @course, submission_types: "online_text_entry"
-      hash = api.planner_item_json(asg, student_principal, session)
+      hash = api.planner_item_json(asg, @student.principal, session)
       expect(hash[:plannable].key?("lock_at")).to be true
       expect(hash[:plannable]["lock_at"]).to be_nil
     end
@@ -138,20 +135,20 @@ describe Api::V1::PlannerItem do
         due_at: 2.days.ago,
         lock_at: lock_date
       )
-      hash = api.planner_item_json(quiz, student_principal, session)
+      hash = api.planner_item_json(quiz, @student.principal, session)
       expect(hash[:plannable]["lock_at"]).to eq lock_date
     end
 
     it "returns with a context_name and context_image for the respective item" do
-      asg_hash = api.planner_item_json(@assignment, student_principal, session)
+      asg_hash = api.planner_item_json(@assignment, @student.principal, session)
       expect(asg_hash[:context_name]).to eq @course.name
       expect(asg_hash[:context_image]).to be_nil
 
       @course.name = "test course name"
-      expect(api.planner_item_json(@assignment, student_principal, session)[:context_name]).to eq "test course name"
+      expect(api.planner_item_json(@assignment, @student.principal, session)[:context_name]).to eq "test course name"
 
       @course.image_url = "path/to/course/image.png"
-      expect(api.planner_item_json(@assignment, student_principal, session)[:context_image]).to eq "path/to/course/image.png"
+      expect(api.planner_item_json(@assignment, @student.principal, session)[:context_image]).to eq "path/to/course/image.png"
     end
 
     it "returns plannable_date for quizzes with differentiated due dates using cached_due_date" do
@@ -183,7 +180,7 @@ describe Api::V1::PlannerItem do
       assignment_with_submission = Assignment.with_user_due_date(@student)
                                              .find(assignment.id)
 
-      quiz_hash = api.planner_item_json(assignment_with_submission, student_principal, session)
+      quiz_hash = api.planner_item_json(assignment_with_submission, @student.principal, session)
 
       expect(quiz_hash[:plannable_date]).not_to be_nil
       expect(quiz_hash[:plannable_date].to_date).to eq override_due_at.to_date
@@ -198,7 +195,7 @@ describe Api::V1::PlannerItem do
         event_start_date = 2.days.from_now
         @meeting_urls.each do |zurl|
           event = calendar_event_model(start_at: event_start_date, description: "zoom at #{zurl} for this thing")
-          event_hash = api.planner_item_json(event, student_principal, session)
+          event_hash = api.planner_item_json(event, @student.principal, session)
           expect(event_hash[:plannable][:online_meeting_url]).to eq zurl
         end
       end
@@ -207,7 +204,7 @@ describe Api::V1::PlannerItem do
         event_start_date = 2.days.from_now
         @meeting_urls.each do |zurl|
           event = calendar_event_model(start_at: event_start_date, location_name: "zoom at #{zurl} for this thing")
-          event_hash = api.planner_item_json(event, student_principal, session)
+          event_hash = api.planner_item_json(event, @student.principal, session)
           expect(event_hash[:plannable][:online_meeting_url]).to eq zurl
         end
       end
@@ -259,7 +256,7 @@ describe Api::V1::PlannerItem do
         it "matches valid video conferencing links" do
           valid_links.each do |l|
             event = calendar_event_model(start_at: 1.day.from_now, description: l)
-            event_hash = api.planner_item_json(event, student_principal, session)
+            event_hash = api.planner_item_json(event, @student.principal, session)
             expect(event_hash[:plannable][:online_meeting_url]).to eq l
           end
         end
@@ -267,7 +264,7 @@ describe Api::V1::PlannerItem do
         it "does not match invalid links" do
           invalid_links.each do |l|
             event = calendar_event_model(start_at: 1.day.from_now, description: l)
-            event_hash = api.planner_item_json(event, student_principal, session)
+            event_hash = api.planner_item_json(event, @student.principal, session)
             expect(event_hash[:plannable][:online_meeting_url]).to be_nil
           end
         end
@@ -276,26 +273,24 @@ describe Api::V1::PlannerItem do
 
     context "planner overrides" do
       it "returns the planner override id" do
-        teacher_hash = api.planner_item_json(@assignment, teacher_principal, session)
-        student_hash = api.planner_item_json(@assignment, student_principal, session)
+        teacher_hash = api.planner_item_json(@assignment, @teacher.principal, session)
+        student_hash = api.planner_item_json(@assignment, @student.principal, session)
 
         expect(teacher_hash[:planner_override][:id]).to eq @teacher_override.id
         expect(student_hash[:planner_override][:id]).to eq @student_override.id
       end
 
       it "has a nil planner_override value" do
-        json = api.planner_item_json(@quiz.assignment, student_principal, session)
+        json = api.planner_item_json(@quiz.assignment, @student.principal, session)
         expect(json[:planner_override]).to be_nil
       end
     end
 
     context "peer reviews" do
-      let(:reviewer_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@reviewer) }
-
       it "includes submissions needing peer review" do
         submission = @assignment.submit_homework(@student, body: "the stuff")
         @peer_review = @assignment.assign_peer_review(@reviewer, @student)
-        json = api.planner_item_json(@peer_review, reviewer_principal, session)
+        json = api.planner_item_json(@peer_review, @reviewer.principal, session)
         expect(json[:plannable_type]).to eq "assessment_request"
         expect(json[:plannable][:title]).to eq @assignment.title
         expect(json[:plannable][:todo_date]).to eq submission.cached_due_date
@@ -310,7 +305,7 @@ describe Api::V1::PlannerItem do
           asset: submission,
           user: @student
         )
-        json = api.planner_item_json(@peer_review, reviewer_principal, session)
+        json = api.planner_item_json(@peer_review, @reviewer.principal, session)
         expected_url = "course_assignment_url"
         expect(json[:html_url]).to eq expected_url
       end
@@ -324,7 +319,7 @@ describe Api::V1::PlannerItem do
           asset: submission,
           user: @student
         )
-        json = api.planner_item_json(@peer_review, reviewer_principal, session)
+        json = api.planner_item_json(@peer_review, @reviewer.principal, session)
         expected_url = "/courses/#{@assignment.course.id}/assignments/#{@assignment.id}/submissions/#{@student.id}"
         expect(json[:html_url]).to eq expected_url
       end
@@ -339,7 +334,7 @@ describe Api::V1::PlannerItem do
           asset: submission,
           user: @student
         )
-        json = api.planner_item_json(@peer_review, reviewer_principal, session)
+        json = api.planner_item_json(@peer_review, @reviewer.principal, session)
         expected_url = "/courses/#{@course.id}/assignments/#{@assignment.id}/anonymous_submissions/#{submission.anonymous_id}"
         expect(json[:html_url]).to eq expected_url
       end
@@ -358,7 +353,7 @@ describe Api::V1::PlannerItem do
             asset: submission,
             user: @student
           )
-          json = api.planner_item_json(@peer_review, reviewer_principal, session)
+          json = api.planner_item_json(@peer_review, @reviewer.principal, session)
           expected_url = "course_assignment_url"
           expect(json[:html_url]).to eq expected_url
         end
@@ -373,18 +368,18 @@ describe Api::V1::PlannerItem do
       end
 
       it "returns checkpoints" do
-        json = api.planner_item_json(@checkpoint_topic, student_principal, session)
+        json = api.planner_item_json(@checkpoint_topic, @student.principal, session)
         expect(json[:plannable_type]).to eq "sub_assignment"
         expect(json[:plannable][:title]).to eq @checkpoint_topic.title
       end
 
       it "includes number of required replies" do
-        json = api.planner_item_json(@checkpoint_topic, student_principal, session)
+        json = api.planner_item_json(@checkpoint_topic, @student.principal, session)
         expect(json[:details][:reply_to_entry_required_count]).to eq 3
       end
 
       it "includes sub assignment tag" do
-        json = api.planner_item_json(@checkpoint_topic, student_principal, session)
+        json = api.planner_item_json(@checkpoint_topic, @student.principal, session)
         expect(json[:plannable][:sub_assignment_tag]).to eq "reply_to_topic"
       end
     end
@@ -406,22 +401,22 @@ describe Api::V1::PlannerItem do
       end
 
       it "returns peer_review_sub_assignment as plannable_type" do
-        json = api.planner_item_json(@peer_review_sub, student_principal, session)
+        json = api.planner_item_json(@peer_review_sub, @student.principal, session)
         expect(json[:plannable_type]).to eq "peer_review_sub_assignment"
       end
 
       it "includes the title from the peer review sub-assignment" do
-        json = api.planner_item_json(@peer_review_sub, student_principal, session)
+        json = api.planner_item_json(@peer_review_sub, @student.principal, session)
         expect(json[:plannable][:title]).to eq "Assignment with Peer Review Peer Review (2)"
       end
 
       it "includes the due_at from the peer review sub-assignment" do
-        json = api.planner_item_json(@peer_review_sub, student_principal, session)
+        json = api.planner_item_json(@peer_review_sub, @student.principal, session)
         expect(json[:plannable][:due_at]).to eq @peer_review_sub.due_at
       end
 
       it "returns html_url pointing to peer reviews page" do
-        json = api.planner_item_json(@peer_review_sub, student_principal, session)
+        json = api.planner_item_json(@peer_review_sub, @student.principal, session)
         expect(json[:html_url]).to match "/courses/#{@course.id}/assignments/#{@parent_assignment.id}/peer_reviews"
       end
 
@@ -435,7 +430,7 @@ describe Api::V1::PlannerItem do
           teacher = @course.teachers.first
           @peer_review_submission.add_comment(author: teacher, comment: "Good peer review work!")
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be true
         end
 
@@ -443,7 +438,7 @@ describe Api::V1::PlannerItem do
           teacher = @course.teachers.first
           @parent_submission.add_comment(author: teacher, comment: "Good assignment work!")
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be false
         end
 
@@ -451,7 +446,7 @@ describe Api::V1::PlannerItem do
           teacher = @course.teachers.first
           @peer_review_submission.add_comment(author: teacher, comment: "Good peer review!")
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:new_activity]).to be true
         end
 
@@ -459,7 +454,7 @@ describe Api::V1::PlannerItem do
           teacher = @course.teachers.first
           @parent_submission.add_comment(author: teacher, comment: "Good assignment!")
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:new_activity]).to be false
         end
 
@@ -468,13 +463,13 @@ describe Api::V1::PlannerItem do
           @peer_review_submission.add_comment(author: teacher, comment: "Peer review feedback!")
           @parent_submission.add_comment(author: teacher, comment: "Parent assignment feedback!")
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:submissions][:feedback][:comment]).to eq "Peer review feedback!"
           expect(json[:submissions][:feedback][:comment]).not_to eq "Parent assignment feedback!"
         end
 
         it "shows has_feedback as false when no comments exist on either submission" do
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be false
         end
 
@@ -484,7 +479,7 @@ describe Api::V1::PlannerItem do
           @peer_review_submission.mark_item_read("comment")
           @peer_review_submission.mark_read(@student)
 
-          json = api.planner_item_json(@peer_review_sub, student_principal, session)
+          json = api.planner_item_json(@peer_review_sub, @student.principal, session)
           expect(json[:new_activity]).to be false
         end
       end
@@ -492,7 +487,7 @@ describe Api::V1::PlannerItem do
 
     describe "#submission_statuses_for" do
       it "returns the submission statuses for the learning object" do
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json).to have_key(:submissions)
         expect(%i[submitted excused graded late missing needs_grading has_feedback redo_request].all? do |k|
           json[:submissions].key?(k)
@@ -502,14 +497,14 @@ describe Api::V1::PlannerItem do
       it "indicates that an assignment is submitted" do
         @assignment.submit_homework(@student, body: "b")
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:submitted]).to be true
       end
 
       it "indicates that an assignment is missing" do
         @assignment.update!(due_at: 1.week.ago)
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:missing]).to be true
       end
 
@@ -518,7 +513,7 @@ describe Api::V1::PlannerItem do
         submission.excused = true
         submission.save!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:excused]).to be true
       end
 
@@ -527,7 +522,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:graded]).to be true
         # just because it's graded, doesn't mean there's feedback
         expect(json[:submissions][:has_feedback]).to be false
@@ -537,14 +532,14 @@ describe Api::V1::PlannerItem do
         @assignment.update!(due_at: 1.week.ago)
         @assignment.submit_homework(@student, body: "d")
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:late]).to be true
       end
 
       it "indicates that an assignment needs grading" do
         @assignment.submit_homework(@student, body: "y")
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:needs_grading]).to be true
       end
 
@@ -554,7 +549,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:graded]).to be true
       end
@@ -564,7 +559,7 @@ describe Api::V1::PlannerItem do
         submission.add_comment(user: @teacher, comment: "nice work, fam")
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:graded]).to be false
       end
@@ -575,7 +570,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "nice work, fam",
@@ -598,7 +593,7 @@ describe Api::V1::PlannerItem do
           submission.update(score: 10)
           submission.grade_it!
         end
-        json = api.planner_item_json(@assignment, student_principal, session, { due_after: 5.months.ago })
+        json = api.planner_item_json(@assignment, @student.principal, session, { due_after: 5.months.ago })
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "nice work, fam",
@@ -620,7 +615,7 @@ describe Api::V1::PlannerItem do
           submission.update(score: 10)
           submission.grade_it!
         end
-        json = api.planner_item_json(@assignment, student_principal, session, { due_after: 3.weeks.ago })
+        json = api.planner_item_json(@assignment, @student.principal, session, { due_after: 3.weeks.ago })
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "nice work, fam",
@@ -637,7 +632,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "nice work, fam",
@@ -655,7 +650,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "don't let it go to your head.",
@@ -671,7 +666,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback]).to eq({
                                                       comment: "nice work, fam",
@@ -689,7 +684,7 @@ describe Api::V1::PlannerItem do
         submission.update(score: 10)
         submission.grade_it!
 
-        json = api.planner_item_json(@assignment, student_principal, session)
+        json = api.planner_item_json(@assignment, @student.principal, session)
         expect(json[:submissions][:has_feedback]).to be true
         expect(json[:submissions][:feedback].keys).not_to include(:author_name, :author_avatar_url)
       end
@@ -707,7 +702,7 @@ describe Api::V1::PlannerItem do
           @reply_to_topic.grade_student(@student, grade: 5, grader: @teacher)
           @topic.assignment.submission_for_student(@student).add_comment(user: @teacher, comment: "nice work")
 
-          json = api.planner_item_json(@reply_to_topic, student_principal, session)
+          json = api.planner_item_json(@reply_to_topic, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be true
           expect(json[:submissions][:graded]).to be true
         end
@@ -716,7 +711,7 @@ describe Api::V1::PlannerItem do
           @reply_to_topic.submit_homework @student, body: "checkpoint submission for #{@student.name}"
           @topic.assignment.submission_for_student(@student).add_comment(user: @teacher, comment: "nice work")
 
-          json = api.planner_item_json(@assignment, student_principal, session)
+          json = api.planner_item_json(@assignment, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be true
           expect(json[:submissions][:graded]).to be false
         end
@@ -725,7 +720,7 @@ describe Api::V1::PlannerItem do
           @reply_to_topic.submit_homework @student, body: "checkpoint submission for #{@student.name}"
           @topic.assignment.submission_for_student(@student).add_comment(user: @teacher, comment: "nice work")
 
-          json = api.planner_item_json(@reply_to_topic, student_principal, session)
+          json = api.planner_item_json(@reply_to_topic, @student.principal, session)
           expect(json[:submissions][:has_feedback]).to be true
           expect(json[:submissions][:feedback]).to eq({
                                                         comment: "nice work",
@@ -749,9 +744,9 @@ describe Api::V1::PlannerItem do
       graded_submission_model(assignment: @assignment, user: @student).update(score: 5)
       graded_submission_model(assignment: @topic.assignment, user: @student).update(score: 5)
       Assignment.active.each(&:post_submissions)
-      expect(api.planner_item_json(@quiz.reload, student_principal, session)[:new_activity]).to be true
-      expect(api.planner_item_json(@assignment.reload, student_principal, session)[:new_activity]).to be true
-      expect(api.planner_item_json(@topic.reload, student_principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@quiz.reload, @student.principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@assignment.reload, @student.principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@topic.reload, @student.principal, session)[:new_activity]).to be true
     end
 
     it "returns true for assignments with new feedback" do
@@ -760,24 +755,24 @@ describe Api::V1::PlannerItem do
       submission_model(assignment: @assignment, user: @student).add_comment(author: @teacher, comment: "hi")
       submission_model(assignment: @topic.assignment, user: @student).add_comment(author: @teacher, comment: "hi")
       Assignment.active.each(&:post_submissions)
-      expect(api.planner_item_json(@quiz.reload, student_principal, session)[:new_activity]).to be true
-      expect(api.planner_item_json(@assignment.reload, student_principal, session)[:new_activity]).to be true
-      expect(api.planner_item_json(@topic.reload, student_principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@quiz.reload, @student.principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@assignment.reload, @student.principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@topic.reload, @student.principal, session)[:new_activity]).to be true
     end
 
     it "returns true for unread discussions" do
-      expect(api.planner_item_json(@topic, student_principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@topic, @student.principal, session)[:new_activity]).to be true
     end
 
     it "returns false for a read discussion" do
       @topic.change_read_state("read", @student)
-      expect(api.planner_item_json(@topic, student_principal, session)[:new_activity]).to be false
+      expect(api.planner_item_json(@topic, @student.principal, session)[:new_activity]).to be false
     end
 
     it "returns false for discussions with replies that has been marked read" do
       @topic.reply_from(user: @teacher, text: "reply")
       @topic.change_all_read_state("read", @student)
-      expect(api.planner_item_json(@topic, student_principal, session)[:new_activity]).to be false
+      expect(api.planner_item_json(@topic, @student.principal, session)[:new_activity]).to be false
     end
 
     it "returns true for discussions with new replies" do
@@ -787,8 +782,8 @@ describe Api::V1::PlannerItem do
       @topic.change_read_state("read", @student)
       @a.reply_from(user: @teacher, text: "reply")
       @topic.reply_from(user: @teacher, text: "reply")
-      expect(api.planner_item_json(@a, student_principal, session)[:new_activity]).to be true
-      expect(api.planner_item_json(@topic, student_principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@a, @student.principal, session)[:new_activity]).to be true
+      expect(api.planner_item_json(@topic, @student.principal, session)[:new_activity]).to be true
     end
 
     context "for announcements" do
@@ -800,28 +795,28 @@ describe Api::V1::PlannerItem do
         # Use PlannerOverride.create! so plannable_type uses Announcement.polymorphic_name
         # ("DiscussionTopic") consistent with how the API creates overrides
         PlannerOverride.create!(user: @student, plannable: @annc, marked_complete: true)
-        expect(api.planner_item_json(@annc, student_principal, session)[:new_activity]).to be false
+        expect(api.planner_item_json(@annc, @student.principal, session)[:new_activity]).to be false
       end
 
       it "returns true when announcement is unread and not marked complete" do
-        expect(api.planner_item_json(@annc, student_principal, session)[:new_activity]).to be true
+        expect(api.planner_item_json(@annc, @student.principal, session)[:new_activity]).to be true
       end
 
       it "returns false when announcement is read and has no replies" do
         @annc.change_read_state("read", @student)
-        expect(api.planner_item_json(@annc, student_principal, session)[:new_activity]).to be false
+        expect(api.planner_item_json(@annc, @student.principal, session)[:new_activity]).to be false
       end
     end
 
     it "returns false for items without new activity" do
       student_in_course active_all: true
-      expect(api.planner_item_json(@quiz, student_principal, session)[:new_activity]).to be false
-      expect(api.planner_item_json(@assignment, student_principal, session)[:new_activity]).to be false
+      expect(api.planner_item_json(@quiz, @student.principal, session)[:new_activity]).to be false
+      expect(api.planner_item_json(@assignment, @student.principal, session)[:new_activity]).to be false
     end
 
     it "returns false for items that cannot have new activity" do
       planner_note_model(user: @student)
-      expect(api.planner_item_json(@planner_note, student_principal, session)[:new_activity]).to be false
+      expect(api.planner_item_json(@planner_note, @student.principal, session)[:new_activity]).to be false
     end
 
     context "discussion checkpoints/sub_assignments" do
@@ -838,9 +833,9 @@ describe Api::V1::PlannerItem do
         @reply_to_entry.submit_homework @student, body: "checkpoint submission for #{@student.name}"
         @reply_to_entry.grade_student(@student, grade: 5, grader: @teacher)
 
-        json = api.planner_item_json(@reply_to_topic.reload, student_principal, session)
+        json = api.planner_item_json(@reply_to_topic.reload, @student.principal, session)
         expect(json[:new_activity]).to be true
-        json = api.planner_item_json(@reply_to_entry.reload, student_principal, session)
+        json = api.planner_item_json(@reply_to_entry.reload, @student.principal, session)
         expect(json[:new_activity]).to be true
       end
 
@@ -849,22 +844,22 @@ describe Api::V1::PlannerItem do
         @reply_to_entry.submit_homework @student, body: "checkpoint submission for #{@student.name}"
         @topic.assignment.submission_for_student(@student).add_comment(user: @teacher, comment: "nice work")
 
-        json = api.planner_item_json(@reply_to_topic.reload, student_principal, session)
+        json = api.planner_item_json(@reply_to_topic.reload, @student.principal, session)
         expect(json[:new_activity]).to be true
-        json = api.planner_item_json(@reply_to_entry.reload, student_principal, session)
+        json = api.planner_item_json(@reply_to_entry.reload, @student.principal, session)
         expect(json[:new_activity]).to be true
       end
 
       it "includes unread_count property from discussion topics" do
         @reply_to_topic.submit_homework @student, body: "checkpoint submission for #{@student.name}"
-        json = api.planner_item_json(@reply_to_topic, student_principal, session)
+        json = api.planner_item_json(@reply_to_topic, @student.principal, session)
         expect(json[:plannable][:unread_count]).to eq 0
         expect(json[:plannable][:read_state]).to eq "unread"
       end
 
       it "returns false for sub_assignments when topic is nil" do
         @reply_to_topic.parent_assignment.update!(discussion_topic: nil)
-        json = api.planner_item_json(@reply_to_topic, student_principal, session)
+        json = api.planner_item_json(@reply_to_topic, @student.principal, session)
         expect(json[:new_activity]).to be false
       end
     end
@@ -873,24 +868,24 @@ describe Api::V1::PlannerItem do
   describe "#html_url" do
     it "links to an assignment's submission if appropriate" do
       assignment_model course: @course, submission_types: "online_text_entry"
-      expect(api.planner_item_json(@assignment, student_principal, session)[:html_url]).to eq "named_context_url"
+      expect(api.planner_item_json(@assignment, @student.principal, session)[:html_url]).to eq "named_context_url"
       @assignment.submit_homework(@student, body: "...")
-      expect(api.planner_item_json(@assignment, student_principal, session)[:html_url]).to eq "course_assignment_submission_url"
+      expect(api.planner_item_json(@assignment, @student.principal, session)[:html_url]).to eq "course_assignment_submission_url"
     end
 
     it "links to a graded discussion topic's submission if appropriate" do
       group_discussion_assignment
-      expect(api.planner_item_json(@topic.assignment, student_principal, session)[:html_url]).to eq "named_context_url"
+      expect(api.planner_item_json(@topic.assignment, @student.principal, session)[:html_url]).to eq "named_context_url"
       graded_submission_model(assignment: @topic.assignment, user: @student).update(score: 5)
-      expect(api.planner_item_json(@topic.assignment, student_principal, session)[:html_url]).to eq "course_assignment_submission_url"
+      expect(api.planner_item_json(@topic.assignment, @student.principal, session)[:html_url]).to eq "course_assignment_submission_url"
     end
 
     it "links to a graded discussion with checkpoints submission if appropriate" do
       @course.account.enable_feature!(:discussion_checkpoints)
       @checkpoint_topic, _checkpoint_entry = graded_discussion_topic_with_checkpoints(context: @course)
-      expect(api.planner_item_json(@checkpoint_topic, student_principal, session)[:html_url]).to eq "named_context_url"
+      expect(api.planner_item_json(@checkpoint_topic, @student.principal, session)[:html_url]).to eq "named_context_url"
       graded_submission_model(assignment: @checkpoint_topic, user: @student).update(score: 5)
-      expect(api.planner_item_json(@checkpoint_topic, student_principal, session)[:html_url]).to eq "course_assignment_submission_url"
+      expect(api.planner_item_json(@checkpoint_topic, @student.principal, session)[:html_url]).to eq "course_assignment_submission_url"
     end
   end
 
@@ -905,7 +900,7 @@ describe Api::V1::PlannerItem do
           course = account.courses.create!
           discussion_topic_model(context: course)
         end
-        json = api.planner_items_json([topic1, topic2], student_principal, session)
+        json = api.planner_items_json([topic1, topic2], @student.principal, session)
         expect(json.pluck(:plannable_id)).to match_array([topic1.id, topic2.id])
       end
     end
@@ -918,12 +913,12 @@ describe Api::V1::PlannerItem do
     end
 
     it "if use_html_comment true returns submission comments with html tags" do
-      json = api.planner_items_json([@assignment], student_principal, session, { use_html_comment: true })
+      json = api.planner_items_json([@assignment], @student.principal, session, { use_html_comment: true })
       expect(json.first[:submissions][:feedback][:comment]).to eq("<div>html comment</div>")
     end
 
     it "if use_html_comment false returns submission comments without htl tags" do
-      json = api.planner_items_json([@assignment], student_principal, session)
+      json = api.planner_items_json([@assignment], @student.principal, session)
       expect(json.first[:submissions][:feedback][:comment]).to eq("html comment")
     end
   end

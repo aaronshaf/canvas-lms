@@ -26,7 +26,7 @@ describe GraphQLNodeLoader do
 
   let!(:outcome) { outcome_model(context: @account) }
   let!(:outcome_group) { outcome_group_model(context: @account) }
-  let!(:context) { { current_user: @admin, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(@admin) } }
+  let!(:context) { { current_user: @admin, current_principal: @admin.principal } }
   let!(:user_without_permisssion) { user_model }
 
   def load_outcome(id, ctx = context)
@@ -58,7 +58,7 @@ describe GraphQLNodeLoader do
 
       context "for user without permission" do
         it "returns nil" do
-          ctx = { current_user: user_without_permisssion, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(user_without_permisssion) }
+          ctx = { current_user: user_without_permisssion, current_principal: user_without_permisssion.principal }
           GraphQL::Batch.batch do
             load_outcome(outcome.id, ctx).then do |result|
               expect(result).to be_nil
@@ -111,7 +111,7 @@ describe GraphQLNodeLoader do
     describe "PeerReviewSubAssignment" do
       let!(:course) { course_model }
       let!(:teacher) { teacher_in_course(active_all: true, course:).user }
-      let(:context) { { current_user: teacher, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher) } }
+      let(:context) { { current_user: teacher, current_principal: teacher.principal } }
 
       before do
         course.enable_feature!(:peer_review_allocation_and_grading)
@@ -159,7 +159,7 @@ describe GraphQLNodeLoader do
 
       context "for user without permission" do
         it "returns nil" do
-          ctx = { current_user: user_without_permisssion, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(user_without_permisssion) }
+          ctx = { current_user: user_without_permisssion, current_principal: user_without_permisssion.principal }
           GraphQL::Batch.batch do
             GraphQLNodeLoader.load("PeerReviewSubAssignment", @peer_review_sub_assignment.id, ctx).then do |result|
               expect(result).to be_nil
@@ -173,7 +173,7 @@ describe GraphQLNodeLoader do
       let!(:course) { course_model }
       let!(:teacher) { teacher_in_course(active_all: true, course:).user }
       let!(:student) { student_in_course(active_all: true, course:).user }
-      let(:context) { { current_user: teacher, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher) } }
+      let(:context) { { current_user: teacher, current_principal: teacher.principal } }
       let!(:assignment) { assignment_model(course:, anonymous_grading: true) }
 
       it "does not return a submission for a teacher if the assignment is actively anonymous" do
@@ -214,7 +214,7 @@ describe GraphQLNodeLoader do
         GraphQL::Batch.batch do
           GraphQLNodeLoader.load("SubmissionByAssignmentAndUser",
                                  { assignment_id: assignment.id, user_id: student.id },
-                                 { current_user: student, current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(student) }).then do |result|
+                                 { current_user: student, current_principal: student.principal }).then do |result|
             expect(result).not_to be_nil
           end
         end

@@ -22,7 +22,7 @@ describe "Api::V1::Rubric" do
 
   let(:course) { course_model }
   let(:teacher) { user_factory(active_all: true) }
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
+  let(:current_principal) { teacher.principal }
   let(:session) { {} }
   let(:outcome_group) { course.root_outcome_group }
 

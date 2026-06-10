@@ -1911,7 +1911,7 @@ class ApplicationController < ActionController::Base
       render template: "shared/unauthorized_feed", status: :bad_request, formats: [:html]
       return false
     end
-    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user
+    @current_principal = @current_user.principal if @current_user
     @context
   end
 

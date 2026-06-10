@@ -39,7 +39,7 @@ describe Types::StudyNoteType do
   let(:type) do
     GraphQLTypeTester.new(@note,
                           current_user: @student,
-                          current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(@student),
+                          current_principal: @student.principal,
                           request: ActionDispatch::TestRequest.create)
   end
 

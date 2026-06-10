@@ -28,7 +28,7 @@ describe "authentication_providers/index" do
     assign(:domain_root_account, account)
     admin = account_admin_user(account:)
     assign(:current_user, admin)
-    assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
+    assign(:current_principal, admin.principal)
     assign(:current_pseudonym, pseudonym(admin, account:))
     assign(:saml_identifiers, [])
     assign(:saml_authn_contexts, [])

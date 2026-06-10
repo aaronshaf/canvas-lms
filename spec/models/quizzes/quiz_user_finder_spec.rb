@@ -29,8 +29,7 @@ describe Quizzes::QuizUserFinder do
     sub = @quiz.generate_submission(@submitted_student)
     sub.mark_completed
     Quizzes::SubmissionGrader.new(sub).grade_submission
-    teacher_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
-    @finder = Quizzes::QuizUserFinder.new(@quiz, teacher_principal)
+    @finder = Quizzes::QuizUserFinder.new(@quiz, @teacher.principal)
   end
 
   def students

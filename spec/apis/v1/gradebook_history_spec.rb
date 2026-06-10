@@ -50,14 +50,13 @@ describe Api::V1::GradebookHistory do
   end
   let(:path) { "" }
   let(:user) { User.new }
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
   let(:session) { {} }
-  let(:api_context) { Api::V1::ApiContext.new(controller, path, current_principal, session) }
+  let(:api_context) { Api::V1::ApiContext.new(controller, path, user.principal, session) }
   let(:now) { Time.now.in_time_zone }
   let(:yesterday) { (now - 24.hours).in_time_zone }
 
   before do
-    allow_any_instance_of(Submission).to receive(:user_can_read_grade?).with(current_principal, session).and_return(true)
+    allow_any_instance_of(Submission).to receive(:user_can_read_grade?).with(user.principal, session).and_return(true)
   end
 
   def submit(assignment, student, day, grader)

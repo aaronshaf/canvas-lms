@@ -53,7 +53,7 @@ describe Api::V1::Course do
     before :once do
       @test_api = TestCourseApi.new
       course_with_teacher(active_all: true, user: user_with_pseudonym)
-      @me = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+      @me = @user.principal
       @course1 = @course
       course_with_student(user: @user, active_all: true)
       @course2 = @course
@@ -303,7 +303,7 @@ describe Api::V1::Course do
         future_assignment.unmute!
 
         @course.save!
-        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
+        @me = @teacher.principal
       end
 
       let(:json) do
@@ -365,7 +365,7 @@ describe Api::V1::Course do
       end
 
       it "does not include unposted scores if user does not have permission" do
-        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
+        @me = @student.principal
 
         enrollment = student_enrollment
         expect(enrollment).to include(expected_fields_without_unposted)
@@ -500,7 +500,7 @@ describe CoursesController, type: :request do
 
     before :once do
       course_with_teacher(active_all: true, user: user_with_pseudonym(name: "UWP"))
-      @me = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+      @me = @user.principal
       @course1 = @course
       course_with_student(user: @user, active_all: true)
       @course2 = @course
@@ -4625,7 +4625,7 @@ describe CoursesController, type: :request do
       end
 
       it "does not show other course enrollments to other students" do
-        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
+        @me = @student.principal
         student2 = student_in_course(course: @course1, name: "student").user
         @course2.enroll_student(student2)
         json = api_call(:get,

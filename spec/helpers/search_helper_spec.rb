@@ -21,7 +21,7 @@
 describe SearchHelper do
   include SearchHelper
 
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) }
+  let(:current_principal) { @current_user.principal }
 
   context "load_all_contexts" do
     it "returns requested permissions" do

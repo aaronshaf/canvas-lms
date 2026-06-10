@@ -43,10 +43,8 @@ describe Quizzes::QuizSubmissionUsersController, type: :request do
       @user = @teacher
     end
 
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
-
     before do
-      @finder = Quizzes::QuizUserFinder.new(@quiz, teacher_principal)
+      @finder = Quizzes::QuizUserFinder.new(@quiz, @teacher.principal)
     end
 
     def send_message(target_group)

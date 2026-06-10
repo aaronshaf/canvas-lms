@@ -825,7 +825,7 @@ class AssignmentsApiController < ApplicationController
   def user_index
     GuardRail.activate(:secondary) do
       @user.shard.activate do
-        error_or_array = get_assignments(Canvas::AdheresToPolicy::UserPrincipal.new(@user))
+        error_or_array = get_assignments(@user.principal)
         render json: error_or_array unless performed?
       end
     end

@@ -50,7 +50,7 @@ describe "gradebooks/speed_grader" do
 
     teacher_in_course(active_all: true)
     assign(:current_user, @teacher)
-    assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))
+    assign(:current_principal, @teacher.principal)
   end
 
   it "renders valid HTML" do

@@ -290,7 +290,7 @@ describe Api::V1::SisAssignment do
         assignments = Assignment.where(id: assignment_1.id)
                                 .preload(active_assignment_overrides: [{ assignment_override_students: [{ user: [:pseudonym] }] }])
 
-        viewer = Canvas::AdheresToPolicy::UserPrincipal.new(@student1)
+        viewer = @student1.principal
         allow(SisPseudonym).to receive(:for).and_call_original
         expect(SisPseudonym).to receive(:for)
           .with(@student1, anything, hash_including(current_user: viewer))

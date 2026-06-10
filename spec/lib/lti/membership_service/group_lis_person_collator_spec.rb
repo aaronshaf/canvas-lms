@@ -41,11 +41,9 @@ module Lti::MembershipService
         @group.save!
       end
 
-      let(:student1_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student1) }
-
       describe "#context" do
         it "returns the correct context" do
-          collator = GroupLisPersonCollator.new(@group, student1_principal)
+          collator = GroupLisPersonCollator.new(@group, @student1.principal)
 
           expect(collator.context).to eq(@group)
         end
@@ -53,7 +51,7 @@ module Lti::MembershipService
 
       describe "#membership" do
         it "outputs the membership in a group" do
-          collator = GroupLisPersonCollator.new(@group, student1_principal)
+          collator = GroupLisPersonCollator.new(@group, @student1.principal)
 
           memberships = collator.memberships
           @student1.reload
@@ -86,20 +84,20 @@ module Lti::MembershipService
         describe "#memberships" do
           it "returns the number of memberships specified by the per_page params" do
             allow(Api).to receive(:per_page).and_return(1)
-            collator = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 1)
+            collator = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 1)
 
             expect(collator.memberships.size).to eq(1)
 
-            collator = GroupLisPersonCollator.new(@group, student1_principal, per_page: 3, page: 1)
+            collator = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 3, page: 1)
 
             expect(collator.memberships.size).to eq(3)
           end
 
           it "returns the right page of memberships based on the page param" do
             allow(Api).to receive(:per_page).and_return(1)
-            collator1 = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 1)
-            collator2 = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 2)
-            collator3 = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 3)
+            collator1 = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 1)
+            collator2 = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 2)
+            collator3 = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 3)
             user_ids = [
               collator1.memberships.first.member.user_id,
               collator2.memberships.first.member.user_id,
@@ -113,13 +111,13 @@ module Lti::MembershipService
         describe "#next_page?" do
           it "returns true when there is an additional page of results" do
             allow(Api).to receive(:per_page).and_return(1)
-            collator = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 1)
+            collator = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 1)
             expect(collator.next_page?).to be(true)
           end
 
           it "returns false when there are no more pages" do
             allow(Api).to receive(:per_page).and_return(1)
-            collator = GroupLisPersonCollator.new(@group, student1_principal, per_page: 1, page: 3)
+            collator = GroupLisPersonCollator.new(@group, @student1.principal, per_page: 1, page: 3)
             collator.memberships
             expect(collator.next_page?).to be(false)
           end

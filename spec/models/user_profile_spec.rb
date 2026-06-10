@@ -73,10 +73,7 @@ describe UserProfile do
 
   describe "tabs available" do
     let(:account) { Account.default }
-    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) if @user }
-    let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) if @student }
-    let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) if @teacher }
-    let(:admin_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@admin) if @admin }
+    let(:current_principal) { @user&.principal }
 
     it "shows the profile tab when profiles are enabled" do
       student_in_course(active_all: true)
@@ -94,20 +91,20 @@ describe UserProfile do
       it "shows shared content tab when user has any non-student enrollment" do
         teacher_in_course(active_all: true)
         tabs = @teacher.profile
-                       .tabs_available(teacher_principal, root_account: account)
+                       .tabs_available(@teacher.principal, root_account: account)
         expect(tabs.pluck(:id)).to include UserProfile::TAB_CONTENT_SHARES
       end
 
       it "shows shared content tab when user has account membership" do
         account_admin_user(account:)
-        tabs = @admin.profile.tabs_available(admin_principal, root_account: account)
+        tabs = @admin.profile.tabs_available(@admin.principal, root_account: account)
         expect(tabs.pluck(:id)).to include UserProfile::TAB_CONTENT_SHARES
       end
 
       it "does not show shared content tab when user has only student enrollments" do
         student_in_course(active_all: true)
         tabs = @student.profile
-                       .tabs_available(student_principal, root_account: account)
+                       .tabs_available(@student.principal, root_account: account)
         expect(tabs.pluck(:id)).not_to include UserProfile::TAB_CONTENT_SHARES
       end
     end
@@ -258,7 +255,7 @@ describe UserProfile do
     it "shows announcements tab" do
       student_in_course(active_all: true)
       tabs = @student.profile
-                     .tabs_available(student_principal, root_account: account)
+                     .tabs_available(@student.principal, root_account: account)
       expect(tabs.pluck(:id)).to include UserProfile::TAB_PAST_GLOBAL_ANNOUNCEMENTS
     end
 

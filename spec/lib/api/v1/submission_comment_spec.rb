@@ -28,7 +28,7 @@ describe Api::V1::SubmissionComment do
 
       def current_user=(value)
         @current_user = value
-        @current_principal = value && Canvas::AdheresToPolicy::UserPrincipal.new(value)
+        @current_principal = value&.principal
       end
 
       private
@@ -140,7 +140,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher),
+        current_principal: teacher.principal,
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).pluck(:anonymous_id)
@@ -154,7 +154,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher),
+        current_principal: teacher.principal,
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).find { |comment| comment[:anonymous_id] == student3_sub.anonymous_id }
@@ -168,7 +168,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(student),
+        current_principal: student.principal,
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).find { |comment| comment[:author_id] == student_sub.user_id }

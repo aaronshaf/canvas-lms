@@ -56,7 +56,7 @@ describe ConversationsHelper do
     observer_enrollment.update_attribute(:associated_user_id, user_student.id)
     siteadmin_observer
   end
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) }
+  let(:current_principal) { @current_user&.principal }
 
   describe "normalize_recipients" do
     it "handles UUID-based recipient identifiers" do

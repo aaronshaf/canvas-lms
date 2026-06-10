@@ -187,7 +187,7 @@ describe "submissions/show_preview" do
       assign(:assignment, assignment)
       assign(:context, course)
       assign(:current_user, teacher)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(teacher))
+      assign(:current_principal, teacher.principal)
       assign(:submission, submission)
     end
 
@@ -235,7 +235,7 @@ describe "submissions/show_preview" do
     before do
       assign(:context, course)
       assign(:current_user, student)
-      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(student))
+      assign(:current_principal, student.principal)
     end
 
     context "when submission is online_upload" do

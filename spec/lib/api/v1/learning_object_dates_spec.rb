@@ -24,7 +24,7 @@ class LearningObjectDatesApiHarness
 
   def initialize(current_user = nil)
     @current_user = current_user
-    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(current_user) if current_user
+    @current_principal = current_user&.principal
   end
 
   def session

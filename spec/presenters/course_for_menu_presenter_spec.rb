@@ -26,7 +26,7 @@ describe CourseForMenuPresenter do
   let_once(:account) { Account.default }
   let_once(:course) { Course.create!(account:) }
   let_once(:user) { User.create! }
-  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
+  let(:current_principal) { user.principal }
 
   let(:dashboard_card_tabs) { UsersController::DASHBOARD_CARD_TABS }
 

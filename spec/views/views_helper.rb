@@ -56,8 +56,8 @@ def view_context(context = @course, current_user = @user, real_current_user = ni
   assign(:context, context)
   assign(:current_user, current_user)
   assign(:real_current_user, real_current_user)
-  real_principal = real_current_user && Canvas::AdheresToPolicy::UserPrincipal.new(real_current_user)
-  current_principal = current_user && Canvas::AdheresToPolicy::UserPrincipal.new(current_user)
+  real_principal = real_current_user&.principal
+  current_principal = current_user&.principal
   current_principal = AdheresToPolicy::MasqueradingPrincipal.new(current_principal, real_principal) if real_principal
   assign(:current_principal, current_principal)
   assign(:domain_root_account, Account.default)
