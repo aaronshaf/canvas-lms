@@ -104,8 +104,12 @@ module AccountReports
           omitted_row_count = 0
 
           os_index = 0
+          canvas_count = 0
 
-          canvas_scope.find_each do |canvas_row|
+          # Use cursor strategy to avoid a long-lived COPY stream that can
+          # drop the SSL connection on large datasets.
+          canvas_scope.find_each(strategy: :cursor) do |canvas_row|
+            canvas_count += 1
             record_hash = canvas_row.attributes
 
             begin
@@ -122,7 +126,7 @@ module AccountReports
             write_row.call(record_hash)
           end
 
-          total = os_scope.length + canvas_scope.except(:select).count - omitted_row_count
+          total = os_scope.length + canvas_count - omitted_row_count
           GuardRail.activate(:primary) { AccountReport.where(id: @account_report.id).update_all(total_lines: total) }
 
           while os_index < os_scope.length
