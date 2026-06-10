@@ -250,7 +250,7 @@ module BasicLTI
 
       def self.create_homework_submission(submission_hash, assignment, user)
         submission = assignment.submit_homework(user, submission_hash.clone) if submission_hash[:submission_type].present?
-        submission = assignment.grade_student(user, submission_hash).first if submission_hash[:grade].present?
+        submission = assignment.grade_student(user, submission_hash.merge(return_if_score_unchanged: true)).first if submission_hash[:grade].present?
         submission
       end
 

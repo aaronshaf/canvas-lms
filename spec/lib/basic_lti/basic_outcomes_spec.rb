@@ -435,6 +435,22 @@ describe BasicLTI::BasicOutcomes do
       expect(submission.grade).to eq expected_value.to_s
     end
 
+    it "does not create a new submission version when re-posting an unchanged grade" do
+      xml.css("resultData").remove
+      BasicLTI::BasicOutcomes.process_request(tool, xml)
+      submission = assignment.submissions.where(user_id: @user.id).first
+      original_grade = submission.grade
+      version_count = submission.versions.count
+
+      Timecop.travel(1.minute.from_now) do
+        BasicLTI::BasicOutcomes.process_request(tool, xml)
+      end
+
+      submission.reload
+      expect(submission.versions.count).to eq version_count
+      expect(submission.grade).to eq original_grade
+    end
+
     it "rejects a grade for an assignment with no points possible" do
       xml.css("resultData").remove
       assignment.points_possible = nil
