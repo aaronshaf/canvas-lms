@@ -18,8 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe Submissions::DownloadsController do
-  describe "GET :show" do
+RSpec.describe "submission downloads", type: :request do
+  describe "GET /courses/:course_id/assignments/:assignment_id/submissions/:id" do
     before do
       course_with_student_and_submitted_homework
       @context = @course
@@ -35,22 +35,14 @@ describe Submissions::DownloadsController do
       end
 
       it "sets flash error" do
-        get :show, params: {
-          course_id: @context.id,
-          assignment_id: @assignment.id,
-          id: @student.id,
-          download: @submission.attachment_id
-        }
-        expect(flash[:error]).not_to be_nil
+        get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+            params: { download: @submission.attachment_id }
+        expect(flash[:error]).to include("The specified user is not a student in this course")
       end
 
-      it "redirects to context assignment url" do
-        get :show, params: {
-          course_id: @context.id,
-          assignment_id: @assignment.id,
-          id: @student.id,
-          download: @submission.attachment_id
-        }
+      it "redirects to course assignment url" do
+        get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+            params: { download: @submission.attachment_id }
         expect(response).to redirect_to(course_assignment_url(@context, @assignment))
       end
     end
@@ -61,14 +53,9 @@ describe Submissions::DownloadsController do
         @submission.save!
       end
 
-      it "sets attachment the submission belongs to by default" do
-        get :show, params: {
-          course_id: @context.id,
-          assignment_id: @assignment.id,
-          id: @student.id,
-          download: @submission.attachment_id
-        }
-        expect(assigns(:attachment)).to eq @attachment
+      it "redirects to the attachment download url" do
+        get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+            params: { download: @submission.attachment_id }
         expect(response).to redirect_to(course_file_download_url(@context, @attachment, {
                                                                    download_frd: true,
                                                                    inline: nil,
@@ -77,20 +64,14 @@ describe Submissions::DownloadsController do
       end
 
       it "renders as json" do
-        request.accept = Mime[:json].to_s
-        get :show,
-            params: {
-              course_id: @context.id,
-              assignment_id: @assignment.id,
-              id: @student.id,
-              download: @submission.attachment_id
-            },
-            format: :json
+        get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+            headers: { "Accept" => Mime[:json].to_s },
+            params: { download: @submission.attachment_id }
         expect(response.parsed_body["attachment"]["id"]).to eq @submission.attachment_id
       end
     end
 
-    it "sets attachment from submission history if present" do
+    it "redirects to the attachment from submission history when present" do
       attachment = @submission.attachment = attachment_model(context: @context)
       @submission.submitted_at = 3.hours.ago
       @submission.save!
@@ -104,28 +85,21 @@ describe Submissions::DownloadsController do
       end.to change(@submission.versions, :count), "precondition"
       expect(@submission.attachment).to be_nil, "precondition"
 
-      get :show, params: {
-        course_id: @context.id,
-        assignment_id: @assignment.id,
-        id: @student.id,
-        download: attachment.id
-      }
-      expect(assigns(:attachment)).not_to be_nil
-      expect(assigns(:attachment)).to eq attachment
+      get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+          params: { download: attachment.id }
+      expect(response).to have_http_status(:found)
+      expect(response.headers["Location"]).to include(attachment.uuid)
     end
 
-    it "sets attachment from attachments collection when attachment_id is not present" do
+    it "redirects to the attachment from the attachments collection when attachment_id is not present" do
       attachment = attachment_model(context: @submission.user)
       @submission.attachments = [attachment]
       @submission.save!
-      get :show, params: {
-        course_id: @course.id,
-        assignment_id: @assignment.id,
-        id: @student.id,
-        download: @submission.attachments.first.id
-      }
-      expect(assigns(:attachment)).not_to be_nil
-      expect(@submission.attachments).to include assigns(:attachment)
+
+      get "/courses/#{@course.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+          params: { download: @submission.attachments.first.id }
+      expect(response).to have_http_status(:found)
+      expect(response.headers["Location"]).to include(attachment.uuid)
     end
 
     context "and params[:comment_id]" do
@@ -140,18 +114,12 @@ describe Submissions::DownloadsController do
         @submission_comment.save!
       end
 
-      it "sets attachment from comment_id & download_id" do
+      it "redirects to the submission comment attachment" do
         expect(@assignment.attachments).to include(@attachment), "precondition"
         expect(@submission_comment.attachments).to include(@attachment), "precondition"
 
-        get :show, params: {
-          course_id: @original_context.id,
-          assignment_id: @assignment.id,
-          id: @original_student.id,
-          download: @attachment.id,
-          comment_id: @submission_comment.id
-        }
-        expect(assigns(:attachment)).to eq @attachment
+        get "/courses/#{@original_context.id}/assignments/#{@assignment.id}/submissions/#{@original_student.id}",
+            params: { download: @attachment.id, comment_id: @submission_comment.id }
         expect(response).to redirect_to(file_download_url(@attachment, {
                                                             download_frd: true,
                                                             inline: nil,
@@ -161,7 +129,7 @@ describe Submissions::DownloadsController do
     end
 
     it "redirects download requests with the download_frd parameter" do
-      # This is because the files controller looks for download_frd to indicate a forced download
+      # The files controller looks for download_frd to indicate a forced download
       course_with_teacher_logged_in
       assignment = assignment_model(course: @course)
       student_in_course
@@ -174,9 +142,9 @@ describe Submissions::DownloadsController do
         attachments: [att],
         user: @student
       )
-      get :show, params: { assignment_id: assignment.id, course_id: @course.id, id: @user.id, download: att.id }
-
-      expect(response).to be_redirect
+      get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@user.id}",
+          params: { download: att.id }
+      expect(response).to have_http_status(:found)
       expect(response.headers["Location"]).to match %r{users/#{@student.id}/files/#{att.id}/download\?download_frd=true}
     end
 
@@ -190,7 +158,7 @@ describe Submissions::DownloadsController do
         assignment.submit_homework(@student, {
                                      submission_type: "online_upload",
                                      attachment_ids: @attachment1.id,
-                                     attachments: [@attachment1],
+                                     attachments: [@attachment1]
                                    })
       end
 
@@ -198,16 +166,18 @@ describe Submissions::DownloadsController do
       assignment.submit_homework(@student, {
                                    submission_type: "online_upload",
                                    attachment_ids: @attachment2.id,
-                                   attachments: [@attachment2],
+                                   attachments: [@attachment2]
                                  })
 
-      get :show, params: { assignment_id: assignment.id, course_id: @course.id, id: @user.id, download: @attachment1.id }
-      expect(response).to be_redirect
+      get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@user.id}",
+          params: { download: @attachment1.id }
+      expect(response).to have_http_status(:found)
       expect(response.headers["Location"]).to match %r{users/#{@student.id}/files/#{@attachment1.id}/download\?download_frd=true}
       expect(URI.parse(response.headers["Location"]).query).to match(/verifier=#{@attachment1.uuid}/)
 
-      get :show, params: { assignment_id: assignment.id, course_id: @course.id, id: @user.id, download: @attachment2.id }
-      expect(response).to be_redirect
+      get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@user.id}",
+          params: { download: @attachment2.id }
+      expect(response).to have_http_status(:found)
       expect(response.headers["Location"]).to match %r{users/#{@student.id}/files/#{@attachment2.id}/download\?download_frd=true}
       expect(URI.parse(response.headers["Location"]).query).to match(/verifier=#{@attachment2.uuid}/)
     end

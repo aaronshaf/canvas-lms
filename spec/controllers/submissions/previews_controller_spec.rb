@@ -20,10 +20,10 @@
 
 require_relative "../../lti_spec_helper"
 
-describe Submissions::PreviewsController do
+RSpec.describe "submission previews", type: :request do
   include LtiSpecHelper
 
-  describe "GET :show" do
+  describe "GET /courses/:course_id/assignments/:assignment_id/submissions/:id" do
     before do
       course_with_student_and_submitted_homework
       @context = @course
@@ -31,8 +31,9 @@ describe Submissions::PreviewsController do
 
     it "renders show_preview" do
       user_session(@student)
-      get :show, params: { course_id: @context.id, assignment_id: @assignment.id, id: @student.id, preview: true }
-      expect(response).to render_template(:show_preview)
+      get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+          params: { preview: true }
+      expect(response).to render_template("show_preview")
     end
 
     context "when assignment is a quiz" do
@@ -42,7 +43,8 @@ describe Submissions::PreviewsController do
 
       it "redirects to course_quiz_url" do
         user_session(@student)
-        get :show, params: { course_id: @context.id, assignment_id: @quiz.assignment.id, id: @student.id, preview: true }
+        get "/courses/#{@context.id}/assignments/#{@quiz.assignment.id}/submissions/#{@student.id}",
+            params: { preview: true }
         expect(response).to redirect_to(course_quiz_url(@context, @quiz, headless: 1))
       end
 
@@ -56,23 +58,21 @@ describe Submissions::PreviewsController do
         end
 
         it "redirects to course_quiz_history_url" do
-          get :show, params: { course_id: @context.id, assignment_id: @quiz.assignment.id, id: @student.id, preview: true }
+          submission = @quiz.assignment.submissions.find_by(user_id: @student)
+          version = submission.quiz_submission.versions.find { |v| v.model.finished_at }&.number
+          get "/courses/#{@context.id}/assignments/#{@quiz.assignment.id}/submissions/#{@student.id}",
+              params: { preview: true }
           expect(response).to redirect_to(course_quiz_history_url(@context, @quiz, {
                                                                     headless: 1,
                                                                     user_id: @student.id,
-                                                                    version: assigns(:submission).quiz_submission_version
+                                                                    version:
                                                                   }))
         end
 
         it "favors params[:version] when set" do
           version = 1
-          get :show, params: {
-            course_id: @context.id,
-            assignment_id: @quiz.assignment.id,
-            id: @student.id,
-            preview: true,
-            version:
-          }
+          get "/courses/#{@context.id}/assignments/#{@quiz.assignment.id}/submissions/#{@student.id}",
+              params: { preview: true, version: }
           expect(response).to redirect_to(course_quiz_history_url(@context, @quiz, {
                                                                     headless: 1,
                                                                     user_id: @student.id,
@@ -94,9 +94,9 @@ describe Submissions::PreviewsController do
       it "allows observers of the submission's owner to view the preview" do
         assignment = @course.assignments.create!(title: "shhh", anonymous_grading: true)
         user_session(observer)
-
-        get :show, params: { course_id: @course.id, assignment_id: assignment.id, id: @student.id, preview: true }
-        expect(response).to be_successful
+        get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@student.id}",
+            params: { preview: true }
+        expect(response).to have_http_status(:ok)
       end
 
       it "does not allow observers not observing the submission's owner to view the preview" do
@@ -104,17 +104,17 @@ describe Submissions::PreviewsController do
         @course.enroll_student(new_student, enrollment_state: "active")
         assignment = @course.assignments.create!(title: "shhh", anonymous_grading: true)
         user_session(observer)
-
-        get :show, params: { course_id: @course.id, assignment_id: assignment.id, id: new_student.id, preview: true }
-        expect(response).to be_unauthorized
+        get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{new_student.id}",
+            params: { preview: true }
+        expect(response).to have_http_status(:unauthorized)
       end
 
       it "returns unauthorized when the viewer is a teacher and the assignment is currently anonymizing students" do
         assignment = @course.assignments.create!(title: "shhh", anonymous_grading: true)
         user_session(@teacher)
-
-        get :show, params: { course_id: @course.id, assignment_id: assignment.id, id: @student.id, preview: true }
-        expect(response).to be_unauthorized
+        get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@student.id}",
+            params: { preview: true }
+        expect(response).to have_http_status(:unauthorized)
       end
 
       it "returns unauthorized when the viewer is a peer reviewer and anonymous peer reviews are enabled" do
@@ -122,15 +122,13 @@ describe Submissions::PreviewsController do
         reviewer = @course.enroll_student(User.create!, enrollment_state: "active").user
         assignment.assign_peer_review(reviewer, @student)
         user_session(reviewer)
-
-        get :show, params: { course_id: @course.id, assignment_id: assignment.id, id: @student.id, preview: true }
-        expect(response).to be_unauthorized
+        get "/courses/#{@course.id}/assignments/#{assignment.id}/submissions/#{@student.id}",
+            params: { preview: true }
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
     context "when Asset Processor is attached and submission type is online_upload" do
-      render_views
-
       before do
         @attachment1 = attachment_with_context @student, { display_name: "a1.txt", uploaded_data: StringIO.new("hello") }
         @attachment2 = attachment_with_context @student, { display_name: "a2.txt", uploaded_data: StringIO.new("world") }
@@ -140,15 +138,14 @@ describe Submissions::PreviewsController do
       end
 
       it "renders show_preview with asset processor data attributes for uploaded files" do
-        get :show, params: { course_id: @context.id, assignment_id: @assignment.id, id: @student.id, preview: true }
-
-        body = response.body
-
-        # Verify asset report status containers have all required data attributes
+        get "/courses/#{@context.id}/assignments/#{@assignment.id}/submissions/#{@student.id}",
+            params: { preview: true }
+        doc = Nokogiri::HTML(response.body)
         [@attachment1, @attachment2].each do |attachment|
-          expect(body).to include('data-attachment-id="' + attachment.id.to_s + '"')
-          expect(body).to include('data-submission-id="' + @submission.id.to_s + '"')
-          expect(body).to include('data-submission-type="online_upload"')
+          node = doc.at_css("[data-attachment-id='#{attachment.id}']")
+          expect(node).not_to be_nil
+          expect(node["data-submission-id"]).to eq(@submission.id.to_s)
+          expect(node["data-submission-type"]).to eq("online_upload")
         end
       end
     end
