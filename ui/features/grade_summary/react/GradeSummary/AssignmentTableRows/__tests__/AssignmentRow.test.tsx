@@ -92,6 +92,13 @@ describe('AssignmentRow', () => {
     })
   })
 
+  describe('Submission GraphQL fragment', () => {
+    it('requests rubric assessments with forAllAttempts to show assessments regardless of attempt', () => {
+      const fragmentStr = Submission.fragment.loc?.source?.body ?? ''
+      expect(fragmentStr).toContain('forAllAttempts: true')
+    })
+  })
+
   describe('Rubric button', () => {
     it('renders rubric button', () => {
       const assignment = Assignment.mock({

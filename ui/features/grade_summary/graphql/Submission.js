@@ -48,7 +48,7 @@ export const Submission = {
           ...SubmissionComment
         }
       }
-      rubricAssessmentsConnection {
+      rubricAssessmentsConnection(filter: {forAllAttempts: true}) {
         nodes {
           ...RubricAssessment
         }

@@ -7673,6 +7673,8 @@ describe Submission do
       end
       @teacher_assessment = @submission.rubric_assessments.where(assessor_id: @teacher).first
       @student_assessment = @submission.rubric_assessments.where(assessor_id: @student).first
+      @teacher_assessment.update_columns(artifact_attempt: 1)
+      @student_assessment.update_columns(artifact_attempt: 1)
     end
 
     context "when the submission is unposted and the viewing user cannot :read_grade" do
@@ -7819,13 +7821,13 @@ describe Submission do
 
       it "returns an empty list if no rubric assessments exist for the desired attempt" do
         expect(
-          @submission2.visible_rubric_assessments_for(@viewing_user, attempt: @submission2.attempt)
+          @submission2.visible_rubric_assessments_for(@viewing_user, attempt: 2)
         ).to be_empty
       end
 
       it "can find historic rubric assessments of older attempts" do
         expect(
-          @submission2.visible_rubric_assessments_for(@viewing_user, attempt: @submission.attempt)
+          @submission2.visible_rubric_assessments_for(@viewing_user, attempt: 1)
         ).to contain_exactly(@teacher_assessment, @student_assessment)
       end
 
@@ -7861,6 +7863,45 @@ describe Submission do
                                                       })
 
         expect(submission.visible_rubric_assessments_for(@student, attempt: 0))
+          .to contain_exactly(assessment_before_submitting)
+      end
+
+      it "returns assessments with a nil artifact_attempt when querying attempt 1" do
+        assignment = @course.assignments.create!(submission_types: "online_text_entry")
+        rubric_association = rubric_association_model(association_object: assignment, purpose: "grading")
+        unsubmitted_submission = assignment.submission_for_student(@student)
+
+        assessment_before_submitting = rubric_association.rubric_assessments.create!({
+                                                                                       artifact: unsubmitted_submission,
+                                                                                       assessment_type: "grading",
+                                                                                       assessor: @teacher,
+                                                                                       rubric: rubric_association.rubric,
+                                                                                       user: @student
+                                                                                     })
+
+        submission = assignment.submit_homework(@student, body: "first attempt")
+
+        expect(submission.visible_rubric_assessments_for(@teacher, attempt: 1))
+          .to contain_exactly(assessment_before_submitting)
+      end
+
+      it "returns assessments with a nil artifact_attempt when querying a later attempt" do
+        assignment = @course.assignments.create!(submission_types: "online_text_entry")
+        rubric_association = rubric_association_model(association_object: assignment, purpose: "grading")
+        unsubmitted_submission = assignment.submission_for_student(@student)
+
+        assessment_before_submitting = rubric_association.rubric_assessments.create!({
+                                                                                       artifact: unsubmitted_submission,
+                                                                                       assessment_type: "grading",
+                                                                                       assessor: @teacher,
+                                                                                       rubric: rubric_association.rubric,
+                                                                                       user: @student
+                                                                                     })
+
+        assignment.submit_homework(@student, body: "first attempt")
+        submission = assignment.submit_homework(@student, body: "second attempt")
+
+        expect(submission.visible_rubric_assessments_for(@teacher, attempt: 2))
           .to contain_exactly(assessment_before_submitting)
       end
     end

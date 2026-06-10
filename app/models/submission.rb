@@ -3370,8 +3370,13 @@ class Submission < ApplicationRecord
     effective_attempt = (attempt == 0) ? nil : attempt
 
     rubric_assessments.each_with_object([]) do |assessment, assessments_for_attempt|
-      # Always return self-assessments and assessments for the effective attempt
-      if assessment.artifact_attempt == effective_attempt || assessment.assessment_type == "self_assessment"
+      # Always return self-assessments and assessments for the effective attempt.
+      # A nil artifact_attempt means the assessment was saved before attempt tracking
+      # existed (e.g. graded while submission was unsubmitted), so treat it as
+      # applicable to all attempts.
+      if assessment.artifact_attempt == effective_attempt ||
+         assessment.artifact_attempt.nil? ||
+         assessment.assessment_type == "self_assessment"
         assessments_for_attempt << assessment
       else
         version = assessment.versions.find { |v| v.model.artifact_attempt == effective_attempt }
