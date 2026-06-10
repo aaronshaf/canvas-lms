@@ -28,6 +28,17 @@ assignment_edit_placement_not_on_announcements:
   applies_to: SiteAdmin
   display_name: Prevents LTI tools with assignment_edit placement from being launched on Announcements page
   description: When enabled, an LTI tool with the assignment_edit placement will not be launched on the Announcement page.
+canvas_apps_api_keys:
+  shadow: true
+  state: hidden
+  display_name: Manage API Keys in Canvas Apps
+  description: Allows administrators to view and manage traditional API keys within the Canvas Apps interface.
+  applies_to: RootAccount
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 course_settings_navigation_react:
   state: hidden
   shadow: true
