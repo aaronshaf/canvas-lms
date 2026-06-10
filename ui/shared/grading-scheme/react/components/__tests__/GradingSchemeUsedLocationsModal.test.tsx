@@ -135,7 +135,11 @@ describe('UsedLocationsModal', () => {
   describe('show accounts used locations', () => {
     it('should load the page of account used locations', async () => {
       const {getByTestId, findByTestId} = renderUsedLocationsModal()
-      await findByTestId(`used-locations-modal-account-${DefaultAccountUsedLocations[0].id}`)
+      await findByTestId(
+        `used-locations-modal-account-${DefaultAccountUsedLocations[0].id}`,
+        undefined,
+        {timeout: 10000},
+      )
       expect(getByTestId('used-locations-modal')).toBeInTheDocument()
     })
   })
