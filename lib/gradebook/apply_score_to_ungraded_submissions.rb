@@ -69,14 +69,14 @@ module Gradebook
     end
 
     def self.matching_submissions_scope(course, grader, options)
-      students = course.students_visible_to(grader).where(id: options.student_ids)
+      students = course.students_visible_to(grader.user).where(id: options.student_ids)
       assignments = course.assignments.where(id: options.assignment_ids).where.not(submission_types: "not_graded")
       submissions = Submission.active
                               .joins(:assignment)
                               .preload(:assignment, :user)
                               .where(assignment: assignments)
                               .where.not("assignments.moderated_grading IS TRUE AND assignments.grades_published_at IS NULL")
-                              .where.not(["assignments.moderated_grading IS TRUE AND assignments.final_grader_id != ?", grader.id])
+                              .where.not(["assignments.moderated_grading IS TRUE AND assignments.final_grader_id != ?", grader.user])
                               .where(user: students)
                               .ungraded
                               .where("submissions.excused IS NOT TRUE")
@@ -94,7 +94,7 @@ module Gradebook
       Submission.suspend_callbacks(:apply_late_policy) do
         assignment.grade_student(
           submission.user,
-          grader:,
+          grader: grader.user,
           excused: options.excused,
           score: percent_score,
           skip_grade_calc: true

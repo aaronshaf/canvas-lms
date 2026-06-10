@@ -56,7 +56,7 @@ describe Gradebook::ApplyScoreToUngradedSubmissions do
 
       progress = Gradebook::ApplyScoreToUngradedSubmissions.queue_apply_score(
         course:,
-        grader: teacher,
+        grader: teacher.principal,
         options:
       )
 
@@ -70,7 +70,7 @@ describe Gradebook::ApplyScoreToUngradedSubmissions do
 
       progress = Progress.create!(context: course, tag: "apply_score_to_ungraded_assignments")
       progress.start!
-      Gradebook::ApplyScoreToUngradedSubmissions.process_apply_score(progress, course, grader, options)
+      Gradebook::ApplyScoreToUngradedSubmissions.process_apply_score(progress, course, grader.principal, options)
       progress
     end
 
@@ -86,7 +86,7 @@ describe Gradebook::ApplyScoreToUngradedSubmissions do
     it "uses the supplied grader as the grader" do
       run
 
-      expect(test_submission.grader).to eq teacher
+      expect(test_submission.grader).to eq teacher.principal
     end
 
     it "does not change submissions that are already graded" do

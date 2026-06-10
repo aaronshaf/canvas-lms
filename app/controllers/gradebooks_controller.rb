@@ -1648,7 +1648,7 @@ class GradebooksController < ApplicationController
 
     progress = ::Gradebook::ApplyScoreToUngradedSubmissions.queue_apply_score(
       course: @context,
-      grader: @current_user,
+      grader: current_principal,
       options:
     )
     render json: progress_json(progress, current_principal, session)
