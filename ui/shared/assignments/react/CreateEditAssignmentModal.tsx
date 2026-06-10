@@ -20,7 +20,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useState, useEffect} from 'react'
 import {Modal} from '@instructure/ui-modal'
 import {Flex} from '@instructure/ui-flex'
-import {DateTimeInput} from '@instructure/ui-date-time-input'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {IconXSolid} from '@instructure/ui-icons'
@@ -33,6 +32,7 @@ import type {FormMessage} from '@instructure/ui-form-field'
 import DateValidator from '@canvas/grading/DateValidator'
 import GradingPeriodsAPI from '@canvas/grading/jquery/gradingPeriodsApi'
 import useInputFocus from '@canvas/outcomes/react/hooks/useInputFocus'
+import FancyMidnightDueDateInput from '@canvas/datetime/react/components/FancyMidnightDueDateInput'
 
 const I18n = createI18nScope('CreateEditAssignmentModal')
 
@@ -494,7 +494,7 @@ const CreateEditAssignmentModal = ({
         <View as="div" width="100%">
           {showDueDateInput && (
             <View data-testid="due-date-container">
-              <DateTimeInput
+              <FancyMidnightDueDateInput
                 timezone={timezone}
                 layout="columns"
                 interaction={enableDueDateInput ? 'enabled' : 'disabled'}

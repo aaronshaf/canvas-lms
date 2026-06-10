@@ -115,7 +115,7 @@ describe('CreateEditAssignmentModal', () => {
       {
         type: 'none',
         name: 'Test Assignment',
-        dueAt: '2024-01-15T00:00:00.000Z',
+        dueAt: '2024-01-15T23:59:59.000Z',
         points: 100,
         syncToSIS: false,
       },
@@ -315,7 +315,41 @@ describe('CreateEditAssignmentModal', () => {
         {
           type: 'none',
           name: 'Test Assignment',
-          dueAt: '2024-01-15T23:59:00.000Z',
+          dueAt: '2024-01-15T23:59:59.000Z',
+          points: 100,
+          publish: false,
+          syncToSIS: false,
+        },
+        true,
+      )
+    })
+
+    it('stores fancy midnight (23:59:59) when 12:00 AM is chosen as the due time', async () => {
+      const {getByTestId, getByPlaceholderText, getByText, getByLabelText} = render(
+        <CreateEditAssignmentModal {...defaultProps()} />,
+      )
+
+      fireEvent.change(getByTestId('assignment-name-input'), {target: {value: 'Test Assignment'}})
+      fireEvent.change(getByTestId('points-input'), {target: {value: '100'}})
+
+      fireEvent.click(getByPlaceholderText('Choose a date'))
+      fireEvent.click(getByText('15'))
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+      const timeInput = getByLabelText('Time')
+      fireEvent.change(timeInput, {target: {value: '12:00 AM'}})
+      fireEvent.click(getByText('12:00 AM'))
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+      fireEvent.click(getByTestId('save-button'))
+
+      expect(onSaveHandlerMock).toHaveBeenCalledWith(
+        {
+          type: 'none',
+          name: 'Test Assignment',
+          dueAt: '2024-01-15T23:59:59.000Z',
           points: 100,
           publish: false,
           syncToSIS: false,
@@ -445,8 +479,9 @@ describe('CreateEditAssignmentModal', () => {
     })
 
     it('Does not change due date time when selecting new date if one was already present', async () => {
+      const assignment = {...assignmentData, dueAt: '2024-01-14T15:00:00Z'}
       const {getByTestId, getByPlaceholderText, getByText} = render(
-        <CreateEditAssignmentModal {...defaultProps({assignment: assignmentData})} />,
+        <CreateEditAssignmentModal {...defaultProps({assignment})} />,
       )
 
       // open the calendar picker (Select January 15th)
@@ -462,7 +497,61 @@ describe('CreateEditAssignmentModal', () => {
         {
           type: 'none',
           name: 'Test Assignment',
-          dueAt: '2024-01-15T00:00:00.000Z',
+          dueAt: '2024-01-15T15:00:00.000Z',
+          points: 100,
+          publish: false,
+          syncToSIS: false,
+        },
+        false,
+      )
+    })
+
+    it('applies fancy midnight to an existing midnight due date when only the date changes', async () => {
+      const assignment = {...assignmentData, dueAt: '2024-01-14T00:00:00Z'}
+      const {getByTestId, getByPlaceholderText, getByText} = render(
+        <CreateEditAssignmentModal {...defaultProps({assignment})} />,
+      )
+
+      fireEvent.click(getByPlaceholderText('Choose a date'))
+      fireEvent.click(getByText('15'))
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      fireEvent.click(getByTestId('save-button'))
+
+      expect(onSaveHandlerMock).toHaveBeenCalledWith(
+        {
+          type: 'none',
+          name: 'Test Assignment',
+          dueAt: '2024-01-15T23:59:59.000Z',
+          points: 100,
+          publish: false,
+          syncToSIS: false,
+        },
+        false,
+      )
+    })
+
+    it('keeps an existing 23:59:59 due time as 23:59:59 when only the date changes', async () => {
+      const assignment = {...assignmentData, dueAt: '2024-01-14T23:59:59Z'}
+      const {getByTestId, getByPlaceholderText, getByText} = render(
+        <CreateEditAssignmentModal {...defaultProps({assignment})} />,
+      )
+
+      fireEvent.click(getByPlaceholderText('Choose a date'))
+      fireEvent.click(getByText('15'))
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      fireEvent.click(getByTestId('save-button'))
+
+      expect(onSaveHandlerMock).toHaveBeenCalledWith(
+        {
+          type: 'none',
+          name: 'Test Assignment',
+          dueAt: '2024-01-15T23:59:59.000Z',
           points: 100,
           publish: false,
           syncToSIS: false,
