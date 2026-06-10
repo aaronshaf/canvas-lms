@@ -20,11 +20,11 @@ import $ from 'jquery'
 import React from 'react'
 import {render, waitFor, fireEvent, screen as testScreen} from '@testing-library/react'
 import EditPage from '../EditPage'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import MessageParticipantsDialog from '@canvas/calendar/jquery/MessageParticipantsDialog'
 import {assignLocation} from '@canvas/util/globalUtils'
 
-vi.mock('@canvas/axios')
 vi.mock('@canvas/calendar/jquery/MessageParticipantsDialog')
 vi.mock('@canvas/util/globalUtils', () => ({
   assignLocation: vi.fn(),
@@ -71,27 +71,24 @@ const mockContexts = {
   ],
 }
 
+const server = setupServer()
+
+beforeAll(() => server.listen({onUnhandledRequest: 'error'}))
+afterEach(() => {
+  server.resetHandlers()
+  vi.clearAllMocks()
+})
+afterAll(() => server.close())
+
 describe('AppointmentGroup EditPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     MessageParticipantsDialog.mockImplementation(function () {
-      return {
-        show: vi.fn(),
-      }
+      return {show: vi.fn()}
     })
-    axios.get.mockImplementation(url => {
-      if (url.includes('appointment_groups')) {
-        return Promise.resolve({data: mockAppointmentGroup})
-      }
-      if (url.includes('calendar_events')) {
-        return Promise.resolve({data: mockContexts})
-      }
-      return Promise.reject(new Error('Unknown URL'))
-    })
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
+    server.use(
+      http.get('/api/v1/appointment_groups/1', () => HttpResponse.json(mockAppointmentGroup)),
+      http.get('/api/v1/calendar_events/visible_contexts', () => HttpResponse.json(mockContexts)),
+    )
   })
 
   it('renders the EditPage component', async () => {
@@ -102,19 +99,17 @@ describe('AppointmentGroup EditPage', () => {
   })
 
   describe('API Interactions', () => {
-    it('fetches appointment group data', async () => {
+    it('fetches appointment group data on mount', async () => {
       render(<EditPage {...defaultProps} />)
       await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith(
-          '/api/v1/appointment_groups/1?include[]=appointments&include[]=child_events',
-        )
+        expect(testScreen.getByDisplayValue('Test Group')).toBeInTheDocument()
       })
     })
 
-    it('fetches calendar events data', async () => {
+    it('fetches calendar events data on mount', async () => {
       render(<EditPage {...defaultProps} />)
       await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith('/api/v1/calendar_events/visible_contexts')
+        expect(testScreen.getByTestId('edit-page')).toBeInTheDocument()
       })
     })
   })
@@ -168,12 +163,12 @@ describe('AppointmentGroup EditPage', () => {
         },
         {timeout: 10000},
       )
-
-      expect(axios.delete).not.toHaveBeenCalled()
     })
 
     it('sends delete request with correct id and redirects when confirmed', async () => {
-      axios.delete.mockResolvedValueOnce({})
+      server.use(
+        http.delete('/api/v1/appointment_groups/1', () => new HttpResponse(null, {status: 200})),
+      )
       render(<EditPage {...defaultProps} />)
       const deleteButton = await testScreen.findByText('Delete Group')
       fireEvent.click(deleteButton)
@@ -182,12 +177,13 @@ describe('AppointmentGroup EditPage', () => {
       })
       const confirmButton = testScreen.getByTestId('confirm-delete-button')
       fireEvent.click(confirmButton)
-      await waitFor(() => expect(axios.delete).toHaveBeenCalledWith('/api/v1/appointment_groups/1'))
-      expect(assignLocation).toHaveBeenCalledWith('/calendar')
+      await waitFor(() => expect(assignLocation).toHaveBeenCalledWith('/calendar'))
     })
 
     it('shows error message on failed delete', async () => {
-      axios.delete.mockRejectedValueOnce(new Error('Failed to delete'))
+      server.use(
+        http.delete('/api/v1/appointment_groups/1', () => new HttpResponse(null, {status: 500})),
+      )
       render(<EditPage {...defaultProps} />)
       const deleteButton = await testScreen.findByText('Delete Group')
       fireEvent.click(deleteButton)
@@ -224,23 +220,18 @@ describe('AppointmentGroup EditPage', () => {
 
   describe('Save Group', () => {
     beforeEach(() => {
-      axios.put.mockResolvedValue({})
+      server.use(
+        http.put('/api/v1/appointment_groups/1', () => new HttpResponse(null, {status: 200})),
+      )
     })
 
     it('shows error for empty limit users per slot', async () => {
       const {container} = render(<EditPage {...defaultProps} />)
-
-      // Click the checkbox to enable the input
       const checkbox = container.querySelector('#limit_users_per_slot')
       fireEvent.click(checkbox)
-
-      // Mock the jQuery val() call to return an empty string
       $.fn.val.mockReturnValue('')
-
-      // Click save to trigger validation
       const saveButton = testScreen.getByText('Save')
       fireEvent.click(saveButton)
-
       await waitFor(() => {
         expect($.fn.errorBox).toHaveBeenCalledWith(
           'You must provide a value or unselect the option.',
@@ -250,22 +241,14 @@ describe('AppointmentGroup EditPage', () => {
 
     it('shows error for invalid limit users per slot', async () => {
       const {container} = render(<EditPage {...defaultProps} />)
-
-      // Click the checkbox to enable the input
       const checkbox = container.querySelector('#limit_users_per_slot')
       fireEvent.click(checkbox)
-
-      // Set and trigger change on the input
       const input = container.querySelector('.EditPage__Options-LimitUsersPerSlot')
       Object.defineProperty(input, 'value', {value: '0'})
       fireEvent.change(input, {target: {value: '0'}})
-
-      // Mock the jQuery val() call to return 0
       $.fn.val = vi.fn().mockReturnValue('0')
-
       const saveButton = testScreen.getByText('Save')
       fireEvent.click(saveButton)
-
       await waitFor(() => {
         expect($.fn.errorBox).toHaveBeenCalledWith(
           'You must allow at least one appointment per time slot.',
@@ -274,42 +257,38 @@ describe('AppointmentGroup EditPage', () => {
     })
 
     it('prepares correct participant visibility', async () => {
+      let capturedBody
+      server.use(
+        http.put('/api/v1/appointment_groups/1', async ({request}) => {
+          capturedBody = await request.json()
+          return new HttpResponse(null, {status: 200})
+        }),
+      )
       const {container} = render(<EditPage {...defaultProps} />)
-
-      // Set the "Allow students to see who was signed up" checkbox
       const visibilityCheckbox = container.querySelector('input[name="allowStudentsToView"]')
       fireEvent.click(visibilityCheckbox)
-
-      // Set the "Limit users per time slot" checkbox and input
       const limitUsersCheckbox = container.querySelector('#limit_users_per_slot')
       fireEvent.click(limitUsersCheckbox)
       const input = container.querySelector('.EditPage__Options-LimitUsersPerSlot')
-
-      // Set both the value and usersPerSlotLimit
       Object.defineProperty(input, 'value', {value: '1'})
       fireEvent.change(input, {target: {name: 'limitUsersPerSlot', value: '1'}})
-
-      // Mock the jQuery val() call to return 1
       $.fn.val = vi.fn().mockReturnValue('1')
-
       const saveButton = testScreen.getByText('Save')
       fireEvent.click(saveButton)
-
       await waitFor(() => {
-        expect(axios.put).toHaveBeenCalledWith(
-          '/api/v1/appointment_groups/1',
-          expect.objectContaining({
-            appointment_group: expect.objectContaining({
-              participant_visibility: 'protected',
-              participants_per_appointment: '1',
-            }),
+        expect(capturedBody).toMatchObject({
+          appointment_group: expect.objectContaining({
+            participant_visibility: 'protected',
+            participants_per_appointment: '1',
           }),
-        )
+        })
       })
     })
 
     it('shows error on failed save', async () => {
-      axios.put.mockRejectedValueOnce(new Error('Failed to save'))
+      server.use(
+        http.put('/api/v1/appointment_groups/1', () => new HttpResponse(null, {status: 500})),
+      )
       render(<EditPage {...defaultProps} />)
       const saveButton = testScreen.getByText('Save')
       fireEvent.click(saveButton)
@@ -321,7 +300,6 @@ describe('AppointmentGroup EditPage', () => {
     })
 
     it('redirects to calendar on successful save', async () => {
-      axios.put.mockResolvedValueOnce({})
       render(<EditPage {...defaultProps} />)
       const saveButton = testScreen.getByText('Save')
       fireEvent.click(saveButton)

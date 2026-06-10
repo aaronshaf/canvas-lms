@@ -41,7 +41,7 @@ describe('Discussions redux actions', () => {
 
   describe('updateDiscussion', () => {
     it('dispatches UPDATE_DISCUSSION_SUCCESS when successful', async () => {
-      const mockResponse = {data: {locked: false, pinned: true}}
+      const mockResponse = {json: {locked: false, pinned: true}}
       apiClient.updateDiscussion.mockResolvedValue(mockResponse)
 
       const discussion = {pinned: false, locked: false}
@@ -164,8 +164,8 @@ describe('Discussions redux actions', () => {
         use_default_discussion_settings: true,
         default_discussion_settings: {disallow_threaded_replies: true},
       }
-      apiClient.saveUserSettings.mockResolvedValue({data: userSettingsState})
-      apiClient.saveCourseSettings.mockResolvedValue({data: savedCourseSettings})
+      apiClient.saveUserSettings.mockResolvedValue({json: userSettingsState})
+      apiClient.saveCourseSettings.mockResolvedValue({json: savedCourseSettings})
 
       const dispatch = vi.fn()
       const courseSettings = {

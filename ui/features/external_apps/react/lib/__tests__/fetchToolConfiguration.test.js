@@ -16,47 +16,45 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import fetchToolConfiguration from '../fetchToolConfiguration'
 
 const errorHandler = vi.fn()
 const clientId = 10000000009
 const showUrl = 'https://www.test.com/:developer_key_id/tool_configuration'
+const resolvedUrl = 'https://www.test.com/10000000009/tool_configuration'
 
-beforeEach(() => {
-  axios.get = vi.fn()
-})
+const server = setupServer()
 
+beforeAll(() => server.listen({onUnhandledRequest: 'error'}))
 afterEach(() => {
+  server.resetHandlers()
   errorHandler.mockReset()
-  axios.get.mockRestore()
 })
+afterAll(() => server.close())
 
 describe('fetchToolConfiguration', () => {
   describe('when the request is a success', () => {
-    beforeEach(() => {
-      axios.get.mockReturnValue({data: {tool_configuration: {}}})
-      fetchToolConfiguration(clientId, showUrl, errorHandler)
+    it('returns the tool_configuration from the response', async () => {
+      server.use(
+        http.get(resolvedUrl, () => HttpResponse.json({tool_configuration: {settings: {}}})),
+      )
+      const result = await fetchToolConfiguration(clientId, showUrl, errorHandler)
+      expect(result).toEqual({settings: {}})
     })
 
-    it('does not call the error handler', () => {
+    it('does not call the error handler', async () => {
+      server.use(http.get(resolvedUrl, () => HttpResponse.json({tool_configuration: {}})))
+      await fetchToolConfiguration(clientId, showUrl, errorHandler)
       expect(errorHandler).not.toHaveBeenCalled()
-    })
-
-    it('makes a request to the correct endpoint', () => {
-      expect(axios.get).toHaveBeenCalledWith('https://www.test.com/10000000009/tool_configuration')
     })
   })
 
   describe('when the request is not a success', () => {
-    beforeEach(() => {
-      axios.get.mockImplementation(() => {
-        throw new Error()
-      })
-      fetchToolConfiguration(clientId, showUrl, errorHandler)
-    })
-
-    it('calls the error handler', () => {
+    it('calls the error handler', async () => {
+      server.use(http.get(resolvedUrl, () => new HttpResponse(null, {status: 500})))
+      await fetchToolConfiguration(clientId, showUrl, errorHandler)
       expect(errorHandler).toHaveBeenCalled()
     })
   })

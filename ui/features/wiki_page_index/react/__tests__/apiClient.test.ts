@@ -49,10 +49,33 @@ it('deletes pages', async () => {
     }),
   )
   const response = await deletePages('courses', '1', ['my_page'])
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - deletePages response type incomplete
+  // @ts-expect-error - deletePages response type incomplete
   expect(response.failures).toEqual([])
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - deletePages response type incomplete
+  // @ts-expect-error - deletePages response type incomplete
   expect(response.successes[0].data).toEqual('my_page')
+})
+
+it('deletes multiple pages and returns all as successes', async () => {
+  server.use(
+    http.delete('*/api/v1/courses/1/pages/page-a', () => new HttpResponse(null, {status: 204})),
+    http.delete('*/api/v1/courses/1/pages/page-b', () => new HttpResponse(null, {status: 204})),
+    http.delete('*/api/v1/courses/1/pages/page-c', () => new HttpResponse(null, {status: 204})),
+  )
+  const response = await deletePages('courses', '1', ['page-a', 'page-b', 'page-c'])
+  // @ts-expect-error - deletePages response type incomplete
+  expect(response.successes).toHaveLength(3)
+  // @ts-expect-error - deletePages response type incomplete
+  expect(response.failures).toHaveLength(0)
+})
+
+it('reports individual failures when a delete errors', async () => {
+  server.use(
+    http.delete('*/api/v1/courses/1/pages/page-ok', () => new HttpResponse(null, {status: 204})),
+    http.delete('*/api/v1/courses/1/pages/page-fail', () => new HttpResponse(null, {status: 500})),
+  )
+  const response = await deletePages('courses', '1', ['page-ok', 'page-fail'])
+  // @ts-expect-error - deletePages response type incomplete
+  expect(response.successes).toHaveLength(1)
+  // @ts-expect-error - deletePages response type incomplete
+  expect(response.failures).toHaveLength(1)
 })

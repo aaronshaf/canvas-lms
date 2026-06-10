@@ -20,21 +20,24 @@ import {
   getExternalApps,
   type ProcessedTool,
 } from '../utils'
-import axios from '@canvas/axios'
-import {type Mocked} from 'vitest'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 
-vi.mock('@canvas/axios')
-const mockedAxios = axios as Mocked<typeof axios>
+const LTI_APPS_PATH = '/api/v1/accounts/1/lti_apps/launch_definitions'
+
+const server = setupServer()
+
+beforeAll(() => {
+  window.ENV = {...window.ENV, ACCOUNT_ID: '1'} as any
+  server.listen({onUnhandledRequest: 'error'})
+})
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('utils.ts', () => {
   describe('getExternalApps', () => {
     beforeEach(() => {
-      const default_mock_response: ExternalTool[] = []
-      mockedAxios.get.mockResolvedValue({data: default_mock_response})
-    })
-
-    afterEach(() => {
-      vi.resetAllMocks()
+      server.use(http.get(LTI_APPS_PATH, () => HttpResponse.json([])))
     })
 
     it('handles empty array response from the API', async () => {
@@ -43,38 +46,40 @@ describe('utils.ts', () => {
     })
 
     it('processes valid tools correctly', async () => {
-      mockedAxios.get.mockResolvedValueOnce({
-        data: [
-          {
-            definition_id: 8300,
-            definition_type: 'ContextExternalTool',
-            placements: {
-              global_navigation: {
-                message_type: 'basic_lti_request',
-                url: 'https://example.com',
-                title: 'Local Studio',
-                icon_svg_path_64: '',
-                icon_url: 'https://example.com/icon.png',
-                html_url: '/accounts/1/external_tools/8300?launch_type=global_navigation',
+      server.use(
+        http.get(LTI_APPS_PATH, () =>
+          HttpResponse.json([
+            {
+              definition_id: 8300,
+              definition_type: 'ContextExternalTool',
+              placements: {
+                global_navigation: {
+                  message_type: 'basic_lti_request',
+                  url: 'https://example.com',
+                  title: 'Local Studio',
+                  icon_svg_path_64: '',
+                  icon_url: 'https://example.com/icon.png',
+                  html_url: '/accounts/1/external_tools/8300?launch_type=global_navigation',
+                },
               },
             },
-          },
-          {
-            definition_id: 8066,
-            definition_type: 'ContextExternalTool',
-            placements: {
-              global_navigation: {
-                message_type: 'basic_lti_request',
-                url: 'https://example2.com',
-                title: 'Lucid Integration',
-                icon_svg_path_64: 'path/to/svg',
-                icon_url: '',
-                html_url: '/accounts/1/external_tools/8066?launch_type=global_navigation',
+            {
+              definition_id: 8066,
+              definition_type: 'ContextExternalTool',
+              placements: {
+                global_navigation: {
+                  message_type: 'basic_lti_request',
+                  url: 'https://example2.com',
+                  title: 'Lucid Integration',
+                  icon_svg_path_64: 'path/to/svg',
+                  icon_url: '',
+                  html_url: '/accounts/1/external_tools/8066?launch_type=global_navigation',
+                },
               },
             },
-          },
-        ],
-      })
+          ]),
+        ),
+      )
 
       const result = await getExternalApps()
       expect(result).toEqual([
@@ -96,20 +101,50 @@ describe('utils.ts', () => {
     })
 
     it('ignores tools without required global_navigation data', async () => {
-      mockedAxios.get.mockResolvedValueOnce({
-        data: [{definition_id: '8300', definition_type: 'ContextExternalTool', placements: {}}],
-      })
-      const simulate_missing_global_navigation_data = {}
-      mockedAxios.get.mockResolvedValueOnce({data: simulate_missing_global_navigation_data})
+      server.use(
+        http.get(LTI_APPS_PATH, () =>
+          HttpResponse.json([
+            {definition_id: '8300', definition_type: 'ContextExternalTool', placements: {}},
+          ]),
+        ),
+      )
       const result = await getExternalApps()
       expect(result).toEqual([])
     })
 
     it('returns an empty array if API does not return an array', async () => {
-      const not_an_array = {}
-      mockedAxios.get.mockResolvedValue({data: not_an_array})
+      server.use(http.get(LTI_APPS_PATH, () => HttpResponse.json({})))
       const result = await getExternalApps()
       expect(result).toEqual([])
+    })
+
+    it('throws when the server returns an error', async () => {
+      server.use(http.get(LTI_APPS_PATH, () => new HttpResponse(null, {status: 500})))
+      await expect(getExternalApps()).rejects.toThrow()
+    })
+
+    it('prefers svgPath over imgSrc when both are present', async () => {
+      server.use(
+        http.get(LTI_APPS_PATH, () =>
+          HttpResponse.json([
+            {
+              definition_id: 1,
+              definition_type: 'ContextExternalTool',
+              placements: {
+                global_navigation: {
+                  title: 'Both Icons',
+                  icon_svg_path_64: 'path/to/svg',
+                  icon_url: 'https://example.com/icon.png',
+                  html_url: '/accounts/1/external_tools/1?launch_type=global_navigation',
+                },
+              },
+            },
+          ]),
+        ),
+      )
+      const result = await getExternalApps()
+      expect(result[0].svgPath).toBe('path/to/svg')
+      expect(result[0].imgSrc).toBe('https://example.com/icon.png')
     })
   })
 

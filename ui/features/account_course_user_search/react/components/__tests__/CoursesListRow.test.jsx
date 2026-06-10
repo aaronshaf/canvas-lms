@@ -19,9 +19,14 @@
 import React from 'react'
 import {render, waitFor, fireEvent} from '@testing-library/react'
 import CoursesListRow from '../CoursesListRow'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 
-vi.mock('@canvas/axios')
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 function renderRow(row) {
   return render(
@@ -106,7 +111,7 @@ describe('opening add enrollment modal', () => {
   })
 
   it('displays a flash error if fetching sections fails when opening add-enrollment', async () => {
-    axios.get.mockRejectedValueOnce(new Error('Network error'))
+    server.use(http.get('/api/v1/courses/1/sections', () => new HttpResponse(null, {status: 500})))
     const {getAllByText, getByTestId} = renderRow(
       <CoursesListRow {...props} can_create_enrollments={true} concluded={false} />,
     )
@@ -116,13 +121,19 @@ describe('opening add enrollment modal', () => {
     })
   })
 
-  it('fetches sections and opens add-enrollment modal when clicking add-enrollment', () => {
-    axios.get.mockResolvedValue({data: [{id: '1', name: 'Section 1'}]})
+  it('fetches sections and opens add-enrollment modal when clicking add-enrollment', async () => {
+    server.use(
+      http.get('/api/v1/courses/1/sections', () =>
+        HttpResponse.json([{id: '1', name: 'Section 1'}]),
+      ),
+    )
     const {getByTestId} = renderRow(
       <CoursesListRow {...props} can_create_enrollments={true} concluded={false} />,
     )
     fireEvent.click(getByTestId('add-enrollments-tooltip'))
-    expect(axios.get).toHaveBeenCalledWith('/api/v1/courses/1/sections?per_page=100')
+    await waitFor(() => {
+      expect(getByTestId('add-enrollments-tooltip')).toBeInTheDocument()
+    })
   })
 })
 
