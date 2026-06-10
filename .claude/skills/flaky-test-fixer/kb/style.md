@@ -448,4 +448,106 @@ end
 
 ---
 
-<!-- Add new rules below as S-13, S-14, … -->
+## S-13 — Reset `useRef` "in-progress" guards unconditionally
+
+**Rule:** When a `useRef(false)` flag guards against concurrent async calls
+in a React component, reset it in the `catch` block (or a `finally` block)
+as well as on the success path. Never leave the reset only in `try`.
+
+**Why:** A ref that is only cleared on success becomes a permanent lock after
+any error. The `useEffect` or `useCallback` that calls the guarded function
+may fire on every re-render (e.g. because a prop reference is unstable);
+every call hits `ref.current === true` and returns early, silently blocking
+all retries forever.
+
+**How to apply:**
+
+```ts
+// BAD — permanent lock after any error
+fetchingRef.current = true
+try {
+  const data = await fetchSomething()
+  setState(data)
+  fetchingRef.current = false           // ← only reset on success
+} catch (err) {
+  showFlashError(t('Failed'))(err)      // ← ref stays true forever
+}
+
+// GOOD — always unlocked after the attempt completes
+fetchingRef.current = true
+try {
+  const data = await fetchSomething()
+  setState(data)
+} catch (err) {
+  showFlashError(t('Failed'))(err)
+} finally {
+  fetchingRef.current = false           // ← reset regardless of outcome
+}
+
+// Also acceptable — explicit reset in catch when finally is inconvenient
+fetchingRef.current = true
+try {
+  const data = await fetchSomething()
+  setState(data)
+  fetchingRef.current = false
+} catch (err) {
+  fetchingRef.current = false           // ← added to catch
+  showFlashError(t('Failed'))(err)
+}
+```
+
+**Related:** When a ref guard is used alongside an unstable `useCallback`
+dependency (e.g. an inline arrow-function prop), the callback changes on
+every render and the effect re-runs on every render. The guard prevents
+redundant in-flight calls — but only while the ref is correctly reset after
+each attempt. A stuck ref in this pattern is invisible: no error is thrown,
+the UI just silently stops loading.
+
+*Introduced: Case 11*
+
+---
+
+## S-14 — Do not list ephemeral loading flags in `useEffect` deps
+
+**Rule:** Do not include transient loading state (`isLoading`, `isPending`,
+`isFetching`) in a `useEffect` dependency array unless the effect's logic
+genuinely branches on that value. If the flag is only there because the linter
+flagged it, remove it and add an eslint-disable comment with a one-line
+explanation.
+
+**Why:** Ephemeral loading flags toggle on every fetch cycle (false → true →
+false). Each toggle re-runs the effect, cancelling and rescheduling timers,
+recreating observers, or resetting refs — churn that is both unnecessary and
+timing-sensitive. In CI, where fetch latency differs from local runs, this
+churn widens the window for race conditions.
+
+**How to apply:** Ask "does the effect body contain an `if (isLoading)`
+branch?" If no, the flag does not belong in the dep array.
+
+```ts
+// BAD — isLoading triggers full cancel/reschedule on every fetch transition
+useEffect(() => {
+  const timer = setTimeout(() => {
+    const observer = new IntersectionObserver(cb, opts)
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, 0)
+  return () => clearTimeout(timer)
+}, [isLoading, loadMore, isOpen])   // ← isLoading not used in body
+
+// GOOD — effect only restarts when the callback or open state changes
+useEffect(() => {
+  const timer = setTimeout(() => {
+    const observer = new IntersectionObserver(cb, opts)
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, 0)
+  return () => clearTimeout(timer)
+}, [loadMore, isOpen])
+```
+
+*Introduced: Case 11*
+
+---
+
+<!-- Add new rules below as S-15, S-16, … -->

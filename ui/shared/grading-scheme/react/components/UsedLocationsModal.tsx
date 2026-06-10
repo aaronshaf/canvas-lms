@@ -104,6 +104,7 @@ export const UsedLocationsModal = ({
       moreLocationsLeft.current = !newLocations.isLastPage
       fetchingLocations.current = false
     } catch (error: any) {
+      fetchingLocations.current = false
       showFlashError(t('Failed to load used locations'))(error)
     }
   }, [fetchUsedLocations, itemId])
@@ -162,6 +163,7 @@ export const UsedLocationsModal = ({
 
       fetchingAccountLocations.current = false
     } catch (error: any) {
+      fetchingAccountLocations.current = false
       showFlashError(t('Failed to load account used locations'))(error)
     }
   }, [fetchAccountUsedLocations, itemId])
@@ -204,7 +206,7 @@ export const UsedLocationsModal = ({
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [isLoading, loadMoreCourseLocations, moreLocationsLeft, isOpen])
+  }, [loadMoreCourseLocations, moreLocationsLeft, isOpen])
 
   useEffect(() => {
     if (isOpen && !accountUsedLocations) {
