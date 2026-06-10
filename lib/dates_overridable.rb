@@ -450,24 +450,44 @@ module DatesOverridable
   def get_student_ids(override, visible_users_ids = nil)
     if override.preloaded_student_ids
       override.preloaded_student_ids
-    elsif visible_users_ids.present?
-      override.assignment_override_students.where(user_id: visible_users_ids).pluck(:user_id)
-    else
+    elsif visible_users_ids.nil?
       override.assignment_override_students.pluck(:user_id)
+    else
+      override.assignment_override_students.where(user_id: visible_users_ids).pluck(:user_id)
+    end
+  end
+
+  def preload_adhoc_student_ids(assignment_overrides, visible_users_ids)
+    adhoc_overrides = assignment_overrides.select { |o| o.set_type == "ADHOC" && o.preloaded_student_ids.nil? }
+    return if adhoc_overrides.empty?
+
+    if visible_users_ids
+      AssignmentOverrideApplicator.preload_student_ids_for_adhoc_overrides(adhoc_overrides, visible_users_ids)
+      adhoc_overrides.each { |override| override.preloaded_student_ids ||= [] }
+    else
+      students_by_override = AssignmentOverrideStudent.active
+                                                      .where(assignment_override_id: adhoc_overrides)
+                                                      .pluck(:assignment_override_id, :user_id)
+                                                      .group_by(&:first)
+      adhoc_overrides.each { |override| override.preloaded_student_ids = (students_by_override[override.id] || []).map(&:last) }
     end
   end
 
   def dates_hash_visible_to(principal, include_all_dates: false)
-    all_dates = include_all_dates ? all_due_dates : all_dates_visible_to(principal&.user)
+    user = principal&.user
+    all_dates = include_all_dates ? all_due_dates : all_dates_visible_to(user)
     return [due_date_hash] unless all_dates
 
     assignment_overrides = all_dates.filter_map { |o| o[:override].presence }
+    has_module_overrides = assignment_overrides.any?(&:context_module_id)
+    has_adhoc_overrides = assignment_overrides.any? { |o| o.set_type == "ADHOC" }
+
+    visible_users_ids = if user && (has_module_overrides || has_adhoc_overrides)
+                          AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, principal).select(:user_id)
+                        end
+    preload_adhoc_student_ids(assignment_overrides, visible_users_ids) if has_adhoc_overrides
     # only need to check for overridden assignees if there are module overrides
-    visible_users_ids, overridden_targets = if assignment_overrides.any?(&:context_module_id)
-                                              user_ids = AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, principal).select(:user_id)
-                                              duplicate_overrides = get_overridden_assignees(assignment_overrides, user_ids)
-                                              [user_ids, duplicate_overrides]
-                                            end
+    overridden_targets = has_module_overrides ? get_overridden_assignees(assignment_overrides, visible_users_ids) : {}
 
     everyone_overrides = []
     section_override_ids = []
@@ -480,20 +500,19 @@ module DatesOverridable
 
       set_id = override[:set_id]
 
-      if override[:context_module_id]
-        case override[:set_type]
-        when "CourseSection"
-          next if overridden_targets[:sections]&.include?(set_id)
-        when "Group"
-          next if overridden_targets[:groups]&.include?(set_id)
-        when "ADHOC"
-          student_ids = get_student_ids(override, visible_users_ids)
-          if overridden_targets[:students].present?
-            student_ids -= overridden_targets[:students]
-            next if student_ids.empty?
-          end
-          o[:title] = "#{student_ids.length} students" if student_ids.present?
-        end
+      case override[:set_type]
+      when "CourseSection"
+        next if override[:context_module_id] && overridden_targets[:sections]&.include?(set_id)
+      when "Group"
+        next if override[:context_module_id] && overridden_targets[:groups]&.include?(set_id)
+      when "ADHOC"
+        student_ids = get_student_ids(override, visible_users_ids)
+        # a module override loses any students already assigned by a higher-priority override
+        student_ids -= overridden_targets[:students] if override[:context_module_id] && overridden_targets[:students].present?
+        # drop an ADHOC override once it has no current students visible to the user
+        next if student_ids.empty?
+
+        o[:title] = AssignmentOverride.title_from_student_count(student_ids.length)
       end
 
       if override[:set_type] == "CourseSection"

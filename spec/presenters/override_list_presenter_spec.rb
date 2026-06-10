@@ -163,33 +163,35 @@ describe OverrideListPresenter do
         override.assignment_override_students.create!(user:, assignment:)
         override.assignment_override_students.create!(user: second_user, assignment:)
         override.save!
-
-        @due_date = presenter.assignment.dates_hash_visible_to(user.principal).first
       end
 
-      it "returns a dynamically generated title based on the number of current and invited users" do
-        expect(presenter.due_for(@due_date)).to eql("2 students")
+      def adhoc_due_date
+        presenter.assignment.dates_hash_visible_to(user.principal).first
+      end
+
+      it "returns a title based on the number of current students" do
+        expect(presenter.due_for(adhoc_due_date)).to eql("2 students")
       end
 
       it "does not count concluded students" do
         course.enrollments.find_by(user: second_user).conclude
-        expect(presenter.due_for(@due_date)).to eql("1 student")
+        expect(presenter.due_for(adhoc_due_date)).to eql("1 student")
       end
 
       it "does not count inactive students" do
         course.enrollments.find_by(user: second_user).deactivate
-        expect(presenter.due_for(@due_date)).to eql("1 student")
+        expect(presenter.due_for(adhoc_due_date)).to eql("1 student")
       end
 
       it "does not count deleted students" do
         course.enrollments.find_by(user: second_user).destroy
-        expect(presenter.due_for(@due_date)).to eql("1 student")
+        expect(presenter.due_for(adhoc_due_date)).to eql("1 student")
       end
 
       it "does not double-count students that have multiple enrollments in the course" do
         section = course.course_sections.create!
         course.enroll_student(user, section:, enrollment_state: "active", allow_multiple_enrollments: true)
-        expect(presenter.due_for(@due_date)).to eql("2 students")
+        expect(presenter.due_for(adhoc_due_date)).to eql("2 students")
       end
     end
   end
@@ -437,6 +439,38 @@ describe OverrideListPresenter do
           expect(@visible_due_dates.length).to eq 1
           expect(@visible_due_dates.first[:due_for]).to eq "Everyone"
           expect(@visible_due_dates.first[:due_at]).to eq @presenter.formatted_date_string(:due_at, due_at: @overridden_assignment.due_at)
+        end
+
+        it "excludes an adhoc override whose only student is inactive" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: true)
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", due_at:, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          course.enrollments.find_by(user: @student1).deactivate
+
+          expect(@presenter.visible_due_dates).to eq []
+        end
+
+        it "labels the remaining everyone row as Everyone after dropping an inactive-only adhoc override" do
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: false)
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", due_at:, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          course.enrollments.find_by(user: @student1).deactivate
+
+          expect(@presenter.visible_due_dates.pluck(:due_for)).to eq ["Everyone"]
+        end
+
+        it "excludes an inactive-only adhoc override for an admin without a course enrollment" do
+          admin = account_admin_user(account: course.account)
+          allow(AssignmentOverrideApplicator).to receive(:assignment_overridden_for)
+            .with(@overridden_assignment, admin.principal).and_return @overridden_assignment
+          presenter = OverrideListPresenter.new(@overridden_assignment, admin.principal)
+
+          @overridden_assignment.update!(due_at:, unlock_at:, lock_at:, only_visible_to_overrides: true)
+          adhoc = @overridden_assignment.assignment_overrides.create!(set_type: "ADHOC", due_at:, **override_params)
+          adhoc.assignment_override_students.create!(user: @student1)
+          course.enrollments.find_by(user: @student1).deactivate
+
+          expect(presenter.visible_due_dates).to eq []
         end
 
         context "with module overrides and assignment-level overrides" do

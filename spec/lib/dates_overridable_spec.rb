@@ -338,6 +338,43 @@ shared_examples_for "learning object with due dates" do
         expect(dates_hash[2][:id]).to eq @module_adhoc_override.id
       end
     end
+
+    context "adhoc query efficiency" do
+      def override_student_query_count(learning_object, principal)
+        queries = 0
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+          queries += 1 if /\bassignment_override_students\b/i.match?(payload[:sql])
+        end
+        begin
+          learning_object.dates_hash_visible_to(principal, include_all_dates: true)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+        queries
+      end
+
+      def add_adhoc_overrides(learning_object, count)
+        count.times do
+          student = student_in_course(course:, active_all: true).user
+          adhoc = learning_object.assignment_overrides.create!(set_type: "ADHOC")
+          adhoc.override_due_at(7.days.from_now)
+          adhoc.save!
+          adhoc.assignment_override_students.create!(user: student)
+        end
+      end
+
+      it "resolves adhoc students in a fixed number of queries regardless of override count" do
+        add_adhoc_overrides(overridable, 3)
+        overridable.reload
+        with_few_overrides = override_student_query_count(overridable, @teacher.principal)
+
+        add_adhoc_overrides(overridable, 9)
+        overridable.reload
+        with_many_overrides = override_student_query_count(overridable, @teacher.principal)
+
+        expect(with_many_overrides).to eq with_few_overrides
+      end
+    end
   end
 
   describe "due_date_hash" do

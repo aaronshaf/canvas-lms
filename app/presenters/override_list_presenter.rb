@@ -42,11 +42,7 @@ class OverrideListPresenter
   end
 
   def due_for(due_date)
-    if adhoc_current_override_count_hash.key?(due_date[:id])
-      return AssignmentOverride.title_from_student_count(adhoc_current_override_count_hash[due_date[:id]])
-    elsif due_date[:title]
-      return due_date[:title]
-    end
+    return due_date[:title] if due_date[:title]
 
     multiple_due_dates? ? I18n.t("overrides.everyone_else", "Everyone else") : I18n.t("overrides.everyone", "Everyone")
   end
@@ -59,17 +55,6 @@ class OverrideListPresenter
     else
       date.present? ? datetime_string(date) : "-"
     end
-  end
-
-  def adhoc_current_override_count_hash
-    return @adhoc_current_override_count_hash if defined?(@adhoc_current_override_count_hash)
-
-    @adhoc_current_override_count_hash = if assignment
-                                           current_users = assignment.context.enrollments.current_and_invited.select(:user_id).distinct
-                                           assignment.assignment_override_students.where(user_id: current_users).group(:assignment_override_id).size
-                                         else
-                                           {}
-                                         end
   end
 
   # Public: Determine if multiple due dates are visible to user.
