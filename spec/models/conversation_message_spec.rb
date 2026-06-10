@@ -668,13 +668,11 @@ describe ConversationMessage do
       cm.reload
 
       expect do
-        cm.reply_from({
-                        purpose: "general",
-                        user: @teacher,
-                        subject: "an email reply",
-                        html: "body",
-                        text: "body"
-                      })
+        cm.reply_from(purpose: "general",
+                      user: @teacher,
+                      subject: "an email reply",
+                      html: "body",
+                      text: "body")
       end.to raise_error(IncomingMail::Errors::UnknownAddress)
     end
 
@@ -687,13 +685,11 @@ describe ConversationMessage do
 
       last_message = convo.conversation.conversation_messages.last
       expect do
-        last_message.reply_from({
-                                  purpose: "general",
-                                  user: @user,
-                                  subject: "this reply should return an error",
-                                  html: "body",
-                                  text: "body"
-                                })
+        last_message.reply_from(purpose: "general",
+                                user: @user,
+                                subject: "this reply should return an error",
+                                html: "body",
+                                text: "body")
       end.to raise_error(IncomingMail::Errors::InvalidParticipant)
     end
 
@@ -715,13 +711,11 @@ describe ConversationMessage do
         @course.save!
 
         expect do
-          @last_message.reply_from({
-                                     purpose: "general",
-                                     user: @user,
-                                     subject: "this reply should return an error",
-                                     html: "body",
-                                     text: "body"
-                                   })
+          @last_message.reply_from(purpose: "general",
+                                   user: @user,
+                                   subject: "this reply should return an error",
+                                   html: "body",
+                                   text: "body")
         end.to raise_error(IncomingMail::Errors::InvalidParticipant)
       end
 
@@ -738,13 +732,11 @@ describe ConversationMessage do
                                enrollment_state: "active",
                                section: my_section)
 
-        email_reply = @last_message.reply_from({
-                                                 purpose: "general",
-                                                 user: @user,
-                                                 subject: "this reply should return an error",
-                                                 html: "body",
-                                                 text: "body"
-                                               })
+        email_reply = @last_message.reply_from(purpose: "general",
+                                               user: @user,
+                                               subject: "this reply should return an error",
+                                               html: "body",
+                                               text: "body")
 
         expect(email_reply.body).to eq "body"
       end
@@ -774,13 +766,11 @@ describe ConversationMessage do
         my_section.restrict_enrollments_to_section_dates = true
         my_section.save!
 
-        email_reply = @last_message.reply_from({
-                                                 purpose: "general",
-                                                 user: @user,
-                                                 subject: "this reply should return an error",
-                                                 html: "body",
-                                                 text: "body"
-                                               })
+        email_reply = @last_message.reply_from(purpose: "general",
+                                               user: @user,
+                                               subject: "this reply should return an error",
+                                               html: "body",
+                                               text: "body")
 
         expect(email_reply.body).to eq "body"
       end
@@ -795,13 +785,11 @@ describe ConversationMessage do
       cp.add_message("initial message", root_account_id: Account.default.id, recipients: [student1])
       cm2 = cp.add_message("subsequent message", root_account_id: Account.default.id, recipients: [student2])
       expect(cm2.conversation_message_participants.size).to eq 3
-      cm3 = cm2.reply_from({
-                             purpose: "general",
-                             user: student2,
-                             subject: "an email reply",
-                             html: "body",
-                             text: "body"
-                           })
+      cm3 = cm2.reply_from(purpose: "general",
+                           user: student2,
+                           subject: "an email reply",
+                           html: "body",
+                           text: "body")
       expect(cm3.conversation_message_participants.size).to eq 2
       expect(cm3.conversation_message_participants.map(&:user_id).sort).to eq [student1.id, student2.id].sort
     end
@@ -813,13 +801,11 @@ describe ConversationMessage do
 
       cp2 = cp.conversation.conversation_participants.where(user_id: @user).first
       expect(cp2.workflow_state).to eq "unread"
-      cm.reply_from({
-                      purpose: "general",
-                      user: @user,
-                      subject: "an email reply",
-                      html: "body",
-                      text: "body"
-                    })
+      cm.reply_from(purpose: "general",
+                    user: @user,
+                    subject: "an email reply",
+                    html: "body",
+                    text: "body")
       cp2.reload
       expect(cp2.workflow_state).to eq "read"
     end

@@ -312,7 +312,7 @@ class ConversationsController < ApplicationController
           MAX_GROUP_CONVERSATION_SIZE: Conversation.max_group_conversation_size
         }
 
-        is_student = inbox_settings_student?(user: @current_user, account: @domain_root_account)
+        is_student = inbox_settings_student?(current_principal:, account: @domain_root_account)
         hash[:INBOX_SIGNATURE_BLOCK_ENABLED] = Account.site_admin.feature_enabled?(:inbox_settings) &&
                                                @domain_root_account.enable_inbox_signature_block? &&
                                                (!is_student || (is_student && !@domain_root_account.disable_inbox_signature_block_for_students?))
@@ -980,7 +980,7 @@ class ConversationsController < ApplicationController
     message = process_response(
       conversation: @conversation,
       context: @conversation.conversation.context,
-      current_user: @current_user,
+      current_principal:,
       real_user: @real_current_user,
       session:,
       recipients: params[:recipients],

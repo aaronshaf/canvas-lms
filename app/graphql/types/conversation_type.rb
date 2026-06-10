@@ -34,7 +34,7 @@ module Types
     def can_reply
       other_users = object.participants.reject { |u| u.id == current_user.id }
       audience = other_users.map(&:id)
-      !object.replies_locked_for?(current_user, audience)
+      !object.replies_locked_for?(current_principal, audience)
     end
     field :is_private, Boolean, null: true
     def is_private

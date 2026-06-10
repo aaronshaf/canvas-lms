@@ -60,12 +60,12 @@ describe ConversationsHelper do
 
   describe "normalize_recipients" do
     it "handles UUID-based recipient identifiers" do
-      result = normalize_recipients(recipients: ["uuid:" + user_student.uuid], current_user: user_teacher)
+      result = normalize_recipients(recipients: ["uuid:" + user_student.uuid], current_principal: user_teacher.principal)
       expect(result.map(&:id)).to include(user_student.id)
     end
 
     it "preserves non-UUID recipients" do
-      result = normalize_recipients(recipients: [user_student.id.to_s, "uuid:" + user_teacher.uuid], current_user: user_ta)
+      result = normalize_recipients(recipients: [user_student.id.to_s, "uuid:" + user_teacher.uuid], current_principal: user_ta.principal)
       expect(result.map(&:id)).to include(user_student.id)
       expect(result.map(&:id)).to include(user_teacher.id)
     end
@@ -74,69 +74,69 @@ describe ConversationsHelper do
   describe "inbox_settings_student?" do
     context "returns false for users considered non-students for inbox settings" do
       it "user who is active teacher" do
-        expect(inbox_settings_student?(user: user_teacher, account:)).to be false
+        expect(inbox_settings_student?(current_principal: user_teacher.principal, account:)).to be false
       end
 
       it "user who is active teaching assistant" do
-        expect(inbox_settings_student?(user: user_ta, account:)).to be false
+        expect(inbox_settings_student?(current_principal: user_ta.principal, account:)).to be false
       end
 
       it "user who is active designer" do
-        expect(inbox_settings_student?(user: user_designer, account:)).to be false
+        expect(inbox_settings_student?(current_principal: user_designer.principal, account:)).to be false
       end
 
       it "account admin who is active teacher" do
-        expect(inbox_settings_student?(user: account_admin_teacher, account:)).to be false
+        expect(inbox_settings_student?(current_principal: account_admin_teacher.principal, account:)).to be false
       end
 
       it "account admin who is active teaching assistant" do
-        expect(inbox_settings_student?(user: account_admin_ta, account:)).to be false
+        expect(inbox_settings_student?(current_principal: account_admin_ta.principal, account:)).to be false
       end
 
       it "account admin who is active designer" do
-        expect(inbox_settings_student?(user: account_admin_designer, account:)).to be false
+        expect(inbox_settings_student?(current_principal: account_admin_designer.principal, account:)).to be false
       end
 
       it "site admin who is active teacher" do
-        expect(inbox_settings_student?(user: site_admin_teacher, account:)).to be false
+        expect(inbox_settings_student?(current_principal: site_admin_teacher.principal, account:)).to be false
       end
 
       it "site admin who is active teaching assistant" do
-        expect(inbox_settings_student?(user: site_admin_ta, account:)).to be false
+        expect(inbox_settings_student?(current_principal: site_admin_ta.principal, account:)).to be false
       end
 
       it "site admin who is active designer" do
-        expect(inbox_settings_student?(user: site_admin_designer, account:)).to be false
+        expect(inbox_settings_student?(current_principal: site_admin_designer.principal, account:)).to be false
       end
     end
 
     context "returns true for users considered students for inbox settings" do
       it "user who is not enrolled" do
-        expect(inbox_settings_student?(user:, account:)).to be true
+        expect(inbox_settings_student?(current_principal: user.principal, account:)).to be true
       end
 
       it "user who is active student" do
-        expect(inbox_settings_student?(user: user_student, account:)).to be true
+        expect(inbox_settings_student?(current_principal: user_student.principal, account:)).to be true
       end
 
       it "user who is active observer" do
-        expect(inbox_settings_student?(user: user_observer, account:)).to be true
+        expect(inbox_settings_student?(current_principal: user_observer.principal, account:)).to be true
       end
 
       it "account admin who is active student" do
-        expect(inbox_settings_student?(user: account_admin_student, account:)).to be true
+        expect(inbox_settings_student?(current_principal: account_admin_student.principal, account:)).to be true
       end
 
       it "account admin who is active observer" do
-        expect(inbox_settings_student?(user: account_admin_observer, account:)).to be true
+        expect(inbox_settings_student?(current_principal: account_admin_observer.principal, account:)).to be true
       end
 
       it "site admin who is active student" do
-        expect(inbox_settings_student?(user: site_admin_student, account:)).to be true
+        expect(inbox_settings_student?(current_principal: site_admin_student.principal, account:)).to be true
       end
 
       it "site admin who is active observer" do
-        expect(inbox_settings_student?(user: site_admin_observer, account:)).to be true
+        expect(inbox_settings_student?(current_principal: site_admin_observer.principal, account:)).to be true
       end
     end
   end

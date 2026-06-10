@@ -341,7 +341,7 @@ class AppointmentGroup < ApplicationRecord
     end
   end
 
-  def possible_participants(registration_status: nil, include_observers: false, context_code: nil, current_user: nil)
+  def possible_participants(registration_status: nil, include_observers: false, context_code: nil, current_principal: nil)
     participants = if participant_type == "User"
                      participant_func = if include_observers
                                           ->(c) { c.participating_students_by_date + c.participating_observers_by_date }
@@ -369,17 +369,17 @@ class AppointmentGroup < ApplicationRecord
                      participants
                    end
 
-    if current_user && participant_type == "User"
+    if current_principal && participant_type == "User"
       # Only filter users through normalize_recipients (not groups)
       recipients = if context_code.is_a?(Array) && context_code.length == 1
-                     normalize_recipients(recipients: participants.map(&:id), context_code: context_code.first, current_user:)
+                     normalize_recipients(recipients: participants.map(&:id), context_code: context_code.first, current_principal:)
                    elsif context_code && !context_code.is_a?(Array)
-                     normalize_recipients(recipients: participants.map(&:id), context_code:, current_user:)
+                     normalize_recipients(recipients: participants.map(&:id), context_code:, current_principal:)
                    else
                      # Multi-course appointment groups or no context_code:
                      # Filter without context restriction to include students from all courses
                      # while still filtering out test students and other unmessageable users
-                     normalize_recipients(recipients: participants.map(&:id), current_user:)
+                     normalize_recipients(recipients: participants.map(&:id), current_principal:)
                    end
       recipient_ids = recipients.map(&:id)
       participants = participants.select { |p| recipient_ids.include?(p.id) }

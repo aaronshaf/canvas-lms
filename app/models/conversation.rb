@@ -548,17 +548,18 @@ class Conversation < ApplicationRecord
     conversation_participants.select(&:subscribed?).filter_map(&:user)
   end
 
-  def reply_from(opts)
-    user = opts.delete(:user)
-    message = opts.delete(:text).to_s.strip
+  def reply_from(user: nil, text: nil, **kwargs)
+    message = text.to_s.strip
     participant = conversation_participants.where(user_id: user).first
     user = nil unless user && participant
     if user
-      raise IncomingMail::Errors::InvalidParticipant if replies_locked_for?(user, conversation_participants.map(&:user_id))
+      if replies_locked_for?(user.principal, conversation_participants.map(&:user_id))
+        raise IncomingMail::Errors::InvalidParticipant
+      end
 
       participant.update_attribute(:workflow_state, "read") if participant.workflow_state == "unread"
       message = truncate_message(message)
-      add_message(user, message, opts)
+      add_message(user, message, kwargs)
     else
       raise IncomingMail::Errors::InvalidParticipant
     end
@@ -796,7 +797,7 @@ class Conversation < ApplicationRecord
     conversation_participants.shard(self).delete_all
   end
 
-  def replies_locked_for?(user, participants_user_ids = [])
+  def replies_locked_for?(principal, participants_user_ids = [])
     return false unless %w[Course Group].include?(context_type)
     return true if context.nil?
 
@@ -805,20 +806,20 @@ class Conversation < ApplicationRecord
     if course.is_a?(Course)
       return true if course.workflow_state == "completed"
 
-      user_course_roles = course.all_current_enrollments.where(user_id: user.id).pluck(:type)
+      user_course_roles = course.all_current_enrollments.where(user_id: principal.user).pluck(:type)
 
       has_non_concluded_enrollment = !user_course_roles.empty? && user_course_roles.any? { |ucr| !course.soft_concluded?(ucr) }
-      has_non_concluded_section = course.sections_visible_to(user).any? { |vs| !vs.concluded? }
+      has_non_concluded_section = course.sections_visible_to(principal.user).any? { |vs| !vs.concluded? }
       return true unless has_non_concluded_enrollment || has_non_concluded_section
     end
 
     # can still reply if a teacher is involved
     if (course.is_a?(Course) && conversation_participants.where(user_id: participants_user_ids).where(user_id: course.admin_enrollments.active.select(:user_id)).exists?) ||
        # can still reply if observing all the other participants
-       (course.is_a?(Course) && observing_all_other_participants(user, course))
+       (course.is_a?(Course) && observing_all_other_participants(principal.user, course))
       false
     else
-      !context.grants_any_right?(user, :send_messages, :send_messages_all)
+      !context.grants_any_right?(principal, :send_messages, :send_messages_all)
     end
   end
 

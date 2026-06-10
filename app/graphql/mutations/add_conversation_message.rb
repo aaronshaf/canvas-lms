@@ -40,7 +40,7 @@ class Mutations::AddConversationMessage < Mutations::BaseMutation
     message = process_response(
       conversation:,
       context: conversation.conversation.context,
-      current_user:,
+      current_principal:,
       real_user: context[:real_current_user],
       session:,
       recipients: input[:recipients],

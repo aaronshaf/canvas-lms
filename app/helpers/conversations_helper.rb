@@ -21,7 +21,7 @@ module ConversationsHelper
   def process_response(
     conversation:,
     context:,
-    current_user:,
+    current_principal:,
     session:,
     recipients:,
     context_code:,
@@ -34,11 +34,11 @@ module ConversationsHelper
     real_user: nil,
     automated: false
   )
-    if conversation.conversation.replies_locked_for?(current_user, recipients)
+    if conversation.conversation.replies_locked_for?(current_principal, recipients)
       raise ConversationsHelper::RepliesLockedForUser.new(message: I18n.t("Unauthorized, unable to add messages to conversation"), status: :unauthorized, attribute: "workflow_state")
     end
 
-    if context.is_a?(Course) && context.workflow_state == "completed" && !context.grants_right?(current_user, session, :read_as_admin)
+    if context.is_a?(Course) && context.workflow_state == "completed" && !context.grants_right?(current_principal, session, :read_as_admin)
       raise ConversationsHelper::Error.new(message: I18n.t("Course concluded, unable to send messages"), status: :unauthorized, attribute: "workflow_state")
     end
 
@@ -50,7 +50,7 @@ module ConversationsHelper
       recipients:,
       context_code:,
       conversation_id: conversation.conversation_id,
-      current_user:,
+      current_principal:,
       session:
     )
 
@@ -58,7 +58,7 @@ module ConversationsHelper
       raise ConversationsHelper::Error.new(message: I18n.t("Too many participants for group conversation"), status: :bad_request, attribute: "recipients")
     end
 
-    invalid_recipients = get_invalid_recipients(context, recipients, current_user)
+    invalid_recipients = get_invalid_recipients(context, recipients, current_principal)
     unless invalid_recipients.to_a.empty?
       invalid_recipients = invalid_recipients.pluck(1)
       raise ConversationsHelper::Error.new(message: I18n.t("The following recipients have no active enrollment in the course, %{invalid_recipients}, unable to send messages", invalid_recipients:), status: :unauthorized, attribute: "recipients")
@@ -69,24 +69,24 @@ module ConversationsHelper
       context_code:
     )
 
-    validate_message_ids(message_ids, conversation, current_user:)
+    validate_message_ids(message_ids, conversation, current_principal:)
     message_args = build_message_args(
       body:,
       attachment_ids:,
       domain_root_account_id:,
       media_comment_id:,
       media_comment_type:,
-      current_user:,
+      current_principal:,
       real_user:,
       automated:
     )
 
     force_individual_messages = context.is_a?(Course) &&
                                 context.root_account.feature_enabled?(:restrict_student_access) &&
-                                context.user_is_instructor?(current_user)
+                                context.user_is_instructor?(current_principal.user)
 
     if force_individual_messages && recipients && !recipients.empty?
-      existing_participant_ids = conversation.conversation.participants.reject { |p| p.id == current_user.id }.map(&:id)
+      existing_participant_ids = conversation.conversation.participants.reject { |p| p == current_principal.user }.map(&:id)
 
       new_recipient_ids = recipients.map(&:id) - existing_participant_ids
 
@@ -95,7 +95,7 @@ module ConversationsHelper
         recipients_count = 0
 
         recipients.each do |recipient|
-          individual_conversation = current_user.initiate_conversation([recipient])
+          individual_conversation = current_principal.user.initiate_conversation([recipient])
           individual_conversation.conversation.update(context:) if context
 
           individual_tags = infer_tags(
@@ -178,7 +178,7 @@ module ConversationsHelper
     result
   end
 
-  def normalize_recipients(recipients: nil, context_code: nil, conversation_id: nil, current_user: @current_user, session: nil, group_conversation: false, bulk_message: false)
+  def normalize_recipients(recipients: nil, context_code: nil, conversation_id: nil, current_principal: self.current_principal, session: nil, group_conversation: false, bulk_message: false)
     if defined?(params)
       recipients ||= params[:recipients]
       context_code ||= params[:context_code]
@@ -203,11 +203,11 @@ module ConversationsHelper
     end
 
     users, contexts = AddressBook.partition_recipients(recipients)
-    known = current_user.address_book.known_users(
+    known = current_principal.user.address_book.known_users(
       users,
       context:,
       conversation_id:,
-      strict_checks: !Account.site_admin.grants_right?(current_user, session, :send_messages),
+      strict_checks: !Account.site_admin.grants_right?(current_principal, session, :send_messages),
       include_concluded: false
     )
 
@@ -226,13 +226,13 @@ module ConversationsHelper
       context_type, context_id = ctxt.match(MessageableUser::Calculator::CONTEXT_RECIPIENT).captures
       if group_context_types.include?(context_type)
         group = Group.find(context_id)
-        raise InsufficientPermissionsForDifferentiationTagsError if group&.non_collaborative? && !group.context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+        raise InsufficientPermissionsForDifferentiationTagsError if group&.non_collaborative? && !group.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
         raise GroupConversationForDifferentiationTagsNotAllowedError if group.non_collaborative? && group_conversation && !bulk_message
       end
-      known.concat(current_user.address_book.known_in_context(ctxt, include_concluded: false))
+      known.concat(current_principal.user.address_book.known_in_context(ctxt, include_concluded: false))
     end
     @recipients = known.uniq(&:id)
-    @recipients.reject! { |u| u.id == current_user.id } unless @recipients == [current_user] && recipients.one?
+    @recipients.reject! { |u| u.id == current_principal.user.id } unless @recipients.map(&:id) == [current_principal.user.id] && recipients.one?
     @recipients
   end
 
@@ -256,8 +256,8 @@ module ConversationsHelper
       .filter_map { |r| (r.is_a?(String) && r.start_with?("uuid:")) ? r.sub("uuid:", "") : nil }
   end
 
-  def get_invalid_recipients(context, recipients, current_user)
-    if context.is_a?(Course) && context.available? && !recipients.nil? && context.user_is_student?(current_user) && !context.user_is_instructor?(current_user) && !context.user_is_admin?(current_user)
+  def get_invalid_recipients(context, recipients, current_principal)
+    if context.is_a?(Course) && context.available? && !recipients.nil? && context.user_is_student?(current_principal.user) && !context.user_is_instructor?(current_principal.user) && !context.user_is_admin?(current_principal.user)
       valid_student_recipients = context.current_users.pluck(:id, :name)
       recipients.map { |recipient| [recipient.id, recipient.name] } - valid_student_recipients
     end
@@ -266,7 +266,7 @@ module ConversationsHelper
   def valid_context?(context)
     case context
     when Account then valid_account_context?(context)
-    when Course, Group then context.membership_for_user(@current_user) || context.grants_right?(current_principal, session, :send_messages)
+    when Course, Group then context.membership_for_user(current_principal.user) || context.grants_right?(current_principal, session, :send_messages)
     else false
     end
   end
@@ -275,7 +275,7 @@ module ConversationsHelper
     return false unless account.root_account?
     return true if account.grants_right?(current_principal, session, :read_roster)
 
-    user_sub_accounts = @current_user.associated_accounts.shard(@current_user).where(root_account_id: account).to_a
+    user_sub_accounts = current_principal.user.associated_accounts.shard(current_principal.user).where(root_account_id: account).to_a
     user_sub_accounts.any? { |a| a.grants_right?(current_principal, session, :read_roster) }
   end
 
@@ -290,7 +290,7 @@ module ConversationsHelper
     domain_root_account_id: nil,
     media_comment_id: nil,
     media_comment_type: nil,
-    current_user: @current_user,
+    current_principal: self.current_principal,
     real_user: nil,
     automated: false,
     display_from: nil
@@ -305,14 +305,14 @@ module ConversationsHelper
       display_from ||= params[:display_from]
     end
     [
-      current_user,
+      current_principal.user,
       body,
       {
         attachment_ids:,
         forwarded_message_ids:,
         automated:,
         root_account_id: domain_root_account_id,
-        media_comment: infer_media_comment(media_comment_id, media_comment_type, domain_root_account_id, current_user),
+        media_comment: infer_media_comment(media_comment_id, media_comment_type, domain_root_account_id, current_principal.user),
         real_user:,
         display_from:,
       }
@@ -394,7 +394,7 @@ module ConversationsHelper
     end
   end
 
-  def validate_message_ids(message_ids, conversation, current_user: @current_user)
+  def validate_message_ids(message_ids, conversation, current_principal: self.current_principal)
     if message_ids
       # sanity check: are the messages part of this conversation?
       db_ids = ConversationMessage.where(id: message_ids, conversation_id: conversation.conversation_id).pluck(:id)
@@ -405,7 +405,7 @@ module ConversationsHelper
       # sanity check: can the user see the included messages?
       found_count = 0
       Shard.partition_by_shard(message_ids) do |shard_message_ids|
-        found_count += ConversationMessageParticipant.where(conversation_message_id: shard_message_ids, user_id: current_user).count
+        found_count += ConversationMessageParticipant.where(conversation_message_id: shard_message_ids, user_id: current_principal.user).count
       end
       raise InvalidMessageParticipantError unless found_count == message_ids.count
     end
@@ -462,7 +462,7 @@ module ConversationsHelper
       process_response(
         conversation:,
         context: conversation.conversation.context,
-        current_user: ooo_message_author,
+        current_principal: ooo_message_author.principal,
         session: nil,
         recipients: [ooo_message_recipient.id],
         context_code: conversation.conversation.context&.asset_string,
@@ -477,13 +477,13 @@ module ConversationsHelper
     end
   end
 
-  def inbox_settings_student?(user: @current_user, account: @domain_root_account)
-    admin_user = account.grants_any_right?(user, :manage_account_settings, :manage_site_settings)
+  def inbox_settings_student?(current_principal: self.current_principal, account: @domain_root_account)
+    admin_user = account.grants_any_right?(current_principal, :manage_account_settings, :manage_site_settings)
 
     active_user_enrollments = Enrollment
                               .joins(:course)
                               .where(
-                                user_id: user.id,
+                                user_id: current_principal.user,
                                 root_account_id: account.id,
                                 workflow_state: "active"
                               )
@@ -516,7 +516,7 @@ module ConversationsHelper
   end
 
   def observee_ids_for_current_user
-    @observee_ids_for_current_user ||= @current_user.enrollments.where(type: "ObserverEnrollment").distinct.pluck(:associated_user_id)
+    @observee_ids_for_current_user ||= current_principal.user.enrollments.where(type: "ObserverEnrollment").distinct.pluck(:associated_user_id)
   end
 
   class Error < StandardError

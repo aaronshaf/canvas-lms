@@ -720,7 +720,7 @@ describe AppointmentGroup do
     end
 
     it "normalizes participant list" do
-      expect(@ag.possible_participants(current_user: @teacher, context_code: "course_#{@ag.context.id}")).to eql [@users[1], @users[2]]
+      expect(@ag.possible_participants(current_principal: @teacher.principal, context_code: "course_#{@ag.context.id}")).to eql [@users[1], @users[2]]
     end
 
     it "normalizes participant list with multiple context codes" do
@@ -745,7 +745,7 @@ describe AppointmentGroup do
       expect(ag.possible_participants.sort_by(&:id)).to eq [student1, student2].sort_by(&:id)
 
       context_codes = ["course_#{course1.id}", "course_#{course2.id}"]
-      expect(ag.possible_participants(current_user: teacher, context_code: context_codes).sort_by(&:id)).to eq [student1, student2].sort_by(&:id)
+      expect(ag.possible_participants(current_principal: @teacher.principal, context_code: context_codes).sort_by(&:id)).to eq [student1, student2].sort_by(&:id)
     end
 
     it "does not return duplicate users when a student is enrolled in multiple courses" do
@@ -774,7 +774,7 @@ describe AppointmentGroup do
 
       # Same with context_codes provided
       context_codes = ["course_#{course1.id}", "course_#{course2.id}"]
-      participants_with_context = ag.possible_participants(current_user: teacher, context_code: context_codes)
+      participants_with_context = ag.possible_participants(current_principal: teacher.principal, context_code: context_codes)
       expect(participants_with_context).to eq [student]
       expect(participants_with_context.size).to eq 1
     end
@@ -800,7 +800,7 @@ describe AppointmentGroup do
 
       # Should return groups even when context_code is passed as an array
       context_codes = ["course_#{course1.id}"]
-      groups = ag.possible_participants(current_user: teacher, context_code: context_codes)
+      groups = ag.possible_participants(current_principal: teacher.principal, context_code: context_codes)
       expect(groups.sort_by(&:id)).to eq [group1, group2].sort_by(&:id)
       expect(groups.size).to eq 2
     end

@@ -334,19 +334,14 @@ class ConversationMessage < ApplicationRecord
     context.resolved_root_account_id
   end
 
-  def reply_from(opts)
+  def reply_from(**)
     raise IncomingMail::Errors::UnknownAddress if context.try(:root_account).try(:deleted?)
 
     # It would be nice to have group conversations via e-mail, but if so, we need to make it much more obvious
     # that replies to the e-mail will be sent to multiple recipients.
     recipients = [author]
     tags = conversation.conversation_participants.where(user_id: author.id).pluck(:tags)
-    opts = opts.merge(
-      root_account_id:,
-      only_users: recipients,
-      tags:
-    )
-    conversation.reply_from(opts)
+    conversation.reply_from(**, root_account_id:, only_users: recipients, tags:)
   end
 
   def forwarded_messages

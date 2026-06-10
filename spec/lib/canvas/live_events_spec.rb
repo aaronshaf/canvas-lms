@@ -434,7 +434,7 @@ describe Canvas::LiveEvents do
       user1 = user_model
       user2 = user_model
       convo = Conversation.initiate([user1, user2], false)
-      convo_message = convo.reply_from({ user: user1, text: "this is an example incoming mail reply" })
+      convo_message = convo.reply_from(user: user1, text: "this is an example incoming mail reply")
       expect(LiveEvents).to have_received(:post_event).with(
         context: nil,
         event_name: "conversation_message_created",
