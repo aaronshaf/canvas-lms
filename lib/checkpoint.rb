@@ -21,9 +21,11 @@
 class Checkpoint
   include Api::V1::AssignmentOverride
 
-  def initialize(assignment, user)
+  attr_reader :principal
+
+  def initialize(assignment, principal)
     @assignment = assignment
-    @user = user
+    @principal = principal
   end
 
   def as_json
@@ -70,7 +72,7 @@ class Checkpoint
   end
 
   def overrides
-    @assignment.grants_right?(@user, :update) ? assignment_overrides_json(@assignment.assignment_overrides.select(&:active?), @user) : []
+    @assignment.grants_right?(principal, :update) ? assignment_overrides_json(@assignment.assignment_overrides.select(&:active?), principal) : []
   end
 
   def session

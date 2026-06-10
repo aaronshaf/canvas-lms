@@ -41,7 +41,7 @@ describe Checkpoint do
       @course.enroll_student(user).accept!
       students = [user]
       create_adhoc_override_for_assignment(sub_assignment, students, due_at: 2.days.from_now)
-      checkpoint = Checkpoint.new(sub_assignment, @teacher)
+      checkpoint = Checkpoint.new(sub_assignment, @teacher.principal)
       json = checkpoint.as_json
 
       expect(json[:name]).to eq(sub_assignment.name)
