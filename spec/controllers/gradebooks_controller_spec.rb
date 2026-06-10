@@ -1657,7 +1657,7 @@ describe GradebooksController do
           @course.assignments.create(title: "Déjà vu")
           exporter = GradebookExporter.new(
             @course,
-            @teacher,
+            @teacher.principal,
             { include_sis_id: true }
           )
           raw_csv = exporter.to_csv

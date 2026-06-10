@@ -2795,12 +2795,12 @@ class Course < ApplicationRecord
     end
   end
 
-  def gradebook_to_csv_in_background(filename, user, options = {})
-    progress = progresses.build(tag: "gradebook_to_csv", user:)
+  def gradebook_to_csv_in_background(filename, principal, options = {})
+    progress = progresses.build(tag: "gradebook_to_csv", user: principal.user)
     progress.save!
 
-    exported_gradebook = gradebook_csvs.where(user_id: user).first_or_initialize
-    attachment = user.attachments.build
+    exported_gradebook = gradebook_csvs.where(user_id: principal.user).first_or_initialize
+    attachment = principal.user.attachments.build
     attachment.filename = filename
     attachment.content_type = "text/csv"
     attachment.file_state = "hidden"
@@ -2813,15 +2813,15 @@ class Course < ApplicationRecord
       self,
       :generate_csv,
       { priority: Delayed::HIGH_PRIORITY },
-      user,
+      principal,
       options,
       attachment
     )
     { attachment_id: attachment.id, progress_id: progress.id, filename: }
   end
 
-  def generate_csv(progress, user, options, attachment)
-    csv = GradebookExporter.new(self, user, options.merge(progress:)).to_csv
+  def generate_csv(progress, principal, options, attachment)
+    csv = GradebookExporter.new(self, principal, options.merge(progress:)).to_csv
     create_attachment(attachment, csv)
   end
 

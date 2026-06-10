@@ -32,7 +32,7 @@ describe GradebookUploadsController do
 
   def generate_file(include_sis_id: false)
     file = Tempfile.new("csv.csv")
-    file.puts(GradebookExporter.new(@course, @teacher, include_sis_id:).to_csv)
+    file.puts(GradebookExporter.new(@course, @teacher.principal, include_sis_id:).to_csv)
     file.close
     file
   end

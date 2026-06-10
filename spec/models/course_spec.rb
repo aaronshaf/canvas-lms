@@ -2256,7 +2256,7 @@ describe Course do
       @student.reload
       @course.reload
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv, headers: true)
       expect(rows.length).to equal(2)
@@ -2297,7 +2297,7 @@ describe Course do
       g1a1.grade_student(@student, grade: 10, grader: @teacher)
       g2a1.grade_student(@student, grade: 5, grader: @teacher)
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv, headers: true)
       expect(rows.length).to equal(2)
@@ -2342,7 +2342,7 @@ describe Course do
       @student.reload
       @course.reload
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       rows = CSV.parse(csv)
       assignments = rows[0].each_with_object([]) do |column, collection|
         collection << column.sub(/ \([0-9]+\)/, "") if /Assignment \d+/.match?(column)
@@ -2368,7 +2368,7 @@ describe Course do
       end
 
       it "alphabetizes by sortable name with the test student at the end" do
-        csv = GradebookExporter.new(@course, @teacher).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal).to_csv
         rows = CSV.parse(csv)
         expect([rows[2][0],
                 rows[3][0],
@@ -2380,7 +2380,7 @@ describe Course do
     it "marks excused assignments" do
       a = @course.assignments.create! name: "asdf", points_possible: 10
       a.grade_student(@student, grader: @teacher, excuse: true)
-      csv = CSV.parse(GradebookExporter.new(@course, @teacher).to_csv)
+      csv = CSV.parse(GradebookExporter.new(@course, @teacher.principal).to_csv)
       _name, _id, _section, _sis_login_id, score, _ = csv[-1]
       expect(score).to eq "EX"
     end
@@ -2399,7 +2399,7 @@ describe Course do
       @course.enroll_user(students[2], "StudentEnrollment", section: sections[1], enrollment_state: "active", allow_multiple_enrollments: true)
       @course.enroll_user(students[2], "StudentEnrollment", section: sections[2], enrollment_state: "active", allow_multiple_enrollments: true)
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv)
       expect(rows.length).to equal(5)
@@ -2421,7 +2421,7 @@ describe Course do
       @student.reload
       @course.reload
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv, headers: true)
       expect(rows.length).to equal(2)
@@ -2469,7 +2469,7 @@ describe Course do
       end
 
       it "includes sis ids if enabled" do
-        csv = GradebookExporter.new(@course, @teacher, include_sis_id: true).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal, include_sis_id: true).to_csv
         expect(csv).not_to be_nil
         rows = CSV.parse(csv)
         expect(rows.length).to eq 5
@@ -2496,7 +2496,7 @@ describe Course do
       it "includes integration ids if enabled" do
         @account.settings[:include_integration_ids_in_gradebook_exports] = true
         @account.save!
-        csv = GradebookExporter.new(@course, @teacher, include_sis_id: true).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal, include_sis_id: true).to_csv
         rows = CSV.parse(csv)
         expect(rows.first.length).to eq 20
         expect(rows[0][1]).to eq "ID"
@@ -2529,7 +2529,7 @@ describe Course do
       expect(HostUrl).to receive(:context_host).with(@course.root_account).and_return("school1")
       expect(HostUrl).to receive(:context_host).with(account2).and_return("school2")
 
-      csv = GradebookExporter.new(@course, @teacher, include_sis_id: true).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, include_sis_id: true).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv)
       expect(rows.length).to eq 5
@@ -2560,7 +2560,7 @@ describe Course do
       e = course_with_student active_all: true
       e.update_attribute :workflow_state, "completed"
 
-      expect(GradebookExporter.new(@course, @teacher).to_csv).not_to include @student.name
+      expect(GradebookExporter.new(@course, @teacher.principal).to_csv).not_to include @student.name
 
       @teacher.preferences[:gradebook_settings] =
         { @course.id =>
@@ -2569,7 +2569,7 @@ describe Course do
             "show_concluded_enrollments" => "true"
           } }
       @teacher.save!
-      expect(GradebookExporter.new(@course, @teacher).to_csv).to include @student.name
+      expect(GradebookExporter.new(@course, @teacher.principal).to_csv).to include @student.name
     end
 
     context "accumulated points" do
@@ -2579,7 +2579,7 @@ describe Course do
       end
 
       it "includes points for unweighted courses" do
-        csv = CSV.parse(GradebookExporter.new(@course, @teacher).to_csv, headers: true)
+        csv = CSV.parse(GradebookExporter.new(@course, @teacher.principal).to_csv, headers: true)
         expect(csv[0]["Assignments Current Points"]).to eq "(read only)"
         expect(csv[1]["Assignments Current Points"]).to eq "8.00"
         expect(csv[0]["Assignments Final Points"]).to eq "(read only)"
@@ -2592,7 +2592,7 @@ describe Course do
 
       it "doesn't include points for weighted courses" do
         @course.update_attribute(:group_weighting_scheme, "percent")
-        csv = CSV.parse(GradebookExporter.new(@course, @teacher).to_csv)
+        csv = CSV.parse(GradebookExporter.new(@course, @teacher.principal).to_csv)
         expect(csv[0][-8]).not_to eq "Assignments Current Points"
         expect(csv[0][-7]).not_to eq "Assignments Final Points"
         expect(csv[0][-4]).not_to eq "Current Points"
@@ -2610,7 +2610,7 @@ describe Course do
       @s2 = @course.course_sections.create!(name: "section2")
       StudentEnrollment.create!(user: @user1, course: @course, course_section: @s2)
       @course.reload
-      csv = GradebookExporter.new(@course, @teacher, include_sis_id: true).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, include_sis_id: true).to_csv
       rows = CSV.parse(csv)
       expect(rows.length).to eq 4
     end
@@ -2636,7 +2636,7 @@ describe Course do
       @course.recompute_student_scores
       @course.reload
 
-      csv = GradebookExporter.new(@course, @teacher, include_sis_id: true).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, include_sis_id: true).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv)
       expect(rows.length).to eq 6
@@ -2672,7 +2672,7 @@ describe Course do
       @user2 = user_with_pseudonym(active_all: true, name: "Jeremy", username: "jeremy@instructure.com")
       @course.enroll_student(@user2)
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       expect(csv).not_to be_nil
       rows = CSV.parse(csv)
       # two header rows, and one student row
@@ -2686,7 +2686,7 @@ describe Course do
                                       title: "blah"
       a.publish
       a.grade_student(@student, grade: "C", grader: @teacher)
-      rows = CSV.parse(GradebookExporter.new(@course, @teacher).to_csv)
+      rows = CSV.parse(GradebookExporter.new(@course, @teacher.principal).to_csv)
       expect(rows[2][4]).to eql "C"
     end
 
@@ -2715,7 +2715,7 @@ describe Course do
       end
 
       it "inserts N/A for non-visible assignments" do
-        csv = GradebookExporter.new(@course, @teacher).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal).to_csv
         expect(csv).not_to be_nil
         rows = CSV.parse(csv)
         expect(rows[2][4]).to eq "3.00"
@@ -2743,7 +2743,7 @@ describe Course do
 
         Shard.default.activate do
           student_in_course(active_all: true)
-          @attachment_id = @course.gradebook_to_csv_in_background("asdf", @shard1_user)[:attachment_id]
+          @attachment_id = @course.gradebook_to_csv_in_background("asdf", @shard1_user.principal)[:attachment_id]
         end
 
         @shard1.activate do

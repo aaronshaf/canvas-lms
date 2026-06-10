@@ -43,7 +43,7 @@ class GradebookCsvsController < ApplicationController
         csv_options[:show_student_first_last_name] = Canvas::Plugin.value_to_boolean(params[:show_student_first_last_name])
       end
 
-      attachment_progress = @context.gradebook_to_csv_in_background(filename, @current_user, csv_options)
+      attachment_progress = @context.gradebook_to_csv_in_background(filename, current_principal, csv_options)
       render json: attachment_progress, status: :ok
     end
   end

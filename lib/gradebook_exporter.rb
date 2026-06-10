@@ -36,19 +36,21 @@ class GradebookExporter
     total_scores: ["Current Score", "Unposted Current Score", "Final Score", "Unposted Final Score"].freeze
   }.freeze
 
-  def initialize(course, user, options = {})
-    @course  = course
-    @user    = user
+  attr_reader :principal
+
+  def initialize(course, principal, options = {})
+    @course = course
+    @principal = principal
     @options = options
   end
 
   def to_csv
     I18n.with_locale(@options[:locale] || infer_locale(
       context: @course,
-      user: @user,
+      user: principal.user,
       root_account: @course.root_account
     )) do
-      @options = CSVWithI18n.csv_i18n_settings(@user, @options)
+      @options = CSVWithI18n.csv_i18n_settings(principal.user, @options)
       csv_data
     end
   end
@@ -82,10 +84,10 @@ class GradebookExporter
 
   def csv_data
     enrollment_scope = @course.apply_enrollment_visibility(
-      gradebook_enrollment_scope(user: @user, course: @course),
-      @user,
+      gradebook_enrollment_scope(user: principal.user, course: @course),
+      principal.user,
       nil,
-      include: gradebook_includes(user: @user, course: @course)
+      include: gradebook_includes(user: principal.user, course: @course)
     ).preload(:root_account, :sis_pseudonym)
     student_enrollments = enrollments_for_csv(enrollment_scope)
     update_completion(10)

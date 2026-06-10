@@ -31,7 +31,7 @@ describe GradebookExporter do
 
   describe "#to_csv" do
     def exporter(opts = {})
-      GradebookExporter.new(@course, @teacher, opts)
+      GradebookExporter.new(@course, @teacher.principal, opts)
     end
 
     describe "assignment order" do
@@ -64,7 +64,7 @@ describe GradebookExporter do
       end
 
       let(:headers) do
-        csv = GradebookExporter.new(@course, @teacher, @exporter_options).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal, @exporter_options).to_csv
         CSV.parse(csv, headers: true).headers
       end
 
@@ -121,7 +121,7 @@ describe GradebookExporter do
     end
 
     describe "#sort_by_id_order" do
-      let(:exporter) { GradebookExporter.new(@course, @teacher, {}) }
+      let(:exporter) { GradebookExporter.new(@course, @teacher.principal, {}) }
 
       context "with custom id order" do
         it "sorts collection by provided ID order" do
@@ -302,7 +302,7 @@ describe GradebookExporter do
             student_order: [student_c.id, student_a.id, student_b.id],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           expect(student_ids).to eq([student_c.id, student_a.id, student_b.id])
@@ -314,7 +314,7 @@ describe GradebookExporter do
             student_order: [student_b.id.to_s, student_c.id.to_s, student_a.id.to_s],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           expect(student_ids).to eq([student_b.id, student_c.id, student_a.id])
@@ -326,7 +326,7 @@ describe GradebookExporter do
             student_order: [student_a.id, student_c.id],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           expect(student_ids).to eq([student_a.id, student_c.id])
@@ -339,7 +339,7 @@ describe GradebookExporter do
             student_order: [student_c.id, student_a.id],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           # Should have all 3 students
@@ -361,7 +361,7 @@ describe GradebookExporter do
             student_order: [student_e.id, student_d.id, student_a.id],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           # Should maintain the exact custom order, not alphabetical
@@ -374,7 +374,7 @@ describe GradebookExporter do
           exporter_options = {
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           rows = CSV.parse(csv, headers: true)
 
           # Skip first row after headers (points possible row)
@@ -392,7 +392,7 @@ describe GradebookExporter do
             student_order: [],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           # Should have no students (filtered out by current_view logic)
@@ -407,7 +407,7 @@ describe GradebookExporter do
           exporter_options = {
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           # Find the two John Smiths in the result
@@ -428,7 +428,7 @@ describe GradebookExporter do
             student_order: [student_c.id, student_a.id, student_b.id, test_student.id],
             assignment_order: [assignment.id]
           }
-          csv = GradebookExporter.new(test_course, test_teacher, exporter_options).to_csv
+          csv = GradebookExporter.new(test_course, test_teacher.principal, exporter_options).to_csv
           student_ids = student_ids_from_csv(csv)
 
           # Real students come first in custom order
@@ -457,7 +457,7 @@ describe GradebookExporter do
       end
 
       it "have the correct custom column data in proper order" do
-        csv = GradebookExporter.new(@course, @teacher).to_csv
+        csv = GradebookExporter.new(@course, @teacher.principal).to_csv
         rows = CSV.parse(csv, headers: true)
 
         expect(rows[1]["Custom Column 1"]).to eq "Row1 Custom Column 1"
@@ -627,7 +627,7 @@ describe GradebookExporter do
         end
 
         let(:csv) do
-          unparsed_csv = GradebookExporter.new(@course, @teacher, @exporter_options).to_csv
+          unparsed_csv = GradebookExporter.new(@course, @teacher.principal, @exporter_options).to_csv
           CSV.parse(unparsed_csv)
         end
 
@@ -665,7 +665,7 @@ describe GradebookExporter do
         let_once(:auto_header) { "auto (#{auto_assignment.id})" }
 
         let(:csv) do
-          unparsed_csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+          unparsed_csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
           CSV.parse(unparsed_csv, headers: true)
         end
 
@@ -696,7 +696,7 @@ describe GradebookExporter do
       end
 
       it "omits the 'Manual Posting' row if no assignments are manually-posted" do
-        unparsed_csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+        unparsed_csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
         csv = CSV.parse(unparsed_csv, headers: true)
 
         auto_assignment = @course.assignments.create!(title: "auto")
@@ -1039,7 +1039,7 @@ describe GradebookExporter do
           assignment_order: @course.assignments.pluck(:id),
           student_order: @course.student_enrollments.pluck(:user_id).map(&:to_s)
         }
-        GradebookExporter.new(@course, @teacher, exporter_options)
+        GradebookExporter.new(@course, @teacher.principal, exporter_options)
       end
       let(:exported_headers) { CSV.parse(exporter.to_csv, headers: true).headers }
 
@@ -1096,7 +1096,7 @@ describe GradebookExporter do
         exporter_options = {
           progress:
         }
-        GradebookExporter.new(@course, @teacher, exporter_options).to_csv
+        GradebookExporter.new(@course, @teacher.principal, exporter_options).to_csv
         expect(progress.reload.completion).to be(90.0)
       end
 
@@ -1106,7 +1106,7 @@ describe GradebookExporter do
         exporter_options = {
           progress:
         }
-        GradebookExporter.new(@course, @teacher, exporter_options).to_csv
+        GradebookExporter.new(@course, @teacher.principal, exporter_options).to_csv
         expect(progress.reload.completion).to be(50.0)
       end
     end
@@ -1123,7 +1123,7 @@ describe GradebookExporter do
 
     it "quotes the name that starts with an equals so it's not considered a formula" do
       assignment.grade_student(student, grade: 1, grader: @teacher)
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv, headers: true)
 
       expect(rows[1][0]).to eql('="=sum(A)"')
@@ -1140,7 +1140,7 @@ describe GradebookExporter do
     end
 
     let(:submission_score) do
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv, headers: true)
       rows[2]["Anon Assignment (#{@assignment.id})"]
     end
@@ -1179,7 +1179,7 @@ describe GradebookExporter do
     end
 
     it "calculates assignment group scores correctly" do
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv, headers: true)
 
       expect(rows[2]["Assignments Current Score"].try(:to_f)).to eq 90
@@ -1189,7 +1189,7 @@ describe GradebookExporter do
     end
 
     it "calculates totals correctly" do
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv, headers: true)
 
       expect(rows[2]["Current Score"].try(:to_f)).to eq 90
@@ -1215,7 +1215,7 @@ describe GradebookExporter do
     end
 
     it "emits rows of equal length when no assignments are muted" do
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv)
 
       expect(rows.group_by(&:size).count).to be 1
@@ -1223,7 +1223,7 @@ describe GradebookExporter do
 
     it "emits rows of equal length when an assignment is muted" do
       @assignment.mute!
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       rows = CSV.parse(csv)
 
       expect(rows.group_by(&:size).count).to be 1
@@ -1266,7 +1266,7 @@ describe GradebookExporter do
           assignment_order: @course.assignments.pluck(:id),
           student_order: @course.student_enrollments.pluck(:user_id)
         }
-        GradebookExporter.new(@course, @teacher, exporter_options)
+        GradebookExporter.new(@course, @teacher.principal, exporter_options)
       end
 
       it "includes the scores for the grading period" do
@@ -1351,7 +1351,7 @@ describe GradebookExporter do
     end
 
     context "when no grading period is supplied" do
-      let(:exporter) { GradebookExporter.new(@course, @teacher) }
+      let(:exporter) { GradebookExporter.new(@course, @teacher.principal) }
 
       it "includes the scores for the grading period" do
         aggregate_failures do
@@ -1437,7 +1437,7 @@ describe GradebookExporter do
       @assignment.grade_student(@student, grade: 5, grader: @teacher, sub_assignment_tag: CheckpointLabels::REPLY_TO_TOPIC)
       @assignment.grade_student(@student, grade: 3, grader: @teacher, sub_assignment_tag: CheckpointLabels::REPLY_TO_ENTRY)
 
-      csv = GradebookExporter.new(@course, @teacher).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal).to_csv
       @headers = CSV.parse(csv, headers: true).headers
       @student_row = CSV.parse(csv, headers: true)[1]
     end
@@ -1462,7 +1462,7 @@ describe GradebookExporter do
     assignment.grade_student(student, excuse: true, grader: teacher)
 
     # Act
-    csv = CSV.parse(GradebookExporter.new(course, teacher).to_csv, headers: true)
+    csv = CSV.parse(GradebookExporter.new(course, teacher.principal).to_csv, headers: true)
     student_row = csv[1]
     score = student_row[assignment.title_with_id]
 
