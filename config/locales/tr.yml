@@ -34690,6 +34690,16 @@ tr:
   widget_at_index_index_must_be_an_object_25bc2085: "%{index} dizinindeki araç takımı bir nesne olmalıdır"
   widget_at_index_index_must_have_field_field_276ca844: "%{index} dizinindeki araç takımında '%{field}' alanı bulunmalıdır"
   widget_customize_mode_enabled_89fefbcc: "Araç takımı özelleştirme modu etkin"
+  widget_dashboard: 
+    graded_n_days_ago: 
+      one: "1 gün önce notlandırıldı"
+      other: "%{count}gün önce notlandırıldı"
+    graded_n_hours_ago: 
+      one: "1 saat önce notlandırıldı"
+      other: "%{count}saat önce notlandırıldı"
+    graded_n_minutes_ago: 
+      one: "1 dakika önce notlandırıldı"
+      other: "%{count}dakika önce notlandırıldı"
   widget_dashboard_204dc6bf: "Araç Takımı Kontrol Paneli"
   widget_dashboard_customization_c41f1e7f: "Araç Takımı Kontrol Paneli Özelleştirme"
   widget_dashboard_error_page_82de7838: "Araç Takımı Kontrol Paneli Hata Sayfası"
