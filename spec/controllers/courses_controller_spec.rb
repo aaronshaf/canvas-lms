@@ -7001,6 +7001,7 @@ describe CoursesController do
 
     context "when teachers_can_create_courses is enabled but restricted to manually created courses subaccount" do
       before do
+        root_account.enable_feature!(:create_course_subaccount_picker)
         root_account.settings[:teachers_can_create_courses] = true
         root_account.settings[:teachers_can_create_courses_anywhere] = false
         root_account.save!
@@ -7130,6 +7131,26 @@ describe CoursesController do
           post :create, params: { account_id: mcc_account.id, course: { name: "Test Course" }, format: :json }
           expect(response).to be_forbidden
         end
+      end
+    end
+
+    context "when teachers_can_create_courses_anywhere is stored false but create_course_subaccount_picker is disabled" do
+      before do
+        root_account.settings[:teachers_can_create_courses] = true
+        root_account.settings[:teachers_can_create_courses_anywhere] = false
+        root_account.save!
+      end
+
+      it "allows teacher to create course in root account" do
+        user_session(teacher_user)
+        post :create, params: { account_id: root_account.id, course: { name: "Test Course" }, format: :json }
+        expect(response).to be_successful
+      end
+
+      it "allows teacher to create course in non-MCC subaccount" do
+        user_session(teacher_user)
+        post :create, params: { account_id: other_subaccount.id, course: { name: "Test Course" }, format: :json }
+        expect(response).to be_successful
       end
     end
   end

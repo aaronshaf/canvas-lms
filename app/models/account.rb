@@ -340,6 +340,23 @@ class Account < ApplicationRecord
   add_setting :teachers_can_create_courses_anywhere, boolean: true, root_only: true, default: true
   add_setting :students_can_create_courses_anywhere, boolean: true, root_only: true, default: true
 
+  # The "*_can_create_courses_anywhere" picker UI is gated behind the
+  # create_course_subaccount_picker feature flag. When the flag is off,
+  # admins have no way to view or change the stored value, so treat the
+  # restriction as inert (default true) rather than silently enforcing a
+  # value the admin can no longer see.
+  def teachers_can_create_courses_anywhere?
+    return true unless root_account.feature_enabled?(:create_course_subaccount_picker)
+
+    settings[:teachers_can_create_courses_anywhere] != false
+  end
+
+  def students_can_create_courses_anywhere?
+    return true unless root_account.feature_enabled?(:create_course_subaccount_picker)
+
+    settings[:students_can_create_courses_anywhere] != false
+  end
+
   add_setting :restrict_quiz_questions, boolean: true, root_only: true, default: false
   add_setting :allow_sending_scores_in_emails, boolean: true, root_only: true
   add_setting :can_add_pronouns, boolean: true, root_only: true, default: false

@@ -1773,6 +1773,66 @@ describe Account do
     expect(sub.allow_sis_import).to be false
   end
 
+  describe "#teachers_can_create_courses_anywhere? and #students_can_create_courses_anywhere?" do
+    let(:account) { Account.create! }
+
+    context "when the create_course_subaccount_picker feature flag is enabled" do
+      before { account.enable_feature!(:create_course_subaccount_picker) }
+
+      it "returns the stored value" do
+        account.settings[:teachers_can_create_courses_anywhere] = false
+        account.settings[:students_can_create_courses_anywhere] = false
+        account.save!
+
+        expect(account.teachers_can_create_courses_anywhere?).to be false
+        expect(account.students_can_create_courses_anywhere?).to be false
+      end
+
+      it "defaults to true when no value is stored" do
+        expect(account.teachers_can_create_courses_anywhere?).to be true
+        expect(account.students_can_create_courses_anywhere?).to be true
+      end
+    end
+
+    context "when the create_course_subaccount_picker feature flag is disabled" do
+      it "ignores a stored false value and returns true" do
+        account.settings[:teachers_can_create_courses_anywhere] = false
+        account.settings[:students_can_create_courses_anywhere] = false
+        account.save!
+
+        expect(account.teachers_can_create_courses_anywhere?).to be true
+        expect(account.students_can_create_courses_anywhere?).to be true
+      end
+
+      it "preserves the stored value so it resumes effect when the flag is re-enabled" do
+        account.settings[:teachers_can_create_courses_anywhere] = false
+        account.save!
+
+        expect(account.teachers_can_create_courses_anywhere?).to be true
+
+        account.enable_feature!(:create_course_subaccount_picker)
+        expect(account.teachers_can_create_courses_anywhere?).to be false
+      end
+    end
+
+    context "when invoked on a sub-account" do
+      let(:sub_account) { account.sub_accounts.create! }
+
+      it "gates on the root account's flag when disabled" do
+        account.settings[:teachers_can_create_courses_anywhere] = false
+        account.save!
+
+        expect(sub_account.teachers_can_create_courses_anywhere?).to be true
+      end
+
+      it "passes through to the underlying reader when the root account's flag is enabled" do
+        account.enable_feature!(:create_course_subaccount_picker)
+
+        expect(sub_account.teachers_can_create_courses_anywhere?).to be true
+      end
+    end
+  end
+
   describe "#ensure_defaults" do
     it "assigns an lti_guid postfixed by canvas-lms" do
       account = Account.new

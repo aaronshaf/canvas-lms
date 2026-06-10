@@ -6011,6 +6011,7 @@ describe User do
 
     context "with teachers_can_create_courses_anywhere and students_can_create_courses_anywhere false" do
       before :once do
+        @account.enable_feature!(:create_course_subaccount_picker)
         @account.settings[:teachers_can_create_courses_anywhere] = false
         @account.settings[:students_can_create_courses_anywhere] = false
         @account.save!
