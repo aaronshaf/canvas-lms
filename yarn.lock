@@ -12278,7 +12278,7 @@ graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.11, graceful-fs@^4.1.15, g
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
-"graphael@https://github.com/instructure/graphael.git":
+"graphael@https://github.com/instructure/graphael.git#067542642fa240925e4e3dd13153333ae1d3ad60":
   version "1.2.0"
   resolved "https://github.com/instructure/graphael.git#067542642fa240925e4e3dd13153333ae1d3ad60"
   dependencies:
@@ -15503,7 +15503,7 @@ media-typer@0.3.0:
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=
 
-"mediaelement@https://github.com/instructure/mediaelement.git#master":
+"mediaelement@https://github.com/instructure/mediaelement.git#2e9d330656c376920dd709db8ff400288924142f":
   version "2.23.5"
   resolved "https://github.com/instructure/mediaelement.git#2e9d330656c376920dd709db8ff400288924142f"
 
