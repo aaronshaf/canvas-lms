@@ -419,7 +419,6 @@
     "braces": "^3.0.3",
     "**/matroska/mime": "^1.6.0",
     "@ardatan/relay-compiler": "12.2.0",
-    "graphael": "https://github.com/instructure/graphael.git#067542642fa240925e4e3dd13153333ae1d3ad60",
     "@instructure/canvas-theme": "11.6.0",
     "@instructure/debounce": "11.6.0",
     "@instructure/emotion": "11.6.0",
