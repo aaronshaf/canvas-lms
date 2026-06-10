@@ -245,7 +245,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                 aiExperienceId={aiExperience.id}
                 aiExperienceTitle={aiExperience.title}
                 facts={aiExperience.facts}
-                learningObjectives={aiExperience.learning_objective}
+                learningObjectives={aiExperience.learning_objectives}
                 scenario={aiExperience.pedagogical_guidance}
               />
             ) : (
@@ -270,7 +270,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                 can_manage: aiExperience.can_manage,
                 description: aiExperience.description,
                 facts: aiExperience.facts,
-                learning_objective: aiExperience.learning_objective,
+                learning_objectives: aiExperience.learning_objectives,
                 pedagogical_guidance: aiExperience.pedagogical_guidance,
                 evaluation_metrics: aiExperience.evaluation_metrics,
               }}
@@ -300,16 +300,23 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                   </Text>
                 </View>
 
-                {aiExperience.learning_objective && (
+                {aiExperience.learning_objectives?.length > 0 && (
                   <View as="div" margin="0 0 medium 0">
                     <Heading level="h3" margin="0 0 small 0">
                       {I18n.t('Learning Objectives')}
                     </Heading>
-                    <Text data-testid="ai-experience-show-learning-objectives-text">
-                      <span style={{whiteSpace: 'pre-wrap'}}>
-                        {aiExperience.learning_objective}
-                      </span>
-                    </Text>
+                    <View
+                      as="ul"
+                      margin="0"
+                      padding="0 0 0 medium"
+                      data-testid="ai-experience-show-learning-objectives-text"
+                    >
+                      {aiExperience.learning_objectives.map((obj, i) => (
+                        <View key={i} as="li">
+                          <Text>{obj}</Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
                 )}
 
@@ -376,7 +383,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
               aiExperienceId={aiExperience.id}
               aiExperienceTitle={aiExperience.title}
               facts={aiExperience.facts}
-              learningObjectives={aiExperience.learning_objective}
+              learningObjectives={aiExperience.learning_objectives}
               scenario={aiExperience.pedagogical_guidance}
             />
           ) : (

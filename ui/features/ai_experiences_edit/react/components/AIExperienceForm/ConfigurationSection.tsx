@@ -31,6 +31,7 @@ import {
   lightBlueButtonTheme,
   navyButtonTheme,
 } from '../../../../../shared/ai-experiences/react/brand'
+import LearningObjectivesInput from './LearningObjectivesInput'
 
 declare const ENV: GlobalEnv & {
   CONTEXT_FILE_MAX_SIZE_MB?: number
@@ -43,6 +44,7 @@ interface ConfigurationSectionProps {
   onChange: (
     field: keyof AIExperienceFormData,
   ) => (event: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onObjectivesChange: (objectives: string[]) => void
   showErrors: boolean
   errors: Record<string, string>
   contextFiles: ContextFile[]
@@ -54,6 +56,7 @@ interface ConfigurationSectionProps {
 const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
   formData,
   onChange,
+  onObjectivesChange,
   showErrors,
   errors,
   contextFiles,
@@ -97,26 +100,10 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
             description={I18n.t('Set the learning objectives for this activity')}
             layout="stacked"
           >
-            <TextArea
-              data-testid="ai-experience-edit-learning-objective-input"
-              label={I18n.t('Learning objective targets')}
-              value={formData.learning_objective}
-              onChange={onChange('learning_objective')}
-              required
-              resize="vertical"
-              height="80px"
-              maxHeight="300px"
-              messages={[
-                ...(showErrors && errors.learning_objective
-                  ? [{type: 'newError' as const, text: errors.learning_objective}]
-                  : []),
-                {
-                  type: 'hint' as const,
-                  text: I18n.t(
-                    'Add a learning objective on a new line or separate by semi-colon (;).',
-                  ),
-                },
-              ]}
+            <LearningObjectivesInput
+              objectives={formData.learning_objectives}
+              onChange={onObjectivesChange}
+              error={showErrors ? errors.learning_objectives : undefined}
             />
           </FormFieldGroup>
         </View>

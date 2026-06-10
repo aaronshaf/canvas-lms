@@ -28,6 +28,7 @@ import {Alert} from '@instructure/ui-alerts'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {AIExperience, AIExperienceFormData, EvaluationMetric} from '../../../types'
 import FormHeader from './FormHeader'
+import SaveButton from './SaveButton'
 import ConfigurationSection from './ConfigurationSection'
 import EvaluationMetricsSection, {
   DEFAULT_METRICS,
@@ -66,7 +67,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
     title: '',
     description: '',
     facts: '',
-    learning_objective: '',
+    learning_objectives: [],
     pedagogical_guidance: '',
   })
   const [contextFiles, setContextFiles] = useState<ContextFile[]>([])
@@ -81,7 +82,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
         title: aiExperience.title || '',
         description: aiExperience.description || '',
         facts: aiExperience.facts || '',
-        learning_objective: aiExperience.learning_objective || '',
+        learning_objectives: aiExperience.learning_objectives || [],
         pedagogical_guidance: aiExperience.pedagogical_guidance || '',
       })
       if (aiExperience.context_files) {
@@ -114,6 +115,20 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
       }
     }
 
+  const handleObjectivesChange = (objectives: string[]) => {
+    setFormData(prev => ({...prev, learning_objectives: objectives}))
+    if (errors.learning_objectives) {
+      setErrors(prev => {
+        const newErrors = {...prev}
+        delete newErrors.learning_objectives
+        return newErrors
+      })
+      if (Object.keys(errors).length === 1) {
+        setShowErrorBanner(false)
+      }
+    }
+  }
+
   const handleContextFilesChange = (files: ContextFile[]) => {
     setContextFiles(files)
   }
@@ -142,10 +157,10 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
       })
     }
 
-    if (!formData.learning_objective.trim()) {
-      newErrors.learning_objective = I18n.t('Please provide at least one learning objective')
-    } else if (formData.learning_objective.length > TEACHER_AUTHORED_FIELD_MAX) {
-      newErrors.learning_objective = I18n.t(
+    if (formData.learning_objectives.length === 0) {
+      newErrors.learning_objectives = I18n.t('Please provide at least one learning objective')
+    } else if (formData.learning_objectives.some(o => o.length > TEACHER_AUTHORED_FIELD_MAX)) {
+      newErrors.learning_objectives = I18n.t(
         'Learning objective targets must be %{max} characters or fewer',
         {max: TEACHER_AUTHORED_FIELD_MAX},
       )
@@ -280,6 +295,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
           <ConfigurationSection
             formData={formData}
             onChange={handleInputChange}
+            onObjectivesChange={handleObjectivesChange}
             showErrors={showErrors}
             errors={errors}
             contextFiles={contextFiles}
@@ -297,6 +313,10 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             margin="large 0 large 0"
           >
             <EvaluationMetricsSection metrics={evaluationMetrics} onChange={setEvaluationMetrics} />
+          </View>
+
+          <View as="div" margin="large 0 0 0">
+            <SaveButton isLoading={isLoading} data-testid="ai-experience-edit-bottom-save-button" />
           </View>
         </form>
       </View>

@@ -19,14 +19,12 @@
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button} from '@instructure/ui-buttons'
+import SaveButton from './SaveButton'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {IconPublishSolid, IconUnpublishedLine} from '@instructure/ui-icons'
-import {
-  navyButtonTheme,
-  lightBlueButtonTheme,
-} from '../../../../../shared/ai-experiences/react/brand'
+import {lightBlueButtonTheme} from '@canvas/ai-experiences/react/brand'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -88,15 +86,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({
             </Button>
           </Flex.Item>
           <Flex.Item>
-            <Button
-              data-testid="ai-experience-save-as-draft-item"
-              type="submit"
-              color="primary"
-              themeOverride={navyButtonTheme}
-              interaction={isLoading ? 'disabled' : 'enabled'}
-            >
-              {isLoading ? I18n.t('Saving...') : I18n.t('Save')}
-            </Button>
+            <SaveButton isLoading={isLoading} data-testid="ai-experience-save-as-draft-item" />
           </Flex.Item>
         </Flex>
       </Flex.Item>

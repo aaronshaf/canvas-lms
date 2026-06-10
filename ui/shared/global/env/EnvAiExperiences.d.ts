@@ -21,7 +21,7 @@ export interface AIExperience {
   title: string
   description: string
   facts: string
-  learning_objective: string
+  learning_objectives: string[]
   pedagogical_guidance: string
   account_id?: string
   course_id?: string | number

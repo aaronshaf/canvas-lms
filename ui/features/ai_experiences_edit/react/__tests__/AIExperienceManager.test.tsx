@@ -41,7 +41,7 @@ const mockAiExperience = {
   title: 'Test Experience',
   description: 'Test Description',
   facts: 'Test Facts',
-  learning_objective: 'Test Objectives',
+  learning_objectives: ['Test Objectives'],
   pedagogical_guidance: 'Test Guidance',
   workflow_state: 'unpublished',
 }

@@ -33,7 +33,7 @@ const mockAiExperience: AIExperience = {
   description: 'Test description',
   course_id: '123',
   facts: 'Test facts',
-  learning_objective: 'Test objectives',
+  learning_objectives: ['Test objectives'],
   pedagogical_guidance: 'Test guidance',
   can_manage: true,
 }

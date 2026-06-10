@@ -38,7 +38,7 @@ export interface AIExperience {
   title: string
   description: string
   facts: string
-  learning_objective: string
+  learning_objectives: string[]
   pedagogical_guidance: string
   workflow_state?: string
   context_files?: ContextFile[]
@@ -51,7 +51,7 @@ export interface AIExperienceFormData {
   title: string
   description: string
   facts: string
-  learning_objective: string
+  learning_objectives: string[]
   pedagogical_guidance: string
   workflow_state?: string
   context_file_ids?: string[]

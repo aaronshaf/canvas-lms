@@ -43,7 +43,7 @@ const mockAiExperience: AIExperience = {
   title: 'Customer Service Training',
   description: 'Practice customer service scenarios',
   facts: 'You are a customer service representative helping customers with billing issues.',
-  learning_objective: 'Students will learn to handle customer complaints professionally',
+  learning_objectives: ['Students will learn to handle customer complaints professionally'],
   pedagogical_guidance: 'A customer calls about incorrect billing',
   workflow_state: 'published',
   can_manage: true,

@@ -25,7 +25,7 @@ export interface AIExperience {
   title: string
   description: string
   facts: string
-  learning_objective: string
+  learning_objectives: string[]
   pedagogical_guidance: string
   workflow_state: 'published' | 'unpublished'
   can_manage: boolean

@@ -32,7 +32,7 @@ const defaultProps = {
   aiExperienceId: '1',
   aiExperienceTitle: 'Test Experience',
   facts: 'Test facts',
-  learningObjectives: 'Test objectives',
+  learningObjectives: ['Test objectives'],
   scenario: 'Test scenario',
 }
 

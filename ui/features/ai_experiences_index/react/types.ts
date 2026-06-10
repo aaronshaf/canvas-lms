@@ -22,7 +22,7 @@ export type AiExperience = {
   description?: string
   workflow_state: 'published' | 'unpublished'
   facts?: string
-  learning_objective?: string
+  learning_objectives?: string[]
   pedagogical_guidance?: string
   created_at: string
   can_manage?: boolean

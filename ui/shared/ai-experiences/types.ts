@@ -29,7 +29,7 @@ export interface AIExperience {
   title: string
   description?: string
   facts?: string
-  learning_objective?: string
+  learning_objectives?: string[]
   pedagogical_guidance?: string
   can_manage: boolean
   evaluation_metrics?: EvaluationMetric[]
@@ -141,6 +141,6 @@ export interface LLMConversationViewProps {
   aiExperienceId?: string
   aiExperienceTitle?: string
   facts?: string
-  learningObjectives?: string
+  learningObjectives?: string[]
   scenario?: string
 }
