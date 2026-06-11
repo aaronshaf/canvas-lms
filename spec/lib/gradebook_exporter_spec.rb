@@ -1493,7 +1493,7 @@ describe GradebookExporter do
     end
 
     let(:parsed_csv) do
-      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      csv = GradebookExporter.new(@course, @teacher.principal, {}).to_csv
       CSV.parse(csv, headers: true)
     end
 
