@@ -105,4 +105,118 @@ describe "Rollcall Grade Passback Controls Integration" do
     # The previously-excluded attendance score now counts toward the course grade.
     expect(student_enrollment.reload.computed_current_score).to eql(0.75 * 100)
   end
+
+  it "setting omit_from_final_grade excludes the attendance score from the course grade", guid: "a1f5e830" do
+    # Arrange
+    teacher_enrollment = course_with_teacher(active_all: true)
+    course = teacher_enrollment.course
+    teacher = teacher_enrollment.user
+    pseudonym(teacher) # bearer-token auth requires an active pseudonym
+
+    student_enrollment = student_in_course(course:, active_all: true)
+    student = student_enrollment.user
+
+    tool = create_rollcall_tool(course)
+    assignment = create_attendance_assignment(course, tool)
+
+    # A second graded assignment so the course grade is a real sum, and the
+    # attendance assignment currently drags it down: essay 100/100 + attendance
+    # 50/100 = 75%.
+    essay = course.assignments.create!(
+      title: "Essay",
+      points_possible: 100,
+      grading_type: "points",
+      workflow_state: "published"
+    )
+    essay.grade_student(student, grade: 100, grader: teacher)
+    assignment.grade_student(student, grade: "50%", grader: teacher)
+    expect(student_enrollment.reload.computed_current_score).to eql(75.0) # rubocop:disable RSpec/BeEql
+
+    token = teacher.access_tokens.create!(purpose: "test")
+
+    # Act
+    put "/api/v1/courses/#{course.id}/assignments/#{assignment.id}",
+        params: { assignment: { omit_from_final_grade: true } },
+        headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+    expect(assignment.reload.omit_from_final_grade).to be(true)
+
+    # With attendance omitted, only the essay counts: 100/100 = 100%.
+    expect(student_enrollment.reload.computed_current_score).to eql(100.0) # rubocop:disable RSpec/BeEql
+  end
+
+  it "a section-limited TA can pass back an attendance grade for a student in their own section", guid: "3a7f1e62" do
+    # Arrange
+    course = course_factory(active_all: true)
+    section_a = course.course_sections.create!(name: "Section A")
+
+    ta = user_with_pseudonym(active_all: true) # bearer-token auth requires an active pseudonym
+    course.enroll_user(ta, "TaEnrollment", section: section_a, limit_privileges_to_course_section: true, enrollment_state: "active")
+
+    student_a = user_factory(active_all: true)
+    course.enroll_user(student_a, "StudentEnrollment", section: section_a, enrollment_state: "active")
+
+    tool = create_rollcall_tool(course)
+    assignment = create_attendance_assignment(course, tool)
+
+    token = ta.access_tokens.create!(purpose: "test")
+
+    # Act
+    put "/api/v1/courses/#{course.id}/assignments/#{assignment.id}/submissions/#{student_a.id}",
+        params: {
+          submission: {
+            posted_grade: "100%",
+            submission_type: "basic_lti_launch",
+            url: tool.url
+          }
+        },
+        headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+
+    submission = assignment.submissions.find_by(user: student_a)
+    expect(submission.reload.score).to eql(100.0) # rubocop:disable RSpec/BeEql
+    expect(submission.reload.workflow_state).to eq("graded")
+  end
+
+  it "a section-limited TA cannot pass back an attendance grade for a student outside their section", guid: "8c6d4f15" do
+    # Arrange
+    course = course_factory(active_all: true)
+    section_a = course.course_sections.create!(name: "Section A")
+    section_b = course.course_sections.create!(name: "Section B")
+
+    ta = user_with_pseudonym(active_all: true) # bearer-token auth requires an active pseudonym
+    course.enroll_user(ta, "TaEnrollment", section: section_a, limit_privileges_to_course_section: true, enrollment_state: "active")
+
+    student_b = user_factory(active_all: true)
+    course.enroll_user(student_b, "StudentEnrollment", section: section_b, enrollment_state: "active")
+
+    tool = create_rollcall_tool(course)
+    assignment = create_attendance_assignment(course, tool)
+
+    token = ta.access_tokens.create!(purpose: "test")
+
+    # Act
+    put "/api/v1/courses/#{course.id}/assignments/#{assignment.id}/submissions/#{student_b.id}",
+        params: {
+          submission: {
+            posted_grade: "100%",
+            submission_type: "basic_lti_launch",
+            url: tool.url
+          }
+        },
+        headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+    # Assert
+    # Canvas scopes the grader to their own section (get_user_considering_section),
+    # so the out-of-section student is invisible and the passback is rejected.
+    expect(response).to have_http_status(:not_found)
+
+    submission = assignment.submissions.find_by(user: student_b)
+    expect(submission&.grade).to be_nil
+    expect(submission&.score).to be_nil
+  end
 end

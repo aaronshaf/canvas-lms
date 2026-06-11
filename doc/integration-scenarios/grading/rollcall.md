@@ -111,16 +111,17 @@ And the new assignment has a submission type of "external_tool"
 And the new assignment is worth 100 points by default
 ```
 
-**Scenario RC-1.9 — After attendance assignment point value is changed, re-taking attendance corrects all student scores**
+**Scenario RC-1.9 — Changing the attendance assignment's point value preserves the raw score instead of rescaling it**
 - **GUID:** `d3b9f462`
-- **Reason:** Student attendance grades remain permanently miscalculated in the gradebook if Rollcall does not re-send corrected passbacks after the teacher changes the assignment's point value and re-takes attendance.
+- **Reason:** Student attendance grades are silently miscalculated after the teacher changes the assignment's point value: Canvas preserves the existing raw score and only re-derives the percent grade, so a student graded 50/100 reads a stale "25%" of 200 until Rollcall re-takes attendance and passes back a corrected grade.
+- **Note:** Changing `points_possible` does not rescale existing scores — `AbstractAssignment#update_student_submissions` (fired by the `points_possible` after_save) keeps the raw score and re-derives the percent grade via `score_to_grade`. The re-take that corrects the score is a later passback overwriting the prior one, already covered by RC-1.3.
 ```
 Given the Roll Call Attendance assignment worth 100 points
-And students have existing attendance grades based on the 100-point scale
-When the teacher changes the assignment point value to 200 in Canvas
-And the teacher re-takes attendance for all students via the Rollcall tool
-Then Rollcall sends updated grade passbacks recalculated against the 200-point scale
-And each student's Canvas submission score reflects the correct percentage of 200 points
+And a student graded 50% (raw score 50) on the 100-point scale
+When the teacher changes the assignment's point value to 200 in Canvas
+Then the student's submission keeps its raw score of 50 (Canvas does not rescale it)
+And the percent grade is re-derived to a now-stale "25%" of the 200-point scale
+And the student's course grade reflects the stale 25% until attendance is re-taken
 ```
 
 **Scenario RC-1.10 — Setting "exclude from final grade" in Rollcall sets the Canvas assignment omit flag**
@@ -133,13 +134,26 @@ Then the Canvas attendance assignment is updated with the omit from final grade 
 And the attendance score is excluded from all students' final grade calculations
 ```
 
-**Scenario RC-1.11 — Section-specific attendance marks only update submissions for students in that section**
-- **GUID:** `8c6d4f15`
-- **Reason:** Students in unattended sections receive incorrect attendance grades if Rollcall passbacks from a section-filtered session update students outside the teacher's selected section.
+**Scenario RC-1.11a — A section-limited TA can pass back an attendance grade for a student in their own section**
+- **GUID:** `3a7f1e62`
+- **Reason:** Positive control — without it, the RC-1.11b rejection could pass for the wrong reason (a TA who cannot grade at all). This proves the section-limited TA grades normally inside their section.
+- **Note:** Canvas scopes a section-limited grader (`limit_privileges_to_course_section`) to their own section via `get_user_considering_section` (`SubmissionsApiController#update` → `Course#students_visible_to`). RC-1.11a and RC-1.11b together pin that the section limit — not a broken grader — is what rejects the out-of-section passback.
 ```
-Given a course with two sections, each containing enrolled students
-And the Roll Call Attendance assignment is configured for the course
-When the teacher selects section A in Rollcall and marks all students in section A as present
-Then Rollcall sends grade passbacks only for students in section A
-And the submission scores for students in section B are not updated
+Given a course with a section-limited TA enrolled in section A
+And a student enrolled in section A
+And the Roll Call Attendance assignment configured for the course
+When the TA passes back an attendance grade for the section A student
+Then the submission is graded with the passed-back score
+```
+
+**Scenario RC-1.11b — A section-limited TA cannot pass back an attendance grade for a student outside their section**
+- **GUID:** `8c6d4f15`
+- **Reason:** Students in other sections receive incorrect attendance grades if Canvas let a section-limited grader's passback reach students outside their section.
+```
+Given a course with a section-limited TA enrolled in section A
+And a student enrolled in section B
+And the Roll Call Attendance assignment configured for the course
+When the TA passes back an attendance grade for the section B student
+Then Canvas rejects the request as not found
+And the section B student's submission has no grade or score
 ```
