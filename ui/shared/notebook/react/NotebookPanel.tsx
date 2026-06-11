@@ -102,6 +102,7 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
     courseId,
     learningObject: {type: objectType, id: objectId},
     pageSize: TRAY_PAGE_SIZE,
+    focusNoteId: selectedNoteId,
   })
 
   const {mutate: updateNote} = useUpdateNote(api)

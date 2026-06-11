@@ -31,6 +31,7 @@ const mockUseNotesData = vi.fn()
 const mockUpdateNote = vi.fn()
 const mockDeleteNote = vi.fn()
 const mockCloseTray = vi.fn()
+let mockSelectedNoteId: string | null = null
 
 const NOTE_A = {
   id: 'note-1',
@@ -60,7 +61,7 @@ vi.mock('@instructure/platform-notebook', () => ({
     objectId: 'page-1',
     objectType: 'Page',
     courseId: '42',
-    selectedNoteId: null,
+    selectedNoteId: mockSelectedNoteId,
     selectNote: vi.fn(),
     clearSelectedNote: vi.fn(),
     closeTray: mockCloseTray,
@@ -95,6 +96,7 @@ function renderPanel() {
 describe('NotebookPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSelectedNoteId = null
     mockUseNotesData.mockReturnValue(defaultUseNotesDataReturn)
   })
 
@@ -112,6 +114,12 @@ describe('NotebookPanel', () => {
         courseId: '42',
       }),
     )
+  })
+
+  it('passes the selected note as focusNoteId so the tray jumps to its page', () => {
+    mockSelectedNoteId = 'note-7'
+    renderPanel()
+    expect(mockUseNotesData).toHaveBeenCalledWith(expect.objectContaining({focusNoteId: 'note-7'}))
   })
 
   it('passes currentPage, totalPages, and onPageChange to NotesListView', () => {

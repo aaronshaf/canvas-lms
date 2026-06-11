@@ -146,6 +146,8 @@ class AuditLogFieldExtension < GraphQL::Schema::FieldExtension
       # Via the same logic for skipping audit logs for user inbox label,
       # we can skip audit logs for updating gradebook group filter and
       # learner dashboard tab selection, as they update the current user's settings.
+      # Similarly, Study note mutations are skipped too, as a note is the student's own
+      # personal data scoped to themselves.
       next if [Mutations::CreateInternalSetting,
                Mutations::UpdateInternalSetting,
                Mutations::DeleteInternalSetting,
@@ -155,6 +157,8 @@ class AuditLogFieldExtension < GraphQL::Schema::FieldExtension
                Mutations::UpdateLearnerDashboardTabSelection,
                Mutations::UpdateWidgetDashboardConfig,
                Mutations::UpdateWidgetDashboardLayout,
+               Mutations::CreateStudyNote,
+               Mutations::DeleteStudyNote,
                Mutations::UpdateStudyNote,
                Mutations::AcceptEnrollmentInvitation,
                Mutations::RejectEnrollmentInvitation,
