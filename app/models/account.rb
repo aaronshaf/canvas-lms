@@ -373,6 +373,7 @@ class Account < ApplicationRecord
   add_setting :users_can_edit_title, boolean: true, root_only: true, default: true
   add_setting :users_can_edit_profile_links, boolean: true, root_only: true, default: true
   add_setting :users_can_edit_comm_channels, boolean: true, root_only: true, default: true
+  add_setting :enable_email_notifications_for_all_users, boolean: true, root_only: true, default: true
   add_setting :open_registration, boolean: true, root_only: true
   add_setting :show_scheduler, boolean: true, root_only: true, default: false
   add_setting :enable_profiles, boolean: true, root_only: true, default: false

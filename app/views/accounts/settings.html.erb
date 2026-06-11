@@ -898,6 +898,11 @@
               </div>
 
               <div>
+                <%= settings.check_box :enable_email_notifications_for_all_users, checked: @account.enable_email_notifications_for_all_users? %>
+                <%= settings.label     :enable_email_notifications_for_all_users, en: "Email non-admin users when their email address changes" %>
+              </div>
+
+              <div>
                 <%= settings.check_box :author_email_in_notifications, checked: @account.author_email_in_notifications? %>
                 <%= settings.label     :author_email_in_notifications, en: "Show the email address of sender for user interaction Notifications" %>
               </div>

@@ -305,6 +305,8 @@ class CommunicationChannel < ApplicationRecord
   end
 
   def notify_default_email_changed!
+    return unless email_notification_enabled?
+
     @send_default_changed_notification = true
     save!
   ensure
@@ -312,6 +314,8 @@ class CommunicationChannel < ApplicationRecord
   end
 
   def notify_email_added!
+    return unless email_notification_enabled?
+
     @send_email_added_notification = true
     save!
   ensure
@@ -319,6 +323,8 @@ class CommunicationChannel < ApplicationRecord
   end
 
   def notify_email_removed!
+    return unless email_notification_enabled?
+
     @send_email_removed_notification = true
     save!
   ensure
@@ -569,6 +575,14 @@ class CommunicationChannel < ApplicationRecord
     end
   end
   private :check_if_bouncing_changed
+
+  def email_notification_enabled?
+    @root_account ||= Account.current_domain_root_account ||
+                      Account.find_by(id: root_account_ids.first) ||
+                      Account.default
+    @root_account.enable_email_notifications_for_all_users? || user.roles(@root_account).include?("admin")
+  end
+  private :email_notification_enabled?
 
   def self.bounce_for_path(path:, timestamp:, details:, permanent_bounce:, suppression_bounce:)
     # if there is a bounce on a channel that is associated to more than a few

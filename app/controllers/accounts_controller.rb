@@ -2510,6 +2510,7 @@ class AccountsController < ApplicationController
                                    :users_can_edit_title,
                                    :users_can_edit_profile_links,
                                    :users_can_edit_comm_channels,
+                                   :enable_email_notifications_for_all_users,
                                    { usage_rights_required: [:value, :locked] }.freeze,
                                    { restrict_quantitative_data: [:value, :locked] }.freeze,
                                    :app_center_access_token,

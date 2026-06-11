@@ -145,6 +145,61 @@ describe ProfileController do
       expect(@user.email).to eq cc.path
     end
 
+    describe "enable_email_notifications_for_all_users setting" do
+      before(:once) do
+        # Capture the original prior-default channel BEFORE communication_channel()
+        # overwrites @cc with the newly created channel.
+        @prior_default_cc = @cc
+        Notification.create!(name: "Default Email Address Changed", category: "Registration")
+        @cc2 = communication_channel(@user, { username: "new_default@example.com", active_cc: true })
+      end
+
+      before { allow(HostUrl).to receive(:context_host).and_return("someserver.com") }
+
+      context "as a non-admin user" do
+        before { user_session(@user, @pseudonym) }
+
+        it "sends the notification when the setting is on (default)" do
+          put "update", params: { user_id: @user.id, default_email_id: @cc2.id }, format: "json"
+          expect(response).to be_successful
+          notification = Notification.find_by(name: "Default Email Address Changed")
+          expect(Message.where(communication_channel_id: @prior_default_cc.id, notification_id: notification.id).count).to eq 1
+        end
+
+        it "does not send the notification when the setting is off" do
+          Account.default.settings[:enable_email_notifications_for_all_users] = false
+          Account.default.save!
+
+          put "update", params: { user_id: @user.id, default_email_id: @cc2.id }, format: "json"
+          expect(response).to be_successful
+          notification = Notification.find_by(name: "Default Email Address Changed")
+          expect(Message.where(notification_id: notification.id)).to be_empty
+        end
+      end
+
+      context "as an AccountAdmin" do
+        before(:once) { account_admin_user(user: @user) }
+        before { user_session(@user) }
+
+        it "sends the notification when the setting is on" do
+          put "update", params: { user_id: @user.id, default_email_id: @cc2.id }, format: "json"
+          expect(response).to be_successful
+          notification = Notification.find_by(name: "Default Email Address Changed")
+          expect(Message.where(communication_channel_id: @prior_default_cc.id, notification_id: notification.id).count).to eq 1
+        end
+
+        it "still sends the notification even when the setting is off" do
+          Account.default.settings[:enable_email_notifications_for_all_users] = false
+          Account.default.save!
+
+          put "update", params: { user_id: @user.id, default_email_id: @cc2.id }, format: "json"
+          expect(response).to be_successful
+          notification = Notification.find_by(name: "Default Email Address Changed")
+          expect(Message.where(communication_channel_id: @prior_default_cc.id, notification_id: notification.id).count).to eq 1
+        end
+      end
+    end
+
     it "does not allow a student view student profile to be edited" do
       user_session(@teacher)
       @fake_student = @course.student_view_student
