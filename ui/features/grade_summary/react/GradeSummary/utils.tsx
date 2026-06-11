@@ -217,7 +217,11 @@ export const getDisplayStatus = assignment => {
 
 // @ts-expect-error
 export const getDisplayScore = (assignment, gradingStandard) => {
-  if (ENV.restrict_quantitative_data && assignment?.pointsPossible === 0)
+  if (
+    ENV.restrict_quantitative_data &&
+    assignment?.pointsPossible === 0 &&
+    assignment?.gradingType !== 'pass_fail'
+  )
     return getZeroPointAssignmentDisplayScore(
       getAssignmentEarnedPoints(assignment),
       assignment?.submissionsConnection?.nodes[0]?.gradingStatus,
@@ -256,7 +260,8 @@ export const getDisplayScore = (assignment, gradingStandard) => {
   } else if (assignment?.gradingType === 'percentage') {
     return `${getAssignmentPercentage(assignment)}%`
   } else if (assignment?.gradingType === 'pass_fail') {
-    return assignment?.submissionsConnection?.nodes[0]?.score ? <IconCheckLine /> : <IconXLine />
+    const grade = assignment?.submissionsConnection?.nodes[0]?.grade
+    return grade === 'complete' ? <IconCheckLine /> : <IconXLine />
   }
   return `${earned || '0'}/${total || '0'}`
 }

@@ -19,6 +19,7 @@
 import React from 'react'
 
 import DateHelper from '@canvas/datetime/dateHelper'
+import fakeENV from '@canvas/test-utils/fakeENV'
 import {IconCheckLine, IconXLine} from '@instructure/ui-icons'
 import {Pill} from '@instructure/ui-pill'
 
@@ -708,120 +709,132 @@ describe('util', () => {
   })
 
   describe('getDisplayScore', () => {
-    it('calls getAssignmentLetterGrade when ENV restricts quantitative data and assignment uses GPA scale, percent, or points grading types', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'gpa_scale',
-      })
+    const gradingStandard = GradingStandard.mock()
 
-      const gradingStandard = GradingStandard.mock()
-
-      ENV.restrict_quantitative_data = true
-
-      expect(getDisplayScore(assignment, gradingStandard)).toEqual('A−')
+    // isolate ENV mutations so restrict_quantitative_data never leaks between tests
+    beforeEach(() => {
+      fakeENV.setup()
     })
 
-    it('calls getAssignmentLetterGrade when assignment uses letter grade or GPA scale grading types', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'letter_grade',
-      })
-
-      const gradingStandard = GradingStandard.mock()
-
-      expect(getDisplayScore(assignment, gradingStandard)).toEqual('A−')
+    afterEach(() => {
+      fakeENV.teardown()
     })
 
-    it('returns assignment percentage followed by "%" when assignment uses percentage grading type', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'percentage',
-      })
-      const gradingStandard = GradingStandard.mock()
+    // pass/fail grade -> expected icon, reused across the pass/fail cases below
+    const passFailIconCases: Array<[string, React.ReactElement]> = [
+      ['complete', <IconCheckLine />],
+      ['incomplete', <IconXLine />],
+    ]
 
-      expect(getDisplayScore(assignment, gradingStandard)).toEqual('90%')
-    })
-
-    it('returns IconCheckLine when assignment uses pass/fail grading type and has a score', () => {
-      const assignment = Assignment.mock({
+    // builds a pass/fail assignment with a single submission; omit pointsPossible to keep the mock default
+    const passFailAssignment = (
+      submissionAttrs: Parameters<typeof Submission.mock>[0],
+      pointsPossible?: number,
+    ) =>
+      Assignment.mock({
         gradingType: 'pass_fail',
-        submissionsConnection: {
-          nodes: [
-            // @ts-expect-error
-            {
-              score: 1,
-            },
-          ],
-        },
+        ...(pointsPossible === undefined ? {} : {pointsPossible}),
+        submissionsConnection: {nodes: [Submission.mock(submissionAttrs)]},
       })
 
-      const gradingStandard = GradingStandard.mock()
+    describe('when restrict_quantitative_data is enabled', () => {
+      beforeEach(() => {
+        ENV.restrict_quantitative_data = true
+      })
 
-      expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(<IconCheckLine />)
+      it('returns a letter grade for gpa_scale assignments', () => {
+        const assignment = Assignment.mock({gradingType: 'gpa_scale'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('A−')
+      })
+
+      it('returns a dash for points assignments that still need grading', () => {
+        const assignment = Assignment.mock({
+          gradingType: 'points',
+          submissionsConnection: {nodes: [Submission.mock({gradingStatus: 'needs_grading'})]},
+        })
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('-')
+      })
+
+      it('returns IconCheckLine for a graded 0-point non-pass/fail assignment', () => {
+        const assignment = Assignment.mock({
+          pointsPossible: 0,
+          submissionsConnection: {nodes: [Submission.mock({gradingStatus: 'graded', score: 0})]},
+        })
+        expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(<IconCheckLine />)
+      })
+
+      it.each(passFailIconCases)(
+        'returns the matching icon for a 0-point pass/fail grade (%s)',
+        (grade, expected) => {
+          const assignment = passFailAssignment({gradingStatus: 'graded', grade, score: 0}, 0)
+          expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(expected)
+        },
+      )
+
+      it.each(passFailIconCases)(
+        'returns the matching icon for a pass/fail grade with points possible (%s)',
+        (grade, expected) => {
+          const assignment = passFailAssignment({gradingStatus: 'graded', grade})
+          expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(expected)
+        },
+      )
+
+      it('returns a dash for an unsubmitted pass/fail assignment', () => {
+        const assignment = passFailAssignment({state: 'unsubmitted'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('-')
+      })
+
+      it('returns a dash for an ungraded 0-point pass/fail assignment', () => {
+        const assignment = passFailAssignment({gradingStatus: 'needs_grading'}, 0)
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('-')
+      })
     })
 
-    it('returns IconXLine when assignment uses pass/fail grading type and has no score', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'pass_fail',
-        submissionsConnection: {
-          nodes: [
-            {
-              // @ts-expect-error
-              score: null,
-            },
-          ],
+    describe('when restrict_quantitative_data is disabled', () => {
+      beforeEach(() => {
+        ENV.restrict_quantitative_data = false
+      })
+
+      it('returns a letter grade for letter_grade assignments', () => {
+        const assignment = Assignment.mock({gradingType: 'letter_grade'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('A−')
+      })
+
+      it('returns the percentage for percentage assignments', () => {
+        const assignment = Assignment.mock({gradingType: 'percentage'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('90%')
+      })
+
+      it.each(passFailIconCases)(
+        'returns the matching icon for a pass/fail grade (%s)',
+        (grade, expected) => {
+          const assignment = passFailAssignment({grade})
+          expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(expected)
         },
-      })
+      )
 
-      const gradingStandard = GradingStandard.mock()
-
-      expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(<IconXLine />)
-    })
-
-    it('calls getZeroPointAssignmentDisplayScore when ENV restricts quantitative data and assignment has 0 points possible', () => {
-      const assignment = Assignment.mock({
-        pointsPossible: 0,
-        submissionsConnection: {
-          nodes: [
-            // @ts-expect-error
-            {
-              gradingStatus: 'graded',
-            },
-          ],
+      it.each(passFailIconCases)(
+        'returns the matching icon for a 0-point pass/fail grade (%s)',
+        (grade, expected) => {
+          const assignment = passFailAssignment({gradingStatus: 'graded', grade, score: 0}, 0)
+          expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(expected)
         },
+      )
+
+      it('returns the score fraction for an unsubmitted pass/fail assignment', () => {
+        const assignment = passFailAssignment({state: 'unsubmitted'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('-/100')
       })
 
-      const gradingStandard = GradingStandard.mock()
-
-      ENV.restrict_quantitative_data = true
-
-      expect(getDisplayScore(assignment, gradingStandard)).toStrictEqual(<IconCheckLine />)
-    })
-
-    it('returns earned points and total points as a string when none of the conditions are met', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'other_grading_type',
-      })
-      const gradingStandard = GradingStandard.mock()
-
-      expect(getDisplayScore(assignment, gradingStandard)).toEqual('90/100')
-    })
-
-    it('returns letter grade when restrict quantitative data is true and assignment grading status = needs_grading', () => {
-      const assignment = Assignment.mock({
-        gradingType: 'points',
-        submissionsConnection: {
-          nodes: [
-            // @ts-expect-error
-            {
-              gradingStatus: 'needs_grading',
-            },
-          ],
-        },
+      it('returns the score fraction when a pass/fail assignment needs grading', () => {
+        const assignment = passFailAssignment({gradingStatus: 'needs_grading'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('-/100')
       })
 
-      const gradingStandard = GradingStandard.mock()
-
-      ENV.restrict_quantitative_data = true
-
-      expect(getDisplayScore(assignment, gradingStandard)).toEqual('-')
+      it('returns earned/total points when none of the other conditions are met', () => {
+        const assignment = Assignment.mock({gradingType: 'other_grading_type'})
+        expect(getDisplayScore(assignment, gradingStandard)).toEqual('90/100')
+      })
     })
   })
 
