@@ -52,6 +52,16 @@ const MEDIA_ERROR_MESSAGE = I18n.t('At least one submission type is required')
 
 export const VIDEO_SIZE_OPTIONS = {height: '400px', width: '768px'}
 
+function getUploadErrorMessage(err) {
+  if (err?.file && err?.maxFileSize != null && err.file.size > err.maxFileSize * 1024 * 1024) {
+    return I18n.t('Size of %{file} is greater than the maximum %{max} MB allowed file size.', {
+      file: err.file.name,
+      max: err.maxFileSize,
+    })
+  }
+  return I18n.t('There was an error submitting your attempt.')
+}
+
 class MediaAttempt extends React.Component {
   static propTypes = {
     assignment: Assignment.shape.isRequired,
@@ -103,7 +113,7 @@ class MediaAttempt extends React.Component {
 
   onComplete = (err, data) => {
     if (err) {
-      this.context.setOnFailure(I18n.t('There was an error submitting your attempt.'))
+      this.context.setOnFailure(getUploadErrorMessage(err))
     } else {
       this.props.updateUploadingFiles(true)
       if (data.mediaObject.embedded_iframe_url) {

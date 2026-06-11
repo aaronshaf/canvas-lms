@@ -22,6 +22,17 @@ import MediaAttempt from '../MediaAttempt'
 import {mockAssignmentAndSubmission} from '@canvas/assignments/graphql/studentMocks'
 import React, {createRef} from 'react'
 import StudentViewContext from '@canvas/assignments/react/StudentViewContext'
+import {AlertManagerContext} from '@instructure/platform-alerts'
+
+const {uploadMediaProps} = vi.hoisted(() => ({uploadMediaProps: {current: null}}))
+
+vi.mock('@instructure/canvas-media', async importOriginal => ({
+  ...(await importOriginal()),
+  default: props => {
+    uploadMediaProps.current = props
+    return null
+  },
+}))
 
 const submissionDraftOverrides = {
   Submission: {
@@ -183,6 +194,36 @@ describe('MediaAttempt', () => {
         fireEvent.click(getByTestId('open-upload-media-modal-button'))
         expect(queryByText('At least one submission type is required')).not.toBeInTheDocument()
       })
+    })
+  })
+
+  describe('upload completion errors', () => {
+    let setOnFailure
+
+    beforeEach(async () => {
+      const props = await makeProps()
+      setOnFailure = vi.fn()
+      render(
+        <AlertManagerContext.Provider value={{setOnFailure, setOnSuccess: vi.fn()}}>
+          <MediaAttempt {...props} />
+        </AlertManagerContext.Provider>,
+      )
+    })
+
+    it('shows a descriptive message when the file exceeds the max size', () => {
+      uploadMediaProps.current.onUploadComplete({
+        maxFileSize: 500,
+        file: {name: 'huge_video.mov', size: 600 * 1024 * 1024},
+        allowedMediaTypes: ['video'],
+      })
+      expect(setOnFailure).toHaveBeenCalledWith(
+        'Size of huge_video.mov is greater than the maximum 500 MB allowed file size.',
+      )
+    })
+
+    it('falls back to the generic message for other errors', () => {
+      uploadMediaProps.current.onUploadComplete(new Error('network down'))
+      expect(setOnFailure).toHaveBeenCalledWith('There was an error submitting your attempt.')
     })
   })
 
