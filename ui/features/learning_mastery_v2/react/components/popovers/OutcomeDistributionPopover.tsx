@@ -20,6 +20,7 @@ import React, {ReactElement, useEffect, useMemo, useRef, useState} from 'react'
 import {Popover} from '@instructure/ui-popover'
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
+import {Alert} from '@instructure/ui-alerts'
 import {Flex} from '@instructure/ui-flex'
 import {CloseButton, IconButton} from '@instructure/ui-buttons'
 import {IconInfoLine, IconArrowOpenEndLine} from '@instructure/ui-icons'
@@ -28,6 +29,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
 import {MasteryDistributionChart} from '../charts'
+import {DisabledMasteryDistributionChart} from '../charts/DisabledMasteryDistributionChart'
 import {Text} from '@instructure/ui-text'
 import useLMGBContext from '@canvas/outcomes/react/hooks/useLMGBContext'
 import OutcomeContextTag from '@canvas/outcome-context-tag/OutcomeContextTag'
@@ -46,8 +48,12 @@ import {Link} from '@instructure/ui-link'
 import TagAsModalManager from '@canvas/differentiation-tags/react/TagAsModal/TagAsModalManager'
 import {useAddTagMembership} from '@canvas/differentiation-tags/react/hooks/useAddTagMembership'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
+import {exceedsMasteryScaleLimit} from '@canvas/outcomes/react/utils/masteryScaleLogic'
+import {MasteryScaleRestrictionMessage} from '../MasteryScaleRestrictionMessage'
 
 const I18n = createI18nScope('learning_mastery_gradebook')
+
+const POPOVER_CHART_HEIGHT = 280
 
 const getCalculationMethod = (outcome: Outcome): string => {
   switch (outcome.calculation_method) {
@@ -214,6 +220,7 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
   const {accountLevelMasteryScalesFF, allowDifferentiationTags} = useLMGBContext()
   const {mutate: addTagMembership} = useAddTagMembership()
   const calculationMethod = getCalculationMethod(outcome)
+  const isScaleRestricted = exceedsMasteryScaleLimit(outcome.ratings?.length ?? 0)
 
   const selectedStudents = useMemo(() => {
     if (!selectedRating || !distributionStudents) return []
@@ -289,7 +296,7 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
       <MasteryDistributionChart
         outcome={outcome}
         distributionData={outcomeDistribution?.ratings ?? []}
-        height={280}
+        height={POPOVER_CHART_HEIGHT}
         showYAxisGrid={true}
         onBarClick={handleBarClick}
         selectedLabel={selectedRating?.description}
@@ -374,7 +381,28 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
             )}
 
             <Flex.Item shouldGrow={true} shouldShrink={true} size="0">
-              <View as="div">{chartComponent}</View>
+              {isScaleRestricted ? (
+                <Flex direction="column" gap="small">
+                  <Flex.Item>
+                    <DisabledMasteryDistributionChart
+                      outcome={outcome}
+                      height={POPOVER_CHART_HEIGHT}
+                      isPreview={false}
+                    />
+                  </Flex.Item>
+                  <Flex.Item>
+                    <Alert
+                      variant="info"
+                      hasShadow={false}
+                      data-testid="outcome-distribution-scale-restricted-alert"
+                    >
+                      <MasteryScaleRestrictionMessage />
+                    </Alert>
+                  </Flex.Item>
+                </Flex>
+              ) : (
+                <View as="div">{chartComponent}</View>
+              )}
             </Flex.Item>
 
             {selectedRating && (

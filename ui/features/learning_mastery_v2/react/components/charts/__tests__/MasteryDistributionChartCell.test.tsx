@@ -28,6 +28,14 @@ import {
   RatingDistribution,
 } from '@canvas/outcomes/react/types/mastery_distribution'
 
+vi.mock('../DisabledMasteryDistributionChart', () => ({
+  DisabledMasteryDistributionChart: ({outcome}: any) => (
+    <div data-testid="disabled-mastery-distribution-chart">
+      <span data-testid="disabled-chart-outcome">{outcome.title}</span>
+    </div>
+  ),
+}))
+
 vi.mock('../MasteryDistributionChart', () => ({
   MasteryDistributionChart: ({outcome, distributionData, isPreview}: any) => (
     <div data-testid="mastery-distribution-chart">
@@ -201,5 +209,35 @@ describe('MasteryDistributionChartCell', () => {
     expect(
       screen.getByRole('button', {name: 'Expand distribution for outcome 1'}).closest('div[style]'),
     ).toHaveStyle({opacity: '1'})
+  })
+
+  describe('when the mastery scale exceeds 5 levels', () => {
+    const restrictedOutcome = {
+      ...outcome,
+      ratings: Array.from({length: 6}, (_, i) => ({
+        color: 'green',
+        description: `level ${i}`,
+        mastery: i === 0,
+        points: 6 - i,
+      })),
+    }
+
+    const restrictedProps = (): MasteryDistributionChartCellProps => ({
+      ...defaultProps(),
+      outcome: restrictedOutcome,
+    })
+
+    it('renders the disabled chart instead of the live chart', () => {
+      render(<MasteryDistributionChartCell {...restrictedProps()} isHovered={true} />)
+      expect(screen.getByTestId('disabled-mastery-distribution-chart')).toBeInTheDocument()
+      expect(screen.queryByTestId('mastery-distribution-chart')).not.toBeInTheDocument()
+    })
+
+    it('still renders the expand button so the distribution popover stays reachable', () => {
+      render(<MasteryDistributionChartCell {...restrictedProps()} isHovered={true} />)
+      expect(
+        screen.getByRole('button', {name: 'Expand distribution for outcome 1'}),
+      ).toBeInTheDocument()
+    })
   })
 })

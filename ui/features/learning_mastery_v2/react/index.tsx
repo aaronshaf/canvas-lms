@@ -42,6 +42,7 @@ import useRollups from '@canvas/outcomes/react/hooks/useRollups'
 import {useGradebookSettings} from './hooks/useGradebookSettings'
 import {saveLearningMasteryGradebookSettings, saveOutcomeOrder} from './apiClient'
 import {Outcome} from '@canvas/outcomes/react/types/rollup'
+import {exceedsMasteryScaleLimit} from '@canvas/outcomes/react/utils/masteryScaleLogic'
 import {useContributingScores} from '@canvas/outcomes/react/hooks/useContributingScores'
 import {StudentAssignmentDetailTray} from './components/trays/StudentAssignmentDetailTray'
 import {useStudentAssignmentTray} from './hooks/useStudentAssignmentTray'
@@ -124,6 +125,11 @@ const LearningMasteryContent: React.FC<LearningMasteryContentProps> = ({
 
   const sortedOutcomeIds = useMemo(
     () => outcomes.map(outcome => outcome.id.toString()).sort(),
+    [outcomes],
+  )
+
+  const hasOversizedScaleOutcome = useMemo(
+    () => outcomes.some(outcome => exceedsMasteryScaleLimit(outcome.ratings?.length ?? 0)),
     [outcomes],
   )
 
@@ -247,6 +253,7 @@ const LearningMasteryContent: React.FC<LearningMasteryContentProps> = ({
         gradebookSettings={gradebookSettings}
         setGradebookSettings={handleGradebookSettingsChange}
         hideHeading={instuiNavFF}
+        hasOversizedScaleOutcome={hasOversizedScaleOutcome}
       />
       {pagination && (
         <SearchWrapper

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState} from 'react'
+import React, {useMemo, useState} from 'react'
 import {Flex} from '@instructure/ui-flex'
 import {InstUISettingsProvider} from '@instructure/emotion'
 import {colors} from '@instructure/canvas-theme'
@@ -29,7 +29,7 @@ import {ExportCSVButton} from '@instructure/outcomes-ui/es/components/Gradebook/
 import {SettingsTray} from '@instructure/outcomes-ui/es/components/Gradebook/toolbar/SettingsTray'
 import {GradebookAppProvider} from '@instructure/outcomes-ui/es/components/Gradebook/context/GradebookAppContext/GradebookAppProvider'
 import {exportCSV} from '../../apiClient'
-import {SettingsTrayContent} from './SettingsTrayContent'
+import {SettingsTrayContent, type SettingsTrayContentProps} from './SettingsTrayContent'
 import {GradebookSettings} from '@canvas/outcomes/react/utils/constants'
 import {mapSettingsToFilters} from '@canvas/outcomes/react/utils/filter'
 import {Heading} from '@instructure/ui-heading'
@@ -56,6 +56,7 @@ export interface ToolbarProps {
   gradebookSettings: GradebookSettings
   setGradebookSettings: (settings: GradebookSettings) => Promise<{success: boolean}>
   hideHeading?: boolean
+  hasOversizedScaleOutcome?: boolean
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -65,8 +66,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   gradebookSettings,
   setGradebookSettings,
   hideHeading,
+  hasOversizedScaleOutcome = false,
 }) => {
   const [isSettingsTrayOpen, setSettingsTrayOpen] = useState<boolean>(false)
+
+  const SettingsTrayContentWithBanner = useMemo(
+    () => (props: SettingsTrayContentProps) => (
+      <SettingsTrayContent {...props} hasOversizedScaleOutcome={hasOversizedScaleOutcome} />
+    ),
+    [hasOversizedScaleOutcome],
+  )
 
   return (
     <InstUISettingsProvider theme={{componentOverrides}}>
@@ -123,7 +132,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <SettingsTray
                 open={isSettingsTrayOpen}
                 onDismiss={() => setSettingsTrayOpen(false)}
-                SettingsTrayContent={SettingsTrayContent}
+                SettingsTrayContent={SettingsTrayContentWithBanner}
               />
             </GradebookAppProvider>
           </Flex>

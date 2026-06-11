@@ -30,6 +30,14 @@ import {pick} from 'es-toolkit/compat'
 import React from 'react'
 import {OutcomeDistributionPopover} from '../OutcomeDistributionPopover'
 
+vi.mock('../../charts/DisabledMasteryDistributionChart', () => ({
+  DisabledMasteryDistributionChart: ({outcome}: any) => (
+    <div data-testid="disabled-mastery-distribution-chart">
+      <span data-testid="disabled-chart-outcome">{outcome.title}</span>
+    </div>
+  ),
+}))
+
 vi.mock('../../charts/BarChart', () => ({
   BarChart: () => null,
   default: () => null,
@@ -1008,6 +1016,116 @@ describe('OutcomeDistributionPopover', () => {
 
       expect(mockAddTagMembership).not.toHaveBeenCalled()
       expect(screen.queryByTestId('differentiation-tag-modal')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('when the mastery scale exceeds 5 levels', () => {
+    const restrictedOutcome: Outcome = {
+      ...outcome,
+      ratings: Array.from({length: 6}, (_, i) => ({
+        description: `level ${i}`,
+        points: 6 - i,
+        color: '#127A1B',
+        mastery: i === 0,
+      })),
+    }
+
+    const mockStudents: Student[] = [
+      {
+        id: '1',
+        name: 'Alice Johnson',
+        display_name: 'Alice Johnson',
+        sortable_name: 'Johnson, Alice',
+        avatar_url: 'https://example.com/alice.jpg',
+      },
+    ]
+
+    const mockOutcomeDistribution: OutcomeDistribution = {
+      outcome_id: '1',
+      ratings: [
+        {description: 'Mastery', points: 3, color: '#127A1B', count: 1, student_ids: ['1']},
+      ],
+      total_students: 1,
+    }
+
+    it('shows the scale restriction banner', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={restrictedOutcome}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+      expect(screen.getByTestId('outcome-distribution-scale-restricted-alert')).toBeInTheDocument()
+    })
+
+    it('does not show the banner when the scale has 5 or fewer levels', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+      expect(
+        screen.queryByTestId('outcome-distribution-scale-restricted-alert'),
+      ).not.toBeInTheDocument()
+    })
+
+    it('renders disabled chart instead of live chart', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={restrictedOutcome}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+      expect(screen.getByTestId('disabled-mastery-distribution-chart')).toBeInTheDocument()
+      expect(screen.queryByTestId('mastery-distribution-chart')).not.toBeInTheDocument()
+    })
+
+    it('renders the alert below the disabled chart', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={restrictedOutcome}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+      const chart = screen.getByTestId('disabled-mastery-distribution-chart')
+      const alert = screen.getByTestId('outcome-distribution-scale-restricted-alert')
+      expect(chart).toBeInTheDocument()
+      expect(alert).toBeInTheDocument()
+      expect(chart.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('hides the chart and MSW/Tags since chart is not rendered', async () => {
+      const user = userEvent.setup()
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={restrictedOutcome}
+          outcomeDistribution={mockOutcomeDistribution}
+          distributionStudents={mockStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+        {env: {accountLevelMasteryScalesFF: false, allowDifferentiationTags: true}},
+      )
+
+      expect(screen.queryByTestId('mastery-distribution-chart')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('student-list-section')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('message-students-link')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('create-differentiation-tag-link')).not.toBeInTheDocument()
     })
   })
 })

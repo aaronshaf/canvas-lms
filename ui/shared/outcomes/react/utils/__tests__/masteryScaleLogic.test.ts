@@ -19,12 +19,26 @@
 import {describe, it, expect} from 'vitest'
 import {
   determineMasteryLevel,
+  exceedsMasteryScaleLimit,
   getColorForLevel,
   getDescriptionForLevel,
+  MAX_MASTERY_SCALE_LEVELS,
   type ProficiencyRating,
 } from '../masteryScaleLogic'
 
 describe('masteryScaleLogic', () => {
+  describe('exceedsMasteryScaleLimit', () => {
+    it('returns false at or below the supported number of levels', () => {
+      expect(exceedsMasteryScaleLimit(0)).toBe(false)
+      expect(exceedsMasteryScaleLimit(MAX_MASTERY_SCALE_LEVELS)).toBe(false)
+    })
+
+    it('returns true above the supported number of levels', () => {
+      expect(exceedsMasteryScaleLimit(MAX_MASTERY_SCALE_LEVELS + 1)).toBe(true)
+      expect(exceedsMasteryScaleLimit(10)).toBe(true)
+    })
+  })
+
   describe('determineMasteryLevel', () => {
     describe('unassessed cases', () => {
       it('returns unassessed for null points', () => {

@@ -18,6 +18,8 @@
 
 import React from 'react'
 import {Flex} from '@instructure/ui-flex'
+import {Alert} from '@instructure/ui-alerts'
+import {useScope as createI18nScope} from '@canvas/i18n'
 import {GradebookSettings} from '@canvas/outcomes/react/utils/constants'
 import type {
   SecondaryInfoDisplay,
@@ -30,14 +32,28 @@ import {DisplayFilterSelector} from '@instructure/outcomes-ui/es/components/Grad
 import {ScoreDisplayFormatSelector} from '@instructure/outcomes-ui/es/components/Gradebook/toolbar/SettingsTray/ScoreDisplayFormatSelector'
 import {OutcomeArrangementSelector} from '@instructure/outcomes-ui/es/components/Gradebook/toolbar/SettingsTray/OutcomeArrangementSelector'
 
+const I18n = createI18nScope('learning_mastery_gradebook')
+
 export interface SettingsTrayContentProps {
   settings: GradebookSettings
   onChange: (settings: GradebookSettings) => void
+  hasOversizedScaleOutcome?: boolean
 }
 
-export const SettingsTrayContent: React.FC<SettingsTrayContentProps> = ({settings, onChange}) => {
+export const SettingsTrayContent: React.FC<SettingsTrayContentProps> = ({
+  settings,
+  onChange,
+  hasOversizedScaleOutcome = false,
+}) => {
   return (
-    <Flex direction="column" padding="small medium" alignItems="stretch" gap="medium">
+    <Flex direction="column" alignItems="stretch" gap="medium">
+      {hasOversizedScaleOutcome && (
+        <Alert variant="info" hasShadow={false} data-testid="settings-tray-scale-restricted-alert">
+          {I18n.t(
+            'Mastery scales with more than 5 levels disable mastery icons and distribution charts for those outcomes. Scores for affected outcomes appear as numbers in the gradebook.',
+          )}
+        </Alert>
+      )}
       <SecondaryInfoSelector
         value={settings.secondaryInfoDisplay}
         onChange={(info: SecondaryInfoDisplay) =>

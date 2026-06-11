@@ -28,6 +28,22 @@ export interface ProficiencyRating {
 export type MasteryLevelResult = OutcomeIconType | number
 
 /**
+ * Maximum number of mastery scale levels that still support mastery icons and
+ * distribution charts. Outcomes whose scale exceeds this fall back to numeric
+ * scores and have charts/messaging actions disabled.
+ */
+export const MAX_MASTERY_SCALE_LEVELS = 5
+
+/**
+ * Determines whether a mastery scale has too many levels to render mastery
+ * icons and distribution charts.
+ * @param ratingsLength - Number of proficiency levels in the scale
+ * @returns true if the scale exceeds the supported number of levels
+ */
+export const exceedsMasteryScaleLimit = (ratingsLength: number): boolean =>
+  ratingsLength > MAX_MASTERY_SCALE_LEVELS
+
+/**
  * Finds the index of the mastery level in the ratings array
  * @param ratings - Array of proficiency ratings sorted by points descending
  * @returns The index where mastery is set, or -1 if not found
@@ -64,8 +80,8 @@ const findRatingIndex = (points: number, ratings: ProficiencyRating[]): number =
  * @returns true if numbers should be used, false if icons should be used
  */
 export const shouldUseNumbers = (levelCount: number, masteryIndex: number): boolean => {
-  // More than 5 levels always use numbers
-  if (levelCount > 5) {
+  // More than the supported number of levels always uses numbers
+  if (exceedsMasteryScaleLimit(levelCount)) {
     return true
   }
 

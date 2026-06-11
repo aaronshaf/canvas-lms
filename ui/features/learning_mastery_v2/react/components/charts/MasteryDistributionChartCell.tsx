@@ -19,7 +19,9 @@ import React, {useState} from 'react'
 import {Spinner} from '@instructure/ui-spinner'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconFullScreenLine} from '@instructure/ui-icons'
+import {exceedsMasteryScaleLimit} from '@canvas/outcomes/react/utils/masteryScaleLogic'
 import {MasteryDistributionChart} from './MasteryDistributionChart'
+import {DisabledMasteryDistributionChart} from './DisabledMasteryDistributionChart'
 import {
   OutcomeDistribution,
   RatingDistribution,
@@ -48,6 +50,7 @@ export interface MasteryDistributionChartCellProps {
 
 const containerStyle: React.CSSProperties = {
   width: `${CELL_WIDTH}px`,
+  height: `${BAR_CHART_HEIGHT}px`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -67,6 +70,7 @@ export const MasteryDistributionChartCell: React.FC<MasteryDistributionChartCell
 }) => {
   const [focused, setFocused] = useState(false)
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+  const isScaleRestricted = exceedsMasteryScaleLimit(outcome.ratings?.length ?? 0)
   const visible = isHovered || focused
 
   const canExpand = !!courseId
@@ -128,13 +132,22 @@ export const MasteryDistributionChartCell: React.FC<MasteryDistributionChartCell
   return (
     <div data-testid={`mastery-distribution-chart-cell-${outcome.id}`} style={containerStyle}>
       {expandButton}
-      <MasteryDistributionChart
-        outcome={outcome}
-        distributionData={chartData}
-        height={BAR_CHART_HEIGHT}
-        width={CELL_WIDTH}
-        isPreview={true}
-      />
+      {isScaleRestricted ? (
+        <DisabledMasteryDistributionChart
+          outcome={outcome}
+          height={BAR_CHART_HEIGHT}
+          width={CELL_WIDTH}
+          isPreview={true}
+        />
+      ) : (
+        <MasteryDistributionChart
+          outcome={outcome}
+          distributionData={chartData}
+          height={BAR_CHART_HEIGHT}
+          width={CELL_WIDTH}
+          isPreview={true}
+        />
+      )}
     </div>
   )
 }

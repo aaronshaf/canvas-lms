@@ -72,4 +72,14 @@ describe('SettingsTrayContent', () => {
       scoreDisplayFormat: ScoreDisplayFormat.ICON_AND_LABEL,
     })
   })
+
+  it('shows the scale restriction banner when an outcome has more than 5 levels', () => {
+    render(<SettingsTrayContent {...makeProps({hasOversizedScaleOutcome: true})} />)
+    expect(screen.getByTestId('settings-tray-scale-restricted-alert')).toBeInTheDocument()
+  })
+
+  it('does not show the scale restriction banner by default', () => {
+    render(<SettingsTrayContent {...makeProps()} />)
+    expect(screen.queryByTestId('settings-tray-scale-restricted-alert')).not.toBeInTheDocument()
+  })
 })
