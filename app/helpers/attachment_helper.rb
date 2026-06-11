@@ -74,7 +74,7 @@ module AttachmentHelper
     attrs[:bp_locked_attachment] = attachment_locked? attachment
     attrs[:type] = attachment.content_type&.include?("video") ? "video" : "audio"
     attrs[:download_url] = context_url(attachment.context, :context_file_download_url, attachment.id)
-    attrs[:media_entry_id] = attachment.media_entry_id if attachment.media_entry_id
+    attrs[:media_entry_id] = ERB::Util.html_escape(attachment.media_entry_id.gsub(/\s+/, "")) if attachment.media_entry_id
     attrs.inject(+"") { |s, (attr, val)| s << "data-#{attr}=#{val} " }
   end
 

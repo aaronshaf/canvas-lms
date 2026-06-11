@@ -64,6 +64,64 @@ describe AttachmentHelper do
     expect(attrs).to match "%22submission_id%22:#{id}"
   end
 
+  describe "#media_preview_attributes" do
+    let(:media_entry_id) { "m-3EtLMkFf9KBMneRZozuhGmYGTJSiqELW" }
+    let(:attachment) do
+      attachment_model(context: @course, content_type: "video/mp4", media_entry_id:)
+    end
+
+    it "renders the media_entry_id as a data attribute" do
+      expect(media_preview_attributes(attachment)).to include("data-media_entry_id=#{media_entry_id}")
+    end
+
+    it "html-escapes a media_entry_id so markup cannot break out of the attribute" do
+      attachment.media_entry_id = 'm"><script>alert(1)</script>'
+
+      attrs = media_preview_attributes(attachment)
+
+      expect(attrs).to include("data-media_entry_id=m&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;")
+      expect(attrs).not_to include("<script>")
+    end
+
+    it "escapes ampersands in the media_entry_id" do
+      attachment.media_entry_id = "m-a&b"
+
+      expect(media_preview_attributes(attachment)).to include("data-media_entry_id=m-a&amp;b")
+    end
+
+    it "strips embedded whitespace so the value cannot inject a second attribute" do
+      # The attribute is rendered unquoted, so a space would otherwise let the
+      # value break out into its own attribute (e.g. an event handler).
+      attachment.media_entry_id = "m-abc onmouseover=alert(1)"
+
+      attrs = media_preview_attributes(attachment)
+
+      expect(attrs).to include("data-media_entry_id=m-abconmouseover=alert(1)")
+      expect(attrs).not_to include(" onmouseover=")
+    end
+
+    it "strips tabs and newlines from the media_entry_id" do
+      attachment.media_entry_id = "m-\tabc\ndef\r ghi"
+
+      expect(media_preview_attributes(attachment)).to include("data-media_entry_id=m-abcdefghi")
+    end
+
+    it "strips whitespace before escaping markup in the media_entry_id" do
+      attachment.media_entry_id = 'm"> <script>alert(1)</script>'
+
+      attrs = media_preview_attributes(attachment)
+
+      expect(attrs).to include("data-media_entry_id=m&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;")
+      expect(attrs).not_to include("<script>")
+    end
+
+    it "omits the media_entry_id data attribute when the attachment has none" do
+      attachment.media_entry_id = nil
+
+      expect(media_preview_attributes(attachment)).not_to include("media_entry_id")
+    end
+  end
+
   describe "set_cache_header" do
     it "does not allow caching of instfs redirects" do
       allow(@att).to receive(:instfs_hosted?).and_return(true)
