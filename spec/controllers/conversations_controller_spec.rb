@@ -789,11 +789,9 @@ describe ConversationsController do
         student_in_course(active_all: true)
       end
 
-      context "when the token is a site admin service token" do
+      context "when the user has send_messages rights on the site admin account" do
         before do
-          user_session(@teacher)
-          site_admin_token = instance_double(AccessToken, site_admin?: true, purpose: nil)
-          controller.instance_variable_set(:@access_token, site_admin_token)
+          user_session(site_admin_user)
         end
 
         it "stores display_from on the message" do
@@ -811,11 +809,40 @@ describe ConversationsController do
         end
       end
 
-      context "when the token is not a site admin service token" do
+      context "when the user lacks send_messages rights on the site admin account" do
         before do
           user_session(@teacher)
-          regular_token = instance_double(AccessToken, site_admin?: false, purpose: nil)
-          controller.instance_variable_set(:@access_token, regular_token)
+        end
+
+        it "rejects display_from with a 400" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello", display_from: "Impersonated User" }
+          expect(response).to have_http_status :bad_request
+          expect(response.parsed_body.first["attribute"]).to eq("display_from")
+        end
+      end
+
+      context "when a site admin has send_messages disabled via role override" do
+        before do
+          admin = site_admin_user
+          @course.enroll_teacher(admin, enrollment_state: "active")
+          Account.site_admin.role_overrides.create!(
+            permission: :send_messages,
+            role: admin_role(root_account_id: Account.site_admin.id),
+            enabled: false
+          )
+          user_session(admin)
+        end
+
+        it "rejects display_from with a 400" do
+          post "create", params: { recipients: [@student.id.to_s], body: "hello", display_from: "Impersonated User" }
+          expect(response).to have_http_status :bad_request
+          expect(response.parsed_body.first["attribute"]).to eq("display_from")
+        end
+      end
+
+      context "when the user is an admin on a non-site-admin account" do
+        before do
+          user_session(account_admin_user(account: Account.default))
         end
 
         it "rejects display_from with a 400" do

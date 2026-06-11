@@ -413,7 +413,7 @@ class ConversationsController < ApplicationController
     return render_error("recipients", "blank") if params[:recipients].blank?
     return render_error("recipients", "invalid") if @recipients.blank?
     return render_error("body", "blank") if params[:body].blank?
-    return render_error("display_from", "only available for site admin service users") if params[:display_from].present? && !@access_token&.site_admin?
+    return render_error("display_from", "only available for site admin service users") if params[:display_from].present? && !Account.site_admin.grants_right?(current_principal, session, :send_messages)
 
     context_type = nil
     context_id = nil
