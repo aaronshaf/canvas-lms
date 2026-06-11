@@ -18,6 +18,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# oak_visible_on_hook delegates region gating to FeatureFlags::RegionalPredicate,
+# which lives in instructure_misc_plugin. Reuse that plugin's shared context so
+# the regional flag is stubbed the same way project_lhotse's hook spec does.
+require_relative "../../../gems/plugins/instructure_misc_plugin/spec_canvas/support/regional_feature_flags"
+
 describe FeatureFlags::Hooks do
   describe "only_admins_can_enable_block_content_editor_during_eap" do
     let(:transitions) { {} }
@@ -576,13 +581,11 @@ describe FeatureFlags::Hooks do
 
   describe "oak_visible_on_hook" do
     let(:context) { account_model }
-    let(:database_server) { instance_double(DatabaseServer, config: { region: "us-east-1" }) }
-    let(:oak_predicate) { instance_double(FeatureFlags::OakPredicate) }
+    let(:regional_predicate) { instance_double(FeatureFlags::RegionalPredicate) }
 
     before do
-      allow(context.shard).to receive(:database_server).and_return(database_server)
-      allow(FeatureFlags::OakPredicate).to receive(:new).and_return(oak_predicate)
-      allow(oak_predicate).to receive(:call)
+      allow(FeatureFlags::RegionalPredicate).to receive(:new).and_return(regional_predicate)
+      allow(regional_predicate).to receive(:call)
     end
 
     context "when tier_2_visible_on_hook returns false" do
@@ -590,8 +593,8 @@ describe FeatureFlags::Hooks do
         allow(FeatureFlags::Hooks).to receive(:tier_2_visible_on_hook).and_return(false)
       end
 
-      it "returns false without calling OakPredicate" do
-        expect(FeatureFlags::OakPredicate).not_to receive(:new)
+      it "returns false without calling RegionalPredicate" do
+        expect(FeatureFlags::RegionalPredicate).not_to receive(:new)
         expect(FeatureFlags::Hooks.oak_visible_on_hook(context)).to be false
       end
     end
@@ -599,19 +602,64 @@ describe FeatureFlags::Hooks do
     context "when tier_2_visible_on_hook returns true" do
       before do
         allow(FeatureFlags::Hooks).to receive(:tier_2_visible_on_hook).and_return(true)
+        allow(Rails.env).to receive(:local?).and_return(false)
       end
 
-      it "creates a new OakPredicate with context and region" do
-        expect(FeatureFlags::OakPredicate).to receive(:new).with(context, "us-east-1")
+      context "in a local development environment" do
+        before do
+          allow(Rails.env).to receive(:local?).and_return(true)
+        end
+
+        it "returns true without calling RegionalPredicate" do
+          expect(FeatureFlags::RegionalPredicate).not_to receive(:new)
+          expect(FeatureFlags::Hooks.oak_visible_on_hook(context)).to be true
+        end
+      end
+
+      it "creates a new RegionalPredicate for the oak_for_admins feature" do
+        expect(FeatureFlags::RegionalPredicate).to receive(:new).with(:oak_for_admins)
 
         FeatureFlags::Hooks.oak_visible_on_hook(context)
       end
 
-      it "calls .call on the OakPredicate instance" do
-        expect(oak_predicate).to receive(:call)
+      it "calls .call on the RegionalPredicate instance" do
+        expect(regional_predicate).to receive(:call)
 
         FeatureFlags::Hooks.oak_visible_on_hook(context)
       end
+    end
+  end
+
+  describe "oak_visible_on_hook with a real RegionalPredicate" do
+    # Exercises the region-driven branch end-to-end through the real
+    # FeatureFlags::RegionalPredicate, mocking the per-region Consul value
+    # the way it would be set in beta/prod. This is the only way to reach
+    # the predicate, since oak_visible_on_hook short-circuits to true
+    # whenever Rails.env.local? (development or test).
+    include_context "regional feature flags"
+
+    let(:context) { account_model }
+
+    before do
+      allow(FeatureFlags::Hooks).to receive(:tier_2_visible_on_hook).and_return(true)
+      allow(Rails.env).to receive(:local?).and_return(false)
+    end
+
+    it "is visible when oak_for_admins is enabled for the region" do
+      set_regional_flag(:oak_for_admins, true)
+      expect(FeatureFlags::Hooks.oak_visible_on_hook(context)).to be true
+    end
+
+    it "is hidden when oak_for_admins is disabled for the region" do
+      set_regional_flag(:oak_for_admins, false)
+      expect(FeatureFlags::Hooks.oak_visible_on_hook(context)).to be false
+    end
+
+    it "is hidden when the region has no oak_for_admins entry" do
+      DynamicSettings.fallback_data = {
+        "private" => { "canvas" => { "regional_feature_flags.yml" => {}.to_yaml } }
+      }
+      expect(FeatureFlags::Hooks.oak_visible_on_hook(context)).to be false
     end
   end
 

@@ -212,8 +212,9 @@ module FeatureFlags
 
     def self.oak_visible_on_hook(context)
       return false unless tier_2_visible_on_hook(context)
+      return true if Rails.env.local?
 
-      OakPredicate.new(context, Shard.current.database_server.config[:region]).call
+      RegionalPredicate.new(:oak_for_admins).call
     end
 
     def self.oak_for_users_visible_on_hook(context)
