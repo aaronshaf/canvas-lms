@@ -20,29 +20,7 @@
 require "spec_helper"
 
 describe "Rollcall Attendance Grading" do
-  def create_rollcall_tool(course)
-    course.context_external_tools.create!(
-      name: "Attendance",
-      consumer_key: "rollcall_key",
-      shared_secret: "rollcall_secret",
-      url: "https://rollcall.example.com/launch",
-      domain: "rollcall.example.com"
-    )
-  end
-
-  def create_attendance_assignment(course, tool)
-    course.assignments.create!(
-      title: "Roll Call Attendance",
-      grading_type: "percent",
-      points_possible: 100,
-      submission_types: "external_tool",
-      external_tool_tag_attributes: {
-        url: tool.url,
-        content_type: "ContextExternalTool",
-        content_id: tool.id
-      }
-    )
-  end
+  include RollcallPassbackHelpers
 
   it "Rollcall creates a Roll Call Attendance assignment in the Canvas gradebook", guid: "9c4b3e17" do
     # Arrange

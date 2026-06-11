@@ -83,27 +83,20 @@ And the submission is not posted
 And the student cannot view the attendance score on the Grades page
 ```
 
-**Scenario RC-1.6 — Subsequent Rollcall passback does not overwrite a teacher's manual attendance grade**
-- **GUID:** `8b3d5f01`
-- **Reason:** Teachers cannot grant attendance exceptions if a later Rollcall grade passback silently overwrites a grade the teacher has already set manually in Canvas.
-```
-Given a course with the Roll Call Attendance assignment worth 100 points
-And a student has an attendance grade of 70 set by a previous Rollcall passback
-And the teacher has manually set the student's attendance submission grade to 90 in Canvas
-When the teacher records a new attendance session and Rollcall sends a grade passback for the student
-Then the student's Canvas submission score remains 90
-And the gradebook displays the teacher's manually entered score
-```
+**Scenario RC-1.6 — _removed_ (Rollcall passback does not overwrite a teacher's manual attendance grade)**
+- **Status:** Removed — not request-testable at the Canvas boundary, and redundant with RC-1.3.
+- **Reason for removal:** Rollcall posts grades through the Canvas REST submissions API using the teacher's own bearer token (rollcall-attendance `attendance_assignment.rb`), so a Rollcall passback and a teacher's manual grade are indistinguishable at the Canvas boundary — both arrive with the teacher's positive `grader_id`. The submissions API does not set `dont_overwrite_grade` on this path, so the passback overwrites the prior grade exactly as **RC-1.3** already covers. There is no observable protection to assert, so this scenario was dropped rather than implemented.
 
-**Scenario RC-1.7 — Rollcall grade passback for an excused submission does not remove the excused status**
+**Scenario RC-1.7 — Rollcall grade passback clears a teacher's excused status on an attendance submission**
 - **GUID:** `2e9a7d46`
-- **Reason:** Students who are legitimately exempt from attendance grading have their exemption silently reversed if a Rollcall passback can overwrite an excused submission.
+- **Reason:** A student legitimately exempt from attendance grading is silently un-excused — and the attendance score begins counting toward their course grade — because Canvas applies a Rollcall passback to an excused submission with no protection.
+- **Note:** This is a **negative control** pinning the actual (unprotected) Canvas-boundary behavior, not a protection guarantee. `grade_student` clears the flag whenever a score is applied (`submission.excused = opts[:excused] && score.blank?`), and Rollcall posts unconditionally with no excused guard, so a re-take session overwrites the exemption. The test exists as a regression anchor: if Canvas later preserves excused across an LTI passback, this scenario must be updated.
 ```
-Given a course with the Roll Call Attendance assignment
+Given a course with the Roll Call Attendance assignment counting toward the final grade
 And a student's attendance submission has been marked as excused in Canvas
 When the teacher records a new attendance session and Rollcall sends a grade passback for the student
-Then the student's submission remains excused
-And the attendance score is excluded from the student's final grade calculation
+Then the student's submission is no longer excused
+And the attendance score is applied and counts toward the student's course grade
 ```
 
 **Scenario RC-1.8 — Rollcall auto-creates a new attendance assignment after the original is deleted**
