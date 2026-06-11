@@ -58,6 +58,10 @@ module Canvas
             pseudonym_or_user.instance_variable_get(:@doubled_module).send(:object) == User)
           @pseudonym = nil
           super
+
+          if pseudonym_or_user.is_a?(User) && !pseudonym_or_user.instance_variable_defined?(:@principal)
+            pseudonym_or_user.instance_variable_set(:@principal, self)
+          end
         else
           raise ArgumentError, "Expected a Pseudonym or User, got #{pseudonym_or_user.class}"
         end

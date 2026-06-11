@@ -135,17 +135,23 @@ module AdheresToPolicy
             user.is_a?(RSpec::Mocks::InstanceVerifyingDouble) &&
             user.instance_variable_get(:@doubled_module).send(:object) == ::User))
           AdheresToPolicy::Canvas.deprecation_check(:user_as_principal_lenient, actual: ::User, expected: Principal)
-          # Uses RequestCache to avoid re-creating UserPrincipal objects for the same user repeatedly within a single
-          # request, which is a common case when transitioning because permission checks are still passing only a user.
-          user = RequestCache.cache(user) do
-            # If the request already has a Principal for this user (e.g. a MasqueradingPrincipal),
-            # reuse it so masquerade restrictions etc. apply.
-            current = ::Canvas::AdheresToPolicy::Current.principal
-            next current if current && current.user.equal?(user)
-
-            # Avoid User#principal, since it's fairly likely that `user` will be a double
-            ::Canvas::AdheresToPolicy::UserPrincipal.new(user)
-          end
+          # If the request already has a Principal for this user (e.g. a MasqueradingPrincipal),
+          # reuse it so masquerade restrictions etc. apply.
+          current = ::Canvas::AdheresToPolicy::Current.principal
+          user = if current && current.user.equal?(user)
+                   current
+                 else
+                   # Uses RequestCache to avoid re-creating UserPrincipal objects for the same user repeatedly within a single
+                   # request, which is a common case when transitioning because permission checks are still passing only a user.
+                   RequestCache.cache(user) do
+                     if user.is_a?(User)
+                       user.principal
+                     else
+                       # it's likely a double, so we can't call User#principal
+                       ::Canvas::AdheresToPolicy::UserPrincipal.new(user)
+                     end
+                   end
+                 end
         end
         super
       end
