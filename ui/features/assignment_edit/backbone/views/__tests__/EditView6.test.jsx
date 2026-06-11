@@ -446,6 +446,45 @@ describe('EditView#handleMessageEvent', () => {
 
       expect(view.assignment.has('ab_guid')).toBe(false)
     })
+
+    const appendIframe = (origin, source) => {
+      const iframe = document.createElement('iframe')
+      iframe.setAttribute('src', `${origin}/courses/1/external_tools/9?display=borderless`)
+      Object.defineProperty(iframe, 'contentWindow', {value: source, configurable: true})
+      document.body.appendChild(iframe)
+      return iframe
+    }
+
+    it('sets ab_guid when the cross-origin sender lives in a same-origin Canvas iframe', () => {
+      const toolWindow = {}
+      const iframe = appendIframe(window.location.origin, toolWindow)
+
+      try {
+        view.handleMessageEvent(
+          abGuidEvent({origin: 'https://mastery.example.com', source: toolWindow}),
+        )
+        expect(view.assignment.get('ab_guid')).toEqual([
+          '1E20776E-7053-11DF-8EBF-BE719DFF4B22',
+          '1e20776e-7053-11df-8eBf-Be719dff4b22',
+        ])
+      } finally {
+        iframe.remove()
+      }
+    })
+
+    it('ignores set_ab_guid from an iframe whose src is cross-origin', () => {
+      const toolWindow = {}
+      const iframe = appendIframe('https://evil.example', toolWindow)
+
+      try {
+        view.handleMessageEvent(
+          abGuidEvent({origin: 'https://mastery.example.com', source: toolWindow}),
+        )
+        expect(view.assignment.has('ab_guid')).toBe(false)
+      } finally {
+        iframe.remove()
+      }
+    })
   })
 
   it('processes LtiDeepLinkingResponse messages', () => {
@@ -586,6 +625,29 @@ describe('handleAbGuidMessage (exported helper)', () => {
       buildEvent({data: {subject: 'assignment.set_ab_guid', data: ['not-a-uuid']}}),
       {trustedOrigin, validateGuidData, setAbGuid},
     )
+    expect(setAbGuid).not.toHaveBeenCalled()
+  })
+
+  it('invokes setAbGuid for a cross-origin sender that is in a Canvas frame', () => {
+    const setAbGuid = vi.fn()
+    const toolWindow = {}
+    handleAbGuidMessage(buildEvent({origin: 'https://mastery.example.com', source: toolWindow}), {
+      trustedOrigin,
+      validateGuidData,
+      setAbGuid,
+      isFromCanvasFrame: src => src === toolWindow,
+    })
+    expect(setAbGuid).toHaveBeenCalledWith([validUuid])
+  })
+
+  it('does not invoke setAbGuid for a cross-origin sender that is not in a Canvas frame', () => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(buildEvent({origin: 'https://evil.example.com', source: {}}), {
+      trustedOrigin,
+      validateGuidData,
+      setAbGuid,
+      isFromCanvasFrame: () => false,
+    })
     expect(setAbGuid).not.toHaveBeenCalled()
   })
 })

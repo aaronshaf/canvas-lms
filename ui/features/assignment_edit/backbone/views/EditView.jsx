@@ -1226,8 +1226,12 @@ EditView.prototype.validateGuidData = function (event) {
 }
 
 // Exported for unit testing without rendering the heavyweight Backbone EditView.
-export const handleAbGuidMessage = function (event, {trustedOrigin, validateGuidData, setAbGuid}) {
-  if (!trustedOrigin || event.origin !== trustedOrigin) {
+export const handleAbGuidMessage = function (
+  event,
+  {trustedOrigin, validateGuidData, setAbGuid, isFromCanvasFrame},
+) {
+  const fromTrustedOrigin = !!trustedOrigin && event.origin === trustedOrigin
+  if (!fromTrustedOrigin && !isFromCanvasFrame?.(event.source)) {
     return
   }
   if (event?.data?.subject !== 'assignment.set_ab_guid') {
@@ -1239,11 +1243,25 @@ export const handleAbGuidMessage = function (event, {trustedOrigin, validateGuid
   }
 }
 
+const isFromCanvasFrame = function (source) {
+  if (!source) return false
+  const iframe = Array.from(document.querySelectorAll('iframe')).find(
+    f => f.contentWindow === source,
+  )
+  if (!iframe) return false
+  try {
+    return new URL(iframe.src, window.location.href).origin === window.location.origin
+  } catch (_e) {
+    return false
+  }
+}
+
 EditView.prototype.handleMessageEvent = function (event) {
   handleAbGuidMessage(event, {
     trustedOrigin: ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN,
     validateGuidData: this.validateGuidData.bind(this),
     setAbGuid: abGuid => this.assignment.set('ab_guid', abGuid),
+    isFromCanvasFrame,
   })
 }
 
