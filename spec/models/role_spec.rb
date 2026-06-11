@@ -364,4 +364,36 @@ describe Role do
       expect(RoleOverride).to have_received(:enrollment_type_labels).with(@account)
     end
   end
+
+  describe ".get_role_by_id" do
+    before :once do
+      @role = Account.default.roles.create!(name: "Cached Role", base_role_type: "StudentEnrollment")
+    end
+
+    it "looks the role up only once per request for a repeated id" do
+      RequestCache.enable do
+        Role.get_role_by_id(@role.id)
+        expect { Role.get_role_by_id(@role.id) }.not_to make_database_queries
+      end
+    end
+
+    context "across shards" do
+      specs_require_sharding
+
+      it "does not return a same-local-id role from another shard within one request" do
+        local_id = @role.local_id
+        RequestCache.enable do
+          # prime the cache for @role using its local id on its own shard
+          expect(Role.get_role_by_id(local_id)).to eq @role
+          # The cache persists across shard switches and callers (e.g.
+          # Role::AssociationHelper#role) pass a local id from inside shard.activate.
+          # Keying on the global id keeps the same local-id value on another shard in a
+          # separate slot, so it must not collide with @role from the first shard.
+          @shard1.activate do
+            expect(Role.get_role_by_id(local_id)).not_to eq @role
+          end
+        end
+      end
+    end
+  end
 end

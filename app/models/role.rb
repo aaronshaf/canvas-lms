@@ -148,7 +148,14 @@ class Role < ApplicationRecord
     return nil unless id
     return nil if id.is_a?(String) && id !~ Api::ID_REGEX
 
-    Role.find_by(id:) # giving up on built-in role caching because it's silly now and we should just preload more
+    # de-dupe repeated lookups of the same role within a single request (e.g. many
+    # enrollments sharing a role on users/show); preload :role where you can instead.
+    # Key on the GLOBAL id: callers (e.g. AssociationHelper#role) pass a local id from
+    # inside shard.activate, and RequestCache persists across shard switches, so a bare
+    # local id would collide between same-id roles on different shards.
+    RequestCache.cache("role_by_id", Shard.global_id_for(id)) do
+      Role.find_by(id:)
+    end
   end
 
   def self.get_built_in_role(name, root_account_id:)

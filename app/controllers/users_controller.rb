@@ -1391,7 +1391,7 @@ class UsersController < ApplicationController
                           .shard(@user)
                           .where("enrollments.workflow_state<>'deleted' AND courses.workflow_state<>'deleted'")
                           .eager_load(:course)
-                          .preload(:associated_user, :course_section, :enrollment_state, course: { enrollment_term: :enrollment_dates_overrides }).to_a
+                          .preload(:associated_user, :role, :course_section, :enrollment_state, course: { enrollment_term: :enrollment_dates_overrides }).to_a
 
       # restrict course enrollments view for other users
       if @user != @current_user

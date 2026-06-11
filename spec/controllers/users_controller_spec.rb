@@ -2465,6 +2465,58 @@ describe UsersController do
   end
 
   describe "GET 'show'" do
+    context "role query batching" do
+      render_views
+
+      def count_role_queries_for_show(enrollment_count)
+        course_with_teacher(active_all: 1)
+        (enrollment_count - 1).times { course_with_teacher(active_all: 1, user: @teacher) }
+        account_admin_user
+        user_session(@admin)
+
+        count = 0
+        subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+          count += 1 if /FROM (?:"\w+"\.)?"roles"/i.match?(payload[:sql])
+        end
+        begin
+          get "show", params: { id: @teacher.id }
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscription)
+        end
+        expect(response).to be_successful
+        count
+      end
+
+      it "does not issue roles queries that scale with enrollment count" do
+        few = count_role_queries_for_show(2)
+        many = count_role_queries_for_show(8)
+        # All enrollments share a role. Loading 4x the enrollments must not add any
+        # roles query (the N+1 guard). The absolute count is a small fixed cost from
+        # page-level role lookups (built-in roles, the admin's own role) that does not
+        # grow with enrollment count, so we assert zero growth rather than a magic number.
+        expect(many).to eq(few)
+      end
+
+      it "renders the correct distinct role name for each enrollment" do
+        course_with_teacher(active_all: 1)
+        custom_ta = @course.account.roles.create!(name: "Custom TA", base_role_type: "TaEnrollment")
+        custom_designer = @course.account.roles.create!(name: "Custom Designer", base_role_type: "DesignerEnrollment")
+        other = course_factory(active_all: true, account: @course.account)
+        other.enroll_user(@teacher, "TaEnrollment", role: custom_ta, enrollment_state: "active")
+        another = course_factory(active_all: true, account: @course.account)
+        another.enroll_user(@teacher, "DesignerEnrollment", role: custom_designer, enrollment_state: "active")
+
+        account_admin_user
+        user_session(@admin)
+        get "show", params: { id: @teacher.id }
+
+        expect(response).to be_successful
+        # the preloaded :role association must still resolve each enrollment's own role
+        expect(response.body).to include("Custom TA")
+        expect(response.body).to include("Custom Designer")
+      end
+    end
+
     context "sharding" do
       specs_require_sharding
 
