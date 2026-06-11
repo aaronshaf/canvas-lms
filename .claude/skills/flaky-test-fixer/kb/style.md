@@ -626,4 +626,94 @@ requires an explicit enabled-check before the click.
 
 ---
 
-<!-- Add new rules below as S-16, S-17, … -->
+## S-16 — When a test already has a fix tag, look up the prior fix before diagnosing
+
+**Rule:** Before classifying a new failure on a test that already carries a
+`# flaky-fix:` tag, retrieve the prior fix from git and classify it as one of
+three outcomes: **A. Unrelated**, **B. Partial**, or **C. Unsuccessful**. Each
+outcome has a distinct response. Record the relationship in the JIRA comment
+and update the KB if the prior fix was in error or incomplete.
+
+**Why:** The prior fix is evidence — it tells you what was tried, what was
+understood at the time, and whether the understanding was correct. Ignoring it
+risks duplicating work, leaving bad code in place, or mis-diagnosing the
+current failure as novel when it is actually the same pattern one position
+earlier. The outcome also guides the fallback plan if the new fix proves
+insufficient.
+
+**How to retrieve the prior fix:**
+
+```bash
+git log --all --oneline | grep <JIRA>   # find the commit(s)
+git show <sha> -- <spec_file>           # read the exact diff
+```
+
+**Outcome A — Unrelated (different root cause):**
+
+The prior fix addressed a genuinely different problem in the same test.
+The current failure is a new, independent issue.
+
+- Apply the new fix normally.
+- Note in the JIRA comment that the prior fix addressed something else, so
+  reviewers understand why the tag already existed.
+- No KB update needed for the prior fix.
+
+**Outcome B — Partial (same root cause, incompletely resolved):**
+
+The prior fix correctly identified the root cause but addressed only one
+instance of it. The same pattern exists at another position in the test and
+is now the failure point ("whack-a-mole").
+
+- Scan the **entire test** for all remaining unguarded instances of the same
+  pattern and fix them all in this pass — do not leave any for a future ticket.
+- Note the sequential relationship in the JIRA comment (which fix covered what,
+  and why both are now needed).
+- Update the relevant KB case with a whack-a-mole warning so future engineers
+  guard all instances in a single pass.
+- Keep the prior fix tag; append the new JIRA to the comma-separated list
+  (`# flaky-fix: QE-141, QE-155`).
+
+**Outcome C — Unsuccessful (prior fix did not help or made it worse):**
+
+The test continued to appear in the flaky leaderboard at the same rate after
+the prior fix, or the prior fix introduced a new failure mode.
+
+- **Undo the prior change** in the same commit that applies the new fix.
+  Do not leave code that is known to be ineffective.
+- Capture why the prior fix was insufficient in the JIRA comment: what the
+  prior engineer observed, why the fix looked correct at the time, and what
+  the actual root cause turned out to be.
+- **Update the KB case** (or create a new one) to record: (1) the unsuccessful
+  approach and why it fails, (2) the correct fix. This prevents others from
+  repeating the same wrong fix.
+- Replace the tag with the new JIRA only (the old tag pointed to an undone
+  fix and is no longer meaningful as a pointer).
+
+**Example of Outcome B (QE-141 → QE-155):**
+
+The test `"edits the event in calendar"` calls `event_title_on_calendar.click`
+twice, once per page navigation:
+
+```ruby
+get "/calendar2"
+# ← no wait here — QE-155 fixed this (Outcome B)
+event_title_on_calendar.click   # call #1
+
+# …edit…
+
+refresh_page
+wait_for_ajaximations   # ← QE-141 added this (correct, but incomplete)
+event_title_on_calendar.click   # call #2
+```
+
+QE-141 correctly identified the deferred-AJAX pattern but fixed only call #2
+(the one the failure backtrace named). After that fix, call #1 became the new
+failure point and the test re-entered the leaderboard. QE-155 is an Outcome B
+fix: same root cause, different position. Had QE-141 scanned the full test and
+applied this rule, both calls would have been guarded in one pass.
+
+*Introduced: QE-155*
+
+---
+
+<!-- Add new rules below as S-17, S-18, … -->

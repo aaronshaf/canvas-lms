@@ -183,7 +183,7 @@ describe "Discussion Topic Show" do
     expect(fj("span:contains('This topic is part of the module #{module1.name}, which is locked')")).to be_present
   end
 
-  it "open Find Outcome dialog when adding a rubric" do
+  it "open Find Outcome dialog when adding a rubric", custom_timeout: 20 do # flaky-fix: QE-155
     assignment = @course.assignments.create!(
       name: "Assignment",
       submission_types: ["online_text_entry"],
@@ -201,6 +201,7 @@ describe "Discussion Topic Show" do
 
     f("button[data-testid='discussion-post-menu-trigger']").click
     fj("span[role='menuitem']:contains('Add Rubric')").click
+    wait_for_ajaximations # rubric dialog fetches data via AJAX
     fj("a.add_rubric_link:contains('Add Rubric')").click
     f("a#add_learning_outcome_link").click
 

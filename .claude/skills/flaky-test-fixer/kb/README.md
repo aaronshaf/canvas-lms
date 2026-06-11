@@ -48,6 +48,8 @@ Use this table to jump to the right case from the error signature.
 | InstUI portal never mounts (`findByRole` timeout) | rAF starvation | 09 |
 | Mixed `fireEvent`/`userEvent` on `CanvasAsyncSelect` | Focus/blur race | 10 |
 | Unguarded ref + `isLoading` in observer effect deps | React stuck ref | 11 |
+| "expected X but nothing was raised", sibling tests stub the method | Same-file stub leak | 12E |
+| `waitFor` timeout, button disabled when `fireEvent.click` fired | Disabled-button click race | 13 |
 
 ## Case File Naming
 

@@ -65,39 +65,38 @@ For each test (or group):
    `kb/style.md`). Open it in the browser so the user can copy-paste
    into JIRA.
 
-After each test, ask: *"Ready for the next test, or should we push to
-CI first?"*
+After each test, ask: *"Ready for the next test, or should we move to
+review and push?"*
 
 ### Phase 3 — Verify
 
 When the user says to push (or after all tests are done):
 
-1. `git add` the changed files, `git commit --amend --no-edit` (same
-   Change-Id per S-05 in `kb/style.md`). Then suggest the user push:
-   *"Ready to push. Run `git push origin HEAD:refs/for/master` when
-   you're ready."* Do not push autonomously.
-2. Use AskUserQuestion: *"Paste the CI run report MHTML when the build
+1. **Pause for review before touching git.** Present a summary of every
+   file changed and the nature of each change. Use AskUserQuestion:
+   *"Please review the changes above. Any corrections before I commit?"*
+   Wait for explicit approval. Do not stage or commit until the user
+   confirms.
+2. Once approved: `git add` the changed files,
+   `git commit --amend --no-edit` (same Change-Id per S-05 in
+   `kb/style.md`). Then tell the user:
+   *"Committed. Run `git push origin HEAD:refs/for/master` when ready."*
+   Do not push autonomously.
+3. Use AskUserQuestion: *"Paste the CI run report MHTML when the build
    completes."* (The user downloads the Jenkins build summary page as
    MHTML and provides it as a file path.)
-3. Check the report for failures in any fixed test. If found:
+4. Check the report for failures in any fixed test. If found:
    - Read the failure MHTML, diagnose, adjust the fix, re-commit.
-4. If clean: note which CI run passed. Need 2 consecutive clean runs
+5. If clean: note which CI run passed. Need 2 consecutive clean runs
    per process step 5a in `kb/process.md`.
 
 ### Phase 4 — Close out
 
-After 2 clean CI runs:
-
-1. Review each fix against the knowledge base (KB) per process step 5b
-   in `kb/process.md`:
-   - Already represented → no change
-   - Needs update → amend the existing case
-   - New pattern → create a new `case_NN.md`
-2. Update `style.md` if new conventions emerged.
-3. Amend the commit message to cover all fixes in the batch.
-4. Push the final PS.
-5. Summarise the batch: tests fixed, patterns used, KB changes, tests
-   skipped and why.
+After 2 clean CI runs, execute steps 5a–5d in `kb/process.md`:
+update KB cases, verify the lookup tables in `README.md` and
+`SKILL.md`, amend the commit message to cover all fixes, push the
+final PS, and summarise the batch (tests fixed, patterns used, KB
+changes, tests skipped and why).
 
 ## Classification
 
@@ -118,6 +117,10 @@ case file for the full diagnostic procedure and fix pattern.
 | Error in `prepend_before`/`after`, wrong screenshot | Browser state leak | `kb/case_07.md` |
 | Data contract violation in pipeline output | Pipeline substitution | `kb/case_01.md` |
 | InstUI portal never mounts (`findByRole` timeout) | rAF starvation | `kb/case_09.md` |
+| Mixed `fireEvent`/`userEvent` on `CanvasAsyncSelect` | Focus/blur race | `kb/case_10.md` |
+| Unguarded ref + `isLoading` in observer effect deps | React stuck ref | `kb/case_11.md` |
+| "expected X but nothing was raised", sibling tests stub the method | Same-file stub leak | `kb/case_12.md` Pattern E |
+| `waitFor` timeout, button disabled when `fireEvent.click` fired | Disabled-button click race | `kb/case_13.md` |
 
 If no signature matches, investigate from first principles using the
 failure report MHTMLs and spec file. After fixing, decide whether to

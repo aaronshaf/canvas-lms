@@ -122,10 +122,33 @@ fix is the same: add `wait_for_ajaximations` before the `ff()` call.
 This also applies after toggling calendar checkboxes, which trigger
 FullCalendar to re-fetch events.
 
-### Files affected (QE-141, QE-147)
+**Whack-a-mole trap (QE-155):** When a test contains multiple page
+navigations (`get` + `refresh_page`), each navigation that precedes a
+FullCalendar element lookup needs its own `wait_for_ajaximations` guard.
+A failure backtrace points at only one call site — the first one to race.
+Fixing only that call masks it and shifts the flaky failure to the next
+unguarded navigation in the same test. The correct procedure is to scan
+the **entire test** for all page navigations and guard each one, not just
+the one in the backtrace.
+
+Example (two-navigation test, QE-141 fixed call #2, QE-155 fixed call #1):
+```ruby
+get "/calendar2"
+wait_for_ajaximations   # ← QE-155: guards call #1 below
+event_title_on_calendar.click   # call #1
+
+# …edit the event…
+
+refresh_page
+wait_for_ajaximations   # ← QE-141: guards call #2 below
+event_title_on_calendar.click   # call #2
+```
+
+### Files affected (QE-141, QE-147, QE-155)
 
 - `spec/selenium/calendar/calendar2_event_create_spec.rb:377` and `:683`
 - `spec/selenium/calendar/calendar2_event_create_spec.rb:645` (QE-147)
+- `spec/selenium/calendar/calendar2_event_create_spec.rb:687` (QE-155) — identical pattern to :377/:683 but in the `edit to-do event` context; missed in prior passes
 
 ---
 

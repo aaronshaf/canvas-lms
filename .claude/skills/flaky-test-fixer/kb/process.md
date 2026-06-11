@@ -133,6 +133,21 @@ Update `style.md` if new conventions emerged during the batch.
 
 Push KB changes to the same PS.
 
-### 5c. Submit for review
+### 5c. Verify lookup tables
+
+Cross-check the classification tables in `SKILL.md` and the failure-mechanism
+lookup in `kb/README.md` against the active case files (`kb/case_*.md`):
+
+1. List all active case files and their patterns/sub-patterns.
+2. Verify every case and sub-pattern has a row in **both** tables.
+3. Verify every row references a case file that exists (not archived or
+   renamed during a rebase).
+4. Add missing entries; remove stale ones.
+
+These tables are the primary entry point for classification. A missing row
+means the skill falls back to first-principles investigation for a pattern
+that already has a documented fix — wasting time and risking a worse result.
+
+### 5d. Submit for review
 
 The PS is ready for code review and merge. Standard team review process.

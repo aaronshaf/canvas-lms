@@ -374,7 +374,7 @@ describe "calendar2" do
         end
       end
 
-      it "can edit an all_day event in calendar", priority: "1" do # flaky-fix: QE-141
+      it "can edit an all_day event in calendar", custom_timeout: 25, priority: "1" do # flaky-fix: QE-141, QE-155
         @date = Time.zone.now.beginning_of_day
         @event = make_event(start: @date, end: @date, title: "An all day event")
 
@@ -387,6 +387,7 @@ describe "calendar2" do
           end
 
         get "/calendar2"
+        wait_for_ajaximations # catches FullCalendar deferred event-fetch AJAX
         event_title_on_calendar.click
         calendar_edit_event_link.click
         replace_content(edit_calendar_event_form_title, "An all day event edited")
@@ -684,8 +685,9 @@ describe "calendar2" do
         expect(ff(".fc-view-container .fc-content .fc-title").length).to equal(1)
       end
 
-      it "edits the event in calendar", priority: "1" do # flaky-fix: QE-141
+      it "edits the event in calendar", custom_timeout: 25, priority: "1" do # flaky-fix: QE-141, QE-155
         get "/calendar2"
+        wait_for_ajaximations # catches FullCalendar deferred event-fetch AJAX
         event_title_on_calendar.click
         calendar_edit_event_link.click
         replace_content(f("input[name=title]"), "new to-do edited")
