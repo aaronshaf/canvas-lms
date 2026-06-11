@@ -141,7 +141,7 @@ module AdheresToPolicy
             # If the request already has a Principal for this user (e.g. a MasqueradingPrincipal),
             # reuse it so masquerade restrictions etc. apply.
             current = ::Canvas::AdheresToPolicy::Current.principal
-            next current if current && current.user == user
+            next current if current && current.user.equal?(user)
 
             ::Canvas::AdheresToPolicy::UserPrincipal.new(user)
           end
