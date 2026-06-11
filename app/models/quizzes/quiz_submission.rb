@@ -240,10 +240,10 @@ class Quizzes::QuizSubmission < ApplicationRecord
     Utf8Cleaner.recursively_strip_invalid_utf8!(submission_data, force_utf8: true)
   end
 
-  def results_visible?(user: nil)
+  def results_visible?(principal: nil)
     return true unless quiz.present?
-    return true if quiz.grants_right?(user, :review_grades)
-    return false if quiz.restrict_answers_for_concluded_course?(user:)
+    return true if quiz.grants_right?(principal, :review_grades)
+    return false if quiz.restrict_answers_for_concluded_course?(principal:)
     return false if quiz.one_time_results && has_seen_results?
     return false if quiz.hide_results == "always"
 

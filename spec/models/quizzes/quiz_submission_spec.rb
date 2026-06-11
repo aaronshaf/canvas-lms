@@ -1189,7 +1189,7 @@ describe Quizzes::QuizSubmission do
           it { is_expected.to be(false) }
 
           context "is a user who can review grades" do
-            subject { quiz_submission.results_visible?(user: @teacher) }
+            subject { quiz_submission.results_visible?(principal: @teacher.principal) }
 
             before do
               course_with_teacher(course: @course, active_all: true)

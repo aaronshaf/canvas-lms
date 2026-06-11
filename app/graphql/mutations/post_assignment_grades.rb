@@ -55,7 +55,7 @@ class Mutations::PostAssignmentGrades < Mutations::BaseMutation
       raise GraphQL::ExecutionError, I18n.t("{a} and {b} cannot be used together", a: "only_student_ids", b: "skip_student_ids")
     end
 
-    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_user, sections)
+    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_principal, sections)
     visible_enrollments = visible_enrollments.where(user_id: input[:only_student_ids]) if input[:only_student_ids]
     visible_enrollments = visible_enrollments.where.not(user_id: input[:skip_student_ids]) if input[:skip_student_ids]
 

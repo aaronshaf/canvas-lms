@@ -557,7 +557,7 @@ class MessageableUser
       return unless discussion_or_id
 
       discussion = discussion_or_id.is_a?(DiscussionTopic) ? discussion_or_id : DiscussionTopic.where(id: discussion_or_id).first
-      context = discussion.address_book_context_for(principal.user)
+      context = discussion.address_book_context_for(principal)
 
       scope = case context
               when Course
@@ -1018,7 +1018,7 @@ class MessageableUser
     def course_visibility(course)
       @course_visibilities ||= {}
       @course_visibilities[course.global_id] ||=
-        course.enrollment_visibility_level_for(principal.user, require_message_permission: true)
+        course.enrollment_visibility_level_for(principal, require_message_permission: true)
     end
 
     def all_courses_by_visibility(visibility)

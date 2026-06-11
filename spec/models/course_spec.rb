@@ -1794,25 +1794,25 @@ describe Course do
     end
 
     it "filters users by section_ids" do
-      visible_users = @course.users_visible_to(@teacher, section_ids: [@section1.id, @section2.id])
+      visible_users = @course.users_visible_to(@teacher.principal, section_ids: [@section1.id, @section2.id])
       expect(visible_users.pluck(:id)).to include(@student1.id, @student2.id)
       expect(visible_users.pluck(:id)).not_to include(@student3.id)
     end
 
     it "returns all users when no section_ids are provided" do
-      visible_users = @course.users_visible_to(@teacher)
+      visible_users = @course.users_visible_to(@teacher.principal)
       expect(visible_users.pluck(:id)).to include(@student1.id, @student2.id, @student3.id)
     end
 
     it "returns empty when filtering by non-existent section" do
-      visible_users = @course.users_visible_to(@teacher, section_ids: [99_999])
+      visible_users = @course.users_visible_to(@teacher.principal, section_ids: [99_999])
       expect(visible_users.count).to eq(0)
     end
 
     it "handles section filtering with enrollment state filtering" do
       @course.enrollments.where(user_id: @student2.id).first.conclude
       visible_users = @course.users_visible_to(
-        @teacher,
+        @teacher.principal,
         section_ids: [@section1.id, @section2.id],
         exclude_enrollment_state: "completed"
       )
@@ -1847,7 +1847,7 @@ describe Course do
       recipient = user_factory(active_all: true)
       create_temp_enrollment(recipient, start_at: 1.day.from_now, end_at: 1.week.from_now)
 
-      visible_ids = @course.users_visible_to(@provider).pluck(:id)
+      visible_ids = @course.users_visible_to(@provider.principal).pluck(:id)
       expect(visible_ids).to include(recipient.id)
     end
 
@@ -1855,7 +1855,7 @@ describe Course do
       recipient = user_factory(active_all: true)
       create_temp_enrollment(recipient, start_at: 1.day.ago, end_at: 1.week.from_now)
 
-      visible_ids = @course.users_visible_to(@provider).pluck(:id)
+      visible_ids = @course.users_visible_to(@provider.principal).pluck(:id)
       expect(visible_ids).to include(recipient.id)
     end
 
@@ -1863,7 +1863,7 @@ describe Course do
       student = user_factory(active_all: true)
       @course.enroll_student(student, enrollment_state: "active")
 
-      visible_ids = @course.users_visible_to(@provider).pluck(:id)
+      visible_ids = @course.users_visible_to(@provider.principal).pluck(:id)
       expect(visible_ids).to include(student.id)
     end
   end
@@ -1877,13 +1877,13 @@ describe Course do
 
     it "returns all for admins" do
       admin = account_admin_user(account: @course.root_account, role: admin_role, active_user: true)
-      expect(@course.course_section_visibility(admin)).to eq :all
+      expect(@course.course_section_visibility(admin.principal)).to eq :all
     end
 
     it "returns correct sections for students" do
       student = User.create!(name: "Student")
       @course.enroll_student(student, section: @section1)
-      expect(@course.course_section_visibility(student)).to eq [@section1.id]
+      expect(@course.course_section_visibility(student.principal)).to eq [@section1.id]
     end
 
     it "correctly limits visibilities for a limited teacher" do
@@ -1891,18 +1891,18 @@ describe Course do
       @course.enroll_teacher(limited_teacher,
                              limit_privileges_to_course_section: true,
                              section: @section2)
-      expect(@course.course_section_visibility(limited_teacher)).to eq [@section2.id]
+      expect(@course.course_section_visibility(limited_teacher.principal)).to eq [@section2.id]
     end
 
     it "unlimited teachers can see everything" do
       unlimited_teacher = User.create(name: "Unlimited Teacher")
       @course.enroll_teacher(unlimited_teacher, section: @section2)
-      expect(@course.course_section_visibility(unlimited_teacher)).to eq :all
+      expect(@course.course_section_visibility(unlimited_teacher.principal)).to eq :all
     end
 
     it "returns none for a user with no visibility" do
       user_with_no_visibility = User.create(name: "Sans Connexion")
-      expect(@course.course_section_visibility(user_with_no_visibility)).to eq []
+      expect(@course.course_section_visibility(user_with_no_visibility.principal)).to eq []
     end
   end
 
@@ -6284,33 +6284,33 @@ describe Course do
 
     it "returns a scope from sections_visible_to" do
       # can't use "should respond_to", because that delegates to the instantiated Array
-      expect { @course.sections_visible_to(@teacher).all }.not_to raise_exception
+      expect { @course.sections_visible_to(@teacher.principal).all }.not_to raise_exception
     end
 
     context "full" do
       it "returns rejected enrollments if passed :priors_and_deleted" do
         @course.student_enrollments.find_by(user_id: @student1).update!(workflow_state: "rejected")
-        visible_student_ids = @course.students_visible_to(@teacher, include: :priors_and_deleted).pluck(:id)
+        visible_student_ids = @course.students_visible_to(@teacher.principal, include: :priors_and_deleted).pluck(:id)
         expect(visible_student_ids).to include @student1.id
       end
 
       it "returns deleted enrollments if passed :priors_and_deleted" do
         @course.student_enrollments.find_by(user_id: @student1).destroy
-        visible_student_ids = @course.students_visible_to(@teacher, include: :priors_and_deleted).pluck(:id)
+        visible_student_ids = @course.students_visible_to(@teacher.principal, include: :priors_and_deleted).pluck(:id)
         expect(visible_student_ids).to include @student1.id
       end
 
       it "returns students from all sections" do
-        expect(@course.students_visible_to(@teacher).sort_by(&:id)).to eql [@student1, @student2]
-        expect(@course.students_visible_to(@student1).sort_by(&:id)).to eql [@student1, @student2]
+        expect(@course.students_visible_to(@teacher.principal).sort_by(&:id)).to eql [@student1, @student2]
+        expect(@course.students_visible_to(@student1.principal).sort_by(&:id)).to eql [@student1, @student2]
       end
 
       it "returns all sections if a teacher" do
-        expect(@course.sections_visible_to(@teacher).sort_by(&:id)).to eql [@course.default_section, @other_section]
+        expect(@course.sections_visible_to(@teacher.principal).sort_by(&:id)).to eql [@course.default_section, @other_section]
       end
 
       it "returns user's sections if a student" do
-        expect(@course.sections_visible_to(@student1)).to eq [@course.default_section]
+        expect(@course.sections_visible_to(@student1.principal)).to eq [@course.default_section]
       end
 
       it "ignores concluded sections if option is given" do
@@ -6318,7 +6318,7 @@ describe Course do
         @student1.enrollments.each(&:conclude)
 
         all_sections = @course.course_sections
-        expect(@course.sections_visible_to(@student1, all_sections, excluded_workflows: ["deleted", "completed"])).to be_empty
+        expect(@course.sections_visible_to(@student1.principal, all_sections, excluded_workflows: ["deleted", "completed"])).to be_empty
       end
 
       it "includes concluded secitions if no options" do
@@ -6326,40 +6326,40 @@ describe Course do
         @student1.enrollments.each(&:conclude)
 
         all_sections = @course.course_sections
-        expect(@course.sections_visible_to(@student1, all_sections)).to eq [@other_section]
+        expect(@course.sections_visible_to(@student1.principal, all_sections)).to eq [@other_section]
       end
 
       it "returns users from all sections" do
-        expect(@course.users_visible_to(@teacher).sort_by(&:id)).to eql [@teacher, @ta, @student1, @student2, @observer]
-        expect(@course.users_visible_to(@ta).sort_by(&:id)).to      eql [@teacher, @ta, @student1, @observer]
+        expect(@course.users_visible_to(@teacher.principal).sort_by(&:id)).to eql [@teacher, @ta, @student1, @student2, @observer]
+        expect(@course.users_visible_to(@ta.principal).sort_by(&:id)).to      eql [@teacher, @ta, @student1, @observer]
       end
 
       it "returns users including inactive when included from all sections" do
         enrollment = @course.enrollments.where(user: @student2).first
         enrollment.deactivate
 
-        expect(@course.users_visible_to(@teacher, include_priors: true)).to include(@student2)
+        expect(@course.users_visible_to(@teacher.principal, include_priors: true)).to include(@student2)
       end
 
       it "does not return inactive users when not included from all sections" do
         enrollment = @course.enrollments.where(user: @student2).first
         enrollment.deactivate
 
-        expect(@course.users_visible_to(@teacher)).not_to include(@student2)
+        expect(@course.users_visible_to(@teacher.principal)).not_to include(@student2)
       end
 
       it "returns users including concluded when included from all sections" do
         enrollment = @course.enrollments.where(user: @student2).first
         enrollment.conclude
 
-        expect(@course.users_visible_to(@teacher, include_priors: true)).to include(@student2)
+        expect(@course.users_visible_to(@teacher.principal, include_priors: true)).to include(@student2)
       end
 
       it "does not return concluded users when not included from all sections" do
         enrollment = @course.enrollments.where(user: @student2).first
         enrollment.conclude
 
-        expect(@course.users_visible_to(@teacher)).not_to include(@student2)
+        expect(@course.users_visible_to(@teacher.principal)).not_to include(@student2)
       end
 
       it "does not return observers to section-restricted students" do
@@ -6380,14 +6380,14 @@ describe Course do
 
         observer = user_factory(active_all: true)
         @course.enroll_user(observer, "ObserverEnrollment", enrollment_state: "active", section: section2)
-        expect(@course.users_visible_to(limited_student)).not_to include(observer)
-        expect(@course.users_visible_to(limited_teacher)).to include(observer)
+        expect(@course.users_visible_to(limited_student.principal)).not_to include(observer)
+        expect(@course.users_visible_to(limited_teacher.principal)).to include(observer)
       end
 
       it "returns student view students to account admins" do
         @course.student_view_student
         @admin = account_admin_user
-        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @admin)
+        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @admin.principal)
         expect(visible_enrollments.map(&:user)).to include(@course.student_view_student)
       end
 
@@ -6402,59 +6402,59 @@ describe Course do
 
         @course.enroll_user(@admin, "ObserverEnrollment")
 
-        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @admin)
+        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @admin.principal)
         expect(visible_enrollments.map(&:user)).to include(@course.student_view_student)
       end
 
       it "returns student view students to student view students" do
-        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @course.student_view_student)
+        visible_enrollments = @course.apply_enrollment_visibility(@course.student_enrollments, @course.student_view_student.principal)
         expect(visible_enrollments.map(&:user)).to include(@course.student_view_student)
       end
     end
 
     context "sections" do
       it "returns students from user's sections" do
-        expect(@course.students_visible_to(@ta)).to eq [@student1]
+        expect(@course.students_visible_to(@ta.principal)).to eq [@student1]
       end
 
       it "returns user's sections" do
-        expect(@course.sections_visible_to(@ta)).to eq [@course.default_section]
+        expect(@course.sections_visible_to(@ta.principal)).to eq [@course.default_section]
       end
 
       it "returns non-limited admins from other sections" do
-        expect(@course.apply_enrollment_visibility(@course.teachers, @ta)).to eq [@teacher]
+        expect(@course.apply_enrollment_visibility(@course.teachers, @ta.principal)).to eq [@teacher]
       end
     end
 
     context "restricted" do
       it "returns no students except self and the observed" do
-        expect(@course.students_visible_to(@observer)).to eq [@student1]
+        expect(@course.students_visible_to(@observer.principal)).to eq [@student1]
         RoleOverride.create!(context: @course.account,
                              permission: "read_roster",
                              role: student_role,
                              enabled: false)
-        expect(@course.students_visible_to(@student1)).to eq [@student1]
+        expect(@course.students_visible_to(@student1.principal)).to eq [@student1]
       end
 
       it "returns student's sections" do
-        expect(@course.sections_visible_to(@observer)).to eq [@course.default_section]
+        expect(@course.sections_visible_to(@observer.principal)).to eq [@course.default_section]
         RoleOverride.create!(context: @course.account,
                              permission: "read_roster",
                              role: student_role,
                              enabled: false)
-        expect(@course.sections_visible_to(@student1)).to eq [@course.default_section]
+        expect(@course.sections_visible_to(@student1.principal)).to eq [@course.default_section]
       end
     end
 
     context "require_message_permission" do
       it "checks the message permission" do
-        expect(@course.enrollment_visibility_level_for(@teacher, @course.section_visibilities_for(@teacher), require_message_permission: true)).to be :full
-        expect(@course.enrollment_visibility_level_for(@observer, @course.section_visibilities_for(@observer), require_message_permission: true)).to be :restricted
+        expect(@course.enrollment_visibility_level_for(@teacher.principal, @course.section_visibilities_for(@teacher), require_message_permission: true)).to be :full
+        expect(@course.enrollment_visibility_level_for(@observer.principal, @course.section_visibilities_for(@observer), require_message_permission: true)).to be :restricted
         RoleOverride.create!(context: @course.account,
                              permission: "send_messages",
                              role: student_role,
                              enabled: false)
-        expect(@course.enrollment_visibility_level_for(@student1, @course.section_visibilities_for(@student1), require_message_permission: true)).to be :restricted
+        expect(@course.enrollment_visibility_level_for(@student1.principal, @course.section_visibilities_for(@student1), require_message_permission: true)).to be :restricted
       end
     end
 
@@ -7862,7 +7862,7 @@ describe Course do
 
       dm_count = DelayedMessage.count
       count1 = DelayedMessage.where(communication_channel_id: user1.communication_channels.first).count
-      @course.re_send_invitations!(@teacher)
+      @course.re_send_invitations!(@teacher.principal)
 
       expect(DelayedMessage.count).to eq dm_count + 1
       expect(DelayedMessage.where(communication_channel_id: user1.communication_channels.first).count).to eq count1 + 1
@@ -7881,7 +7881,7 @@ describe Course do
       count1 = user1.communication_channel.delayed_messages.where(notification_id: @notification).count
       count2 = user2.communication_channel.delayed_messages.where(notification_id: @notification).count
 
-      @course.re_send_invitations!(ta)
+      @course.re_send_invitations!(ta.principal)
 
       expect(user1.communication_channel.delayed_messages.where(notification_id: @notification).count).to eq count1
       expect(user2.communication_channel.delayed_messages.where(notification_id: @notification).count).to eq count2 + 1
@@ -8136,7 +8136,7 @@ describe Course do
       course_with_teacher
       student_in_course
       expect(@student.enrollments.where(course_id: @course).first).to be_creation_pending
-      expect(@course.invited_count_visible_to(@teacher)).to eq(2)
+      expect(@course.invited_count_visible_to(@teacher.principal)).to eq(2)
     end
   end
 

@@ -85,7 +85,7 @@ class GradebookExporter
   def csv_data
     enrollment_scope = @course.apply_enrollment_visibility(
       gradebook_enrollment_scope(user: principal.user, course: @course),
-      principal.user,
+      principal,
       nil,
       include: gradebook_includes(user: principal.user, course: @course)
     ).preload(:root_account, :sis_pseudonym)

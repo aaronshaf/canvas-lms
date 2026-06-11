@@ -85,7 +85,7 @@ module Types
           :manage_grades
         )
 
-        scope = course.apply_enrollment_visibility(course.enrollments, current_user, include: :inactive)
+        scope = course.apply_enrollment_visibility(course.enrollments, current_principal, include: :inactive)
         scope.where(user_id: submission.user_id)
       end
     end

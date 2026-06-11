@@ -32,7 +32,7 @@ describe SortsAssignments do
     let(:sorter) do
       SortsAssignments.new(
         assignments_scope: @course.assignments,
-        user: @student,
+        principal: @student.principal,
         session: nil,
         course: @course
       )
@@ -195,7 +195,7 @@ describe SortsAssignments do
     let(:sorter) do
       SortsAssignments.new(
         assignments_scope: @course.assignments,
-        user: @observer,
+        principal: @observer.principal,
         session: nil,
         course: @course
       )
@@ -508,7 +508,7 @@ describe SortsAssignments do
     let(:sorter) do
       SortsAssignments.new(
         assignments_scope: @course.assignments,
-        user: @teacher,
+        principal: @teacher.principal,
         session: nil,
         course: @course
       )
@@ -523,7 +523,7 @@ describe SortsAssignments do
       scope_with_groups = @course.assignments.joins(:assignment_group)
       sorter = SortsAssignments.new(
         assignments_scope: scope_with_groups,
-        user: @teacher,
+        principal: @teacher.principal,
         session: nil,
         course: @course
       )
@@ -653,7 +653,7 @@ describe SortsAssignments do
         it "includes the checkpoint sub-assignments" do
           sorter_with_checkpoints = SortsAssignments.new(
             assignments_scope: AssignmentGroup.visible_assignments(@teacher, @course, @course.assignment_groups.active, include_discussion_checkpoints: true),
-            user: @teacher,
+            principal: @teacher.principal,
             session: nil,
             course: @course,
             include_discussion_checkpoints: true
@@ -666,7 +666,7 @@ describe SortsAssignments do
         it "does not include checkpoint sub-assignments if include_discussion_checkpoints is false" do
           sorter_no_checkpoints = SortsAssignments.new(
             assignments_scope: AssignmentGroup.visible_assignments(@teacher, @course, @course.assignment_groups.active, include_discussion_checkpoints: true),
-            user: @teacher,
+            principal: @teacher.principal,
             session: nil,
             course: @course,
             include_discussion_checkpoints: false
@@ -709,7 +709,7 @@ describe SortsAssignments do
     let(:sorter) do
       SortsAssignments.new(
         assignments_scope: @course.assignments,
-        user: @admin,
+        principal: @admin.principal,
         session: nil,
         course: @course
       )

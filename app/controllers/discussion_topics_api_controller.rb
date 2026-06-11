@@ -764,7 +764,7 @@ class DiscussionTopicsApiController < ApplicationController
     return unless is_not_anonymous
 
     @entries = Api.paginate(root_entries(@topic).newest_first, self, entry_pagination_url(@topic))
-    render json: discussion_entry_api_json(@entries, @context, @current_user, session)
+    render json: discussion_entry_api_json(@entries, @context, current_principal, session)
   end
 
   # @API Post a reply

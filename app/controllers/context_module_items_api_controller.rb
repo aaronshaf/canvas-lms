@@ -787,7 +787,7 @@ class ContextModuleItemsApiController < ApplicationController
           unpublishable: module_item_unpublishable?(new_tag),
           publish_at: module_item_publish_at(new_tag),
           graded: new_tag.graded?,
-          content_details: content_details(new_tag, @current_user),
+          content_details: content_details(new_tag, current_principal),
           assignment_id: new_tag.assignment.try(:id),
           is_checkpointed: new_tag.assignment.try(:has_sub_assignments),
           is_duplicate_able: new_tag.duplicate_able?,

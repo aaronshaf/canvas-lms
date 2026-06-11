@@ -33,7 +33,7 @@ module Assignments
       end
 
       def visibility_level
-        @visibility_level ||= course.enrollment_visibility_level_for(principal&.user, section_visibilities)
+        @visibility_level ||= course.enrollment_visibility_level_for(principal, section_visibilities)
       end
 
       def visible_section_ids

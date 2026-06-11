@@ -172,7 +172,7 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
   def index
     quiz_submissions = if @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
                          # teachers have access to all student submissions
-                         visible_student_ids = @context.apply_enrollment_visibility(@context.student_enrollments, @current_user).pluck(:user_id)
+                         visible_student_ids = @context.apply_enrollment_visibility(@context.student_enrollments, current_principal).pluck(:user_id)
                          Api.paginate @quiz.quiz_submissions.where(user_id: visible_student_ids),
                                       self,
                                       api_v1_course_quiz_submissions_url(@context, @quiz)

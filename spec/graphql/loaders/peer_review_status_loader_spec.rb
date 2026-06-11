@@ -36,7 +36,7 @@ describe Loaders::PeerReviewStatusLoader do
     @course.enroll_student(@student3, enrollment_state: "active")
   end
 
-  let(:loader) { described_class.new(@assignment.id, current_user: @teacher) }
+  let(:loader) { described_class.new(@assignment.id, current_principal: @teacher.principal) }
 
   before do
     @submission1 = @assignment.submit_homework(@student1, {
@@ -201,7 +201,7 @@ describe Loaders::PeerReviewStatusLoader do
       end
 
       it "returns zero counts for students outside the teacher's section" do
-        scoped_loader = described_class.new(@assignment.id, current_user: section_limited_teacher)
+        scoped_loader = described_class.new(@assignment.id, current_principal: section_limited_teacher.principal)
         GraphQL::Batch.batch do
           result = scoped_loader.load(@student2.id)
           expect(result.sync).to eq({ must_review_count: 0, completed_reviews_count: 0 })
@@ -216,7 +216,7 @@ describe Loaders::PeerReviewStatusLoader do
           assessee: @student2,
           must_review: true
         )
-        scoped_loader = described_class.new(@assignment.id, current_user: section_limited_teacher)
+        scoped_loader = described_class.new(@assignment.id, current_principal: section_limited_teacher.principal)
         GraphQL::Batch.batch do
           result = scoped_loader.load(@student1.id)
           expect(result.sync).to eq({ must_review_count: 1, completed_reviews_count: 0 })

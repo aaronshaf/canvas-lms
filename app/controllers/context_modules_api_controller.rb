@@ -187,10 +187,11 @@ class ContextModulesApiController < ApplicationController
         opts[:observed_student_ids] = ObserverEnrollment.observed_student_ids(context, @student || @current_user)
       end
 
-      opts[:can_view_published] = @context.grants_right?(@student || current_principal, session, :read_as_admin)
+      principal = @student&.principal || current_principal
+      opts[:can_view_published] = @context.grants_right?(principal, session, :read_as_admin)
       opts[:can_have_estimated_time] = @context.horizon_course?
       opts[:can_have_requirement_count] = @context.requirement_count_api_enabled?
-      render json: modules_and_progressions.filter_map { |mod, prog| module_json(mod, @student || @current_user, session, prog, includes, opts) }
+      render json: modules_and_progressions.filter_map { |mod, prog| module_json(mod, principal, session, prog, includes, opts) }
     end
   end
 
@@ -221,7 +222,8 @@ class ContextModulesApiController < ApplicationController
   # @returns Module
   def show
     if authorized_action(@context, current_principal, :read)
-      mod = @context.modules_visible_to(@student || @current_user).find(params[:id])
+      principal = @student&.principal || current_principal
+      mod = @context.modules_visible_to(principal).find(params[:id])
       includes = Array(params[:include])
       ActiveRecord::Associations.preload(mod, content_tags: :content) if includes.include?("items")
       prog = @student ? mod.evaluate_for(@student) : nil
@@ -229,7 +231,7 @@ class ContextModulesApiController < ApplicationController
       opts = { can_view_published: @context.grants_right?(current_principal, session, :read_as_admin) }
       opts[:can_have_estimated_time] = @context.horizon_course?
       opts[:can_have_requirement_count] = @context.requirement_count_api_enabled?
-      render json: module_json(mod, @student || @current_user, session, prog, includes, opts)
+      render json: module_json(mod, principal, session, prog, includes, opts)
     end
   end
 
@@ -250,7 +252,7 @@ class ContextModulesApiController < ApplicationController
         result_json["ENV_UPDATE"] = attachment_tags.map do |attachment_tag|
           { id: attachment_tag.id.to_s,
             content_id: attachment_tag.content_id,
-            content_details: content_details(attachment_tag, @current_user, for_admin: true) }
+            content_details: content_details(attachment_tag, current_principal, for_admin: true) }
         end
         render json: result_json
       else

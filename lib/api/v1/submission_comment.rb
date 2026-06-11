@@ -161,7 +161,7 @@ module Api::V1::SubmissionComment
   def students(course:, assignment:, current_principal:)
     @students ||= begin
       includes = gradebook_includes(user: current_principal, course:)
-      assignment.representatives(user: current_principal, includes:)
+      assignment.representatives(principal: current_principal, includes:)
     end
   end
 

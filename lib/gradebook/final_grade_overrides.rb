@@ -19,9 +19,11 @@
 
 module Gradebook
   class FinalGradeOverrides
-    def initialize(course, user)
+    attr_reader :principal
+
+    def initialize(course, principal)
       @course = course
-      @user = user
+      @principal = principal
     end
 
     def to_h
@@ -47,13 +49,13 @@ module Gradebook
       end
     end
 
-    def self.queue_bulk_update(course, current_user, override_scores, grading_period)
+    def self.queue_bulk_update(course, principal, override_scores, grading_period)
       progress = Progress.create!(context: course, tag: "override_grade_update")
-      progress.process_job(self, :process_bulk_update, {}, course, current_user, override_scores, grading_period)
+      progress.process_job(self, :process_bulk_update, {}, course, principal, override_scores, grading_period)
       progress
     end
 
-    def self.process_bulk_update(progress, course, updating_user, override_data, grading_period)
+    def self.process_bulk_update(progress, course, principal, override_data, grading_period)
       # A given student may have multiple enrollments; even if this instructor
       # can only see a subset of those enrollments, we need to update all
       # applicable enrollments for each student. At the same time, though, we
@@ -61,7 +63,7 @@ module Gradebook
       student_ids_updated = Set.new
       errors = []
 
-      visible_students_scope = course.students_visible_to(updating_user, include: [:completed])
+      visible_students_scope = course.students_visible_to(principal, include: [:completed])
 
       custom_grade_statuses = course.custom_grade_statuses.to_a
 
@@ -88,7 +90,7 @@ module Gradebook
               enrollment.update_override_score(
                 override_score: score_update[:override_score],
                 grading_period_id: grading_period&.id,
-                updating_user:,
+                updating_user: principal.user,
                 record_grade_change: !student_ids_updated.include?(student_id)
               )
             end
@@ -135,7 +137,7 @@ module Gradebook
         type: [:StudentEnrollment, :StudentViewEnrollment]
       )
 
-      @course.apply_enrollment_visibility(student_enrollments, @user, nil, include: workflow_states)
+      @course.apply_enrollment_visibility(student_enrollments, principal, nil, include: workflow_states)
     end
   end
 end

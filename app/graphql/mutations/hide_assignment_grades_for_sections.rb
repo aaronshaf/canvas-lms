@@ -48,7 +48,7 @@ class Mutations::HideAssignmentGradesForSections < Mutations::BaseMutation
       raise GraphQL::ExecutionError, "Invalid section ids"
     end
 
-    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_user, sections)
+    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_principal, sections)
 
     submissions_scope = input[:graded_only] ? assignment.submissions.graded : assignment.submissions
     submissions_scope = submissions_scope.joins(user: :enrollments).merge(visible_enrollments)

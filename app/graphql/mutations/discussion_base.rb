@@ -191,7 +191,7 @@ class Mutations::DiscussionBase < Mutations::BaseMutation
 
     section_ids = discussion_topic.course_sections.map(&:id)
     active_section_ids = discussion_topic.context.active_course_sections.where(id: section_ids).pluck(:id)
-    visibilities = discussion_topic.context.course_section_visibility(current_user)
+    visibilities = discussion_topic.context.course_section_visibility(current_principal)
     case visibilities
     when :all
       []

@@ -115,7 +115,7 @@ module AssignmentOverrideApplicator
             if learning_object.is_a?(SimplyVersioned::InstanceMethods) && !learning_object.current_version?
               overrides = current_override_version(learning_object, overrides)
             else
-              visible_user_ids = context.enrollments_visible_to(user).select(:user_id)
+              visible_user_ids = context.enrollments_visible_to(user.principal).select(:user_id)
 
               overrides = if preloaded_overrides || overrides.loaded?
                             ovs, adhoc_ovs = overrides.select { |ov| ov.workflow_state == "active" }
@@ -155,7 +155,7 @@ module AssignmentOverrideApplicator
               overrides += diff_tags if diff_tags
             end
 
-            sections = section_overrides(learning_object, user)
+            sections = section_overrides(learning_object, user.principal)
             overrides += sections if sections
             everyone = course_overrides(learning_object, user)
             overrides += everyone if everyone
@@ -262,16 +262,16 @@ module AssignmentOverrideApplicator
     observed_student_overrides.flatten.uniq
   end
 
-  def self.section_overrides(learning_object, user)
+  def self.section_overrides(learning_object, principal)
     context = learning_object.context
-    section_ids = RequestCache.cache(:visible_section_ids, context, user) do
+    section_ids = RequestCache.cache(:visible_section_ids, context, principal) do
       context.sections_visible_to(
-        user,
+        principal,
         context.active_course_sections,
         excluded_workflows: ["deleted"]
       ).map(&:id) +
         context.section_visibilities_for(
-          user,
+          principal&.user,
           excluded_workflows: ["deleted"]
         ).select do |v|
           %w[StudentEnrollment ObserverEnrollment StudentViewEnrollment].include? v[:type]
@@ -285,7 +285,7 @@ module AssignmentOverrideApplicator
                 end
 
     if Account.site_admin.feature_enabled?(:deprioritize_section_overrides_for_nonactive_enrollments)
-      AssignmentOverride.preload_for_nonactive_enrollment(overrides, context, user)
+      AssignmentOverride.preload_for_nonactive_enrollment(overrides, context, principal&.user)
     end
 
     overrides

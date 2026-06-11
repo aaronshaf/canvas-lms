@@ -949,7 +949,7 @@ describe SpeedGrader::Assignment do
         first_group_representative = @first_group.users.sample
         submission = @assignment.submission_for_student(first_group_representative)
         submission.update!(submission_type: "online_upload")
-        expect(@assignment.representatives(user: @teacher)).to include first_group_representative
+        expect(@assignment.representatives(principal: @teacher.principal)).to include first_group_representative
       end
 
       it "prefers people who aren't excused when submission exists" do
@@ -961,19 +961,19 @@ describe SpeedGrader::Assignment do
         everyone_else.each do |user|
           @assignment.grade_student(user, excuse: true, grader: @teacher)
         end
-        expect(@assignment.representatives(user: @teacher)).to include first_group_representative
+        expect(@assignment.representatives(principal: @teacher.principal)).to include first_group_representative
       end
 
       it "includes users who aren't in a group" do
         student_in_course active_all: true
-        expect(@assignment.representatives(user: @teacher)).to include @student
+        expect(@assignment.representatives(principal: @teacher.principal)).to include @student
       end
 
       it "includes groups" do
         student_in_course active_all: true
         group = @group_category.groups.create!(context: @course)
         group.add_user(@student)
-        expect(@assignment.representatives(user: @teacher).map(&:name)).to include group.name
+        expect(@assignment.representatives(principal: @teacher.principal).map(&:name)).to include group.name
       end
 
       it "doesn't include deleted groups" do
@@ -981,7 +981,7 @@ describe SpeedGrader::Assignment do
         group = @group_category.groups.create!(context: @course)
         group.add_user(@student)
         group.destroy!
-        expect(@assignment.representatives(user: @teacher).map(&:name)).not_to include group.name
+        expect(@assignment.representatives(principal: @teacher.principal).map(&:name)).not_to include group.name
       end
 
       it "prefers active users over other workflow states" do
@@ -989,7 +989,7 @@ describe SpeedGrader::Assignment do
         enrollments.first.deactivate
         enrollments.second.conclude
 
-        reps = @assignment.representatives(user: @teacher, includes: %i[inactive completed])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: %i[inactive completed])
         user = reps.find { |u| u.name == @first_group.name }
         expect(user).to eql(enrollments.third.user)
       end
@@ -1000,7 +1000,7 @@ describe SpeedGrader::Assignment do
         enrollments.second.deactivate
         enrollments.third.conclude
 
-        reps = @assignment.representatives(user: @teacher, includes: %i[inactive completed])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: %i[inactive completed])
         user = reps.find { |u| u.name == @first_group.name }
         expect(user).to eql(enrollments.second.user)
       end
@@ -1009,7 +1009,7 @@ describe SpeedGrader::Assignment do
         enrollments = @first_group.all_real_student_enrollments
         enrollments.each(&:conclude)
 
-        reps = @assignment.representatives(user: @teacher, includes: [:completed])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: [:completed])
         user = reps.find { |u| u.name == @first_group.name }
         expect(enrollments.find_by(user:)).to be_present
       end
@@ -1018,7 +1018,7 @@ describe SpeedGrader::Assignment do
         enrollments = @first_group.all_real_student_enrollments
         enrollments.each(&:conclude)
 
-        reps = @assignment.representatives(user: @teacher, includes: [])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: [])
         user = reps.find { |u| u.name == @first_group.name }
         expect(user).to be_nil
       end
@@ -1027,7 +1027,7 @@ describe SpeedGrader::Assignment do
         enrollments = @first_group.all_real_student_enrollments
         enrollments.each(&:deactivate)
 
-        reps = @assignment.representatives(user: @teacher, includes: [:inactive])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: [:inactive])
         user = reps.find { |u| u.name == @first_group.name }
         expect(enrollments.find_by(user:)).to be_present
       end
@@ -1036,7 +1036,7 @@ describe SpeedGrader::Assignment do
         enrollments = @first_group.all_real_student_enrollments
         enrollments.each(&:deactivate)
 
-        reps = @assignment.representatives(user: @teacher, includes: [])
+        reps = @assignment.representatives(principal: @teacher.principal, includes: [])
         user = reps.find { |u| u.name == @first_group.name }
         expect(user).to be_nil
       end

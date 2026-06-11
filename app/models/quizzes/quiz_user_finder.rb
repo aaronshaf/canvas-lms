@@ -39,7 +39,7 @@ module Quizzes
     end
 
     def all_students
-      context.students_visible_to(principal&.user, include: :inactive).order_by_sortable_name.group("users.id")
+      context.students_visible_to(principal, include: :inactive).order_by_sortable_name.group("users.id")
     end
 
     def all_students_with_visibility

@@ -436,12 +436,12 @@ class Quizzes::Quiz < ApplicationRecord
     show_at.present? ? Time.zone.now > show_at : true
   end
 
-  def restrict_answers_for_concluded_course?(user: nil)
+  def restrict_answers_for_concluded_course?(principal: nil)
     course = context
     return false unless course.root_account.settings[:restrict_quiz_questions]
 
-    if user.present?
-      user_sections = course.sections_visible_to(user).select(&:restrict_enrollments_to_section_dates)
+    if principal
+      user_sections = course.sections_visible_to(principal).select(&:restrict_enrollments_to_section_dates)
       return false if user_sections.present?
     end
 

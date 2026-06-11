@@ -1242,7 +1242,7 @@ class OutcomeResultsController < ApplicationController
     # this only works for courses; when other context types are added, this will
     # need to treat them differently.
     students = if @domain_root_account.feature_enabled?(:limit_section_visibility_in_lmgb)
-                 @context.students_visible_to(@current_user, include: :priors)
+                 @context.students_visible_to(current_principal, include: :priors)
                else
                  @context.all_students
                end

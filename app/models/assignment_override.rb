@@ -429,11 +429,11 @@ class AssignmentOverride < ApplicationRecord
     assignment_override_students.where(user_id: visible_student_ids).exists?
   end
 
-  def self.visible_enrollments_for(overrides, user = nil)
-    return Enrollment.none if overrides.empty? || user.nil?
+  def self.visible_enrollments_for(overrides, principal = nil)
+    return Enrollment.none if overrides.empty? || principal.nil?
 
     override = overrides.first
-    override.overridable.context.enrollments_visible_to(user)
+    override.overridable.context.enrollments_visible_to(principal)
   end
 
   OVERRIDDEN_DATES = %i[due_at unlock_at lock_at].freeze

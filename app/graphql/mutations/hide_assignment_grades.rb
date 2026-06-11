@@ -50,12 +50,12 @@ class Mutations::HideAssignmentGrades < Mutations::BaseMutation
       raise GraphQL::ExecutionError, I18n.t("{a} and {b} cannot be used together", a: "only_student_ids", b: "skip_student_ids")
     end
 
-    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_user, sections)
+    visible_enrollments = course.apply_enrollment_visibility(course.student_enrollments, current_principal, sections)
     visible_enrollments = visible_enrollments.where(user_id: input[:only_student_ids]) if input[:only_student_ids]
     visible_enrollments = visible_enrollments.where.not(user_id: input[:skip_student_ids]) if input[:skip_student_ids]
 
     submissions_scope = assignment.submissions.active.joins(user: :enrollments)
-    submissions_scope = course.apply_enrollment_visibility(submissions_scope, current_user).merge(visible_enrollments)
+    submissions_scope = course.apply_enrollment_visibility(submissions_scope, current_principal).merge(visible_enrollments)
     progress = course.progresses.new(tag: "hide_assignment_grades")
 
     if progress.save

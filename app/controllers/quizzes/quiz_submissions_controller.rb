@@ -148,7 +148,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
   end
 
   def extensions
-    @student = @context.users_visible_to(@current_user, include_inactive: true).find(params[:user_id])
+    @student = @context.users_visible_to(current_principal, include_inactive: true).find(params[:user_id])
     @submission = Quizzes::SubmissionManager.new(@quiz).find_or_create_submission(@student, state: "settings_only")
     if authorized_action(@submission, current_principal, :add_attempts)
       @submission.extra_attempts ||= 0

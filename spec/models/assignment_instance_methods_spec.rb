@@ -56,7 +56,10 @@ describe Assignment do
       # we could spec some examples, but this way it works for any overrides.
       allow_any_instance_of(AbstractAssignment).to receive(:differentiated_assignments_applies?).and_return(true)
       @shard1.activate do
-        expect(Assignment.find(@assignment.global_id).representatives(user: @teacher).map(&:id).sort).to match([@cross_shard_student.id, @student1.global_id, @student2.global_id, @student3.global_id].sort)
+        expect(Assignment.find(@assignment.global_id)
+                         .representatives(principal: @teacher.principal)
+                         .map(&:id)
+                         .sort).to match([@cross_shard_student.id, @student1.global_id, @student2.global_id, @student3.global_id].sort)
       end
     end
   end

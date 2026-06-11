@@ -186,7 +186,7 @@ class CourseSection < ApplicationRecord
     can :manage_calendar
 
     given do |principal, _session|
-      principal && course.sections_visible_to(principal.user).where(id: self).exists?
+      principal && course.sections_visible_to(principal).where(id: self).exists?
     end
     can :read
 

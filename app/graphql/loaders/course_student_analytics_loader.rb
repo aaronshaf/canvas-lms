@@ -21,10 +21,12 @@
 # This is a dummy implementation. The real implementation is provided by the
 # Canvas analytics plugin
 class Loaders::CourseStudentAnalyticsLoader < GraphQL::Batch::Loader
-  def initialize(course_id, current_user:, session:)
+  attr_reader :current_principal
+
+  def initialize(course_id, current_principal:, session:)
     super()
     @course_id = course_id
-    @current_user = current_user
+    @current_principal = current_principal
     @session = session
   end
 

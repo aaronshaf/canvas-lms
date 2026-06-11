@@ -143,10 +143,10 @@ module SearchHelper
       case context
       when Course
         add_courses.call [context], :current
-        visibility = context.enrollment_visibility_level_for(@current_user, context.section_visibilities_for(@current_user), require_message_permission: true)
+        visibility = context.enrollment_visibility_level_for(current_principal, context.section_visibilities_for(@current_user), require_message_permission: true)
         sections = case visibility
                    when :sections, :sections_limited, :limited
-                     context.sections_visible_to(@current_user)
+                     context.sections_visible_to(current_principal)
                    when :full
                      context.course_sections
                    else
@@ -165,10 +165,10 @@ module SearchHelper
           add_courses.call [context.context], :current if context.context.is_a?(Course)
         end
       when CourseSection
-        visibility = context.course.enrollment_visibility_level_for(@current_user, context.course.section_visibilities_for(@current_user), require_message_permission: true)
+        visibility = context.course.enrollment_visibility_level_for(current_principal, context.course.section_visibilities_for(@current_user), require_message_permission: true)
         sections = (visibility == :restricted) ? [] : [context]
         add_courses.call [context.course], :current
-        add_sections.call context.course.sections_visible_to(@current_user, sections)
+        add_sections.call context.course.sections_visible_to(current_principal, sections)
       else
         add_courses.call @current_user.concluded_courses.shard(@current_user).to_a, :concluded
         add_courses.call @current_user.courses.preload(:enrollment_term).shard(@current_user).to_a, :current

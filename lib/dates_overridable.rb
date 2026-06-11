@@ -464,7 +464,7 @@ module DatesOverridable
     assignment_overrides = all_dates.filter_map { |o| o[:override].presence }
     # only need to check for overridden assignees if there are module overrides
     visible_users_ids, overridden_targets = if assignment_overrides.any?(&:context_module_id)
-                                              user_ids = AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, principal&.user).select(:user_id)
+                                              user_ids = AssignmentOverride.visible_enrollments_for(assignment_overrides.compact, principal).select(:user_id)
                                               duplicate_overrides = get_overridden_assignees(assignment_overrides, user_ids)
                                               [user_ids, duplicate_overrides]
                                             end

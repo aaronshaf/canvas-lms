@@ -1162,7 +1162,7 @@ class CoursesController < ApplicationController
     # DEPRECATED. Needs to stay separate from #users though, because this is un-paginated
     get_context
     if authorized_action(@context, current_principal, :read_roster)
-      proxy = @context.students_visible_to(@current_user).order_by_sortable_name
+      proxy = @context.students_visible_to(current_principal).order_by_sortable_name
       user_json_preloads(proxy)
       render json: proxy.map { |u| user_json(u, current_principal, session) }
     end
@@ -1388,7 +1388,7 @@ class CoursesController < ApplicationController
     get_context
     if authorized_action(@context, current_principal, :read_roster)
       includes = Array(params[:include])
-      users = api_find_all(@context.users_visible_to(@current_user,
+      users = api_find_all(@context.users_visible_to(current_principal,
                                                      include_inactive: includes.include?("inactive_enrollments")),
                            [params[:id]])
 
@@ -1671,7 +1671,7 @@ class CoursesController < ApplicationController
 
       @all_roles = Role.custom_roles_and_counts_for_course(@context, current_principal, include_inactive: true)
 
-      @invited_count = @context.invited_count_visible_to(@current_user)
+      @invited_count = @context.invited_count_visible_to(current_principal)
 
       @publishing_enabled = @context.allows_grade_publishing_by(@current_user) &&
                             can_do(@context, current_principal, :manage_grades)
@@ -2059,7 +2059,7 @@ class CoursesController < ApplicationController
     if authorized_action(@context, current_principal, %i[manage_students allow_course_admin_actions])
       @context
         .delay(singleton: "course:re_send_invitations!:#{@context.global_id}")
-        .re_send_invitations!(@current_user)
+        .re_send_invitations!(current_principal)
 
       respond_to do |format|
         format.html { redirect_to course_settings_url }

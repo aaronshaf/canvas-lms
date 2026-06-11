@@ -508,7 +508,7 @@ class GradebooksController < ApplicationController
 
     grading_standard = @context.grading_standard_or_default
     graded_late_submissions_exist = @context.submissions.graded.late.exists?
-    visible_sections = @context.sections_visible_to(@current_user)
+    visible_sections = @context.sections_visible_to(current_principal)
     root_account = @context.root_account
 
     custom_grade_statuses_enabled = Account.site_admin.feature_enabled?(:custom_gradebook_statuses)
@@ -706,7 +706,7 @@ class GradebooksController < ApplicationController
 
     grading_standard = @context.grading_standard_or_default
     graded_late_submissions_exist = @context.submissions.graded.late.exists?
-    visible_sections = @context.sections_visible_to(@current_user)
+    visible_sections = @context.sections_visible_to(current_principal)
     root_account = @context.root_account
 
     gradebook_options = {
@@ -813,7 +813,7 @@ class GradebooksController < ApplicationController
     set_student_context_cards_js_env
     root_account = @context.root_account
     visible_sections = if root_account.feature_enabled?(:limit_section_visibility_in_lmgb)
-                         @context.sections_visible_to(@current_user)
+                         @context.sections_visible_to(current_principal)
                        else
                          @context.active_course_sections
                        end
@@ -889,7 +889,7 @@ class GradebooksController < ApplicationController
         submissions = populate_user_ids(submissions_without_user_ids)
       end
 
-      valid_user_ids = Set.new(@context.students_visible_to(@current_user, include: :inactive).pluck(:id))
+      valid_user_ids = Set.new(@context.students_visible_to(current_principal, include: :inactive).pluck(:id))
       submissions.select! { |submission| valid_user_ids.include? submission[:user_id].to_i }
 
       user_ids = submissions.pluck(:user_id)
@@ -1479,7 +1479,7 @@ class GradebooksController < ApplicationController
   def final_grade_overrides
     return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
-    final_grade_overrides = ::Gradebook::FinalGradeOverrides.new(@context, @current_user)
+    final_grade_overrides = ::Gradebook::FinalGradeOverrides.new(@context, current_principal)
     render json: { final_grade_overrides: final_grade_overrides.to_h }
   end
 
@@ -1535,7 +1535,7 @@ class GradebooksController < ApplicationController
     params.require(:override_scores)
     override_score_updates = params.permit(override_scores: %i[student_id override_score override_status_id]).to_h[:override_scores]
 
-    progress = ::Gradebook::FinalGradeOverrides.queue_bulk_update(@context, @current_user, override_score_updates, grading_period)
+    progress = ::Gradebook::FinalGradeOverrides.queue_bulk_update(@context, current_principal, override_score_updates, grading_period)
     render json: progress_json(progress, current_principal, session)
   end
 
@@ -1623,7 +1623,7 @@ class GradebooksController < ApplicationController
   def user_ids
     return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
-    gradebook_user_ids = GradebookUserIds.new(@context, @current_user)
+    gradebook_user_ids = GradebookUserIds.new(@context, current_principal)
     render json: { user_ids: gradebook_user_ids.user_ids }
   end
 

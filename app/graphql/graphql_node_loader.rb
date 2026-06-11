@@ -92,7 +92,7 @@ module GraphQLNodeLoader
 
             break true if Course.where(id: shared_courses).any? do |course|
               course.grants_right?(ctx[:current_principal], :read_roster) &&
-                course.enrollments_visible_to(ctx[:current_user], include_concluded: true).where(user_id: user).exists?
+                course.enrollments_visible_to(ctx[:current_principal], include_concluded: true).where(user_id: user).exists?
             end
           end
           has_perm == true

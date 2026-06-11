@@ -2260,9 +2260,9 @@ class AbstractAssignment < ApplicationRecord
     end
   end
 
-  def filter_attributes_for_user(hash, user, _session)
-    if (lock_info = locked_for?(user, check_policies: true))
-      hash.delete("description") unless include_description?(user, lock_info)
+  def filter_attributes_for_user(hash, principal, _session)
+    if (lock_info = locked_for?(principal&.user, check_policies: true))
+      hash.delete("description") unless include_description?(principal&.user, lock_info)
       hash["lock_info"] = lock_info
     end
   end
@@ -2928,10 +2928,10 @@ class AbstractAssignment < ApplicationRecord
     !moderated_grading? || grades_published_at.present?
   end
 
-  def sections_with_visibility(user)
+  def sections_with_visibility(principal)
     return context.active_course_sections unless differentiated_assignments_applies?
 
-    visible_student_ids = visible_students_for_speed_grader(user:).map(&:id)
+    visible_student_ids = visible_students_for_speed_grader(principal:).map(&:id)
     context.active_course_sections.joins(:student_enrollments)
            .where(enrollments: { user_id: visible_student_ids, type: "StudentEnrollment" }).distinct.reorder("name")
   end
@@ -2976,8 +2976,8 @@ class AbstractAssignment < ApplicationRecord
   # for group assignments, returns a single "student" for each
   # group's submission.  the students name will be changed to the group's
   # name.  for non-group assignments this just returns all visible users
-  def representatives(user:, includes: [:inactive], group_id: nil, section_id: nil, ignore_student_visibility: false, include_others: false, &block)
-    return visible_students_for_speed_grader(user:, includes:, group_id:, section_id:, ignore_student_visibility:) unless grade_as_group?
+  def representatives(principal:, includes: [:inactive], group_id: nil, section_id: nil, ignore_student_visibility: false, include_others: false, &block)
+    return visible_students_for_speed_grader(principal:, includes:, group_id:, section_id:, ignore_student_visibility:) unless grade_as_group?
 
     submissions = self.submissions.to_a
     user_ids_with_submissions = submissions.select(&:has_submission?).to_set(&:user_id)
@@ -3003,9 +3003,9 @@ class AbstractAssignment < ApplicationRecord
     enrollment_priority = { "active" => 1, "inactive" => 2 }
     enrollment_priority.default = 100
 
-    visible_student_ids = visible_students_for_speed_grader(user:, includes:, ignore_student_visibility:).to_set(&:id)
+    visible_student_ids = visible_students_for_speed_grader(principal:, includes:, ignore_student_visibility:).to_set(&:id)
 
-    reps_and_others = groups_and_ungrouped(user, includes:).filter_map do |group_name, group_info|
+    reps_and_others = groups_and_ungrouped(principal, includes:).filter_map do |group_name, group_info|
       group_students = group_info[:users]
       visible_group_students = group_students.select { |u| visible_student_ids.include?(u.id) }
 
@@ -3040,12 +3040,12 @@ class AbstractAssignment < ApplicationRecord
     end
   end
 
-  def groups_and_ungrouped(user, includes: [])
+  def groups_and_ungrouped(principal, includes: [])
     groups_and_users = group_category
                        .groups.active.preload(:users)
                        .map { |g| [g.name, { sortable_name: g.name, users: g.users }] }
     users_in_group = groups_and_users.flat_map { |_, group_info| group_info[:users] }
-    groupless_users = visible_students_for_speed_grader(user:, includes:) - users_in_group
+    groupless_users = visible_students_for_speed_grader(principal:, includes:) - users_in_group
     phony_groups = groupless_users.map do |u|
       sortable_name = users_in_group.empty? ? u.sortable_name : u.name
       [u.name, { sortable_name:, users: [u] }]
@@ -3057,11 +3057,11 @@ class AbstractAssignment < ApplicationRecord
   # using this method instead of students_with_visibility so we
   # can add the includes and students_visible_to/participating_students scopes.
   # group_id and section_id filters may optionally be supplied.
-  def visible_students_for_speed_grader(user:, includes: [:inactive], group_id: nil, section_id: nil, ignore_student_visibility: false)
+  def visible_students_for_speed_grader(principal:, includes: [:inactive], group_id: nil, section_id: nil, ignore_student_visibility: false)
     @visible_students_for_speed_grader ||= {}
-    @visible_students_for_speed_grader[[user.global_id, includes, group_id]] ||= begin
-      student_scope = if user.present?
-                        context.students_visible_to(user, include: includes)
+    @visible_students_for_speed_grader[[principal.user.global_id, includes, group_id]] ||= begin
+      student_scope = if principal
+                        context.students_visible_to(principal, include: includes)
                       else
                         context.participating_students
                       end

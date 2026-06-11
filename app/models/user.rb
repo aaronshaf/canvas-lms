@@ -3270,7 +3270,7 @@ class User < ApplicationRecord
     else
       full_course_ids = []
       Course.where(id: course_ids).each do |course|
-        result = course.course_section_visibility(self, include_concluded:)
+        result = course.course_section_visibility(principal, include_concluded:)
         case result
         when Array
           section_ids.concat(result)

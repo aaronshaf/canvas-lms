@@ -84,7 +84,7 @@ class ModerationSetController < ApplicationController
   end
 
   def visible_students
-    @visible_students ||= @context.students_visible_to(@current_user, include: :inactive).distinct
+    @visible_students ||= @context.students_visible_to(current_principal, include: :inactive).distinct
   end
 
   def load_assignment

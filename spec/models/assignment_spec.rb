@@ -2711,7 +2711,7 @@ describe Assignment do
       group.add_user(@second_student)
       group.save!
       assignment = @course.assignments.create!(assignment_valid_attributes.merge(group_category:))
-      rep, others = assignment.representatives(user: @teacher, include_others: true).first
+      rep, others = assignment.representatives(principal: @teacher.principal, include_others: true).first
       aggregate_failures do
         expect(rep.id).to eq @first_student.id
         expect(others.count).to eq 1
@@ -2732,7 +2732,7 @@ describe Assignment do
 
         it "excludes concluded students by default" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             section_id: @student_enrollment.course_section_id
           )
           expect(representatives).not_to include @initial_student
@@ -2740,7 +2740,7 @@ describe Assignment do
 
         it "includes concluded students if the includes param has :completed" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             includes: [:completed],
             section_id: @student_enrollment.course_section_id
           )
@@ -2749,7 +2749,7 @@ describe Assignment do
 
         it "excludes concluded students if the includes param does not have :completed" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             includes: [:inactive],
             section_id: @student_enrollment.course_section_id
           )
@@ -2764,7 +2764,7 @@ describe Assignment do
 
         it "includes deactivated students by default" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             section_id: @student_enrollment.course_section_id
           )
           expect(representatives).to include @initial_student
@@ -2772,7 +2772,7 @@ describe Assignment do
 
         it "includes deactivated students if the includes param has :inactive" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             includes: [:inactive],
             section_id: @student_enrollment.course_section_id
           )
@@ -2781,7 +2781,7 @@ describe Assignment do
 
         it "excludes deactivated students if the includes param does not have :inactive" do
           representatives = @assignment.representatives(
-            user: @teacher,
+            principal: @teacher.principal,
             includes: [:completed],
             section_id: @student_enrollment.course_section_id
           )
@@ -2805,7 +2805,7 @@ describe Assignment do
         expect(User).to receive(:best_unicode_collation_key).with("sortable_name").and_call_original
 
         assignment = @course.assignments.create!(assignment_valid_attributes)
-        representatives = assignment.representatives(user: @teacher)
+        representatives = assignment.representatives(principal: @teacher.principal)
 
         expect(representatives[0].name).to eql(student_three.name)
         expect(representatives[1].name).to eql(student_one.name)
@@ -2846,7 +2846,7 @@ describe Assignment do
 
         expect(Canvas::ICU).to receive(:collate_by).and_call_original
 
-        representatives = assignment.representatives(user: @teacher)
+        representatives = assignment.representatives(principal: @teacher.principal)
 
         expect(representatives[0].name).to eql(group_two.name)
         expect(representatives[1].name).to eql(group_one.name)
@@ -2877,7 +2877,7 @@ describe Assignment do
 
         expect(Canvas::ICU).to receive(:collate_by).and_call_original
 
-        representatives = assignment.representatives(user: @teacher)
+        representatives = assignment.representatives(principal: @teacher.principal)
 
         expect(representatives[0].name).to eql(student_three.name)
         expect(representatives[1].name).to eql(student_one.name)
@@ -2916,7 +2916,7 @@ describe Assignment do
 
         expect(Canvas::ICU).to receive(:collate_by).and_call_original
 
-        representatives = assignment.representatives(user: @teacher)
+        representatives = assignment.representatives(principal: @teacher.principal)
 
         expect(representatives[0].name).to eql(student_three.name)
         expect(representatives[1].name).to eql(group_two.name)
@@ -2934,17 +2934,17 @@ describe Assignment do
       end
 
       it "excludes deactivated students by default" do
-        representatives = @assignment.representatives(user: @teacher)
+        representatives = @assignment.representatives(principal: @teacher.principal)
         expect(representatives).not_to include @initial_student
       end
 
       it "includes deactivated students if passed ignore_student_visibility" do
-        representatives = @assignment.representatives(user: @teacher, ignore_student_visibility: true)
+        representatives = @assignment.representatives(principal: @teacher.principal, ignore_student_visibility: true)
         expect(representatives).to include @initial_student
       end
 
       it "excludes deactivated students if the includes param does not have :inactive" do
-        representatives = @assignment.representatives(user: @teacher, includes: [:completed], ignore_student_visibility: true)
+        representatives = @assignment.representatives(principal: @teacher.principal, includes: [:completed], ignore_student_visibility: true)
         expect(representatives).not_to include @initial_student
       end
     end
@@ -2989,7 +2989,7 @@ describe Assignment do
         }
 
         # when representatives is requested by speedgrader, it passes ignore_student_visibility: true
-        representatives = @assignment.representatives(user: @teacher, group_id: @collab_group.id, ignore_student_visibility: true)
+        representatives = @assignment.representatives(principal: @teacher.principal, group_id: @collab_group.id, ignore_student_visibility: true)
         expect(representatives).to contain_exactly(@collab_student)
       end
 
@@ -3003,7 +3003,7 @@ describe Assignment do
         }
 
         # when representatives is requested by speedgrader, it passes ignore_student_visibility: true
-        representatives = @assignment.representatives(user: @teacher, group_id: @non_collab_group.id, ignore_student_visibility: true)
+        representatives = @assignment.representatives(principal: @teacher.principal, group_id: @non_collab_group.id, ignore_student_visibility: true)
         expect(representatives).to contain_exactly(@non_collab_student)
       end
     end
@@ -3042,7 +3042,7 @@ describe Assignment do
 
       expect(User).to receive(:best_unicode_collation_key).with("sortable_name").and_call_original
 
-      representatives = assignment.representatives(user: @teacher)
+      representatives = assignment.representatives(principal: @teacher.principal)
 
       expect(representatives[0].name).to eql(student_three.name)
       expect(representatives[1].name).to eql(student_one.name)
@@ -6594,8 +6594,8 @@ describe Assignment do
       expect(@assignment.to_json).not_to match(/permissions/)
       expect(@assignment.to_json(permissions: { user: nil })).to match(/"permissions"\s*:\s*\{/)
       expect(@assignment.grants_right?(@teacher, :create)).to be(true)
-      expect(@assignment.to_json(permissions: { user: @teacher, session: nil })).to match(/"permissions"\s*:\s*\{"/)
-      hash = @assignment.as_json(permissions: { user: @teacher, session: nil })
+      expect(@assignment.to_json(permissions: { user: @teacher.principal, session: nil })).to match(/"permissions"\s*:\s*\{"/)
+      hash = @assignment.as_json(permissions: { user: @teacher.principal, session: nil })
       expect(hash["assignment"]).not_to be_nil
       expect(hash["assignment"]["permissions"]).not_to be_nil
       expect(hash["assignment"]["permissions"]).not_to be_empty
@@ -6612,7 +6612,7 @@ describe Assignment do
     end
 
     it "serializes with permissions" do
-      hash = @course.as_json(permissions: { user: @teacher, session: nil })
+      hash = @course.as_json(permissions: { user: @teacher.principal, session: nil })
       expect(hash["course"]).not_to be_nil
       expect(hash["course"]["permissions"]).not_to be_nil
       expect(hash["course"]["permissions"]).not_to be_empty
@@ -6620,7 +6620,7 @@ describe Assignment do
     end
 
     it "excludes root" do
-      hash = @course.as_json(include_root: false, permissions: { user: @teacher, session: nil })
+      hash = @course.as_json(include_root: false, permissions: { user: @teacher.principal, session: nil })
       expect(hash["course"]).to be_nil
       expect(hash["name"]).to eql(@course.name)
       expect(hash["permissions"]).not_to be_nil
@@ -7923,7 +7923,7 @@ describe Assignment do
   context "adheres_to_policy" do
     it "serializes permissions" do
       @assignment = @course.assignments.create!(title: "some assignment")
-      data = @assignment.as_json(permissions: { user: @user, session: nil })
+      data = @assignment.as_json(permissions: { user: @user.principal, session: nil })
       expect(data).not_to be_nil
       expect(data["assignment"]).not_to be_nil
       expect(data["assignment"]["permissions"]).not_to be_nil
@@ -7949,9 +7949,9 @@ describe Assignment do
     end
 
     it "returns only sections with overrides with differentiated assignments on" do
-      expect(@assignment.sections_with_visibility(@teacher)).to eq [@section]
-      expect(@assignment2.sections_with_visibility(@teacher)).to eq []
-      expect(@assignment3.sections_with_visibility(@teacher)).to eq @course.course_sections
+      expect(@assignment.sections_with_visibility(@teacher.principal)).to eq [@section]
+      expect(@assignment2.sections_with_visibility(@teacher.principal)).to eq []
+      expect(@assignment3.sections_with_visibility(@teacher.principal)).to eq @course.course_sections
     end
   end
 

@@ -393,7 +393,7 @@ class GradeChangeAuditApiController < AuditorApiController
 
   def events_visible_to_current_user(course, events)
     visible_student_ids =
-      course.students_visible_to(@current_user, include: :priors_and_deleted).index_by(&:global_id)
+      course.students_visible_to(current_principal, include: :priors_and_deleted).index_by(&:global_id)
 
     events.select { |event| visible_student_ids[Shard.global_id_for(event.student_id)] }
   end

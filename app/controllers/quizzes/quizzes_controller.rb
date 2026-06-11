@@ -391,7 +391,7 @@ class Quizzes::QuizzesController < ApplicationController
         ASSIGNMENT_ID: @assignment.presence&.id,
         ASSIGNMENT_OVERRIDES: assignment_overrides_json(@quiz.overrides_for(@current_user,
                                                                             ensure_set_not_empty: true),
-                                                        @current_user,
+                                                        current_principal,
                                                         include_names: true),
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
         CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
@@ -473,7 +473,7 @@ class Quizzes::QuizzesController < ApplicationController
       @quiz.saving_user = @current_user
       @quiz.transaction do
         @quiz.update!(quiz_params)
-        batch_update_assignment_overrides(@quiz, overrides, @current_user) unless overrides.nil?
+        batch_update_assignment_overrides(@quiz, overrides, current_principal) unless overrides.nil?
       end
 
       if params[:post_to_sis]
@@ -504,7 +504,7 @@ class Quizzes::QuizzesController < ApplicationController
       overrides = delete_override_params
 
       if overrides
-        prepared_batch = prepare_assignment_overrides_for_batch_update(@quiz, overrides, @current_user)
+        prepared_batch = prepare_assignment_overrides_for_batch_update(@quiz, overrides, current_principal)
         batch_update_allowed = grading_periods_allow_assignment_overrides_batch_update?(
           @quiz, prepared_batch, flash_message: true
         )
@@ -700,7 +700,7 @@ class Quizzes::QuizzesController < ApplicationController
     extend Api::V1::User
 
     if authorized_action(@quiz, current_principal, [:grade, :read_statistics])
-      student_scope = @context.students_visible_to(@current_user, include: :inactive)
+      student_scope = @context.students_visible_to(current_principal, include: :inactive)
       if @quiz.differentiated_assignments_applies?
         student_scope = student_scope.able_to_see_quiz_in_course_with_da(@quiz.id, @context.id)
       end
@@ -828,7 +828,7 @@ class Quizzes::QuizzesController < ApplicationController
 
   def moderate
     if authorized_action(@quiz, current_principal, :grade)
-      @students = @context.students_visible_to(@current_user)
+      @students = @context.students_visible_to(current_principal)
       @students = @quiz.visible_students_with_da(@students)
       @students = @students.name_like(params[:search_term]) if params[:search_term].present?
       @students = @students.distinct.order_by_sortable_name
@@ -1076,7 +1076,7 @@ class Quizzes::QuizzesController < ApplicationController
 
   # counts of submissions queried in #managed_quiz_data
   def submission_counts
-    submitted_with_submissions = @context.students_visible_to(@current_user, include: :inactive)
+    submitted_with_submissions = @context.students_visible_to(current_principal, include: :inactive)
                                          .joins(:quiz_submissions)
                                          .where("quiz_submissions.quiz_id=? AND quiz_submissions.workflow_state<>'settings_only'", @quiz)
     @submitted_student_count = submitted_with_submissions.distinct.count(:id)

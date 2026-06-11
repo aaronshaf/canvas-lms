@@ -1363,7 +1363,7 @@ class DiscussionTopicsController < ApplicationController
   def verify_specific_section_visibilities
     return unless @topic.is_section_specific && @context.is_a?(Course)
 
-    visibilities = @context.course_section_visibility(@current_user)
+    visibilities = @context.course_section_visibility(current_principal)
 
     section_ids = @topic.course_sections.map(&:id)
     active_section_ids = @context.active_course_sections.where(id: section_ids).pluck(:id)
@@ -1980,7 +1980,7 @@ class DiscussionTopicsController < ApplicationController
     # TODO: Replace this with Course#sections_visible_to
     section_visibilities =
       if @context.respond_to?(:course_section_visibility)
-        @context.course_section_visibility(@current_user)
+        @context.course_section_visibility(current_principal)
       else
         :none
       end
@@ -2012,7 +2012,7 @@ class DiscussionTopicsController < ApplicationController
     section_visibilities =
       if @context.respond_to?(:course_section_visibility)
         # Course.course_section_visibility can also return :none
-        @context.course_section_visibility(@current_user)
+        @context.course_section_visibility(current_principal)
       else
         :none
       end

@@ -1893,7 +1893,7 @@ describe Quizzes::Quiz do
           it { is_expected.to be(true) }
 
           context "student in a section with extended time" do
-            subject { quiz.restrict_answers_for_concluded_course?(user: student) }
+            subject { quiz.restrict_answers_for_concluded_course?(principal: student.principal) }
 
             let(:section_end_at) { 10.minutes.from_now }
             let(:section_start_at) { 10.minutes.ago }

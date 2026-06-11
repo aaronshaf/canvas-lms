@@ -1385,7 +1385,7 @@ class CalendarEventsApiController < ApplicationController
       }
 
       if context.is_a?(Course)
-        context_data[:sections] = context.sections_visible_to(@current_user).map do |section|
+        context_data[:sections] = context.sections_visible_to(current_principal).map do |section|
           {
             id: section.id,
             name: section.name,

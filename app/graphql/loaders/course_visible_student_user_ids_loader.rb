@@ -28,16 +28,18 @@
 # (single course, multiple students), this reduces N queries to 1. For other use cases
 # with multiple courses, the query count remains the same or better (old >= new).
 class Loaders::CourseVisibleStudentUserIdsLoader < GraphQL::Batch::Loader
-  def initialize(current_user:)
+  attr_reader :current_principal
+
+  def initialize(current_principal:)
     super()
-    @current_user = current_user
+    @current_principal = current_principal
   end
 
   def perform(courses)
-    return if courses.empty? || @current_user.nil?
+    return if courses.empty? || current_principal.nil?
 
     courses.each do |course|
-      visible_user_ids = course.apply_enrollment_visibility(course.all_student_enrollments, @current_user).pluck(:user_id)
+      visible_user_ids = course.apply_enrollment_visibility(course.all_student_enrollments, current_principal).pluck(:user_id)
       fulfill(course, visible_user_ids)
     end
   end

@@ -65,7 +65,7 @@ module Api::V1::WikiPage
       hash["assignment"] = assignment_json(wiki_page.assignment, current_principal, session, assignment_opts)
       hash["assignment"]["assignment_overrides"] =
         assignment_overrides_json(
-          wiki_page.assignment.overrides_for(current_principal, ensure_set_not_empty: true)
+          wiki_page.assignment.overrides_for(current_principal&.user, ensure_set_not_empty: true)
         )
     end
     locked_json(hash, wiki_page, current_principal, "page", deep_check_if_needed:)

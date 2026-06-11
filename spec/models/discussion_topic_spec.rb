@@ -2812,7 +2812,7 @@ describe DiscussionTopic do
       user = student_in_course(course: @course, active_enrollment: true, section: @section).user
       add_section_to_topic(topic, @section)
       add_section_to_topic(topic, section2)
-      expect(topic.address_book_context_for(user).to_a).to eq [@section]
+      expect(topic.address_book_context_for(user.principal).to_a).to eq [@section]
     end
 
     context "differentiated modules address_book_context_for" do
@@ -2828,14 +2828,14 @@ describe DiscussionTopic do
       it "returns the section for the address_book_context relative to the student with differentiated modules enabled" do
         @topic.assignment_overrides.create!(set: @course_section)
 
-        expect(@topic.address_book_context_for(@teacher1).to_a).to eq [@course_section]
+        expect(@topic.address_book_context_for(@teacher1.principal).to_a).to eq [@course_section]
       end
 
       it "returns the course if there are student overrides" do
         override = @topic.assignment_overrides.create!
         override.assignment_override_students.create!(user: @student1)
 
-        expect(@topic.address_book_context_for(@teacher1)).to eq @course
+        expect(@topic.address_book_context_for(@teacher1.principal)).to eq @course
       end
     end
 
@@ -2844,7 +2844,7 @@ describe DiscussionTopic do
       section2 = @course.course_sections.create!(name: "no topics")
       user = student_in_course(course: @course, active_enrollment: true, section: section2).user
       add_section_to_topic(topic, @section)
-      expect(topic.address_book_context_for(user).to_a).to eq []
+      expect(topic.address_book_context_for(user.principal).to_a).to eq []
     end
 
     it "returns all sections for the address_book_context when student has 2" do
@@ -2854,7 +2854,7 @@ describe DiscussionTopic do
       @course.enroll_student(user, allow_multiple_enrollments: true, section: section2, enrollment_state: "active")
       add_section_to_topic(topic, @section)
       add_section_to_topic(topic, section2)
-      expect(topic.address_book_context_for(user).to_a.sort).to eq [@section, section2].sort
+      expect(topic.address_book_context_for(user.principal).to_a.sort).to eq [@section, section2].sort
     end
 
     it "group topics cannot be section specific" do

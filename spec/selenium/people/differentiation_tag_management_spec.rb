@@ -719,7 +719,7 @@ describe "Differentiation Tag Management" do
           f("input[type='checkbox'][aria-label='Select #{@student.name}']").click
           expect(f("input[type='checkbox'][aria-label='Select #{@student.name}']").attribute("checked")).to be_truthy
           # Use the role filter dropdown (assumed to have id 'role-filter') to filter by "Student"
-          student_role_name = Role.role_data(@course, @teacher).find { |r| r[:name] == "StudentEnrollment" }[:label]
+          student_role_name = Role.role_data(@course, @teacher.principal).find { |r| r[:name] == "StudentEnrollment" }[:label]
           click_option("#people-filter-select", student_role_name, :text)
           wait_for_ajaximations
 

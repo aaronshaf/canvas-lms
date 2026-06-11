@@ -1028,7 +1028,7 @@ describe AssignmentOverrideApplicator do
 
       describe "for students" do
         it "returns section overrides" do
-          result = AssignmentOverrideApplicator.section_overrides(@assignment, @student2)
+          result = AssignmentOverrideApplicator.section_overrides(@assignment, @student2.principal)
           expect(result.length).to eq 1
         end
 
@@ -1112,7 +1112,7 @@ describe AssignmentOverrideApplicator do
           override = assignment_override_model(assignment:)
           override.set = @course.course_sections.create!
           override.save!
-          overrides = AssignmentOverrideApplicator.section_overrides(assignment, @student)
+          overrides = AssignmentOverrideApplicator.section_overrides(assignment, @student.principal)
           expect(overrides).to be_empty
         end
 
@@ -1126,14 +1126,14 @@ describe AssignmentOverrideApplicator do
       describe "for teachers" do
         it "works" do
           teacher_in_course
-          result = AssignmentOverrideApplicator.section_overrides(@assignment, @teacher)
+          result = AssignmentOverrideApplicator.section_overrides(@assignment, @teacher.principal)
           expect(result).to include(@override, @override2)
         end
 
         it "includes context module overrides" do
           teacher_in_course
           create_section_context_module_override(@course.default_section)
-          result = AssignmentOverrideApplicator.section_overrides(@assignment, @teacher)
+          result = AssignmentOverrideApplicator.section_overrides(@assignment, @teacher.principal)
           expect(result).to include(@module_override)
         end
       end
@@ -1187,19 +1187,19 @@ describe AssignmentOverrideApplicator do
           discussion_override.save!
 
           # students
-          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @student)
+          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @student.principal)
           expect(overrides).to eq [discussion_override]
 
           # teachers
-          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @teacher)
+          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @teacher.principal)
           expect(overrides).to eq [discussion_override]
 
           # admins
-          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @admin)
+          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @admin.principal)
           expect(overrides).to eq [discussion_override]
 
           # observers
-          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @observer)
+          overrides = AssignmentOverrideApplicator.section_overrides(discussion, @observer.principal)
           expect(overrides).to eq [discussion_override]
         end
 
@@ -1210,19 +1210,19 @@ describe AssignmentOverrideApplicator do
           wiki_page_override.save!
 
           # students
-          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @student)
+          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @student.principal)
           expect(overrides).to eq [wiki_page_override]
 
           # teachers
-          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @teacher)
+          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @teacher.principal)
           expect(overrides).to eq [wiki_page_override]
 
           # admins
-          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @admin)
+          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @admin.principal)
           expect(overrides).to eq [wiki_page_override]
 
           # observers
-          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @observer)
+          overrides = AssignmentOverrideApplicator.section_overrides(wiki_page, @observer.principal)
           expect(overrides).to eq [wiki_page_override]
         end
       end

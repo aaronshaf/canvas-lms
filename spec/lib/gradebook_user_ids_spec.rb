@@ -115,7 +115,7 @@ describe GradebookUserIds do
     @fake_student.update!(sortable_name: "Baker")
   end
 
-  let(:gradebook_user_ids) { GradebookUserIds.new(@course, @teacher) }
+  let(:gradebook_user_ids) { GradebookUserIds.new(@course, @teacher.principal) }
 
   context "with viewing user's privileges limited" do
     let!(:viewable_section) { @course.course_sections.create! }

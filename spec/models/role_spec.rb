@@ -249,7 +249,7 @@ describe Role do
         @course.enroll_user(user_factory, bt, role: @custom_roles[bt])
       end
 
-      all = Role.custom_roles_and_counts_for_course(@course, @course.teachers.first)
+      all = Role.custom_roles_and_counts_for_course(@course, @course.teachers.first.principal)
 
       @base_types.each do |bt|
         hash = get_base_type(all, bt)
@@ -267,7 +267,7 @@ describe Role do
           @course.enroll_user(user_factory, bt, role: @custom_roles[bt])
         end
 
-        roles = Role.role_data(@course, @course.teachers.first)
+        roles = Role.role_data(@course, @course.teachers.first.principal)
         expect(roles.length).to eq 10
       end
     end
@@ -308,7 +308,7 @@ describe Role do
 
               @course.account.role_overrides.create!(role: @role, enabled: true, permission: permission_key)
 
-              roles = Role.role_data(@course, @admin)
+              roles = Role.role_data(@course, @admin.principal)
               roles_to_test.each do |test_role|
                 value = roles.find { |r| r[:name] == role_names[test_role] }[role_key_to_test]
                 expect(value).to eq perm_role == test_role
@@ -325,7 +325,7 @@ describe Role do
       it "sets addable_by_user correctly in a blueprint course" do
         @admin = account_admin_user(account: @course.account)
         MasterCourses::MasterTemplate.set_as_master_course(@course)
-        roles = Role.role_data(@course, @admin)
+        roles = Role.role_data(@course, @admin.principal)
         expect(roles.find { |r| r[:name] == "TeacherEnrollment" }[:addable_by_user]).to be_truthy
         expect(roles.find { |r| r[:name] == "StudentEnrollment" }[:addable_by_user]).to be_falsey
         expect(roles.find { |r| r[:name] == "ObserverEnrollment" }[:addable_by_user]).to be_falsey

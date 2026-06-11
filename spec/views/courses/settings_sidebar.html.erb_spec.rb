@@ -28,7 +28,7 @@ describe "courses/_settings_sidebar" do
     @course.save!
     assign(:context, @course)
     assign(:user_counts, {})
-    assign(:all_roles, Role.custom_roles_and_counts_for_course(@course, @user))
+    assign(:all_roles, Role.custom_roles_and_counts_for_course(@course, @user.principal))
     assign(:course_settings_sub_navigation_tools, [])
   end
 

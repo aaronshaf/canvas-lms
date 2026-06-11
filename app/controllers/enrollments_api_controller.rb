@@ -1186,7 +1186,7 @@ class EnrollmentsApiController < ApplicationController
     end
 
     if @context.grants_any_right?(current_principal, session, :read_roster, :view_all_grades, :manage_grades)
-      scope = @context.apply_enrollment_visibility(@context.all_enrollments, @current_user).where(enrollment_index_conditions)
+      scope = @context.apply_enrollment_visibility(@context.all_enrollments, current_principal).where(enrollment_index_conditions)
 
       unless params[:state].present?
         include_inactive = @context.grants_right?(current_principal, session, :read_as_admin)

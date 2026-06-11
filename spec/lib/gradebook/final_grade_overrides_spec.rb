@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 describe Gradebook::FinalGradeOverrides do
-  let(:final_grade_overrides) { Gradebook::FinalGradeOverrides.new(@course, @teacher).to_h }
+  let(:final_grade_overrides) { Gradebook::FinalGradeOverrides.new(@course, @teacher.principal).to_h }
 
   before(:once) do
     @course = Course.create!
@@ -171,7 +171,7 @@ describe Gradebook::FinalGradeOverrides do
 
     describe ".queue_bulk_update" do
       it "returns a progress object" do
-        progress = Gradebook::FinalGradeOverrides.queue_bulk_update(course, teacher, override_updates, nil)
+        progress = Gradebook::FinalGradeOverrides.queue_bulk_update(course, teacher.principal, override_updates, nil)
 
         expect(progress).to be_a(Progress)
       end
@@ -182,7 +182,7 @@ describe Gradebook::FinalGradeOverrides do
 
       def run(updates: override_updates, grading_period: nil, updating_user: teacher, progress: nil)
         course.recompute_student_scores(run_immediately: true)
-        Gradebook::FinalGradeOverrides.process_bulk_update(progress, course, updating_user, updates, grading_period)
+        Gradebook::FinalGradeOverrides.process_bulk_update(progress, course, updating_user.principal, updates, grading_period)
       end
 
       it "updates the override score for each included record" do

@@ -236,7 +236,7 @@ class ProvisionalGradesController < ProvisionalGradesBaseController
     submissions = @assignment.submissions.preload(:all_submission_comments,
                                                   { provisional_grades: :rubric_assessments })
     selections = @assignment.moderated_grading_selections.index_by(&:student_id)
-    student_ids = @context.students_visible_to(@current_user, include: :inactive).pluck(:id)
+    student_ids = @context.students_visible_to(current_principal, include: :inactive).pluck(:id)
 
     graded_submissions = submissions.select do |submission|
       submission.provisional_grades.any? && student_ids.include?(submission.user_id)

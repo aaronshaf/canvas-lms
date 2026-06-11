@@ -830,7 +830,7 @@ module Types
                     Loaders::AssociationLoader.for(AbstractAssignment, :submissions).load(assignment),
                     Loaders::AssociationLoader.for(AbstractAssignment, :context).load(assignment)
                   ]).then do
-        students = assignment.representatives(user: current_user)
+        students = assignment.representatives(principal: current_principal)
         scope.where(user_id: students)
       end
     end
@@ -1012,7 +1012,7 @@ module Types
       return nil unless assignment.context.grants_right?(current_principal, :manage_grades)
 
       base_scope = assignment.context.participating_students_by_date.not_fake_student
-      visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, current_user)
+      visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, current_principal)
                                             .select("users.*")
 
       scope = User.from("(#{visible_students_subquery.to_sql}) AS users")

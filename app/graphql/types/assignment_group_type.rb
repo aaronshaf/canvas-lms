@@ -68,7 +68,7 @@ module Types
         if filter[:enrollment_ids]
           enrollments = enrollments.where(id: filter[:enrollment_ids])
         end
-        visible_enrollments = course.apply_enrollment_visibility(enrollments, current_user)
+        visible_enrollments = course.apply_enrollment_visibility(enrollments, current_principal)
 
         # slim the scope down further because while students can see other student enrollments, they should not be able to see other student grades
         unless course.grants_any_right?(current_principal, :manage_grades, :read_as_admin)

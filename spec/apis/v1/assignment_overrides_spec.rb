@@ -115,7 +115,7 @@ describe AssignmentOverridesController, type: :request do
       @override.set = @course.course_sections.create!
       @override.save!
 
-      expect(@course.sections_visible_to(@teacher)).not_to include @override.set
+      expect(@course.sections_visible_to(@teacher.principal)).not_to include @override.set
       json = api_call(:get,
                       "/api/v1/courses/#{@course.id}/assignments/#{@assignment.id}/overrides.json",
                       controller: "assignment_overrides",

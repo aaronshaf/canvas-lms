@@ -631,7 +631,7 @@ module Types
     def summary_analytics(course_id:)
       Loaders::CourseStudentAnalyticsLoader.for(
         course_id,
-        current_user: context[:current_user],
+        current_principal: context[:current_principal],
         session: context[:session]
       ).load(object)
     end
@@ -1036,7 +1036,7 @@ module Types
                         assignment.context.feature_enabled?(:peer_review_allocation_and_grading) &&
                         assignment.peer_reviews
 
-      Loaders::PeerReviewStatusLoader.for(assignment_id, current_user:).load(object.id)
+      Loaders::PeerReviewStatusLoader.for(assignment_id, current_principal:).load(object.id)
     end
 
     field :activity_stream, ActivityStreamType, null: true do

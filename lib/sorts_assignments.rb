@@ -22,9 +22,11 @@ class SortsAssignments
 
   VALID_BUCKETS = %i[past overdue undated ungraded unsubmitted upcoming future].freeze
 
-  def initialize(assignments_scope:, user:, session:, course:, requested_user: nil, include_discussion_checkpoints: false)
+  attr_reader :principal
+
+  def initialize(assignments_scope:, principal:, session:, course:, requested_user: nil, include_discussion_checkpoints: false)
     @assignments_scope = assignments_scope
-    @user = user
+    @principal = principal
     @session = session
     @course = course
     @requested_user = requested_user
@@ -113,14 +115,14 @@ class SortsAssignments
   end
 
   def students
-    @students ||= if @requested_user.present? && @user != @requested_user
+    @students ||= if @requested_user.present? && principal.user != @requested_user
                     [@requested_user]
-                  elsif @course.grants_right?(@user, @session, :read_as_admin)
-                    @course.students_visible_to(@user).merge(Enrollment.of_student_type).distinct.to_a
-                  elsif @course.observers.where(id: @user).exists?
-                    ObserverEnrollment.observed_students(@course, @user).keys
+                  elsif @course.grants_right?(principal.user, @session, :read_as_admin)
+                    @course.students_visible_to(principal).merge(Enrollment.of_student_type).distinct.to_a
+                  elsif @course.observers.where(id: principal.user).exists?
+                    ObserverEnrollment.observed_students(@course, principal.user).keys
                   else
-                    [@user]
+                    [principal.user]
                   end
   end
 end

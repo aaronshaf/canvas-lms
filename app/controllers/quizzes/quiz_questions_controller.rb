@@ -479,7 +479,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
                                           })
       scope = scope.preload(assessment_question: :assessment_question_bank) if Account.site_admin.feature_enabled?(:ams_add_question_bank_to_quiz_question)
 
-      results_visible = @quiz_submission.results_visible?(user: @current_user)
+      results_visible = @quiz_submission.results_visible?(principal: current_principal)
       reject! "Cannot view questions due to quiz settings", 401 unless results_visible
 
       render_question_set(scope, @quiz_submission.quiz_data)

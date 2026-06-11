@@ -29,6 +29,7 @@ describe Api::V1::CalendarEvent do
   end
 
   let_once(:course) { course_model }
+  let(:current_principal) { @user.principal }
 
   def conference(context:, user: @user, type: "BigBlueButton")
     WebConference.create!(context:, user:, conference_type: type)
@@ -113,12 +114,12 @@ describe Api::V1::CalendarEvent do
         peer_review_model(parent_assignment: assignment)
         assignment.reload
 
-        json = assignment_event_json(assignment, @user, @session)
+        json = assignment_event_json(assignment, current_principal, @session)
         expect(json["assignment"]["peer_review_sub_assignment_enabled"]).to be true
       end
 
       it "includes peer_review_sub_assignment_enabled as false when peer review sub assignment does not exist" do
-        json = assignment_event_json(assignment, @user, @session)
+        json = assignment_event_json(assignment, current_principal, @session)
         expect(json["assignment"]["peer_review_sub_assignment_enabled"]).to be false
       end
 
@@ -128,7 +129,7 @@ describe Api::V1::CalendarEvent do
         overridden = AssignmentOverrideApplicator.assignment_with_overrides(assignment, [override])
         allow(self).to receive(:assignment_override_json).and_return({ "id" => override.id })
 
-        json = assignment_event_json(overridden, @user, @session)
+        json = assignment_event_json(overridden, current_principal, @session)
 
         expect(json["assignment_overrides"]).to be_present
         expect(json["assignment"]["peer_review_sub_assignment_enabled"]).to be true
@@ -137,7 +138,7 @@ describe Api::V1::CalendarEvent do
 
     context "when peer_review_allocation_and_grading is disabled" do
       it "does not include peer_review_sub_assignment_enabled" do
-        json = assignment_event_json(assignment, @user, @session)
+        json = assignment_event_json(assignment, current_principal, @session)
         expect(json["assignment"]).not_to have_key("peer_review_sub_assignment_enabled")
       end
 
@@ -146,7 +147,7 @@ describe Api::V1::CalendarEvent do
         course.disable_feature!(:peer_review_allocation_and_grading)
         assignment.reload
 
-        json = assignment_event_json(assignment, @user, @session)
+        json = assignment_event_json(assignment, current_principal, @session)
         expect(json["assignment"]).not_to have_key("peer_review_sub_assignment_enabled")
       end
     end

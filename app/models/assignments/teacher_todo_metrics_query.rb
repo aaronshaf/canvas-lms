@@ -57,9 +57,11 @@ module Assignments
       total_submissions_count: 0,
     }.freeze
 
-    def initialize(assignment, user)
+    attr_reader :principal
+
+    def initialize(assignment, principal)
       @assignment = assignment
-      @user = user
+      @principal = principal
     end
 
     def metrics
@@ -96,11 +98,11 @@ module Assignments
     private
 
     def visibility_level
-      @visibility_level ||= @assignment.context.enrollment_visibility_level_for(@user, section_visibilities)
+      @visibility_level ||= @assignment.context.enrollment_visibility_level_for(principal, section_visibilities)
     end
 
     def section_visibilities
-      @section_visibilities ||= @assignment.context.section_visibilities_for(@user)
+      @section_visibilities ||= @assignment.context.section_visibilities_for(principal.user)
     end
 
     def visible_section_ids
@@ -148,7 +150,7 @@ module Assignments
                  .joins(:provisional_grades)
                  .where(
                    assignment_id:,
-                   moderated_grading_provisional_grades: { final: false, scorer_id: @user.id }
+                   moderated_grading_provisional_grades: { final: false, scorer_id: principal.user }
                  )
                  .where.not(moderated_grading_provisional_grades: { score: nil })
                  .pluck(:id)
@@ -164,7 +166,7 @@ module Assignments
         .joins(:provisional_grades)
         .where(assignment_id:)
         .where(moderated_grading_provisional_grades: { final: false })
-        .where.not(moderated_grading_provisional_grades: { scorer_id: @user.id })
+        .where.not(moderated_grading_provisional_grades: { scorer_id: principal.user })
         .group("submissions.id", "submissions.user_id")
         .count
         .each do |(sub_id, user_id), pg_count|

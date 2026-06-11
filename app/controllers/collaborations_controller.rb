@@ -425,7 +425,7 @@ class CollaborationsController < ApplicationController
   def potential_collaborators
     return unless authorized_action(@context, current_principal, :read_roster)
 
-    scope = @context.is_a?(Course) ? @context.potential_collaborators_for(@current_user) : @context.potential_collaborators
+    scope = @context.is_a?(Course) ? @context.potential_collaborators_for(current_principal) : @context.potential_collaborators
     scope = scope.order(:sortable_name)
 
     users = Api.paginate(scope, self, polymorphic_url([:api_v1, @context, :potential_collaborators]))

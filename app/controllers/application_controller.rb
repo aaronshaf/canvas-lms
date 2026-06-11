@@ -1808,7 +1808,7 @@ class ApplicationController < ActionController::Base
     log_course(course)
     sorter = SortsAssignments.new(
       assignments_scope: visible_assignments,
-      user: @current_user,
+      principal: current_principal,
       session:,
       course:,
       include_discussion_checkpoints:

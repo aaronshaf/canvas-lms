@@ -1399,7 +1399,7 @@ class Enrollment < ApplicationRecord
     can :read and can :read_grades
 
     given do |principal, session|
-      course.students_visible_to(principal&.user, include: :priors).where(id: user_id).exists? &&
+      course.students_visible_to(principal, include: :priors).where(id: user_id).exists? &&
         course.grants_any_right?(principal, session, :manage_grades, :view_all_grades)
     end
     can :read and can :read_grades

@@ -1297,10 +1297,6 @@ class Course < ApplicationRecord
     current_users
   end
 
-  def potential_collaborators_for(current_user)
-    users_visible_to(current_user)
-  end
-
   def broadcast_data
     { course_id: id, root_account_id: }
   end
@@ -3343,7 +3339,7 @@ class Course < ApplicationRecord
   end
 
   # returns a scope, not an array of users/enrollments
-  def students_visible_to(user, include: nil)
+  def students_visible_to(principal, include: nil)
     include = Array(include)
 
     if include.include?(:priors_and_deleted)
@@ -3358,19 +3354,19 @@ class Course < ApplicationRecord
       scope = students
     end
 
-    apply_enrollment_visibility(scope, user, nil, include:)
+    apply_enrollment_visibility(scope, principal, nil, include:)
   end
 
   # can apply to user scopes as well if through enrollments (e.g. students, teachers)
   # returns a scope for enrollments
-  def apply_enrollment_visibility(scope, user, section_ids = nil, include: [])
+  def apply_enrollment_visibility(scope, principal, section_ids = nil, include: [])
     include = Array(include)
     if section_ids
       scope = scope.where("enrollments.course_section_id" => section_ids.to_a)
     end
 
-    visibilities = section_visibilities_for(user)
-    visibility_level = enrollment_visibility_level_for(user, visibilities)
+    visibilities = section_visibilities_for(principal&.user)
+    visibility_level = enrollment_visibility_level_for(principal, visibilities)
 
     # teachers, account admins, and student view students can see student view students
     unless visibility_level == :full ||
@@ -3397,15 +3393,15 @@ class Course < ApplicationRecord
                   false)
     when :restricted
       user_ids = visibilities.filter_map { |s| s[:associated_user_id] }
-      scope.where(enrollments: { user_id: (user_ids + [user&.id]).compact })
+      scope.where(enrollments: { user_id: (user_ids + [principal&.user&.id]).compact })
     else
       scope.none
     end
   end
 
-  def users_visible_to(user, include_priors: false, include_inactive: false, enrollment_state: nil, exclude_enrollment_state: nil, section_ids: nil)
-    visibilities = section_visibilities_for(user)
-    visibility = enrollment_visibility_level_for(user, visibilities)
+  def users_visible_to(principal, include_priors: false, include_inactive: false, enrollment_state: nil, exclude_enrollment_state: nil, section_ids: nil)
+    visibilities = section_visibilities_for(principal&.user)
+    visibility = enrollment_visibility_level_for(principal, visibilities)
 
     scope = if include_priors
               users
@@ -3416,20 +3412,21 @@ class Course < ApplicationRecord
             end
 
     apply_enrollment_visibilities_internal(scope,
-                                           user,
+                                           principal&.user,
                                            visibilities,
                                            visibility,
                                            enrollment_state:,
                                            exclude_enrollment_state:,
                                            section_ids:)
   end
+  alias_method :potential_collaborators_for, :users_visible_to
 
-  def enrollments_visible_to(user, opts = {})
-    visibilities = section_visibilities_for(user)
-    visibility = enrollment_visibility_level_for(user, visibilities)
+  def enrollments_visible_to(principal, opts = {})
+    visibilities = section_visibilities_for(principal&.user)
+    visibility = enrollment_visibility_level_for(principal, visibilities)
 
     enrollment_scope = opts[:include_concluded] ? enrollments : current_enrollments
-    apply_enrollment_visibilities_internal(enrollment_scope.except(:preload), user, visibilities, visibility)
+    apply_enrollment_visibilities_internal(enrollment_scope.except(:preload), principal&.user, visibilities, visibility)
   end
 
   def apply_enrollment_visibilities_internal(scope, user, visibilities, visibility, enrollment_state: nil, exclude_enrollment_state: nil, section_ids: nil)
@@ -3452,9 +3449,9 @@ class Course < ApplicationRecord
   end
 
   # returns :all or an array of section ids
-  def course_section_visibility(user, opts = {})
-    visibilities = section_visibilities_for(user, opts)
-    visibility = enrollment_visibility_level_for(user, visibilities, check_full: false)
+  def course_section_visibility(principal, opts = {})
+    visibilities = section_visibilities_for(principal&.user, opts)
+    visibility = enrollment_visibility_level_for(principal, visibilities, check_full: false)
     enrollment_types = %w[StudentEnrollment StudentViewEnrollment ObserverEnrollment]
     if [:restricted, :sections].include?(visibility) || (
         visibilities.any? && visibilities.all? { |v| enrollment_types.include? v[:type] }
@@ -3465,9 +3462,9 @@ class Course < ApplicationRecord
     end
   end
 
-  def sections_visible_to(user, sections = active_course_sections, opts = {})
+  def sections_visible_to(principal, sections = active_course_sections, opts = {})
     is_scope = sections.respond_to?(:where)
-    section_ids = course_section_visibility(user, opts)
+    section_ids = course_section_visibility(principal, opts)
     case section_ids
     when :all
       sections
@@ -3481,19 +3478,19 @@ class Course < ApplicationRecord
 
   # check_full is a hint that we don't care about the difference between :full and :limited,
   # so don't bother with an extra permission check to see if they have :full. Just return :limited.
-  def enrollment_visibility_level_for(user,
-                                      visibilities = section_visibilities_for(user),
+  def enrollment_visibility_level_for(principal,
+                                      visibilities = section_visibilities_for(principal&.user),
                                       require_message_permission: false,
                                       check_full: true)
-    return :restricted if require_message_permission && !grants_right?(user, :send_messages)
+    return :restricted if require_message_permission && !grants_right?(principal, :send_messages)
 
-    has_read_roster = grants_right?(user, :read_roster) unless require_message_permission
+    has_read_roster = grants_right?(principal, :read_roster) unless require_message_permission
 
-    visibility_limited_to_section = visibilities.present? && visibility_limited_to_course_sections?(user, visibilities)
+    visibility_limited_to_section = visibilities.present? && visibility_limited_to_course_sections?(principal.user, visibilities)
     if require_message_permission
       has_admin = true
     elsif visibility_limited_to_section || check_full || !has_read_roster
-      has_admin = grants_any_right?(user,
+      has_admin = grants_any_right?(principal,
                                     :read_as_admin,
                                     :view_all_grades,
                                     :manage_grades,
@@ -3513,8 +3510,8 @@ class Course < ApplicationRecord
     end
   end
 
-  def invited_count_visible_to(user)
-    scope = users_visible_to(user)
+  def invited_count_visible_to(principal)
+    scope = users_visible_to(principal)
             .where("enrollments.workflow_state in ('invited', 'creation_pending') AND enrollments.type != 'StudentViewEnrollment'")
     scope.select("users.id").distinct.count
   end
@@ -4579,8 +4576,8 @@ class Course < ApplicationRecord
     progress
   end
 
-  def re_send_invitations!(from_user)
-    apply_enrollment_visibility(student_enrollments, from_user).invited.except(:preload).preload(user: :communication_channels).find_each do |e|
+  def re_send_invitations!(principal)
+    apply_enrollment_visibility(student_enrollments, principal).invited.except(:preload).preload(user: :communication_channels).find_each do |e|
       e.re_send_confirmation! if e.invited?
     end
   end

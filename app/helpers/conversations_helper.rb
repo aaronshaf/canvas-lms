@@ -354,17 +354,17 @@ module ConversationsHelper
     Array(params[key].presence || []).compact
   end
 
-  def soft_concluded_course_for_user?(course, user)
+  def soft_concluded_course_for_user?(course, principal)
     # Fetch active enrollments for the user in the course and map to their types
-    user_enrollment_types = course.enrollments.active.where(user_id: user.id).map(&:type)
+    user_enrollment_types = course.enrollments.active.where(user_id: principal.user).map(&:type)
     return course.soft_concluded? if user_enrollment_types.empty?
 
     # If the user has an active enrollment type or active section, the course is not soft concluded for that user
-    !(has_active_enrollment_type?(course, user_enrollment_types) || user_has_active_section?(course, user))
+    !(has_active_enrollment_type?(course, user_enrollment_types) || user_has_active_section?(course, principal))
   end
 
-  def user_has_active_section?(course, user)
-    visible_sections = course.sections_visible_to(user)
+  def user_has_active_section?(course, principal)
+    visible_sections = course.sections_visible_to(principal)
     visible_sections.any? { |section| !section.concluded? }
   end
 
@@ -384,7 +384,7 @@ module ConversationsHelper
       raise InvalidContextError
     end
 
-    if context.is_a?(Course) && (context.workflow_state == "completed" || soft_concluded_course_for_user?(context, @current_user))
+    if context.is_a?(Course) && (context.workflow_state == "completed" || soft_concluded_course_for_user?(context, current_principal))
       raise CourseConcludedError
     end
 

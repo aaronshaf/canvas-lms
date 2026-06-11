@@ -49,7 +49,7 @@ module Submissions
     end
 
     def get_user_considering_section(user_id)
-      students = @context.students_visible_to(@current_user, include: :priors)
+      students = @context.students_visible_to(current_principal, include: :priors)
       if @section
         students = students.where(enrollments: { course_section_id: @section })
       end

@@ -390,7 +390,7 @@ module Types
           :manage_grades
         )
 
-        scope = course.apply_enrollment_visibility(course.all_enrollments, current_user)
+        scope = course.apply_enrollment_visibility(course.all_enrollments, current_principal)
         scope = filter[:states].present? ? scope.where(workflow_state: filter[:states]) : scope.active
         scope = scope.where(associated_user_id: filter[:associated_user_ids]) if filter[:associated_user_ids].present?
         scope = scope.where(user_id: filter[:user_ids]) if filter[:user_ids].present?
@@ -426,7 +426,7 @@ module Types
     def submissions_connection(student_ids: nil, order_by: [], filter: {})
       allowed_user_ids_promise = preload_course_permissions.then do
         if course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
-          Loaders::CourseVisibleStudentUserIdsLoader.for(current_user:).load(course)
+          Loaders::CourseVisibleStudentUserIdsLoader.for(current_principal:).load(course)
         elsif course.grants_right?(current_principal, session, :read_grades)
           Promise.resolve([current_user.id])
         else

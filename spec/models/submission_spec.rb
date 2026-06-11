@@ -6731,7 +6731,7 @@ describe Submission do
     end
 
     it "updates submissions on an assignment" do
-      Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+      Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                        @a1.id.to_s => {
                                          @u1.id => { posted_grade: 5 },
                                          @u2.id => { posted_grade: 10 }
@@ -6745,14 +6745,14 @@ describe Submission do
     it "only recalculates scores for users with changed submissions" do
       data1 = { @a1.id.to_s => { @u1.id => { posted_grade: 5 }, @u2.id => { posted_grade: 10 } } }
       data2 = { @a1.id.to_s => { @u1.id => { posted_grade: 5 }, @u2.id => { posted_grade: 11 } } } # leave u1 the same
-      Submission.process_bulk_update(@progress, @course, nil, @teacher, data1)
+      Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, data1)
 
       expect_any_instantiation_of(@course).to receive(:recompute_student_scores).with([@u2.id])
-      Submission.process_bulk_update(@progress, @course, nil, @teacher, data2)
+      Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, data2)
     end
 
     it "updates submissions on multiple assignments" do
-      Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+      Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                        @a1.id => {
                                          @u1.id => { posted_grade: 5 },
                                          @u2.id => { posted_grade: 10 }
@@ -6774,7 +6774,7 @@ describe Submission do
       Submission.process_bulk_update(@progress,
                                      @course,
                                      nil,
-                                     @teacher,
+                                     @teacher.principal,
                                      {
                                        @a1.id => {
                                          @u1.id => { text_comment: "comment" }
@@ -6789,7 +6789,7 @@ describe Submission do
       Submission.process_bulk_update(@progress,
                                      @course,
                                      nil,
-                                     @teacher,
+                                     @teacher.principal,
                                      {
                                        @a1.id => {
                                          @u1.id => { posted_grade: nil }
@@ -6802,7 +6802,7 @@ describe Submission do
     it "does not explode if the assignment is deleted" do
       @a1.destroy
       expect do
-        Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+        Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                          @a1.id.to_s => {
                                            @u1.id => { posted_grade: 5 },
                                            @u2.id => { posted_grade: 10 }
@@ -6819,7 +6819,7 @@ describe Submission do
       Submission.process_bulk_update(@progress,
                                      @course,
                                      nil,
-                                     @teacher,
+                                     @teacher.principal,
                                      {
                                        @a1.id => {
                                          @u1.id => { posted_grade: nil }
@@ -6846,7 +6846,7 @@ describe Submission do
       end
 
       it "sets the comment to visible if the assignment is automatically posted" do
-        Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+        Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                          auto_assignment.id.to_s => {
                                            @u1.id => { text_comment: "hello there" }
                                          }
@@ -6858,7 +6858,7 @@ describe Submission do
 
       it "sets the comment to visible if the relevant submission has already been posted" do
         auto_assignment.grade_student(@u1, grade: 0, grader: @teacher)
-        Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+        Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                          auto_assignment.id.to_s => {
                                            @u1.id => { text_comment: "hello there" }
                                          }
@@ -6869,7 +6869,7 @@ describe Submission do
       end
 
       it "sets the comment to visible if a grade is also included in the update" do
-        Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+        Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                          auto_assignment.id.to_s => {
                                            @u1.id => { posted_grade: 0, text_comment: "hello there" }
                                          }
@@ -6885,7 +6885,7 @@ describe Submission do
         it "shows the comment if the associated submission is already posted" do
           manual_assignment.post_submissions(submission_ids: [submission.id])
 
-          Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+          Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                            manual_assignment.id.to_s => {
                                              @u1.id => { text_comment: "hello there" }
                                            }
@@ -6894,7 +6894,7 @@ describe Submission do
         end
 
         it "leaves the comment hidden if the associated submission is not posted" do
-          Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+          Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                            manual_assignment.id.to_s => {
                                              @u1.id => { text_comment: "clandestine comment" }
                                            }
@@ -6905,7 +6905,7 @@ describe Submission do
         it "shows the comment if posted_comments_at is set on the submission" do
           submission.update!(posted_comments_at: Time.zone.now)
 
-          Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+          Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                            manual_assignment.id.to_s => {
                                              @u1.id => { text_comment: "comment visible via posted_comments_at" }
                                            }
@@ -6916,7 +6916,7 @@ describe Submission do
         it "leaves the comment hidden if neither posted_at nor posted_comments_at is set" do
           submission.update!(posted_at: nil, posted_comments_at: nil)
 
-          Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+          Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                            manual_assignment.id.to_s => {
                                              @u1.id => { text_comment: "fully hidden comment" }
                                            }
@@ -6937,7 +6937,7 @@ describe Submission do
         AssignmentVisibility::AssignmentVisibilityService.assignments_visible_to_students(course_ids: @course, assignment_ids: assignment)
         assignment.assignment_overrides.create!(set_type: "CourseSection", set: @course.course_sections.first)
 
-        Submission.process_bulk_update(@progress, @course, nil, @teacher, {
+        Submission.process_bulk_update(@progress, @course, nil, @teacher.principal, {
                                          assignment.id.to_s => {
                                            @u1.id => { posted_grade: 5 },
                                            @u2.id => { posted_grade: 10 }

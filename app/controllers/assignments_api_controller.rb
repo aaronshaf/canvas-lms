@@ -1012,7 +1012,7 @@ class AssignmentsApiController < ApplicationController
       include_params = Array(params[:include])
 
       if params[:bucket]
-        args = { assignments_scope: scope, user: @current_user, session:, course: @context }
+        args = { assignments_scope: scope, principal: current_principal, session:, course: @context }
         args[:requested_user] = user if @current_user != user
         sorter = SortsAssignments.new(**args)
         begin
@@ -1838,7 +1838,7 @@ class AssignmentsApiController < ApplicationController
 
     @user = (params[:user_id] == "self") ? @current_user : api_find(User, params[:user_id])
     # teacher, ta
-    return if @context.grants_right?(current_principal, :view_all_grades) && @context.students_visible_to(@current_user).include?(@user)
+    return if @context.grants_right?(current_principal, :view_all_grades) && @context.students_visible_to(current_principal).include?(@user)
 
     # self, observer
     authorized_action(@user, current_principal, %i[read_as_parent read])

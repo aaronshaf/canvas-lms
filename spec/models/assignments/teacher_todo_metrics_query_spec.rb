@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 describe Assignments::TeacherTodoMetricsQuery do
-  subject(:metrics) { described_class.new(assignment, teacher).metrics }
+  subject(:metrics) { described_class.new(assignment, teacher.principal).metrics }
 
   let_once(:course) { course_factory(active_all: true) }
   let_once(:teacher) { teacher_in_course(course:, active_all: true).user }
@@ -52,7 +52,7 @@ describe Assignments::TeacherTodoMetricsQuery do
   end
 
   def metrics_for(assignment_arg, user)
-    described_class.new(assignment_arg, user).metrics
+    described_class.new(assignment_arg, user.principal).metrics
   end
 
   describe "#metrics" do

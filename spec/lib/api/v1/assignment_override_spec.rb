@@ -304,7 +304,7 @@ describe Api::V1::AssignmentOverride do
           @override_student.save!
 
           invisible_ids, _ = subject.invisible_users_and_overrides_for_user(
-            @course, @teacher, @assignment.assignment_overrides.active
+            @course, @teacher.principal, @assignment.assignment_overrides.active
           )
           expect(invisible_ids).to include(@student_invisible.id)
         end
@@ -317,7 +317,7 @@ describe Api::V1::AssignmentOverride do
           override_student.save!
 
           _, invisible_overrides = subject.invisible_users_and_overrides_for_user(
-            @course, @teacher, @assignment.assignment_overrides.active
+            @course, @teacher.principal, @assignment.assignment_overrides.active
           )
           expect(invisible_overrides.first).to eq override_invisible.id
         end
@@ -348,7 +348,7 @@ describe Api::V1::AssignmentOverride do
           @override_student.save!
 
           invisible_ids, _ = subject.invisible_users_and_overrides_for_user(
-            @course, @teacher, @assignment.assignment_overrides.active
+            @course, @teacher.principal, @assignment.assignment_overrides.active
           )
           expect(invisible_ids).not_to include(@student_invisible.id)
         end
@@ -361,7 +361,7 @@ describe Api::V1::AssignmentOverride do
           override_student.save!
 
           _, invisible_overrides = subject.invisible_users_and_overrides_for_user(
-            @course, @teacher, @assignment.assignment_overrides.active
+            @course, @teacher.principal, @assignment.assignment_overrides.active
           )
           expect(invisible_overrides).to be_empty
         end

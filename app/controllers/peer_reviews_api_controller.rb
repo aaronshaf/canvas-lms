@@ -183,7 +183,7 @@ class PeerReviewsApiController < ApplicationController
 
   def peer_review_assets
     @submission = @assignment.submissions.find(params[:submission_id])
-    @reviewer = @context.students_visible_to(@current_user).find params[:user_id]
-    @student = @context.students_visible_to(@current_user).find  @submission.user.id
+    @reviewer = @context.students_visible_to(current_principal).find params[:user_id]
+    @student = @context.students_visible_to(current_principal).find  @submission.user.id
   end
 end

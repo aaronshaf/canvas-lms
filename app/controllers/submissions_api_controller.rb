@@ -261,10 +261,10 @@ class SubmissionsApiController < ApplicationController
       student_ids = if value_to_boolean(params[:grouped])
                       # this provides one assignment object(and
                       # submission object within), per user group
-                      @assignment.representatives(user: @current_user).map(&:id)
+                      @assignment.representatives(principal: current_principal).map(&:id)
                     else
                       @context.apply_enrollment_visibility(@context.student_enrollments,
-                                                           @current_user,
+                                                           current_principal,
                                                            section_ids)
                               .pluck(:user_id)
                     end
@@ -392,9 +392,9 @@ class SubmissionsApiController < ApplicationController
     can_view_all = @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
     if all && can_view_all
       # this is a scope, and will generate subqueries
-      student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, @current_user, section_ids).select(:user_id)
+      student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, current_principal, section_ids).select(:user_id)
     elsif can_view_all
-      visible_student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, @current_user, section_ids).pluck(:user_id)
+      visible_student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, current_principal, section_ids).pluck(:user_id)
       inaccessible_students = student_ids - visible_student_ids
       unless inaccessible_students.empty?
         return render_unauthorized_action
@@ -1250,7 +1250,7 @@ class SubmissionsApiController < ApplicationController
       allow_new_anonymous_id = value_to_boolean(params[:allow_new_anonymous_id])
       can_view_student_names = allow_new_anonymous_id ? @assignment.can_view_student_names?(@current_user) : true
 
-      student_scope = context.students_visible_to(@current_user, include: :inactive)
+      student_scope = context.students_visible_to(current_principal, include: :inactive)
       submission_scope = @assignment.submissions.except(:preload).where(user_id: student_scope)
 
       if params[:sort] == "name"
@@ -1321,7 +1321,7 @@ class SubmissionsApiController < ApplicationController
     if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       assignment_ids = Array(params[:assignment_ids])
 
-      student_scope = context.students_visible_to(@current_user, include: :inactive)
+      student_scope = context.students_visible_to(current_principal, include: :inactive)
 
       visible_assignment_user_ids = AssignmentVisibility::AssignmentVisibilityService.assignments_visible_to_students(assignment_ids:, course_ids: context.id).map(&:user_id)
       student_scope = student_scope.where(id: visible_assignment_user_ids).distinct.order(:id)
@@ -1413,7 +1413,7 @@ class SubmissionsApiController < ApplicationController
       return render(json: { error: error_message }, status: :bad_request)
     end
 
-    progress = Submission.queue_bulk_update(@context, @section, @current_user, grade_data)
+    progress = Submission.queue_bulk_update(@context, @section, current_principal, grade_data)
     render json: progress_json(progress, current_principal, session)
   end
 
@@ -1664,15 +1664,15 @@ class SubmissionsApiController < ApplicationController
     if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       @assignment = api_find(@context.assignments.active, params[:assignment_id])
       student_ids = if should_group?
-                      @assignment.representatives(user: @current_user).map(&:id)
+                      @assignment.representatives(principal: current_principal).map(&:id)
                     elsif include_deactivated_students_in_summary?
-                      @context.students_visible_to(@current_user, include: :inactive)
+                      @context.students_visible_to(current_principal, include: :inactive)
                               .merge(Enrollment.not_fake)
                               .where(enrollments: { workflow_state: %i[active inactive] })
                               .distinct
                               .pluck(:id)
                     else
-                      student_scope = @context.students_visible_to(@current_user)
+                      student_scope = @context.students_visible_to(current_principal)
                                               .where("enrollments.type<>'StudentViewEnrollment' AND enrollments.workflow_state = 'active'").distinct
                       student_scope = @assignment.students_with_visibility(student_scope)
                       student_scope.pluck(:id)

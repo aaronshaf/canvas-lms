@@ -539,10 +539,10 @@ class AssignmentsController < ApplicationController
         conditional_release_js_env(@assignment, includes: :rule)
 
         @can_view_grades = @context.grants_right?(current_principal, session, :view_all_grades)
-        @downloadable_submissions = downloadable_submissions?(@current_user, @context, @assignment)
+        @downloadable_submissions = downloadable_submissions?
         @can_grade = @assignment.grants_right?(current_principal, session, :grade)
         if @can_view_grades || @can_grade
-          visible_student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, @current_user).pluck(:user_id)
+          visible_student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, current_principal).pluck(:user_id)
           @current_student_submissions = @assignment.submissions.where.not(submissions: { submission_type: nil }).where(user_id: visible_student_ids).to_a
         end
 
@@ -592,17 +592,17 @@ class AssignmentsController < ApplicationController
     render html: "", layout: true
   end
 
-  def downloadable_submissions?(current_user, context, assignment)
+  def downloadable_submissions?
     types = %w[online_upload online_url online_text_entry]
-    return false unless assignment.submission_types.split(",").intersect?(types) && current_user
+    return false unless @assignment.submission_types.split(",").intersect?(types) && current_principal
 
     student_ids =
-      if assignment.grade_as_group?
-        assignment.representatives(user: current_user).map(&:id)
+      if @assignment.grade_as_group?
+        @assignment.representatives(principal: current_principal).map(&:id)
       else
-        context.apply_enrollment_visibility(context.student_enrollments, current_user).pluck(:user_id)
+        @context.apply_enrollment_visibility(@context.student_enrollments, current_principal).pluck(:user_id)
       end
-    student_ids.any? && assignment.submissions.where(user_id: student_ids, submission_type: types).exists?
+    student_ids.any? && @assignment.submissions.where(user_id: student_ids, submission_type: types).exists?
   end
 
   def rubric
@@ -652,8 +652,8 @@ class AssignmentsController < ApplicationController
 
   def assign_peer_review
     @assignment = @context.assignments.active.find(params[:assignment_id])
-    @student = @context.students_visible_to(@current_user).find params[:reviewer_id]
-    @reviewee = @context.students_visible_to(@current_user).find params[:reviewee_id]
+    @student = @context.students_visible_to(current_principal).find params[:reviewer_id]
+    @reviewee = @context.students_visible_to(current_principal).find params[:reviewee_id]
     if authorized_action(@assignment, current_principal, :grade)
       @request = @assignment.assign_peer_review(@student, @reviewee)
       respond_to do |format|
@@ -776,7 +776,7 @@ class AssignmentsController < ApplicationController
         add_crumb(t("Peer Reviews"))
       end
 
-      visible_students = @context.students_visible_to(@current_user).not_fake_student
+      visible_students = @context.students_visible_to(current_principal).not_fake_student
       visible_students_assigned_to_assignment = visible_students.joins(:submissions).where(submissions: { assignment: @assignment }).merge(Submission.active)
       @submissions = @assignment.submissions.include_assessment_requests
       @students_dropdown_list = visible_students_assigned_to_assignment.distinct.order_by_sortable_name
@@ -875,7 +875,7 @@ class AssignmentsController < ApplicationController
           if @assignment.save
             flash[:notice] = t "notices.created", "Assignment was successfully created."
             format.html { redirect_to named_context_url(@context, :context_assignment_url, @assignment.id) }
-            format.json { render json: @assignment.as_json(permissions: { user: @current_user, session: }), status: :created }
+            format.json { render json: @assignment.as_json(permissions: { user: current_principal, session: }), status: :created }
           else
             format.html { render :new }
             format.json { render json: @assignment.errors, status: :bad_request }
@@ -960,7 +960,7 @@ class AssignmentsController < ApplicationController
         ASSIGNMENT_INDEX_URL: polymorphic_url([@context, :assignments]),
         ASSIGNMENT_OVERRIDES: assignment_overrides_json(
           @assignment.overrides_for(@current_user, ensure_set_not_empty: true),
-          @current_user,
+          current_principal,
           include_names: true,
           include_child_peer_review_override_dates: @context.feature_enabled?(:peer_review_allocation_and_grading) && @assignment.peer_reviews && @assignment.peer_review_sub_assignment
         ),

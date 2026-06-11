@@ -69,7 +69,7 @@ module Gradebook
     end
 
     def self.matching_submissions_scope(course, grader, options)
-      students = course.students_visible_to(grader.user).where(id: options.student_ids)
+      students = course.students_visible_to(grader).where(id: options.student_ids)
       assignments = course.assignments.where(id: options.assignment_ids).where.not(submission_types: "not_graded")
       submissions = Submission.active
                               .joins(:assignment)

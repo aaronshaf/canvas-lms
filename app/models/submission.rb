@@ -3440,7 +3440,7 @@ class Submission < ApplicationRecord
         end
 
         user_ids = user_grades.keys
-        uids_for_visiblity = Api.map_ids(user_ids, User, context.root_account, grader)
+        uids_for_visiblity = Api.map_ids(user_ids, User, context.root_account, grader.user)
 
         scope = assignment.students_with_visibility(context.students_visible_to(grader, include: :inactive),
                                                     uids_for_visiblity)
@@ -3464,7 +3464,7 @@ class Submission < ApplicationRecord
             if !submission || user_data.key?(:posted_grade) || user_data.key?(:excuse)
               submissions =
                 assignment.grade_student(user,
-                                         grader:,
+                                         grader: grader.user,
                                          grade: user_data[:posted_grade],
                                          excuse: Canvas::Plugin.value_to_boolean(user_data[:excuse]),
                                          skip_grade_calc: true,
@@ -3482,7 +3482,7 @@ class Submission < ApplicationRecord
                 "criterion_#{crit_name}"
               end
               assignment.rubric_association.assess(
-                assessor: grader,
+                assessor: grader.user,
                 user:,
                 artifact: submission,
                 assessment: assessment.merge(assessment_type: "grading")
@@ -3494,7 +3494,7 @@ class Submission < ApplicationRecord
 
             comment = {
               comment: comment[:text_comment],
-              author: grader,
+              author: grader.user,
               hidden: assignment.post_manually? && !submission.comments_posted?,
             }.merge(
               comment

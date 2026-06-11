@@ -233,11 +233,11 @@ class SubmissionSearch
 
   def allowed_users
     users = if @options[:apply_gradebook_enrollment_filters]
-              @course.users_visible_to(principal.user, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_gradebook_settings)
+              @course.users_visible_to(principal, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_gradebook_settings)
             elsif @options[:include_concluded] || @options[:include_deactivated]
-              @course.users_visible_to(principal.user, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_filters)
+              @course.users_visible_to(principal, include_priors: true, exclude_enrollment_state: excluded_enrollment_states_from_filters)
             else
-              @course.users_visible_to(principal.user)
+              @course.users_visible_to(principal)
             end
 
     if @options[:representatives_only] && @assignment.grade_as_group?
@@ -290,7 +290,7 @@ class SubmissionSearch
     includes = [:inactive]
     settings = principal.user.get_preference(:gradebook_settings, @course.global_id) || {}
     includes << :completed if settings["show_concluded_enrollments"] == "true" || @course.completed?
-    @representatives ||= @assignment.representatives(user: principal.user, includes:, ignore_student_visibility: true, include_others: true)
+    @representatives ||= @assignment.representatives(principal:, includes:, ignore_student_visibility: true, include_others: true)
   end
 
   def excluded_enrollment_states_from_gradebook_settings

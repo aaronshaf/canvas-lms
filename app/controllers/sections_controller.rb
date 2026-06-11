@@ -196,7 +196,7 @@ class SectionsController < ApplicationController
   end
 
   def user_count
-    visible_sections = @context.sections_visible_to(@current_user, @context.course_sections.active)
+    visible_sections = @context.sections_visible_to(current_principal, @context.course_sections.active)
     return render_unauthorized_action unless visible_sections.exists?
 
     GuardRail.activate(:secondary) do
@@ -452,7 +452,7 @@ class SectionsController < ApplicationController
     return unless authorized_action(@context, current_principal, :read)
     return unless authorized_action(@context.course, current_principal, :read_roster)
 
-    user_can_interact_with_the_section = @context.course.sections_visible_to(@current_user).where(id: @context.id).exists?
+    user_can_interact_with_the_section = @context.course.sections_visible_to(current_principal).where(id: @context.id).exists?
 
     return render json: { error: "section is not visible to the current user" }, status: :forbidden unless user_can_interact_with_the_section
 

@@ -48,7 +48,7 @@ class ContextModulesController < ApplicationController
          {
            id: file_tag.id,
            content_id: file_tag.content_id,
-           content_details: content_details(file_tag, @current_user, for_admin: true),
+           content_details: content_details(file_tag, current_principal, for_admin: true),
            module_id: file_tag.context_module_id
          }]
       end
@@ -83,7 +83,7 @@ class ContextModulesController < ApplicationController
                                                       .pluck(:context_module_id, :collapsed)
       @collapsed_modules = module_collapsed_base.select { |_cm_id, collapsed| collapsed == true }.map(&:first)
       @expanded_modules = module_collapsed_base.select { |_cm_id, collapsed| collapsed == false }.map(&:first)
-      @section_visibility = @context.course_section_visibility(@current_user)
+      @section_visibility = @context.course_section_visibility(current_principal)
       @combined_active_quizzes = combined_active_quizzes
 
       load_permissions
@@ -1081,7 +1081,7 @@ class ContextModulesController < ApplicationController
         unpublishable: module_item_unpublishable?(@tag),
         publish_at: module_item_publish_at(@tag),
         graded: @tag.graded?,
-        content_details: content_details(@tag, @current_user),
+        content_details: content_details(@tag, current_principal),
         assignment_id: @tag.assignment.try(:id),
         is_checkpointed: @tag.assignment.try(:has_sub_assignments),
         is_cyoe_able: cyoe_able?(@tag),

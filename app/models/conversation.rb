@@ -809,7 +809,7 @@ class Conversation < ApplicationRecord
       user_course_roles = course.all_current_enrollments.where(user_id: principal.user).pluck(:type)
 
       has_non_concluded_enrollment = !user_course_roles.empty? && user_course_roles.any? { |ucr| !course.soft_concluded?(ucr) }
-      has_non_concluded_section = course.sections_visible_to(principal.user).any? { |vs| !vs.concluded? }
+      has_non_concluded_section = course.sections_visible_to(principal).any? { |vs| !vs.concluded? }
       return true unless has_non_concluded_enrollment || has_non_concluded_section
     end
 

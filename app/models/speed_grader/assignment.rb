@@ -117,7 +117,7 @@ module SpeedGrader
       includes = gradebook_includes(user: current_principal.user, course:)
       students =
         assignment.representatives(
-          user: current_principal,
+          principal: current_principal,
           includes:,
           group_id: group_id_filter,
           section_id: section_id_filter,

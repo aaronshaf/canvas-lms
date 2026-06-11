@@ -18,10 +18,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 class GradebookUserIds
-  def initialize(course, user)
-    settings = (user.get_preference(:gradebook_settings, course.global_id) || {}).with_indifferent_access
+  attr_reader :principal
+
+  def initialize(course, principal)
+    settings = (principal.user.get_preference(:gradebook_settings, course.global_id) || {}).with_indifferent_access
     @course = course
-    @user = user
+    @principal = principal
     @include_inactive = settings[:show_inactive_enrollments] == "true"
     @include_concluded = settings[:show_concluded_enrollments] == "true"
     @column = settings[:sort_rows_by_column_id] || "student"
@@ -238,7 +240,7 @@ class GradebookUserIds
       type: [:StudentEnrollment, :StudentViewEnrollment]
     )
 
-    @course.apply_enrollment_visibility(student_enrollments, @user, nil, include: workflow_states)
+    @course.apply_enrollment_visibility(student_enrollments, principal, nil, include: workflow_states)
   end
 
   def students

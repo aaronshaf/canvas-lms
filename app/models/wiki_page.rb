@@ -447,33 +447,33 @@ class WikiPage < ApplicationRecord
     can :manage_assign_to
   end
 
-  def can_read_page?(user, session = nil)
-    read_wiki = wiki.grants_right?(user, session, :read)
-    read_course_content = context.is_a?(Course) ? (context.grants_right?(user, session, :read_course_content) || read_wiki) : true
-    return true if unpublished? && wiki.grants_right?(user, session, :view_unpublished_items) && read_course_content
+  def can_read_page?(principal, session = nil)
+    read_wiki = wiki.grants_right?(principal, session, :read)
+    read_course_content = context.is_a?(Course) ? (context.grants_right?(principal, session, :read_course_content) || read_wiki) : true
+    return true if unpublished? && wiki.grants_right?(principal, session, :view_unpublished_items) && read_course_content
 
     published? && read_wiki
   end
 
-  def can_edit_page?(user, session = nil)
-    return false unless can_read_page?(user, session)
+  def can_edit_page?(principal, session = nil)
+    return false unless can_read_page?(principal, session)
 
     # wiki managers are always allowed to edit.
-    return true if wiki.grants_right?(user, session, :update)
+    return true if wiki.grants_right?(principal, session, :update)
 
     roles = effective_roles
     return false if context.try(:completed?)
     # teachers implies all course admins (teachers, TAs, etc)
-    return true if roles.include?("teachers") && context.respond_to?(:admins) && context.admins.include?(user)
+    return true if roles.include?("teachers") && context.respond_to?(:admins) && context.admins.include?(principal.user)
 
     # the page must be available for users of the following roles
-    return false unless available_for?(user, session)
-    return true if roles.include?("students") && context.respond_to?(:students) && context.includes_student?(user)
+    return false unless available_for?(principal.user, session)
+    return true if roles.include?("students") && context.respond_to?(:students) && context.includes_student?(principal.user)
 
     if roles.include?("members") || roles.include?("public")
       if context.is_a?(Course)
-        return true if context.active_users.include?(user)
-      elsif context.respond_to?(:users) && context.users.include?(user)
+        return true if context.active_users.include?(principal.user)
+      elsif context.respond_to?(:users) && context.users.include?(principal.user)
         return true
       end
     end
@@ -483,7 +483,7 @@ class WikiPage < ApplicationRecord
 
   def show_in_search_for_user?(principal)
     return false unless principal&.user
-    return true if can_edit_page?(principal.user)
+    return true if can_edit_page?(principal)
 
     if context.tab_hidden?(Course::TAB_PAGES)
       return false unless context_module_tags.where(context:).any? { |tag| tag.context_module&.available_for?(principal.user) }

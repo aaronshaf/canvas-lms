@@ -21,7 +21,7 @@ describe AttachmentSerializer do
   subject do
     AttachmentSerializer.new(attachment, {
                                controller:,
-                               scope: User.new
+                               scope: User.new.principal
                              })
   end
 

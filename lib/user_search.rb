@@ -90,13 +90,13 @@ module UserSearch
       when Account
         account_scope(context, include_deleted_users: @include_deleted_users)
       when Course
-        context.users_visible_to(principal&.user,
+        context.users_visible_to(principal,
                                  include_priors: include_prior_enrollments,
                                  enrollment_state: enrollment_states,
                                  include_inactive: include_inactive_enrollments,
                                  section_ids: options[:section_ids]).distinct
       else
-        context.users_visible_to(principal&.user, include_inactive: include_inactive_enrollments).distinct
+        context.users_visible_to(principal, include_inactive: include_inactive_enrollments).distinct
       end
     end
 

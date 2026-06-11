@@ -19,17 +19,19 @@
 
 module Loaders
   class PeerReviewStatusLoader < GraphQL::Batch::Loader
-    def initialize(assignment_id, current_user:)
+    attr_reader :current_principal
+
+    def initialize(assignment_id, current_principal:)
       super()
       @assignment_id = assignment_id
-      @current_user = current_user
+      @current_principal = current_principal
     end
 
     def perform(user_ids)
       assignment = Assignment.find_by(id: @assignment_id)
       scoped_user_ids = if assignment
                           base_scope = assignment.context.participating_students_by_date.not_fake_student
-                          visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, @current_user)
+                          visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, current_principal)
                                                                 .select("users.*")
 
                           scope = User.from("(#{visible_students_subquery.to_sql}) AS users").where(id: user_ids)

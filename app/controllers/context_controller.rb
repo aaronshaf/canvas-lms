@@ -128,7 +128,7 @@ class ContextController < ApplicationController
                  soft_concluded: @context.soft_concluded?,
                  concluded: @context.concluded?,
                  available: @context.available?,
-                 pendingInvitationsCount: @context.invited_count_visible_to(@current_user),
+                 pendingInvitationsCount: @context.invited_count_visible_to(current_principal),
                  hideSectionsOnCourseUsersPage: @context.sections_hidden_on_roster_page?(current_user: @current_user),
                  groups_url: context_url(@context, :context_groups_url),
                  prior_enrollments_url: course_prior_users_path(@context),
@@ -256,7 +256,7 @@ class ContextController < ApplicationController
       case @context
       when Course
         is_admin = @context.grants_right?(current_principal, session, :read_as_admin)
-        scope = @context.enrollments_visible_to(@current_user, include_concluded: is_admin).where(user_id:)
+        scope = @context.enrollments_visible_to(current_principal, include_concluded: is_admin).where(user_id:)
         scope = scope.active_or_pending unless is_admin
         @membership = scope.first
         if @membership
