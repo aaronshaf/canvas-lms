@@ -87,6 +87,35 @@ describe('GradedDiscussionOptions', () => {
     })
   })
 
+  describe('Sync to SIS', () => {
+    afterEach(() => {
+      delete ENV.POST_TO_SIS
+      delete ENV.SIS_NAME
+    })
+
+    it('renders the Sync to SIS checkbox unchecked by default when SIS syncing is on', () => {
+      // ENV.POST_TO_SIS gates the checkbox on (set when the account has SIS syncing enabled).
+      // The form passes postToSis=false for a new discussion, so the box must render unchecked.
+      ENV.POST_TO_SIS = true
+      ENV.SIS_NAME = 'SIS'
+      const {getByRole} = renderGradedDiscussionOptions({postToSis: false})
+      const checkbox = getByRole('checkbox', {
+        name: "Include this assignment's grades when syncing to your school's Student Information System",
+      })
+      expect(checkbox).not.toBeChecked()
+    })
+
+    it('does not render the Sync to SIS checkbox when ENV.POST_TO_SIS is off', () => {
+      ENV.POST_TO_SIS = false
+      const {queryByRole} = renderGradedDiscussionOptions({postToSis: false})
+      expect(
+        queryByRole('checkbox', {
+          name: "Include this assignment's grades when syncing to your school's Student Information System",
+        }),
+      ).not.toBeInTheDocument()
+    })
+  })
+
   describe('with selective release', () => {
     beforeAll(() => server.listen())
     afterAll(() => server.close())
