@@ -256,16 +256,7 @@ describe "New Quizzes Integration" do
 
       outcome.align(assignment, course)
 
-      submission = assignment.find_or_create_submission(student)
-      submission.update!(
-        submission_type: "basic_lti_launch",
-        submitted_at: 1.hour.ago,
-        score: 90,
-        grade: "90",
-        workflow_state: "graded",
-        grader_id: -tool.id,
-        posted_at: 1.hour.ago
-      )
+      seed_nq_submission(assignment:, user: student, tool:, score: 90, posted: true)
 
       # Configure Outcomes Service provision settings on root account
       os_domain = "outcomes.test.example.com"

@@ -17,34 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# Shared builders for New Quizzes LTI 1.1 grade-passback request specs
-# (spec/requests/integration/nq_*_spec.rb). These construct the NQ external
-# tool, an external-tool assignment, the signed POX replaceResult request, and
-# assert on the passback response.
+# Builders for the New Quizzes LTI 1.1 grade-passback request specs
+# (nq_grade_passback_spec.rb, nq_grade_passback_controls_spec.rb). On top of the
+# tool, assignment, and submission fixtures shared with the other NQ clusters in
+# NQHelpers, this adds the signed POX replaceResult request and the
+# passback-response assertion.
+require_relative "nq_helpers"
+
 module NQGradePassbackHelpers
-  def create_nq_tool(course)
-    course.context_external_tools.create!(
-      name: "Quizzes 2",
-      consumer_key: "test_key",
-      shared_secret: "test_secret",
-      tool_id: "Quizzes 2",
-      domain: "quizzes.example.com"
-    )
-  end
+  include NQHelpers
 
   def create_nq_assignment(course, tool, title:, points_possible: 100)
-    course.assignments.create!(
-      title:,
-      submission_types: "external_tool",
-      points_possible:,
-      grading_type: "points",
-      workflow_state: "published",
-      external_tool_tag_attributes: {
-        url: "https://quizzes.example.com/launch",
-        content_type: "ContextExternalTool",
-        content_id: tool.id
-      }
-    )
+    create_nq_external_tool_assignment(course, tool, title:, points_possible:)
   end
 
   def nq_source_id(tool, course, assignment, user)
@@ -112,18 +96,20 @@ module NQGradePassbackHelpers
     expect(response_xml.at_css("imsx_codeMajor").content).to eq("success")
   end
 
+  # A pre-existing graded passback submission to replace: the shared seeder pins
+  # the launch url, marks it posted with a grade matching the current submission,
+  # and back-dates it so a later passback reads as the newer attempt.
   def seed_existing_submission(assignment:, user:, tool:, launch_url:, score:, workflow_state: "graded")
-    submission = Submission.find_or_initialize_by(assignment:, user:)
-    submission.submission_type = "basic_lti_launch"
-    submission.submitted_at = 2.hours.ago
-    submission.url = launch_url
-    submission.grade = score.to_s
-    submission.score = score
-    submission.grader_id = -tool.id
-    submission.workflow_state = workflow_state
-    submission.posted_at = submission.submitted_at
-    submission.grade_matches_current_submission = true
-    submission.with_versioning(explicit: true) { submission.save! }
-    submission
+    seed_nq_submission(
+      assignment:,
+      user:,
+      tool:,
+      score:,
+      url: launch_url,
+      submitted_at: 2.hours.ago,
+      workflow_state:,
+      posted: true,
+      grade_matches: true
+    )
   end
 end

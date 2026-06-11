@@ -28,10 +28,14 @@
 # unlock_at/lock_at/due_at into the custom_canvas_assignment_* launch params
 # that quiz_lti enforces its lock window with and forwards to quiz_api for
 # auto-submit and session capping.
+require_relative "nq_helpers"
+
 module NQAvailabilityTimingHelpers
-  # The New Quizzes tool is registered with custom fields that expand the
-  # assignment's effective dates into the launch payload, mirroring the real
-  # "Quizzes 2" tool registration.
+  include NQHelpers
+
+  # This cluster overrides the shared tool registration: it needs custom fields
+  # that expand the assignment's effective dates into the launch payload, which
+  # the domain-only NQHelpers#create_nq_tool does not carry.
   def create_nq_tool(course)
     tool = course.context_external_tools.new(
       name: "Quizzes 2",
@@ -53,22 +57,20 @@ module NQAvailabilityTimingHelpers
     tool
   end
 
+  # Reuses the shared external-tool assignment builder, layering on the Canvas
+  # date constraints under test. The tag points at the tool's own launch url
+  # (tool.url) rather than the domain default, since this cluster's tool is
+  # registered by url.
   def create_nq_assignment(course, tool, title: "NQ Quiz", unlock_at: nil, lock_at: nil, due_at: nil)
-    assignment = course.assignments.create!(
+    create_nq_external_tool_assignment(
+      course,
+      tool,
       title:,
-      submission_types: "external_tool",
-      points_possible: 100,
-      grading_type: "points",
-      workflow_state: "published",
+      launch_url: tool.url,
       unlock_at:,
       lock_at:,
       due_at:
     )
-    tag = assignment.build_external_tool_tag(url: tool.url)
-    tag.content_type = "ContextExternalTool"
-    tag.content_id = tool.id
-    tag.save!
-    assignment
   end
 
   # The sessionless-launch JSON only returns a URL containing a verifier; the
