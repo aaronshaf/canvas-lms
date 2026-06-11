@@ -1522,6 +1522,31 @@ RSpec.describe ApplicationController do
       end
     end
 
+    describe "named_context_url" do
+      let(:course) { course_model }
+      let(:user) { user_model }
+
+      it "raises when path does not include _url or _path" do
+        expect { controller.named_context_url(course, :context) }.to raise_error("invalid path")
+      end
+
+      it "generates a url for a Course context" do
+        result = controller.named_context_url(course, :context_url)
+        expect(result).to include("/courses/#{course.id}")
+      end
+
+      it "generates a url for a User context" do
+        result = controller.named_context_url(user, :context_url)
+        expect(result).to include("/users/#{user.id}")
+      end
+
+      it "generates a url for a UserProfile context" do
+        profile = user.profile
+        result = controller.named_context_url(profile, :context_url)
+        expect(result).to include("/profile")
+      end
+    end
+
     describe "get_context" do
       after do
         I18n.localizer = nil

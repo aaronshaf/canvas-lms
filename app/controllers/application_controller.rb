@@ -1075,6 +1075,8 @@ class ApplicationController < ActionController::Base
       opts[-1][:host] = context.try(:host_name)
       opts[-1][:only_path] = true unless name.end_with?("_path")
     end
+    raise ArgumentError, "invalid path" unless name.end_with?("_path", "_url")
+
     send name, *opts
   end
 
