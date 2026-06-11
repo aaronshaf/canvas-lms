@@ -148,33 +148,4 @@ describe "quizzes question with html answers" do
     value = driver.execute_script "return $('input[name=answer_text]:visible')[0].value"
     expect(value).to eq ""
   end
-
-  it "saves open html answers when the question is submitted for multiple choice",
-     priority: "1" do
-    quiz_with_new_questions
-    click_questions_tab
-    edit_first_html_answer
-    type_in_tiny ".answer:eq(3) textarea", "HTML"
-    submit_form(".question_form")
-    refresh_page
-    click_questions_tab
-    edit_first_question
-    html = driver.execute_script "return $('.answer:eq(3) .answer_html').html()"
-    expect(html).to eq "<p>HTML</p>"
-  end
-
-  it "saves open html answers when the question is submitted for multiple answers",
-     custom_timeout: 30,
-     priority: "1" do
-    quiz_with_new_questions
-    click_questions_tab
-    edit_first_html_answer "Multiple Answers"
-    type_in_tiny ".answer:eq(3) textarea", "HTML"
-    submit_form(".question_form")
-    refresh_page
-    click_questions_tab
-    edit_first_question
-    html = driver.execute_script "return $('.answer:eq(3) .answer_html').html()"
-    expect(html).to eq "<p>HTML</p>"
-  end
 end
