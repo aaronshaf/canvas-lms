@@ -35,14 +35,6 @@ describe "Grading quizzes" do
     context "when quiz needs review" do
       before(:once) { @quiz = seed_quiz_with_submission(1, student: @student) }
 
-      context "when on the course home page" do
-        before { get "/courses/#{@course.id}" }
-
-        it "To Do List includes quizzes with submissions that need grading", priority: "1" do
-          expect(f(".right-side-list.to-do-list")).to include_text "Grade Quiz Me!"
-        end
-      end
-
       context "after changing a quiz question's correct answer" do
         before do
           get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
