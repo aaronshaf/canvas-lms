@@ -21,6 +21,24 @@
 describe Account do
   it_behaves_like "outcome import context examples"
 
+  describe "#apps association" do
+    it "returns same records as #lti_registrations" do
+      account = Account.create!
+      account.lti_registrations.create!(name: "Test 1", admin_nickname: "test1", vendor: "Instructure")
+      account.lti_registrations.create!(name: "Test 2", admin_nickname: "test2", vendor: "Instructure")
+
+      expect(account.apps.pluck(:id)).to match_array(account.lti_registrations.pluck(:id))
+      expect(account.apps.count).to eq(account.lti_registrations.count)
+    end
+
+    it "queries the same table as lti_registrations" do
+      account = Account.create!
+      account.lti_registrations.create!(name: "Test", admin_nickname: "test", vendor: "Instructure")
+
+      expect(account.apps.to_a).to eq(account.lti_registrations.to_a)
+    end
+  end
+
   context "domain_method" do
     it "retrieves correct account domain" do
       root_account = Account.create!

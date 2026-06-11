@@ -983,6 +983,10 @@ RSpec.describe Lti::RegistrationsController do
     let(:developer_key) { lti_developer_key_model(account:) }
     let(:registration) { developer_key.lti_registration }
 
+    before do
+      registration.manual_configuration = lti_tool_configuration_model
+    end
+
     context "without user session" do
       before { remove_user_session }
 
@@ -4826,6 +4830,73 @@ RSpec.describe Lti::RegistrationsController do
             expect(response_json["pending_update"]).to be_present
           end
         end
+      end
+    end
+  end
+
+  describe "/apps routes (alias for /lti_registrations)", type: :request do
+    let_once(:registration) { lti_registration_model(account:, name: "Test Registration") }
+
+    describe "GET list via /apps" do
+      it "returns successful response" do
+        get "/api/v1/accounts/#{account.id}/apps"
+        expect(response).to be_successful
+      end
+
+      it "returns same data as /lti_registrations endpoint" do
+        lti_registration_account_binding_model(registration:, account:, workflow_state: "on")
+
+        get "/api/v1/accounts/#{account.id}/lti_registrations"
+        lti_response = response.parsed_body
+
+        get "/api/v1/accounts/#{account.id}/apps"
+        apps_response = response.parsed_body
+
+        expect(apps_response).to eq(lti_response)
+      end
+    end
+
+    describe "GET show via /apps" do
+      it "returns successful response" do
+        get "/api/v1/accounts/#{account.id}/apps/#{registration.id}"
+        expect(response).to be_successful
+      end
+
+      it "returns same registration data as /lti_registrations endpoint" do
+        get "/api/v1/accounts/#{account.id}/lti_registrations/#{registration.id}"
+        lti_response = response.parsed_body
+
+        get "/api/v1/accounts/#{account.id}/apps/#{registration.id}"
+        apps_response = response.parsed_body
+
+        expect(apps_response["id"]).to eq(lti_response["id"])
+        expect(apps_response["name"]).to eq(lti_response["name"])
+      end
+    end
+
+    describe "DELETE destroy via /apps" do
+      it "successfully deletes the registration" do
+        expect do
+          delete "/api/v1/accounts/#{account.id}/apps/#{registration.id}"
+        end.to change { Lti::Registration.active.count }.by(-1)
+
+        expect(response).to be_successful
+      end
+    end
+
+    describe "POST create via /apps" do
+      it "successfully creates a registration" do
+        post "/api/v1/accounts/#{account.id}/apps",
+             params: {
+               name: "New App",
+               admin_nickname: "new_app",
+               vendor: "Test Vendor",
+               configuration: internal_lti_configuration
+             },
+             as: :json
+
+        expect(response).to be_successful
+        expect(response.parsed_body["name"]).to eq("New App")
       end
     end
   end

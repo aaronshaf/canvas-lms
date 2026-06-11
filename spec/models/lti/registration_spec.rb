@@ -130,6 +130,29 @@ RSpec.describe Lti::Registration do
     end
   end
 
+  describe "App alias" do
+    it "points to Lti::Registration class" do
+      expect(App).to eq(Lti::Registration)
+    end
+
+    it "queries return identical records" do
+      registration = lti_registration_model(account:)
+      expect(App.find(registration.id)).to eq(registration)
+      expect(App.first).to eq(Lti::Registration.first)
+    end
+
+    it "can create records through the alias" do
+      app = App.create!(
+        account:,
+        name: "Test App",
+        admin_nickname: "test",
+        vendor: "Instructure"
+      )
+      expect(app).to be_a(Lti::Registration)
+      expect(Lti::Registration.find(app.id)).to eq(app)
+    end
+  end
+
   describe "#developer_key" do
     subject { registration.developer_key }
 

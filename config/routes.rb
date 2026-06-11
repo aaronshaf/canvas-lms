@@ -2193,27 +2193,36 @@ CanvasRails::Application.routes.draw do
       get "accounts/:account_id/developer_keys/lookup_utids", action: :lookup_utids
     end
 
-    scope(controller: "lti/registrations") do
-      get "accounts/:account_id/lti_registrations", action: :list
-      post "accounts/:account_id/lti_registrations", action: :create
-      post "accounts/:account_id/lti_registrations/configuration/validate", action: :validate_lti_configuration
-      get "accounts/:account_id/lti_registrations/check_domain_duplicates", action: :check_domain_duplicates
-      delete "accounts/:account_id/lti_registrations/:id", action: :destroy
-      get "accounts/:account_id/lti_registrations/:registration_id/deployments/:deployment_id/context_search", action: :context_search, as: "lti_registration_context_search"
-      get "accounts/:account_id/lti_registrations/:id", action: :show
-      get "accounts/:account_id/lti_registrations/:id/overlay_history", action: :overlay_history
-      get "accounts/:account_id/lti_registrations/:id/history", action: :history, as: :lti_registration_history
-      get "accounts/:account_id/lti_registration_by_client_id/:client_id", action: :show_by_client_id
-      get "accounts/:account_id/lti_registrations/by_utid/:utid", action: :show_by_utid
-      get "accounts/:account_id/lti_registrations/install_status/:client_id", action: :install_status
-      get "accounts/:account_id/lti_registrations/:id/update_requests/:update_request_id", action: :show_registration_update_request, as: "lti_registration_update_request"
-      get "accounts/:account_id/lti_registrations/:id/latest_update_request", action: :latest_registration_update_request, as: "latest_lti_registration_update_request"
-      put "accounts/:account_id/lti_registrations/:id/update_requests/:update_request_id/apply", action: :apply_registration_update_request, as: "apply_lti_registration_update_request"
-      put "accounts/:account_id/lti_registrations/:id", action: :update
-      put "accounts/:account_id/lti_registrations/:id/reset", action: :reset
-      post "accounts/:account_id/lti_registrations/:id/bind", action: :bind
-      delete "accounts/:account_id/lti_registrations/:id/bind", action: :unbind
-      post "accounts/:account_id/lti_registrations/:id/install_from_template", action: :install_from_template
+    # Dual routes for /apps (alias for /lti_registrations)
+    # These are temporarily aliases to support the gradual migration from
+    # Lti::Registration to App. Both route sets point to the same controller
+    # and actions, so business logic changes apply to both endpoints.
+    # Once migration is complete, the /lti_registrations routes can be removed.
+    %w[lti_registrations apps].each do |model_name|
+      route_name_prefix = (model_name == "apps") ? "app" : "lti_registration"
+
+      scope(controller: "lti/registrations") do
+        get "accounts/:account_id/#{model_name}", action: :list
+        post "accounts/:account_id/#{model_name}", action: :create
+        post "accounts/:account_id/#{model_name}/configuration/validate", action: :validate_lti_configuration
+        get "accounts/:account_id/#{model_name}/check_domain_duplicates", action: :check_domain_duplicates
+        delete "accounts/:account_id/#{model_name}/:id", action: :destroy
+        get "accounts/:account_id/#{model_name}/:registration_id/deployments/:deployment_id/context_search", action: :context_search, as: "#{route_name_prefix}_context_search"
+        get "accounts/:account_id/#{model_name}/:id", action: :show
+        get "accounts/:account_id/#{model_name}/:id/overlay_history", action: :overlay_history
+        get "accounts/:account_id/#{model_name}/:id/history", action: :history, as: "#{route_name_prefix}_history"
+        get "accounts/:account_id/#{route_name_prefix}_by_client_id/:client_id", action: :show_by_client_id
+        get "accounts/:account_id/#{model_name}/by_utid/:utid", action: :show_by_utid
+        get "accounts/:account_id/#{model_name}/install_status/:client_id", action: :install_status
+        get "accounts/:account_id/#{model_name}/:id/update_requests/:update_request_id", action: :show_registration_update_request, as: "#{route_name_prefix}_update_request"
+        get "accounts/:account_id/#{model_name}/:id/latest_update_request", action: :latest_registration_update_request, as: "latest_#{route_name_prefix}_update_request"
+        put "accounts/:account_id/#{model_name}/:id/update_requests/:update_request_id/apply", action: :apply_registration_update_request, as: "apply_#{route_name_prefix}_update_request"
+        put "accounts/:account_id/#{model_name}/:id", action: :update
+        put "accounts/:account_id/#{model_name}/:id/reset", action: :reset
+        post "accounts/:account_id/#{model_name}/:id/bind", action: :bind
+        delete "accounts/:account_id/#{model_name}/:id/bind", action: :unbind
+        post "accounts/:account_id/#{model_name}/:id/install_from_template", action: :install_from_template
+      end
     end
 
     scope(controller: "lti/deployments") do
