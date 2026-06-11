@@ -174,7 +174,7 @@ describe "settings tabs" do
       expect(AccountNotification.active.count).to eq 2
     end
 
-    it "resets form properly on new announcement", custom_timeout: 30 do # flaky-fix: QE-147
+    it "resets form properly on new announcement", custom_timeout: 30 do # flaky-fix: QE-147, QE-151
       notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load

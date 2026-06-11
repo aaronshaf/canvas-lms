@@ -76,6 +76,10 @@ describe GranularPermissionEnforcement, type: :request do
     end
   end
 
+  after :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.reload_routes! # flaky-fix: QE-151
+  end
+
   before do
     course_with_teacher(active_all: true)
     course_with_student(active_all: true)

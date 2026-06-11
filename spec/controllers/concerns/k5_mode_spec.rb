@@ -60,6 +60,10 @@ describe K5Mode, type: :request do
     end
   end
 
+  after :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.reload_routes! # flaky-fix: QE-151
+  end
+
   describe "set_k5_mode" do
     shared_examples_for ":show_left_side" do
       it "does not set :show_left_side in non-k5 contexts" do

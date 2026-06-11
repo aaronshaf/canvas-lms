@@ -81,11 +81,14 @@ Three reports reveal whether the failure pattern is consistent or varies.
 - Preserve all original assertions (S-03, S-04)
 - Proactively fix sibling tests with the same pattern
 
-### 4d. Push to the batch PS
+### 4d. Stage and commit; pause for review before pushing
 
-- `git add` + `git commit --amend --no-edit` (or with updated message)
-- `git push origin HEAD:refs/for/master`
-- Same Change-Id throughout the batch (S-05)
+- `git add` the changed files
+- `git commit --amend --no-edit` (or with updated message) — same Change-Id (S-05)
+- **Stop here.** Present a summary of all staged changes and ask the user
+  to review. Do not push autonomously.
+- Only after the user explicitly approves run:
+  `git push origin HEAD:refs/for/master`
 
 ### 4e. Verify in CI
 

@@ -36,6 +36,10 @@ describe CaptchaValidation, type: :request do
     end
   end
 
+  after :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.reload_routes! # flaky-fix: QE-151
+  end
+
   before do
     allow(Rails.application.credentials).to receive(:dig) do |*args|
       if args == [:recaptcha_keys, :server_key]

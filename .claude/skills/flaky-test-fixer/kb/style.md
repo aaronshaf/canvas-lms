@@ -8,11 +8,24 @@ Each rule lists the JIRA that introduced it so the rationale can be traced.
 ## S-01 — Annotate every fixed test with a tracking tag
 
 **Rule:** Add `# flaky-fix: <JIRA>` as an inline comment on the `it` line of
-every test that receives a flaky fix.
+every test that is being fixed — including tests whose fix lives entirely in
+other files (e.g. a contaminating spec is fixed to stop polluting this test).
+Tag the victim even when its own code is untouched.
+
+**Why tag indirect fixes:** If the indirect fix proves insufficient and the test
+reappears in the flaky leaderboard, the tag gives the next engineer the JIRA
+number to look up — the root-cause analysis, options considered, and what else
+to try. Without the tag the history is invisible and the investigation starts
+from scratch.
 
 **Format:**
 ```ruby
 it "edits an announcement" do # flaky-fix: QE-141
+```
+
+Multiple JIRA tickets are comma-separated, oldest first:
+```ruby
+it "resets form properly on new announcement", custom_timeout: 30 do # flaky-fix: QE-147, QE-151
 ```
 
 **Placement priority:**
@@ -49,7 +62,7 @@ git grep "flaky-fix: QE-141"   # all tests fixed in a specific batch
 **What the code annotation should NOT contain:** any of the above. The tag is a
 pointer, not a summary. Keep detail in the JIRA and in the KB case files.
 
-*Introduced: QE-141*
+*Introduced: QE-141, updated: QE-151*
 
 ---
 
@@ -181,6 +194,23 @@ the minimum — never more.
   `multiple_root_accounts`), create one PS in each repo. Reference the
   companion PS in the commit message or JIRA comment so reviewers can find
   both.
+
+**NEVER remove the Change-Id from a commit message.** Removing it causes the
+commit hook to generate a fresh Change-Id on the next amend, which creates an
+entirely new Gerrit change on push — abandoning the existing review thread,
+losing the PS history, and producing a duplicate change. There is no valid
+reason to remove a Change-Id. Even when starting a clean "single PS" redo:
+abandon the old change in the Gerrit UI first, then keep the same Change-Id in
+the new commit so Gerrit still links to the same review context.
+
+**After every `git commit --amend`, verify the Change-Id before pushing:**
+```bash
+git show -s --format="%B" HEAD | grep "Change-Id"
+# must match the Change-Id of the existing Gerrit change
+```
+If it doesn't match, stop and restore the correct Change-Id before pushing.
+
+*Introduced: QE-142, updated: QE-151*
 
 *Introduced: QE-142, updated: QE-144*
 

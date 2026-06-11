@@ -69,6 +69,10 @@ describe HorizonMode, type: :request do
     end
   end
 
+  after :all do # rubocop:disable RSpec/BeforeAfterAll
+    Rails.application.reload_routes! # flaky-fix: QE-151
+  end
+
   before do
     course.update!(horizon_course: true)
     account.enable_feature!(:horizon_course_setting)
