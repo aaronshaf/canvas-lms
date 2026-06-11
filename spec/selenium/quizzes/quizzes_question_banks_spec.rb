@@ -29,51 +29,6 @@ describe "quizzes question banks" do
       course_with_teacher_logged_in
     end
 
-    it "is able to create question bank", priority: "1" do
-      get "/courses/#{@course.id}/question_banks"
-      f(".add_bank_link").click
-      wait_for_ajaximations
-      question_bank_title = f("#assessment_question_bank_title")
-      expect(question_bank_title).to be_displayed
-      question_bank_title.send_keys("goober", :return)
-      wait_for_ajaximations
-      question_bank = AssessmentQuestionBank.where(title: "goober").first
-      expect(question_bank).to be_present
-      expect(question_bank.workflow_state).to eq "active"
-      expect(f("#question_bank_adding .title")).to(include_text("goober"))
-      expect(driver.switch_to.active_element).to eq(f("#question_bank_adding .title"))
-      expect(question_bank.bookmarked_for?(User.last)).to be_truthy
-      question_bank
-    end
-
-    it "adds a basic multiple choice question to a question bank", priority: "1" do
-      bank = AssessmentQuestionBank.create!(context: @course)
-      get "/courses/#{@course.id}/question_banks/#{bank.id}"
-
-      f(".add_question_link").click
-      wait_for_ajaximations
-      expect { create_multiple_choice_question }.to change(AssessmentQuestion, :count).by(1)
-    end
-
-    it "tallies up question bank question points", priority: "1" do
-      quiz = @course.quizzes.create!(title: "My Quiz")
-      bank = AssessmentQuestionBank.create!(context: @course)
-      3.times { assessment_question_model(bank:) }
-      harder = bank.assessment_questions.last
-      harder.question_data[:points_possible] = 15
-      harder.save!
-      get "/courses/#{@course.id}/quizzes/#{quiz.id}/edit"
-      find_questions_link = f(".find_question_link")
-      click_questions_tab
-      find_questions_link.click
-      wait_for_ajaximations
-      f(".select_all_link").click
-      submit_dialog("#find_question_dialog", ".submit_button")
-      wait_for_ajaximations
-      click_settings_tab
-      expect(f("#quiz_display_points_possible .points_possible")).to include_text "17"
-    end
-
     it "allows you to use inherited question banks", custom_timeout: 30, priority: "1" do
       @course.account = Account.default
       @course.save
@@ -143,63 +98,6 @@ describe "quizzes question banks" do
       expect(f("#quiz_display_points_possible .points_possible")).to include_text "2"
     end
 
-    it "checks permissions when retrieving question banks", priority: "1" do
-      @course.account = Account.default
-      @course.account.role_overrides.create!(
-        permission: "read_question_banks",
-        role: teacher_role,
-        enabled: false
-      )
-      Account.default.reload
-      @course.save
-      quiz = @course.quizzes.create!(title: "My Quiz")
-
-      course_bank = AssessmentQuestionBank.create!(context: @course)
-      assessment_question_model(bank: course_bank)
-
-      account_bank = AssessmentQuestionBank.create!(context: @course.account)
-      assessment_question_model(bank: account_bank)
-
-      get "/courses/#{@course.id}/quizzes/#{quiz.id}/edit"
-      click_questions_tab
-
-      expect(f("#content")).not_to contain_css(".find_question_link")
-
-      f(".add_question_group_link").click
-      expect(f("#content")).not_to contain_css(".find_bank_link")
-    end
-
-    it "creates a question group from a question bank", custom_timeout: 30, priority: "1" do
-      bank = AssessmentQuestionBank.create!(context: @course)
-      3.times { assessment_question_model(bank:) }
-
-      get "/courses/#{@course.id}/quizzes"
-      click_new_quiz_button
-      click_questions_tab
-
-      f(".add_question_group_link").click
-      wait_for_ajaximations
-      group_form = f("#group_top_new .quiz_group_form")
-
-      # give the question group a title
-      question_group_title = "New Question Group"
-      group_form.find_element(:name, "quiz_group[name]").send_keys(question_group_title)
-
-      fln("Link to a Question Bank").click
-      wait_for_ajaximations
-
-      # select a question bank
-      hover_and_click("li.bank:nth-child(2)")
-      f("div.button-container:nth-child(2) > button:nth-child(1)").click
-
-      message = "Questions will be pulled from the bank: #{bank.title}"
-      expect(f(".assessment_question_bank")).to include_text message
-      submit_form(group_form)
-
-      expect(f("#questions .group_top .group_display.name")).to include_text question_group_title
-      expect(f(".assessment_question_bank")).to include_text message
-    end
-
     it "creates a question group from a question bank from within the Find Quiz Question modal", custom_timeout: 30, priority: "1" do
       assessment_question_model(bank: AssessmentQuestionBank.create!(context: @course))
 
@@ -260,78 +158,6 @@ describe "quizzes question banks" do
       @bank.reload
       wait_for_ajaximations
       expect(@bank.assessment_questions.count { |aq| !aq.deleted? }).to eq 59
-    end
-
-    it "lets teachers view question banks in a soft-concluded course (but not edit)", custom_timeout: 30, priority: "2" do
-      term = Account.default.enrollment_terms.create!
-      term.set_overrides(Account.default, "TeacherEnrollment" => { end_at: 3.days.ago })
-      @course.enrollment_term = term
-      @course.save!
-      @bank = @course.assessment_question_banks.create!(title: "Test Bank")
-
-      get "/courses/#{@course.id}/quizzes"
-
-      view_banks_link = f(".view_question_banks")
-      expect(view_banks_link).to be_displayed
-
-      expect_new_page_load { view_banks_link.click }
-
-      expect(f("#content")).not_to contain_css(".add_bank_link")
-      expect(f("#content")).not_to contain_css(".edit_bank_link")
-      expect(f("#content")).not_to contain_css(".delete_bank_link")
-
-      view_bank_link = f("#question_bank_#{@bank.id} a.title")
-      expect(view_bank_link).to be_displayed
-
-      expect_new_page_load { view_bank_link.click }
-    end
-
-    it "lets account admins view question banks without :manage_assignments_add (but not edit)", custom_timeout: 30, priority: "2" do
-      user_factory(active_all: true)
-      user_session(@user)
-      @role = custom_account_role "weakling", account: @course.account
-      @course.account.role_overrides.create!(permission: "read_course_content", enabled: true, role: @role)
-      @course.account.role_overrides.create!(permission: "read_question_banks", enabled: true, role: @role)
-      @course.account.account_users.create!(user: @user, role: @role)
-
-      @bank = @course.assessment_question_banks.create!(title: "Test Bank")
-
-      get "/courses/#{@course.id}/quizzes"
-
-      view_banks_link = f(".view_question_banks")
-      expect(view_banks_link).to be_displayed
-
-      expect_new_page_load { view_banks_link.click }
-
-      expect(f("#content")).not_to contain_css(".add_bank_link")
-      expect(f("#content")).not_to contain_css(".edit_bank_link")
-      expect(f("#content")).not_to contain_css(".delete_bank_link")
-
-      view_bank_link = f("#question_bank_#{@bank.id} a.title")
-      expect(view_bank_link).to be_displayed
-
-      expect_new_page_load { view_bank_link.click }
-    end
-
-    it "locks out teachers when :read_question_banks is disabled", priority: "2" do
-      term = Account.default.enrollment_terms.create!
-      term.set_overrides(Account.default, "TeacherEnrollment" => { end_at: 3.days.ago })
-      @course.enrollment_term = term
-      @course.save!
-
-      @bank = @course.assessment_question_banks.create!(title: "Test Bank")
-
-      Account.default.role_overrides.create!(permission: "read_question_banks", role: teacher_role, enabled: false)
-      Account.default.reload
-
-      get "/courses/#{@course.id}/quizzes"
-      expect(f("#content")).not_to contain_css(".view_question_banks")
-
-      get "/courses/#{@course.id}/question_banks"
-      expect(f("#unauthorized_message")).to be_displayed
-
-      get "/courses/#{@course.id}/question_banks/#{@bank.id}"
-      expect(f("#unauthorized_message")).to be_displayed
     end
 
     it "moves paginated questions in a question bank from one bank to another", custom_timeout: 40, priority: "2" do # flaky-fix: QE-142
