@@ -256,6 +256,8 @@ PATH
     paginated_collection (1.0.0)
       folio-pagination (~> 0.0.12)
       will_paginate (>= 3.0, < 5.0)
+    platform_tokens (0.1.0)
+      activemodel (~> 8.0)
     request_context (0.1.0)
       actionpack
       canvas_security
@@ -1423,6 +1425,7 @@ DEPENDENCIES
   pdf-reader (~> 2.11)
   pg (~> 1.6)
   pg_query (~> 6.0)
+  platform_tokens!
   prawn-emoji (~> 6.0)
   prawn-rails (~> 1.4)
   prosopite (~> 2.1)

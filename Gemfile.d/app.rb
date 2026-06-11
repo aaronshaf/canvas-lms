@@ -157,6 +157,7 @@ path "../gems" do
   gem "lti-advantage"
   gem "lti_outbound"
   gem "paginated_collection"
+  gem "platform_tokens"
   gem "request_context"
   gem "stringify_ids"
   gem "turnitin_api"

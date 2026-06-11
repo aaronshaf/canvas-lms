@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# Specify your gem's dependencies in platform_tokens.gemspec
+gemspec
+
+gem "irb"
+gem "rake", "~> 13.0"
+
+plugin "bundler-multilock", "~> 1.4"
+return unless Plugin.installed?("bundler-multilock")
+
+Plugin.send(:load_plugin, "bundler-multilock")
+
+gem "rspec", "~> 3.0"
