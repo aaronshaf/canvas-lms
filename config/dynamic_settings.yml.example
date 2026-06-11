@@ -209,6 +209,8 @@ development:
       #       flow_id: "NsN76D10s"
       #     environment: "dev"
       #     experience_mode: "career"
+      # analytics_dashboard.yml: |
+      #   launch_url: "https://assets.instructure.com/insights-analytics/analytics-dashboard/staging/remoteEntry.js"
       # new_quizzes.yml: |
       #   new_quizzes_cloudfront_host_production: http://quizzes-ui-app.inseng.test:8082
       #   new_quizzes_cloudfront_host_beta: http://quizzes-ui-app.inseng.test:8082

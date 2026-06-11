@@ -21,7 +21,7 @@
 class MicrofrontendsReleaseTagOverrideController < ApplicationController
   before_action :validate_environment
 
-  SUPPORTED_APPS = %w[canvas_career_learner canvas_career_learning_provider].freeze
+  SUPPORTED_APPS = %w[canvas_career_learner canvas_career_learning_provider analytics_dashboard].freeze
   ALLOWED_HOSTS = %w[assets.instructure.com].freeze
 
   def create

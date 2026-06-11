@@ -758,6 +758,10 @@ CanvasRails::Application.routes.draw do
       get "analytics_hub", action: :show, as: :analytics_hub
     end
 
+    scope(controller: :analytics_dashboard) do
+      get "analytics_dashboard", action: :show, as: :analytics_dashboard
+    end
+
     scope(controller: :brand_configs) do
       get "theme_editor", action: :new, as: :theme_editor
       get "brand_configs", action: :index

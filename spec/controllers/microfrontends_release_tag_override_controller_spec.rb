@@ -59,6 +59,13 @@ RSpec.describe MicrofrontendsReleaseTagOverrideController do
           expect(response).to redirect_to(root_url)
         end
 
+        it "supports the analytics_dashboard app" do
+          get :create, params: { override: { analytics_dashboard: "https://assets.instructure.com/test2" } }
+
+          expect(session[:microfrontend_overrides]).to eq({ "analytics_dashboard" => "https://assets.instructure.com/test2" })
+          expect(response).to redirect_to(root_url)
+        end
+
         it "handles multiple overrides" do
           get :create, params: {
             override: {

@@ -31,6 +31,7 @@ const WebpackHooks = require('./webpackHooks')
 const {
   fetchSpeedGraderLibrary,
   fetchAnalyticsHub,
+  fetchAnalyticsDashboard,
   fetchLtiUsage,
   fetchCanvasCareerLearningProviderApp,
   fetchCanvasCareerLearnerApp,
@@ -152,6 +153,7 @@ exports.moduleFederation = new ModuleFederationPlugin({
   dev: process.env.NODE_ENV === 'development',
   remotes: {
     analyticshub: `promise new Promise(${fetchAnalyticsHub.toString()})`,
+    analyticsdashboard: `promise new Promise(${fetchAnalyticsDashboard.toString()})`,
     speedgrader: `promise new Promise(${fetchSpeedGraderLibrary.toString()})`,
     canvas_career_learning_provider: `promise new Promise(${fetchCanvasCareerLearningProviderApp.toString()})`,
     canvas_career_learner: `promise new Promise(${fetchCanvasCareerLearnerApp.toString()})`,

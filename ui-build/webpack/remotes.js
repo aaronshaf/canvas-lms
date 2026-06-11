@@ -88,6 +88,41 @@ function fetchAnalyticsHub(resolve, reject) {
 
 exports.fetchAnalyticsHub = fetchAnalyticsHub
 
+function fetchAnalyticsDashboard(resolve, reject) {
+  const script = document.createElement('script')
+
+  if (!window.REMOTES?.analytics_dashboard?.launch_url) {
+    console.debug(`Analytics Dashboard remote not configured; using ${DEV_HOST}`)
+  }
+
+  script.src = window.REMOTES?.analytics_dashboard?.launch_url || DEV_HOST
+  script.onload = () => {
+    const module = {
+      get: request => window.analytics_dashboard.get(request),
+      init: arg => {
+        try {
+          return window.analytics_dashboard.init(arg)
+        } catch (e) {
+          console.warn('Remote analytics_dashboard has already been loaded')
+        }
+      },
+    }
+    resolve(module)
+  }
+
+  script.onerror = errorEvent => {
+    const errorMessage = `Failed to load the script: ${script.src}`
+    console.error(errorMessage, errorEvent)
+    if (typeof reject === 'function') {
+      reject(new Error(errorMessage, errorEvent))
+    }
+  }
+
+  document.head.appendChild(script)
+}
+
+exports.fetchAnalyticsDashboard = fetchAnalyticsDashboard
+
 function fetchIgniteAgentLibrary(resolve, reject) {
   const remoteUrl = window.REMOTES?.ignite_agent?.launch_url
 

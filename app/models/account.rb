@@ -2373,6 +2373,7 @@ class Account < ApplicationRecord
   TAB_RATE_LIMITING = 24
   TAB_ACCESSIBILITY = 25
   TAB_OAK_SETTINGS = 26
+  TAB_ANALYTICS_DASHBOARD = 27
 
   # site admin tabs
   TAB_PLUGINS = 14
@@ -2473,6 +2474,10 @@ class Account < ApplicationRecord
 
     if !root_account.site_admin? && principal && grants_right?(principal, :view_analytics_hub)
       tabs << { id: TAB_ANALYTICS_HUB, label: t("#account.tab_analytics_hub", "Analytics Hub"), css_class: "analytics_hub", href: :account_analytics_hub_path }
+    end
+
+    if !root_account.site_admin? && principal && grants_right?(principal, :view_analytics_dashboard)
+      tabs << { id: TAB_ANALYTICS_DASHBOARD, label: t("#account.tab_analytics_dashboard", "Analytics Dashboard"), css_class: "analytics_dashboard", href: :account_analytics_dashboard_path }
     end
 
     if root_account? && grants_right?(principal, :manage_developer_keys)
