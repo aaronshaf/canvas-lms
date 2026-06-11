@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-RSpec.describe "anonymous submission downloads", type: :request do
+RSpec.describe "anonymous submission downloads" do
   describe "GET /courses/:course_id/assignments/:assignment_id/anonymous_submissions/:anonymous_id" do
     before do
       course_with_student_and_submitted_homework

@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-RSpec.describe "submission downloads", type: :request do
+RSpec.describe "submission downloads" do
   describe "GET /courses/:course_id/assignments/:assignment_id/submissions/:id" do
     before do
       course_with_student_and_submitted_homework

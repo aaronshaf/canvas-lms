@@ -20,7 +20,7 @@
 
 require_relative "../../lti_spec_helper"
 
-RSpec.describe "submission previews", type: :request do
+RSpec.describe "submission previews" do
   include LtiSpecHelper
 
   describe "GET /courses/:course_id/assignments/:assignment_id/submissions/:id" do
