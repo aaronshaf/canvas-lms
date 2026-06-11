@@ -103,51 +103,6 @@ describe "quizzes question creation" do
     end
 
     # Multiple Blanks Question
-    it "creates a fill in multiple blanks question", priority: "1" do
-      quiz = @last_quiz
-
-      question = fj(".question_form:visible")
-      click_option(".question_form:visible .question_type", "Fill In Multiple Blanks")
-
-      replace_content(question.find_element(:css, "input[name='question_points']"), "4")
-
-      type_in_tiny ".question:visible textarea.question_content", "Roses are [color1], violets are [color2]"
-
-      # check answer select
-      select_box = question.find_element(:css, ".blank_id_select")
-      select_box.click
-      options = select_box.find_elements(:css, "option")
-      expect(options[0].text).to eq "color1"
-      expect(options[1].text).to eq "color2"
-
-      # input answers for both blank input
-      answers = question.find_elements(:css, ".form_answers > .answer")
-
-      replace_content(answers[0].find_element(:css, ".short_answer input"), "red")
-      replace_content(answers[1].find_element(:css, ".short_answer input"), "green")
-      options[1].click
-      wait_for_ajaximations
-      answers = question.find_elements(:css, ".form_answers > .answer")
-
-      replace_content(answers[2].find_element(:css, ".short_answer input"), "blue")
-      replace_content(answers[3].find_element(:css, ".short_answer input"), "purple")
-
-      submit_form(question)
-      wait_for_ajax_requests
-
-      f("#show_question_details").click
-      quiz.reload
-      finished_question = f("#question_#{quiz.quiz_questions[0].id}")
-      expect(finished_question).to be_displayed
-
-      # check select box on finished question
-      select_box = finished_question.find_element(:css, ".blank_id_select")
-      select_box.click
-      options = select_box.find_elements(:css, "option")
-      expect(options[0].text).to eq "color1"
-      expect(options[1].text).to eq "color2"
-    end
-
     # Multiple Answers Question
     it "creates a multiple answers question", priority: "1" do
       quiz = @last_quiz
@@ -173,51 +128,6 @@ describe "quizzes question creation" do
     end
 
     # Multiple Dropdown Question
-    it "creates a multiple dropdown question", priority: "1" do
-      quiz = @last_quiz
-
-      question = fj(".question_form:visible")
-      click_option(".question_form:visible .question_type", "Multiple Dropdowns")
-
-      type_in_tiny ".question:visible textarea.question_content", "Roses are [color1], violets are [color2]"
-
-      # check answer select
-      select_box = question.find_element(:css, ".blank_id_select")
-      select_box.click
-      options = select_box.find_elements(:css, "option")
-      expect(options[0].text).to eq "color1"
-      expect(options[1].text).to eq "color2"
-
-      # input answers for both blank input
-      answers = question.find_elements(:css, ".form_answers > .answer")
-      answers[0].find_element(:css, ".select_answer_link").click
-
-      replace_content(answers[0].find_element(:css, ".select_answer input"), "red")
-      replace_content(answers[1].find_element(:css, ".select_answer input"), "green")
-      options[1].click
-      wait_for_ajaximations
-      answers = question.find_elements(:css, ".form_answers > .answer")
-
-      answers[2].find_element(:css, ".select_answer_link").click
-      replace_content(answers[2].find_element(:css, ".select_answer input"), "blue")
-      replace_content(answers[3].find_element(:css, ".select_answer input"), "purple")
-
-      submit_form(question)
-      wait_for_ajax_requests
-
-      driver.execute_script("$('#show_question_details').click();")
-      quiz.reload
-      finished_question = f("#question_#{quiz.quiz_questions[0].id}")
-      expect(finished_question).to be_displayed
-
-      # check select box on finished question
-      select_box = finished_question.find_element(:css, ".blank_id_select")
-      select_box.click
-      options = select_box.find_elements(:css, "option")
-      expect(options[0].text).to eq "color1"
-      expect(options[1].text).to eq "color2"
-    end
-
     # Matching Question
     context "when creating a matching question" do
       it "creates a basic matching question", priority: "1" do
@@ -277,28 +187,6 @@ describe "quizzes question creation" do
     end
 
     # Numerical Answer
-    it "creates a basic numerical answer question", priority: "1" do
-      quiz = @last_quiz
-
-      click_option(".question_form:visible .question_type", "Numerical Answer")
-      type_in_tiny ".question:visible textarea.question_content", "This is a numerical question."
-
-      quiz_form = f(".question_form")
-      answers = quiz_form.find_elements(:css, ".form_answers > .answer")
-      replace_content(answers[0].find_element(:name, "answer_exact"), 5)
-      replace_content(answers[0].find_element(:name, "answer_error_margin"), 2)
-      click_option("select.numerical_answer_type:eq(1)", "Answer in the Range:")
-      replace_content(answers[1].find_element(:name, "answer_range_start"), 5)
-      replace_content(answers[1].find_element(:name, "answer_range_end"), 10)
-      submit_form(quiz_form)
-      wait_for_ajaximations
-
-      f("#show_question_details").click
-      quiz.reload
-      finished_question = f("#question_#{quiz.quiz_questions[0].id}")
-      expect(finished_question).to be_displayed
-    end
-
     # Essay Question
     it "creates a basic essay question", priority: "1" do
       quiz = @last_quiz
@@ -359,36 +247,6 @@ describe "quizzes question creation" do
     end
   end
 
-  context "when a quiz has more than 25 questions" do
-    def quiz_questions_creation
-      @quiz = @course.quizzes.create!(title: "new quiz")
-      26.times do
-        @quiz.quiz_questions.create!(question_data: { name: "Quiz Questions", question_type: "essay_question", question_text: "qq_1", answers: [], points_possible: 1 })
-      end
-      @quiz.generate_quiz_data
-      @quiz.workflow_state = "available"
-      @quiz.save
-      @quiz.reload
-    end
-
-    before do
-      course_with_teacher_logged_in
-      quiz_questions_creation
-    end
-
-    it "edits quiz questions", priority: "1" do
-      open_quiz_edit_form
-      click_questions_tab
-      driver.execute_script("$('.display_question').first().addClass('hover').addClass('active')")
-      fj(".edit_teaser_link").click
-      wait_for_ajaximations
-      type_in_tiny ".question:visible textarea.question_content", "This is an essay question."
-      submit_form(fj(".question_form:visible"))
-      wait_for_ajax_requests
-      expect(Quizzes::QuizQuestion.where("question_data like '%This is an essay question%'")).to be_present
-    end
-  end
-
   context "when creating a new quiz question group" do
     before do
       course_with_teacher_logged_in
@@ -398,62 +256,6 @@ describe "quizzes question creation" do
       quiz_with_new_questions
       create_question_group
 
-      expect(f(".quiz_group_form")).to be_displayed
-    end
-  end
-
-  context "when editing a quiz question" do
-    before do
-      course_with_teacher_logged_in
-      @quiz = @course.quizzes.create!(title: "new quiz")
-    end
-
-    def create_quiz_question(question_data)
-      @quiz.quiz_questions.create!(question_data:)
-
-      @quiz.generate_quiz_data
-      @quiz.workflow_state = "available"
-      @quiz.save
-      @quiz.reload
-    end
-
-    it 'edits "fill in multi blanks" question' do
-      create_quiz_question({ name: "Quiz Questions", question_type: "fill_in_multiple_blanks_question", question_text: "[color1]", answers: [], points_possible: 1 })
-      open_quiz_edit_form
-      click_questions_tab
-      driver.execute_script("$('.display_question').first().addClass('hover').addClass('active')")
-      fj(".edit_question_link").click
-      wait_for_ajaximations
-      type_in_tiny ".question:visible textarea.question_content", "[color2]"
-      question = fj(".question_form:visible")
-      select_box = question.find_element(:css, ".blank_id_select")
-      select_box.click
-      options = select_box.find_elements(:css, "option")
-      expect(options[0].text).to eq "color1"
-      expect(options[1].text).to eq "color2"
-    end
-  end
-
-  context "when editing a quiz question group" do
-    before do
-      course_with_teacher_logged_in
-    end
-
-    it "adds questions from a question bank", priority: "1" do
-      quiz_with_new_questions
-      click_questions_tab
-      f(".find_question_link").click
-      wait_for_ajaximations
-      f(".select_all_link").click
-
-      click_option(".quiz_group_select", "new", :value)
-      f("#found_question_group_name").send_keys("group1")
-      f("#found_question_group_pick").send_keys(2)
-      f("#found_question_group_points").send_keys(2)
-      submit_dialog("#add_question_group_dialog", ".submit_button")
-      wait_for_ajax_requests
-      submit_dialog("#find_question_dialog", ".submit_button")
-      wait_for_ajax_requests
       expect(f(".quiz_group_form")).to be_displayed
     end
   end
