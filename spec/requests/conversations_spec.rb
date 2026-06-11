@@ -43,4 +43,55 @@ describe "ConversationsController" do
       expect(Conversation.last.context).to eq(@course)
     end
   end
+
+  describe "GET /conversations (with attachments)" do
+    before :once do
+      course_with_teacher(active_all: true)
+      student_in_course(active_all: true)
+    end
+
+    it "includes location parameters in attachment URLs when file_association_access_conversation is enabled" do
+      Account.default.enable_feature!(:file_association_access_conversation)
+      Account.default.disable_feature!(:file_association_access)
+      user_session(@teacher)
+
+      attachment = attachment_model(context: @teacher, folder: @teacher.conversation_attachments_folder)
+      conversation_participant = @teacher.initiate_conversation([@student])
+      message = conversation_participant.add_message("test with attachment", attachment_ids: [attachment.id], root_account_id: Account.default.id)
+
+      get "/conversations/#{conversation_participant.conversation_id}.json"
+
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+      messages = body["messages"] || []
+
+      message_with_attachments = messages.find { |m| m["attachments"]&.any? }
+      expect(message_with_attachments).to be_present
+
+      attachment_data = message_with_attachments["attachments"].first
+      expect(attachment_data["url"]).to include("location=conversation_message_#{message.id}")
+    end
+
+    it "does not include location parameters when only file_association_access is enabled" do
+      Account.default.enable_feature!(:file_association_access)
+      Account.default.disable_feature!(:file_association_access_conversation)
+      user_session(@teacher)
+
+      attachment = attachment_model(context: @teacher, folder: @teacher.conversation_attachments_folder)
+      conversation_participant = @teacher.initiate_conversation([@student])
+      conversation_participant.add_message("test with attachment", attachment_ids: [attachment.id], root_account_id: Account.default.id)
+
+      get "/conversations/#{conversation_participant.conversation_id}.json"
+
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+      messages = body["messages"] || []
+
+      message_with_attachments = messages.find { |m| m["attachments"]&.any? }
+      expect(message_with_attachments).to be_present
+
+      attachment_data = message_with_attachments["attachments"].first
+      expect(attachment_data["url"]).not_to include("location=")
+    end
+  end
 end

@@ -1595,6 +1595,7 @@ describe ConversationsController, type: :request do
     it "when file_association_access feature flag is disabled, it adds verifier tag to attachment url" do
       attachment = @me.conversation_attachments_folder.attachments.create!(context: @me, filename: "test.txt", display_name: "test.txt", uploaded_data: StringIO.new("test"))
       attachment.root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+      attachment.root_account.disable_feature!(:file_association_access_conversation)
       conversation = conversation(@bob, context_type: "Course", context_id: @course.id)
       media_object = MediaObject.new
       media_object.media_id = "0_12345678"

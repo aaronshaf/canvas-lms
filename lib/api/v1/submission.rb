@@ -299,11 +299,13 @@ module Api::V1::Submission
     end
 
     unless attempt.media_comment_id.blank?
+      media_opts = {}
+      media_opts[:location] = attempt.asset_string if assignment.root_account.feature_enabled?(:file_association_access)
       hash["media_comment"] =
         media_comment_json(
           { media_id: attempt.media_comment_id,
             media_type: attempt.media_comment_type },
-          location: attempt.asset_string
+          **media_opts
         )
     end
 
@@ -347,7 +349,9 @@ module Api::V1::Submission
               submission_id: attempt.id
             }
 
-            attachment_json(attachment, current_principal, { location: attempt.asset_string }, options)
+            url_opts = {}
+            url_opts[:location] = attempt.asset_string if assignment.root_account.feature_enabled?(:file_association_access)
+            attachment_json(attachment, current_principal, url_opts, options)
           end
       end
     end

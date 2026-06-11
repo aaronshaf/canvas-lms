@@ -46,17 +46,23 @@ module Api::V1::SubmissionComment
       sc_hash["comment"] = Nokogiri::HTML(comment).text
     end
 
+    location_tagging_enabled = submission_comment.root_account.feature_enabled?(:file_association_access)
+
     if submission_comment.media_comment?
+      media_opts = {}
+      media_opts[:location] = submission_comment.asset_string if location_tagging_enabled
       sc_hash["media_comment"] = media_comment_json(
         { media_id: submission_comment.media_comment_id,
           media_type: submission_comment.media_comment_type },
-        location: submission_comment.asset_string
+        **media_opts
       )
     end
 
     unless submission_comment.attachments.blank?
       sc_hash["attachments"] = submission_comment.attachments.map do |a|
-        attachment_json(a, current_principal, { location: submission_comment.asset_string })
+        url_opts = {}
+        url_opts[:location] = submission_comment.asset_string if location_tagging_enabled
+        attachment_json(a, current_principal, url_opts)
       end
     end
     if current_principal && submission_comment.grants_right?(current_principal, :read_author)

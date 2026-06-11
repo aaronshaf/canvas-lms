@@ -92,7 +92,6 @@ module Api::V1::Attachment
     downloadable = skip_permission_checks || !attachment.locked_for?(current_principal, check_policies: true)
 
     if downloadable
-      url_options[:location] = nil unless attachment.root_account.feature_enabled?(:file_association_access)
       # using the multi-parameter form because not every class that mixes in
       # this api helper also mixes in ApplicationHelper (I'm looking at you,
       # DiscussionTopic::MaterializedView), and in those cases we need to

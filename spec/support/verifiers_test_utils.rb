@@ -25,12 +25,16 @@ def double_testing_with_disable_adding_uuid_verifier_in_api_ff(attachment_variab
         if @attachment.is_a?(ActiveRecord::Relation)
           @attachment.each do |attachment|
             attachment.root_account.enable_feature!(:disable_adding_uuid_verifier_in_api)
+            attachment.root_account.disable_feature!(:file_association_access_conversation)
           end
         else
           @attachment.root_account.enable_feature!(:disable_adding_uuid_verifier_in_api)
+          @attachment.root_account.disable_feature!(:file_association_access_conversation)
         end
       else
-        instance_variable_get(:"@#{attachment_variable_name}").root_account.enable_feature!(:disable_adding_uuid_verifier_in_api)
+        attachment = instance_variable_get(:"@#{attachment_variable_name}")
+        attachment.root_account.enable_feature!(:disable_adding_uuid_verifier_in_api)
+        attachment.root_account.disable_feature!(:file_association_access_conversation)
       end
     end
 
@@ -45,12 +49,16 @@ def double_testing_with_disable_adding_uuid_verifier_in_api_ff(attachment_variab
         if @attachment.is_a?(ActiveRecord::Relation)
           @attachment.each do |attachment|
             attachment.root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+            attachment.root_account.disable_feature!(:file_association_access_conversation)
           end
         else
           @attachment.root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+          @attachment.root_account.disable_feature!(:file_association_access_conversation)
         end
       else
-        instance_variable_get(:"@#{attachment_variable_name}").root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+        attachment = instance_variable_get(:"@#{attachment_variable_name}")
+        attachment.root_account.disable_feature!(:disable_adding_uuid_verifier_in_api)
+        attachment.root_account.disable_feature!(:file_association_access_conversation)
       end
     end
 
