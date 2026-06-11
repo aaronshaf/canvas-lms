@@ -722,6 +722,14 @@ describe OAuth2ProviderController do
         expect(json.dig("user", "effective_locale")).to eq "zh-Hant"
       end
 
+      it "sets the dk meta header with the developer key global id" do
+        expect(redis).to receive(:del).with(valid_code_redis_key).at_least(:once)
+        allow(RequestContext::Generator).to receive(:add_meta_header)
+        expect(RequestContext::Generator).to receive(:add_meta_header).with("dk", key.global_id)
+        post :token, params: base_params.merge(code: valid_code)
+        expect(response).to be_successful
+      end
+
       it "deletes existing tokens for the same key when replace_tokens=1" do
         old_token
         post :token, params: base_params.merge(code: valid_code, replace_tokens: "1")

@@ -208,6 +208,7 @@ class OAuth2ProviderController < ApplicationController
       assign_localizer
       I18n.set_locale_with_localizer
     end
+    RequestContext::Generator.add_meta_header("dk", granter.provider.key.global_id) if granter.provider.key
 
     render json: token
   end
