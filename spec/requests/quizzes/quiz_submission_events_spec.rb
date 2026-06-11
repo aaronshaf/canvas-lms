@@ -19,47 +19,44 @@
 #
 
 describe Quizzes::QuizSubmissionEventsController do
-  before :once do
+  let(:teacher_enrollment) { course_with_teacher(active_all: true) }
+  let(:course) { teacher_enrollment.course }
+  let(:teacher) { teacher_enrollment.user }
+  let(:student_enrollment) { student_in_course(course:, active_all: true) }
+  let(:student) { student_enrollment.user }
+  let(:quiz) { quiz_model(course:) }
+  let(:quiz_submission) { quiz.generate_submission(student) }
+
+  before do
     Account.default.enable_feature!(:quiz_log_auditing)
   end
 
   describe "GET /log (#index)" do
     def subject
-      get "index", params: {
-        course_id: @course.id,
-        quiz_id: @quiz.id,
-        quiz_submission_id: @quiz_submission.id
-      }
-    end
-
-    before :once do
-      course_with_teacher(active_all: true)
-      student_in_course(active_all: true)
-      quiz_model(course: @course)
-      @quiz_submission = @quiz.generate_submission(@student)
+      get "/courses/#{course.id}/quizzes/#{quiz.id}/submissions/#{quiz_submission.id}/log"
     end
 
     it "requires authorization" do
       subject
 
-      expect(response).to be_redirect
+      expect(response).to have_http_status(:found)
       expect(response).to redirect_to("/login")
     end
 
     it "lets the teacher in" do
-      user_session(@teacher)
+      user_session(teacher)
 
       subject
 
-      expect(response).to be_successful
+      expect(response).to have_http_status(:ok)
     end
 
     it "does not let the student in" do
-      user_session(@student)
+      user_session(student)
 
       subject
 
-      expect(response).to be_client_error
+      expect(response).to have_http_status(:unauthorized)
     end
 
     context "when quiz_log_auditing feature flag is off" do
@@ -72,12 +69,12 @@ describe Quizzes::QuizSubmissionEventsController do
       end
 
       it "redirects away" do
-        user_session(@teacher)
+        user_session(teacher)
 
         subject
 
-        expect(response).to be_redirect
-        expect(response).to redirect_to("/courses/#{@course.id}/quizzes/#{@quiz.id}/history?user_id=#{@student.id}")
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to("/courses/#{course.id}/quizzes/#{quiz.id}/history?user_id=#{student.id}")
       end
     end
   end
