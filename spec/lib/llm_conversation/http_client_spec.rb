@@ -91,6 +91,73 @@ describe LlmConversation::HttpClient do
       end
     end
 
+    context "when in a beta environment" do
+      before do
+        allow(ApplicationController).to receive_messages(test_cluster?: true, test_cluster_name: "beta")
+      end
+
+      context "when the request returns 401 and regeneration succeeds" do
+        let(:regenerate_response) do
+          { "api_token" => "new-api-token", "refresh_token" => "new-refresh-token" }.to_json
+        end
+
+        before do
+          stub_request(:get, "https://llm.test/conversations")
+            .to_return(
+              { status: 401, body: "Unauthorized" },
+              { status: 200, body: { "data" => [] }.to_json, headers: { "Content-Type" => "application/json" } }
+            )
+          stub_request(:post, "https://llm.test/token/generate")
+            .with(
+              headers: { "Authorization" => "Bearer initial-token" },
+              body: { root_account_id: account.uuid, audience: "canvas" }.to_json
+            )
+            .to_return(status: 200, body: regenerate_response, headers: { "Content-Type" => "application/json" })
+        end
+
+        it "calls /token/generate instead of /token/refresh" do
+          client.get("/conversations")
+          expect(WebMock).to have_requested(:post, "https://llm.test/token/generate").once
+          expect(WebMock).not_to have_requested(:post, "https://llm.test/token/refresh")
+        end
+
+        it "retries the original request and returns the result" do
+          result = client.get("/conversations")
+          expect(result).to eql({ "data" => [] })
+        end
+
+        it "persists the new tokens to account settings encrypted" do
+          client.get("/conversations")
+          account.reload
+
+          new_api_enc = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token)
+          new_api_salt = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token_salt)
+          expect(Canvas::Security.decrypt_password(new_api_enc, new_api_salt, enc_key)).to eql("new-api-token")
+
+          new_refresh_enc = account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token)
+          new_refresh_salt = account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token_salt)
+          expect(Canvas::Security.decrypt_password(new_refresh_enc, new_refresh_salt, enc_key)).to eql("new-refresh-token")
+        end
+
+        it "writes the new api token to the cache" do
+          client.get("/conversations")
+          expect(LlmConversation::TokenCache).to have_received(:set_api_token).with(account, "new-api-token")
+        end
+      end
+
+      context "when the regenerate endpoint itself fails" do
+        before do
+          stub_request(:get, "https://llm.test/conversations").to_return(status: 401, body: "Unauthorized")
+          stub_request(:post, "https://llm.test/token/generate").to_return(status: 500, body: "Error")
+        end
+
+        it "raises a ConversationError" do
+          expect { client.get("/conversations") }
+            .to raise_error(LlmConversation::Errors::ConversationError, /Token regeneration failed/)
+        end
+      end
+    end
+
     context "when the refresh token is missing from account settings" do
       before do
         account.settings[:llm_conversation_service] = {}

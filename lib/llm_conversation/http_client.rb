@@ -53,7 +53,64 @@ module LlmConversation
 
     private
 
-    def refresh_v2_token!
+    def refresh_token
+      # This is a temporary "beta" check condition while we investigate a proper solution
+      #
+      # Right now we store api / refresh credentials in Account Settings, but when beta refresh
+      # occurs those tokens are truncated with values from production. Since Production and Beta
+      # are provisioned independently, this causes an issue with invalid API and Refresh tokens
+      # and causes the account to be locked out.
+      #
+      # To band-aid this for now, we will regenerate a token pair if attempting to a refresh API token
+      # in beta environments. Once a proper solution is found this condition below will be removed
+      #
+      # https://instructure.atlassian.net/browse/LLMA-394
+      result = if ApplicationController.test_cluster?
+                 regenerate_token_pair
+               else
+                 fetch_refreshed_token_pair
+               end
+
+      new_api_token = result["api_token"]
+      new_refresh_token = result["refresh_token"]
+
+      api_enc, api_salt = Canvas::Security.encrypt_password(new_api_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
+      refresh_enc, refresh_salt = Canvas::Security.encrypt_password(new_refresh_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
+
+      @root_account.settings[:llm_conversation_service] = {
+        encrypted_api_jwt_token: api_enc,
+        encrypted_api_jwt_token_salt: api_salt,
+        encrypted_refresh_jwt_token: refresh_enc,
+        encrypted_refresh_jwt_token_salt: refresh_salt
+      }
+      @root_account.save!
+
+      LlmConversation::TokenCache.set_api_token(@root_account, new_api_token)
+      @bearer_token = new_api_token
+    end
+
+    def regenerate_token_pair
+      initial_token = Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
+
+      uri = URI("#{@base_url}/token/generate")
+      http = Net::HTTP.new(uri.host, uri.port)
+      if uri.scheme.casecmp?("https")
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      end
+
+      req = Net::HTTP::Post.new(uri.request_uri,
+                                "Content-Type" => "application/json",
+                                "Authorization" => "Bearer #{initial_token}")
+      req.body = { root_account_id: @root_account.uuid, audience: "canvas" }.to_json
+
+      response = http.request(req)
+      raise LlmConversation::Errors::ConversationError, "Token regeneration failed" unless response.is_a?(Net::HTTPSuccess)
+
+      JSON.parse(response.body)
+    end
+
+    def fetch_refreshed_token_pair
       enc = @root_account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token)
       salt = @root_account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token_salt)
       raise LlmConversation::Errors::ConversationError, "No refresh token available for account" unless enc && salt
@@ -76,23 +133,7 @@ module LlmConversation
       response = http.request(req)
       raise LlmConversation::Errors::ConversationError, "Token refresh failed" unless response.is_a?(Net::HTTPSuccess)
 
-      result = JSON.parse(response.body)
-      new_api_token = result["api_token"]
-      new_refresh_token = result["refresh_token"]
-
-      api_enc, api_salt = Canvas::Security.encrypt_password(new_api_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
-      refresh_enc, refresh_salt = Canvas::Security.encrypt_password(new_refresh_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
-
-      @root_account.settings[:llm_conversation_service] = {
-        encrypted_api_jwt_token: api_enc,
-        encrypted_api_jwt_token_salt: api_salt,
-        encrypted_refresh_jwt_token: refresh_enc,
-        encrypted_refresh_jwt_token_salt: refresh_salt
-      }
-      @root_account.save!
-
-      LlmConversation::TokenCache.set_api_token(@root_account, new_api_token)
-      @bearer_token = new_api_token
+      JSON.parse(response.body)
     end
 
     def request(method, path, payload: nil, retried: false)
@@ -130,7 +171,7 @@ module LlmConversation
 
       unless response.is_a?(Net::HTTPSuccess)
         if response.is_a?(Net::HTTPUnauthorized) && !retried
-          refresh_v2_token!
+          refresh_token
           return request(method, path, payload:, retried: true)
         end
 
