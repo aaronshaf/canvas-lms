@@ -58,4 +58,13 @@ describe('fetchToolConfiguration', () => {
       expect(errorHandler).toHaveBeenCalled()
     })
   })
+
+  describe('when the response has no JSON body', () => {
+    it('returns undefined without calling the error handler', async () => {
+      server.use(http.get(resolvedUrl, () => new HttpResponse(null, {status: 200})))
+      const result = await fetchToolConfiguration(clientId, showUrl, errorHandler)
+      expect(result).toBeUndefined()
+      expect(errorHandler).not.toHaveBeenCalled()
+    })
+  })
 })

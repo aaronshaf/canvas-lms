@@ -89,10 +89,9 @@ export default class CoursesListRow extends React.Component {
   }
 
   getSections = () =>
-    this.promiseToGetSections ||
-    (this.promiseToGetSections = doFetchApi({
+    (this.promiseToGetSections ||= doFetchApi({
       path: `/api/v1/courses/${this.props.id}/sections?per_page=100`,
-    })).then(({json}) => json)
+    }).then(({json}) => json))
 
   uniqueTeachers = () => uniqBy(this.props.teachers, 'id')
 

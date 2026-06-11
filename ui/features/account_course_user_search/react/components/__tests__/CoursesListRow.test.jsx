@@ -135,6 +135,24 @@ describe('opening add enrollment modal', () => {
       expect(getByTestId('add-enrollments-tooltip')).toBeInTheDocument()
     })
   })
+
+  it('returns sections array on repeated calls (memoization)', async () => {
+    server.use(
+      http.get('/api/v1/courses/1/sections', () =>
+        HttpResponse.json([{id: '1', name: 'Section 1'}]),
+      ),
+    )
+    const ref = React.createRef()
+    renderRow(
+      <CoursesListRow ref={ref} {...props} can_create_enrollments={true} concluded={false} />,
+    )
+
+    const first = await ref.current.getSections()
+    const second = await ref.current.getSections()
+
+    expect(first).toEqual([{id: '1', name: 'Section 1'}])
+    expect(second).toEqual([{id: '1', name: 'Section 1'}])
+  })
 })
 
 it('shows add-enrollment if it makes sense', () => {

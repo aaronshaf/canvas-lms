@@ -21,7 +21,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 export default async function fetchToolConfiguration(clientId, showUrl, errorHandler) {
   try {
     const {json} = await doFetchApi({path: showToolConfigUrl(clientId, showUrl)})
-    return json.tool_configuration
+    return json?.tool_configuration
   } catch (error) {
     errorHandler(error, clientId)
   }
