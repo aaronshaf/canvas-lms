@@ -18,9 +18,9 @@
 - **Reason:** Students have no assignment to submit against if Mastery Connect assessment creation does not generate a corresponding Canvas assignment.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-When a Mastery Connect assessment is added to the tracker
-Then a corresponding Canvas assignment is automatically created
-And the assignment appears in the Canvas Assignments list
+When mc-mothership creates the Canvas assignment for a Mastery Connect assessment
+Then a corresponding Canvas assignment is created
+And it appears in the course's assignments list
 ```
 
 **Scenario MC-2.2 — Raw score assessment creates a published Canvas assignment**
@@ -28,38 +28,29 @@ And the assignment appears in the Canvas Assignments list
 - **Reason:** Raw score assessment assignments must be immediately visible to students; if created as unpublished, students cannot access them without teacher intervention.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-When a raw score assessment is added to the tracker
-Then the auto-created Canvas assignment is in a published state
+When mc-mothership creates the assignment for a raw score assessment (published)
+Then Canvas persists the assignment in a published state
 ```
 
-**Scenario MC-2.3 — Item-based assessment creates an unpublished Canvas assignment**
+**Scenario MC-2.3 — Item-based or benchmark assessment creates an unpublished Canvas assignment**
 - **GUID:** `a6f34d82`
 - **Reason:** Unpublished state gives teachers control over when to release assessment assignments; if auto-published, students may see incomplete or draft assessments.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-When an item-based assessment is added to the tracker
-Then the auto-created Canvas assignment is in an unpublished state
+When mc-mothership creates the assignment for an item-based or benchmark assessment (unpublished)
+Then Canvas persists the assignment in an unpublished state
 ```
 
-**Scenario MC-2.4 — Benchmark assessment creates an unpublished Canvas assignment**
-- **GUID:** `f7b18c35`
-- **Reason:** Benchmark assessments require teacher review before release; auto-publishing would expose them to students prematurely.
-```
-Given a Canvas course with a linked Mastery Connect tracker
-When a benchmark assessment is added to the tracker
-Then the auto-created Canvas assignment is in an unpublished state
-```
-
-**Scenario MC-2.5 — MC assessment points possible inherited by Canvas assignment**
+**Scenario MC-2.4 — MC assessment points possible inherited by Canvas assignment**
 - **GUID:** `1b7e4c09`
 - **Reason:** Grade calculations in the Canvas Gradebook are incorrect if points possible do not match between Mastery Connect and Canvas.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-When a Mastery Connect assessment with a specific points-possible value is added to the tracker
-Then the auto-created Canvas assignment has the same points-possible value
+When mc-mothership creates the assignment with a specific points-possible value
+Then the created Canvas assignment has the same points-possible value
 ```
 
-**Scenario MC-2.6 — Classic Graded Quiz conversion produces a new Canvas assignment**
+**Scenario MC-2.5 — Classic Graded Quiz conversion produces a new Canvas assignment**
 - **GUID:** `8d3f2a67`
 - **Reason:** After converting a Classic Quiz to a Mastery Connect assessment, students cannot take the MC version through Canvas if the corresponding assignment is not created.
 ```
@@ -70,7 +61,7 @@ Then a new Canvas assignment is created for the Mastery Connect assessment
 And the original Classic Quiz remains unchanged in the course
 ```
 
-**Scenario MC-2.7 — New Quiz conversion produces a new Canvas assignment**
+**Scenario MC-2.6 — New Quiz conversion produces a new Canvas assignment**
 - **GUID:** `f4c91e5b`
 - **Reason:** After converting a New Quiz to a Mastery Connect assessment, students cannot take the MC version through Canvas if the corresponding assignment is not created.
 ```
@@ -81,7 +72,7 @@ Then a new Canvas assignment is created for the Mastery Connect assessment
 And the original New Quiz remains unchanged in the course
 ```
 
-**Scenario MC-2.8 — Pre-existing MC assessment promoted to linked Canvas assignment**
+**Scenario MC-2.7 — Pre-existing MC assessment promoted to linked Canvas assignment**
 - **GUID:** `c3d56a92`
 - **Reason:** Teachers cannot administer pre-existing tracker assessments through Canvas if the manual assignment creation action does not produce a Canvas assignment.
 ```
