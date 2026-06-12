@@ -197,15 +197,6 @@ describe Types::FileType do
         expect(url).to include("download=#{@submission_file.id}")
       end
 
-      it "returns nil for locked submission files when peer_reviewer_locked_file_access is disabled" do
-        Account.site_admin.disable_feature!(:peer_reviewer_locked_file_access)
-        @submission_file.update!(locked: true)
-        submission_type = GraphQLTypeTester.new(@submission, current_user: @reviewer, in_app: true, domain_root_account: Account.default, request: ActionDispatch::TestRequest.create)
-        urls = submission_type.resolve("attachments { url }")
-
-        expect(urls).to eq [nil]
-      end
-
       it "returns regular submission download URL for non-anonymous peer reviewers" do
         submission_type = GraphQLTypeTester.new(@submission, current_user: @reviewer, in_app: true, domain_root_account: Account.default, request: ActionDispatch::TestRequest.create)
         urls = submission_type.resolve("attachments { url }")

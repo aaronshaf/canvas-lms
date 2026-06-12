@@ -169,8 +169,7 @@ module Types
     # the lock. (AttachmentHelper#access_allowed can't be called here —
     # it needs controller state.)
     def attachment_access_blocked?(parent)
-      if Account.site_admin.feature_enabled?(:peer_reviewer_locked_file_access) &&
-         parent.is_a?(Submission) && parent.grants_right?(current_principal, session, :read)
+      if parent.is_a?(Submission) && parent.grants_right?(current_principal, session, :read)
         return false
       end
 
