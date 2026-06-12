@@ -38,7 +38,7 @@ const uploadMediaTranslations = {
     INVALID_FILE_TEXT: 'Invalid File',
     LOADING_MEDIA: 'Loading...',
     RECORD_PANEL_TITLE: 'Record',
-    SUBMIT_TEXT: 'Submit',
+    SUBMIT_TEXT: 'Upload',
     UPLOADING_ERROR: 'Upload Error',
     UPLOAD_MEDIA_LABEL: 'Upload Media',
     SELECT_SUPPORTED_FILE_TYPE: 'Please select a file of a supported type',

@@ -195,6 +195,14 @@ describe('MediaAttempt', () => {
         expect(queryByText('At least one submission type is required')).not.toBeInTheDocument()
       })
     })
+
+    it('passes Upload (not Submit) as the modal submit label', async () => {
+      const props = await makeProps()
+      render(<MediaAttempt {...props} />)
+      expect(uploadMediaProps.current.uploadMediaTranslations.UploadMediaStrings.SUBMIT_TEXT).toBe(
+        'Upload',
+      )
+    })
   })
 
   describe('upload completion errors', () => {

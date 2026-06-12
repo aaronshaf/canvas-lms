@@ -49,7 +49,7 @@ const UploadMediaStrings = {
   DRAG_FILE_TEXT: I18n.t('Drag a File Here'),
   RECORD_PANEL_TITLE: I18n.t('Record'),
   EMBED_PANEL_TITLE: I18n.t('Embed'),
-  SUBMIT_TEXT: I18n.t('Submit'),
+  SUBMIT_TEXT: I18n.t('Upload'),
   CLOSE_TEXT: I18n.t('Close'),
   UPLOAD_MEDIA_LABEL: I18n.t('Upload Media'),
   CLEAR_FILE_TEXT: I18n.t('Remove'),

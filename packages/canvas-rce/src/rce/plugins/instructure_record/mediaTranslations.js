@@ -37,7 +37,7 @@ const uploadMediaTranslations = {
     INVALID_FILE_TEXT: formatMessage('Invalid File'),
     LOADING_MEDIA: formatMessage('Loading...'),
     RECORD_PANEL_TITLE: formatMessage('Record'),
-    SUBMIT_TEXT: formatMessage('Submit'),
+    SUBMIT_TEXT: formatMessage('Upload'),
     UPLOADING_ERROR: formatMessage('An error occurred uploading your media.'),
     UPLOAD_MEDIA_LABEL: formatMessage('Upload Media'),
     MEDIA_RECORD_NOT_AVAILABLE: formatMessage(
