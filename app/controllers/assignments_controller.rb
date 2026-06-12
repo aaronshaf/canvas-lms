@@ -905,14 +905,6 @@ class AssignmentsController < ApplicationController
     @assignment ||= @context.assignments.active.preload(:peer_review_sub_assignment).find(params[:id])
     add_crumb_on_new_quizzes(false)
 
-    if @context.root_account.feature_enabled?(:assignment_edit_enhancements_teacher_view) &&
-       authorized_action(@assignment, current_principal, @assignment.new_record? ? :create : :update)
-      js_env({ ASSIGNMENT_EDIT_ENHANCEMENTS_TEACHER_VIEW: true, ASSIGNMENT_ID: params[:id], COURSE_ID: @context.id })
-      css_bundle :assignment_enhancements_teacher_view
-      render html: "", layout: true
-      return
-    end
-
     if authorized_action(@assignment, current_principal, @assignment.new_record? ? :create : :update)
       @assignment.title = params[:title] if params[:title]
       @assignment.due_at = params[:due_at] if params[:due_at]

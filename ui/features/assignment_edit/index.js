@@ -34,7 +34,6 @@ import GroupCategorySelector from '@canvas/groups/backbone/views/GroupCategorySe
 import PeerReviewsSelector from '@canvas/assignments/backbone/views/PeerReviewsSelector'
 import '@canvas/grading-standards'
 import LockManager from '@canvas/blueprint-courses/react/components/LockManager/index'
-import renderEditAssignmentsApp from './react/index'
 import {renderEnhancedRubrics} from './react/AssignmentRubric'
 import {renderPeerReviewDetails} from './react/PeerReviewDetails'
 import {flattenPeerReviewDates} from '@canvas/context-modules/differentiated-modules/utils/assignToHelper'
@@ -51,114 +50,109 @@ function loadBackboneComponents() {
   if (document.readyState === 'complete') maybeScrollToTarget()
   else window.addEventListener('load', maybeScrollToTarget, {once: true})
 
-  if (ENV.ASSIGNMENT_EDIT_ENHANCEMENTS_TEACHER_VIEW) {
-    const div = document.createElement('div')
-    renderEditAssignmentsApp(document.getElementById('content').appendChild(div))
-  } else {
-    const lockManager = new LockManager()
-    lockManager.init({itemType: 'assignment', page: 'edit'})
-    const lockedItems = lockManager.isChildContent() ? lockManager.getItemLocks() : {}
+  const lockManager = new LockManager()
+  lockManager.init({itemType: 'assignment', page: 'edit'})
+  const lockedItems = lockManager.isChildContent() ? lockManager.getItemLocks() : {}
 
-    if (ENV.ASSIGNMENT) {
-      let assignmentOverrides = ENV.ASSIGNMENT_OVERRIDES
-      if (
-        ENV.ASSIGNMENT.peer_reviews &&
-        ENV.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED &&
-        ENV.ASSIGNMENT.peer_review_sub_assignment
-      ) {
-        // Flatten nested peer_review_dates to flat fields at entry point
-        assignmentOverrides = flattenPeerReviewDates(ENV.ASSIGNMENT_OVERRIDES)
-      }
-
-      ENV.ASSIGNMENT.assignment_overrides = assignmentOverrides
+  if (ENV.ASSIGNMENT) {
+    let assignmentOverrides = ENV.ASSIGNMENT_OVERRIDES
+    if (
+      ENV.ASSIGNMENT.peer_reviews &&
+      ENV.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED &&
+      ENV.ASSIGNMENT.peer_review_sub_assignment
+    ) {
+      // Flatten nested peer_review_dates to flat fields at entry point
+      assignmentOverrides = flattenPeerReviewDates(ENV.ASSIGNMENT_OVERRIDES)
     }
 
-    const userIsAdmin = ENV.current_user_is_admin
-    const canEditGrades = ENV.PERMISSIONS?.can_edit_grades ?? false
-
-    const assignment = new Assignment(ENV.ASSIGNMENT)
-    assignment.urlRoot = ENV.URL_ROOT
-
-    const sectionList = new SectionCollection(ENV.SECTION_LIST)
-    const dueDateList = new DueDateList(
-      assignment.get('assignment_overrides'),
-      sectionList,
-      assignment,
-    )
-
-    const assignmentGroupSelector = new AssignmentGroupSelector({
-      parentModel: assignment,
-      assignmentGroups:
-        (typeof ENV !== 'undefined' && ENV !== null ? ENV.ASSIGNMENT_GROUPS : undefined) || [],
-    })
-    const gradingTypeSelector = new GradingTypeSelector({
-      parentModel: assignment,
-      preventNotGraded: assignment.submissionTypesFrozen(),
-      lockedItems,
-      canEditGrades,
-    })
-    const quizTypeSelector = new QuizTypeSelector({
-      parentModel: assignment,
-    })
-    const anonymousSubmissionSelector = new AnonymousSubmissionSelector({
-      parentModel: assignment,
-    })
-    const pointsTooltip = new PointsTooltip({
-      parentModel: assignment,
-    })
-    const groupCategorySelector = new GroupCategorySelector({
-      parentModel: assignment,
-      groupCategories:
-        (typeof ENV !== 'undefined' && ENV !== null ? ENV.GROUP_CATEGORIES : undefined) || [],
-      inClosedGradingPeriod: assignment.inClosedGradingPeriod(),
-      showNewErrors: true,
-    })
-    const peerReviewsSelector = new PeerReviewsSelector({
-      parentModel: assignment,
-    })
-
-    const editView = new EditView({
-      el: '#edit_assignment_form',
-      model: assignment,
-      assignmentGroupSelector,
-      gradingTypeSelector,
-      quizTypeSelector,
-      anonymousSubmissionSelector,
-      pointsTooltip,
-      ...(!ENV.horizon_course && {groupCategorySelector}),
-      ...(!ENV.horizon_course && {peerReviewsSelector}),
-      views: {
-        'js-assignment-overrides': new DueDateOverride({
-          model: dueDateList,
-          views: {},
-          postToSIS: assignment.postToSIS(),
-          dueDatesReadonly: !!lockedItems.due_dates,
-          availabilityDatesReadonly: !!lockedItems.availability_dates,
-          inPacedCourse: assignment.inPacedCourse(),
-          isModuleItem: ENV.IS_MODULE_ITEM,
-          courseId: assignment.courseID(),
-          ...(!ENV.horizon_course && {groupCategorySelector}),
-        }),
-        'js-assignment-overrides-mastery-path': new MasteryPathToggle({
-          model: dueDateList,
-        }),
-      },
-      lockedItems: assignment.id ? lockedItems : {}, // if no id, creating a new assignment
-      canEditGrades: canEditGrades || !assignment.gradedSubmissionsExist(),
-    })
-
-    const editHeaderView = new EditHeaderView({
-      el: '#edit_assignment_header',
-      model: assignment,
-      userIsAdmin,
-      views: {
-        edit_assignment_form: editView,
-      },
-    })
-    editHeaderView.render()
-    renderPeerReviewDetails(assignment)
-    renderEnhancedRubrics()
+    ENV.ASSIGNMENT.assignment_overrides = assignmentOverrides
   }
+
+  const userIsAdmin = ENV.current_user_is_admin
+  const canEditGrades = ENV.PERMISSIONS?.can_edit_grades ?? false
+
+  const assignment = new Assignment(ENV.ASSIGNMENT)
+  assignment.urlRoot = ENV.URL_ROOT
+
+  const sectionList = new SectionCollection(ENV.SECTION_LIST)
+  const dueDateList = new DueDateList(
+    assignment.get('assignment_overrides'),
+    sectionList,
+    assignment,
+  )
+
+  const assignmentGroupSelector = new AssignmentGroupSelector({
+    parentModel: assignment,
+    assignmentGroups:
+      (typeof ENV !== 'undefined' && ENV !== null ? ENV.ASSIGNMENT_GROUPS : undefined) || [],
+  })
+  const gradingTypeSelector = new GradingTypeSelector({
+    parentModel: assignment,
+    preventNotGraded: assignment.submissionTypesFrozen(),
+    lockedItems,
+    canEditGrades,
+  })
+  const quizTypeSelector = new QuizTypeSelector({
+    parentModel: assignment,
+  })
+  const anonymousSubmissionSelector = new AnonymousSubmissionSelector({
+    parentModel: assignment,
+  })
+  const pointsTooltip = new PointsTooltip({
+    parentModel: assignment,
+  })
+  const groupCategorySelector = new GroupCategorySelector({
+    parentModel: assignment,
+    groupCategories:
+      (typeof ENV !== 'undefined' && ENV !== null ? ENV.GROUP_CATEGORIES : undefined) || [],
+    inClosedGradingPeriod: assignment.inClosedGradingPeriod(),
+    showNewErrors: true,
+  })
+  const peerReviewsSelector = new PeerReviewsSelector({
+    parentModel: assignment,
+  })
+
+  const editView = new EditView({
+    el: '#edit_assignment_form',
+    model: assignment,
+    assignmentGroupSelector,
+    gradingTypeSelector,
+    quizTypeSelector,
+    anonymousSubmissionSelector,
+    pointsTooltip,
+    ...(!ENV.horizon_course && {groupCategorySelector}),
+    ...(!ENV.horizon_course && {peerReviewsSelector}),
+    views: {
+      'js-assignment-overrides': new DueDateOverride({
+        model: dueDateList,
+        views: {},
+        postToSIS: assignment.postToSIS(),
+        dueDatesReadonly: !!lockedItems.due_dates,
+        availabilityDatesReadonly: !!lockedItems.availability_dates,
+        inPacedCourse: assignment.inPacedCourse(),
+        isModuleItem: ENV.IS_MODULE_ITEM,
+        courseId: assignment.courseID(),
+        ...(!ENV.horizon_course && {groupCategorySelector}),
+      }),
+      'js-assignment-overrides-mastery-path': new MasteryPathToggle({
+        model: dueDateList,
+      }),
+    },
+    lockedItems: assignment.id ? lockedItems : {}, // if no id, creating a new assignment
+    canEditGrades: canEditGrades || !assignment.gradedSubmissionsExist(),
+  })
+
+  const editHeaderView = new EditHeaderView({
+    el: '#edit_assignment_header',
+    model: assignment,
+    userIsAdmin,
+    views: {
+      edit_assignment_form: editView,
+    },
+  })
+  editHeaderView.render()
+  renderPeerReviewDetails(assignment)
+  renderEnhancedRubrics()
 }
 
 export function Component() {

@@ -49,7 +49,6 @@ Rubrics use a **separate API** (`POST /api/v1/courses/:id/rubrics`), not the ass
 | `anonymous_marking` | **25%** | Anonymous grading |
 | `moderated_grading` | **15%** | Disables peer reviews when on |
 | `peer_review_allocation_and_grading` | **0%** | In active development |
-| `assignment_edit_enhancements_teacher_view` | **0%** | New React UI - not in production |
 
 *Source: [Canvas Feature Analytics](https://103443579803.observeinc.com/workspace/41863084/dashboard/Canvas-Feature-Analytics-Dashboard-42279288) (Jan 2026)*
 

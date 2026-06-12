@@ -1406,25 +1406,6 @@ describe AssignmentsController do
       end
     end
 
-    describe "assignment_edit_enhancements_teacher_view" do
-      before do
-        @course.root_account.enable_feature!(:assignment_edit_enhancements_teacher_view)
-        @course.save!
-      end
-
-      it "does not render the 'old' edit assignment page layout" do
-        user_session(@teacher)
-        get :edit, params: { course_id: @course.id, id: @assignment.id }
-        expect(response).not_to render_template("assignments/edit")
-      end
-
-      it "does not render the 'old' create assignment page layout" do
-        user_session(@teacher)
-        get :new, params: { course_id: @course.id }
-        expect(response).not_to render_template("assignments/edit")
-      end
-    end
-
     it "does not show locked external tool assignments" do
       user_session(@student)
 
@@ -3403,13 +3384,6 @@ describe AssignmentsController do
         get "edit", params: { course_id: @course.id, id: @assignment.id }
         expect(assigns[:js_env][:HIDE_ZERO_POINT_QUIZZES_OPTION_ENABLED]).to be(true)
       end
-    end
-
-    it "sets COURSE_ID in js_env if assignment_edit_enhancements_teacher_view FF is enabled" do
-      user_session(@teacher)
-      @course.root_account.enable_feature!(:assignment_edit_enhancements_teacher_view)
-      get "edit", params: { course_id: @course.id, id: @assignment.id }
-      expect(assigns[:js_env][:COURSE_ID]).to be(@course.id)
     end
 
     it "js_env GROUP_CATEGORIES excludes non_collaborative and student_organized categories regardless of allow_assign_to_differentiation_tags? setting state" do

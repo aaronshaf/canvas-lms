@@ -159,19 +159,6 @@ export const TEACHER_QUERY = gql`
   ${assignmentOverridesNodes}
 `
 
-export const TEACHER_EDIT_QUERY = gql`
-  query GetAssignmentForEdit($assignmentLid: ID!) {
-    assignment(id: $assignmentLid) {
-      lid: _id
-      state
-      hasSubmittedSubmissions
-      course {
-        lid: _id
-      }
-    }
-  }
-`
-
 export const ASSIGNED_STUDENTS_QUERY = gql`
   query GetAssignedStudents($assignmentId: ID!, $filter: AssignedStudentsFilter) {
     assignment(id: $assignmentId) {
