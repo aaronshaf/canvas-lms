@@ -1886,7 +1886,7 @@ describe Canvas::LiveEvents do
         Canvas::KafkaEvents::Events::COURSE_COMPLETED,
         root_account: course.root_account,
         user:,
-        payload: { course_id: course.global_id.to_s },
+        payload: { course_id: course.global_id.to_s, course_uuid: course.uuid },
         occurred_at: completed_at
       )
 
