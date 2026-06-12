@@ -1353,6 +1353,8 @@ ActiveRecord::Relation.class_eval do
   #
   # note this does a raw connection.select_values, so it doesn't work with scopes
   def find_ids_in_batches(batch_size: 1000, no_integer_cast: false)
+    return to_enum(:find_ids_in_batches, batch_size:, no_integer_cast:) unless block_given?
+
     key = "#{quoted_table_name}.#{primary_key}"
     scope = except(:select).select(key).reorder(Arel.sql(key)).limit(batch_size)
     ids = connection.select_values(scope.to_sql)
