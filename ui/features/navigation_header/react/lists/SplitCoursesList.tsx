@@ -37,21 +37,20 @@ export const CourseListItemContent = ({course}: {course: Course}) => {
     ?.show_sections_in_course_tray
   const sectionDetails =
     showSections && sectionNames.length > 0 ? sectionNames.sort().join(', ') : null
-  const courseDetails =
-    ENV.FEATURES?.courses_popout_sisid && course.sis_course_id
-      ? course.enrollment_term_id > 1
-        ? I18n.t('SIS ID: %{courseSisId} | Term: %{termName}', {
-            courseSisId: course.sis_course_id,
-            termName: course.term.name,
-          })
-        : I18n.t('SIS ID: %{courseSisId}', {
-            courseSisId: course.sis_course_id,
-          })
-      : course.enrollment_term_id > 1
-        ? I18n.t('Term: %{termName}', {
-            termName: course.term.name,
-          })
-        : null
+  const courseDetails = course.sis_course_id
+    ? course.enrollment_term_id > 1
+      ? I18n.t('SIS ID: %{courseSisId} | Term: %{termName}', {
+          courseSisId: course.sis_course_id,
+          termName: course.term.name,
+        })
+      : I18n.t('SIS ID: %{courseSisId}', {
+          courseSisId: course.sis_course_id,
+        })
+    : course.enrollment_term_id > 1
+      ? I18n.t('Term: %{termName}', {
+          termName: course.term.name,
+        })
+      : null
 
   return (
     <>

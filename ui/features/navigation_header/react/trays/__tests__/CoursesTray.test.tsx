@@ -110,7 +110,6 @@ describe('CoursesTray', () => {
   beforeEach(() => {
     queryClient.setQueryData(['courses'], courses)
     window.ENV.K5_USER = false
-    window.ENV.FEATURES.courses_popout_sisid = true
     window.ENV.current_user_roles = []
     ;(window.ENV as any).SETTINGS = {show_sections_in_course_tray: true}
   })

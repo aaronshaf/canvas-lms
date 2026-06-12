@@ -318,10 +318,7 @@ class ContextController < ApplicationController
       css_bundle :roster_user, :pairing_code
 
       enable_profiles = @domain_root_account.enable_profiles?
-      show_recent_messages_on_new_roster_user_page =
-        Account.site_admin.feature_enabled?(:show_recent_messages_on_new_roster_user_page)
-      if (!enable_profiles || (enable_profiles && show_recent_messages_on_new_roster_user_page)) &&
-         @user.grants_right?(current_principal, session, :read_profile)
+      if @user.grants_right?(current_principal, session, :read_profile)
 
         @topics = @context.active_discussion_topics
                           .not_fully_anonymous

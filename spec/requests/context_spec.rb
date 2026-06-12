@@ -395,9 +395,8 @@ describe ContextController do
         expect(js_env_from_response(response)["CONTEXT_USER_DISPLAY_NAME"]).to eq(@student.short_name)
       end
 
-      context "show_recent_messages_on_new_roster_user_page enabled" do
+      context "recent messages on the roster user page" do
         before do
-          Account.site_admin.enable_feature!(:show_recent_messages_on_new_roster_user_page)
           topic = @course.discussion_topics.create!(user: @student, message: "Discussion")
           (1..11).each { |number| topic.discussion_entries.create!(message: number, user: @student) }
           user_session(@admin)

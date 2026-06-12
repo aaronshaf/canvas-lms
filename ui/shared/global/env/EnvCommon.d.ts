@@ -321,7 +321,6 @@ export type SiteAdminFeatureId =
   | 'a11y_checker_ga2_features'
   | 'account_calendar_events'
   | 'account_level_blackout_dates'
-  | 'courses_popout_sisid'
   | 'create_external_apps_side_tray_overrides'
   | 'dashboard_graphql_integration'
   | 'developer_key_user_agent_alert'
