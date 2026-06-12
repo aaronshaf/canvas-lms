@@ -97,18 +97,6 @@ assignment_missing_shortcut:
   applies_to: SiteAdmin
   display_name: Keyboard Shortcut for Missing Assignment
   description: Allows graders to type MI in the Gradebook or SpeedGrader to manually tag an assignment as missing
-originality_reports_for_a2:
-  state: hidden
-  applies_to: SiteAdmin
-  display_name: Originality Reports with Assignment Enhancements
-  description: If set, displays originality reports with Assignment Enhancements turned on
-  environments:
-    ci:
-      state: on # enable for automated testings builds and local testing
-    development:
-      state: on # enable for local development
-    test:
-      state: on # enable for the deployed 'test' environment
 single_new_quiz_session_in_speedgrader:
   state: hidden
   applies_to: SiteAdmin

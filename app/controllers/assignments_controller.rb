@@ -180,7 +180,6 @@ class AssignmentsController < ApplicationController
              peer_review_mode_enabled: submission.present? && peer_review_mode_enabled,
              peer_review_available:,
              peer_display_name: @assignment.anonymous_peer_reviews? ? I18n.t("Anonymous student") : submission&.user&.name,
-             originality_reports_for_a2_enabled: Account.site_admin.feature_enabled?(:originality_reports_for_a2),
              restrict_quantitative_data: @assignment.restrict_quantitative_data?(@current_user),
              grading_scheme: grading_standard.data,
              points_based: grading_standard.points_based?,
@@ -255,7 +254,6 @@ class AssignmentsController < ApplicationController
              EMOJI_DENY_LIST: @context.root_account.settings[:emoji_deny_list],
              COURSE_ID: @context.id,
              ISOBSERVER: @context_enrollment&.observer?,
-             ORIGINALITY_REPORTS_FOR_A2: Account.site_admin.feature_enabled?(:originality_reports_for_a2),
              PREREQS: assignment_prereqs,
              SUBMISSION_ID: graphql_submission_id,
            })

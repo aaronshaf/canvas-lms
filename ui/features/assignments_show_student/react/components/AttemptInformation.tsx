@@ -246,7 +246,6 @@ export default ({
                 (submission.submissionType === 'online_text_entry' ||
                   submission.attachments.length === 1) &&
                 submission.originalityData &&
-                assignment.env.originalityReportsForA2Enabled &&
                 isOriginalityReportVisible(
                   assignment.originalityReportVisibility,
                   assignment.dueAt,

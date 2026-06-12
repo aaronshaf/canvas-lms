@@ -125,7 +125,6 @@ export type Env = {
   } | null
   moduleUrl: string
   belongsToUnpublishedModule: boolean
-  originalityReportsForA2Enabled: boolean
   peerReviewModeEnabled: boolean
   peerReviewAvailable: boolean
   peerDisplayName: string

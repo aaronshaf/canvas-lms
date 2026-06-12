@@ -196,7 +196,6 @@ export default class AttemptTab extends Component {
     createSubmissionDraft: func,
     focusAttemptOnInit: bool.isRequired,
     onContentsChanged: func,
-    originalityReportsForA2: bool,
     selectedExternalTool: ExternalTool.shape,
     submission: Submission.shape.isRequired,
     updateActiveSubmissionType: func,
@@ -356,7 +355,7 @@ export default class AttemptTab extends Component {
               this.props.assignment.originalityReportVisibility,
               this.props.assignment.dueAt,
               this.props.submission.gradingStatus,
-            ) && this.props.originalityReportsForA2
+            )
           }
         />
       </LazyLoad>

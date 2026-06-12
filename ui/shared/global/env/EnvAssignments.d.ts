@@ -37,7 +37,6 @@ export interface EnvAssignmentsA2StudentView {
   a2_student_view: boolean
   peer_review_mode_enabled: boolean
   peer_display_name: string
-  originality_reports_for_a2_enabled: boolean
   restrict_quantitative_data: boolean
   grading_scheme: any
   points_based: boolean
@@ -63,7 +62,6 @@ export interface EnvAssignmentsA2StudentView {
   COURSE_ID: string | number
   MODULE_ITEM_ID?: string | number
   ISOBSERVER: boolean
-  ORIGINALITY_REPORTS_FOR_A2: boolean
   PREREQS: any
   SUBMISSION_ID: string | number
   DUE_DATE_REQUIRED_FOR_ACCOUNT?: boolean

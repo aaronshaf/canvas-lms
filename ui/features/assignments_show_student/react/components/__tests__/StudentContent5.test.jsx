@@ -68,35 +68,12 @@ describe('Assignment Student Content View', () => {
           data: '{}',
         },
       }
-      props.assignment.env.originalityReportsForA2Enabled = true
       const {queryByTestId} = render(
         <MockedQueryProvider>
           <StudentContent {...props} />
         </MockedQueryProvider>,
       )
       expect(queryByTestId('originality_report')).toBeInTheDocument()
-    })
-
-    it('is not rendered when the originality reports for a2 FF is not enabled', async () => {
-      const props = await mockAssignmentAndSubmission({
-        Submission: {submissionType: 'online_text_entry'},
-      })
-      props.submission.originalityData = {
-        submission_1: {
-          similarity_score: 10,
-          state: 'acceptable',
-          report_url: 'http://example.com',
-          status: 'scored',
-          data: '{}',
-        },
-      }
-      props.assignment.env.originalityReportsForA2Enabled = false
-      const {queryByTestId} = render(
-        <MockedQueryProvider>
-          <StudentContent {...props} />
-        </MockedQueryProvider>,
-      )
-      expect(queryByTestId('originality_report')).not.toBeInTheDocument()
     })
 
     it('is not rendered when the originality report is not visibile to the student', async () => {
@@ -117,7 +94,6 @@ describe('Assignment Student Content View', () => {
       tomorrow.setDate(tomorrow.getDate() + 1)
       props.assignment.dueAt = tomorrow.toString()
       props.assignment.originalityReportVisibility = 'after_due_date'
-      props.assignment.env.originalityReportsForA2Enabled = true
       const {queryByTestId} = render(
         <MockedQueryProvider>
           <StudentContent {...props} />
@@ -144,7 +120,6 @@ describe('Assignment Student Content View', () => {
       yesterday.setDate(yesterday.getDate() - 1)
       props.assignment.dueAt = yesterday.toString()
       props.assignment.originalityReportVisibility = 'after_due_date'
-      props.assignment.env.originalityReportsForA2Enabled = true
       const {queryByTestId} = render(
         <MockedQueryProvider>
           <StudentContent {...props} />
@@ -175,7 +150,6 @@ describe('Assignment Student Content View', () => {
           data: '{}',
         },
       }
-      props.assignment.env.originalityReportsForA2Enabled = true
       const {queryByTestId} = render(
         <MockedQueryProvider>
           <StudentContent {...props} />

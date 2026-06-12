@@ -717,7 +717,6 @@ const SubmissionManager = ({
           onContentsChanged={() => {
             setDraftStatus('saving')
           }}
-          originalityReportsForA2={window.ENV.ORIGINALITY_REPORTS_FOR_A2}
           selectedExternalTool={selectedExternalTool || submission?.submissionDraft?.externalTool}
           submission={submission}
           updateActiveSubmissionType={updateActiveSubmissionType}
