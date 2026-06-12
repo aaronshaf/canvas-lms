@@ -23,7 +23,6 @@ import {TextInput} from '@instructure/ui-text-input'
 import {TextArea} from '@instructure/ui-text-area'
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
-import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {AIExperience, AIExperienceFormData, EvaluationMetric} from '../../../types'
@@ -137,42 +136,39 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
     const newErrors: Record<string, string> = {}
 
     if (!formData.title.trim()) {
-      newErrors.title = I18n.t('Knowledge chat name required')
+      newErrors.title = I18n.t('Chat name required')
     } else if (formData.title.length > TITLE_MAX_LENGTH) {
-      newErrors.title = I18n.t('Knowledge chat name must be %{max} characters or fewer', {
+      newErrors.title = I18n.t('Chat name must be %{max} characters or fewer', {
         max: TITLE_MAX_LENGTH,
       })
     }
 
     if (formData.description.length > TEACHER_AUTHORED_FIELD_MAX) {
-      newErrors.description = I18n.t(
-        'Knowledge chat description must be %{max} characters or fewer',
-        {max: TEACHER_AUTHORED_FIELD_MAX},
-      )
+      newErrors.description = I18n.t('Chat description must be %{max} characters or fewer', {
+        max: TEACHER_AUTHORED_FIELD_MAX,
+      })
     }
 
     if (formData.facts.length > TEACHER_AUTHORED_FIELD_MAX) {
-      newErrors.facts = I18n.t('Text source must be %{max} characters or fewer', {
+      newErrors.facts = I18n.t('Text sources must be %{max} characters or fewer', {
         max: TEACHER_AUTHORED_FIELD_MAX,
       })
     }
 
     if (formData.learning_objectives.length === 0) {
-      newErrors.learning_objectives = I18n.t('Please provide at least one learning objective')
+      newErrors.learning_objectives = I18n.t('Please provide at least one talking point')
     } else if (formData.learning_objectives.some(o => o.length > TEACHER_AUTHORED_FIELD_MAX)) {
-      newErrors.learning_objectives = I18n.t(
-        'Learning objective targets must be %{max} characters or fewer',
-        {max: TEACHER_AUTHORED_FIELD_MAX},
-      )
+      newErrors.learning_objectives = I18n.t('Talking point must be %{max} characters or fewer', {
+        max: TEACHER_AUTHORED_FIELD_MAX,
+      })
     }
 
     if (!formData.pedagogical_guidance.trim()) {
-      newErrors.pedagogical_guidance = I18n.t('Please provide pedagogical guidance')
+      newErrors.pedagogical_guidance = I18n.t('Please provide an AI prompt')
     } else if (formData.pedagogical_guidance.length > TEACHER_AUTHORED_FIELD_MAX) {
-      newErrors.pedagogical_guidance = I18n.t(
-        'Pedagogical guidance must be %{max} characters or fewer',
-        {max: TEACHER_AUTHORED_FIELD_MAX},
-      )
+      newErrors.pedagogical_guidance = I18n.t('AI prompt must be %{max} characters or fewer', {
+        max: TEACHER_AUTHORED_FIELD_MAX,
+      })
     }
 
     return newErrors
@@ -238,7 +234,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} noValidate={true} aria-label={I18n.t('Knowledge Chat form')}>
+        <form onSubmit={handleSubmit} noValidate={true} aria-label={I18n.t('Knowledge check form')}>
           <FormHeader
             isEdit={isEdit}
             title={aiExperience?.title}
@@ -255,19 +251,14 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             padding="medium"
             margin="0 0 large 0"
           >
-            <Heading level="h2" margin="0 0 x-small 0">
-              <strong>{I18n.t('Content')}</strong>
+            <Heading level="h2" margin="0 0 large 0">
+              <strong>{I18n.t('1. Student instructions')}</strong>
             </Heading>
-            <View as="div" margin="0 0 large 0">
-              <Text size="medium">
-                {I18n.t('Provide context and learning expectations to learners.')}
-              </Text>
-            </View>
 
             <View as="div" margin="0 0 medium 0">
               <TextInput
                 data-testid="ai-experience-edit-title-input"
-                renderLabel={I18n.t('Knowledge chat name')}
+                renderLabel={I18n.t('Chat name')}
                 value={formData.title}
                 onChange={handleInputChange('title')}
                 isRequired
@@ -279,7 +270,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
 
             <TextArea
               data-testid="ai-experience-edit-description-input"
-              label={I18n.t('Knowledge chat description')}
+              label={I18n.t('Chat description')}
               value={formData.description}
               onChange={handleInputChange('description')}
               resize="vertical"
@@ -312,7 +303,15 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             padding="medium"
             margin="large 0 large 0"
           >
-            <EvaluationMetricsSection metrics={evaluationMetrics} onChange={setEvaluationMetrics} />
+            <Heading level="h2" margin="0 0 large 0">
+              <strong>{I18n.t('3. Generated insights')}</strong>
+            </Heading>
+            <EvaluationMetricsSection
+              metrics={evaluationMetrics}
+              onChange={setEvaluationMetrics}
+              showHeading={false}
+              showDescription={false}
+            />
           </View>
 
           <View as="div" margin="large 0 0 0">

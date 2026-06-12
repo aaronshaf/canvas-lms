@@ -199,7 +199,7 @@ describe('MessageThread', () => {
         />,
       )
       expect(screen.getByTestId('conversation-milestone-all')).toBeInTheDocument()
-      expect(screen.getByText('All objectives met')).toBeInTheDocument()
+      expect(screen.getByText('All talking points met')).toBeInTheDocument()
     })
 
     it('renders no milestones when prop is empty', () => {

@@ -3150,7 +3150,7 @@ describe Course do
           ai_tab = tabs.find { |t| t[:id] == Course::TAB_AI_EXPERIENCES }
 
           expect(ai_tab).not_to be_nil
-          expect(ai_tab[:label]).to eq("AI Experiences")
+          expect(ai_tab[:label]).to eq("Knowledge checks")
           expect(ai_tab[:css_class]).to eq("ai_experiences")
           expect(ai_tab[:href]).to eq(:course_ai_experiences_path)
         end
@@ -3183,7 +3183,7 @@ describe Course do
           # Tab is visible to all users when feature flag is enabled
           # Permission checks happen at controller level for what content they can see
           expect(ai_tab).not_to be_nil
-          expect(ai_tab[:label]).to eq("AI Experiences")
+          expect(ai_tab[:label]).to eq("Knowledge checks")
         end
 
         it "includes AI Experiences tab for users with manage_course_content permissions" do

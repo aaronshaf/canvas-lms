@@ -40,7 +40,7 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({action}) => (
       <Heading level="h2" margin="0" color="primary-inverse">
         <Flex as="span" alignItems="center" gap="x-small">
           <IconAiSolid aria-hidden="true" />
-          {I18n.t('Knowledge Chat')}
+          {I18n.t('Knowledge check')}
         </Flex>
       </Heading>
       {action}

@@ -46,12 +46,12 @@ const FormHeader: React.FC<FormHeaderProps> = ({
   const isPublished = workflowState === 'published'
   const getHeading = () => {
     if (!isEdit) {
-      return I18n.t('New Knowledge Chat')
+      return I18n.t('New knowledge check')
     }
     if (title?.trim()) {
       return I18n.t('Edit %{title}', {title})
     }
-    return I18n.t('Edit Knowledge Chat')
+    return I18n.t('Edit knowledge check')
   }
 
   return (

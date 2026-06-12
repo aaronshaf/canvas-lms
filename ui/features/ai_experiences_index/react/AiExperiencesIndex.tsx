@@ -26,7 +26,8 @@ import {Text} from '@instructure/ui-text'
 import {Button} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
 import {Pagination} from '@instructure/ui-pagination'
-import {IconAddLine, IconAiColoredSolid} from '@instructure/ui-icons'
+import {IconAiColoredSolid} from '@instructure/ui-icons'
+import AddExperienceButton from '@canvas/ai-experiences/react/components/AddExperienceButton'
 import {showFlashError} from '@instructure/platform-alerts'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import AIExperienceList from './components/AIExperienceList'
@@ -116,7 +117,7 @@ const AiExperiencesIndex: React.FC = () => {
         }
       }, 0)
     } catch {
-      showFlashError(I18n.t('Failed to delete Knowledge Chat. Please try again.'))()
+      showFlashError(I18n.t('Failed to delete Knowledge check. Please try again.'))()
     } finally {
       setIsDeleting(false)
     }
@@ -132,7 +133,7 @@ const AiExperiencesIndex: React.FC = () => {
   if (loading) {
     return (
       <View as="div" textAlign="center" margin="large" aria-live="polite" aria-busy={true}>
-        <Spinner renderTitle={I18n.t('Loading Knowledge Chats')} />
+        <Spinner renderTitle={I18n.t('Loading Knowledge checks')} />
       </View>
     )
   }
@@ -140,7 +141,7 @@ const AiExperiencesIndex: React.FC = () => {
   if (error) {
     return (
       <View as="div" margin="medium">
-        <Text color="danger">{I18n.t('Error loading Knowledge Chats: %{error}', {error})}</Text>
+        <Text color="danger">{I18n.t('Error loading Knowledge checks: %{error}', {error})}</Text>
       </View>
     )
   }
@@ -155,34 +156,26 @@ const AiExperiencesIndex: React.FC = () => {
                 <IconAiColoredSolid size="small" aria-hidden="true" />
               </Flex.Item>
               <Flex.Item>
-                <Heading level="h1">{I18n.t('Knowledge Chats')}</Heading>
+                <Heading level="h1">{I18n.t('Knowledge checks')}</Heading>
               </Flex.Item>
             </Flex>
             <View as="div" margin="x-small 0 0 0">
-              <Text color="secondary">
+              <Text>
                 {canManage
-                  ? I18n.t(
-                      "Evaluate your students' comprehension of a topic with a configurable LLM chat (learning language model).",
-                    )
-                  : I18n.t(
-                      'Check your understanding of a topic with an educator-configured Knowledge Chat.',
-                    )}
+                  ? I18n.t('Guided AI conversations that help gauge what students know')
+                  : I18n.t('Conversations with IgniteAI that help you show what you know')}
               </Text>
             </View>
           </Flex.Item>
           {experiences.length > 0 && canManage && (
             <Flex.Item>
-              <Button
+              <AddExperienceButton
                 data-testid="ai-expriences-index-create-new-button"
-                color="primary"
-                renderIcon={() => <IconAddLine />}
                 onClick={handleCreateNew}
-                elementRef={(el: Element | null) => {
-                  createButtonRef.current = el as HTMLButtonElement | null
+                elementRef={el => {
+                  createButtonRef.current = el
                 }}
-              >
-                {I18n.t('Create new')}
-              </Button>
+              />
             </Flex.Item>
           )}
         </Flex>
@@ -214,7 +207,7 @@ const AiExperiencesIndex: React.FC = () => {
               onPageChange={(page: number) => setCurrentPage(page)}
               labelNext={I18n.t('Next page')}
               labelPrev={I18n.t('Previous page')}
-              aria-label={I18n.t('Knowledge Chats pagination')}
+              aria-label={I18n.t('Knowledge checks pagination')}
               data-testid="ai-experiences-pagination"
             />
           )}
@@ -225,11 +218,11 @@ const AiExperiencesIndex: React.FC = () => {
         open={deleteTarget !== null}
         onDismiss={handleCancelDelete}
         size="small"
-        label={I18n.t('Delete Knowledge Chat')}
+        label={I18n.t('Delete Knowledge check')}
         shouldCloseOnDocumentClick={true}
       >
         <Modal.Header>
-          <Heading>{I18n.t('Delete Knowledge Chat')}</Heading>
+          <Heading>{I18n.t('Delete Knowledge check')}</Heading>
         </Modal.Header>
         <Modal.Body>
           <Text>

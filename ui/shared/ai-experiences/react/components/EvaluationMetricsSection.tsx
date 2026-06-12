@@ -38,19 +38,19 @@ const LOCKED_METRIC_NAME = 'Summary'
 export const DEFAULT_METRICS: EvaluationMetric[] = [
   {
     name: 'Summary',
-    description: "An overall summary of the learner's conversation.",
+    description: 'Key themes from conversation',
     enabled: true,
     visible_to_learners: true,
   },
   {
-    name: 'Learning targets met',
-    description: 'Which targets were hit and when.',
+    name: 'Objectives',
+    description: 'Student activity on required talking points',
     enabled: true,
     visible_to_learners: true,
   },
   {
-    name: 'Areas for improvement',
-    description: 'Guidance for how to improve their conversation',
+    name: 'Opportunities',
+    description: 'Areas for improved learning',
     enabled: true,
     visible_to_learners: true,
   },
@@ -60,6 +60,8 @@ interface EvaluationMetricsSectionProps {
   metrics: EvaluationMetric[]
   onChange: (metrics: EvaluationMetric[]) => void
   readOnly?: boolean
+  showHeading?: boolean
+  showDescription?: boolean
 }
 
 interface AddMetricModalProps {
@@ -79,23 +81,23 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
   const handleAdd = () => {
     let valid = true
     if (!name.trim()) {
-      setNameError(I18n.t('Metric name is required'))
+      setNameError(I18n.t('Insight name is required'))
       valid = false
     } else if (name.trim().length > 255) {
-      setNameError(I18n.t('Metric name must be 255 characters or fewer'))
+      setNameError(I18n.t('Insight name must be 255 characters or fewer'))
       valid = false
     } else {
       setNameError('')
     }
     const trimmedDescription = description.trim()
     if (!trimmedDescription) {
-      setDescriptionError(I18n.t('Metric description is required'))
+      setDescriptionError(I18n.t('Insight description is required'))
       valid = false
     } else if (trimmedDescription.length < 10) {
-      setDescriptionError(I18n.t('Metric description must be at least 10 characters'))
+      setDescriptionError(I18n.t('Insight description must be at least 10 characters'))
       valid = false
     } else if (trimmedDescription.length > 1000) {
-      setDescriptionError(I18n.t('Metric description must be 1000 characters or fewer'))
+      setDescriptionError(I18n.t('Insight description must be 1000 characters or fewer'))
       valid = false
     } else {
       setDescriptionError('')
@@ -130,23 +132,23 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
       open={isOpen}
       onDismiss={handleClose}
       size="small"
-      label={I18n.t('Add AI metric')}
+      label={I18n.t('Add insight')}
       data-testid="add-metric-modal"
       defaultFocusElement={() => nameInputRef.current}
     >
       <Modal.Header>
-        <Heading>{I18n.t('Add AI metric')}</Heading>
+        <Heading>{I18n.t('Add insight')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <View as="div" margin="0 0 medium 0">
           <Text>
-            {I18n.t("Set up your own metric and we'll generate insights based on the following:")}
+            {I18n.t("Set up your own insight and we'll generate it based on the following:")}
           </Text>
         </View>
         <View as="div" margin="0 0 medium 0">
           <TextInput
             data-testid="add-metric-name-input"
-            renderLabel={I18n.t('Metric name')}
+            renderLabel={I18n.t('Insight name')}
             isRequired
             value={name}
             onChange={(_e, val) => setName(val)}
@@ -159,7 +161,7 @@ const AddMetricModal: React.FC<AddMetricModalProps> = ({isOpen, onClose, onAdd})
         <View as="div" margin="0 0 medium 0">
           <TextArea
             data-testid="add-metric-description-input"
-            label={I18n.t('Metric description')}
+            label={I18n.t('Insight description')}
             required
             value={description}
             onChange={e => setDescription(e.target.value)}
@@ -188,6 +190,8 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
   metrics,
   onChange,
   readOnly = false,
+  showHeading = true,
+  showDescription = true,
 }) => {
   const [modalOpen, setModalOpen] = useState(false)
   const closeButtonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map())
@@ -235,17 +239,21 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
 
   return (
     <View as="div" data-testid="evaluation-metrics-section">
-      <Heading level="h3" margin="0 0 x-small 0">
-        {I18n.t('Evaluate with AI')}
-      </Heading>
-      <View as="div" margin="0 0 medium 0">
-        <Text size="medium">
-          {I18n.t(
-            'Choose up to %{max} metrics that AI can provide evaluation support on these conversations.',
-            {max: MAX_METRICS},
-          )}
-        </Text>
-      </View>
+      {showHeading && (
+        <Heading level="h3" margin="0 0 x-small 0">
+          {I18n.t('Evaluate with AI')}
+        </Heading>
+      )}
+      {showDescription && (
+        <View as="div" margin="0 0 medium 0">
+          <Text size="medium">
+            {I18n.t(
+              'Choose up to %{max} metrics that AI can provide evaluation support on these conversations.',
+              {max: MAX_METRICS},
+            )}
+          </Text>
+        </View>
+      )}
 
       <div
         style={{
@@ -315,7 +323,7 @@ const EvaluationMetricsSection: React.FC<EvaluationMetricsSectionProps> = ({
             addButtonRef.current = el as HTMLButtonElement | null
           }}
         >
-          {I18n.t('Add AI metric')}
+          {I18n.t('Add insight')}
         </Button>
       )}
 

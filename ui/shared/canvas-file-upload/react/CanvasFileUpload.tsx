@@ -157,7 +157,7 @@ const CanvasFileUpload: React.FC<CanvasFileUploadProps> = ({
     <View as="div">
       <View as="div" margin="0 0 small 0">
         <Text weight="bold">
-          {I18n.t('Up to %{maxFiles} file sources (Maximum of %{maxSize}MB)', {
+          {I18n.t('File sources (max %{maxFiles} files, %{maxSize}MB)', {
             maxFiles: maxFiles ?? 10,
             maxSize: maxFileSizeMB,
           })}
@@ -190,7 +190,7 @@ const CanvasFileUpload: React.FC<CanvasFileUploadProps> = ({
             onClick={() => fileInputRef.current?.click()}
             interaction={isUploading ? 'disabled' : 'enabled'}
           >
-            {isUploading ? I18n.t('Uploading...') : I18n.t('Upload from computer')}
+            {isUploading ? I18n.t('Uploading...') : I18n.t('Upload')}
           </Button>
         </Flex.Item>
         <Flex.Item>
@@ -199,7 +199,7 @@ const CanvasFileUpload: React.FC<CanvasFileUploadProps> = ({
             themeOverride={secondaryButtonThemeOverride}
             onClick={() => setShowBrowserModal(true)}
           >
-            {I18n.t('Choose from Canvas files')}
+            {I18n.t('Select from Canvas')}
           </Button>
         </Flex.Item>
       </Flex>

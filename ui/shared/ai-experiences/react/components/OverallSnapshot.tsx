@@ -87,7 +87,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
       <Flex gap="small" wrap="wrap">
         <Flex.Item shouldGrow>
           <StatCard
-            label={I18n.t('Learning targets')}
+            label={I18n.t('Talking points included')}
             value={snapshot.total_objectives}
             borderColor={BRAND_PURPLE}
             testId="snapshot-learning-targets"
@@ -95,7 +95,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
         </Flex.Item>
         <Flex.Item shouldGrow>
           <StatCard
-            label={I18n.t('Avg targets met')}
+            label={I18n.t('Avg talking points hit')}
             value={avgMet}
             borderColor={BRAND_PURPLE}
             testId="snapshot-avg-met"
@@ -103,7 +103,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
         </Flex.Item>
         <Flex.Item shouldGrow>
           <StatCard
-            label={I18n.t('Completed')}
+            label={I18n.t('Chats completed')}
             value={snapshot.completed}
             borderColor={GREEN}
             testId="snapshot-completed"
@@ -111,7 +111,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
         </Flex.Item>
         <Flex.Item shouldGrow>
           <StatCard
-            label={I18n.t('In progress')}
+            label={I18n.t('Chats in progress')}
             value={snapshot.in_progress}
             borderColor={BLUE}
             testId="snapshot-in-progress"
@@ -119,7 +119,7 @@ const OverallSnapshot: React.FC<OverallSnapshotProps> = ({snapshot, isLoading}) 
         </Flex.Item>
         <Flex.Item shouldGrow>
           <StatCard
-            label={I18n.t('Not started')}
+            label={I18n.t('Chats not started')}
             value={snapshot.not_started}
             borderColor={LIGHT_GREY}
             testId="snapshot-not-started"

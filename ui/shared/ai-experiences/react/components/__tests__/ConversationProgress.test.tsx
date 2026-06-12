@@ -36,7 +36,7 @@ describe('ConversationProgress', () => {
 
   it('renders progress bar with correct percentage', () => {
     render(<ConversationProgress progress={mockProgress} />)
-    expect(screen.getByText('2/4 Learning targets')).toBeInTheDocument()
+    expect(screen.getByText('2/4 Talking points')).toBeInTheDocument()
   })
 
   it('renders null when progress is null', () => {
@@ -53,7 +53,7 @@ describe('ConversationProgress', () => {
     expect(button).not.toBeNull()
     await user.click(button!)
 
-    expect(screen.getByText(/Learning targets met/i)).toBeInTheDocument()
+    expect(screen.getByText(/Talking points met/i)).toBeInTheDocument()
     expect(screen.getByText(/Learn React basics/)).toBeInTheDocument()
     expect(screen.getByText(/Understand hooks/)).toBeInTheDocument()
     expect(screen.getByText(/Master state management/)).toBeInTheDocument()
@@ -86,7 +86,7 @@ describe('ConversationProgress', () => {
     }
 
     render(<ConversationProgress progress={zeroProgress} />)
-    expect(screen.getByText('0/3 Learning targets')).toBeInTheDocument()
+    expect(screen.getByText('0/3 Talking points')).toBeInTheDocument()
   })
 
   it('displays 100% for complete progress', () => {
@@ -102,12 +102,12 @@ describe('ConversationProgress', () => {
     }
 
     render(<ConversationProgress progress={completeProgress} />)
-    expect(screen.getByText('3/3 Learning targets')).toBeInTheDocument()
+    expect(screen.getByText('3/3 Talking points')).toBeInTheDocument()
   })
 
   it('uses blue color for progress less than 100%', () => {
     render(<ConversationProgress progress={mockProgress} />)
-    const progressBar = screen.getByLabelText(/Learning objective progress: 50%/i)
+    const progressBar = screen.getByLabelText(/Talking point progress: 50%/i)
     expect(progressBar).toBeInTheDocument()
   })
 
@@ -124,12 +124,12 @@ describe('ConversationProgress', () => {
     }
 
     render(<ConversationProgress progress={completeProgress} />)
-    const progressBar = screen.getByLabelText(/Learning objective progress: 100%/i)
+    const progressBar = screen.getByLabelText(/Talking point progress: 100%/i)
     expect(progressBar).toBeInTheDocument()
   })
 
   it('has accessible label for screen readers', () => {
     render(<ConversationProgress progress={mockProgress} />)
-    expect(screen.getByLabelText(/Learning objective progress: 50%/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Talking point progress: 50%/i)).toBeInTheDocument()
   })
 })

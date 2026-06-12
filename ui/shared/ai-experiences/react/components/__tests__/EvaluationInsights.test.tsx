@@ -106,14 +106,14 @@ describe('EvaluationInsights', () => {
       ).toBeInTheDocument()
     })
 
-    it('renders met learning objectives with checkmark icon', () => {
+    it('renders met talking points with checkmark icon', () => {
       render(
         <EvaluationInsights metrics={enabledMetrics} evaluation={evaluation} isLoading={false} />,
       )
       expect(screen.getByText('Identify the geologist')).toBeInTheDocument()
     })
 
-    it('renders unmet learning objectives', () => {
+    it('renders unmet talking points', () => {
       render(
         <EvaluationInsights metrics={enabledMetrics} evaluation={evaluation} isLoading={false} />,
       )
@@ -153,7 +153,7 @@ describe('EvaluationInsights', () => {
       expect(screen.getByText('Student responses were accurate.')).toBeInTheDocument()
     })
 
-    it('shows "No objectives data" when learning_objectives_evaluation is empty', () => {
+    it('shows "No talking points data" when learning_objectives_evaluation is empty', () => {
       const evalNoObjectives: ConversationEvaluation = {
         summary: 'Short conversation.',
         learning_objectives_evaluation: [],
@@ -165,7 +165,7 @@ describe('EvaluationInsights', () => {
           isLoading={false}
         />,
       )
-      expect(screen.getByText('No objectives data')).toBeInTheDocument()
+      expect(screen.getByText('No talking points data')).toBeInTheDocument()
     })
 
     it('shows "No areas identified" when areas_for_improvement is empty', () => {

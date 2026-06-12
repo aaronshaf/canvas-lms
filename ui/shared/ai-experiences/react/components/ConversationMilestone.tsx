@@ -50,7 +50,7 @@ const ConversationMilestone: React.FC<ConversationMilestoneProps> = ({variant, o
           </Flex.Item>
           <Flex.Item shouldGrow shouldShrink>
             <Text weight="bold" size="small">
-              {I18n.t('Objective met')}
+              {I18n.t('Talking point met')}
             </Text>
             {objective && (
               <View as="div">
@@ -83,7 +83,7 @@ const ConversationMilestone: React.FC<ConversationMilestoneProps> = ({variant, o
         </Flex.Item>
         <Flex.Item shouldGrow shouldShrink>
           <Text weight="bold" size="small">
-            {I18n.t('All objectives met')}
+            {I18n.t('All talking points met')}
           </Text>
         </Flex.Item>
       </Flex>

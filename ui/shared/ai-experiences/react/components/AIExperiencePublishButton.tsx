@@ -80,15 +80,15 @@ const AIExperiencePublishButton: React.FC<AIExperiencePublishButtonProps> = ({
 
       const message =
         newState === 'published'
-          ? I18n.t('Knowledge Chat published successfully')
-          : I18n.t('Knowledge Chat unpublished successfully')
+          ? I18n.t('Knowledge check published successfully')
+          : I18n.t('Knowledge check unpublished successfully')
 
       showFlashSuccess(message)()
       onPublishChange(newState)
     } catch (error: any) {
       const message =
         error?.response?.data?.errors?.workflow_state?.[0] ||
-        I18n.t('Failed to update Knowledge Chat')
+        I18n.t('Failed to update Knowledge check')
       showFlashError(message)()
     } finally {
       setIsUpdating(false)

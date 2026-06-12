@@ -70,7 +70,7 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
           themeOverride={progressBorderTheme}
         >
           <ProgressBar
-            screenReaderLabel={I18n.t('Learning objective progress: %{percentage}%', {percentage})}
+            screenReaderLabel={I18n.t('Talking point progress: %{percentage}%', {percentage})}
             valueNow={percentage}
             valueMax={100}
             size="small"
@@ -92,7 +92,7 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
             >
               <Flex gap="xx-small" alignItems="center">
                 <Text weight="bold" size="small">
-                  {I18n.t('%{current}/%{total} Learning targets', {current, total})}
+                  {I18n.t('%{current}/%{total} Talking points', {current, total})}
                 </Text>
                 {isPopoverOpen ? (
                   <IconMiniArrowUpLine size="x-small" />
@@ -109,19 +109,19 @@ const ConversationProgress: React.FC<ConversationProgressProps> = ({progress}) =
           placement="bottom end"
           shouldContainFocus
           shouldReturnFocus
-          screenReaderLabel={I18n.t('Learning targets')}
+          screenReaderLabel={I18n.t('Talking points')}
         >
           <View as="div" padding="medium" width="400px" maxWidth="90vw">
             <Flex justifyItems="space-between" alignItems="start" margin="0 0 small 0">
               <Flex.Item shouldGrow shouldShrink>
                 <Text weight="bold" size="large">
-                  {I18n.t('%{current}/%{total} Learning targets met', {current, total})}
+                  {I18n.t('%{current}/%{total} Talking points met', {current, total})}
                 </Text>
               </Flex.Item>
               <Flex.Item>
                 <CloseButton
                   size="small"
-                  screenReaderLabel={I18n.t('Close learning targets')}
+                  screenReaderLabel={I18n.t('Close talking points')}
                   onClick={() => setIsPopoverOpen(false)}
                 />
               </Flex.Item>

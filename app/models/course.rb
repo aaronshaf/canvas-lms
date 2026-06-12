@@ -3797,7 +3797,7 @@ class Course < ApplicationRecord
       settings_index ||= default_tabs.length
       default_tabs.insert(settings_index, {
                             id: TAB_AI_EXPERIENCES,
-                            label: t("#tabs.ai_experiences", "AI Experiences"),
+                            label: t("#tabs.ai_experiences", "Knowledge checks"),
                             css_class: "ai_experiences",
                             href: :course_ai_experiences_path
                           })

@@ -408,7 +408,11 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
               </Flex.Item>
             )}
             <Flex.Item>
-              <Button data-testid="llm-conversation-restart-button" onClick={handleRestart}>
+              <Button
+                data-testid="llm-conversation-restart-button"
+                onClick={handleRestart}
+                themeOverride={{secondaryBackground: 'white'}}
+              >
                 {I18n.t('Reset')}
               </Button>
             </Flex.Item>

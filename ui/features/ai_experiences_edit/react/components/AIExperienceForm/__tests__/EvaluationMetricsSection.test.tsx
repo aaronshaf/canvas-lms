@@ -39,25 +39,23 @@ describe('EvaluationMetricsSection', () => {
     it('renders all three default metric names', () => {
       renderSection()
       expect(screen.getByText('Summary')).toBeInTheDocument()
-      expect(screen.getByText('Learning targets met')).toBeInTheDocument()
-      expect(screen.getByText('Areas for improvement')).toBeInTheDocument()
+      expect(screen.getByText('Objectives')).toBeInTheDocument()
+      expect(screen.getByText('Opportunities')).toBeInTheDocument()
     })
 
     it('renders descriptions for default metrics', () => {
       renderSection()
-      expect(
-        screen.getByText("An overall summary of the learner's conversation."),
-      ).toBeInTheDocument()
-      expect(screen.getByText('Which targets were hit and when.')).toBeInTheDocument()
-      expect(screen.getByText('Guidance for how to improve their conversation')).toBeInTheDocument()
+      expect(screen.getByText('Key themes from conversation')).toBeInTheDocument()
+      expect(screen.getByText('Student activity on required talking points')).toBeInTheDocument()
+      expect(screen.getByText('Areas for improved learning')).toBeInTheDocument()
     })
 
-    it('renders "Add AI metric" button when fewer than 5 metrics', () => {
+    it('renders "Add insight" button when fewer than 5 metrics', () => {
       renderSection()
       expect(screen.getByTestId('evaluation-metrics-add-button')).toBeInTheDocument()
     })
 
-    it('hides "Add AI metric" button at max capacity (5 metrics)', () => {
+    it('hides "Add insight" button at max capacity (5 metrics)', () => {
       const fiveMetrics: EvaluationMetric[] = [
         ...DEFAULT_METRICS,
         {name: 'Custom 1', description: 'Desc 1', enabled: true, visible_to_learners: false},
@@ -86,9 +84,7 @@ describe('EvaluationMetricsSection', () => {
       renderSection(DEFAULT_METRICS, onChange)
       fireEvent.click(screen.getByTestId('evaluation-metric-enabled-1'))
       expect(onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({name: 'Learning targets met', enabled: false}),
-        ]),
+        expect.arrayContaining([expect.objectContaining({name: 'Objectives', enabled: false})]),
       )
     })
 
@@ -113,8 +109,8 @@ describe('EvaluationMetricsSection', () => {
     })
   })
 
-  describe('Add AI metric modal', () => {
-    it('opens modal when "Add AI metric" is clicked', async () => {
+  describe('Add insight modal', () => {
+    it('opens modal when "Add insight" is clicked', async () => {
       renderSection()
       fireEvent.click(screen.getByTestId('evaluation-metrics-add-button'))
       await waitFor(() => {
@@ -138,8 +134,8 @@ describe('EvaluationMetricsSection', () => {
       await waitFor(() => screen.getByTestId('add-metric-modal'))
       fireEvent.click(screen.getByTestId('add-metric-add-button'))
       await waitFor(() => {
-        expect(screen.getByText('Metric name is required')).toBeInTheDocument()
-        expect(screen.getByText('Metric description is required')).toBeInTheDocument()
+        expect(screen.getByText('Insight name is required')).toBeInTheDocument()
+        expect(screen.getByText('Insight description is required')).toBeInTheDocument()
       })
     })
 
@@ -149,8 +145,8 @@ describe('EvaluationMetricsSection', () => {
       fireEvent.click(screen.getByTestId('evaluation-metrics-add-button'))
       await waitFor(() => screen.getByTestId('add-metric-modal'))
 
-      fireEvent.change(screen.getByLabelText(/Metric name/i), {target: {value: 'Aha moment'}})
-      fireEvent.change(screen.getByLabelText(/Metric description/i), {
+      fireEvent.change(screen.getByLabelText(/Insight name/i), {target: {value: 'Aha moment'}})
+      fireEvent.change(screen.getByLabelText(/Insight description/i), {
         target: {value: 'Tell me when a learner really grasped the material.'},
       })
       fireEvent.click(screen.getByTestId('add-metric-add-button'))
@@ -173,8 +169,8 @@ describe('EvaluationMetricsSection', () => {
       fireEvent.click(screen.getByTestId('evaluation-metrics-add-button'))
       await waitFor(() => screen.getByTestId('add-metric-modal'))
 
-      fireEvent.change(screen.getByLabelText(/Metric name/i), {target: {value: 'Aha moment'}})
-      fireEvent.change(screen.getByLabelText(/Metric description/i), {
+      fireEvent.change(screen.getByLabelText(/Insight name/i), {target: {value: 'Aha moment'}})
+      fireEvent.change(screen.getByLabelText(/Insight description/i), {
         target: {value: 'Some description'},
       })
       fireEvent.click(screen.getByTestId('add-metric-add-button'))

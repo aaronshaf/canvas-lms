@@ -138,8 +138,8 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
       feedback: msg.feedback ?? [],
     })) || []
 
-  const aiMessageCount = messages.filter(m => m.role === 'Assistant').length
-  const studentMessageCount = Math.max(0, messages.filter(m => m.role === 'User').length - 1)
+  const talkingPointsMet = conversation?.progress?.current ?? 0
+  const talkingPointsTotal = conversation?.progress?.total ?? 0
   const milestones = deriveMilestones(conversation?.progress, messages.length)
 
   const renderConversationMessages = () => {
@@ -246,20 +246,18 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
               </span>
             </Pill>
           </Flex.Item>
-          <Flex.Item>
-            <Pill>
-              <span style={pillTextStyle}>
-                {I18n.t('IgniteAI messages: %{count}', {count: aiMessageCount})}
-              </span>
-            </Pill>
-          </Flex.Item>
-          <Flex.Item>
-            <Pill>
-              <span style={pillTextStyle}>
-                {I18n.t('Student messages: %{count}', {count: studentMessageCount})}
-              </span>
-            </Pill>
-          </Flex.Item>
+          {talkingPointsTotal > 0 && (
+            <Flex.Item>
+              <Pill>
+                <span style={pillTextStyle}>
+                  {I18n.t('%{met}/%{total} talking points', {
+                    met: talkingPointsMet,
+                    total: talkingPointsTotal,
+                  })}
+                </span>
+              </Pill>
+            </Flex.Item>
+          )}
         </Flex>
       )}
 

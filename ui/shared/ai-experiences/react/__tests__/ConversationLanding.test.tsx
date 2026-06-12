@@ -24,20 +24,20 @@ import ConversationLanding from '../components/ConversationLanding'
 describe('ConversationLanding', () => {
   it('renders student landing', () => {
     render(<ConversationLanding onStart={vi.fn()} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText('Chat with IgniteAI')).toBeInTheDocument()
+    expect(screen.getByText(/Knowledge check/)).toBeInTheDocument()
+    expect(screen.getByText('Ready to chat?')).toBeInTheDocument()
     expect(
-      screen.getByText('Show what you know: hit learning targets to complete this activity.'),
+      screen.getByText('Hit required talking points that check your understanding.'),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('llm-conversation-start-button')).toHaveTextContent('Start chatting')
+    expect(screen.getByTestId('llm-conversation-start-button')).toHaveTextContent('Get started')
   })
 
   it('renders teacher preview landing', () => {
     render(<ConversationLanding onStart={vi.fn()} isTeacherPreview={true} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
-    expect(screen.getByText('Preview the chat')).toBeInTheDocument()
-    expect(screen.getByText('Chat with the AI just like a learner')).toBeInTheDocument()
-    expect(screen.getByTestId('llm-conversation-start-button')).toHaveTextContent('Test as learner')
+    expect(screen.getByText(/Knowledge check/)).toBeInTheDocument()
+    expect(screen.getByText('Ready to chat?')).toBeInTheDocument()
+    expect(screen.getByText('Preview the student experience.')).toBeInTheDocument()
+    expect(screen.getByTestId('llm-conversation-start-button')).toHaveTextContent('Try it out')
   })
 
   it('calls onStart when the button is clicked', () => {

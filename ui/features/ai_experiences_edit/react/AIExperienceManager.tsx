@@ -95,7 +95,9 @@ const AIExperienceManager: React.FC<AIExperienceManagerProps> = ({
       setAIExperience(updatedExperience)
 
       if (updatedExperience.id) {
-        window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${updatedExperience.id}`)
+        window.location.href = sanitizeUrl(
+          `/courses/${courseId}/ai_experiences/${updatedExperience.id}`,
+        )
       }
     } catch (error) {
       let message = I18n.t('An unexpected error occurred. Please try again.')
@@ -110,7 +112,7 @@ const AIExperienceManager: React.FC<AIExperienceManagerProps> = ({
           // Use default message if response body cannot be parsed
         }
       }
-      showFlashError(I18n.t('Failed to save Knowledge Chat: %{error}', {error: message}))()
+      showFlashError(I18n.t('Failed to save Knowledge check: %{error}', {error: message}))()
     } finally {
       setIsLoading(false)
     }

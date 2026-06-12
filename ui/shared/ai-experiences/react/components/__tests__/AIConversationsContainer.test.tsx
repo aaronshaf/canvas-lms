@@ -184,20 +184,20 @@ describe('AIConversationsContainer', () => {
     })
   })
 
-  it('loads conversation messages into Knowledge Chat card', async () => {
+  it('loads conversation messages into Knowledge check card', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
     await waitFor(() => expect(screen.getByText('Hi there!')).toBeInTheDocument())
     expect(screen.getByText('I am doing well!')).toBeInTheDocument()
   })
 
-  it('shows Knowledge Chat card header', async () => {
+  it('shows Knowledge check card header', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
     await waitFor(() => {
-      expect(screen.getByText('Knowledge Chat')).toBeInTheDocument()
+      expect(screen.getByText('Knowledge check')).toBeInTheDocument()
     })
   })
 
-  it('renders Expand button inside the Knowledge Chat card', async () => {
+  it('renders Expand button inside the Knowledge check card', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
     await waitFor(() => {
       expect(screen.getByTestId('ai-conversations-expand-button')).toBeInTheDocument()
@@ -223,10 +223,9 @@ describe('AIConversationsContainer', () => {
     })
   })
 
-  it('shows IgniteAI and Student message count pills', async () => {
+  it('shows the talking points count pill', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
-    await waitFor(() => expect(screen.getByText('IgniteAI messages: 2')).toBeInTheDocument())
-    expect(screen.getByText('Student messages: 1')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('2/4 talking points')).toBeInTheDocument())
   })
 
   it('shows helpful message when navigating to a student without a conversation', async () => {

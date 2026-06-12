@@ -170,7 +170,7 @@ describe TabsController, type: :request do
           "full_url" => "#{HostUrl.protocol}://#{HostUrl.context_host(@course)}/courses/#{@course.id}/ai_experiences",
           "position" => 14,
           "visibility" => "public",
-          "label" => "AI Experiences",
+          "label" => "Knowledge checks",
           "type" => "internal"
         },
         {
@@ -786,7 +786,7 @@ describe TabsController, type: :request do
             "full_url" => "#{HostUrl.protocol}://#{HostUrl.context_host(@course)}/courses/#{@course.id}/ai_experiences",
             "position" => 13,
             "visibility" => "public",
-            "label" => "AI Experiences",
+            "label" => "Knowledge checks",
             "type" => "internal"
           },
           {

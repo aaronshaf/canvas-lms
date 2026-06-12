@@ -25,7 +25,7 @@ describe('ConversationMilestone', () => {
   describe('single variant', () => {
     it('renders the objective met heading', () => {
       render(<ConversationMilestone variant="single" objective="Who is the geologist?" />)
-      expect(screen.getByText('Objective met')).toBeInTheDocument()
+      expect(screen.getByText('Talking point met')).toBeInTheDocument()
     })
 
     it('renders the objective text', () => {
@@ -35,7 +35,7 @@ describe('ConversationMilestone', () => {
 
     it('renders without objective text when not provided', () => {
       render(<ConversationMilestone variant="single" />)
-      expect(screen.getByText('Objective met')).toBeInTheDocument()
+      expect(screen.getByText('Talking point met')).toBeInTheDocument()
       expect(screen.getByTestId('conversation-milestone-single')).toBeInTheDocument()
     })
 
@@ -48,7 +48,7 @@ describe('ConversationMilestone', () => {
   describe('all variant', () => {
     it('renders the all objectives met heading', () => {
       render(<ConversationMilestone variant="all" />)
-      expect(screen.getByText('All objectives met')).toBeInTheDocument()
+      expect(screen.getByText('All talking points met')).toBeInTheDocument()
     })
 
     it('renders the stop or reset message', () => {

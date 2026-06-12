@@ -40,39 +40,37 @@ describe('AIExperiencesEmptyState', () => {
     it('renders the teacher empty state heading', () => {
       render(<AIExperiencesEmptyState canManage={true} onCreateNew={mockOnCreateNew} />)
 
-      expect(screen.getByText('No Knowledge Chats created yet.')).toBeInTheDocument()
+      expect(screen.getByText('No Knowledge checks created yet.')).toBeInTheDocument()
     })
 
     it('renders the teacher empty state description', () => {
       render(<AIExperiencesEmptyState canManage={true} onCreateNew={mockOnCreateNew} />)
 
       expect(
-        screen.getByText(
-          'Click the Create New button to start building your first Knowledge Chat.',
-        ),
+        screen.getByText('Click the Add button to start building your first Knowledge check.'),
       ).toBeInTheDocument()
     })
 
-    it('renders the Create new button', () => {
+    it('renders the Add button', () => {
       render(<AIExperiencesEmptyState canManage={true} onCreateNew={mockOnCreateNew} />)
 
-      expect(screen.getByText('Create new')).toBeInTheDocument()
+      expect(screen.getByText('Add')).toBeInTheDocument()
     })
 
-    it('calls onCreateNew when Create new button is clicked', async () => {
+    it('calls onCreateNew when Add button is clicked', async () => {
       const user = userEvent.setup()
       render(<AIExperiencesEmptyState canManage={true} onCreateNew={mockOnCreateNew} />)
 
-      const createButton = screen.getByText('Create new').closest('button')
+      const createButton = screen.getByText('Add').closest('button')
       await user.click(createButton!)
 
       expect(mockOnCreateNew).toHaveBeenCalledTimes(1)
     })
 
-    it('has the plus icon on the Create new button', () => {
+    it('has the plus icon on the Add button', () => {
       render(<AIExperiencesEmptyState canManage={true} onCreateNew={mockOnCreateNew} />)
 
-      const createButton = screen.getByText('Create new').closest('button')
+      const createButton = screen.getByText('Add').closest('button')
       const icon = createButton!.querySelector('svg')
 
       expect(icon).toBeInTheDocument()
@@ -91,14 +89,14 @@ describe('AIExperiencesEmptyState', () => {
     it('renders the student empty state heading', () => {
       render(<AIExperiencesEmptyState canManage={false} onCreateNew={mockOnCreateNew} />)
 
-      expect(screen.getByText('No Knowledge Chats available yet.')).toBeInTheDocument()
+      expect(screen.getByText('No Knowledge checks available yet.')).toBeInTheDocument()
     })
 
     it('renders the student empty state description', () => {
       render(<AIExperiencesEmptyState canManage={false} onCreateNew={mockOnCreateNew} />)
 
       expect(
-        screen.getByText('Your instructor has not published any Knowledge Chats yet.'),
+        screen.getByText('Your instructor has not published any Knowledge checks yet.'),
       ).toBeInTheDocument()
     })
 
@@ -111,11 +109,9 @@ describe('AIExperiencesEmptyState', () => {
     it('does not show teacher-specific messaging', () => {
       render(<AIExperiencesEmptyState canManage={false} onCreateNew={mockOnCreateNew} />)
 
-      expect(screen.queryByText('No Knowledge Chats created yet.')).not.toBeInTheDocument()
+      expect(screen.queryByText('No Knowledge checks created yet.')).not.toBeInTheDocument()
       expect(
-        screen.queryByText(
-          'Click the Create New button to start building your first Knowledge Chat.',
-        ),
+        screen.queryByText('Click the Add button to start building your first Knowledge check.'),
       ).not.toBeInTheDocument()
     })
   })

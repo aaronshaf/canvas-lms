@@ -77,7 +77,7 @@ describe('LLMConversationView', () => {
 
   it('renders chat interface when open', () => {
     render(<LLMConversationView {...defaultProps} />)
-    expect(screen.getByText(/Knowledge Chat/)).toBeInTheDocument()
+    expect(screen.getByText(/Knowledge check/)).toBeInTheDocument()
     expect(screen.getByText('Reset')).toBeInTheDocument()
   })
 

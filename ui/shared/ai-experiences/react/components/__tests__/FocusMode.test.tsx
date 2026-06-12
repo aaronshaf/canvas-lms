@@ -43,9 +43,9 @@ describe('FocusMode', () => {
     expect(screen.queryByText('Test Content')).not.toBeInTheDocument()
   })
 
-  it('renders with default title "Knowledge Chat"', () => {
+  it('renders with default title "Knowledge check"', () => {
     render(<FocusMode {...defaultProps} />)
-    expect(screen.getByText('Knowledge Chat')).toBeInTheDocument()
+    expect(screen.getByText('Knowledge check')).toBeInTheDocument()
   })
 
   it('renders with custom title', () => {

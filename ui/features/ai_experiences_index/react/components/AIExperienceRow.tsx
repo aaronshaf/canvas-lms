@@ -135,7 +135,7 @@ const AIExperienceRow: React.FC<AIExperienceRowProps> = ({
                       size="small"
                       withBackground={false}
                       withBorder={false}
-                      screenReaderLabel={I18n.t('Knowledge Chat Options')}
+                      screenReaderLabel={I18n.t('Knowledge check Options')}
                       data-testid="ai-experience-menu"
                     >
                       <IconMoreLine />

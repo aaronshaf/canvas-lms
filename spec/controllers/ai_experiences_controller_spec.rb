@@ -80,7 +80,7 @@ describe AiExperiencesController, type: :request do
         get "/courses/#{@course.id}/ai_experiences"
         expect(js_env_from_response(response)["COURSE_ID"].to_i).to eq(@course.id)
         parsed_html_body = Nokogiri.parse(response.body)
-        expect(parsed_html_body.css("title").first.inner_html).to eq("AI Experiences")
+        expect(parsed_html_body.css("title").first.inner_html).to eq("Knowledge checks")
       end
 
       it "sets the active tab" do

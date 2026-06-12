@@ -63,7 +63,7 @@ function renderMetricContent(
     if (!items?.length)
       return (
         <Text color="secondary" size="small">
-          {I18n.t('No objectives data')}
+          {I18n.t('No talking points data')}
         </Text>
       )
     return (

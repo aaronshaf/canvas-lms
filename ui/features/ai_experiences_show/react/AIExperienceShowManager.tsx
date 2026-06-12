@@ -42,7 +42,7 @@ const AIExperienceShowManager: React.FC = () => {
         })
         setAIExperience(json as AIExperience)
       } catch {
-        showFlashError(I18n.t('Failed to load Knowledge Chat. Please refresh the page.'))()
+        showFlashError(I18n.t('Failed to load Knowledge check. Please refresh the page.'))()
       } finally {
         setIsLoading(false)
       }

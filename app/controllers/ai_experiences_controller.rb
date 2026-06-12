@@ -108,10 +108,10 @@ class AiExperiencesController < ApplicationController
                                 total_entries: @experiences.count)
 
     set_active_tab "ai_experiences"
-    add_crumb t("#crumbs.ai_experiences", "AI Experiences")
+    add_crumb t("#crumbs.ai_experiences", "Knowledge checks")
     respond_to do |format|
       format.html do
-        @page_title = t("#page_title.ai_experiences", "AI Experiences")
+        @page_title = t("#page_title.ai_experiences", "Knowledge checks")
         js_env({ COURSE_ID: @context.id })
         render
       end
@@ -148,7 +148,7 @@ class AiExperiencesController < ApplicationController
     return unless authorized_action(@ai_experience, current_principal, :read)
 
     set_active_tab "ai_experiences"
-    add_crumb t("#crumbs.ai_experiences", "AI Experiences"), course_ai_experiences_path(@context)
+    add_crumb t("#crumbs.ai_experiences", "Knowledge checks"), course_ai_experiences_path(@context)
     add_crumb @ai_experience.title
 
     respond_to do |format|
@@ -178,7 +178,7 @@ class AiExperiencesController < ApplicationController
     @experience = @context.ai_experiences.build
     @experience.workflow_state = "unpublished"
     set_active_tab "ai_experiences"
-    add_crumb t("#crumbs.ai_experiences", "AI Experiences"), course_ai_experiences_path(@context)
+    add_crumb t("#crumbs.ai_experiences", "Knowledge checks"), course_ai_experiences_path(@context)
     add_crumb t("#crumbs.new_ai_experience", "New AI Experience")
     @page_title = t("#page_title.new_ai_experience", "New AI Experience")
     js_env({ COURSE_ID: @context.id })
@@ -191,7 +191,7 @@ class AiExperiencesController < ApplicationController
   # Display the form for editing an existing AI experience
   def edit
     set_active_tab "ai_experiences"
-    add_crumb t("#crumbs.ai_experiences", "AI Experiences"), course_ai_experiences_path(@context)
+    add_crumb t("#crumbs.ai_experiences", "Knowledge checks"), course_ai_experiences_path(@context)
     add_crumb @experience.title
     @page_title = t("#page_title.edit_ai_experience", "Edit %{title}", title: @experience.title)
     js_env({ COURSE_ID: @context.id, AI_EXPERIENCE_ID: params[:id] })

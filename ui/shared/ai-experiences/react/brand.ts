@@ -52,7 +52,7 @@ export const publishedButtonTheme = {
   primaryBorderColor: GREEN,
 }
 
-// Light blue — used for secondary action buttons (e.g. "Choose from Canvas files", "Cancel")
+// Light blue — used for secondary action buttons (e.g. "Select from Canvas", "Cancel")
 export const LIGHT_BLUE = '#90CDF4'
 export const LIGHT_BLUE_HOVER = '#63B3ED'
 export const LIGHT_BLUE_ACTIVE = '#4299E1'

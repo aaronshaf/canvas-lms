@@ -36,5 +36,4 @@ export interface AIExperience {
 export interface EnvAiExperiences {
   AI_EXPERIENCE: AIExperience
   NAVBAR_HEIGHT: number
-  ai_experiences_evaluation_enabled: boolean
 }

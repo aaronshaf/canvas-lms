@@ -104,10 +104,10 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
         path: `/api/v1/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}`,
         method: 'DELETE',
       })
-      showFlashSuccess(I18n.t('Knowledge Chat deleted successfully'))()
+      showFlashSuccess(I18n.t('Knowledge check deleted successfully'))()
       window.location.href = sanitizeUrl(`/courses/${aiExperience.course_id}/ai_experiences`)
     } catch {
-      showFlashError(I18n.t('Failed to delete Knowledge Chat'))()
+      showFlashError(I18n.t('Failed to delete Knowledge check'))()
       setIsDeleting(false)
       setIsDeleteModalOpen(false)
     }
@@ -149,7 +149,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                     placement="bottom end"
                     trigger={
                       <IconButton
-                        screenReaderLabel={I18n.t('Knowledge Chat settings')}
+                        screenReaderLabel={I18n.t('Knowledge check settings')}
                         withBackground={false}
                         withBorder={false}
                       >
@@ -183,7 +183,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
         <Tabs onRequestTabChange={(_e, {index}) => setSelectedTab(index)}>
           <Tabs.Panel
             id="knowledge-chat-tab"
-            renderTitle={I18n.t('Preview')}
+            renderTitle={I18n.t('Chat preview')}
             isSelected={selectedTab === 0}
           >
             {isIndexFailed ? (
@@ -259,7 +259,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
 
           <Tabs.Panel
             id="conversations-tab"
-            renderTitle={I18n.t('Conversations')}
+            renderTitle={I18n.t('Insights')}
             isSelected={selectedTab === 1}
           >
             <AIConversationsContainer
@@ -280,7 +280,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
 
           <Tabs.Panel
             id="configurations-tab"
-            renderTitle={I18n.t('Configurations')}
+            renderTitle={I18n.t('AI guidance')}
             isSelected={selectedTab === 2}
           >
             <InstUISettingsProvider theme={roundedTheme}>
@@ -303,7 +303,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                 {aiExperience.learning_objectives?.length > 0 && (
                   <View as="div" margin="0 0 medium 0">
                     <Heading level="h3" margin="0 0 small 0">
-                      {I18n.t('Learning Objectives')}
+                      {I18n.t('Talking points')}
                     </Heading>
                     <View
                       as="ul"
@@ -399,11 +399,11 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
         open={isDeleteModalOpen}
         onDismiss={() => setIsDeleteModalOpen(false)}
         size="small"
-        label={I18n.t('Delete Knowledge Chat')}
+        label={I18n.t('Delete Knowledge check')}
         shouldCloseOnDocumentClick={true}
       >
         <Modal.Header>
-          <Heading>{I18n.t('Delete Knowledge Chat')}</Heading>
+          <Heading>{I18n.t('Delete Knowledge check')}</Heading>
         </Modal.Header>
         <Modal.Body>
           <Text>

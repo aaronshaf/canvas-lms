@@ -39,7 +39,7 @@ const mockAiExperience: AIExperience = {
 
 const addObjective = (value: string) => {
   fireEvent.click(screen.getByTestId('learning-objectives-add-btn'))
-  fireEvent.change(screen.getByLabelText('Learning objective:'), {target: {value}})
+  fireEvent.change(screen.getByLabelText('Talking point:'), {target: {value}})
   fireEvent.click(screen.getByTestId('learning-objectives-confirm-btn'))
 }
 
@@ -59,7 +59,7 @@ describe('AIExperienceForm', () => {
   describe('rendering', () => {
     it('renders form for new AI experience', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
-      expect(screen.getByText('New Knowledge Chat')).toBeInTheDocument()
+      expect(screen.getByText('New knowledge check')).toBeInTheDocument()
     })
 
     it('renders form for editing AI experience', () => {
@@ -76,22 +76,19 @@ describe('AIExperienceForm', () => {
     it('renders all form fields', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      expect(screen.getByLabelText(/Knowledge chat name/)).toBeInTheDocument()
-      expect(screen.getByLabelText(/Knowledge chat description/)).toBeInTheDocument()
-      expect(screen.getByLabelText(/Text source/)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Chat name/)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Chat description/)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Text sources/)).toBeInTheDocument()
       expect(screen.getByTestId('learning-objectives-add-btn')).toBeInTheDocument()
-      expect(screen.getByLabelText(/Pedagogical guidance/)).toBeInTheDocument()
+      expect(screen.getByLabelText(/AI prompt/)).toBeInTheDocument()
     })
 
-    it('renders configuration section', () => {
+    it('renders the numbered sections', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      expect(screen.getByText('Configurations')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Define the completion rules, pedagogical guidance, and sources of the large language model (LLM).',
-        ),
-      ).toBeInTheDocument()
+      expect(screen.getByText('1. Student instructions')).toBeInTheDocument()
+      expect(screen.getByText('2. AI guidance')).toBeInTheDocument()
+      expect(screen.getByText('3. Generated insights')).toBeInTheDocument()
     })
 
     it('renders action buttons', () => {
@@ -127,13 +124,13 @@ describe('AIExperienceForm', () => {
     it('calls onSubmit with form data when Save button is clicked', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'New Title'}})
-      fireEvent.change(screen.getByLabelText(/Knowledge chat description/), {
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'New Title'}})
+      fireEvent.change(screen.getByLabelText(/Chat description/), {
         target: {value: 'New Description'},
       })
-      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'New Facts'}})
-      addObjective('New Learning Objectives')
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/Text sources/), {target: {value: 'New Facts'}})
+      addObjective('New Talking points')
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'New Pedagogical Guidance'},
       })
 
@@ -145,7 +142,7 @@ describe('AIExperienceForm', () => {
             title: 'New Title',
             description: 'New Description',
             facts: 'New Facts',
-            learning_objectives: ['New Learning Objectives'],
+            learning_objectives: ['New Talking points'],
             pedagogical_guidance: 'New Pedagogical Guidance',
           }),
         )
@@ -179,7 +176,7 @@ describe('AIExperienceForm', () => {
       fireEvent.click(saveButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Knowledge chat name required')).toBeInTheDocument()
+        expect(screen.getByText('Chat name required')).toBeInTheDocument()
       })
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -188,9 +185,9 @@ describe('AIExperienceForm', () => {
     it('does not require facts (Text source) on submission', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'Title'}})
       addObjective('Objectives')
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'Guidance'},
       })
 
@@ -204,16 +201,14 @@ describe('AIExperienceForm', () => {
     it('shows error when learning_objective is empty on submission', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      const titleInput = screen.getByLabelText(/Knowledge chat name/) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/Chat name/) as HTMLInputElement
       fireEvent.change(titleInput, {target: {value: 'Test Title'}})
 
       const saveButton = screen.getByTestId('ai-experience-save-as-draft-item')
       fireEvent.click(saveButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Please provide at least one learning objective'),
-        ).toBeInTheDocument()
+        expect(screen.getByText('Please provide at least one talking point')).toBeInTheDocument()
       })
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -222,14 +217,14 @@ describe('AIExperienceForm', () => {
     it('shows error when pedagogical_guidance is empty on submission', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      const titleInput = screen.getByLabelText(/Knowledge chat name/) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/Chat name/) as HTMLInputElement
       fireEvent.change(titleInput, {target: {value: 'Test Title'}})
 
       const saveButton = screen.getByTestId('ai-experience-save-as-draft-item')
       fireEvent.click(saveButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Please provide pedagogical guidance')).toBeInTheDocument()
+        expect(screen.getByText('Please provide an AI prompt')).toBeInTheDocument()
       })
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -253,11 +248,11 @@ describe('AIExperienceForm', () => {
     it('does not show errors until first submission attempt', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      expect(screen.queryByText('Knowledge chat name required')).not.toBeInTheDocument()
+      expect(screen.queryByText('Chat name required')).not.toBeInTheDocument()
       expect(
-        screen.queryByText('Please provide at least one learning objective'),
+        screen.queryByText('Please provide at least one talking point'),
       ).not.toBeInTheDocument()
-      expect(screen.queryByText('Please provide pedagogical guidance')).not.toBeInTheDocument()
+      expect(screen.queryByText('Please provide an AI prompt')).not.toBeInTheDocument()
     })
 
     it('clears error when field is filled', async () => {
@@ -267,24 +262,24 @@ describe('AIExperienceForm', () => {
       fireEvent.click(saveButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Knowledge chat name required')).toBeInTheDocument()
+        expect(screen.getByText('Chat name required')).toBeInTheDocument()
       })
 
-      const titleInput = screen.getByLabelText(/Knowledge chat name/) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/Chat name/) as HTMLInputElement
       fireEvent.change(titleInput, {target: {value: 'Test Title'}})
 
       await waitFor(() => {
-        expect(screen.queryByText('Knowledge chat name required')).not.toBeInTheDocument()
+        expect(screen.queryByText('Chat name required')).not.toBeInTheDocument()
       })
     })
 
     it('submits successfully when all required fields are filled', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'New Title'}})
-      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'New Facts'}})
-      addObjective('New Learning Objectives')
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'New Title'}})
+      fireEvent.change(screen.getByLabelText(/Text sources/), {target: {value: 'New Facts'}})
+      addObjective('New Talking points')
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'New Pedagogical Guidance'},
       })
 
@@ -295,7 +290,7 @@ describe('AIExperienceForm', () => {
           expect.objectContaining({
             title: 'New Title',
             facts: 'New Facts',
-            learning_objectives: ['New Learning Objectives'],
+            learning_objectives: ['New Talking points'],
             pedagogical_guidance: 'New Pedagogical Guidance',
           }),
         )
@@ -309,10 +304,10 @@ describe('AIExperienceForm', () => {
     const MAX = 10_000
 
     const fillBaseRequiredFields = () => {
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
-      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'Facts'}})
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Text sources/), {target: {value: 'Facts'}})
       addObjective('Objectives')
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'Guidance'},
       })
     }
@@ -321,7 +316,7 @@ describe('AIExperienceForm', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       fillBaseRequiredFields()
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'a'.repeat(MAX + 1)},
       })
 
@@ -329,9 +324,7 @@ describe('AIExperienceForm', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            `Pedagogical guidance must be ${MAX.toLocaleString()} characters or fewer`,
-          ),
+          screen.getByText(`AI prompt must be ${MAX.toLocaleString()} characters or fewer`),
         ).toBeInTheDocument()
       })
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -341,7 +334,7 @@ describe('AIExperienceForm', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       fillBaseRequiredFields()
-      fireEvent.change(screen.getByLabelText(/Text source/), {
+      fireEvent.change(screen.getByLabelText(/Text sources/), {
         target: {value: 'a'.repeat(MAX + 1)},
       })
 
@@ -349,24 +342,24 @@ describe('AIExperienceForm', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(`Text source must be ${MAX.toLocaleString()} characters or fewer`),
+          screen.getByText(`Text sources must be ${MAX.toLocaleString()} characters or fewer`),
         ).toBeInTheDocument()
       })
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
-    it('blocks confirming a learning objective that is over the cap', async () => {
+    it('blocks confirming a talking point that is over the cap', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       fireEvent.click(screen.getByTestId('learning-objectives-add-btn'))
-      fireEvent.change(screen.getByLabelText('Learning objective:'), {
+      fireEvent.change(screen.getByLabelText('Talking point:'), {
         target: {value: 'a'.repeat(MAX + 1)},
       })
       fireEvent.click(screen.getByTestId('learning-objectives-confirm-btn'))
 
       await waitFor(() => {
         expect(
-          screen.getByText(`Objective must be ${MAX.toLocaleString()} characters or fewer`),
+          screen.getByText(`Talking point must be ${MAX.toLocaleString()} characters or fewer`),
         ).toBeInTheDocument()
       })
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -376,16 +369,14 @@ describe('AIExperienceForm', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       fillBaseRequiredFields()
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {
+      fireEvent.change(screen.getByLabelText(/Chat name/), {
         target: {value: 'a'.repeat(256)},
       })
 
       fireEvent.click(screen.getByTestId('ai-experience-save-as-draft-item'))
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Knowledge chat name must be 255 characters or fewer'),
-        ).toBeInTheDocument()
+        expect(screen.getByText('Chat name must be 255 characters or fewer')).toBeInTheDocument()
       })
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
@@ -394,7 +385,7 @@ describe('AIExperienceForm', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       fillBaseRequiredFields()
-      fireEvent.change(screen.getByLabelText(/Knowledge chat description/), {
+      fireEvent.change(screen.getByLabelText(/Chat description/), {
         target: {value: 'a'.repeat(MAX + 1)},
       })
 
@@ -402,9 +393,7 @@ describe('AIExperienceForm', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            `Knowledge chat description must be ${MAX.toLocaleString()} characters or fewer`,
-          ),
+          screen.getByText(`Chat description must be ${MAX.toLocaleString()} characters or fewer`),
         ).toBeInTheDocument()
       })
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -425,10 +414,10 @@ describe('AIExperienceForm', () => {
     it('submits when all fields are at the cap', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
-      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'a'.repeat(MAX)}})
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Text sources/), {target: {value: 'a'.repeat(MAX)}})
       addObjective('b'.repeat(MAX))
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {
         target: {value: 'c'.repeat(MAX)},
       })
 
@@ -442,10 +431,10 @@ describe('AIExperienceForm', () => {
 
   describe('context file handling', () => {
     const fillRequiredFields = () => {
-      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
-      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'Facts'}})
+      fireEvent.change(screen.getByLabelText(/Chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Text sources/), {target: {value: 'Facts'}})
       addObjective('Objectives')
-      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {target: {value: 'Guidance'}})
+      fireEvent.change(screen.getByLabelText(/AI prompt/), {target: {value: 'Guidance'}})
     }
 
     it('includes context_file_ids as empty array in submit payload when no files', async () => {

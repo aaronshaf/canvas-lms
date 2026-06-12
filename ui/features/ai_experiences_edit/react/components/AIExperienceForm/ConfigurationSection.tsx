@@ -21,16 +21,12 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {TextArea} from '@instructure/ui-text-area'
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
-import {FormFieldGroup} from '@instructure/ui-form-field'
 import {Text} from '@instructure/ui-text'
 import {AIExperienceFormData} from '../../../types'
 import CanvasFileUpload from '@canvas/canvas-file-upload/react/CanvasFileUpload'
 import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
-import {
-  lightBlueButtonTheme,
-  navyButtonTheme,
-} from '../../../../../shared/ai-experiences/react/brand'
+import {lightBlueButtonTheme, navyButtonTheme} from '@canvas/ai-experiences/react/brand'
 import LearningObjectivesInput from './LearningObjectivesInput'
 
 declare const ENV: GlobalEnv & {
@@ -73,126 +69,75 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
         borderRadius="medium"
         padding="medium"
       >
-        <Heading level="h2" margin="0 0 x-small 0">
-          <strong>{I18n.t('Configurations')}</strong>
+        <Heading level="h2" margin="0 0 large 0">
+          <strong>{I18n.t('2. AI guidance')}</strong>
         </Heading>
-        <View as="div" margin="0 0 large 0">
-          <Text size="medium">
-            {I18n.t(
-              'Define the completion rules, pedagogical guidance, and sources of the large language model (LLM).',
-            )}
-          </Text>
-        </View>
 
-        {/* Completion rules section */}
+        {/* Learning objectives */}
         <View as="div">
-          <Heading level="h3" margin="0 0 xx-small 0">
-            <strong>{I18n.t('Completion rules')}</strong>
-          </Heading>
+          <View as="div">
+            <Text weight="bold">{I18n.t('Talking points')}</Text>
+          </View>
           <View as="div" margin="0 0 small 0">
             <Text size="small" color="secondary">
-              {I18n.t(
-                'Set the learning objectives that learners need to cover in order to complete the activity.',
-              )}
+              {I18n.t('Used to create required talking points')}
             </Text>
           </View>
-          <FormFieldGroup
-            description={I18n.t('Set the learning objectives for this activity')}
-            layout="stacked"
-          >
-            <LearningObjectivesInput
-              objectives={formData.learning_objectives}
-              onChange={onObjectivesChange}
-              error={showErrors ? errors.learning_objectives : undefined}
-            />
-          </FormFieldGroup>
+          <LearningObjectivesInput
+            objectives={formData.learning_objectives}
+            onChange={onObjectivesChange}
+            error={showErrors ? errors.learning_objectives : undefined}
+          />
         </View>
 
-        {/* Pedagogical activity guidance section */}
+        {/* AI prompt */}
         <View as="div" margin="large 0 0 0">
-          <Heading level="h3" margin="0 0 xx-small 0">
-            <strong>{I18n.t('Pedagogical activity guidance')}</strong>
-          </Heading>
-          <View as="div" margin="0 0 small 0">
-            <Text size="small" color="secondary">
-              {I18n.t('Define the instructions for the activity.')}
-            </Text>
-          </View>
-          <FormFieldGroup
-            description={I18n.t('Define the instructions for the activity')}
-            layout="stacked"
-          >
-            <TextArea
-              data-testid="ai-experience-edit-pedagogical-guidance-input"
-              label={I18n.t('Pedagogical guidance')}
-              value={formData.pedagogical_guidance}
-              onChange={onChange('pedagogical_guidance')}
-              required
-              resize="vertical"
-              height="80px"
-              maxHeight="300px"
-              messages={[
-                ...(showErrors && errors.pedagogical_guidance
-                  ? [{type: 'newError' as const, text: errors.pedagogical_guidance}]
-                  : []),
-                {
-                  type: 'hint' as const,
-                  text: I18n.t(
-                    'Provide us a prompt that tells the LLM (language learning model) how to facilitate the activity.',
-                  ),
-                },
-              ]}
-            />
-          </FormFieldGroup>
+          <TextArea
+            data-testid="ai-experience-edit-pedagogical-guidance-input"
+            label={I18n.t('AI prompt')}
+            value={formData.pedagogical_guidance}
+            onChange={onChange('pedagogical_guidance')}
+            required
+            resize="vertical"
+            height="80px"
+            maxHeight="300px"
+            messages={
+              showErrors && errors.pedagogical_guidance
+                ? [{type: 'newError' as const, text: errors.pedagogical_guidance}]
+                : []
+            }
+          />
         </View>
 
-        {/* Source materials section */}
+        {/* Text sources */}
         <View as="div" margin="large 0 0 0">
-          <Heading level="h3" margin="0 0 xx-small 0">
-            <strong>{I18n.t('Source materials')}</strong>
-          </Heading>
-          <View as="div" margin="0 0 small 0">
-            <Text size="small" color="secondary">
-              {I18n.t('Provide sources for the LLM to reference.')}
-            </Text>
-          </View>
-          <FormFieldGroup
-            description={I18n.t('Provide sources for the LLM to reference')}
-            layout="stacked"
-          >
-            <TextArea
-              data-testid="ai-experience-edit-facts-input"
-              label={I18n.t('Text source')}
-              value={formData.facts}
-              onChange={onChange('facts')}
-              resize="vertical"
-              height="80px"
-              maxHeight="300px"
-              messages={[
-                ...(showErrors && errors.facts
-                  ? [{type: 'newError' as const, text: errors.facts}]
-                  : []),
-                {
-                  type: 'hint' as const,
-                  text: I18n.t('Copy and paste information, data, key facts, etc.'),
-                },
-              ]}
-            />
-          </FormFieldGroup>
+          <TextArea
+            data-testid="ai-experience-edit-facts-input"
+            label={I18n.t('Text sources')}
+            value={formData.facts}
+            onChange={onChange('facts')}
+            resize="vertical"
+            height="200px"
+            maxHeight="400px"
+            messages={
+              showErrors && errors.facts ? [{type: 'newError' as const, text: errors.facts}] : []
+            }
+          />
+        </View>
 
-          <View as="div" margin="medium 0 0 0">
-            <CanvasFileUpload
-              files={contextFiles}
-              onFilesChange={onContextFilesChange}
-              courseId={courseId}
-              allowedFileTypes={['.docx', '.xlsx', '.xls', '.pptx', '.pdf', '.txt', '.html']}
-              maxFileSizeMB={ENV?.CONTEXT_FILE_MAX_SIZE_MB ?? 300}
-              maxFiles={10}
-              initialFailedFileNames={initialFailedFileNames}
-              primaryButtonThemeOverride={navyButtonTheme}
-              secondaryButtonThemeOverride={lightBlueButtonTheme}
-            />
-          </View>
+        {/* File sources */}
+        <View as="div" margin="large 0 0 0">
+          <CanvasFileUpload
+            files={contextFiles}
+            onFilesChange={onContextFilesChange}
+            courseId={courseId}
+            allowedFileTypes={['.docx', '.xlsx', '.xls', '.pptx', '.pdf', '.txt', '.html']}
+            maxFileSizeMB={ENV?.CONTEXT_FILE_MAX_SIZE_MB ?? 300}
+            maxFiles={10}
+            initialFailedFileNames={initialFailedFileNames}
+            primaryButtonThemeOverride={navyButtonTheme}
+            secondaryButtonThemeOverride={lightBlueButtonTheme}
+          />
         </View>
       </View>
     </View>

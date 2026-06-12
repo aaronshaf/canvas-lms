@@ -78,9 +78,9 @@ describe('AiExperiencesIndex', () => {
       render(<AiExperiencesIndex />)
 
       await waitFor(() =>
-        expect(screen.getByText('No Knowledge Chats created yet.')).toBeInTheDocument(),
+        expect(screen.getByText('No Knowledge checks created yet.')).toBeInTheDocument(),
       )
-      expect(screen.getByText('Create new')).toBeInTheDocument()
+      expect(screen.getByText('Add')).toBeInTheDocument()
     })
   })
 
@@ -96,9 +96,7 @@ describe('AiExperiencesIndex', () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText(
-            "Evaluate your students' comprehension of a topic with a configurable LLM chat (learning language model).",
-          ),
+          screen.getByText('Guided AI conversations that help gauge what students know'),
         ).toBeInTheDocument(),
       )
     })
@@ -119,9 +117,7 @@ describe('AiExperiencesIndex', () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText(
-            'Check your understanding of a topic with an educator-configured Knowledge Chat.',
-          ),
+          screen.getByText('Conversations with IgniteAI that help you show what you know'),
         ).toBeInTheDocument(),
       )
     })

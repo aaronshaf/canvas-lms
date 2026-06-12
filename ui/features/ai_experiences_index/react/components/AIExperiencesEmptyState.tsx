@@ -20,9 +20,8 @@ import React from 'react'
 import {useScope as useI18nScope} from '@canvas/i18n'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
-import {Button} from '@instructure/ui-buttons'
-import {IconAddLine} from '@instructure/ui-icons'
 import {Img} from '@instructure/ui-img'
+import AddExperienceButton from '@canvas/ai-experiences/react/components/AddExperienceButton'
 
 interface AIExperiencesEmptyStateProps {
   canManage: boolean
@@ -43,22 +42,20 @@ const AIExperiencesEmptyState: React.FC<AIExperiencesEmptyStateProps> = ({
       <Flex.Item margin="0 0 small 0">
         <Text size="large" weight="bold">
           {canManage
-            ? I18n.t('No Knowledge Chats created yet.')
-            : I18n.t('No Knowledge Chats available yet.')}
+            ? I18n.t('No Knowledge checks created yet.')
+            : I18n.t('No Knowledge checks available yet.')}
         </Text>
       </Flex.Item>
       <Flex.Item margin="0 0 medium 0">
         <Text size="medium" color="secondary">
           {canManage
-            ? I18n.t('Click the Create New button to start building your first Knowledge Chat.')
-            : I18n.t('Your instructor has not published any Knowledge Chats yet.')}
+            ? I18n.t('Click the Add button to start building your first Knowledge check.')
+            : I18n.t('Your instructor has not published any Knowledge checks yet.')}
         </Text>
       </Flex.Item>
       {canManage && (
         <Flex.Item>
-          <Button color="primary" renderIcon={() => <IconAddLine />} onClick={onCreateNew}>
-            {I18n.t('Create new')}
-          </Button>
+          <AddExperienceButton onClick={onCreateNew} />
         </Flex.Item>
       )}
     </Flex>

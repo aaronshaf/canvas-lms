@@ -69,12 +69,14 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
   const validateDraft = (): boolean => {
     const trimmed = draftValue.trim()
     if (!trimmed) {
-      setDraftError(I18n.t('Objective cannot be blank'))
+      setDraftError(I18n.t('Talking point cannot be blank'))
       return false
     }
     if (trimmed.length > TEACHER_AUTHORED_FIELD_MAX) {
       setDraftError(
-        I18n.t('Objective must be %{max} characters or fewer', {max: TEACHER_AUTHORED_FIELD_MAX}),
+        I18n.t('Talking point must be %{max} characters or fewer', {
+          max: TEACHER_AUTHORED_FIELD_MAX,
+        }),
       )
       return false
     }
@@ -174,7 +176,7 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
         <Flex.Item shouldGrow>
           <TextInput
             data-testid="learning-objectives-input"
-            renderLabel={I18n.t('Learning objective:')}
+            renderLabel={I18n.t('Talking point:')}
             value={draftValue}
             onChange={(_e, val) => {
               setDraftValue(val)
@@ -190,7 +192,7 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
         <Flex.Item>
           <IconButton
             data-testid={`learning-objectives-confirm-btn${testIdSuffix}`}
-            screenReaderLabel={I18n.t('Save objective')}
+            screenReaderLabel={I18n.t('Save talking point')}
             onClick={onConfirm}
             color="primary"
           >
@@ -241,7 +243,7 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
               <Flex.Item>
                 <IconButton
                   data-testid={`learning-objectives-edit-btn-${index}`}
-                  screenReaderLabel={I18n.t('Edit objective: %{objective}', {objective: obj})}
+                  screenReaderLabel={I18n.t('Edit talking point: %{objective}', {objective: obj})}
                   onClick={() => handleStartEdit(index)}
                   withBackground={false}
                   withBorder={false}
@@ -255,7 +257,7 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
               <Flex.Item>
                 <IconButton
                   data-testid={`learning-objectives-delete-btn-${index}`}
-                  screenReaderLabel={I18n.t('Delete objective: %{objective}', {objective: obj})}
+                  screenReaderLabel={I18n.t('Delete talking point: %{objective}', {objective: obj})}
                   onClick={() => handleDelete(index)}
                   withBackground={false}
                   withBorder={false}
@@ -283,7 +285,7 @@ const LearningObjectivesInput: React.FC<LearningObjectivesInputProps> = ({
             addBtnRef.current = el as HTMLButtonElement | null
           }}
         >
-          {I18n.t('Add objective')}
+          {I18n.t('Add talking point')}
         </Button>
       )}
 

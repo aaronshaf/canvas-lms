@@ -46,7 +46,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
       open={open}
       onDismiss={onDismiss}
       size="small"
-      label={I18n.t('Delete Knowledge Chat')}
+      label={I18n.t('Delete Knowledge check')}
       shouldCloseOnDocumentClick
     >
       <Modal.Header>
@@ -57,12 +57,12 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           onClick={onDismiss}
           screenReaderLabel={I18n.t('Close')}
         />
-        <Heading>{I18n.t('Delete Knowledge Chat')}</Heading>
+        <Heading>{I18n.t('Delete Knowledge check')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <Text>
           {I18n.t('Are you sure you want to delete "%{title}"? This action cannot be undone.', {
-            title: title || I18n.t('this Knowledge Chat'),
+            title: title || I18n.t('this Knowledge check'),
           })}
         </Text>
       </Modal.Body>

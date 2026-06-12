@@ -49,10 +49,11 @@ describe('OverallSnapshot', () => {
 
   it('displays card labels', () => {
     render(<OverallSnapshot snapshot={mockSnapshot} isLoading={false} />)
-    expect(screen.getByText('Learning targets')).toBeInTheDocument()
-    expect(screen.getByText('Completed')).toBeInTheDocument()
-    expect(screen.getByText('In progress')).toBeInTheDocument()
-    expect(screen.getByText('Not started')).toBeInTheDocument()
+    expect(screen.getByText('Talking points included')).toBeInTheDocument()
+    expect(screen.getByText('Avg talking points hit')).toBeInTheDocument()
+    expect(screen.getByText('Chats completed')).toBeInTheDocument()
+    expect(screen.getByText('Chats in progress')).toBeInTheDocument()
+    expect(screen.getByText('Chats not started')).toBeInTheDocument()
   })
 
   it('renders the Overall snapshot heading', () => {

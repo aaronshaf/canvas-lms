@@ -85,10 +85,10 @@ describe('AIExperienceShow', () => {
     expect(screen.queryByText('Description')).not.toBeInTheDocument()
   })
 
-  it('renders configuration section with all fields when Configurations tab is selected', async () => {
+  it('renders configuration section with all fields when AI guidance tab is selected', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    fireEvent.click(screen.getByText('Configurations'))
+    fireEvent.click(screen.getByText('AI guidance'))
 
     await waitFor(() => {
       expect(screen.getByText('Text source')).toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('AIExperienceShow', () => {
           'You are a customer service representative helping customers with billing issues.',
         ),
       ).toBeInTheDocument()
-      expect(screen.getByText('Learning Objectives')).toBeInTheDocument()
+      expect(screen.getByText('Talking points')).toBeInTheDocument()
       expect(
         screen.getByText('Students will learn to handle customer complaints professionally'),
       ).toBeInTheDocument()
@@ -109,8 +109,8 @@ describe('AIExperienceShow', () => {
   it('renders landing when no active session exists', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
     await waitFor(() => {
-      expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
-      expect(screen.getByText('Chat with the AI just like a learner')).toBeInTheDocument()
+      expect(screen.getAllByText(/Knowledge check/)[0]).toBeInTheDocument()
+      expect(screen.getByText('Preview the student experience.')).toBeInTheDocument()
       expect(screen.queryByText('Reset')).not.toBeInTheDocument()
     })
   })
@@ -127,7 +127,7 @@ describe('AIExperienceShow', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
     await waitFor(() => {
       expect(screen.getByText('Reset')).toBeInTheDocument()
-      expect(screen.queryByText('Chat with the AI just like a learner')).not.toBeInTheDocument()
+      expect(screen.queryByText('Preview the student experience.')).not.toBeInTheDocument()
     })
   })
 
@@ -146,14 +146,14 @@ describe('AIExperienceShow', () => {
 
   it('renders three-dot menu button', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
-    const menuButton = screen.getAllByText('Knowledge Chat settings')[0].closest('button')
+    const menuButton = screen.getAllByText('Knowledge check settings')[0].closest('button')
     expect(menuButton).toBeInTheDocument()
   })
 
   it('shows Delete as the only option in the menu', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    const menuButton = screen.getAllByText('Knowledge Chat settings')[0].closest('button')
+    const menuButton = screen.getAllByText('Knowledge check settings')[0].closest('button')
     fireEvent.click(menuButton!)
 
     await waitFor(() => {
@@ -167,17 +167,17 @@ describe('AIExperienceShow', () => {
     expect(screen.getByTestId('ai-experience-show-edit-button')).toBeInTheDocument()
   })
 
-  it('renders Preview, Conversations, and Configurations tabs for teachers', () => {
+  it('renders Chat preview, Insights, and AI guidance tabs for teachers', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
-    expect(screen.getByText('Preview')).toBeInTheDocument()
-    expect(screen.getAllByText('Conversations')[0]).toBeInTheDocument()
-    expect(screen.getByText('Configurations')).toBeInTheDocument()
+    expect(screen.getByText('Chat preview')).toBeInTheDocument()
+    expect(screen.getAllByText('Insights')[0]).toBeInTheDocument()
+    expect(screen.getByText('AI guidance')).toBeInTheDocument()
   })
 
-  it('switches to Conversations tab and shows student filter', async () => {
+  it('switches to Insights tab and shows student filter', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    fireEvent.click(screen.getAllByText('Conversations')[0])
+    fireEvent.click(screen.getAllByText('Insights')[0])
 
     await waitFor(() => {
       expect(screen.getByLabelText('Filter by student')).toBeInTheDocument()
@@ -187,13 +187,13 @@ describe('AIExperienceShow', () => {
   it('does not render tabs or Edit button when can_manage is false', () => {
     render(<AIExperienceShow aiExperience={{...mockAiExperience, can_manage: false}} />)
     expect(screen.queryByTestId('ai-experience-show-edit-button')).not.toBeInTheDocument()
-    expect(screen.queryByText('Preview')).not.toBeInTheDocument()
+    expect(screen.queryByText('Chat preview')).not.toBeInTheDocument()
   })
 
   it('opens delete confirmation modal when Delete is clicked', async () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
-    const menuButton = screen.getAllByText('Knowledge Chat settings')[0].closest('button')
+    const menuButton = screen.getAllByText('Knowledge check settings')[0].closest('button')
     fireEvent.click(menuButton!)
 
     await waitFor(() => {
@@ -203,7 +203,7 @@ describe('AIExperienceShow', () => {
     const deleteButton = screen.getByText('Delete')
     fireEvent.click(deleteButton)
 
-    await waitFor(() => expect(screen.getByText('Delete Knowledge Chat')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Delete Knowledge check')).toBeInTheDocument())
     expect(
       screen.getByText(
         'Are you sure you want to delete "Customer Service Training"? This action cannot be undone.',
@@ -215,7 +215,7 @@ describe('AIExperienceShow', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
     // Open menu and click Delete
-    const menuButton = screen.getAllByText('Knowledge Chat settings')[0].closest('button')
+    const menuButton = screen.getAllByText('Knowledge check settings')[0].closest('button')
     fireEvent.click(menuButton!)
 
     const deleteButton = screen.getByText('Delete')
@@ -224,13 +224,13 @@ describe('AIExperienceShow', () => {
     // Wait for both the modal title AND the cancel button to be ready
     const cancelButton = await screen.findByTestId('ai-experience-show-delete-cancel-button')
     await waitFor(() => {
-      expect(screen.getByText('Delete Knowledge Chat')).toBeInTheDocument()
+      expect(screen.getByText('Delete Knowledge check')).toBeInTheDocument()
     })
 
     fireEvent.click(cancelButton)
 
     await waitFor(() => {
-      expect(screen.queryByText('Delete Knowledge Chat')).not.toBeInTheDocument()
+      expect(screen.queryByText('Delete Knowledge check')).not.toBeInTheDocument()
     })
   })
 
@@ -246,7 +246,7 @@ describe('AIExperienceShow', () => {
     render(<AIExperienceShow aiExperience={mockAiExperience} />)
 
     // Open menu and click Delete
-    const menuButtons = screen.getAllByText('Knowledge Chat settings')
+    const menuButtons = screen.getAllByText('Knowledge check settings')
     const menuButton = menuButtons[0].closest('button')
     fireEvent.click(menuButton!)
 
@@ -258,7 +258,7 @@ describe('AIExperienceShow', () => {
     fireEvent.click(deleteMenuItem)
 
     await waitFor(() => {
-      expect(screen.getByText('Delete Knowledge Chat')).toBeInTheDocument()
+      expect(screen.getByText('Delete Knowledge check')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('ai-experience-show-delete-confirm-button'))
@@ -278,13 +278,13 @@ describe('AIExperienceShow', () => {
 
   it('renders kebab menu when can_manage is true', () => {
     render(<AIExperienceShow aiExperience={{...mockAiExperience, can_manage: true}} />)
-    const menuButton = screen.getAllByText('Knowledge Chat settings')[0].closest('button')
+    const menuButton = screen.getAllByText('Knowledge check settings')[0].closest('button')
     expect(menuButton).toBeInTheDocument()
   })
 
   it('does not render kebab menu when can_manage is false', () => {
     render(<AIExperienceShow aiExperience={{...mockAiExperience, can_manage: false}} />)
-    const menuButton = screen.queryByText('Knowledge Chat settings')
+    const menuButton = screen.queryByText('Knowledge check settings')
     expect(menuButton).not.toBeInTheDocument()
   })
 
@@ -325,7 +325,7 @@ describe('AIExperienceShow', () => {
           aiExperience={{...mockAiExperience, context_ready: true, can_manage: true}}
         />,
       )
-      expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+      expect(screen.getAllByText(/Knowledge check/)[0]).toBeInTheDocument()
     })
 
     it('students always see the preview even when context_ready is false', async () => {
@@ -342,7 +342,7 @@ describe('AIExperienceShow', () => {
       expect(screen.queryByTestId('ai-experience-show-indexing-notice')).not.toBeInTheDocument()
       // Students see the conversation view (not the teacher's "Preview" panel)
       await waitFor(() => {
-        expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+        expect(screen.getAllByText(/Knowledge check/)[0]).toBeInTheDocument()
       })
     })
   })
@@ -408,7 +408,7 @@ describe('AIExperienceShow', () => {
         />,
       )
       expect(screen.queryByTestId('ai-experience-show-indexing-notice')).not.toBeInTheDocument()
-      expect(screen.getAllByText(/Knowledge Chat/)[0]).toBeInTheDocument()
+      expect(screen.getAllByText(/Knowledge check/)[0]).toBeInTheDocument()
     })
   })
 
@@ -432,7 +432,7 @@ describe('AIExperienceShow', () => {
 
     it('renders File sources section when files are present', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByText('File sources')).toBeInTheDocument()
       })
@@ -440,7 +440,7 @@ describe('AIExperienceShow', () => {
 
     it('renders each file as a list item with its name', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByText('lecture-notes.pdf')).toBeInTheDocument()
         expect(screen.getByText('rubric.docx')).toBeInTheDocument()
@@ -449,7 +449,7 @@ describe('AIExperienceShow', () => {
 
     it('renders a download button for each file', async () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByTestId('download-file-f1')).toBeInTheDocument()
         expect(screen.getByTestId('download-file-f2')).toBeInTheDocument()
@@ -482,7 +482,7 @@ describe('AIExperienceShow', () => {
           }}
         />,
       )
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByText('lecture-notes.pdf failed')).toBeInTheDocument()
       })
@@ -498,7 +498,7 @@ describe('AIExperienceShow', () => {
           }}
         />,
       )
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         // The file should appear once as a warning ("lecture-notes.pdf failed") not as a normal download pill
         expect(screen.queryByTestId('download-file-f1')).not.toBeInTheDocument()
@@ -521,7 +521,7 @@ describe('AIExperienceShow', () => {
     })
   })
 
-  describe('evaluation metrics in Configurations tab', () => {
+  describe('evaluation metrics in AI guidance tab', () => {
     const experienceWithMetrics: AIExperience = {
       ...mockAiExperience,
       evaluation_metrics: [
@@ -532,7 +532,7 @@ describe('AIExperienceShow', () => {
           visible_to_learners: false,
         },
         {
-          name: 'Learning targets met',
+          name: 'Talking points met',
           description: 'Which targets were hit.',
           enabled: false,
           visible_to_learners: false,
@@ -542,7 +542,7 @@ describe('AIExperienceShow', () => {
 
     it('renders evaluation metrics section when metrics are present', async () => {
       render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByTestId('evaluation-metrics-section')).toBeInTheDocument()
       })
@@ -550,16 +550,16 @@ describe('AIExperienceShow', () => {
 
     it('renders each metric name', async () => {
       render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByText('Summary')).toBeInTheDocument()
-        expect(screen.getByText('Learning targets met')).toBeInTheDocument()
+        expect(screen.getByText('Talking points met')).toBeInTheDocument()
       })
     })
 
     it('renders all metric checkboxes as disabled', async () => {
       render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByTestId('evaluation-metric-enabled-0')).toBeDisabled()
         expect(screen.getByTestId('evaluation-metric-enabled-1')).toBeDisabled()
@@ -568,7 +568,7 @@ describe('AIExperienceShow', () => {
 
     it('does not render the Add AI metric button', async () => {
       render(<AIExperienceShow aiExperience={experienceWithMetrics} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByTestId('evaluation-metrics-section')).toBeInTheDocument()
       })
@@ -577,7 +577,7 @@ describe('AIExperienceShow', () => {
 
     it('does not render evaluation metrics section when no metrics are configured', async () => {
       render(<AIExperienceShow aiExperience={mockAiExperience} />)
-      fireEvent.click(screen.getByText('Configurations'))
+      fireEvent.click(screen.getByText('AI guidance'))
       await waitFor(() => {
         expect(screen.getByText('Text source')).toBeInTheDocument()
       })

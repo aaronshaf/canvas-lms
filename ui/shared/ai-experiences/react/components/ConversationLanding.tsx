@@ -65,16 +65,14 @@ const ConversationLanding: React.FC<ConversationLandingProps> = ({
         <View as="div" padding="x-large" background="primary" textAlign="center">
           <View as="div" margin="0 0 small 0">
             <Heading level="h3">
-              <span style={gradientTextStyle}>
-                {isTeacherPreview ? I18n.t('Preview the chat') : I18n.t('Chat with IgniteAI')}
-              </span>
+              <span style={gradientTextStyle}>{I18n.t('Ready to chat?')}</span>
             </Heading>
           </View>
           <View as="div" margin="0 0 medium 0">
             <Text>
               {isTeacherPreview
-                ? I18n.t('Chat with the AI just like a learner')
-                : I18n.t('Show what you know: hit learning targets to complete this activity.')}
+                ? I18n.t('Preview the student experience.')
+                : I18n.t('Hit required talking points that check your understanding.')}
             </Text>
           </View>
           <div style={gradientButtonWrapperStyle}>
@@ -87,7 +85,7 @@ const ConversationLanding: React.FC<ConversationLandingProps> = ({
             >
               <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
                 <IconAiSolid />
-                {isTeacherPreview ? I18n.t('Test as learner') : I18n.t('Start chatting')}
+                {isTeacherPreview ? I18n.t('Try it out') : I18n.t('Get started')}
               </span>
             </Button>
           </div>
