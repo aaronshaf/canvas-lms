@@ -1082,9 +1082,11 @@ class ApplicationController < ActionController::Base
       opts[-1][:host] = context.try(:host_name)
       opts[-1][:only_path] = true unless name.end_with?("_path")
     end
-    raise ArgumentError, "invalid path" unless name.end_with?("_path", "_url")
+    # block url paths with capital letters and spaces. must end with "_url" or "_path"
+    raise ArgumentError, "invalid path" unless /\A[a-z0-9_]+_(url|path)\z/.match?(name)
 
-    send name, *opts
+    # will only call public helpers, no private/protected
+    public_send name, *opts
   end
 
   def self.promote_view_path(path)
