@@ -560,6 +560,71 @@ describe WebConference do
           expect(conference).not_to be_valid
           expect(conference.errors[:settings].to_s).to include("conference_selection placement")
         end
+
+        describe "lti_settings URL validation" do
+          let(:conference) do
+            c = course.web_conferences.build
+            c.user = user
+            c.conference_type = "LtiConference"
+            c
+          end
+
+          it "accepts a valid https URL in lti_settings[:url]" do
+            conference.lti_settings = { tool_id: tool.id, url: "https://zoom.us/j/123456789" }
+            expect(conference).to be_valid
+          end
+
+          it "accepts a valid http URL in lti_settings[:icon_url]" do
+            conference.lti_settings = { tool_id: tool.id, icon_url: "http://example.com/icon.png" }
+            expect(conference).to be_valid
+          end
+
+          it "is valid when lti_settings has no URL fields" do
+            conference.lti_settings = { tool_id: tool.id, type: "html", html: "<p>hi</p>" }
+            expect(conference).to be_valid
+          end
+
+          it "is valid when a URL field is blank" do
+            conference.lti_settings = { tool_id: tool.id, url: "" }
+            expect(conference).to be_valid
+          end
+
+          {
+            "javascript:" => { url: "javascript:alert(document.cookie)" },
+            "data:" => { icon: { url: "data:text/html,<script>alert(1)</script>" } },
+            "vbscript:" => { icon_url: "vbscript:msgbox(1)" },
+            "blob:" => { url: "blob:https://evil.example/abc123" },
+            "file:" => { url: "file:///etc/passwd" },
+          }.each do |scheme, lti_fields|
+            it "rejects a #{scheme} URL in lti_settings" do
+              conference.lti_settings = { tool_id: tool.id }.merge(lti_fields)
+              expect(conference).not_to be_valid
+              expect(conference.errors[:settings]).to include("settings[lti_settings] contains an invalid URL")
+            end
+          end
+
+          it "rejects a javascript: URL in lti_settings[:icon][:url] when assigned with string keys" do
+            conference.lti_settings = { "tool_id" => tool.id, "icon" => { "url" => "javascript:alert(1)" } }
+            expect(conference).not_to be_valid
+            expect(conference.errors[:settings]).to include("settings[lti_settings] contains an invalid URL")
+          end
+
+          it "rejects a malformed URL that cannot be parsed" do
+            conference.lti_settings = { tool_id: tool.id, url: "http://[invalid" }
+            expect(conference).not_to be_valid
+            expect(conference.errors[:settings]).to include("settings[lti_settings] contains an invalid URL")
+          end
+
+          it "rejects an invalid :icon[:url] even when :url is valid" do
+            conference.lti_settings = {
+              tool_id: tool.id,
+              url: "https://zoom.us/j/123456789",
+              icon: { url: "javascript:alert(1)" }
+            }
+            expect(conference).not_to be_valid
+            expect(conference.errors[:settings]).to include("settings[lti_settings] contains an invalid URL")
+          end
+        end
       end
     end
   end

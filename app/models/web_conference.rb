@@ -35,6 +35,7 @@ class WebConference < ApplicationRecord
   validates :conference_type, :title, :context_id, :context_type, :user_id, presence: true
   validates :title, length: { within: 0..255 }
   validate :lti_tool_valid, if: -> { conference_type == "LtiConference" }
+  validate :validate_lti_settings_urls
 
   MAX_DURATION = 99_999_999
   validates :duration, numericality: { less_than_or_equal_to: MAX_DURATION, allow_nil: true }
@@ -98,7 +99,7 @@ class WebConference < ApplicationRecord
   end
 
   def lti_settings=(new_settings)
-    new_settings = new_settings&.to_h&.symbolize_keys
+    new_settings = new_settings&.to_h&.deep_symbolize_keys
     if new_settings&.key?(:html)
       new_settings[:html] = Sanitize.fragment(new_settings[:html].to_s, CanvasSanitize::SANITIZE)
     end
@@ -153,6 +154,23 @@ class WebConference < ApplicationRecord
     end
     unless tool.has_placement?(:conference_selection)
       errors.add(:settings, "settings[lti_settings][tool_id] must be a ContextExternalTool instance with conference_selection placement")
+    end
+  end
+
+  def validate_lti_settings_urls
+    return unless settings&.key?(:lti_settings)
+
+    [
+      settings.dig(:lti_settings, :url),
+      settings.dig(:lti_settings, :icon, :url),
+      settings.dig(:lti_settings, :icon_url),
+    ].filter_map(&:presence).each do |url|
+      raise ArgumentError unless url.is_a?(String)
+
+      CanvasHttp.validate_url(url, allowed_schemes: %w[http https])
+    rescue CanvasHttp::Error, URI::Error, ArgumentError
+      errors.add(:settings, "settings[lti_settings] contains an invalid URL")
+      break
     end
   end
 
