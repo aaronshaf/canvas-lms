@@ -23,15 +23,16 @@ Then the score appears in the Canvas Gradebook for that assignment
 And the submission is marked as late
 ```
 
-**Scenario MC-3.2 — Tracker unlinked with preserve-content option stops grade passback**
+**Scenario MC-3.2 — Canvas still accepts passback after a preserve-content unlink or tracker move (negative control)**
 - **GUID:** `9c1a5f73`
-- **Reason:** Grades continue flowing to Canvas for a decommissioned tracker if the passback channel is not severed on unlink.
+- **Reason:** Grades silently stop posting or the assignment disappears if Canvas wrongly treats a preserve-content unlink or tracker move as a reason to reject a later passback, when those upstream actions should leave the assignment and its grades untouched.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-And a published Mastery Connect assessment assignment exists in the course
-And the teacher unlinks the tracker using the "unlink tracker only" option
-When Mastery Connect attempts to post a new score for a student on that assessment
-Then the score does not appear in the Canvas Gradebook
+And a published Mastery Connect assessment assignment with an existing student grade
+And the teacher unlinks the tracker with "preserve content" or moves it to another course
+When Mastery Connect posts a new score for the student on that assessment
+Then Canvas accepts the score with no awareness of the unlink or move
+And the assignment remains in the course's Assignments list
 ```
 
 **Scenario MC-3.3 — Tracker unlinked with remove-content option deletes assignments from Canvas**
@@ -39,32 +40,8 @@ Then the score does not appear in the Canvas Gradebook
 - **Reason:** Orphaned assignments and stale grades remain in Canvas if the remove-content unlink does not clean up the Canvas side.
 ```
 Given a Canvas course with a linked Mastery Connect tracker
-And multiple Mastery Connect assessment assignments exist in the course
-When the teacher unlinks the tracker using the "unlink tracker and remove content" option
-Then the Mastery Connect assessment assignments are removed from the Canvas Assignments list
-And the grades for those assignments are removed from the Canvas Gradebook
-```
-
-**Scenario MC-3.4 — Previously linked assignments persist after preserve-content unlink**
-- **GUID:** `52c9b3e7`
-- **Reason:** Teachers lose track of formerly-linked MC assessment assignments if they are silently deleted when the tracker is unlinked.
-```
-Given a Canvas course with a linked Mastery Connect tracker
-And several Mastery Connect assessment assignments exist in the course with student grades
-When the teacher unlinks the tracker using the "unlink tracker only" option
-Then the previously linked assessment assignments remain in the Canvas Assignments list
-And the existing student grades remain in the Canvas Gradebook
-And no new grades from Mastery Connect are posted to those assignments
-```
-
-**Scenario MC-3.5 — Tracker moved to new course stops passback in original course**
-- **GUID:** `ae824d1f`
-- **Reason:** Grades incorrectly continue flowing to the original course's gradebook after the tracker has been moved elsewhere.
-```
-Given a Canvas course with a linked Mastery Connect tracker
-And a published Mastery Connect assessment assignment exists in the course with student grades
-And the teacher moves the tracker to a different Canvas course
-When Mastery Connect attempts to post a new score for a student on the original course's assessment
-Then the score does not appear in the original course's Canvas Gradebook
-And the previously linked assessment assignments remain visible in the original course's Assignments list
+And a Mastery Connect assessment assignment exists in the course with a student grade
+When mc-mothership deletes the assignment (the "unlink tracker and remove content" path)
+Then the assignment is removed from the Canvas Assignments list
+And the grade for that assignment no longer counts in the Canvas Gradebook
 ```

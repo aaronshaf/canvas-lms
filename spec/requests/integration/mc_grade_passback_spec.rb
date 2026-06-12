@@ -35,43 +35,7 @@ require "spec_helper"
 # and bulk fan-out (one Sidekiq job per student), live in mc-mothership and are
 # out of scope here.
 describe "Mastery Connect Grade Passback" do
-  def create_mc_tool(course)
-    course.context_external_tools.create!(
-      name: "Mastery Connect",
-      consumer_key: "mc_key",
-      shared_secret: "mc_secret",
-      url: "https://masteryconnect.example.com/launch",
-      domain: "masteryconnect.example.com"
-    )
-  end
-
-  def create_mc_assignment(course, tool, workflow_state: "published", title: "MC Assessment")
-    course.assignments.create!(
-      title:,
-      grading_type: "points",
-      points_possible: 100,
-      submission_types: "external_tool",
-      workflow_state:,
-      external_tool_tag_attributes: {
-        url: tool.url,
-        content_type: "ContextExternalTool",
-        content_id: tool.id
-      }
-    )
-  end
-
-  # The world every MC passback test shares: a course with a linked Mastery
-  # Connect tool and a teacher who grades through a Bearer token. Returns
-  # [course, tool, token, teacher]; teacher is last so tests that only need it
-  # to authenticate (via token) can drop it.
-  def setup_mc_passback_course
-    teacher_enrollment = course_with_teacher(active_all: true)
-    teacher = teacher_enrollment.user
-    pseudonym(teacher) # bearer-token auth requires an active pseudonym
-    course = teacher_enrollment.course
-    token = teacher.access_tokens.create!(purpose: "test")
-    [course, create_mc_tool(course), token, teacher]
-  end
+  include MCPassbackHelpers
 
   it "MC score on a published assessment appears in the Canvas gradebook", guid: "3a7f1c4e" do
     # Arrange
