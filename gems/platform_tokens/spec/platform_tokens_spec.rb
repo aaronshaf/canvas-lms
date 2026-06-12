@@ -43,7 +43,8 @@ RSpec.describe PlatformTokens do
           access_token_ttl_seconds: 300,
           env: "test",
           iss: "id.instructure.com",
-          region: "us-east-1"
+          region: "us-east-1",
+          signing_key: "test-signing-key"
         )
       end
 
@@ -60,7 +61,8 @@ RSpec.describe PlatformTokens do
           access_token_ttl_seconds: 300,
           env: "test",
           iss: "id.instructure.com",
-          region: "us-east-1"
+          region: "us-east-1",
+          signing_key: "test-signing-key"
         )
         expect(PlatformTokens.configuration.env).to eql("test")
       end
@@ -69,28 +71,26 @@ RSpec.describe PlatformTokens do
     context "with invalid attributes" do
       let(:over_max_ttl) { PlatformTokens::Token::Base::MAX_TTL.to_i + 1 }
 
-      it "raises ConfigurationError" do
+      it "does not raise" do
         expect do
           PlatformTokens.configure(
             access_token_ttl_seconds: over_max_ttl,
             env: "test",
             iss: "id.instructure.com",
-            region: "us-east-1"
+            region: "us-east-1",
+            signing_key: "test-signing-key"
           )
-        end.to raise_error(PlatformTokens::ConfigurationError)
+        end.not_to raise_error
       end
 
       it "does not store the invalid configuration" do
-        begin
-          PlatformTokens.configure(
-            access_token_ttl_seconds: over_max_ttl,
-            env: "test",
-            iss: "id.instructure.com",
-            region: "us-east-1"
-          )
-        rescue PlatformTokens::ConfigurationError
-          nil
-        end
+        PlatformTokens.configure(
+          access_token_ttl_seconds: over_max_ttl,
+          env: "test",
+          iss: "id.instructure.com",
+          region: "us-east-1",
+          signing_key: "test-signing-key"
+        )
 
         expect { PlatformTokens.configuration }.to raise_error(PlatformTokens::ConfigurationError)
       end

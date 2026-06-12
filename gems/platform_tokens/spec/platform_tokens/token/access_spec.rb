@@ -38,7 +38,8 @@ RSpec.describe PlatformTokens::Token::Access do
       access_token_ttl_seconds: 300,
       env: "test",
       iss: "id.instructure.com",
-      region: "us-east-1"
+      region: "us-east-1",
+      signing_key: "test-signing-key"
     )
   end
 
@@ -55,7 +56,8 @@ RSpec.describe PlatformTokens::Token::Access do
         access_token_ttl_seconds: 600,
         env: "test",
         iss: "id.instructure.com",
-        region: "us-east-1"
+        region: "us-east-1",
+        signing_key: "test-signing-key"
       )
       t = described_class.new(**token_attrs)
       expect(t.exp).to eql(t.iat + 600.seconds)

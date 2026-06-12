@@ -258,6 +258,7 @@ PATH
       will_paginate (>= 3.0, < 5.0)
     platform_tokens (0.1.0)
       activemodel (~> 8.0)
+      json-jwt (~> 1.17)
     request_context (0.1.0)
       actionpack
       canvas_security

@@ -44,7 +44,8 @@ RSpec.describe PlatformTokens::Token::Base do
       access_token_ttl_seconds: 300,
       env: "test",
       iss: "id.instructure.com",
-      region: "us-east-1"
+      region: "us-east-1",
+      signing_key: "test-signing-key"
     )
   end
 
@@ -64,7 +65,7 @@ RSpec.describe PlatformTokens::Token::Base do
       expect(token.sub).to eql("user-uuid")
       expect(token.org).to eql("org-uuid")
       expect(token.azp).to eql("client-uuid")
-      expect(token.scope).to eql("read write")
+      expect(token.scope).to eql(%w[read write])
     end
 
     it "derives iss, env, and region from configuration" do

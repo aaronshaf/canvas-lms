@@ -16,4 +16,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activemodel", "~> 8.0"
+  spec.add_dependency "json-jwt", "~> 1.17"
 end

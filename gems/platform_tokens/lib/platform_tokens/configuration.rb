@@ -18,24 +18,28 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+require "logger"
+
 module PlatformTokens
   class Configuration
     include ActiveModel::Validations
 
-    ATTRIBUTES = %i[access_token_ttl_seconds env iss region].freeze
+    ATTRIBUTES = %i[access_token_ttl_seconds env iss region signing_key].freeze
 
-    attr_reader(*ATTRIBUTES)
-    private attr_writer(*ATTRIBUTES)
+    attr_reader(*ATTRIBUTES, :logger)
+    private attr_writer(*ATTRIBUTES, :logger)
 
     validates(*ATTRIBUTES, presence: true)
     validates :access_token_ttl_seconds,
               numericality: { greater_than: 0, less_than_or_equal_to: ->(_) { Token::Base::MAX_TTL.to_i } }
 
-    def initialize(access_token_ttl_seconds:, env:, iss:, region:)
-      self.access_token_ttl_seconds = access_token_ttl_seconds
+    def initialize(env:, iss:, region:, signing_key:, logger: nil, access_token_ttl_seconds: nil)
+      self.access_token_ttl_seconds = access_token_ttl_seconds || Token::Base::DEFAULT_TTL
       self.env = env
       self.iss = iss
       self.region = region
+      self.signing_key = signing_key
+      self.logger = logger || Logger.new($stdout)
     end
   end
 end

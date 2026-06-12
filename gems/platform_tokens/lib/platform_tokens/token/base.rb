@@ -18,14 +18,21 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+require_relative "concerns/validation"
+require_relative "concerns/serialization"
+
 module PlatformTokens
   module Token
     class Base
       include ActiveModel::Validations
+      include Concerns::Validation
+      include Concerns::Serialization
 
       CLAIMS = %i[aud azp env exp iat iss jti nbf org region scope sub].freeze
       CLOCK_SKEW_BUFFER = 30.seconds
+
       MAX_TTL = 1.hour
+      DEFAULT_TTL = 1.hour
 
       attr_reader(*CLAIMS)
       private attr_writer(*CLAIMS)
@@ -41,7 +48,7 @@ module PlatformTokens
         self.sub   = sub
         self.org   = org
         self.azp   = azp
-        self.scope = scope
+        self.scope = scope.is_a?(Array) ? scope : scope.split
 
         set_jti_claim
         set_static_claims
@@ -49,30 +56,6 @@ module PlatformTokens
       end
 
       private
-
-      def exp_not_elapsed
-        return if exp.nil?
-
-        errors.add(:exp, "token has expired") if exp + CLOCK_SKEW_BUFFER <= Time.now.utc
-      end
-
-      def nbf_not_future
-        return if nbf.nil?
-
-        errors.add(:nbf, "token is not yet valid") if nbf > Time.now.utc
-      end
-
-      def timestamp_order
-        return if iat.nil? || exp.nil?
-
-        errors.add(:exp, "must be after iat") unless exp > iat
-      end
-
-      def env_matches_configuration
-        return if env.nil?
-
-        errors.add(:env, "does not match configured environment") unless env == PlatformTokens.configuration.env
-      end
 
       def set_jti_claim
         self.jti = SecureRandom.uuid

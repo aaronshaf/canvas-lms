@@ -20,6 +20,7 @@
 
 require "active_model"
 require "active_support/core_ext/numeric/time"
+require "json/jwt"
 require_relative "platform_tokens/version"
 require_relative "platform_tokens/configuration"
 require_relative "platform_tokens/token"
@@ -27,6 +28,7 @@ require_relative "platform_tokens/token"
 module PlatformTokens
   class Error < StandardError; end
   class ConfigurationError < Error; end
+  class InvalidTokenError < Error; end
 
   class << self
     private attr_accessor :configuration_data
@@ -39,9 +41,19 @@ module PlatformTokens
 
     def configure(...)
       new_configuration_data = Configuration.new(...)
-      raise ConfigurationError, new_configuration_data.errors.full_messages.join(", ") unless new_configuration_data.valid?
+
+      unless new_configuration_data.valid?
+        log_message(new_configuration_data.errors.full_messages.join(", "), level: :warn)
+        return
+      end
 
       self.configuration_data = new_configuration_data
+    end
+
+    def log_message(message, level: :info)
+      configuration.logger.public_send(level, "[PlatformTokens]: #{message}")
+    rescue ConfigurationError
+      Logger.new($stdout).public_send(level, "[PlatformTokens]: #{message}")
     end
   end
 end
