@@ -729,7 +729,10 @@ class GroupCategoriesController < ApplicationController
           gms_by_user_id = GroupMembership.active.where(group_id: @group_category.groups.active.select(:id))
                                           .joins(:group).select(:user_id, :name, :sis_source_id, :group_id).index_by(&:user_id)
           csv << export_headers(include_sis_id, groups_exist: gms_by_user_id.any?)
-          users.preload(:pseudonyms).find_each { |u| csv << build_row(u, section_names, gms_by_user_id, include_sis_id) }
+          users.preload(:pseudonyms).find_in_batches do |batch|
+            SisPseudonym.preload_enrollment_data(@context, batch)
+            batch.each { |u| csv << build_row(u, section_names, gms_by_user_id, include_sis_id) }
+          end
         end
         # keep inside authorized_action block to avoid
         # double render error if user is not authorized
@@ -777,9 +780,12 @@ class GroupCategoriesController < ApplicationController
                                                 "group_categories.id AS group_category_id")
                                         .group_by(&:user_id)
         csv << export_tags_headers(include_sis_id)
-        users.preload(:pseudonyms).find_each do |u|
-          rows = build_user_rows(u, gms_by_user_id, include_sis_id)
-          rows.each { |row| csv << row }
+        users.preload(:pseudonyms).find_in_batches do |batch|
+          SisPseudonym.preload_enrollment_data(@context, batch)
+          batch.each do |u|
+            rows = build_user_rows(u, gms_by_user_id, include_sis_id)
+            rows.each { |row| csv << row }
+          end
         end
       end
 
@@ -793,11 +799,7 @@ class GroupCategoriesController < ApplicationController
     row = []
     row << user.sortable_name
     row << user.id
-    e = Enrollment.new(user_id: user.id,
-                       root_account_id: @context.root_account_id,
-                       sis_pseudonym_id: user.sis_pseudonym_id,
-                       course_id: @context.id)
-    p = SisPseudonym.for(user, e, type: :trusted, require_sis: false, root_account: @context.root_account, current_user: @current_user)
+    p = resolve_sis_pseudonym(user)
     row << p&.sis_user_id if include_sis_id
     row << p&.unique_id
     row << section_names.values_at(*user.course_section_ids).map(&:name).to_sentence
@@ -839,11 +841,7 @@ class GroupCategoriesController < ApplicationController
     row = []
     row << user.sortable_name
     row << user.id
-    e = Enrollment.new(user_id: user.id,
-                       root_account_id: @context.root_account_id,
-                       sis_pseudonym_id: user.sis_pseudonym_id,
-                       course_id: @context.id)
-    p = SisPseudonym.for(user, e, type: :trusted, require_sis: false, root_account: @context.root_account, current_user: @current_user)
+    p = resolve_sis_pseudonym(user)
     row << p&.sis_user_id if include_sis_id
     row << p&.unique_id
 
@@ -872,6 +870,10 @@ class GroupCategoriesController < ApplicationController
     headers << "canvas_tag_set_id"
     headers << "tag_set_id" if include_sis_id
     headers
+  end
+
+  def resolve_sis_pseudonym(user)
+    SisPseudonym.for(user, @context, type: :trusted, require_sis: false, root_account: @context.root_account, current_user: @current_user)
   end
 
   include Api::V1::User

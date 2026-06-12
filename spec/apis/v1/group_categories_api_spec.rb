@@ -1023,6 +1023,24 @@ describe "Group Categories API", type: :request do
       expect(student_row[9]).to eq("sis_category_789")
     end
 
+    it "resolves SIS user_id via enrollment sis_pseudonym_id when present" do
+      @student.pseudonym.update!(sis_user_id: "sis_via_enrollment")
+      @student_enroll.update!(sis_pseudonym_id: @student.pseudonym.id)
+      @tag1.update!(sis_source_id: "sis_tag_enroll")
+
+      @course.account.role_overrides.create!(
+        permission: :read_sis,
+        role: teacher_role,
+        enabled: true
+      )
+      raw_api_call(:get, api_url, api_route)
+
+      csv_data = CSV.parse(response.body)
+      student_row = csv_data[1..].find { |row| row[1] == @student.id.to_s }
+      expect(student_row[2]).to eq("sis_via_enrollment")
+      expect(student_row[6]).to eq("sis_tag_enroll")
+    end
+
     it "fails when account settings disallow differentiation tags" do
       @course.account.settings[:allow_assign_to_differentiation_tags] = { value: false }
       @course.account.save!
@@ -1055,6 +1073,15 @@ describe "Group Categories API", type: :request do
 
       tag_names = student_rows.pluck(4).sort
       expect(tag_names).to eq(["Tag 1", "Tag 2"])
+    end
+
+    it "does not fire per-row pseudonym queries for SIS-enrolled students" do
+      @student_enroll.update!(sis_pseudonym_id: @student.pseudonym.id)
+      @tag2.add_user(@student)
+
+      expect do
+        raw_api_call(:get, api_url, api_route)
+      end.not_to make_database_queries(matching: /WHERE "pseudonyms"\."id" = \d+ LIMIT/)
     end
   end
 end
