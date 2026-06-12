@@ -328,7 +328,12 @@ class ContentZipper
     handle = nil
     begin
       handle = attachment.open
-      zipfile.get_output_stream(filename) { |zos| Zip::IOExtras.copy_stream(zos, handle) }
+      entry = Zip::Entry.new(zipfile.name, filename)
+      # Set the time via the setter so rubyzip writes an Info-ZIP extended
+      # timestamp (UTC), which unzip tools read to show the correct local
+      # time instead of a naive UTC wall-clock offset by the user's timezone.
+      entry.time = Time.now.getlocal
+      zipfile.get_output_stream(entry) { |zos| Zip::IOExtras.copy_stream(zos, handle) }
     rescue Attachment::FailedResponse, Net::ReadTimeout, Net::OpenTimeout => e
       Canvas::Errors.capture_exception(:content_export, e, :warn)
       @logger.error("  skipping #{attachment.full_filename} with error: #{e.message}")
@@ -408,7 +413,9 @@ class ContentZipper
     content = ERB.new(content).result(binding)
 
     if content
-      zipfile.get_output_stream(filename) { |f| f.puts content }
+      entry = Zip::Entry.new(zipfile.name, filename)
+      entry.time = Time.now.getlocal
+      zipfile.get_output_stream(entry) { |f| f.puts content }
       mark_successful!
     end
   end

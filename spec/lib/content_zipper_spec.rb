@@ -58,6 +58,24 @@ describe ContentZipper do
       expect(expected_file_patterns).to be_empty
     end
 
+    it "stores timezone-aware modification timestamps on submission files" do
+      student_in_course(active_all: true)
+      assignment_model(course: @course)
+      submission_model(user: @student, assignment: @assignment, body: "hai this is my answer")
+      attachment = Attachment.new(display_name: "my_download.zip")
+      attachment.user = @teacher
+      attachment.workflow_state = "to_be_zipped"
+      attachment.context = @assignment
+      attachment.save!
+
+      ContentZipper.process_attachment(attachment, @teacher)
+
+      Zip::File.foreach(attachment.reload.full_filename) do |f|
+        expect(f.absolute_time?).to be true
+        expect(f.time).to be_within(5.minutes).of(Time.now.utc)
+      end
+    end
+
     context "anonymous assignments" do
       before(:once) do
         course = Course.create!
