@@ -34,8 +34,20 @@
   end
 %>
 
+<%
+  # Only offer sub-accounts the user may actually move the course into: ones they
+  # directly administer or can manage the settings of (matching the gate in
+  # CoursesController#update). The currently selected account is always kept so
+  # the form still shows its value.
+  adminable_account_ids = @current_user ? @current_user.adminable_accounts.to_set(&:id) : Set.new
+%>
 <% account.sub_accounts_as_options(0, preloaded_accounts).each do |name, id| %>
-  <% sub_account = all_accounts_by_id[id] %>
+  <%# The first option is `account` itself, which isn't in the descendants-only
+      hash, so fall back to it; descendant rows are always found in the hash. %>
+  <% sub_account = all_accounts_by_id[id] || account %>
+  <% next unless id == @context&.account_id ||
+                 adminable_account_ids.include?(id) ||
+                 sub_account.grants_right?(@current_user, session, :manage_account_settings) %>
   <option
     value="<%= id %>"
     <%= "selected" if @context && @context.account_id == id %>

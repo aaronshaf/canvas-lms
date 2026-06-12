@@ -2899,6 +2899,33 @@ describe AccountsController do
       expect(response).to be_successful
       expect(json_parse(response.body).length).to be 0
     end
+
+    context "nested sub-account visibility" do
+      before :once do
+        @sub = Account.default.sub_accounts.create!(name: "MA Sub Account")
+        @nested = @sub.sub_accounts.create!(name: "MA Nested Sub Account")
+        @sub_role = custom_account_role("ma sub admin", account: Account.default)
+        @sub.role_overrides.create!(permission: "manage_courses_admin", enabled: true, role: @sub_role)
+        @sub_admin = user_factory(active_all: true)
+        @sub.account_users.create!(user: @sub_admin, role: @sub_role)
+      end
+
+      it "excludes nested sub-accounts when admin lacks manage_account_settings" do
+        user_session @sub_admin
+        get "manageable_accounts"
+        names = json_parse(response.body).pluck("name")
+        expect(names).to include("MA Sub Account")
+        expect(names).not_to include("MA Nested Sub Account")
+      end
+
+      it "includes nested sub-accounts when admin has manage_account_settings" do
+        @sub.role_overrides.create!(permission: "manage_account_settings", enabled: true, role: @sub_role)
+        user_session @sub_admin
+        get "manageable_accounts"
+        names = json_parse(response.body).pluck("name")
+        expect(names).to include("MA Sub Account", "MA Nested Sub Account")
+      end
+    end
   end
 
   describe("course_creation_accounts") do
@@ -3028,6 +3055,38 @@ describe AccountsController do
             expect(account["adminable"]).to be false
           end
         end
+      end
+    end
+
+    context "nested sub-account visibility" do
+      before :once do
+        @user = user_factory(active_all: true)
+        @sub = Account.create!(name: "Sub Account", parent_account: Account.default)
+        @nested = Account.create!(name: "Nested Sub Account", parent_account: @sub)
+        # Custom sub-account admin role with course-creation rights
+        @sub_admin_role = Account.default.roles.create!(name: "Sub Account Admin", base_role_type: "AccountMembership")
+        @sub.role_overrides.create!(permission: "manage_courses_add", enabled: true, role: @sub_admin_role)
+      end
+
+      it "excludes nested sub-accounts when admin lacks manage_account_settings" do
+        @sub.role_overrides.create!(permission: "manage_account_settings", enabled: false, role: @sub_admin_role)
+        @sub.account_users.create!(user: @user, role: @sub_admin_role)
+        user_session @user
+        get "course_creation_accounts"
+        expect(response).to be_successful
+        names = json_parse(response.body).pluck("name")
+        expect(names).to include("Sub Account")
+        expect(names).not_to include("Nested Sub Account")
+      end
+
+      it "includes nested sub-accounts when admin has manage_account_settings" do
+        @sub.role_overrides.create!(permission: "manage_account_settings", enabled: true, role: @sub_admin_role)
+        @sub.account_users.create!(user: @user, role: @sub_admin_role)
+        user_session @user
+        get "course_creation_accounts"
+        expect(response).to be_successful
+        names = json_parse(response.body).pluck("name")
+        expect(names).to include("Sub Account", "Nested Sub Account")
       end
     end
   end

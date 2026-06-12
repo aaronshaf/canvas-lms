@@ -977,6 +977,14 @@ class CoursesController < ApplicationController
         @sub_account = @account.find_child(sub_account_id)
       end
 
+      # On the admin create path, the target account must be one the user may
+      # actually place courses into (see can_target_course_account?). Teacher /
+      # student creation paths are unaffected.
+      target_account = @sub_account || @account
+      if create_right == :admin && !can_target_course_account?(target_account)
+        return render_unauthorized_action
+      end
+
       term_id = params[:course].delete(:term_id).presence || params[:course].delete(:enrollment_term_id).presence
       params_for_create[:enrollment_term] = api_find(@account.root_account.enrollment_terms, term_id) if term_id
 
@@ -3436,7 +3444,12 @@ class CoursesController < ApplicationController
                         @course.stuck_sis_fields.include?(:account_id)
     if account_id && !sticky_account_id && @course.account.grants_right?(current_principal, session, :manage_courses_admin)
       account = api_find(Account, account_id)
-      if account && account != @course.account && account.grants_right?(current_principal, session, :manage_courses_admin)
+      # The destination must be one the user may place courses into, otherwise
+      # inherited manage_courses_admin (which cascades to descendants) could move
+      # a course into a nested sub-account they don't administer. Same gate as create.
+      if account && account != @course.account &&
+         account.grants_right?(current_principal, session, :manage_courses_admin) &&
+         can_target_course_account?(account)
         @course.account = account
       end
     end
@@ -4741,6 +4754,19 @@ class CoursesController < ApplicationController
   end
 
   private
+
+  # A course may only be placed into an account the user directly administers or
+  # whose settings they can manage — the same gate the course-creation picker
+  # uses. This stops inherited course-add/admin rights (which cascade to
+  # descendant sub-accounts) from being used to reach nested sub-accounts the
+  # user does not actually administer. Shared by create and the update/move path
+  # so the two can't drift apart.
+  def can_target_course_account?(account)
+    return false unless account
+
+    @current_user&.adminable_accounts&.any? { |a| a.global_id == account.global_id } ||
+      account.grants_right?(current_principal, session, :manage_account_settings)
+  end
 
   def should_return_mcc_specific_error?(create_right)
     return false unless Account.site_admin.feature_enabled?(:mcc_specific_error_message)

@@ -35,6 +35,14 @@ describe "shared/_account_options" do
     @sub_account2.save!
 
     assign(:account, @root_account)
+    @viewer = site_admin_user(active_all: true)
+  end
+
+  before do
+    # The partial only offers accounts the viewer may move a course into, so it
+    # needs a current_user. A site admin can manage every account, so the full
+    # hierarchy renders (permission-specific filtering is covered below).
+    assign(:current_user, @viewer)
   end
 
   it "renders all sub-accounts in hierarchical order" do
@@ -106,6 +114,25 @@ describe "shared/_account_options" do
       expect(selected_option).to be_present
       expect(selected_option["value"].to_i).to eq @sub_account2.id
       expect(selected_option["data-is-horizon"]).to eq "true"
+    end
+  end
+
+  context "for a sub-account admin without manage_account_settings" do
+    before do
+      role = custom_account_role("limited sub admin", account: @root_account)
+      @sub_account1.role_overrides.create!(permission: "manage_courses_admin", enabled: true, role:)
+      limited_admin = user_factory(active_all: true)
+      @sub_account1.account_users.create!(user: limited_admin, role:)
+      assign(:current_user, limited_admin)
+    end
+
+    it "only offers accounts the admin may move a course into" do
+      render partial: "shared/account_options", locals: { account: @sub_account1 }
+
+      html = Nokogiri::HTML5.fragment(response.body)
+      ids = html.css("option").map { |o| o["value"].to_i }
+      expect(ids).to include(@sub_account1.id)
+      expect(ids).not_to include(@nested_sub_account1.id)
     end
   end
 

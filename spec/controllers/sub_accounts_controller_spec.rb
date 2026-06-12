@@ -161,6 +161,36 @@ describe SubAccountsController do
         get "index", params: { account_id: @root_account.id }
         expect(response).to have_http_status :unauthorized
       end
+
+      it "excludes sub-accounts the admin can only reach via inherited rights (no manage_account_settings)" do
+        sub = @root_account.sub_accounts.create!(name: "ZZZ Sub")
+        nested = sub.sub_accounts.create!(name: "ZZZ Nested")
+        role = custom_account_role("courses-only admin", account: @root_account)
+        @root_account.role_overrides.create!(permission: "manage_courses_admin", enabled: true, role:)
+        admin = user_factory(active_all: true)
+        @root_account.account_users.create!(user: admin, role:)
+        user_session(admin)
+
+        get "index", params: { term: "ZZZ", account_id: @root_account.id }, format: :json
+        ids = json_parse.pluck("id")
+        expect(ids).not_to include(sub.id)
+        expect(ids).not_to include(nested.id)
+      end
+
+      it "includes sub-accounts when the admin has manage_account_settings" do
+        sub = @root_account.sub_accounts.create!(name: "ZZZ Sub")
+        nested = sub.sub_accounts.create!(name: "ZZZ Nested")
+        role = custom_account_role("settings admin", account: @root_account)
+        @root_account.role_overrides.create!(permission: "manage_courses_admin", enabled: true, role:)
+        @root_account.role_overrides.create!(permission: "manage_account_settings", enabled: true, role:)
+        admin = user_factory(active_all: true)
+        @root_account.account_users.create!(user: admin, role:)
+        user_session(admin)
+
+        get "index", params: { term: "ZZZ", account_id: @root_account.id }, format: :json
+        ids = json_parse.pluck("id")
+        expect(ids).to include(sub.id, nested.id)
+      end
     end
   end
 

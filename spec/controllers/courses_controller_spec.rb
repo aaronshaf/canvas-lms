@@ -1144,6 +1144,30 @@ describe CoursesController do
       student_in_course(active_all: true)
     end
 
+    context "subaccount selector for a restricted sub-account admin" do
+      render_views
+
+      before do
+        @sub = Account.default.sub_accounts.create!(name: "Settings Sub")
+        @nested = @sub.sub_accounts.create!(name: "Settings Nested")
+        role = custom_account_role("settings sub admin", account: Account.default)
+        %w[manage_courses_admin manage_courses_edit manage_course_content_edit].each do |perm|
+          @sub.role_overrides.create!(permission: perm, enabled: true, role:)
+        end
+        @sub_admin = user_factory(active_all: true)
+        @sub.account_users.create!(user: @sub_admin, role:)
+        @sub_course = @sub.courses.create!(name: "Settings Course")
+        user_session(@sub_admin)
+      end
+
+      it "offers only sub-accounts the admin may move the course into" do
+        get "settings", params: { course_id: @sub_course.id }
+        option_ids = Nokogiri::HTML5(response.body).css("#course_account_id option").pluck("value")
+        expect(option_ids).to include(@sub.id.to_s)
+        expect(option_ids).not_to include(@nested.id.to_s)
+      end
+    end
+
     it "sets MSFT sync cooldown in the JS ENV" do
       subject
       expect(controller.js_env[:MANUAL_MSFT_SYNC_COOLDOWN]).to eq(
@@ -2895,6 +2919,53 @@ describe CoursesController do
       user_session @user
     end
 
+    context "nested sub-account course creation by a restricted sub-account admin" do
+      before do
+        @sub = Account.default.sub_accounts.create!(name: "Sub Account")
+        @nested = @sub.sub_accounts.create!(name: "Nested Sub Account")
+        @sub_role = custom_account_role("sub admin", account: Account.default)
+        # manage_courses_add cascades to descendants; manage_account_settings stays off
+        @sub.role_overrides.create!(permission: "manage_courses_add", enabled: true, role: @sub_role)
+        @sub_admin = user_factory(active_all: true)
+        @sub.account_users.create!(user: @sub_admin, role: @sub_role)
+        user_session @sub_admin
+      end
+
+      it "allows creating a course in the directly-administered sub-account" do
+        post "create", params: { account_id: @sub.id, course: { name: "ok" } }, format: :json
+        expect(response).to be_successful
+        expect(Course.find(response.parsed_body["id"]).account_id).to eq @sub.id
+      end
+
+      it "forbids creating a course directly in a nested sub-account (loophole path B)" do
+        post "create", params: { account_id: @nested.id, course: { name: "sneaky" } }, format: :json
+        expect(response).to have_http_status :forbidden
+        expect(Course.active.where(account_id: @nested.id)).not_to exist
+      end
+
+      it "forbids redirecting a course into a nested sub-account via course[account_id] (loophole path A)" do
+        post "create",
+             params: { account_id: @sub.id, course: { name: "sneaky", account_id: @nested.id } },
+             format: :json
+        expect(response).to have_http_status :forbidden
+        expect(Course.active.where(account_id: @nested.id)).not_to exist
+      end
+
+      it "allows nested creation when the admin also has manage_account_settings" do
+        @sub.role_overrides.create!(permission: "manage_account_settings", enabled: true, role: @sub_role)
+        post "create", params: { account_id: @nested.id, course: { name: "fine" } }, format: :json
+        expect(response).to be_successful
+        expect(Course.find(response.parsed_body["id"]).account_id).to eq @nested.id
+      end
+
+      it "forbids creating a course in a deeply nested grandchild sub-account" do
+        grandchild = @nested.sub_accounts.create!(name: "Grandchild Sub Account")
+        post "create", params: { account_id: grandchild.id, course: { name: "sneaky" } }, format: :json
+        expect(response).to have_http_status :forbidden
+        expect(Course.active.where(account_id: grandchild.id)).not_to exist
+      end
+    end
+
     it "logs create course event" do
       course = @account.courses.build({ name: "Course Name", lock_all_announcements: true })
       changes = course.changes
@@ -3097,6 +3168,39 @@ describe CoursesController do
     before :once do
       course_with_teacher(active_all: true)
       student_in_course(active_all: true)
+    end
+
+    context "moving a course into a nested sub-account by a restricted sub-account admin" do
+      before do
+        @sub = Account.default.sub_accounts.create!(name: "Move Sub")
+        @nested = @sub.sub_accounts.create!(name: "Move Nested")
+        @sub_role = custom_account_role("move sub admin", account: Account.default)
+        # manage_courses_admin/edit cascade to descendants; manage_account_settings stays off
+        %w[manage_courses_admin manage_courses_edit manage_course_content_edit].each do |perm|
+          @sub.role_overrides.create!(permission: perm, enabled: true, role: @sub_role)
+        end
+        @sub_admin = user_factory(active_all: true)
+        @sub.account_users.create!(user: @sub_admin, role: @sub_role)
+        @movable = @sub.courses.create!(name: "Movable Course")
+        user_session(@sub_admin)
+      end
+
+      it "forbids moving a course into a nested sub-account without manage_account_settings" do
+        put "update", params: { id: @movable.id, course: { account_id: @nested.id } }, format: :json
+        expect(@movable.reload.account_id).to eq @sub.id
+      end
+
+      it "allows the move when the admin also has manage_account_settings" do
+        @sub.role_overrides.create!(permission: "manage_account_settings", enabled: true, role: @sub_role)
+        put "update", params: { id: @movable.id, course: { account_id: @nested.id } }, format: :json
+        expect(@movable.reload.account_id).to eq @nested.id
+      end
+
+      it "still allows moving within the directly-administered sub-account" do
+        other_course = @sub.courses.create!(name: "Other Course")
+        put "update", params: { id: other_course.id, course: { account_id: @sub.id } }, format: :json
+        expect(other_course.reload.account_id).to eq @sub.id
+      end
     end
 
     it "requires authorization" do

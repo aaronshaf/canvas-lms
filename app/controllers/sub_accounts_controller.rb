@@ -49,6 +49,15 @@ class SubAccountsController < ApplicationController
       if @context.is_a?(Account)
         @accounts = @context.all_accounts.active.name_like(@query).limit(100).to_a
         @accounts << @context if value_to_boolean(params[:include_self]) && @context.name.downcase.include?(@query.downcase)
+        # Only surface sub-accounts the user may move a course into: ones they
+        # directly administer or can manage the settings of. This matches the
+        # gate in CoursesController#update so the course-settings subaccount
+        # picker never offers a target the save would silently reject.
+        adminable_account_ids = @current_user ? @current_user.adminable_accounts.to_set(&:id) : Set.new
+        @accounts.select! do |a|
+          adminable_account_ids.include?(a.id) ||
+            a.grants_right?(@current_user, session, :manage_account_settings)
+        end
         @accounts.sort_by! { |a| Canvas::ICU.collation_key(a.name) }
       end
       respond_to do |format|

@@ -405,8 +405,10 @@ class AccountsController < ApplicationController
     @accounts = @current_user ? @current_user.adminable_accounts : []
     @all_accounts = Set.new
     @accounts.each do |a|
-      if a.grants_any_right?(current_principal, session, :manage_courses_admin, :create_courses)
-        @all_accounts << a
+      next unless a.grants_any_right?(current_principal, session, :manage_courses_admin, :create_courses)
+
+      @all_accounts << a
+      if a.grants_right?(current_principal, session, :manage_account_settings)
         @all_accounts.merge Account.active.sub_accounts_recursive(a.id)
       end
     end
@@ -427,7 +429,13 @@ class AccountsController < ApplicationController
     accounts = accounts.select { |a| a.grants_any_right?(current_principal, session, :manage_courses_admin, :manage_courses_add) }
     sub_accounts = []
     # Load and handle ids from now on to avoid excessive memory usage
-    accounts.each { |a| sub_accounts.concat Account.active.sub_account_ids_recursive(a.id) }
+    # Only list nested sub-accounts when the user can manage the parent's settings,
+    # matching the permission required by the sub_accounts endpoint.
+    accounts.each do |a|
+      next unless a.grants_right?(current_principal, session, :manage_account_settings)
+
+      sub_accounts.concat Account.active.sub_account_ids_recursive(a.id)
+    end
     accounts = accounts.pluck(:id)
     accounts.push(sub_accounts).flatten!
 
