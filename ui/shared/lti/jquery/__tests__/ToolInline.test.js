@@ -25,7 +25,7 @@ describe('ToolLaunchResizer', () => {
   beforeEach(() => {
     container = document.createElement('div')
     container.innerHTML = `
-      <div class='tool_content_wrapper' id="first-wrapper" data-tool-wrapper-id="1234" data-testid="first-wrapper">
+      <div class='tool_content_wrapper' id="first-wrapper" data-testid="first-wrapper">
         <form action='http://my-lti.docker/course-navigation' class='hide' method='POST' target='tool_content' id='tool_form_1' data-tool-launch-type=' data-tool-id='my-lti.docker' data-tool-path='/course-navigation' data-message-type='tool_launch' style='display: none;'>
           <div style='margin-bottom: 20px;'>
             <div class='load_tab'>
@@ -44,7 +44,7 @@ describe('ToolLaunchResizer', () => {
         <iframe src='about:blank' name='tool_content' id='tool_content' class='tool_launch' allowfullscreen='allowfullscreen' webkitallowfullscreen='true' mozallowfullscreen='true' tabindex='0' title='Tool Content' style='height:100%;width:100%;' data-testid="first-iframe"></iframe>
       </div>
 
-      <div class='tool_content_wrapper' id="second-wrapper" data-tool-wrapper-id="5678" data-testid="second-wrapper">
+      <div class='tool_content_wrapper' id="second-wrapper" data-testid="second-wrapper">
         <form action='http://chat.docker' class='hide' method='POST' target='tool_content' id='tool_form_1' data-tool-launch-type=' data-tool-id='my-lti.docker' data-tool-path='/course-navigation' data-message-type='tool_launch' style='display: none;'>
           <div style='margin-bottom: 20px;'>
             <div class='load_tab'>
@@ -70,17 +70,7 @@ describe('ToolLaunchResizer', () => {
     container.remove()
   })
 
-  it('selects the wrapper with matching id', () => {
-    const launchResizer = new ToolLaunchResizer()
-
-    const firstWrapper = launchResizer.tool_content_wrapper('1234')
-    expect(firstWrapper[0].id).toBe('first-wrapper')
-
-    const secondWrapper = launchResizer.tool_content_wrapper('5678')
-    expect(secondWrapper[0].id).toBe('second-wrapper')
-  })
-
-  it('returns empty when no wrapper id is provided with multiple tools', () => {
+  it('returns empty when multiple tools exist', () => {
     const launchResizer = new ToolLaunchResizer()
     const wrapper = launchResizer.tool_content_wrapper()
     expect(wrapper).toHaveLength(0)

@@ -301,8 +301,10 @@ with the content item launch.
 "this text was selected by the user"
 ```
 ## com.instructure.PostMessageToken
-A token that can be used for frontend communication between an LTI tool
-and Canvas via the Window.postMessage API.
+DEPRECATED: A token that can be used for frontend communication between
+an LTI tool and Canvas via the Window.postMessage API
+Note: as of June 2026 this is no longer used by Canvas. Instead,
+the source of the postMessage is used to identify the iframe.
 
 **Availability**: **  
 **Launch Parameter**: *com_instructure_post_message_token*  
@@ -1454,6 +1456,24 @@ deprecated in favor of ISO8601.
 ## Canvas.assignment.unlockAt.iso8601
 Returns the `unlock_at` date of the assignment that was launched.
 Only available when launched as an assignment with an `unlock_at` set.
+NOTE: A 90-day change notice has been issued. This variable will be
+updated to return the student-specific override value (accounting for
+assignment overrides) when launched as a student. Until then, use
+Canvas.assignment.unlockAt.overrideForUser.iso8601 for override-aware behavior.
+
+**Availability**: *always*  
+
+
+```
+2018-02-18T00:00:00Z
+```
+## Canvas.assignment.unlockAt.overrideForUser.iso8601 *[deprecated]*
+Returns the `unlock_at` date of the assignment that was launched,
+accounting for student-specific assignment overrides.
+If the tool is launched as a student, this will be the unlock_at
+date for that student. Falls back to the base assignment unlock_at
+for instructors or when no override exists.
+Only available when launched as an assignment with an `unlock_at` set.
 
 **Availability**: *always*  
 
@@ -1464,12 +1484,30 @@ Only available when launched as an assignment with an `unlock_at` set.
 ## Canvas.assignment.lockAt.iso8601
 Returns the `lock_at` date of the assignment that was launched.
 Only available when launched as an assignment with a `lock_at` set.
+NOTE: A 90-day change notice has been issued. This variable will be
+updated to return the student-specific override value (accounting for
+assignment overrides) when launched as a student. Until then, use
+Canvas.assignment.lockAt.overrideForUser.iso8601 for override-aware behavior.
 
 **Availability**: *always*  
 
 
 ```
 2018-02-20:00:00Z
+```
+## Canvas.assignment.lockAt.overrideForUser.iso8601 *[deprecated]*
+Returns the `lock_at` date of the assignment that was launched,
+accounting for student-specific assignment overrides.
+If the tool is launched as a student, this will be the lock_at
+date for that student. Falls back to the base assignment lock_at
+for instructors or when no override exists.
+Only available when launched as an assignment with a `lock_at` set.
+
+**Availability**: *always*  
+
+
+```
+2018-02-20T00:00:00Z
 ```
 ## Canvas.assignment.dueAt.iso8601
 Returns the `due_at` date of the assignment that was launched.

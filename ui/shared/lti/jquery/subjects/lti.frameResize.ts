@@ -22,10 +22,7 @@ import {findDomForWindow, findDomForWindowInRCEIframe} from '../util'
 import {forwardedMsgSource} from '../forwarded_msg_source'
 import type {LtiMessageHandler} from '../lti_message_handler'
 
-const frameResize: LtiMessageHandler<{height: number | string; token: string}> = ({
-  message,
-  event,
-}) => {
+const frameResize: LtiMessageHandler<{height: number | string}> = ({message, event}) => {
   let height: number | string = message.height as number | string
   if (Number(height) <= 0) height = 1
 

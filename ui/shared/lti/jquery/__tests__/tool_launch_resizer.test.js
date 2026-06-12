@@ -16,55 +16,37 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import $ from 'jquery'
 import ToolLaunchResizer from '../tool_launch_resizer'
 
 describe('ToolLaunchResizer', () => {
-  describe('#sanitizedWrapperId', () => {
-    let wrapperId
-
-    const subject = () => {
-      const resizer = new ToolLaunchResizer()
-      return resizer.sanitizedWrapperId(wrapperId)
-    }
-
-    describe('when the wrapperID is a UUID', () => {
-      beforeEach(() => {
-        wrapperId = 'b7dbe1ae-9a01-4acc-92c9-d4e226603de1'
-      })
-
-      it('allows all UUID characters', () => {
-        expect(subject()).toEqual(wrapperId)
-      })
-    })
-
-    describe('when the wrapperId contains non-UUID chars', () => {
-      beforeEach(() => {
-        wrapperId = '<img src="x" onerror="alert(`${document.domain}_-`);" />'
-      })
-
-      it('removes the non-UUID chars', () => {
-        expect(subject()).toEqual('imgsrcxonerroralertdocumentdomain_-')
-      })
-    })
-  })
-
   describe('#tool_content_wrapper', () => {
-    const sanitizeSpy = vi.fn()
-    const wrapperId = 'foo'
-
-    beforeEach(() => {
-      sanitizeSpy.mockClear()
+    afterEach(() => {
+      $('.tool_content_wrapper').remove()
     })
 
-    const subject = () => {
-      const resizer = new ToolLaunchResizer()
-      resizer.sanitizedWrapperId = sanitizeSpy
-      return resizer
-    }
+    it('returns the wrapper when exactly one exists', () => {
+      $(document.body).append('<div class="tool_content_wrapper" id="only-wrapper"></div>')
 
-    it('santizes the wrapperId', () => {
-      subject().tool_content_wrapper(wrapperId)
-      expect(sanitizeSpy).toHaveBeenCalledWith(wrapperId)
+      const result = new ToolLaunchResizer().tool_content_wrapper()
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('only-wrapper')
+    })
+
+    it('returns empty when multiple wrappers exist', () => {
+      $(document.body).append('<div class="tool_content_wrapper"></div>')
+      $(document.body).append('<div class="tool_content_wrapper"></div>')
+
+      const result = new ToolLaunchResizer().tool_content_wrapper()
+
+      expect(result).toHaveLength(0)
+    })
+
+    it('returns empty when no wrapper exists', () => {
+      const result = new ToolLaunchResizer().tool_content_wrapper()
+
+      expect(result).toHaveLength(0)
     })
   })
 })

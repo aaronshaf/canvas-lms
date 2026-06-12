@@ -41,28 +41,14 @@ const reactDevToolsBridge = {
 let source: Window
 let iframe: HTMLIFrameElement
 let iframeThunk: () => HTMLIFrameElement
-let domIframe: HTMLIFrameElement
-let domWrapper: HTMLDivElement
 
 beforeEach(() => {
   source = {postMessage: vi.fn()} as any as Window
   iframe = {contentWindow: source} as any as HTMLIFrameElement
   iframeThunk = () => iframe
-  // A real iframe element wrapped in `.tool_content_wrapper` (matching the
-  // production LTI launch markup) so scope-required subjects can resolve
-  // the sender to a tool-launch iframe.
-  domIframe = document.createElement('iframe')
-  Object.defineProperty(domIframe, 'contentWindow', {value: source, configurable: true})
-  domWrapper = document.createElement('div')
-  domWrapper.className = 'tool_content_wrapper'
-  domWrapper.appendChild(domIframe)
-  document.body.appendChild(domWrapper)
 })
 
-afterEach(() => {
-  domWrapper.remove()
-  vi.restoreAllMocks()
-})
+afterEach(() => vi.restoreAllMocks())
 
 function postMessageEvent(data: unknown, origin?: string): MessageEvent {
   return {
@@ -529,163 +515,5 @@ describe('page functionality', () => {
 describe('ltiState', () => {
   it('is empty initially', () => {
     expect(ltiState).toEqual({})
-  })
-})
-
-describe('subject scope guard', () => {
-  let foreignSource: Window
-  let foreignIframe: HTMLIFrameElement
-  let wrapperA: HTMLDivElement
-  let wrapperB: HTMLDivElement
-
-  beforeEach(() => {
-    wrapperA = document.createElement('div')
-    wrapperA.className = 'tool_content_wrapper'
-    wrapperA.setAttribute('data-tool-wrapper-id', 'TOOL_A')
-    domIframe.remove()
-    wrapperA.appendChild(domIframe)
-    document.body.appendChild(wrapperA)
-
-    foreignSource = {postMessage: vi.fn()} as any as Window
-    foreignIframe = document.createElement('iframe')
-    Object.defineProperty(foreignIframe, 'contentWindow', {
-      value: foreignSource,
-      configurable: true,
-    })
-    wrapperB = document.createElement('div')
-    wrapperB.className = 'tool_content_wrapper'
-    wrapperB.setAttribute('data-tool-wrapper-id', 'TOOL_B')
-    wrapperB.appendChild(foreignIframe)
-    document.body.appendChild(wrapperB)
-  })
-
-  afterEach(() => {
-    wrapperA.remove()
-    wrapperB.remove()
-  })
-
-  function eventFromOrphan(data: unknown): MessageEvent {
-    const orphan = {postMessage: vi.fn()} as any as Window
-    return {data, source: orphan} as unknown as MessageEvent
-  }
-
-  describe('lti.frameResize', () => {
-    it('resizes the sender iframe', async () => {
-      await ltiMessageHandler(postMessageEvent({subject: 'lti.frameResize', height: 500}))
-      expect(domIframe.style.height).toBe('500px')
-    })
-
-    it("ignores message.token pointing at another tool's wrapper", async () => {
-      foreignIframe.style.height = '50px'
-
-      await ltiMessageHandler(
-        postMessageEvent({subject: 'lti.frameResize', height: 500, token: 'TOOL_B'}),
-      )
-      expect(foreignIframe.style.height).toBe('50px')
-      expect(domIframe.style.height).toBe('500px')
-    })
-
-    it('rejects when sender window has no DOM iframe', async () => {
-      const event = eventFromOrphan({subject: 'lti.frameResize', height: 999})
-      await ltiMessageHandler(event)
-      expect(event.source?.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({error: {code: 'unauthorized'}}),
-        undefined,
-      )
-      expect(domIframe.style.height).not.toBe('999px')
-      expect(foreignIframe.style.height).not.toBe('999px')
-    })
-
-    // Studio and other LTI tools embedded inline in user content render
-    // as `<iframe class="lti-embed">` without a `.tool_content_wrapper`.
-    it('resizes an inline `iframe.lti-embed` sender (e.g. Studio)', async () => {
-      const embedSource = {postMessage: vi.fn()} as any as Window
-      const embedIframe = document.createElement('iframe')
-      embedIframe.className = 'lti-embed'
-      Object.defineProperty(embedIframe, 'contentWindow', {
-        value: embedSource,
-        configurable: true,
-      })
-      document.body.appendChild(embedIframe)
-
-      try {
-        const event = {
-          data: {subject: 'lti.frameResize', height: 250},
-          source: embedSource,
-        } as unknown as MessageEvent
-        await ltiMessageHandler(event)
-        expect(embedIframe.style.height).toBe('250px')
-      } finally {
-        embedIframe.remove()
-      }
-    })
-  })
-
-  describe('lti.scrollToTop', () => {
-    it('runs when the sender iframe is in the DOM', async () => {
-      const event = postMessageEvent({subject: 'lti.scrollToTop'})
-      await ltiMessageHandler(event)
-      expect(event.source?.postMessage).toHaveBeenCalledWith(
-        expect.not.objectContaining({error: expect.anything()}),
-        undefined,
-      )
-    })
-
-    it('rejects when sender window has no DOM iframe', async () => {
-      const event = eventFromOrphan({subject: 'lti.scrollToTop'})
-      await ltiMessageHandler(event)
-      expect(event.source?.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({error: {code: 'unauthorized'}}),
-        undefined,
-      )
-    })
-  })
-
-  describe('lti.setUnloadMessage / lti.removeUnloadMessage', () => {
-    it('rejects setUnloadMessage when sender has no DOM iframe', async () => {
-      const addSpy = vi.spyOn(window, 'addEventListener')
-      const event = eventFromOrphan({subject: 'lti.setUnloadMessage', message: 'no'})
-      await ltiMessageHandler(event)
-      expect(event.source?.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({error: {code: 'unauthorized'}}),
-        undefined,
-      )
-      expect(addSpy).not.toHaveBeenCalledWith('beforeunload', expect.anything())
-    })
-
-    it("one tool cannot clear another tool's unload message", async () => {
-      const addSpy = vi.spyOn(window, 'addEventListener')
-      const removeSpy = vi.spyOn(window, 'removeEventListener')
-
-      // Tool A (source) sets an unload message.
-      await ltiMessageHandler(
-        postMessageEvent({subject: 'lti.setUnloadMessage', message: 'from A'}),
-      )
-      const aHandler = addSpy.mock.calls.find(c => c[0] === 'beforeunload')?.[1]
-      expect(aHandler).toBeDefined()
-
-      removeSpy.mockClear()
-
-      // Tool B (foreignSource) tries to remove.
-      const eventB = {
-        data: {subject: 'lti.removeUnloadMessage'},
-        source: foreignSource,
-      } as unknown as MessageEvent
-      await ltiMessageHandler(eventB)
-
-      // B has no handler of its own; A's beforeunload listener is untouched.
-      expect(removeSpy).not.toHaveBeenCalledWith('beforeunload', aHandler)
-    })
-
-    it('a sender can remove its own unload message', async () => {
-      const addSpy = vi.spyOn(window, 'addEventListener')
-      const removeSpy = vi.spyOn(window, 'removeEventListener')
-
-      await ltiMessageHandler(postMessageEvent({subject: 'lti.setUnloadMessage', message: 'mine'}))
-      const handler = addSpy.mock.calls.find(c => c[0] === 'beforeunload')?.[1]
-
-      await ltiMessageHandler(postMessageEvent({subject: 'lti.removeUnloadMessage'}))
-      expect(removeSpy).toHaveBeenCalledWith('beforeunload', handler)
-    })
   })
 })

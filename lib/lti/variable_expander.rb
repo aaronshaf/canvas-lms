@@ -426,8 +426,10 @@ module Lti
                        EDITOR_GUARD,
                        default_name: "com_instructure_editor_selection"
 
-    # A token that can be used for frontend communication between an LTI tool
-    # and Canvas via the Window.postMessage API
+    # DEPRECATED: A token that can be used for frontend communication between
+    # an LTI tool and Canvas via the Window.postMessage API
+    # Note: as of June 2026 this is no longer used by Canvas. Instead,
+    # the source of the postMessage is used to identify the iframe.
     # @launch_parameter com_instructure_post_message_token
     # @example
     #   ```

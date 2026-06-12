@@ -26,7 +26,7 @@ import {
 } from '@canvas/rce/plugins/canvas_mentions/constants'
 import type {LtiMessageHandler} from './lti_message_handler'
 import buildResponseMessages from './response_messages'
-import {findDomForWindow, findDomForWindowInRCEIframe, getKey, hasKey, deleteKey} from './util'
+import {getKey, hasKey, deleteKey} from './util'
 import {forwardedMsgSource} from './forwarded_msg_source'
 import {
   SUBJECT_ALLOW_LIST,
@@ -50,41 +50,6 @@ const isIgnoredSubject = (subject: unknown): subject is SubjectId =>
 const isUnsupportedInRCE = (subject: unknown): subject is SubjectId =>
   typeof subject === 'string' &&
   (['lti.enableScrollEvents', 'lti.scrollToTop'] as ReadonlyArray<string>).includes(subject)
-
-// Subjects whose effect can target an iframe / window state outside the sender.
-// Dispatch verifies the sender's iframe is locatable before invoking these handlers;
-// the handlers themselves scope their effect to the sender's iframe / window.
-const SENDER_SCOPED_SUBJECTS = new Set<SubjectId>([
-  'lti.frameResize',
-  'lti.scrollToTop',
-  'lti.setUnloadMessage',
-  'lti.removeUnloadMessage',
-])
-
-// Selectors that identify elements which either are, or are ancestors of, an LTI
-// tool launch iframe. Used to verify a postMessage sender is a legitimate LTI
-// launch rather than some other same-origin iframe
-//   .tool_content_wrapper   – standard full-page LTI launch wrapper
-//   [data-lti-launch-id]    – used for tray and modal launches
-//   iframe.lti-embed        – inline embeds in user content (e.g. Studio videos)
-const TOOL_IFRAME_SELECTOR = '.tool_content_wrapper, [data-lti-launch-id], iframe.lti-embed'
-
-// Returns the sender's tool iframe element, accounting for RCE-forwarded messages.
-// Only matches iframes inside a tool-launch wrapper so non-tool iframes
-// (post_message_forwarding, RCE chrome, SpeedGrader previews) cannot be addressed.
-function senderIframe(e: MessageEvent<unknown>): HTMLIFrameElement | null {
-  const fwd = forwardedMsgSource(e)
-  const iframe = findDomForWindow(fwd ?? e.source)
-  if (iframe?.closest(TOOL_IFRAME_SELECTOR)) return iframe
-  return findDomForWindowInRCEIframe(e.source)
-}
-
-// Confirms the sender is identifiable in the DOM for subjects that must scope
-// their effect to the sender's iframe. Returns false to signal unauthorized.
-function isScopedToSender(subject: SubjectId, e: MessageEvent<unknown>): boolean {
-  if (!SENDER_SCOPED_SUBJECTS.has(subject)) return true
-  return !!senderIframe(e)
-}
 
 /**
  * Checks that the tool for the given tool_id has the required
@@ -219,9 +184,6 @@ async function ltiMessageHandler(e: MessageEvent<unknown>) {
     // Since tools launched from within an active RCE are inside a nested
     // iframe, some subjects can't find the tool frame and so are not supported
     responseMessages.sendUnsupportedSubjectError('Not supported inside Rich Content Editor')
-    return false
-  } else if (!isScopedToSender(subject, e)) {
-    responseMessages.sendUnauthorizedError()
     return false
   } else {
     try {

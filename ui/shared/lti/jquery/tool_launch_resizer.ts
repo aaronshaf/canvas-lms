@@ -25,17 +25,9 @@ export default class ToolLaunchResizer {
     this.minToolHeight = minToolHeight || 450
   }
 
-  sanitizedWrapperId(wrapperId?: string) {
-    return wrapperId?.toString()?.replace(/[^a-zA-Z0-9_-]/g, '')
-  }
-
-  tool_content_wrapper(wrapperId?: string) {
-    let container = $(`div[data-tool-wrapper-id*='${this.sanitizedWrapperId(wrapperId)}']`)
+  tool_content_wrapper() {
     const tool_content_wrapper = $('.tool_content_wrapper')
-    if (container.length <= 0 && tool_content_wrapper.length === 1) {
-      container = tool_content_wrapper
-    }
-    return container
+    return tool_content_wrapper.length === 1 ? tool_content_wrapper : $()
   }
 
   resize_tool_content_wrapper(

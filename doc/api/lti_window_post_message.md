@@ -11,10 +11,6 @@ the web version of Canvas.
 The data sent to `window.postMessage` can be of any type, and each message type looks for different
 data. Most data is sent as an object with a `subject` property.
 
-Some of these message handlers require the presence of a `token`, which identifies the tool launch.
-This token is present in the launch as a custom variable, `$com.instructure.PostMessageToken`, and
-should be passed in postMessage calls if it's present.
-
 ### Message Recipient
 
 **Note: Previous versions of this documentation recommended always sending messages to `window.top`.**
@@ -330,10 +326,6 @@ Tells Canvas to change the height of the iframe containing the tool.
 
 - subject: "lti.frameResize"
 - height: integer, in px
-
-**Optional properties:**
-
-- token: postMessage token, discussed above.
 
 ```js
 window.parent.postMessage(
