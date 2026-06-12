@@ -109,6 +109,30 @@ RSpec.describe PlatformTokens::Token::Concerns::Serialization do
       it "includes the validation message in the error" do
         expect { token.to_jwt }.to raise_error(PlatformTokens::InvalidTokenError, /token has expired/)
       end
+
+      it "does not re-wrap the PlatformTokens::Error in a generic error" do
+        expect { token.to_jwt }.to raise_error(PlatformTokens::InvalidTokenError) do |error|
+          expect(error.message).not_to include("PlatformTokens::InvalidTokenError")
+        end
+      end
+    end
+
+    context "when signing raises an unexpected error" do
+      let(:signing_key) { -> { raise KeyError, "signing key unavailable" } }
+
+      it "wraps it in a PlatformTokens::Error" do
+        expect { token.to_jwt }.to raise_error(PlatformTokens::Error)
+      end
+
+      it "includes the original error class and message" do
+        expect { token.to_jwt }.to raise_error(PlatformTokens::Error, "KeyError: signing key unavailable")
+      end
+
+      it "preserves the original error as the cause" do
+        expect { token.to_jwt }.to raise_error(PlatformTokens::Error) do |error|
+          expect(error.cause).to be_a(KeyError)
+        end
+      end
     end
   end
 

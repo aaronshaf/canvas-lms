@@ -28,6 +28,10 @@ module PlatformTokens
           signing_key = PlatformTokens.configuration.signing_key
           jwk = signing_key.is_a?(Hash) ? JSON::JWK.new(signing_key) : signing_key
           JSON::JWT.new(to_h).sign(jwk, :RS256).to_s
+        rescue PlatformTokens::Error
+          raise
+        rescue => e
+          raise PlatformTokens::Error, "#{e.class}: #{e.message}"
         end
         alias_method :to_s, :to_jwt
 

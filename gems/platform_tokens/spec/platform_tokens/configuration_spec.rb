@@ -46,6 +46,38 @@ RSpec.describe PlatformTokens::Configuration do
       expect(config.iss).to eql("id.instructure.com")
     end
 
+    context "when a proc is passed for an attribute" do
+      subject(:config) { described_class.new(**valid_attrs, iss: -> { "lazy.instructure.com" }) }
+
+      it "calls the proc when the attribute is read" do
+        expect(config.iss).to eql("lazy.instructure.com")
+      end
+
+      it "calls the proc on each access" do
+        counter = 0
+        config_with_counter = described_class.new(**valid_attrs, iss: lambda do
+          counter += 1
+          "v#{counter}"
+        end)
+        config_with_counter.iss
+        expect(config_with_counter.iss).to eql("v2")
+      end
+
+      it "is valid when the proc returns a present value" do
+        expect(config).to be_valid
+      end
+
+      it "does not call the proc during validation" do
+        called = false
+        config = described_class.new(**valid_attrs, iss: lambda do
+          called = true
+          "lazy.instructure.com"
+        end)
+        config.valid?
+        expect(called).to be false
+      end
+    end
+
     it "sets region" do
       expect(config.region).to eql("us-east-1")
     end
@@ -73,6 +105,41 @@ RSpec.describe PlatformTokens::Configuration do
     end
   end
 
+  describe "signing_key" do
+    it "resolves the provider on each access so rotated keys are current" do
+      keys = %w[key-1 key-2]
+      config = described_class.new(**valid_attrs, signing_key: -> { keys.shift })
+      expect(config.signing_key).to eql("key-1")
+      expect(config.signing_key).to eql("key-2")
+    end
+
+    it "is valid when provided as a plain value" do
+      config = described_class.new(**valid_attrs, signing_key: "static-key")
+      expect(config).to be_valid
+      expect(config.signing_key).to eql("static-key")
+    end
+  end
+
+  describe "verification_jwks" do
+    it "is optional (only required to verify inbound tokens)" do
+      expect(config).to be_valid
+      expect(config.verification_jwks).to be_nil
+    end
+
+    it "resolves the provider on each access" do
+      sets = %w[jwks-1 jwks-2]
+      config = described_class.new(**valid_attrs, verification_jwks: -> { sets.shift })
+      expect(config.verification_jwks).to eql("jwks-1")
+      expect(config.verification_jwks).to eql("jwks-2")
+    end
+
+    it "is valid when provided as a plain value" do
+      config = described_class.new(**valid_attrs, verification_jwks: "static-jwks")
+      expect(config).to be_valid
+      expect(config.verification_jwks).to eql("static-jwks")
+    end
+  end
+
   describe "validations" do
     it "is valid with all required attributes" do
       expect(config).to be_valid
@@ -80,7 +147,8 @@ RSpec.describe PlatformTokens::Configuration do
 
     describe "presence" do
       # access_token_ttl_seconds is optional and falls back to DEFAULT_TTL, so it is not required.
-      (PlatformTokens::Configuration::ATTRIBUTES - %i[access_token_ttl_seconds]).each do |attr|
+      # Only VALUE_ATTRIBUTES are presence-validated; KEY_PROVIDERS (signing_key, verification_jwks) are not.
+      (PlatformTokens::Configuration::VALUE_ATTRIBUTES - %i[access_token_ttl_seconds]).each do |attr|
         context "when #{attr} is nil" do
           subject(:config) { described_class.new(**valid_attrs, attr => nil) }
 

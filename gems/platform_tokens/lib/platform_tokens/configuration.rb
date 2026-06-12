@@ -24,22 +24,53 @@ module PlatformTokens
   class Configuration
     include ActiveModel::Validations
 
-    ATTRIBUTES = %i[access_token_ttl_seconds env iss region signing_key].freeze
+    VALUE_ATTRIBUTES = %i[access_token_ttl_seconds env iss region].freeze
+    KEY_PROVIDERS = %i[signing_key verification_jwks].freeze
 
-    attr_reader(*ATTRIBUTES, :logger)
-    private attr_writer(*ATTRIBUTES, :logger)
+    # Dynamic readers that support lazy evaluation via proc
+    #
+    # @!method access_token_ttl_seconds
+    #   @return [Integer] lifetime, in seconds, applied to issued access tokens
+    # @!method env
+    #   @return [String] environment claim stamped onto issued tokens
+    # @!method iss
+    #   @return [String] issuer claim stamped onto issued tokens
+    # @!method region
+    #   @return [String] region claim stamped onto issued tokens
+    # @!method signing_key
+    #   @return [Hash, JSON::JWK] key material used to sign issued tokens
+    # @!method verification_jwks
+    #   @return [Hash, JSON::JWK] JWK set used to verify inbound tokens
+    (VALUE_ATTRIBUTES + KEY_PROVIDERS).each do |attr|
+      define_method(attr) do
+        val = instance_variable_get(:"@#{attr}")
+        val.respond_to?(:call) ? val.call : val
+      end
+    end
 
-    validates(*ATTRIBUTES, presence: true)
+    attr_reader :logger
+    private attr_writer(*VALUE_ATTRIBUTES, *KEY_PROVIDERS, :logger)
+
     validates :access_token_ttl_seconds,
               numericality: { greater_than: 0, less_than_or_equal_to: ->(_) { Token::Base::MAX_TTL.to_i } }
+    validate :value_attributes_assigned
 
-    def initialize(env:, iss:, region:, signing_key:, logger: nil, access_token_ttl_seconds: nil)
+    def initialize(env:, iss:, region:, signing_key:, access_token_ttl_seconds: nil, verification_jwks: nil, logger: nil)
       self.access_token_ttl_seconds = access_token_ttl_seconds || Token::Base::DEFAULT_TTL
       self.env = env
       self.iss = iss
       self.region = region
       self.signing_key = signing_key
+      self.verification_jwks = verification_jwks
       self.logger = logger || Logger.new($stdout)
+    end
+
+    private
+
+    def value_attributes_assigned
+      VALUE_ATTRIBUTES.each do |attr|
+        errors.add(attr, :blank) if instance_variable_get(:"@#{attr}").nil?
+      end
     end
   end
 end

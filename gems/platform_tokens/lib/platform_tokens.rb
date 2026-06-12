@@ -51,9 +51,15 @@ module PlatformTokens
     end
 
     def log_message(message, level: :info)
-      configuration.logger.public_send(level, "[PlatformTokens]: #{message}")
-    rescue ConfigurationError
-      Logger.new($stdout).public_send(level, "[PlatformTokens]: #{message}")
+      logger =
+        begin
+          configuration.logger
+        rescue ConfigurationError
+          Logger.new($stdout)
+        end
+      logger.public_send(level, "[PlatformTokens]: #{message}")
+    rescue => e
+      warn "[PlatformTokens]: #{message} (logging failed: #{e.class}: #{e.message})"
     end
   end
 end
