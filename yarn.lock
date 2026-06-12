@@ -3158,6 +3158,20 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-get-cookie/-/platform-get-cookie-0.2.1.tgz#7aa1a3c7d70f0fc08f2b63bcb2f68a2eef572465"
   integrity sha512-/gOVej7X/uHM9JecM3lqUKDjA4rlAIj/AyVtrkCeqi9el5IlaSWceom4MhEmqmUowvT9Y7GeH33Pcw6Sai00MA==
 
+"@instructure/platform-grades@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-grades/-/platform-grades-0.2.2.tgz#09f51b138a2436dc8fe5962f8bb823804c1298f3"
+  integrity sha512-pwQs09jYS7+pq39V8bIlCD1EqzZWnRwdTk9WL12PNrJnfcMoOQsyMqpueKkoSQK/zYK1WnQ12IUNJh5h2tNfWQ==
+  dependencies:
+    "@instructure/grading-utils" "^1.0.2"
+    "@instructure/platform-canvas-fetch" "0.1.3"
+    "@instructure/platform-graphql-types" "0.1.3"
+    "@instructure/platform-provider" "0.5.2"
+    big.js "^6.2.1"
+    es-toolkit "^1.0.0"
+    graphql-tag "^2.12.6"
+    zod "^3.23.8"
+
 "@instructure/platform-graphql-types@0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@instructure/platform-graphql-types/-/platform-graphql-types-0.1.3.tgz#ad017274cbd17711d5e33f883db434ae28ea725c"
@@ -10670,7 +10684,7 @@ es-to-primitive@^1.3.0:
     is-date-object "^1.0.5"
     is-symbol "^1.0.4"
 
-es-toolkit@^1.42.0, es-toolkit@^1.44.0:
+es-toolkit@^1.0.0, es-toolkit@^1.42.0, es-toolkit@^1.44.0:
   version "1.45.1"
   resolved "https://registry.yarnpkg.com/es-toolkit/-/es-toolkit-1.45.1.tgz#21b28b2bd43178fd4c9c937c445d5bcaccce907b"
   integrity sha512-/jhoOj/Fx+A+IIyDNOvO3TItGmlMKhtX8ISAHKE90c4b/k1tqaqEZ+uUqfpU8DMnW5cgNJv606zS55jGvza0Xw==

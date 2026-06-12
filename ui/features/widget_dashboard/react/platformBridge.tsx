@@ -25,6 +25,9 @@ import {PlatformUiProvider} from '@instructure/platform-provider'
 import {TranslationsProvider} from '@instructure/platform-widget-dashboard'
 import type {WidgetDashboardTranslations} from '@instructure/platform-widget-dashboard'
 import {announceToScreenReader} from './utils/screenReaderAnnounce'
+// Imported for its side effect: configures @instructure/platform-grades with
+// Canvas's locale-aware formatting at startup (mirrors TranslationsProvider).
+import './utils/grades'
 
 const I18n = createI18nScope('widget_dashboard')
 

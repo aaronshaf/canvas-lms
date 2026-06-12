@@ -21,7 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
-import GradeFormatHelper from '@canvas/grading/GradeFormatHelper'
+import {GradeFormatHelper} from '../../../utils/grades'
 import {convertToLetterGrade} from '../CourseGradesWidget/utils'
 
 const I18n = createI18nScope('widget_dashboard')
