@@ -1214,6 +1214,64 @@ RSpec.describe ApplicationController do
               end
             end
           end
+
+          describe "oem_account_id resolution via the account chain" do
+            before do
+              controller.instance_variable_set(:@current_user, user_model)
+              @account.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:pendo_extended)
+              mock_dynamic_settings_for_pendo_cc("pendos!")
+            end
+
+            context "when impact_account_type='consortium' is set on the root account" do
+              before do
+                @account.settings[:impact_account_type] = "consortium"
+                @account.save!
+                allow(@account).to receive(:salesforce_id).and_return("SFID123")
+              end
+
+              it "sets oem_account_id to the SFID for a course in a nested sub-account" do
+                mid_sub = Account.create!(parent_account: @account, name: "mid")
+                leaf_sub = Account.create!(parent_account: mid_sub, name: "leaf")
+                course = course_factory(account: leaf_sub)
+                controller.instance_variable_set(:@context, course)
+                expect(controller.js_env[:USAGE_METRICS_METADATA][:oem_account_id]).to eq("SFID123")
+              end
+            end
+
+            context "when impact_account_type='subaccount' is set on an intermediate sub-account" do
+              let(:oem_sub) { Account.create!(parent_account: @account, name: "oem") }
+
+              before do
+                oem_sub.settings[:impact_account_type] = "subaccount"
+                oem_sub.save!
+              end
+
+              it "derives oem_account_id from the OEM sub-account, not the course's immediate parent" do
+                grandchild = Account.create!(parent_account: oem_sub, name: "grandchild")
+                course = course_factory(account: grandchild)
+                controller.instance_variable_set(:@context, course)
+                expected = "#{@account.uuid}-#{oem_sub.shard.id}-#{oem_sub.id}"
+                expect(controller.js_env[:USAGE_METRICS_METADATA][:oem_account_id]).to eq(expected)
+              end
+
+              it "still inherits oem_account_id when a descendant explicitly stores 'account'" do
+                descendant = Account.create!(parent_account: oem_sub, name: "descendant")
+                descendant.settings[:impact_account_type] = "account"
+                descendant.save!
+                controller.instance_variable_set(:@context, descendant)
+                expected = "#{@account.uuid}-#{oem_sub.shard.id}-#{oem_sub.id}"
+                expect(controller.js_env[:USAGE_METRICS_METADATA][:oem_account_id]).to eq(expected)
+              end
+            end
+
+            it "leaves oem_account_id unset when no account in the chain has impact_account_type" do
+              course = course_factory(account: @account)
+              controller.instance_variable_set(:@context, course)
+              expect(controller.js_env[:USAGE_METRICS_METADATA]).to be_present
+              expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to have_key(:oem_account_id)
+            end
+          end
         end
 
         describe "PRE_COOKIE_CONSENT" do

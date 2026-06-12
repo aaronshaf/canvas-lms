@@ -473,8 +473,10 @@ class ApplicationController < ActionController::Base
           @js_env[:USAGE_METRICS_METADATA][:user_display_name] = @current_user&.short_name
           @js_env[:USAGE_METRICS_METADATA][:user_email] = @current_user&.email
           @js_env[:USAGE_METRICS_METADATA][:user_time_zone] = @current_user&.time_zone
-          # Calculate oem_account_id based on the current account's setting
-          # Root account can have 'account' or 'consortium', subaccount can have 'account' or 'subaccount' value independently
+          # Calculate oem_account_id based on the impact_account_type setting in the account chain.
+          # The setting inherits down: a value set on an ancestor account (root or sub-account) applies
+          # to all descendants. The oem_account_id is derived from the ancestor that owns the setting,
+          # so it stays stable across nested sub-accounts and courses beneath that ancestor.
           current_account = if @context.is_a?(Account)
                               @context
                             elsif @context.respond_to?(:account)
@@ -482,14 +484,19 @@ class ApplicationController < ActionController::Base
                             else
                               @domain_root_account
                             end
-          oem_account_type = current_account.settings[:impact_account_type]
-          case oem_account_type
-          when "consortium"
-            @js_env[:USAGE_METRICS_METADATA][:oem_account_id] = @js_env[:DOMAIN_ROOT_ACCOUNT_SFID]
-          when "subaccount"
-            @js_env[:USAGE_METRICS_METADATA][:oem_account_id] = "#{@domain_root_account&.uuid}-#{current_account.shard.id}-#{current_account.id}"
+          oem_setting_owner = current_account&.account_chain&.find do |a|
+            value = a.settings[:impact_account_type]
+            value.present? && value != "account"
           end
-          # If 'account' or nil, don't set oem_account_id (leave it as nil/undefined)
+          if oem_setting_owner
+            case oem_setting_owner.settings[:impact_account_type]
+            when "consortium"
+              @js_env[:USAGE_METRICS_METADATA][:oem_account_id] = @js_env[:DOMAIN_ROOT_ACCOUNT_SFID]
+            when "subaccount"
+              @js_env[:USAGE_METRICS_METADATA][:oem_account_id] = "#{@domain_root_account&.uuid}-#{oem_setting_owner.shard.id}-#{oem_setting_owner.id}"
+            end
+          end
+          # If no ancestor sets it (or it's 'account'/nil), don't set oem_account_id (leave it as nil/undefined)
 
           if @context.is_a?(Course)
             @js_env[:USAGE_METRICS_METADATA][:course_id] = @context.id
