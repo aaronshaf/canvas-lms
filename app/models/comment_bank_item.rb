@@ -29,12 +29,15 @@ class CommentBankItem < ApplicationRecord
 
   validates :comment, length: { maximum: maximum_text_length, allow_blank: false }
 
-  sanitize_field :comment, CanvasSanitize::SANITIZE
-
-  def comment
-    Sanitize.clean(super, CanvasSanitize::SANITIZE)
-  end
-
+  # CommentBankItem#comment stores plain text. The Comment Library
+  # compose UI is a plain InstUI <TextArea> (see ui/features/
+  # speed_grader/react/CommentLibraryV2/components/CreateCommentSection
+  # and CommentEditView); GraphQL exposes it as `String`. Server-side
+  # HTML sanitization is intentionally NOT applied — rendering layers
+  # are responsible for HTML-escaping the value when emitting into an
+  # HTML context (React text components auto-escape; the RCE-Lite
+  # insertion path at CommentArea.tsx runs htmlEscape per line before
+  # writing into TinyMCE).
   set_policy do
     given { |principal| user == principal&.user }
     can :delete and can :read and can :update

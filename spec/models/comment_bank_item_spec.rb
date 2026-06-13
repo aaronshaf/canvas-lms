@@ -82,44 +82,78 @@ describe CommentBankItem do
     end
   end
 
-  describe "comment sanitization" do
-    it "strips <script> tags on save" do
-      item = CommentBankItem.create!(course:, user:, comment: "<script>alert(1)</script>safe text")
-      expect(item.comment).not_to include("<script>")
-      expect(item.comment).not_to include("alert(1)")
-      expect(item.comment).to include("safe text")
+  describe "comment (plain-text contract)" do
+    def create_item(text)
+      CommentBankItem.create!(course:, user:, comment: text)
     end
 
-    it "strips disallowed event handler attributes on save" do
-      item = CommentBankItem.create!(course:, user:, comment: '<a href="#" onclick="alert(1)">click me</a>')
-      expect(item.comment).not_to include("onclick")
-      expect(item.comment).not_to include("alert(1)")
+    # The Comment Library compose UI is a plain InstUI <TextArea>; the
+    # field stores plain text. Persistence is verbatim. HTML escape is
+    # the render layer's job (React auto-escape in the tray; htmlEscape
+    # per line in the RCE-Lite insertion path).
+
+    it "stores plain text verbatim" do
+      item = create_item("just a comment")
+      expect(item.reload.comment).to eq "just a comment"
     end
 
-    it "preserves allowed HTML on save" do
-      item = CommentBankItem.create!(course:, user:, comment: "<p>hello <strong>world</strong></p>")
-      expect(item.comment).to eql("<p>hello <strong>world</strong></p>")
+    it "preserves bare ampersand verbatim" do
+      item = create_item("Hello & welcome")
+      expect(item.reload.comment).to eq "Hello & welcome"
     end
 
-    it "leaves plain text unchanged on save" do
-      item = CommentBankItem.create!(course:, user:, comment: "just a comment")
-      expect(item.comment).to eql("just a comment")
+    it "preserves NBSP verbatim" do
+      nbsp_text = "Hello world"
+      item = create_item(nbsp_text)
+      expect(item.reload.comment).to eq nbsp_text
     end
 
-    describe "#comment reader" do
-      let(:item) { CommentBankItem.create!(course:, user:, comment: "placeholder") }
+    it "preserves angle brackets in math-style text" do
+      item = create_item("5 < 10 and 20 > 5")
+      expect(item.reload.comment).to eq "5 < 10 and 20 > 5"
+    end
 
-      it "strips disallowed elements on read when the column was persisted unsanitized" do
-        item.update_columns(comment: "<script>alert(1)</script>safe text")
-        expect(item.reload.comment).not_to include("<script>")
-        expect(item.comment).not_to include("alert(1)")
-        expect(item.comment).to include("safe text")
+    it "preserves angle-bracketed placeholder tokens like <your student id>" do
+      item = create_item("Your answer is <your student id> followed by <your initials>")
+      expect(item.reload.comment).to eq "Your answer is <your student id> followed by <your initials>"
+    end
+
+    it "stores HTML-shaped input verbatim (the model is not the XSS perimeter)" do
+      # Rendering layers (React <Text>{comment}> auto-escape, RCE-Lite
+      # insertion via pureTextCommentToRCEComment's htmlEscape) handle
+      # safe display. The model just stores the bytes it received.
+      item = create_item("<script>alert(1)</script>safe")
+      expect(item.reload.comment).to eq "<script>alert(1)</script>safe"
+    end
+
+    it "stores event-handler attribute strings verbatim" do
+      item = create_item('<a href="#" onclick="alert(1)">click me</a>')
+      expect(item.reload.comment).to eq '<a href="#" onclick="alert(1)">click me</a>'
+    end
+
+    describe "render-side defense (the actual XSS contract)" do
+      # Verify the helper that bridges plain-text comments into the
+      # RCE-Lite editor html-escapes correctly. This is the closest
+      # thing to an HTML sink in the Comment Library flow.
+
+      it "format_message escapes <script> tags to inert text" do
+        helper = Class.new { include HtmlTextHelper }.new
+        rendered = helper.format_message("<script>alert(1)</script>safe").first
+        expect(rendered).to include("&lt;script&gt;")
+        expect(rendered).not_to include("<script>")
       end
 
-      it "strips disallowed attributes on read when the column was persisted unsanitized" do
-        item.update_columns(comment: '<object onerror="alert(1)">x</object>')
-        expect(item.reload.comment).not_to include("onerror")
-        expect(item.comment).not_to include("alert(1)")
+      it "format_message single-escapes ampersand (no double-encoding)" do
+        helper = Class.new { include HtmlTextHelper }.new
+        rendered = helper.format_message("Hello & welcome").first
+        expect(rendered).to eq "Hello &amp; welcome"
+      end
+
+      it "format_message preserves NBSP" do
+        helper = Class.new { include HtmlTextHelper }.new
+        nbsp_text = "Hello world"
+        rendered = helper.format_message(nbsp_text).first
+        expect(rendered).to eq nbsp_text
       end
     end
   end
