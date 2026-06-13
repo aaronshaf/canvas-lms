@@ -33,32 +33,52 @@ describe RubricCriterion do
     expect(rubric_criterion.description).to eq("criterion")
   end
 
-  describe "sanitize_field" do
+  describe "preserves plain-text fields on save" do
     let(:root_account_id) { @course.root_account.id }
 
-    it "strips script tags from description on save" do
-      rc = RubricCriterion.create!(
-        rubric: @rubric,
-        description: "safe <script>alert('xss')</script>",
-        points: 10,
-        order: 1,
-        created_by: teacher,
-        root_account_id:
-      )
-      expect(rc.description).to eq("safe ")
-    end
-
-    it "strips script tags from long_description on save" do
-      rc = RubricCriterion.create!(
+    def create_criterion(attrs = {})
+      RubricCriterion.create!({
         rubric: @rubric,
         description: "ok",
-        long_description: "<p>keep</p><script>alert('xss')</script>",
         points: 10,
         order: 1,
         created_by: teacher,
-        root_account_id:
-      )
-      expect(rc.long_description).to eq("<p>keep</p>")
+        root_account_id:,
+      }.merge(attrs))
+    end
+
+    it "saves description containing < and & as raw plain text" do
+      expect(create_criterion(description: "5 < 10 & A").description).to eq("5 < 10 & A")
+    end
+
+    it "saves long_description containing <word>-shaped substrings as raw plain text" do
+      expect(create_criterion(long_description: "Identify <key concepts>").long_description).to eq("Identify <key concepts>")
+    end
+
+    it "saves description containing NBSP as raw plain text" do
+      nbsp_input = "a b"
+      expect(create_criterion(description: nbsp_input).description).to eq(nbsp_input)
+    end
+
+    it "saves description containing quotes as raw plain text" do
+      expect(create_criterion(description: %(say "hi" and don't)).description).to eq(%(say "hi" and don't))
+    end
+
+    it "saves <script> in description verbatim (render layer is the XSS boundary)" do
+      rc = create_criterion(description: "<script>alert('xss')</script>")
+      expect(rc.description).to eq("<script>alert('xss')</script>")
+    end
+
+    it "saves <script> in long_description verbatim (render layer is the XSS boundary)" do
+      rc = create_criterion(long_description: "<p>keep</p><script>alert('xss')</script>")
+      expect(rc.long_description).to eq("<p>keep</p><script>alert('xss')</script>")
+    end
+
+    it "preserves field values across updates" do
+      rc = create_criterion(description: "first")
+      rc.update!(description: "5 < 10 & A", long_description: "Identify <key concepts>")
+      expect(rc.reload.description).to eq("5 < 10 & A")
+      expect(rc.long_description).to eq("Identify <key concepts>")
     end
   end
 end

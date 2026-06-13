@@ -21,8 +21,6 @@ class RubricCriterion < ApplicationRecord
   include Canvas::SoftDeletable
   include Trackable
 
-  sanitize_field :description, :long_description, CanvasSanitize::SANITIZE
-
   belongs_to :rubric, inverse_of: :rubric_criteria
   belongs_to :learning_outcome, optional: true
   belongs_to :created_by, class_name: "User"

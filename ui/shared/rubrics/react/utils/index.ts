@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {htmlDecode} from '@canvas/util/TextHelper'
+import {decodeHTML as decodeHTMLEntities} from 'entities'
+import {brTagsToNewlines} from '@canvas/util/TextHelper'
 import type {RubricAssessment} from '@canvas/grading/grading'
 import type {
   Rubric,
@@ -139,7 +140,13 @@ export const mapRubricUnderscoredKeysToCamelCase = (
   }
 }
 
-export const decodeHTML = (str: string): string => htmlDecode(str) ?? ''
+// Pure HTML-entity decoder. Unlike `@canvas/util/TextHelper#htmlDecode`,
+// this does NOT strip `<tag>`-shaped substrings via regex — preserving
+// teacher-typed plain-text tokens like `<your initials>` or `<key concepts>`
+// inside rubric criterion descriptions. Decodes entities the server-side
+// `format_message` produces (`&lt;`, `&gt;`, `&amp;`, `&#39;`, `&#x27;`,
+// `&quot;`, numeric refs) and leaves everything else alone.
+export const decodeHTML = (str: string): string => decodeHTMLEntities(str ?? '')
 
 export const mapRubricAssessmentDataUnderscoredKeysToCamelCase = (
   data: RubricAssessmentDataUnderscore[],
@@ -207,13 +214,24 @@ export const reorderRatingsAtIndex = ({list, startIndex, endIndex}: ReorderProps
   return result
 }
 
-export const stripLongDescriptionBrTags = (criterion: RubricCriterion): string | undefined => {
+export const longDescriptionForSave = (criterion: RubricCriterion): string | undefined => {
   /**
-   * remove all <br/> from the longDescription because the backend
-   * html sanitization will escape any <br/> tags
+   * Convert any <br/> tags (any case / whitespace / self-closing variant)
+   * back to \n before sending to the server. Server-side format_message
+   * re-converts \n to <br/> on save, so this round-trip preserves line
+   * breaks. Decode any HTML entities the server stored on the previous
+   * save so the wire payload mirrors the user's typed text.
+   *
+   * Outcome-bound criteria pass through verbatim — their description
+   * comes from the LearningOutcome which is already HTML and is read-
+   * only here.
    */
   return criterion.outcome
     ? criterion.longDescription
-    : // unescape any escaped html entities
-      decodeHTML(criterion.longDescription?.replace(/<br\/>/g, '') ?? '')
+    : brTagsToNewlines(decodeHTML(criterion.longDescription ?? ''))
 }
+
+// Back-compat alias for existing callers. The old name described the
+// destructive behavior (strip <br/> entirely); the new implementation
+// converts <br/> → \n instead of dropping them.
+export const stripLongDescriptionBrTags = longDescriptionForSave

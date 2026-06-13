@@ -696,12 +696,112 @@ describe Rubric do
       end
 
       it "cannot be used for XSS when edited directly" do
-        expect(@rubric.criteria[0][:long_description]).to eq ""
+        expect(@rubric.criteria[0][:long_description]).to eq "&lt;script&gt;alert(&#39;danger&#39;);&lt;/script&gt;"
       end
 
       it "uses the sanitized outcome description when an id is provided" do
         @outcome.description = "<b>beta</b>"
         expect(@rubric.criteria[1][:long_description]).to eq "<p>This is <b>awesome</b>.</p>"
+      end
+    end
+
+    context "preserves special characters in plain-text long_description" do
+      before do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: "5 < 10 & A",
+              ratings: { "0" => { description: "" } }
+            },
+            "1" => {
+              long_description: "Identify <key concepts>",
+              ratings: { "0" => { description: "" } }
+            },
+            "2" => {
+              long_description: "a b",
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+      end
+
+      it "single-escapes < and & without double-encoding" do
+        expect(@rubric.criteria[0][:long_description]).to eq "5 &lt; 10 &amp; A"
+      end
+
+      it "preserves <word>-shaped substrings instead of stripping them as unknown tags" do
+        expect(@rubric.criteria[1][:long_description]).to eq "Identify &lt;key concepts&gt;"
+      end
+
+      it "escapes <img> onerror payloads to literal text" do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: "<img src=x onerror=alert(1)>",
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+        expect(@rubric.criteria[0][:long_description]).to eq "&lt;img src=x onerror=alert(1)&gt;"
+        expect(@rubric.criteria[0][:long_description]).not_to include("<img")
+      end
+
+      it "escapes single and double quotes" do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: %(say "hi" and don't),
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+        expect(@rubric.criteria[0][:long_description]).to eq "say &quot;hi&quot; and don&#39;t"
+      end
+
+      it "auto-links URLs" do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: "see https://example.com here",
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+        expect(@rubric.criteria[0][:long_description]).to include "<a href='https://example.com'>https://example.com</a>"
+      end
+
+      it "converts newlines to <br/>" do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: "line1\nline2",
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+        expect(@rubric.criteria[0][:long_description]).to eq "line1<br/>\r\nline2"
+      end
+
+      it "handles nil long_description without error" do
+        rubric_model
+        @rubric.update_criteria(
+          criteria: {
+            "0" => {
+              long_description: nil,
+              ratings: { "0" => { description: "" } }
+            }
+          }
+        )
+        expect(@rubric.criteria[0][:long_description]).to eq ""
+      end
+
+      it "preserves NBSP" do
+        expect(@rubric.criteria[2][:long_description]).to eq "a b"
       end
     end
 

@@ -85,94 +85,110 @@ const renderRowWithOutcome = (longDescription: string) =>
   )
 
 describe('RubricCriteriaRow long description XSS mitigation', () => {
+  // Non-outcome longDescription is "htmlified plain text" — teachers author it in a
+  // plain <TextArea>, not the RCE. XSS defense is HTML-escaping (angle brackets become
+  // entities), not stripping. No actual HTML elements should be injected; event handlers
+  // never fire. Contrast with the outcome branch below, which is real Rich HTML.
+
   afterEach(() => {
     vi.clearAllMocks()
   })
 
-  it('strips <script> tags from longDescription', () => {
+  it('does not inject a <script> element for longDescription', () => {
     const {container} = renderRow('<script>alert(1)</script>malicious')
     const longDescEl = container.querySelector(
       '[data-testid="rubric-criteria-row-long-description"]',
     )
+    expect(longDescEl?.querySelector('script')).toBeNull()
     expect(longDescEl?.innerHTML).not.toContain('<script>')
-    expect(longDescEl?.innerHTML).not.toContain('alert(1)')
   })
 
-  it('strips onclick event handlers from longDescription', () => {
+  it('does not inject a <div> for onclick payloads in longDescription', () => {
     const {container} = renderRow('<div onclick="alert(1)">click me</div>')
     const longDescEl = container.querySelector(
       '[data-testid="rubric-criteria-row-long-description"]',
     )
-    expect(longDescEl?.innerHTML).not.toContain('onclick')
+    expect(longDescEl?.querySelector('div')).toBeNull()
   })
 
-  it('strips javascript: protocol from longDescription', () => {
+  it('does not inject an <a> for javascript: hrefs in longDescription', () => {
     const {container} = renderRow('<a href="javascript:alert(1)">click</a>')
     const longDescEl = container.querySelector(
       '[data-testid="rubric-criteria-row-long-description"]',
     )
-    expect(longDescEl?.innerHTML).not.toContain('javascript:')
+    expect(longDescEl?.querySelector('a')).toBeNull()
   })
 
-  it('strips object tags with event handlers from longDescription', () => {
+  it('does not inject an <object> for onerror payloads in longDescription', () => {
     const {container} = renderRow('<object onerror="alert(3)">x</object>')
     const longDescEl = container.querySelector(
       '[data-testid="rubric-criteria-row-long-description"]',
     )
-    expect(longDescEl?.innerHTML).not.toContain('onerror')
+    expect(longDescEl?.querySelector('object')).toBeNull()
   })
 
-  it('strips svg onload handlers from longDescription', () => {
+  it('does not inject an <svg> for onload payloads in longDescription', () => {
     const {container} = renderRow('<svg onload="alert(1)"></svg>')
     const longDescEl = container.querySelector(
       '[data-testid="rubric-criteria-row-long-description"]',
     )
-    expect(longDescEl?.innerHTML).not.toContain('onload')
+    expect(longDescEl?.querySelector('svg')).toBeNull()
   })
 
-  it('renders safe HTML as rich content', () => {
-    const {getByTestId} = renderRow('<strong>bold</strong>')
-    expect(
-      getByTestId('rubric-criteria-row-long-description').querySelector('strong')?.textContent,
-    ).toBe('bold')
+  it('shows angle-bracket text as visible plain text, not blank', () => {
+    const {container} = renderRow('<your initials>')
+    const longDescEl = container.querySelector(
+      '[data-testid="rubric-criteria-row-long-description"]',
+    )
+    expect(longDescEl?.textContent).toContain('<your initials>')
   })
 
-  describe('learning outcome criteria', () => {
-    it('strips <script> tags from longDescription', () => {
+  describe('learning outcome criteria (Rich HTML — uses sanitizeHTML)', () => {
+    // Outcome longDescription = LearningOutcome.description, which is RCE-authored
+    // Rich HTML. sanitizeHTML (DOMPurify) strips dangerous tags but passes safe
+    // markup through. This branch has a different contract from the plain-text branch.
+
+    it('strips <script> tags from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<script>alert(1)</script>malicious')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('<script>')
       expect(descEl?.innerHTML).not.toContain('alert(1)')
     })
 
-    it('strips onerror event handlers from longDescription', () => {
+    it('strips onerror event handlers from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<img src="x" onerror="alert(1)">')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('onerror')
     })
 
-    it('strips onclick event handlers from longDescription', () => {
+    it('strips onclick event handlers from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<div onclick="alert(1)">click me</div>')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('onclick')
     })
 
-    it('strips javascript: protocol from longDescription', () => {
+    it('strips javascript: protocol from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<a href="javascript:alert(1)">click</a>')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('javascript:')
     })
 
-    it('strips object tags with event handlers from longDescription', () => {
+    it('strips object tags with event handlers from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<object onerror="alert(3)">x</object>')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('onerror')
     })
 
-    it('strips svg onload handlers from longDescription', () => {
+    it('strips svg onload handlers from outcome longDescription', () => {
       const {container} = renderRowWithOutcome('<svg onload="alert(1)"></svg>')
       const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
       expect(descEl?.innerHTML).not.toContain('onload')
+    })
+
+    it('renders safe markup from outcome descriptions as HTML', () => {
+      const {container} = renderRowWithOutcome('<strong>bold</strong>')
+      const descEl = container.querySelector('[data-testid="rubric-criteria-row-description"]')
+      expect(descEl?.querySelector('strong')?.textContent).toBe('bold')
     })
   })
 })

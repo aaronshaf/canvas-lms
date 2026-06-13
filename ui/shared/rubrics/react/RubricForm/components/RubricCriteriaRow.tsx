@@ -18,11 +18,12 @@
 
 import {useCallback, useRef, useEffect} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 import type {RubricCriterion} from '@canvas/rubrics/react/types/rubric'
 import {possibleString} from '@canvas/rubrics/react/Points'
-import {newlinesToBrTags} from '@canvas/util/TextHelper'
-import {OutcomeTag} from '@canvas/rubrics/react/RubricAssessment'
+import {brTagsToNewlines} from '@canvas/util/TextHelper'
+import {escapeNewLineText, OutcomeTag} from '@canvas/rubrics/react/RubricAssessment'
+import {decodeHTML} from '@canvas/rubrics/react/utils'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import classnames from 'classnames'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
@@ -217,11 +218,13 @@ export const RubricCriteriaRow = ({
                         </View>
                       )}
                       <View as="div" data-testid="rubric-criteria-row-description">
-                        {/* html sanitized by server */}
+                        {/*
+                         * Outcome-linked criteria: longDescription = LearningOutcome.description,
+                         * which is RCE-authored Rich HTML sanitized by sanitize_field at the model
+                         * layer. Use sanitizeHTML (DOMPurify) here — this IS real Rich HTML.
+                         */}
                         <Text
-                          dangerouslySetInnerHTML={{
-                            __html: sanitizeHTML(longDescription),
-                          }}
+                          dangerouslySetInnerHTML={{__html: sanitizeHTML(longDescription ?? '')}}
                         />
                       </View>
                       {!hidePoints && (
@@ -257,19 +260,22 @@ export const RubricCriteriaRow = ({
                         </Flex>
                       </View>
                       <View as="div" data-testid="rubric-criteria-row-long-description">
+                        {/*
+                         * Non-outcome criteria: longDescription is "htmlified plain text" —
+                         * authored in a plain <TextArea> (no RCE), server-stored via
+                         * format_message which entity-encodes < / > / & and converts \n → <br/>.
+                         * React state may be server-format (entities + <br/>) or local-state-
+                         * format (raw chars + \n) depending on whether the rubric has been saved.
+                         * Do NOT use sanitizeHTML here — DOMPurify would strip <your initials>
+                         * and similar tokens as unknown HTML elements. Instead: brTagsToNewlines
+                         * normalises both input shapes to raw text; decodeHTML decodes any entities;
+                         * escapeNewLineText re-encodes all angle brackets and restores <br/>.
+                         * Contrast with the outcome path above, which IS real Rich HTML.
+                         */}
                         <Text
-                          /**
-                           * because the backend html sanitization adds <br/> whenever there is a newline,
-                           * but the inst-ui textarea only uses newlines (\n),
-                           * we get in this weird state where we can have both <br/> if you
-                           * load a rubric but only \n if you are creating a rubric and have not saved.
-                           * in order to cleanly solve this, we should remove all <br/>, then removing all \n
-                           * and replacing with <br />. this will make sure that we always display the proper
-                           * line breaks regardless of the longDescription having <br/> or \n
-                           */
-                          dangerouslySetInnerHTML={{
-                            __html: sanitizeHTML(newlinesToBrTags(longDescription ?? '')),
-                          }}
+                          dangerouslySetInnerHTML={escapeNewLineText(
+                            decodeHTML(brTagsToNewlines(longDescription ?? '')),
+                          )}
                         />
                       </View>
                     </>

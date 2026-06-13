@@ -33,7 +33,8 @@ import type {DropResult} from 'react-beautiful-dnd'
 import {OutcomeCriterionModal} from './components/OutcomeCriterionModal'
 import {RubricAssessmentTray} from '@canvas/rubrics/react/RubricAssessment'
 import type {GroupOutcome} from '@canvas/global/env/EnvCommon'
-import {stripHtmlTags} from '@canvas/util/TextHelper'
+import {decodeHTML} from '@canvas/rubrics/react/utils'
+import {brTagsToNewlines} from '@canvas/util/TextHelper'
 import {
   calcPointsPossible,
   hasRubricChanged,
@@ -248,8 +249,14 @@ export const RubricForm = ({
       id: Date.now().toString(),
       outcome: undefined,
       learningOutcomeId: undefined,
-      description: stripHtmlTags(clonedCriterion.description) ?? '',
-      longDescription: stripHtmlTags(clonedCriterion.longDescription) ?? '',
+      // Decode HTML entities the server's format_message stored on save
+      // (e.g. `&lt;your initials&gt;` -> `<your initials>`); convert any
+      // <br/> tags back to newlines for the InstUI TextArea. Do NOT regex-
+      // strip arbitrary `<…>`-shaped tokens — those are teacher-typed
+      // plain text (e.g. `<your initials>`, `<key concepts>`) and must
+      // round-trip on duplicate.
+      description: brTagsToNewlines(decodeHTML(clonedCriterion.description ?? '')),
+      longDescription: brTagsToNewlines(decodeHTML(clonedCriterion.longDescription ?? '')),
       points: Math.max(...clonedCriterion.ratings.map(r => r.points), 0),
     }
 

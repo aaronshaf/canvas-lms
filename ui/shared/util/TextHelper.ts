@@ -182,3 +182,9 @@ export function htmlDecode(input?: string | null): string {
 // Does NOT sanitize — pair with sanitizeHTML at the dangerouslySetInnerHTML sink.
 export const newlinesToBrTags = (str: string): string =>
   str.replace(/\n/g, '<br />').replace(/<br\s*\/?>/gi, '<br />')
+
+// Inverse of newlinesToBrTags: converts <br>, <br/>, <br /> (any case) to \n.
+// Use when surfacing server-stored HTML in a plain <textarea> / InstUI <TextArea>.
+// Does NOT decode entities or strip other tags — combine with `decodeHTML` from
+// the `entities` package when you need both transforms.
+export const brTagsToNewlines = (str: string): string => str.replace(/<br\s*\/?>/gi, '\n')

@@ -20,6 +20,7 @@ import {TextArea} from '@instructure/ui-text-area'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
 import {decodeHTML} from '@canvas/rubrics/react/utils'
+import {brTagsToNewlines} from '@canvas/util/TextHelper'
 
 const I18n = createI18nScope('rubrics-criterion-modal')
 
@@ -39,7 +40,10 @@ export const CriterionDescription = ({
         placeholder={I18n.t('Enter the description')}
         maxHeight="6.75rem"
         width={'100%'}
-        value={decodeHTML(criterionLongDescription).replace(/<br\/>/g, '')}
+        // longDescription is "htmlified plain text": server stores \n as <br/> and
+        // entity-encodes < via format_message. Reverse both transforms so the
+        // plain <TextArea> shows the original characters the teacher typed.
+        value={brTagsToNewlines(decodeHTML(criterionLongDescription))}
         onChange={e => setCriterionLongDescription(e.target.value)}
         data-testid="rubric-criterion-description-input"
       />

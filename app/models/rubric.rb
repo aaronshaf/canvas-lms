@@ -488,11 +488,20 @@ class Rubric < ApplicationRecord
       (params[:criteria] || {}).each do |idx, criterion_data|
         criterion = {}
         criterion[:description] = (criterion_data[:description].presence || t("no_description", "No Description")).strip
-        # Outcomes descriptions are already html sanitized, so use that if an outcome criteria
-        # is present. Otherwise we need to sanitize the input ourselves.
+        # long_description stores different content depending on criterion type:
+        #
+        # Non-outcome (this branch): "htmlified plain text". Teachers author it in a
+        # plain <textarea> (no RCE). format_message converts \n → <br/> and
+        # entity-encodes < / > / & so the stored value is safe for HTML rendering.
+        # Do NOT add sanitize_field here — that would parse the plain-text content
+        # as HTML and silently destroy tokens like <your initials>. See RFC: User
+        # Content Sanitization, "Special Case: Htmlified Secondary Cache".
+        #
+        # Outcome-linked (see below): stores LearningOutcome.description verbatim,
+        # which is RCE-authored Rich HTML already sanitized at the model layer via
+        # sanitize_field on LearningOutcome. Two different content types, same column.
         unless criterion_data[:learning_outcome_id].present?
-          sanitized_long_description = Sanitize.clean((criterion_data[:long_description] || "").strip, CanvasSanitize::SANITIZE)
-          criterion[:long_description] = format_message(sanitized_long_description).first
+          criterion[:long_description] = format_message((criterion_data[:long_description] || "").strip).first
         end
         criterion[:points] = criterion_data[:points].to_f
         criterion_data[:id] = criterion_data[:id].strip if criterion_data[:id]

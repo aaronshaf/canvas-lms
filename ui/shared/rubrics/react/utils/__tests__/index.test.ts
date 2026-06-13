@@ -50,4 +50,28 @@ describe('decodeHTML', () => {
   it('decodes multiple entities in one string', () => {
     expect(decodeHTML('&lt;b&gt;that&#39;s &amp; this&lt;/b&gt;')).toBe("<b>that's & this</b>")
   })
+
+  it('preserves literal <word>-shaped plain-text tokens (does NOT strip tags)', () => {
+    // Regression guard: an earlier wrapper called the destructive
+    // TextHelper#htmlDecode which stripped any `<…>`-shaped substring
+    // via regex, silently destroying teacher-typed placeholder text
+    // like `<your initials>` in rubric criterion descriptions.
+    expect(decodeHTML('Sign with <your initials>')).toBe('Sign with <your initials>')
+    expect(decodeHTML('Identify <key concepts> in the text')).toBe(
+      'Identify <key concepts> in the text',
+    )
+  })
+
+  it('preserves bare `<` followed by a space', () => {
+    expect(decodeHTML('5 < 10 students')).toBe('5 < 10 students')
+  })
+
+  it('preserves <script>-shaped tokens verbatim (server-side defense handles XSS)', () => {
+    // The decoder is not the XSS perimeter. Server-side format_message
+    // (app/models/rubric.rb) entity-encodes `<` to `&lt;` on save; render
+    // sites wrap in DOMPurify via sanitizeHTML. Any value reaching this
+    // decoder client-side has already been through the server's escape
+    // pipeline.
+    expect(decodeHTML('<script>alert(1)</script>')).toBe('<script>alert(1)</script>')
+  })
 })

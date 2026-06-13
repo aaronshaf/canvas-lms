@@ -296,6 +296,47 @@ describe('newlinesToBrTags', () => {
   })
 })
 
+describe('brTagsToNewlines', () => {
+  it('returns empty string unchanged', () => {
+    expect(TextHelper.brTagsToNewlines('')).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(TextHelper.brTagsToNewlines('hello world')).toBe('hello world')
+  })
+
+  it('converts <br/> to \\n', () => {
+    expect(TextHelper.brTagsToNewlines('line1<br/>line2')).toBe('line1\nline2')
+  })
+
+  it('converts <br> to \\n', () => {
+    expect(TextHelper.brTagsToNewlines('line1<br>line2')).toBe('line1\nline2')
+  })
+
+  it('converts <br /> (with space) to \\n', () => {
+    expect(TextHelper.brTagsToNewlines('line1<br />line2')).toBe('line1\nline2')
+  })
+
+  it('converts <BR/> (case-insensitive) to \\n', () => {
+    expect(TextHelper.brTagsToNewlines('line1<BR/>line2')).toBe('line1\nline2')
+  })
+
+  it('preserves <word>-shaped plain-text tokens (does NOT strip non-br tags)', () => {
+    expect(TextHelper.brTagsToNewlines('Sign with <your initials>')).toBe(
+      'Sign with <your initials>',
+    )
+    expect(TextHelper.brTagsToNewlines('Identify <key concepts>')).toBe('Identify <key concepts>')
+  })
+
+  it('preserves a bare < followed by a space', () => {
+    expect(TextHelper.brTagsToNewlines('5 < 10 students')).toBe('5 < 10 students')
+  })
+
+  it('handles multiple <br/> tags', () => {
+    expect(TextHelper.brTagsToNewlines('a<br/>b<br/>c')).toBe('a\nb\nc')
+  })
+})
+
 describe('htmlDecode', () => {
   test('should return the same result when decoding twice', () => {
     fc.assert(

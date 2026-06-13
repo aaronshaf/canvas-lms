@@ -144,8 +144,7 @@ class RubricAssessment < ApplicationRecord
     if data_changed? && data.present?
       data.each do |rating|
         if rating.is_a?(Hash) && rating[:comments].present?
-          sanitized_comments = Sanitize.clean(rating[:comments], CanvasSanitize::SANITIZE)
-          rating[:comments_html] = format_message(sanitized_comments).first
+          rating[:comments_html] = format_message(rating[:comments]).first
         end
       end
     end

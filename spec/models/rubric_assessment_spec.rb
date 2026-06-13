@@ -1246,23 +1246,70 @@ describe RubricAssessment do
     end
   end
 
-  describe "htmlify_rating_comments sanitization" do
-    it "strips script tags from rating comments before htmlifying" do
-      assessment = @association.assess({
-                                         user: @student,
-                                         assessor: @teacher,
-                                         artifact: @assignment.find_or_create_submission(@student),
-                                         assessment: {
-                                           assessment_type: "grading",
-                                           criterion_crit1: {
-                                             points: 5,
-                                             comments: "ok<script>alert('xss')</script>",
-                                           }
-                                         }
-                                       })
+  describe "htmlify_rating_comments" do
+    def assess_with_comments(comments)
+      @association.assess({
+                            user: @student,
+                            assessor: @teacher,
+                            artifact: @assignment.find_or_create_submission(@student),
+                            assessment: {
+                              assessment_type: "grading",
+                              criterion_crit1: {
+                                points: 5,
+                                comments:,
+                              }
+                            }
+                          })
+    end
+
+    it "escapes script tags rather than executing them" do
+      assessment = assess_with_comments("ok<script>alert('xss')</script>")
       rating = assessment.data.find { |r| r[:comments].present? }
       expect(rating[:comments_html]).not_to include("<script")
       expect(rating[:comments_html]).to include("ok")
+    end
+
+    it "single-escapes < and & in plain-text comments" do
+      assessment = assess_with_comments("5 < 10 & A")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "5 &lt; 10 &amp; A"
+    end
+
+    it "escapes <img> onerror payloads to literal text" do
+      assessment = assess_with_comments("<img src=x onerror=alert(1)>")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "&lt;img src=x onerror=alert(1)&gt;"
+      expect(rating[:comments_html]).not_to include("<img")
+    end
+
+    it "escapes single and double quotes" do
+      assessment = assess_with_comments(%(say "hi" and don't))
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "say &quot;hi&quot; and don&#39;t"
+    end
+
+    it "auto-links URLs in comments" do
+      assessment = assess_with_comments("see https://example.com here")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to include "<a href='https://example.com'>https://example.com</a>"
+    end
+
+    it "converts newlines in comments to <br/>" do
+      assessment = assess_with_comments("line1\nline2")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "line1<br/>\r\nline2"
+    end
+
+    it "preserves <word>-shaped substrings instead of stripping them" do
+      assessment = assess_with_comments("Identify <key concepts>")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "Identify &lt;key concepts&gt;"
+    end
+
+    it "preserves NBSP in plain-text comments" do
+      assessment = assess_with_comments("a b")
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).to eq "a b"
     end
   end
 end

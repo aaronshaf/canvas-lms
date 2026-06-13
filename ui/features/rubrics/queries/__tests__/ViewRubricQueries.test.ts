@@ -129,8 +129,8 @@ describe('duplicateRubric', () => {
     expect(c0.criterion_use_range).toBe('false')
   })
 
-  describe('long_description stripping', () => {
-    it('strips <br/> tags from long_description when criterion has no outcome', async () => {
+  describe('long_description plain-text round-trip', () => {
+    it('converts <br/> tags to \\n when criterion has no outcome (preserves line breaks)', async () => {
       const criteria = [
         {
           ...baseCriteria[0],
@@ -139,8 +139,30 @@ describe('duplicateRubric', () => {
       ]
       await duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1', criteria})
 
+      // <br/> is converted to \n; server-side format_message re-converts \n
+      // back to <br/> on save, preserving line breaks end to end. Earlier
+      // code stripped <br/> entirely, which collapsed line breaks.
       expect(capturedBody.rubric?.criteria?.['0'].long_description).toBe(
-        'Line oneLine twoLine three',
+        'Line one\nLine two\nLine three',
+      )
+    })
+
+    it('preserves <word>-shaped tokens (e.g. <your initials>) verbatim', async () => {
+      const criteria = [
+        {
+          ...baseCriteria[0],
+          // Server-side format_message escapes user-typed `<` to `&lt;` on save;
+          // the value we see here is the entity-encoded form that came from the
+          // backend. The duplicate-criterion save path must round-trip that
+          // value WITHOUT silently dropping `<word>`-shaped tokens via a
+          // tag-stripping regex.
+          longDescription: 'Sign with &lt;your initials&gt; and identify &lt;key concepts&gt;',
+        },
+      ]
+      await duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1', criteria})
+
+      expect(capturedBody.rubric?.criteria?.['0'].long_description).toBe(
+        'Sign with <your initials> and identify <key concepts>',
       )
     })
 
