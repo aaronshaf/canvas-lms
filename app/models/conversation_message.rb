@@ -38,8 +38,6 @@ class ConversationMessage < ApplicationRecord
   delegate :participants, to: :conversation
   delegate :subscribed_participants, to: :conversation
 
-  # generated rows store a YAML event blob in `body`, not HTML — skip sanitization
-  before_save :sanitize_body, unless: :generated?
   before_create :set_root_account_ids
   after_create :log_conversation_message_metrics
   after_create :check_for_out_of_office_participants, unless: :automated_message?
@@ -253,18 +251,17 @@ class ConversationMessage < ApplicationRecord
     @re_send_message = false
   end
 
+  # ConversationMessage#body stores plain text. The web compose UI is a
+  # plain <TextArea> (see ui/features/inbox/react/components/MessageBody),
+  # not a rich-text editor; REST/GraphQL clients also POST plain strings.
+  # Server-side HTML sanitization is intentionally NOT applied here —
+  # rendering layers are responsible for HTML-escaping the value when
+  # they emit it into an HTML context (React inbox via DOMPurify, email
+  # via HtmlTextHelper#format_message, etc.).
   def body
     return format_event_message if generated?
 
-    raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
-  end
-
-  def sanitize_body
-    return unless will_save_change_to_attribute?(:body)
-
-    raw = self[:body]
-    self[:body] = Sanitize.clean(raw, CanvasSanitize::SANITIZE) if raw.is_a?(String)
+    super
   end
 
   def event_data

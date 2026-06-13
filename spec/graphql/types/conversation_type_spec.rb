@@ -115,14 +115,17 @@ describe Types::ConversationType do
       expect(result).to include(@student.name)
     end
 
-    it "sanitizes the message body field" do
+    it "returns the message body verbatim (rendering layers handle HTML escape)" do
+      # ConversationMessage#body stores plain text; the GraphQL contract
+      # mirrors that. Consumers (React inbox via DOMPurify, email via
+      # format_message) are responsible for safe rendering. This spec
+      # exists to pin the contract — if a future change reintroduces
+      # server-side sanitization, it should be a conscious, separate
+      # decision with its own design discussion.
       message = @conversation.conversation.conversation_messages.first
-      message.update_columns(body: "<script>alert(1)</script><img src=x onerror=alert(2)>safe")
+      message.update_columns(body: "Hello & welcome world")
       result = conversation_type.resolve("conversationMessagesConnection { nodes { body } }")
-      expect(result.join).not_to include("<script>")
-      expect(result.join).not_to include("onerror")
-      expect(result.join).not_to include("alert(")
-      expect(result.join).to include("safe")
+      expect(result.join).to include("Hello & welcome world")
     end
 
     it "returns attachments" do

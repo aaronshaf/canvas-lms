@@ -890,7 +890,7 @@ describe ConversationMessage do
     end
   end
 
-  describe "body sanitization" do
+  describe "body (plain-text contract)" do
     before(:once) do
       course_with_teacher(active_all: true)
       @other = student_in_course(active_all: true).user
@@ -899,54 +899,87 @@ describe ConversationMessage do
       @conversation.add_message("seed", root_account_id: Account.default.id)
     end
 
-    it "strips disallowed attributes from the persisted body on save" do
-      message = @conversation.add_message('<img src="x" onerror="alert(1)">hi', root_account_id: Account.default.id)
-      expect(message.reload[:body]).not_to include("onerror")
-      expect(message[:body]).not_to include("alert(1)")
-      expect(message[:body]).to include("hi")
+    def send_body(text)
+      @conversation.add_message(text, root_account_id: Account.default.id)
     end
 
-    it "strips disallowed elements from the persisted body on save" do
-      message = @conversation.add_message("<script>alert(1)</script>safe text", root_account_id: Account.default.id)
-      expect(message.reload[:body]).not_to include("<script>")
-      expect(message[:body]).not_to include("alert(1)")
-      expect(message[:body]).to include("safe text")
+    # The compose UI is a plain <TextArea>; the field stores plain text.
+    # Persistence is verbatim. HTML escape is the rendering layer's job.
+
+    it "stores a plain-text body verbatim" do
+      message = send_body("Hello professor, see you on Tuesday.")
+      expect(message.reload[:body]).to eq "Hello professor, see you on Tuesday."
+      expect(message.body).to eq "Hello professor, see you on Tuesday."
     end
 
-    it "sanitizes on read for rows persisted before the callback existed" do
-      message = @conversation.add_message("placeholder", root_account_id: Account.default.id)
-      message.update_columns(body: "<script>alert(1)</script>hi")
-      expect(message.reload.body).not_to include("<script>")
-      expect(message.body).not_to include("alert(1)")
-      expect(message.body).to include("hi")
+    it "preserves bare ampersand verbatim" do
+      message = send_body("Hello & welcome")
+      expect(message.reload[:body]).to eq "Hello & welcome"
+      expect(message.body).to eq "Hello & welcome"
     end
 
-    it "preserves allowed HTML through the round trip" do
-      message = @conversation.add_message("<p>hello <strong>world</strong></p>", root_account_id: Account.default.id)
-      expect(message.reload.body).to eql("<p>hello <strong>world</strong></p>")
+    it "preserves NBSP verbatim" do
+      nbsp_body = "Hello world"
+      message = send_body(nbsp_body)
+      expect(message.reload[:body]).to eq nbsp_body
+      expect(message.body).to eq nbsp_body
     end
 
-    it "leaves nil bodies unchanged on read" do
-      message = @conversation.add_message("placeholder", root_account_id: Account.default.id)
+    it "preserves angle brackets in math-style text" do
+      message = send_body("5 < 10 and 20 > 5")
+      expect(message.reload[:body]).to eq "5 < 10 and 20 > 5"
+    end
+
+    it "preserves angle-bracketed placeholder tokens like <your student id>" do
+      message = send_body("Your answer is <your student id> followed by <your initials>")
+      expect(message.reload[:body]).to eq "Your answer is <your student id> followed by <your initials>"
+    end
+
+    it "stores HTML-shaped input verbatim (the model is not the XSS perimeter)" do
+      # Rendering layers (React via DOMPurify, email via format_message) are
+      # responsible for safe display. The model just stores the bytes it got.
+      message = send_body("<script>alert(1)</script>safe")
+      expect(message.reload[:body]).to eq "<script>alert(1)</script>safe"
+    end
+
+    it "leaves nil bodies unchanged" do
+      message = send_body("placeholder")
       message.update_columns(body: nil)
       expect(message.reload[:body]).to be_nil
+      expect(message.body).to be_nil
     end
 
-    it "does not sanitize generated event message bodies (YAML round-trips)" do
+    it "returns the generated YAML event body via the event formatter" do
       @conversation.add_participants([@third])
       event = @conversation.conversation.conversation_messages.where(generated: true).last
-
       expect(event).not_to be_nil
       expect(event[:body]).to start_with("---")
       expect(event.event_data[:event_type]).to eq(:users_added)
       expect(event.event_data[:user_ids]).to include(@third.id)
     end
 
-    it "still sanitizes a human message saved after a generated message in the same conversation" do
-      @conversation.add_participants([@third])
-      message = @conversation.add_message("<script>alert(1)</script>followup", root_account_id: Account.default.id)
-      expect(message.reload[:body]).not_to include("<script>")
-      expect(message[:body]).to include("followup")
+    describe "render-side defenses (the actual XSS contract)" do
+      let(:helper) { Class.new { include HtmlTextHelper }.new }
+
+      it "format_message escapes a <script> payload to inert text" do
+        message = send_body("<script>alert(1)</script>safe")
+        rendered = helper.format_message(message.reload.body).first
+        expect(rendered).to include("&lt;script&gt;")
+        expect(rendered).not_to include("<script>")
+      end
+
+      it "format_message single-escapes ampersand (no double-encoding)" do
+        message = send_body("Hello & welcome")
+        rendered = helper.format_message(message.reload.body).first
+        expect(rendered).to eq "Hello &amp; welcome"
+      end
+
+      it "format_message preserves NBSP (CGI.escapeHTML doesn't touch it)" do
+        nbsp_body = "Hello world"
+        message = send_body(nbsp_body)
+        rendered = helper.format_message(message.reload.body).first
+        expect(rendered).to eq nbsp_body
+      end
     end
   end
 end
