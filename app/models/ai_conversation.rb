@@ -42,6 +42,15 @@ class AiConversation < ApplicationRecord
   scope :deleted, -> { where(workflow_state: "deleted") }
 
   before_create :set_account_associations
+  # An authorized but unenrolled user (e.g. a cross-shard Site Admin previewing)
+  # can create a conversation without an enrollment ever running
+  # associate_with_shard. When their home shard differs from the conversation's
+  # shard (the course's shard), switchman stores the user's global id in
+  # user_id, but no shadow users row exists there, so fk_rails_faada8ac9a fails.
+  # Create the shadow row here — mirrors Enrollment's before_create in the
+  # multiple_root_accounts plugin. Idempotent: a no-op for same-shard users and
+  # for enrolled users (enrollment already associated them).
+  before_create -> { user.associate_with_shard(shard) }
 
   def delete
     return false if deleted?

@@ -127,4 +127,90 @@ describe AiConversation do
       expect(AiConversation.ended).to contain_exactly(ended_conversation)
     end
   end
+
+  describe "cross-shard user" do
+    specs_require_sharding
+
+    it "creates the conversation without an fk_rails_faada8ac9a violation when the user lives on another shard" do
+      course = course_factory
+      experience = AiExperience.create!(
+        title: "Cross-shard Experience",
+        learning_objectives: ["Test learning objective"],
+        pedagogical_guidance: "Test pedagogical guidance",
+        course:
+      )
+      cross_shard_user = @shard2.activate { user_factory }
+      expect(cross_shard_user.shard).not_to eq(course.shard)
+
+      conversation = nil
+      expect do
+        conversation = AiConversation.create!(
+          llm_conversation_id: "cross-shard-123",
+          user: cross_shard_user,
+          ai_experience: experience,
+          course:
+        )
+      end.not_to raise_error
+
+      expect(conversation.shard).to eq(course.shard)
+      # user_id is stored as the user's global id relative to the course shard...
+      expect(conversation.user_id).to eq(cross_shard_user.global_id)
+      # ...and the association still resolves back to the canonical user.
+      expect(conversation.reload.user).to eq(cross_shard_user)
+    end
+
+    it "writes a shadow users row on the conversation's shard so the FK resolves" do
+      course = course_factory
+      experience = AiExperience.create!(
+        title: "Cross-shard Experience",
+        learning_objectives: ["Test learning objective"],
+        pedagogical_guidance: "Test pedagogical guidance",
+        course:
+      )
+      cross_shard_user = @shard2.activate { user_factory }
+
+      AiConversation.create!(
+        llm_conversation_id: "cross-shard-456",
+        user: cross_shard_user,
+        ai_experience: experience,
+        course:
+      )
+
+      # associate_with_shard upserts a shadow row keyed by the global id on the
+      # course's shard — the referent fk_rails_faada8ac9a needs.
+      course.shard.activate do
+        expect(User.where(id: cross_shard_user.global_id)).to exist
+      end
+    end
+
+    it "associates the user with the conversation's shard on create" do
+      course = course_factory
+      experience = AiExperience.create!(
+        title: "Cross-shard Experience",
+        learning_objectives: ["Test learning objective"],
+        pedagogical_guidance: "Test pedagogical guidance",
+        course:
+      )
+      cross_shard_user = @shard2.activate { user_factory }
+
+      expect(cross_shard_user).to receive(:associate_with_shard).with(course.shard).and_call_original
+
+      AiConversation.create!(
+        llm_conversation_id: "cross-shard-789",
+        user: cross_shard_user,
+        ai_experience: experience,
+        course:
+      )
+    end
+
+    it "still creates conversations for same-shard users" do
+      same_shard_user = user_factory
+      expect(same_shard_user.shard).to eq(course.shard)
+
+      conversation = AiConversation.create!(valid_attributes.merge(user: same_shard_user, llm_conversation_id: "same-shard-123"))
+
+      expect(conversation.user_id).to eq(same_shard_user.id)
+      expect(conversation.reload.user).to eq(same_shard_user)
+    end
+  end
 end
