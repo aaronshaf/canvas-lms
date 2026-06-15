@@ -435,6 +435,20 @@ module Api
           end
         end
       end
+
+      describe ".canvas_url?" do
+        it "returns false for a malformed URL instead of raising" do
+          expect(Content.canvas_url?("//host\\backslash")).to be(false)
+        end
+
+        it "returns true for a relative Canvas path" do
+          expect(Content.canvas_url?("/files/123")).to be(true)
+        end
+
+        it "returns false for an external URL" do
+          expect(Content.canvas_url?("https://external.example.com/files/123")).to be(false)
+        end
+      end
     end
   end
 end

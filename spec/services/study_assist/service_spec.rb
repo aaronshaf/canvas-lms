@@ -505,6 +505,17 @@ describe StudyAssist::Service do
         expect(content).to include("this article")
       end
 
+      it "preserves anchor text for external links that contain a /files/:id/preview path" do
+        other = attachment_model(context: @course, content_type: "text/plain", filename: "other.txt")
+        p = @course.wiki_pages.create!(
+          title: "Page with external files link",
+          body: %(<p>See <a href="https://example.com/files/#{other.id}/preview">this report</a>.</p>),
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("this report")
+      end
+
       it "includes each embedded file's text exactly once when linked multiple times" do
         body = "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">link1</a>" \
                "<a class=\"instructure_file_link\" href=\"/courses/#{@course.id}/files/#{file_attachment.id}?wrap=1\">link2</a>"
@@ -674,6 +685,31 @@ describe StudyAssist::Service do
           content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
           expect(content).not_to include("user secret")
         end
+
+        it "excludes cross-shard files from a different course when linked via /files/:shard~:id format" do
+          other_att = @shard1.activate do
+            other_account = Account.create!(name: "Shard1 other account")
+            other_course = other_account.courses.create!
+            attachment_model(
+              context: other_course,
+              content_type: "text/plain",
+              uploaded_data: stub_file_data("secret.txt", "cross-shard secret via bare files url", "text/plain")
+            )
+          end
+          allow_any_instance_of(Attachment).to receive(:grants_right?).and_call_original
+          allow_any_instance_of(Attachment).to receive(:grants_right?).with(@student, :download).and_return(true)
+          allow_any_instance_of(Attachment).to receive(:locked_for?).with(@student, check_policies: true).and_return(false)
+          p = @course.wiki_pages.create!(
+            title: "Cross-shard bare files url page",
+            body: "<p>Page text.</p>" \
+                  "<a class=\"instructure_file_link\" href=\"/files/#{file_attachment.id}?wrap=1\">doc.txt</a>" \
+                  "<a class=\"instructure_file_link\" href=\"/files/#{@shard1.id}~#{other_att.id}?wrap=1\">secret.txt</a>",
+            saving_user: @student
+          )
+          content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+          expect(content).to include("The Iliad content goes here")
+          expect(content).not_to include("cross-shard secret via bare files url")
+        end
       end
 
       it "does not include content from embedded files belonging to another course" do
@@ -692,6 +728,24 @@ describe StudyAssist::Service do
         )
         content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
         expect(content).not_to include("secret content")
+      end
+
+      it "excludes bare /files/:id links belonging to a different course on the same shard" do
+        original_course = @course
+        other_course = course_model
+        other_attachment = attachment_model(
+          context: other_course,
+          content_type: "text/plain",
+          uploaded_data: stub_file_data("stolen.txt", "stolen content", "text/plain")
+        )
+        @course = original_course
+        p = @course.wiki_pages.create!(
+          title: "Bare files id page",
+          body: "<p>Page text.</p><a class=\"instructure_file_link\" href=\"/files/#{other_attachment.id}?wrap=1\">stolen.txt</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).not_to include("stolen content")
       end
 
       it "ignores module progressions from other courses when checking embedded file locks" do
@@ -832,6 +886,49 @@ describe StudyAssist::Service do
           expect(extracted_ids).to include(huge.id)
           expect(extracted_ids).not_to include(second.id)
         end
+      end
+
+      it "extracts file content from links with /files/:id URLs (no course context prefix)" do
+        p = @course.wiki_pages.create!(
+          title: "Files-only page",
+          body: "<a class=\"instructure_file_link\" href=\"/files/#{file_attachment.id}?wrap=1\">#{file_attachment.display_name}</a>",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("The Iliad content goes here")
+        expect(content).not_to include(file_attachment.display_name)
+      end
+
+      {
+        "bare /download suffix" => "/files/%<id>s/download",
+        "bare /preview suffix" => "/files/%<id>s/preview",
+        "bare ?verifier= query" => "/files/%<id>s?verifier=abc123",
+        "bare /files/:id with no suffix" => "/files/%<id>s",
+        "course-prefixed with no suffix" => "/courses/%<course>s/files/%<id>s",
+      }.each do |description, template|
+        it "extracts file content from #{description} links" do
+          href = format(template, id: file_attachment.id, course: @course.id)
+          p = @course.wiki_pages.create!(
+            title: "Files page #{description}",
+            body: "<a class=\"instructure_file_link\" href=\"#{href}\">#{file_attachment.display_name}</a>",
+            saving_user: @student
+          )
+          content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+          expect(content).to include("The Iliad content goes here")
+          expect(content).not_to include(file_attachment.display_name)
+        end
+      end
+
+      it "strips /files/:id link text for unsupported types so no filename noise reaches Cedar" do
+        image = attachment_model(context: @course, content_type: "image/png", filename: "img.png")
+        p = @course.wiki_pages.create!(
+          title: "Image-only files page",
+          body: "<a class=\"instructure_file_link\" href=\"/files/#{image.id}?wrap=1\">img.png</a>",
+          saving_user: @student
+        )
+        expect do
+          call_service(prompt: "Summarize", state: { "pageID" => p.url })
+        end.to raise_error(StudyAssist::ContentUnavailable, /No readable content/)
       end
     end
   end

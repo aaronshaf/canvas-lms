@@ -36,7 +36,7 @@ module StudyAssist
     MAX_FILE_BYTES = 2.megabytes
     RESPONSE_CACHE_TTL = 24.hours
     TEXT_CACHE_TTL = 24.hours
-    CANVAS_FILE_URL_PATTERN = %r{/(?:courses|groups|users)/\d+/files/([\d~]+)}
+    CANVAS_FILE_URL_PATTERN = %r{\A/(?:(?:courses|groups|users)/\d+/)?files/([\d~]+)}
     EXTRACTOR_MIMETYPES = %w[
       application/pdf
       application/vnd.openxmlformats-officedocument.wordprocessingml.document
@@ -214,7 +214,10 @@ module StudyAssist
         break if remaining <= 0
 
         attachment = attachments[ref]
-        next unless attachment
+        unless attachment
+          Rails.logger.warn("StudyAssist: could not load attachment for ref #{ref.inspect} in course #{@course.id}")
+          next
+        end
 
         text = begin
           next unless attachment.grants_right?(@user, :download)
@@ -269,8 +272,15 @@ module StudyAssist
       end.uniq
     end
 
+    def canvas_file_id(url)
+      return nil unless url && Api::Html::Content.canvas_url?(url)
+
+      path = Addressable::URI.parse(url).path
+      path&.match(CANVAS_FILE_URL_PATTERN)&.captures&.first
+    end
+
     def parse_canvas_file_ref(url)
-      raw = url&.match(CANVAS_FILE_URL_PATTERN)&.captures&.first
+      raw = canvas_file_id(url)
       return nil unless raw
 
       if raw.match?(/\A\d+\z/)
@@ -292,7 +302,11 @@ module StudyAssist
         local_ids = shard_refs.map(&:last)
         begin
           fetched = shard.activate do
-            scope = (shard == course_shard) ? @course.attachments.not_deleted : Attachment.not_deleted
+            scope = if shard == course_shard
+                      @course.attachments.not_deleted
+                    else
+                      Attachment.not_deleted.where(context_type: "Course", context_id: @course.global_id)
+                    end
             scope.where(id: local_ids).index_by(&:id)
           end
           shard_refs.each { |(_, lid)| result[[shard, lid]] = fetched[lid] }
@@ -308,7 +322,7 @@ module StudyAssist
       doc = Nokogiri::HTML.fragment(html.to_s.encode("UTF-8", invalid: :replace, undef: :replace))
       doc.css("a[href], iframe[src]").each do |el|
         url = el["href"] || el["src"]
-        el.remove if url&.match?(CANVAS_FILE_URL_PATTERN)
+        el.remove if canvas_file_id(url)
       end
       doc.to_html
     end

@@ -70,6 +70,26 @@ module Api
           # $el.html() in translateMathmlForScreenreaders in the js in the frontend
           node["x-canvaslms-safe-mathml"] = mathml
         end
+
+        # check if a URL is a Canvas URL (relative/pointing to a Canvas host)
+        # Returns true for:
+        #   - Relative URLs (no host): /files/123
+        #   - Absolute URLs pointing to Canvas hosts: https://canvas.example.com/files/123
+        # Returns false for:
+        #   - External URLs: https://external.com/files/123
+        def canvas_url?(url)
+          uri = begin
+            Addressable::URI.parse(url)
+          rescue URI::InvalidURIError, Addressable::URI::InvalidURIError
+            nil
+          end
+          return false unless uri
+
+          # Relative URLs (no host) are always Canvas URLs
+          return true unless uri&.host
+
+          LoadAccount.from_host(uri.host).present?
+        end
       end
 
       def initialize(html_string, account = nil, include_mobile: false, is_native_mobile_app: false, rewrite_api_urls: true, host: nil, port: nil)
@@ -273,24 +293,8 @@ module Api
         self.class.apply_mathml(node)
       end
 
-      # check if a URL is a Canvas URL (relative/pointing to a Canvas host)
-      # Returns true for:
-      #   - Relative URLs (no host): /files/123
-      #   - Absolute URLs pointing to Canvas hosts: https://canvas.example.com/files/123
-      # Returns false for:
-      #   - External URLs: https://external.com/files/123
       def canvas_url?(url)
-        uri = begin
-          Addressable::URI.parse(url)
-        rescue URI::InvalidURIError
-          nil
-        end
-        return false unless uri
-
-        # Relative URLs (no host) are always Canvas URLs
-        return true unless uri&.host
-
-        LoadAccount.from_host(uri.host).present?
+        self.class.canvas_url?(url)
       end
     end
   end
