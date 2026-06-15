@@ -49,27 +49,50 @@ const TRAY_ID = 'student-study-drawer-tray'
 
 type ActivePanel = 'study-assist' | 'notebook' | null
 
+const STUDY_ASSIST_MAX_RETRIES = 2
+
+async function extractAssistErrorMessage(err: unknown): Promise<string> {
+  let message = I18n.t('Study tools are temporarily unavailable')
+  if (err instanceof FetchApiError) {
+    try {
+      const body = await err.response.json()
+      if (body?.error) message = body.error
+    } catch (_e) {}
+  }
+  return message
+}
+
 async function fetchAssistResponse(request: AssistRequest): Promise<AssistResponse> {
   const courseId = window.ENV.COURSE_ID ?? request.state?.courseID
   if (!courseId) throw new Error('COURSE_ID is not configured')
-  try {
-    const {json} = await doFetchApi<AssistResponse>({
-      path: `/api/v1/courses/${courseId}/study_assist`,
-      method: 'POST',
-      body: request,
-    })
-    return json ?? {}
-  } catch (err) {
-    let message = I18n.t('Study tools are temporarily unavailable')
-    if (err instanceof FetchApiError) {
-      try {
-        const body = await err.response.json()
-        if (body?.error) message = body.error
-      } catch {}
+
+  let lastErr: unknown
+
+  for (let attempt = 0; attempt <= STUDY_ASSIST_MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
     }
-    showFlashError(message)()
-    return {error: message}
+    try {
+      const {json} = await doFetchApi<AssistResponse>({
+        path: `/api/v1/courses/${courseId}/study_assist`,
+        method: 'POST',
+        body: request,
+      })
+      return json ?? {}
+    } catch (err) {
+      if (err instanceof FetchApiError && err.response.status === 502) {
+        lastErr = err
+        continue
+      }
+      const message = await extractAssistErrorMessage(err)
+      showFlashError(message)()
+      return {error: message}
+    }
   }
+
+  const message = await extractAssistErrorMessage(lastErr)
+  showFlashError(message)()
+  return {error: message}
 }
 
 type StudentStudyDrawerInnerProps = {

@@ -647,27 +647,107 @@ describe('StudentStudyDrawer', () => {
     expect(result).toMatchObject({error: 'Study tools are temporarily unavailable.'})
   })
 
-  it('falls back to a generic message when the error body is not parseable', async () => {
-    server.use(
-      http.post('*/api/v1/courses/42/study_assist', () => new HttpResponse(null, {status: 502})),
-    )
-
-    render(
-      <StudentStudyDrawer
-        pageContent={makePageContent()}
-        showStudyAssist={true}
-        showNotebook={false}
-      />,
-    )
-    act(() => {
-      window.dispatchEvent(new CustomEvent('study-assist:open'))
+  describe('502 retry behavior', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+    afterEach(() => {
+      vi.useRealTimers()
     })
 
-    const result = await capturedFetchAssistResponse!({
-      prompt: 'Generate flashcards',
-      state: {pageID: 'test-page', courseID: '42'},
+    it('retries on 502 and returns questions when the retry succeeds', async () => {
+      let callCount = 0
+      server.use(
+        http.post('*/api/v1/courses/42/study_assist', () => {
+          callCount++
+          if (callCount === 1) return new HttpResponse(null, {status: 502})
+          return HttpResponse.json({questions: [{id: '1', question: 'What is 1+1?', answer: '2'}]})
+        }),
+      )
+
+      render(
+        <StudentStudyDrawer
+          pageContent={makePageContent()}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+
+      const resultPromise = capturedFetchAssistResponse!({
+        prompt: 'Generate quiz',
+        state: {pageID: 'test-page', courseID: '42'},
+      })
+      await vi.runAllTimersAsync()
+      const result = await resultPromise
+
+      expect(showFlashError).not.toHaveBeenCalled()
+      expect(result).toMatchObject({questions: [{id: '1', question: 'What is 1+1?', answer: '2'}]})
     })
-    expect(showFlashError).toHaveBeenCalledWith('Study tools are temporarily unavailable')
-    expect(result).toMatchObject({error: 'Study tools are temporarily unavailable'})
+
+    it('falls back to a generic message when 502 persists after all retries', async () => {
+      server.use(
+        http.post('*/api/v1/courses/42/study_assist', () => new HttpResponse(null, {status: 502})),
+      )
+
+      render(
+        <StudentStudyDrawer
+          pageContent={makePageContent()}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+
+      const resultPromise = capturedFetchAssistResponse!({
+        prompt: 'Generate flashcards',
+        state: {pageID: 'test-page', courseID: '42'},
+      })
+      await vi.runAllTimersAsync()
+      const result = await resultPromise
+
+      expect(showFlashError).toHaveBeenCalledWith('Study tools are temporarily unavailable')
+      expect(result).toMatchObject({error: 'Study tools are temporarily unavailable'})
+    })
+
+    it('stops retrying and shows the backend error when a non-502 follows a 502', async () => {
+      let callCount = 0
+      server.use(
+        http.post('*/api/v1/courses/42/study_assist', () => {
+          callCount++
+          if (callCount === 1) return new HttpResponse(null, {status: 502})
+          return new HttpResponse(JSON.stringify({error: 'Service unavailable'}), {
+            status: 503,
+            headers: {'Content-Type': 'application/json'},
+          })
+        }),
+      )
+
+      render(
+        <StudentStudyDrawer
+          pageContent={makePageContent()}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+
+      const resultPromise = capturedFetchAssistResponse!({
+        prompt: 'Generate quiz',
+        state: {pageID: 'test-page', courseID: '42'},
+      })
+      await vi.runAllTimersAsync()
+      const result = await resultPromise
+
+      expect(showFlashError).toHaveBeenCalledWith('Service unavailable')
+      expect(result).toMatchObject({error: 'Service unavailable'})
+      expect(callCount).toBe(2)
+    })
   })
 })
