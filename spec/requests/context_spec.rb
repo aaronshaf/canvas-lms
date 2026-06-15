@@ -398,9 +398,6 @@ describe ContextController do
       context "show_recent_messages_on_new_roster_user_page enabled" do
         before do
           Account.site_admin.enable_feature!(:show_recent_messages_on_new_roster_user_page)
-          # The template calls visible_for?(@current_user) with a plain User object.
-          # In request specs, AdheresToPolicy raises when a User is used as a principal.
-          allow_any_instance_of(DiscussionTopic).to receive(:visible_for?).and_return(true)
           topic = @course.discussion_topics.create!(user: @student, message: "Discussion")
           (1..11).each { |number| topic.discussion_entries.create!(message: number, user: @student) }
           user_session(@admin)
@@ -438,6 +435,28 @@ describe ContextController do
           expect(response.body).to include("entry_#{visible_entry.id}")
           expect(response.body).not_to include("entry_#{hidden_entry.id}")
         end
+
+        it "teacher sees the Recent Messages section when viewing a student who has replied to a discussion" do
+          get "/courses/#{@course.id}/users/#{@student.id}"
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("Recent Messages")
+        end
+      end
+    end
+
+    context "profiles disabled" do
+      before do
+        account_admin_user
+        course_with_student(active_all: true)
+        topic = @course.discussion_topics.create!(user: @student, message: "Discussion")
+        topic.discussion_entries.create!(message: "a student reply", user: @student)
+        user_session(@admin)
+      end
+
+      it "teacher sees the Recent Messages section when viewing a student who has replied to a discussion" do
+        get "/courses/#{@course.id}/users/#{@student.id}"
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Recent Messages")
       end
     end
 
