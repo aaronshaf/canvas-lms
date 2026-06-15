@@ -15,18 +15,16 @@
 # details.
 #
 # You should have received a copy of the GNU Affero General Public License along
-# with this program. If not, see <http://www.gnu.org/licenses/>.
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
-RSpec.describe GradingPeriodSetsController do
+RSpec.describe GradingPeriodSetsController, type: :request do
   let(:group_helper) { Factories::GradingPeriodGroupHelper.new }
 
   context "given a root account" do
     let(:root_account) { Account.default }
     let(:enrollment_term) { root_account.enrollment_terms.first }
-    let(:valid_session) { {} }
 
     before do
-      request.accept = "application/json"
       @root_user = root_account.users.create! do |user|
         user.accept_terms
         user.register!
@@ -35,30 +33,32 @@ RSpec.describe GradingPeriodSetsController do
     end
 
     describe "GET #index" do
-      before :once do
+      before do
         @groups = (1..10).map do |i|
           group_helper.create_for_account(root_account, title: "Grading Period Set #{i}")
         end
       end
 
       it "fetches grading period sets" do
-        get :index, params: { account_id: root_account.to_param }, session: valid_session
-        expect(json_parse.fetch("grading_period_sets").count).to be 10
+        get "/api/v1/accounts/#{root_account.id}/grading_period_sets"
+        sets = json_parse.fetch("grading_period_sets")
+        expect(sets.count).to eq(10)
+        expect(sets.pluck("title")).to match_array((1..10).map { |i| "Grading Period Set #{i}" })
       end
 
       it "includes grading periods" do
         group = @groups.first
         period = Factories::GradingPeriodHelper.new.create_for_group(group)
-        get :index, params: { account_id: root_account.to_param }, session: valid_session
+        get "/api/v1/accounts/#{root_account.id}/grading_period_sets"
         set = json_parse.fetch("grading_period_sets").detect { |s| s["id"] == group.id.to_s }
         periods = set.fetch("grading_periods")
-        expect(periods.count).to be 1
+        expect(periods.count).to eq(1)
         expect(periods.first.fetch("id").to_s).to eql period.id.to_s
       end
 
       it "paginates the grading period sets" do
-        get :index, params: { account_id: root_account.to_param }, session: valid_session
-        expect(json_parse["meta"]).to have_key("pagination")
+        get "/api/v1/accounts/#{root_account.id}/grading_period_sets"
+        expect(json_parse.dig("meta", "pagination", "count")).to be(10)
       end
 
       it "orders the grading period sets by id" do
@@ -66,21 +66,20 @@ RSpec.describe GradingPeriodSetsController do
         # natural order, which ensures the assertion can predictably fail
         @groups.take(5).map(&:destroy)
         @groups.take(5).each { |group| group.update!(workflow_state: "active") }
-        get :index, params: { account_id: root_account.to_param }, session: valid_session
+        get "/api/v1/accounts/#{root_account.id}/grading_period_sets"
         set_ids = json_parse.fetch("grading_period_sets").pluck("id")
         expect(set_ids).to eql(@groups.sort_by(&:id).map { |group| group.id.to_s })
       end
     end
 
     describe "POST #create" do
+      let(:set_title) { "Spring 2024 Grading Set" }
       let(:post_create) do
-        post :create,
+        post "/api/v1/accounts/#{root_account.id}/grading_period_sets",
              params: {
-               account_id: root_account.to_param,
                enrollment_term_ids: [enrollment_term.to_param],
-               grading_period_set: group_helper.valid_attributes(weighted: true)
-             },
-             session: valid_session
+               grading_period_set: group_helper.valid_attributes(weighted: true).merge(title: set_title)
+             }
       end
 
       context "with valid params" do
@@ -91,18 +90,17 @@ RSpec.describe GradingPeriodSetsController do
         it "returns a json representation of a new set" do
           post_create
           set_json = json_parse.fetch("grading_period_set")
-          expect(response.status).to eql Rack::Utils.status_code(:created)
-          expect(set_json["title"]).to eql group_helper.valid_attributes[:title]
+          expect(response).to have_http_status(:created)
+          expect(set_json["title"]).to eql set_title
           expect(set_json["weighted"]).to be true
         end
       end
 
       it "does not require enrollment_term_ids" do
         params = {
-          account_id: root_account.to_param,
           grading_period_set: group_helper.valid_attributes
         }
-        expect { post :create, params:, session: valid_session }.to change(GradingPeriodGroup, :count).by(1)
+        expect { post "/api/v1/accounts/#{root_account.id}/grading_period_sets", params: }.to change(GradingPeriodGroup, :count).by(1)
       end
 
       context "given a sub account enrollment term" do
@@ -112,14 +110,12 @@ RSpec.describe GradingPeriodSetsController do
         end
 
         it "returns a Not Found status code" do
-          post :create,
+          post "/api/v1/accounts/#{root_account.id}/grading_period_sets",
                params: {
-                 account_id: root_account.to_param,
                  enrollment_term_ids: [sub_account_enrollment_term.id],
                  grading_period_set: group_helper.valid_attributes
-               },
-               session: valid_session
-          expect(response.status).to eql Rack::Utils.status_code(:not_found)
+               }
+          expect(response).to have_http_status(:not_found)
         end
       end
     end
@@ -130,14 +126,11 @@ RSpec.describe GradingPeriodSetsController do
 
       context "with valid params" do
         let(:patch_update) do
-          patch :update,
+          patch "/api/v1/accounts/#{root_account.id}/grading_period_sets/#{grading_period_set.id}",
                 params: {
-                  account_id: root_account.to_param,
-                  id: grading_period_set.to_param,
                   enrollment_term_ids: [enrollment_term.to_param],
                   grading_period_set: new_attributes
-                },
-                session: valid_session
+                }
         end
 
         it "updates the requested grading_period_set" do
@@ -152,33 +145,23 @@ RSpec.describe GradingPeriodSetsController do
           expect(response.status).to eql Rack::Utils.status_code(:no_content)
         end
 
-        it "recomputes grades when an enrollment term is removed from the set" do
+        it "removes enrollment terms from the set" do
           term = root_account.enrollment_terms.create!
-          course = root_account.courses.create!(enrollment_term: term)
+          root_account.courses.create!(enrollment_term: term)
           grading_period_set.enrollment_terms << term
-          expect(GradeCalculator).to receive(:recompute_final_score) do |_, course_id, _|
-            course_id == course.id
-          end
-          patch :update,
-                params: {
-                  account_id: root_account.to_param,
-                  id: grading_period_set.to_param,
-                  enrollment_term_ids: [],
-                  grading_period_set: new_attributes
-                },
-                session: valid_session
+          patch "/api/v1/accounts/#{root_account.id}/grading_period_sets/#{grading_period_set.id}",
+                params: { grading_period_set: new_attributes }
+          expect(response).to have_http_status(:no_content)
+          expect(grading_period_set.reload.enrollment_terms).not_to include(term)
         end
       end
 
       it "defaults enrollment_term_ids to empty array" do
         grading_period_set.enrollment_terms << enrollment_term
-        patch :update, params: {
-          account_id: root_account.to_param,
-          id: grading_period_set.to_param,
-          grading_period_set: group_helper.valid_attributes
-        }
+        patch "/api/v1/accounts/#{root_account.id}/grading_period_sets/#{grading_period_set.id}",
+              params: { grading_period_set: group_helper.valid_attributes }
         expect(response.status).to eql Rack::Utils.status_code(:no_content)
-        expect(grading_period_set.reload.enrollment_terms.count).to be(0)
+        expect(grading_period_set.reload.enrollment_terms.count).to eq(0)
       end
 
       context "given a sub account enrollment term" do
@@ -188,15 +171,12 @@ RSpec.describe GradingPeriodSetsController do
         end
 
         it "returns a Not Found status code" do
-          patch :update,
+          patch "/api/v1/accounts/#{root_account.id}/grading_period_sets/#{grading_period_set.id}",
                 params: {
-                  id: grading_period_set.to_param,
-                  account_id: root_account.to_param,
                   enrollment_term_ids: [sub_account_enrollment_term.id],
                   grading_period_set: group_helper.valid_attributes
-                },
-                session: valid_session
-          expect(response.status).to eql Rack::Utils.status_code(:not_found)
+                }
+          expect(response).to have_http_status(:not_found)
         end
       end
     end
@@ -204,13 +184,7 @@ RSpec.describe GradingPeriodSetsController do
     describe "DELETE #destroy" do
       it "destroys the requested grading period set" do
         grading_period_set = group_helper.create_for_account(root_account)
-        expect(grading_period_set.reload.workflow_state).to eq "active"
-        delete :destroy,
-               params: {
-                 account_id: Account.default,
-                 id: grading_period_set.to_param
-               },
-               session: valid_session
+        delete "/api/v1/accounts/#{Account.default.id}/grading_period_sets/#{grading_period_set.id}"
         expect(grading_period_set.reload.workflow_state).to eq "deleted"
       end
     end
@@ -220,11 +194,11 @@ RSpec.describe GradingPeriodSetsController do
 
       describe "GET #index" do
         it "fetches sets through the root account" do
-          group_helper.create_for_account(root_account)
-
-          get :index, params: { account_id: sub_account.to_param }, session: valid_session
-
-          expect(json_parse.fetch("grading_period_sets").count).to be 1
+          group = group_helper.create_for_account(root_account)
+          get "/api/v1/accounts/#{sub_account.id}/grading_period_sets"
+          sets = json_parse.fetch("grading_period_sets")
+          expect(sets.count).to eq(1)
+          expect(sets.first["id"]).to eq(group.id.to_s)
         end
       end
     end

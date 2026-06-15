@@ -18,9 +18,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-RSpec.describe SubmissionCommentsController do
+RSpec.describe SubmissionCommentsController, type: :request do
   describe "GET 'index'" do
-    before :once do
+    before do
       @course = Account.default.courses.create!
       @teacher = course_with_teacher(course: @course, active_all: true).user
       @student = course_with_student(course: @course, active_all: true).user
@@ -34,7 +34,7 @@ RSpec.describe SubmissionCommentsController do
 
       context "given a standard request" do
         before do
-          get :index, params: { submission_id: @submission.id }, format: :pdf
+          get "/submissions/#{@submission.id}/comments.pdf"
         end
 
         specify { expect(response).to have_http_status :ok }
@@ -43,12 +43,12 @@ RSpec.describe SubmissionCommentsController do
       end
 
       context "when course is in a concluded term" do
-        before :once do
+        before do
           @course.enrollment_term.update!(end_at: 1.day.ago)
         end
 
         before do
-          get :index, params: { submission_id: @submission.id }, format: :pdf
+          get "/submissions/#{@submission.id}/comments.pdf"
         end
 
         specify { expect(response).to have_http_status :ok }
@@ -60,7 +60,7 @@ RSpec.describe SubmissionCommentsController do
         before do
           @submission.all_submission_comments.destroy_all
           @submission.destroy
-          get :index, params: { submission_id: @submission.id }, format: :pdf
+          get "/submissions/#{@submission.id}/comments.pdf"
         end
 
         specify { expect(response).to have_http_status :not_found }
@@ -71,7 +71,7 @@ RSpec.describe SubmissionCommentsController do
       context "given a request where no submission comments are present" do
         before do
           @submission.all_submission_comments.destroy_all
-          get :index, params: { submission_id: @submission.id }, format: :pdf
+          get "/submissions/#{@submission.id}/comments.pdf"
         end
 
         specify { expect(response).to have_http_status :ok }
@@ -82,7 +82,7 @@ RSpec.describe SubmissionCommentsController do
       context "given an anonymized assignment" do
         before do
           @assignment.update!(anonymous_grading: true)
-          get :index, params: { submission_id: @submission.id }, format: :pdf
+          get "/submissions/#{@submission.id}/comments.pdf"
         end
 
         specify { expect(response).to have_http_status :unauthorized }
@@ -94,7 +94,7 @@ RSpec.describe SubmissionCommentsController do
     context "given a student session" do
       before do
         user_session(@student)
-        get :index, params: { submission_id: @submission.id }, format: :pdf
+        get "/submissions/#{@submission.id}/comments.pdf"
       end
 
       specify { expect(response).to have_http_status :unauthorized }
@@ -108,8 +108,8 @@ RSpec.describe SubmissionCommentsController do
       course_with_teacher(active_all: true)
       submission_comment_model(author: @user)
       user_session(@teacher)
-      delete "destroy", params: { id: @submission_comment.id }, format: "json"
-      expect(response).to be_successful
+      delete "/submission_comments/#{@submission_comment.id}.json"
+      expect(response).to have_http_status(:ok)
     end
 
     describe "audit event logging" do
@@ -148,49 +148,49 @@ RSpec.describe SubmissionCommentsController do
         end
 
         it "creates an event when a published comment is destroyed" do
-          expect { delete(:destroy, params: { id: comment.id }) }
+          expect { delete "/submission_comments/#{comment.id}" }
             .to change(audit_events, :count).by(1)
         end
 
         it "records the user_id of the destroyer" do
-          delete(:destroy, params: { id: comment.id, format: :json })
+          delete "/submission_comments/#{comment.id}.json"
           expect(last_event.user_id).to eq teacher.id
         end
 
         it 'sets the event_type of the event to "submission_comment_deleted"' do
-          delete(:destroy, params: { id: comment.id, format: :json })
+          delete "/submission_comments/#{comment.id}.json"
           expect(last_event.event_type).to eq "submission_comment_deleted"
         end
 
         it "includes the ID of the destroyed comment in the payload" do
-          delete(:destroy, params: { id: comment.id })
+          delete "/submission_comments/#{comment.id}"
           expect(last_event.payload["id"]).to eq comment.id
         end
       end
 
       it "does not create an event if the assignment is not auditable" do
+        user_session(teacher)
         assignment.update!(anonymous_grading: false)
 
-        expect { delete(:destroy, params: { id: comment.id }) }
+        expect { delete "/submission_comments/#{comment.id}" }
           .not_to change(audit_events, :count)
       end
 
       it "does not create an event if the comment is a draft" do
-        expect { delete(:destroy, params: { id: draft_comment.id }) }
+        user_session(teacher)
+        expect { delete "/submission_comments/#{draft_comment.id}" }
           .not_to change(audit_events, :count)
       end
     end
   end
 
   describe "PATCH 'update'" do
-    before(:once) do
+    before do
       course_with_teacher(active_all: true)
       @the_teacher = @teacher
       submission_comment_model(author: @teacher, draft_comment: true)
 
       @test_params = {
-        id: @submission_comment.id,
-        format: :json,
         submission_comment: {
           draft: false
         }
@@ -204,7 +204,7 @@ RSpec.describe SubmissionCommentsController do
     it "allows updating the comment" do
       updated_comment = "an updated comment!"
       patch(
-        :update,
+        "/submission_comments/#{@submission_comment.id}.json",
         params: @test_params.merge(submission_comment: { comment: updated_comment })
       )
       comment = response.parsed_body.dig("submission_comment", "comment")
@@ -214,28 +214,29 @@ RSpec.describe SubmissionCommentsController do
     it "sets the edited_at if the comment is updated" do
       updated_comment = "an updated comment!"
       patch(
-        :update,
+        "/submission_comments/#{@submission_comment.id}.json",
         params: @test_params.merge(submission_comment: { comment: updated_comment })
       )
       edited_at = response.parsed_body.dig("submission_comment", "edited_at")
-      expect(edited_at).to be_present
+      expect(edited_at).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     end
 
     it "returns strings for numeric values when passed the json+canvas-string-ids header" do
-      request.headers["HTTP_ACCEPT"] = "application/json+canvas-string-ids"
-      patch :update, params: @test_params
+      patch "/submission_comments/#{@submission_comment.id}.json",
+            params: @test_params,
+            headers: { "HTTP_ACCEPT" => "application/json+canvas-string-ids" }
       id = response.parsed_body.dig("submission_comment", "id")
       expect(id).to be_a String
     end
 
     it "does not set the edited_at if the comment is not updated" do
-      patch :update, params: @test_params
+      patch "/submission_comments/#{@submission_comment.id}.json", params: @test_params
       edited_at = response.parsed_body.dig("submission_comment", "edited_at")
       expect(edited_at).to be_nil
     end
 
     it "allows updating the status field" do
-      expect { patch "update", params: @test_params }.to change { SubmissionComment.draft.count }.by(-1)
+      expect { patch "/submission_comments/#{@submission_comment.id}", params: @test_params }.to change { SubmissionComment.draft.count }.by(-1)
     end
 
     describe "audit event logging" do
@@ -244,7 +245,7 @@ RSpec.describe SubmissionCommentsController do
       let(:assignment) { course.assignments.create!(title: "hi", anonymous_grading: true) }
       let(:submission) { assignment.submission_for_student(student) }
 
-      let!(:comment) do
+      let(:comment) do
         submission.submission_comments.create!(
           author: student,
           comment: "initial comment"
@@ -274,19 +275,19 @@ RSpec.describe SubmissionCommentsController do
       context "when an assignment is auditable" do
         it "does not create an event when a comment is saved as a draft" do
           expect do
-            patch(:update, params: { id: draft_comment.id, submission_comment: { comment: "update!!!!!" } })
+            patch("/submission_comments/#{draft_comment.id}", params: { submission_comment: { comment: "update!!!!!" } })
           end.not_to change(audit_events, :count)
         end
 
         context "when publishing an existing draft" do
           it 'sets the event_type to "submission_comment_created"' do
-            patch(:update, params: { id: draft_comment.id, submission_comment: { draft: false } })
+            patch("/submission_comments/#{draft_comment.id}", params: { submission_comment: { draft: false } })
             expect(last_event.event_type).to eq "submission_comment_created"
           end
 
           it "records changed values as if saving a new comment" do
             comment_params = { draft: false, comment: "this is NO LONGER a draft" }
-            patch(:update, params: { id: draft_comment.id, submission_comment: comment_params, format: :json })
+            patch("/submission_comments/#{draft_comment.id}.json", params: { submission_comment: comment_params })
 
             expect(last_event.payload["comment"]).to eq "this is NO LONGER a draft"
           end

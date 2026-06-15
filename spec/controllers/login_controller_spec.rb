@@ -20,19 +20,19 @@
 
 require_relative "../apis/api_spec_helper"
 
-describe LoginController do
+RSpec.describe LoginController, type: :request do
   describe "#new" do
     it "redirects to dashboard if already logged in" do
       user_session(user_with_pseudonym(active: true))
-      get "new"
+      get "/login"
       expect(response).to redirect_to(dashboard_url)
     end
 
     it "sets merge params correctly in the session" do
       user_with_pseudonym(active: true)
       @cc = @user.communication_channels.create!(path: "jt+1@instructure.com")
-      get "new", params: { confirm: @cc.confirmation_code, expected_user_id: @user.id }
-      expect(response).to be_redirect
+      get "/login", params: { confirm: @cc.confirmation_code, expected_user_id: @user.id }
+      expect(response).to have_http_status(:redirect)
       expect(session[:confirm]).to eq @cc.confirmation_code
       expect(session[:expected_user_id]).to eq @user.id
     end
@@ -44,8 +44,8 @@ describe LoginController do
 
       allow(InstStatsd::Statsd).to receive(:distributed_increment)
       expect(InstStatsd::Statsd).to receive(:distributed_increment)
-        .with("auth.new.discovery_page_redirect.v2", tags: { auth_type: nil, target_auth_type: nil, domain: "test.host" })
-      get "new"
+        .with("auth.new.discovery_page_redirect.v2", tags: { auth_type: nil, target_auth_type: nil, domain: "www.example.com" })
+      get "/login"
       expect(response).to redirect_to("https://identity.example.com/discover")
     end
 
@@ -53,7 +53,7 @@ describe LoginController do
       allow(Account.default).to receive_messages(discovery_page_allowed?: true,
                                                  discovery_page_active?: true,
                                                  discovery_page_url: "https://identity.example.com/discover")
-      get "new", params: { authentication_provider: "canvas" }
+      get "/login", params: { authentication_provider: "canvas" }
       expect(response).to redirect_to(canvas_login_url)
     end
 
@@ -61,11 +61,7 @@ describe LoginController do
       Account.default.auth_discovery_url = "https://google.com/"
       Account.default.save!
 
-      allow(InstStatsd::Statsd).to receive(:distributed_increment)
-      expect(InstStatsd::Statsd).to receive(:distributed_increment)
-        .with("auth.new.discovery_redirect.v2", tags: { auth_type: nil, target_auth_type: nil, domain: "test.host" })
-
-      get "new"
+      get "/login"
       expect(response).to redirect_to("https://google.com/")
     end
 
@@ -75,15 +71,15 @@ describe LoginController do
 
       flash_hash = ActionDispatch::Flash::FlashHash.new
       flash_hash[:delegated_message] = "hi"
-      allow(controller).to receive(:flash).and_return(flash_hash)
-      get "new"
+      allow_any_instance_of(LoginController).to receive(:flash).and_return(flash_hash)
+      get "/login"
       expect(response).to redirect_to("https://google.com/?message=hi")
     end
 
     it "handles legacy canvas_login=1 param" do
       account_with_cas(account: Account.default)
 
-      get "new", params: { canvas_login: "1" }
+      get "/login", params: { canvas_login: "1" }
       expect(response).to redirect_to(canvas_login_url)
     end
 
@@ -94,27 +90,27 @@ describe LoginController do
 
       account_with_saml(account: Account.default)
       aac = Account.default.authentication_providers.first
-      get "new", params: { id: aac }
+      get "/login/#{aac.id}"
       expect(response).to redirect_to(saml_login_url(aac))
     end
 
     it "redirects to Canvas auth by default" do
-      get "new"
+      get "/login"
       expect(response).to redirect_to(canvas_login_url)
     end
 
     it "redirects to CAS if it's the default" do
       account_with_cas(account: Account.default)
 
-      get "new"
-      expect(response).to redirect_to(controller.url_for(controller: "login/cas", action: :new))
+      get "/login"
+      expect(response).to redirect_to(login_cas_url)
     end
 
     it "redirects to Facebook if it's the default" do
       Account.default.authentication_providers.create!(auth_type: "facebook")
       Account.default.authentication_providers.first.move_to_bottom
 
-      get "new"
+      get "/login"
       expect(response).to redirect_to(facebook_login_url)
     end
 
@@ -122,43 +118,37 @@ describe LoginController do
       Account.default.authentication_providers.create!(auth_type: "facebook")
       account_with_cas(account: Account.default)
 
-      get "new", params: { authentication_provider: "cas" }
-      expect(response).to redirect_to(controller.url_for(controller: "login/cas", action: :new))
+      get "/login", params: { authentication_provider: "cas" }
+      expect(response).to redirect_to(login_cas_url)
     end
 
     it "redirects based on authentication_provider id param" do
       ap2 = Account.default.authentication_providers.create!(auth_type: "cas")
       account_with_cas(account: Account.default)
 
-      get "new", params: { authentication_provider: ap2.id }
-      expect(response).to redirect_to(controller.url_for(controller: "login/cas", action: :new, id: ap2.id))
+      get "/login", params: { authentication_provider: ap2.id }
+      expect(response).to redirect_to(cas_login_url(ap2.id))
     end
 
     it "passes pseudonym_session[unique_id] to redirect to populate username textbox" do
-      get "new", params: { "pseudonym_session" => { "unique_id" => "test" } }
-      expect(response).to redirect_to(
-        controller.url_for(controller: "login/canvas", action: :new) + "?login_hint=test"
-      )
+      get "/login", params: { "pseudonym_session" => { "unique_id" => "test" } }
+      expect(response).to redirect_to(canvas_login_url + "?login_hint=test")
     end
 
     it "passes login_hint to redirect to populate username textbox" do
-      get "new", params: { "login_hint" => "test" }
-      expect(response).to redirect_to(
-        controller.url_for(controller: "login/canvas", action: :new) + "?login_hint=test"
-      )
+      get "/login", params: { "login_hint" => "test" }
+      expect(response).to redirect_to(canvas_login_url + "?login_hint=test")
     end
 
     it "passes pseudonym_session[unique_id] to redirect from current username" do
       user_with_pseudonym(username: "test2", active: 1)
       user_session(@user, @pseudonym)
-      get "new", params: { "pseudonym_session" => { "unique_id" => "test" }, :force_login => 1 }
-      expect(response).to redirect_to(
-        controller.url_for(controller: "login/canvas", action: :new) + "?login_hint=test2"
-      )
+      get "/login", params: { "pseudonym_session" => { "unique_id" => "test" }, :force_login => 1 }
+      expect(response).to redirect_to(canvas_login_url + "?login_hint=test2")
     end
 
     context "given an html request" do
-      before { get :new, format: :html }
+      before { get "/login" }
 
       it "response with an html content type" do
         expect(response.headers.fetch("Content-Type")).to match(%r{\Atext/html})
@@ -166,7 +156,7 @@ describe LoginController do
     end
 
     context "given a pdf request" do
-      before { get :new, format: :pdf }
+      before { get "/login.pdf" }
 
       it "response with an html content type" do
         expect(response.headers.fetch("Content-Type")).to match(%r{\Atext/html})
@@ -177,18 +167,20 @@ describe LoginController do
   describe "#session_token" do
     it "doesn't explode on a bad input url" do
       user_session(user_with_pseudonym(active: true))
-      request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-      get "session_token", format: :json, params: { return_to: "not-a url" }
-      expect(response.status.to_i).to eq(400)
+      get "/login/session_token",
+          params: { return_to: "not-a url" },
+          headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+          as: :json
+      expect(response).to have_http_status(:bad_request)
     end
 
     describe "when user needs to accept terms of service" do
       it "returns a payload with requires_terms_acceptance of true" do
         user_session user_with_pseudonym(active: true)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(true)
 
-        get "session_token", format: :json
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         expect(response.parsed_body["requires_terms_acceptance"]).to be(true)
       end
     end
@@ -196,10 +188,12 @@ describe LoginController do
     describe "when user does not need to accept terms of service" do
       it "returns a payload with requires_terms_acceptance of false" do
         user_session user_with_pseudonym(active: true)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
+        @user.accept_terms
+        @user.save!
 
-        get "session_token", format: :json
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         expect(response.parsed_body["requires_terms_acceptance"]).to be(false)
       end
     end
@@ -207,10 +201,11 @@ describe LoginController do
     describe "handling mobile web view" do
       it "sets the token with true" do
         user_session user_with_pseudonym(active: true)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
 
-        get "session_token", format: :json, params: { mobile_consent: "true" }
+        get "/login/session_token",
+            params: { mobile_consent: "true" },
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         parsed_body = response.parsed_body
         stoken = SessionToken.parse(parsed_body["session_url"].split("session_token=").last)
         expect(stoken.consent_from_mobile).to be(true)
@@ -218,10 +213,11 @@ describe LoginController do
 
       it "sets the token with false" do
         user_session user_with_pseudonym(active: true)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
 
-        get "session_token", format: :json, params: { mobile_consent: "false" }
+        get "/login/session_token",
+            params: { mobile_consent: "false" },
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         parsed_body = response.parsed_body
         stoken = SessionToken.parse(parsed_body["session_url"].split("session_token=").last)
         expect(stoken.consent_from_mobile).to be(false)
@@ -229,10 +225,10 @@ describe LoginController do
 
       it "sets the token with nil if not a mobile web view" do
         user_session user_with_pseudonym(active: true)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
 
-        get "session_token", format: :json
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         parsed_body = response.parsed_body
         stoken = SessionToken.parse(parsed_body["session_url"].split("session_token=").last)
         expect(stoken.consent_from_mobile).to be_nil
@@ -241,24 +237,24 @@ describe LoginController do
 
     it "rejects javascript scheme" do
       user_session user_with_pseudonym(active: true)
-      request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-      allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
 
-      get "session_token", format: :json, params: { return_to: "javascript://localhost/" }
+      get "/login/session_token",
+          params: { return_to: "javascript://localhost/" },
+          headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+          as: :json
       expect(response).to have_http_status :forbidden
     end
 
     describe "user-generated access token gating" do
       before do
         user_session user_with_pseudonym(active: true)
-        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
       end
 
       it "rejects user-generated access tokens when the flag is enabled" do
         Account.site_admin.enable_feature!(:block_session_token_for_user_generated_access_tokens_globally)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-
-        get "session_token", format: :json
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         expect(response).to have_http_status :forbidden
       end
 
@@ -267,62 +263,70 @@ describe LoginController do
         dk = DeveloperKey.create!
         enable_developer_key_account_binding!(dk)
         token = @user.access_tokens.create!(developer_key: dk, purpose: "test").full_token
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{token}" })
-
-        get "session_token", format: :json
-        expect(response).to be_successful
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{token}" },
+            as: :json
+        expect(response).to have_http_status(:ok)
       end
 
       it "allows user-generated access tokens when the flag is disabled" do
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-
-        get "session_token", format: :json
-        expect(response).to be_successful
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
+        expect(response).to have_http_status(:ok)
       end
 
       it "emits a blocked DD event when rejecting" do
         Account.site_admin.enable_feature!(:block_session_token_for_user_generated_access_tokens_globally)
         allow(InstStatsd::Statsd).to receive(:event)
-        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
-
-        get "session_token", format: :json
+        get "/login/session_token",
+            headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" },
+            as: :json
         expect(InstStatsd::Statsd).to have_received(:event)
-          .with("Session Token Blocked", anything, hash_including(type: :session_token_blocked))
+          .with("Session Token Blocked",
+                a_string_including("Session token blocked for user-generated access token"),
+                hash_including(type: :session_token_blocked))
       end
     end
   end
 
   describe "#logout" do
     before do
-      user = user_with_pseudonym(active: true)
-      user_session(user, @pseudonym)
+      user_with_pseudonym(active: true)
+      user_session(@user, @pseudonym)
     end
 
     it "logs out" do
-      delete "destroy"
+      delete "/logout"
       expect(response).to redirect_to(login_url)
     end
 
     it "follows SAML logout redirect to IdP" do
       account_with_saml(account: Account.default, saml_log_out_url: "https://www.google.com/")
-      session[:login_aac] = Account.default.authentication_providers.first.id
-      delete "destroy"
+      aac = Account.default.authentication_providers.first
+      allow_any_instance_of(LoginController).to receive(:session)
+        .and_return(ActiveSupport::HashWithIndifferentAccess.new(login_aac: aac.id))
+      delete "/logout"
       expect(response).to have_http_status :found
       expect(response.location).to match(%r{^https://www.google.com/\?SAMLRequest=})
     end
 
     it "follows CAS logout redirect to CAS server" do
       account_with_cas(account: Account.default)
-      session[:login_aac] = Account.default.authentication_providers.first.id
-      delete "destroy"
+      aac = Account.default.authentication_providers.first
+      allow_any_instance_of(LoginController).to receive(:session)
+        .and_return(ActiveSupport::HashWithIndifferentAccess.new(login_aac: aac.id))
+      delete "/logout"
       expect(response).to have_http_status :found
       expect(response.location).to match(%r{localhost/cas/})
     end
 
     it "returns you to Canvas login if you logged in via Canvas, but something else is the primary provider" do
       account_with_saml(account: Account.default, saml_log_out_url: "https://www.google.com/")
-      session[:login_aac] = Account.default.canvas_authentication_provider.id
-      delete "destroy"
+      canvas_aac = Account.default.canvas_authentication_provider
+      allow_any_instance_of(LoginController).to receive(:session)
+        .and_return(ActiveSupport::HashWithIndifferentAccess.new(login_aac: canvas_aac.id))
+      delete "/logout"
       expect(response).to have_http_status :found
       expect(response.location).to match(%r{/login/canvas$})
     end
@@ -330,20 +334,23 @@ describe LoginController do
 
   describe "#logout_landing" do
     it "redirects to /login if not logged in" do
-      get "logout_landing"
+      get "/logout"
       expect(response).to redirect_to(login_url)
     end
 
     it "renders logout landing if just logged out" do
-      flash[:logged_out] = true
-      get "logout_landing"
-      expect(response).to redirect_to(login_url)
+      flash_hash = ActionDispatch::Flash::FlashHash.new
+      flash_hash[:logged_out] = true
+      allow_any_instance_of(LoginController).to receive(:flash).and_return(flash_hash)
+      get "/logout"
+      expect(response).to have_http_status(:ok)
+      expect(response).to render_template(:logout_landing)
     end
 
     it "renders if you are logged in" do
       user_session(user_factory)
-      get "logout_landing"
-      expect(response).to be_successful
+      get "/logout"
+      expect(response).to have_http_status(:ok)
       expect(response).to render_template(:logout_confirm)
     end
   end

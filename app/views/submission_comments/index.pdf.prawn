@@ -60,7 +60,7 @@ prawn_document(page_layout: :portrait, page_size:) do |pdf|
   pdf.move_down 5
 
   current_author = nil
-  submission_comments.find_each do |comment|
+  submission_comments.each do |comment|
     draft_markup = comment.draft? ? " <color rgb='ff0000'>#{draft}</color>" : ""
 
     # escape '<' followed by a space with a unique placeholder to prevent Nokogiri
