@@ -87,7 +87,7 @@ module BroadcastPolicies
     end
 
     def should_dispatch_submission_posted?
-      return false unless submission.grade_posting_in_progress && context_sendable?
+      return false unless submission.grade_posting_in_progress && context_sendable? && user_active_or_invited?
 
       submission.reload
       posted_recently?

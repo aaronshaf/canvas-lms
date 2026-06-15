@@ -321,6 +321,7 @@ module BroadcastPolicies
       end
 
       before do
+        allow(policy).to receive(:user_active_or_invited?).and_return(true)
         assignment.ensure_post_policy(post_manually: true)
         course.update!(workflow_state: "available")
       end
@@ -353,6 +354,22 @@ module BroadcastPolicies
 
       it "returns false when the course is concluded" do
         course.update!(workflow_state: "completed")
+        submission.update!(posted_at: Time.zone.now)
+        submission.grade_posting_in_progress = true
+        expect(policy.should_dispatch_submission_posted?).to be false
+      end
+
+      it "returns false when the student enrollment is inactive" do
+        course.enrollments.find_by(user: student).update!(workflow_state: "inactive")
+        allow(policy).to receive(:user_active_or_invited?).and_call_original
+        submission.update!(posted_at: Time.zone.now)
+        submission.grade_posting_in_progress = true
+        expect(policy.should_dispatch_submission_posted?).to be false
+      end
+
+      it "returns false when the student enrollment is concluded" do
+        course.enrollments.find_by(user: student).update!(workflow_state: "completed")
+        allow(policy).to receive(:user_active_or_invited?).and_call_original
         submission.update!(posted_at: Time.zone.now)
         submission.grade_posting_in_progress = true
         expect(policy.should_dispatch_submission_posted?).to be false
