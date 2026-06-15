@@ -2939,11 +2939,6 @@
     "@instructure/shared-types" "11.7.4-SECURITY.3"
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
 
-"@instructure/console@10.30.0":
-  version "10.30.0"
-  resolved "https://registry.yarnpkg.com/@instructure/console/-/console-10.30.0.tgz#d7f98f662591634867fd4447544539ad705c1c05"
-  integrity sha512-CVIrU2H7YoRobxLnOjhpWiA3+LaZMKbVV25YBalrHb/lUkix73s5eVQr+FgQ0MvU9UShKvbTdmYov0wXKMn1fA==
-
 "@instructure/console@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/console/-/@instructure/console-11.7.4-SECURITY.3.tgz#6377ed64c6c60650cbbde03457bb026b077430e5"
@@ -2956,7 +2951,7 @@
   dependencies:
     "@babel/runtime" "^7.27.6"
 
-"@instructure/emotion@10.30.0", "@instructure/emotion@11.6.0", "@instructure/emotion@11.7.4-SECURITY.3", "@instructure/emotion@^11":
+"@instructure/emotion@11.6.0", "@instructure/emotion@11.7.4-SECURITY.3", "@instructure/emotion@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/emotion/-/@instructure/emotion-11.7.4-SECURITY.3.tgz#b75bdaff8e222d775d9f0b34b50e5359b0c0cea6"
   integrity sha512-tqc2e5QahLSyvSkXpzFxCe6qUXZbkNAXvcPSpLUgJO4JsnlzDVV6PfTQR/yDEhK48o3VX/p+RrKaCl0uOTutaQ==
@@ -3047,53 +3042,53 @@
     redux-thunk "^2.4.2"
     ts-ebml "^2.0.2"
 
-"@instructure/outcomes-ui@4.1.6":
-  version "4.1.6"
-  resolved "https://registry.yarnpkg.com/@instructure/outcomes-ui/-/outcomes-ui-4.1.6.tgz#02e2137538cfd875b60227140a403aa7aff0013b"
-  integrity sha512-iUo3Dz0XuYbzSXcqDbUv27KI4C8uqoFaSo8v3wNRwJU56zDa2uafqVmJ6fxaKqCvDOGHrvMfAi9LhSwU9Bkq+A==
+"@instructure/outcomes-ui@4.2.0":
+  version "4.2.0"
+  resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/outcomes-ui/-/@instructure/outcomes-ui-4.2.0.tgz#b321990813b53226db96421d94c7ac77642a2a35"
+  integrity sha512-0Ox5jKB5/ZzjO4O7ffvDrlb3Ke5ScohTNphYAndhaRfhPJQ+CbBfWhkqFcl5BzkwbJxeXRhjZTowo1PrKTd6Yw==
   dependencies:
     "@instructure/canvas-media" "5.0.0"
     "@instructure/redux-service-middleware" "^1.0.0"
-    "@instructure/ui-a11y-content" "^10"
-    "@instructure/ui-a11y-utils" "^10"
-    "@instructure/ui-avatar" "^10"
-    "@instructure/ui-badge" "^10"
-    "@instructure/ui-billboard" "^10"
-    "@instructure/ui-buttons" "^10"
-    "@instructure/ui-checkbox" "^10"
-    "@instructure/ui-color-utils" "^10"
-    "@instructure/ui-flex" "^10"
-    "@instructure/ui-focusable" "^10"
-    "@instructure/ui-form-field" "^10"
-    "@instructure/ui-heading" "^10"
-    "@instructure/ui-icons" "^10"
-    "@instructure/ui-img" "^10"
-    "@instructure/ui-link" "^10"
-    "@instructure/ui-list" "^10"
-    "@instructure/ui-menu" "^10"
-    "@instructure/ui-modal" "^10"
-    "@instructure/ui-motion" "^10"
-    "@instructure/ui-overlays" "^10"
-    "@instructure/ui-pagination" "^10"
-    "@instructure/ui-pill" "^10"
-    "@instructure/ui-popover" "^10"
-    "@instructure/ui-progress" "^10"
-    "@instructure/ui-radio-input" "^10"
-    "@instructure/ui-react-utils" "^10"
-    "@instructure/ui-select" "^10"
-    "@instructure/ui-spinner" "^10"
-    "@instructure/ui-svg-images" "10.15.0"
-    "@instructure/ui-table" "^10"
-    "@instructure/ui-tag" "^10"
-    "@instructure/ui-text" "^10"
-    "@instructure/ui-text-area" "^10"
-    "@instructure/ui-text-input" "^10"
-    "@instructure/ui-themes" "^10"
-    "@instructure/ui-tooltip" "^10"
-    "@instructure/ui-tray" "^10"
-    "@instructure/ui-tree-browser" "^10"
-    "@instructure/ui-truncate-text" "^10"
-    "@instructure/ui-view" "^10"
+    "@instructure/ui-a11y-content" "11.7.4-SECURITY.3"
+    "@instructure/ui-a11y-utils" "11.7.4-SECURITY.3"
+    "@instructure/ui-avatar" "11.7.4-SECURITY.3"
+    "@instructure/ui-badge" "11.7.4-SECURITY.3"
+    "@instructure/ui-billboard" "11.7.4-SECURITY.3"
+    "@instructure/ui-buttons" "11.7.4-SECURITY.3"
+    "@instructure/ui-checkbox" "11.7.4-SECURITY.3"
+    "@instructure/ui-color-utils" "11.7.4-SECURITY.3"
+    "@instructure/ui-flex" "11.7.4-SECURITY.3"
+    "@instructure/ui-focusable" "11.7.4-SECURITY.3"
+    "@instructure/ui-form-field" "11.7.4-SECURITY.3"
+    "@instructure/ui-heading" "11.7.4-SECURITY.3"
+    "@instructure/ui-icons" "11.7.4-SECURITY.3"
+    "@instructure/ui-img" "11.7.4-SECURITY.3"
+    "@instructure/ui-link" "11.7.4-SECURITY.3"
+    "@instructure/ui-list" "11.7.4-SECURITY.3"
+    "@instructure/ui-menu" "11.7.4-SECURITY.3"
+    "@instructure/ui-modal" "11.7.4-SECURITY.3"
+    "@instructure/ui-motion" "11.7.4-SECURITY.3"
+    "@instructure/ui-overlays" "11.7.4-SECURITY.3"
+    "@instructure/ui-pagination" "11.7.4-SECURITY.3"
+    "@instructure/ui-pill" "11.7.4-SECURITY.3"
+    "@instructure/ui-popover" "11.7.4-SECURITY.3"
+    "@instructure/ui-progress" "11.7.4-SECURITY.3"
+    "@instructure/ui-radio-input" "11.7.4-SECURITY.3"
+    "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
+    "@instructure/ui-select" "11.7.4-SECURITY.3"
+    "@instructure/ui-spinner" "11.7.4-SECURITY.3"
+    "@instructure/ui-svg-images" "11.7.4-SECURITY.3"
+    "@instructure/ui-table" "11.7.4-SECURITY.3"
+    "@instructure/ui-tag" "11.7.4-SECURITY.3"
+    "@instructure/ui-text" "11.7.4-SECURITY.3"
+    "@instructure/ui-text-area" "11.7.4-SECURITY.3"
+    "@instructure/ui-text-input" "11.7.4-SECURITY.3"
+    "@instructure/ui-themes" "11.7.4-SECURITY.3"
+    "@instructure/ui-tooltip" "11.7.4-SECURITY.3"
+    "@instructure/ui-tray" "11.7.4-SECURITY.3"
+    "@instructure/ui-tree-browser" "11.7.4-SECURITY.3"
+    "@instructure/ui-truncate-text" "11.7.4-SECURITY.3"
+    "@instructure/ui-view" "11.7.4-SECURITY.3"
     "@tanstack/react-query" "^5.90.20"
     classnames "^2.2.5"
     core-js "^3.49.0"
@@ -3318,13 +3313,6 @@
   resolved "https://registry.yarnpkg.com/@instructure/redux-service-middleware/-/redux-service-middleware-1.0.0.tgz#16e18ad18d28a24e8f6f8e5eae66c0e638dd75d5"
   integrity sha512-Bb/GzXhgWXnCI5UPjEwsVHHsTKIq1PwU8GXVH9dqkkp+0vzQzpFLsVUy2AUasxdMIHphe1bKq/+aR34/x7/PEw==
 
-"@instructure/shared-types@10.30.0":
-  version "10.30.0"
-  resolved "https://registry.yarnpkg.com/@instructure/shared-types/-/shared-types-10.30.0.tgz#9d65a4e94c9c2ada7ed44d0d372680a770a4a924"
-  integrity sha512-yBf+3pL5cPzo8T6Rn3/Q7IOaKHEHftcwWDioWfYuXmlUK48UFvBUWltqfkfj2bEEHxzzVcWj7k3SEdy8TLZqKw==
-  dependencies:
-    prop-types "^15.8.1"
-
 "@instructure/shared-types@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/shared-types/-/@instructure/shared-types-11.7.4-SECURITY.3.tgz#0ef47f7c81ede48cfcd9b8bf76e962e5166ed6d1"
@@ -3374,7 +3362,7 @@
     react-dom "^18.3.1"
     react-i18next "^15.4.0"
 
-"@instructure/ui-a11y-content@11.6.0", "@instructure/ui-a11y-content@11.7.4-SECURITY.3", "@instructure/ui-a11y-content@^10", "@instructure/ui-a11y-content@^11":
+"@instructure/ui-a11y-content@11.6.0", "@instructure/ui-a11y-content@11.7.4-SECURITY.3", "@instructure/ui-a11y-content@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-a11y-content/-/@instructure/ui-a11y-content-11.7.4-SECURITY.3.tgz#15266f42691f5c6821e78e8d0de2a2bdc360275f"
   integrity sha512-z693xubm/oErqPjVZ4WaXSYneINLkg7xgHyaDZdLLfBZEjrdSbmt9F7x4InnVY4h2IwdawQbEXQDSLastTLNqQ==
@@ -3384,7 +3372,7 @@
     "@instructure/shared-types" "11.7.4-SECURITY.3"
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-a11y-utils@11.7.4-SECURITY.3", "@instructure/ui-a11y-utils@^10", "@instructure/ui-a11y-utils@^11":
+"@instructure/ui-a11y-utils@11.7.4-SECURITY.3", "@instructure/ui-a11y-utils@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-a11y-utils/-/@instructure/ui-a11y-utils-11.7.4-SECURITY.3.tgz#ced52b3883bcfe8b383a639b2c8bacfe99356b1e"
   integrity sha512-znYz5tOj69MAo4hW98KMPyx/fZBYSfoyxzcK9JoP02Q+mwvtoEL6UkH3kFPo58C6pvB6ipfJrL+j/X5w+m/ZsA==
@@ -3416,7 +3404,7 @@
     "@instructure/ui-view" "11.7.4-SECURITY.3"
     keycode "^2"
 
-"@instructure/ui-avatar@11.7.4-SECURITY.3", "@instructure/ui-avatar@^10":
+"@instructure/ui-avatar@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-avatar/-/@instructure/ui-avatar-11.7.4-SECURITY.3.tgz#c678d09943c2c0ff5afb60af25a61547e9be04ad"
   integrity sha512-OXgxRI+sZumxrF79V2g5avEOWazNiDgH0Ot4cMtQE63D7xVXGbWopjfL5q05YYkX1jjOWFt1l3Q9ykoXe8ZTBg==
@@ -3430,7 +3418,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-badge@11.7.4-SECURITY.3", "@instructure/ui-badge@^10":
+"@instructure/ui-badge@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-badge/-/@instructure/ui-badge-11.7.4-SECURITY.3.tgz#06182fa62dff50e46683804ddac88d07bfca27bf"
   integrity sha512-YghvMU+AnZO6IJsSug4xYMmImObuiuxtIBmZzBTV4YvlwI3si2NiWlwogrqK0fVLKhJPWQdtG3jXdtdacu/nSg==
@@ -3444,7 +3432,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-billboard@11.6.0", "@instructure/ui-billboard@11.7.4-SECURITY.3", "@instructure/ui-billboard@^10":
+"@instructure/ui-billboard@11.6.0", "@instructure/ui-billboard@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-billboard/-/@instructure/ui-billboard-11.7.4-SECURITY.3.tgz#7e280b75f6f4221f409fc41d051077fddebea104"
   integrity sha512-KMwcfBFVJBqONRON+rosJLF415k/RY4rfG1Fn6VNlHn08c5qo2eIi12WkKdKXhHHOS5rLteNBOW2rEddrwgSRw==
@@ -3475,7 +3463,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-buttons@11.6.0", "@instructure/ui-buttons@11.7.4-SECURITY.3", "@instructure/ui-buttons@^10", "@instructure/ui-buttons@^11":
+"@instructure/ui-buttons@11.6.0", "@instructure/ui-buttons@11.7.4-SECURITY.3", "@instructure/ui-buttons@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-buttons/-/@instructure/ui-buttons-11.7.4-SECURITY.3.tgz#3c3242de3307291c285692340b4a668a9cfa2148"
   integrity sha512-hNNnMezMKgJdmQeCie5VZ0JkJH6QUaPVZK5w2hv2xbVjApRHtm1/pK6A/Ca/PtG7sqSj0/PGnllKUs7bV0EcBg==
@@ -3517,7 +3505,7 @@
     "@instructure/ui-view" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-checkbox@11.6.0", "@instructure/ui-checkbox@11.7.4-SECURITY.3", "@instructure/ui-checkbox@^10", "@instructure/ui-checkbox@^11":
+"@instructure/ui-checkbox@11.6.0", "@instructure/ui-checkbox@11.7.4-SECURITY.3", "@instructure/ui-checkbox@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-checkbox/-/@instructure/ui-checkbox-11.7.4-SECURITY.3.tgz#334c25d12908ddcf836254fd45d34efb9dc850f0"
   integrity sha512-r/BLNoh4H9q4uahxus34gvM3yZyq/VDBr7GC28U7TMvFKmiBhn+kRe0AovOoZGyZ7Dxe5qMuuOEDd3YUN/MoOw==
@@ -3564,7 +3552,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-color-utils@10.30.0", "@instructure/ui-color-utils@11.6.0", "@instructure/ui-color-utils@11.7.4-SECURITY.3", "@instructure/ui-color-utils@^10", "@instructure/ui-color-utils@^11":
+"@instructure/ui-color-utils@11.6.0", "@instructure/ui-color-utils@11.7.4-SECURITY.3", "@instructure/ui-color-utils@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-color-utils/-/@instructure/ui-color-utils-11.7.4-SECURITY.3.tgz#7c21f657f8314f57d64186df95b70807bda9ba37"
   integrity sha512-ZE0MVi92Bj+CVeHr7Tchkt1phC2AITm9wiaCFajPs90VtOHVJbyI1TvNqaLeJhRLZp8g1hzdIKShSQPGYONbYQ==
@@ -3610,13 +3598,6 @@
     "@instructure/ui-time-select" "11.7.4-SECURITY.3"
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-decorator@10.30.0":
-  version "10.30.0"
-  resolved "https://registry.yarnpkg.com/@instructure/ui-decorator/-/ui-decorator-10.30.0.tgz#2ae87778e12f3fad3ef9f53f8f0865626e664569"
-  integrity sha512-Zh9ROXSpFPAS01o56fEWzhLL3SfPCgfNAUbsXZ6gGjzz5Z7YCrH7dYC0dQK24DwFkFhYx/jmctlSDz7dUHJx/A==
-  dependencies:
-    "@babel/runtime" "^7.27.6"
-
 "@instructure/ui-decorator@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-decorator/-/@instructure/ui-decorator-11.7.4-SECURITY.3.tgz#27e6f2e6826464bdb8823e769d919186dddaf790"
@@ -3635,7 +3616,7 @@
     "@instructure/ui-dom-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-dom-utils@10.30.0", "@instructure/ui-dom-utils@11.7.4-SECURITY.3", "@instructure/ui-dom-utils@^11":
+"@instructure/ui-dom-utils@11.7.4-SECURITY.3", "@instructure/ui-dom-utils@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-dom-utils/-/@instructure/ui-dom-utils-11.7.4-SECURITY.3.tgz#6a89d4fac3cfba1b5329f6c8183b231df6b4262c"
   integrity sha512-KlCGEvQGUcsVfAMuoZjCSHK1/8r6+5RWvQaTluJ0gYbE5Cx/gEAZxU3yZDnqXm4BTv1yh0blOkwfEe68wQizzw==
@@ -3734,7 +3715,7 @@
     "@instructure/uid" "11.7.4-SECURITY.3"
     keycode "^2"
 
-"@instructure/ui-flex@11.6.0", "@instructure/ui-flex@11.7.4-SECURITY.3", "@instructure/ui-flex@^10":
+"@instructure/ui-flex@11.6.0", "@instructure/ui-flex@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-flex/-/@instructure/ui-flex-11.7.4-SECURITY.3.tgz#ce270a596846bf491aa409cd994c572e48b03718"
   integrity sha512-6wEFyMqgLcs4QFOIKzRPNCE6YzYhGWE5xz0O0YU4wbAHjEoZrB/bXX/3bZMLNhnemZbaaghpqMW9jXF358Dsrg==
@@ -3747,7 +3728,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-focusable@11.7.4-SECURITY.3", "@instructure/ui-focusable@^10":
+"@instructure/ui-focusable@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-focusable/-/@instructure/ui-focusable-11.7.4-SECURITY.3.tgz#260f5c27843be125ab445bbb2c8a9e7ec1628adf"
   integrity sha512-pGpiXfr/bjdyzCaRXbw7w0J4VHZ1N2ngnge1+m9v2gkU34dHywD1bZlQaJIF1zxcCpRnFoH3qeD/+QzUC/vYCQ==
@@ -3760,7 +3741,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-form-field@11.7.4-SECURITY.3", "@instructure/ui-form-field@^10":
+"@instructure/ui-form-field@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-form-field/-/@instructure/ui-form-field-11.7.4-SECURITY.3.tgz#8efa3e56721b32b3cfccfa71c76bae7b36513d23"
   integrity sha512-lst33YZ2xAWJWp+jwWOU2LhqWcPW+zVmdgyXY6+Nog+1Q2YPjfmJpBA2qxazzfmfwlGpnHYGGrio3vMldKNz2w==
@@ -3792,7 +3773,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-heading@11.6.0", "@instructure/ui-heading@11.7.4-SECURITY.3", "@instructure/ui-heading@^10", "@instructure/ui-heading@^11":
+"@instructure/ui-heading@11.6.0", "@instructure/ui-heading@11.7.4-SECURITY.3", "@instructure/ui-heading@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-heading/-/@instructure/ui-heading-11.7.4-SECURITY.3.tgz#a17d77e535026574ae7185b8065ea8962c464e09"
   integrity sha512-XwT6yBpFNL5R6jsF0dbAS9mMNKtuEzRo2adR8YilTK1SueOgFFhu5OuyKQIaQMQd2KbNn7CAegdcBUFYyN1vIQ==
@@ -3820,7 +3801,7 @@
     hoist-non-react-statics "^3.3.2"
     moment-timezone "^0.6.2"
 
-"@instructure/ui-icons@10.30.0", "@instructure/ui-icons@11.6.0", "@instructure/ui-icons@11.7.4-SECURITY.3", "@instructure/ui-icons@^10", "@instructure/ui-icons@^11":
+"@instructure/ui-icons@11.6.0", "@instructure/ui-icons@11.7.4-SECURITY.3", "@instructure/ui-icons@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-icons/-/@instructure/ui-icons-11.7.4-SECURITY.3.tgz#1ded63492c69707f6155ed1d1ac8b6f8934d4857"
   integrity sha512-dq1sgE43kyHpaQcc5CiWqc5cDJyols3JfGrQZR6zWKyp3VsZN2DN6GQsmpy3eHD0xbqcOBr5+r6V4gOsAUNclA==
@@ -3834,7 +3815,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     lucide-react "1.7.0"
 
-"@instructure/ui-img@11.7.4-SECURITY.3", "@instructure/ui-img@^10":
+"@instructure/ui-img@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-img/-/@instructure/ui-img-11.7.4-SECURITY.3.tgz#793fd906e9347c9fa36326329c58c3af066b2f60"
   integrity sha512-ADtjiap/vEYWndG8Dy0trBXgKRt1OFGAT4Bifz92TRSYy4l7zjesI+bVgziJe44S1dH5nEkUl6BiR1bz3eujFQ==
@@ -3867,7 +3848,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-link@11.7.4-SECURITY.3", "@instructure/ui-link@^10", "@instructure/ui-link@^11":
+"@instructure/ui-link@11.7.4-SECURITY.3", "@instructure/ui-link@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-link/-/@instructure/ui-link-11.7.4-SECURITY.3.tgz#e62d3601eb3de55448820d9bef8bd23a88f3115f"
   integrity sha512-eRibg18nbUBYOfgF9lbUIX6OfIMXKRdjDLWW/nvz+M44SNgVLtld8lKR5CKlbwB3HGJ2sJv0EPi0WMwJZWB1nw==
@@ -3885,7 +3866,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-list@11.7.4-SECURITY.3", "@instructure/ui-list@^10":
+"@instructure/ui-list@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-list/-/@instructure/ui-list-11.7.4-SECURITY.3.tgz#415f5e0f875682cee4d9a63f60e1dc79449f3754"
   integrity sha512-Bm7SUr5hlZnURPHr1oHwytMltXI5mCi2kUAmi9ibCXBMP+RjJjogF+wk5cvMJdnLHDRlWfg52raL0rtcCV1aCA==
@@ -3928,7 +3909,7 @@
     subtitle "4.2.1"
     ua-parser-js "^1.0.37"
 
-"@instructure/ui-menu@11.7.4-SECURITY.3", "@instructure/ui-menu@^10", "@instructure/ui-menu@^11":
+"@instructure/ui-menu@11.7.4-SECURITY.3", "@instructure/ui-menu@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-menu/-/@instructure/ui-menu-11.7.4-SECURITY.3.tgz#ecc3833e29d6bb37210d7ea1dd67c4bcf7ae5392"
   integrity sha512-jYMbXkbdn4cAeaPayEhuXOerSYdnUa6lvgBI3NwslAOTRw0tDbgiwI6E1GijBcBaAU5rPKUUujVyXoVbr+KVQg==
@@ -3960,7 +3941,7 @@
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
 
-"@instructure/ui-modal@11.6.0", "@instructure/ui-modal@11.7.4-SECURITY.3", "@instructure/ui-modal@^10", "@instructure/ui-modal@^11":
+"@instructure/ui-modal@11.6.0", "@instructure/ui-modal@11.7.4-SECURITY.3", "@instructure/ui-modal@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-modal/-/@instructure/ui-modal-11.7.4-SECURITY.3.tgz#5e78e8b28373778a3d4fd6dd8b9dd87064d46e63"
   integrity sha512-IzQm0tk2Yuw7TmzFDpISM2oWibE9Xz/eZjBGd0TlrkK/39fa8Fzq05q37JJJszfUT9dTqBn0oFuCLQ8xsn0k9w==
@@ -3980,7 +3961,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-motion@11.7.4-SECURITY.3", "@instructure/ui-motion@^10":
+"@instructure/ui-motion@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-motion/-/@instructure/ui-motion-11.7.4-SECURITY.3.tgz#c9bbc23f9a09f18e9e387de1d2ee9016b6380967"
   integrity sha512-qlsb8Qv5CR2Z/sQ76pCbw4XK7chohe7bteFvy+Dai5o9ayeB0/1a9B8R2U95e1o5TYLFRCZTg/AVeUokc7FQNw==
@@ -4024,7 +4005,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-overlays@11.7.4-SECURITY.3", "@instructure/ui-overlays@^10":
+"@instructure/ui-overlays@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-overlays/-/@instructure/ui-overlays-11.7.4-SECURITY.3.tgz#b9cbf6df18971f621f1b9b89f76a666c74a10bde"
   integrity sha512-d/WgRoFQFspeqfBHlzavQmJu4UG+dYmN5LX020Nvc19TYIPfjV610E9Th+f3pR1nh/Z/aMvenEvcyVey9BYWdg==
@@ -4050,7 +4031,7 @@
     "@instructure/uid" "11.7.4-SECURITY.3"
     no-scroll "^2.1.1"
 
-"@instructure/ui-pagination@11.6.0", "@instructure/ui-pagination@11.7.4-SECURITY.3", "@instructure/ui-pagination@^10":
+"@instructure/ui-pagination@11.6.0", "@instructure/ui-pagination@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-pagination/-/@instructure/ui-pagination-11.7.4-SECURITY.3.tgz#1d668190416ebff3be7c1bd527e98c547ee6578b"
   integrity sha512-XPSfl6CfDFdWqkyNL+llsd3Cg4pncazGYmlftOTgkCxVYepELmYHhoee2aLiYZsARNsaCG9pEGC/ngOxM3FmdQ==
@@ -4073,7 +4054,7 @@
     "@instructure/ui-view" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-pill@11.7.4-SECURITY.3", "@instructure/ui-pill@^10":
+"@instructure/ui-pill@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-pill/-/@instructure/ui-pill-11.7.4-SECURITY.3.tgz#5a6261091ad648bcc070c9a52d384e079d279648"
   integrity sha512-u72CKZg469zpjkWs33yBPzNCpIjVaIxntpqKmk1/aXUUKfB34XRsI2f1jXgReCLaX2r/Eur5mTbWgqGAlAQuXQ==
@@ -4089,7 +4070,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-popover@11.7.4-SECURITY.3", "@instructure/ui-popover@^10", "@instructure/ui-popover@^11":
+"@instructure/ui-popover@11.7.4-SECURITY.3", "@instructure/ui-popover@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-popover/-/@instructure/ui-popover-11.7.4-SECURITY.3.tgz#0985f2ac195b6357bb81f90c746727ce46d3d44d"
   integrity sha512-9F4z9g+MJ5aJce63VgMWkURexm66QdTMQXih8fL3+qRuhTSPb2OoSW+Xk7uesWrgkmYoPqfPDaH/0RZvMs2V8A==
@@ -4137,7 +4118,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-progress@11.6.0", "@instructure/ui-progress@11.7.4-SECURITY.3", "@instructure/ui-progress@^10":
+"@instructure/ui-progress@11.6.0", "@instructure/ui-progress@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-progress/-/@instructure/ui-progress-11.7.4-SECURITY.3.tgz#90248ef902e03f338694d2ceaabf6bbf24b63ed5"
   integrity sha512-+b4XpftbWcemee0nfrlxQZpvczpjiQsOWTICEVfZzTTdCMgDKpQGg3Ew7X7RAJBcshtinfD9+en42WsphxJuzg==
@@ -4152,7 +4133,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-radio-input@11.7.4-SECURITY.3", "@instructure/ui-radio-input@^10":
+"@instructure/ui-radio-input@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-radio-input/-/@instructure/ui-radio-input-11.7.4-SECURITY.3.tgz#bf683b757516067e8b964cda95ba93c344faa38d"
   integrity sha512-7qMfDl3/kdnp1wz3K1lFWIYofr3nx2LfOIPY9mO1yEsBPugs1T4R9Nre+L3bHFj0wP1d/IuAR/oYzUJ+Th532g==
@@ -4202,7 +4183,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-react-utils@10.30.0", "@instructure/ui-react-utils@11.6.0", "@instructure/ui-react-utils@11.7.4-SECURITY.3", "@instructure/ui-react-utils@^10", "@instructure/ui-react-utils@^11":
+"@instructure/ui-react-utils@11.6.0", "@instructure/ui-react-utils@11.7.4-SECURITY.3", "@instructure/ui-react-utils@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-react-utils/-/@instructure/ui-react-utils-11.7.4-SECURITY.3.tgz#91fb60654ce1bdf52bfbabb3a320f24141c9590f"
   integrity sha512-MSBGu77Wvz1VCMI0IBf6lho6a12bGr/ZekXDHt5dvCqceaz8/xassrsU6b8QbR6hJPThP1FCpjbq77EbYiEsVA==
@@ -4229,7 +4210,7 @@
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-select@11.6.0", "@instructure/ui-select@11.7.4-SECURITY.3", "@instructure/ui-select@^10":
+"@instructure/ui-select@11.6.0", "@instructure/ui-select@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-select/-/@instructure/ui-select-11.7.4-SECURITY.3.tgz#14a2c539dbc8f8241d066422784705a51cda6128"
   integrity sha512-BURyYPMlJDEgd81X1iELwhX13bze6LoMmq3x2Achs0hhkMVuW5I/+ixG9N7TTt72fiuzmoIKp7UrTJtF3CZbgQ==
@@ -4327,7 +4308,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@lezer/highlight" "1.2.1"
 
-"@instructure/ui-spinner@11.6.0", "@instructure/ui-spinner@11.7.4-SECURITY.3", "@instructure/ui-spinner@^10", "@instructure/ui-spinner@^11":
+"@instructure/ui-spinner@11.6.0", "@instructure/ui-spinner@11.7.4-SECURITY.3", "@instructure/ui-spinner@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-spinner/-/@instructure/ui-spinner-11.7.4-SECURITY.3.tgz#079ae1b07be0c61c2fe160bcab97e902fbe87340"
   integrity sha512-E9MlJB+12FbPhmOofw+v01WwiM2rktL6srxUtGIlZ6XNfkSvXPANlr+7K6ccvtkp2UkNYCM1zCLLykmPmhxaLA==
@@ -4343,7 +4324,7 @@
     "@instructure/ui-view" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-svg-images@10.15.0", "@instructure/ui-svg-images@11.6.0", "@instructure/ui-svg-images@11.7.4-SECURITY.3":
+"@instructure/ui-svg-images@11.6.0", "@instructure/ui-svg-images@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-svg-images/-/@instructure/ui-svg-images-11.7.4-SECURITY.3.tgz#214101902174afcfe3cbcdbf1adf4b064c770967"
   integrity sha512-A9gGx2OppXl4NH8dwLkhHLaL8PoN7JWOkm46ru+5V7mbe2ETIQI/zXrqC17FihTte8GS/1SUVohLV4Gnx098bw==
@@ -4357,7 +4338,7 @@
     "@instructure/uid" "11.7.4-SECURITY.3"
     dompurify "^3.4.2"
 
-"@instructure/ui-table@11.7.4-SECURITY.3", "@instructure/ui-table@^10":
+"@instructure/ui-table@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-table/-/@instructure/ui-table-11.7.4-SECURITY.3.tgz#c99e7e76b44f9d9f949ebebfe7f80c21801eabae"
   integrity sha512-JKslzX9HrA4QWeE7flFHbkD5Z9p45LW+WH7UXx8ow18rjFMMXHpPYXTNy7vPWTd7wYKpLIADVxDnAtle0K/v1w==
@@ -4411,33 +4392,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-tag@^10":
-  version "10.30.0"
-  resolved "https://registry.yarnpkg.com/@instructure/ui-tag/-/ui-tag-10.30.0.tgz#6835621a2c75249860206a6ab96cf97edfb836d3"
-  integrity sha512-QlPK8MmPm1exeQDSwNVZIA1n7FxhfwBcnfwhx9aN9ZbU9hN0Z+v9ZsO+ppeufaaPkyI9T1Nb3iqjRs1zQIZtUg==
-  dependencies:
-    "@babel/runtime" "^7.27.6"
-    "@instructure/console" "10.30.0"
-    "@instructure/emotion" "10.30.0"
-    "@instructure/shared-types" "10.30.0"
-    "@instructure/ui-color-utils" "10.30.0"
-    "@instructure/ui-dom-utils" "10.30.0"
-    "@instructure/ui-icons" "10.30.0"
-    "@instructure/ui-react-utils" "10.30.0"
-    "@instructure/ui-testable" "10.30.0"
-    "@instructure/ui-view" "10.30.0"
-    prop-types "^15.8.1"
-
-"@instructure/ui-testable@10.30.0":
-  version "10.30.0"
-  resolved "https://registry.yarnpkg.com/@instructure/ui-testable/-/ui-testable-10.30.0.tgz#88d729808b033c9234c138489e3ea5a2f1aad377"
-  integrity sha512-n455KJ1k/PKTpzx+4KspQ45X1cv6EynznODjgPAVOi0/iTbpdaVgAD8GSv10djzBwLAm43yHZc4PC3DENVCtfw==
-  dependencies:
-    "@babel/runtime" "^7.27.6"
-    "@instructure/ui-decorator" "10.30.0"
-    "@instructure/ui-dom-utils" "10.30.0"
-
-"@instructure/ui-text-area@11.7.4-SECURITY.3", "@instructure/ui-text-area@^10":
+"@instructure/ui-text-area@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-text-area/-/@instructure/ui-text-area-11.7.4-SECURITY.3.tgz#38f1bce27686b02e5be6cc83d33176321eec932b"
   integrity sha512-1gc1FHw85fuE/POv5nUVymyfWTFjS8vzQ8fGZ7aCHLffhTMY3TsUqRpVaH0nodSfYGMkLjlei1cuy6EqAsG9Qw==
@@ -4454,7 +4409,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-text-input@11.6.0", "@instructure/ui-text-input@11.7.4-SECURITY.3", "@instructure/ui-text-input@^10", "@instructure/ui-text-input@^11":
+"@instructure/ui-text-input@11.6.0", "@instructure/ui-text-input@11.7.4-SECURITY.3", "@instructure/ui-text-input@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-text-input/-/@instructure/ui-text-input-11.7.4-SECURITY.3.tgz#9b684db03afbed12ca0d370785b32de71fdaf7de"
   integrity sha512-ugf2P5iduHfwoJeRa+e99plYI3IxmJqas+d6o3XqR+/vWuzp1C+M/gOeEJ4YoVCQzFT9tu4c5zZ31u64ONoUSw==
@@ -4469,7 +4424,7 @@
     "@instructure/ui-tag" "11.7.4-SECURITY.3"
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
 
-"@instructure/ui-text@11.6.0", "@instructure/ui-text@11.7.4-SECURITY.3", "@instructure/ui-text@^10":
+"@instructure/ui-text@11.6.0", "@instructure/ui-text@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-text/-/@instructure/ui-text-11.7.4-SECURITY.3.tgz#357fbe81589bc1a76063cfa814f3364b029cc075"
   integrity sha512-j/negoNbLzAREb1r6UrmtiqJ0TiEYuwBiwl1Q+fJGNl9GYI7DEnc7grKxaWIA+MIazHxJOXuo3qi7Wn0YU7Q5Q==
@@ -4482,7 +4437,7 @@
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
 
-"@instructure/ui-themes@11.6.0", "@instructure/ui-themes@11.7.4-SECURITY.3", "@instructure/ui-themes@^10":
+"@instructure/ui-themes@11.6.0", "@instructure/ui-themes@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-themes/-/@instructure/ui-themes-11.7.4-SECURITY.3.tgz#672f0ccfbad92f5da5e4c455401527a970eb7c03"
   integrity sha512-cgTs4aUVrxyUSL8gstu57ulhIhVUvelgkKl05MjOaDoAZsHgC1oDkW42QUZwgAGri4bn7i6PkfH1E5Yl444miA==
@@ -4524,7 +4479,7 @@
     "@instructure/ui-view" "11.7.4-SECURITY.3"
     "@instructure/uid" "11.7.4-SECURITY.3"
 
-"@instructure/ui-tooltip@11.6.0", "@instructure/ui-tooltip@11.7.4-SECURITY.3", "@instructure/ui-tooltip@^10", "@instructure/ui-tooltip@^11":
+"@instructure/ui-tooltip@11.6.0", "@instructure/ui-tooltip@11.7.4-SECURITY.3", "@instructure/ui-tooltip@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-tooltip/-/@instructure/ui-tooltip-11.7.4-SECURITY.3.tgz#6190315d39f88b2bb8d48ea5963dc0e8108aef54"
   integrity sha512-hhK0haUS7cmVwTFt9pEm7noH6OtNnaNHtAbRMkRz8jlfCWfFC66gVc9sWI7RaozxDdDH57HQbX0n66MKsu3WSQ==
@@ -4566,7 +4521,7 @@
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-view" "11.7.4-SECURITY.3"
 
-"@instructure/ui-tray@11.7.4-SECURITY.3", "@instructure/ui-tray@^10":
+"@instructure/ui-tray@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-tray/-/@instructure/ui-tray-11.7.4-SECURITY.3.tgz#ca5ec7c2eefba1f89ef7749453577951e9dce29a"
   integrity sha512-CHAp+Z7Nf86FD3S71j4X/a8NDZ0hwygqsIsUh6VG2uJTrj4ftz1Nm0jLqfbNVUSyKrwSTP0N6EBQQjbC/RWnyA==
@@ -4585,7 +4540,7 @@
     "@instructure/ui-themes" "11.7.4-SECURITY.3"
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-tree-browser@11.7.4-SECURITY.3", "@instructure/ui-tree-browser@^10":
+"@instructure/ui-tree-browser@11.7.4-SECURITY.3":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-tree-browser/-/@instructure/ui-tree-browser-11.7.4-SECURITY.3.tgz#b792aae0e82fd28cb32426bf234ba50d8c52ac16"
   integrity sha512-A3bEW0VI67xAUGnxX8YqnhBShrUZBX+Ugf68I4Gboe3aydiw5S5NMKNsrZgWbgTZTzI8lSe04YEdZdcuuGCrjw==
@@ -4614,7 +4569,7 @@
     "@instructure/ui-react-utils" "11.7.4-SECURITY.3"
     "@instructure/ui-utils" "11.7.4-SECURITY.3"
 
-"@instructure/ui-truncate-text@11.7.4-SECURITY.3", "@instructure/ui-truncate-text@^10", "@instructure/ui-truncate-text@^11":
+"@instructure/ui-truncate-text@11.7.4-SECURITY.3", "@instructure/ui-truncate-text@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-truncate-text/-/@instructure/ui-truncate-text-11.7.4-SECURITY.3.tgz#0e10433785cc260dbd46ac997801d64191632fc5"
   integrity sha512-PoyO2BbA1JLcoHZcWS4MjRYkMWgOPP7TgQMbyWJgWChV7nmZByBbUcrhQ9y6129vWVZK3j/IG2J1yIQTrIormQ==
@@ -4644,7 +4599,7 @@
     json-stable-stringify "^1.3.0"
     ua-parser-js "^1.0.39"
 
-"@instructure/ui-view@10.30.0", "@instructure/ui-view@11.6.0", "@instructure/ui-view@11.7.4-SECURITY.3", "@instructure/ui-view@^10", "@instructure/ui-view@^11":
+"@instructure/ui-view@11.6.0", "@instructure/ui-view@11.7.4-SECURITY.3", "@instructure/ui-view@^11":
   version "11.7.4-SECURITY.3"
   resolved "https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/@instructure/ui-view/-/@instructure/ui-view-11.7.4-SECURITY.3.tgz#41077c9a26f94ce2de598fa95e94d894324afbbb"
   integrity sha512-abyKPKKBQkWJLJuTT+02E+BzH6lWe03QNE4i5PffmcXgCyYBmlROuXd82CQrga16GGFhxIXKFxNnnC0GEAYfGg==
@@ -17387,7 +17342,7 @@ react-immutable-proptypes@^2.1.0:
   dependencies:
     invariant "^2.2.2"
 
-"react-is-18@npm:react-is@^18.3.1":
+"react-is-18@npm:react-is@^18.3.1", react-is@^18.0.0:
   version "18.3.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.3.1.tgz#e83557dc12eae63a99e003a46388b1dcbb44db7e"
   integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
@@ -17406,11 +17361,6 @@ react-is@^17.0.1, react-is@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
-
-react-is@^18.0.0:
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.3.1.tgz#e83557dc12eae63a99e003a46388b1dcbb44db7e"
-  integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
 
 react-jss@^10.9.2:
   version "10.10.0"
@@ -19159,7 +19109,7 @@ string-length@^4.0.2:
     char-regex "^1.0.2"
     strip-ansi "^6.0.0"
 
-"string-width-cjs@npm:string-width@^4.2.0":
+"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -19193,15 +19143,6 @@ string-width@^3.0.0, string-width@^3.1.0:
     emoji-regex "^7.0.1"
     is-fullwidth-code-point "^2.0.0"
     strip-ansi "^5.1.0"
-
-string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
-  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
-  dependencies:
-    emoji-regex "^8.0.0"
-    is-fullwidth-code-point "^3.0.0"
-    strip-ansi "^6.0.1"
 
 string-width@^5.0.1, string-width@^5.1.2:
   version "5.1.2"
@@ -19298,7 +19239,7 @@ stringify-object@^3.3.0:
     is-obj "^1.0.1"
     is-regexp "^1.0.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -19325,13 +19266,6 @@ strip-ansi@^5.0.0, strip-ansi@^5.1.0, strip-ansi@^5.2.0:
   integrity sha512-DuRs1gKbBqsMKIZlrffwlug8MHkcnpjs5VPmL1PAh+mA30U0DTotfDZ0d2UUsXpPmPmMMJ6W773MaA3J+lbiWA==
   dependencies:
     ansi-regex "^4.1.0"
-
-strip-ansi@^6.0.0, strip-ansi@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
-  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
-  dependencies:
-    ansi-regex "^5.0.1"
 
 strip-ansi@^7.0.1, strip-ansi@^7.1.0, strip-ansi@^7.1.2:
   version "7.2.0"
@@ -21090,7 +21024,7 @@ wordwrap@^1.0.0:
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -21128,15 +21062,6 @@ wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==
-  dependencies:
-    ansi-styles "^4.0.0"
-    string-width "^4.1.0"
-    strip-ansi "^6.0.0"
-
-wrap-ansi@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
-  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"
     string-width "^4.1.0"
