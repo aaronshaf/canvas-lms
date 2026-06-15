@@ -72,21 +72,44 @@ describe WebConference do
     end
   end
 
-  describe "#description sanitization" do
+  describe "#description (plain-text contract)" do
     before { user_model }
 
     let(:conference) do
       WimbaConference.create!(title: "my conference", user: @user, context: course_factory)
     end
 
-    it "strips dangerous markup on save" do
-      conference.update!(description: "<a href='#' onclick='alert(1)'>ok</a><script>alert(2)</script>")
-      expect(conference.description).to eq('<a href="#">ok</a>')
+    it "stores ampersands verbatim (not entity-encoded)" do
+      conference.update!(description: "Q & A with 5 & 10 attendees")
+      expect(conference.description).to eq("Q & A with 5 & 10 attendees")
+      expect(conference.reload.description).to eq("Q & A with 5 & 10 attendees")
     end
 
-    it "sanitizes legacy unsanitized description on read" do
+    it "preserves a literal NBSP on round-trip" do
+      input = "before#{0xa0.chr(Encoding::UTF_8)}after"
+      conference.update!(description: input)
+      expect(conference.description).to eq(input)
+      expect(conference.reload.description).to eq(input)
+    end
+
+    it "preserves a bare '<' followed by a space" do
+      conference.update!(description: "for groups of 5 < 10 students")
+      expect(conference.description).to eq("for groups of 5 < 10 students")
+      expect(conference.reload.description).to eq("for groups of 5 < 10 students")
+    end
+
+    it "preserves <word>-shaped tokens (not stripped as unknown HTML tags)" do
+      conference.update!(description: "Office hours with <your initials>")
+      expect(conference.description).to eq("Office hours with <your initials>")
+      expect(conference.reload.description).to eq("Office hours with <your initials>")
+    end
+
+    it "stores legacy unsanitized data verbatim on read (no implicit sanitize)" do
       conference.update_columns(description: "<script>alert(1)</script>safe")
-      expect(conference.reload.description).to eq("safe")
+      # Plain-text contract: the model returns whatever the column stores.
+      # Render-side defenses (Handlebars {{description}} auto-escape) are
+      # responsible for producing safe HTML at emission time.
+      expect(conference.reload.description).to eq("<script>alert(1)</script>safe")
     end
   end
 

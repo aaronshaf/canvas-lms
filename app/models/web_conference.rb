@@ -59,11 +59,12 @@ class WebConference < ApplicationRecord
     self["settings"] ||= {}
   end
 
-  sanitize_field :description, CanvasSanitize::SANITIZE
-  def description
-    raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
-  end
+  # WebConference#description stores plain text. The compose UIs are
+  # InstUI <TextArea> across all conference modals (BBBModalOptions,
+  # BaseModalOptions for Zoom/Teams/etc., VideoConferenceModal). Server-side
+  # HTML sanitization is intentionally NOT applied — Handlebars {{description}}
+  # in ui/features/conferences/jst/newConference.handlebars and
+  # concludedConference.handlebars auto-escapes at render time.
 
   # whether they replace the whole hash or just update some values, make sure
   # we save those changes (after we sanitize it)

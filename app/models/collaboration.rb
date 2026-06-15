@@ -45,11 +45,13 @@ class Collaboration < ApplicationRecord
   validates :title, :workflow_state, :context_id, :context_type, presence: true
   validates :title, length: { maximum: TITLE_MAX_LENGTH }
   validates :description, length: { maximum: maximum_text_length, allow_blank: true }
-  sanitize_field :description, CanvasSanitize::SANITIZE
-  def description
-    raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
-  end
+
+  # Collaboration#description stores plain text. The compose UIs are
+  # plain <textarea> (Rails f.text_area in app/views/collaborations/_forms.html.erb
+  # and bare HTML in ui/features/collaborations/jst/edit.handlebars). Server-side
+  # HTML sanitization is intentionally NOT applied — render-time defenses are:
+  # ERB auto-escape on app/views/collaborations/_collaboration.html.erb and
+  # React JSX auto-escape on ui/features/lti_collaborations/react/Collaboration.jsx.
 
   serialize :data
 

@@ -156,7 +156,7 @@ describe Collaboration do
     end
   end
 
-  describe "#description sanitization" do
+  describe "#description (plain-text contract)" do
     before :once do
       PluginSetting.create!(name: "etherpad", settings: {})
       course_factory(active_all: true)
@@ -170,14 +170,37 @@ describe Collaboration do
       c
     end
 
-    it "strips dangerous markup on save" do
-      collab.update!(description: "<a href='#' onclick='alert(1)'>ok</a><script>alert(2)</script>")
-      expect(collab.description).to eq('<a href="#">ok</a>')
+    it "stores ampersands verbatim (not entity-encoded)" do
+      collab.update!(description: "Notes for 5 & 10 students")
+      expect(collab.description).to eq("Notes for 5 & 10 students")
+      expect(collab.reload.description).to eq("Notes for 5 & 10 students")
     end
 
-    it "sanitizes legacy unsanitized description on read" do
+    it "preserves a literal NBSP on round-trip" do
+      input = "before#{0xa0.chr(Encoding::UTF_8)}after"
+      collab.update!(description: input)
+      expect(collab.description).to eq(input)
+      expect(collab.reload.description).to eq(input)
+    end
+
+    it "preserves a bare '<' followed by a space" do
+      collab.update!(description: "for groups of 5 < 10 students")
+      expect(collab.description).to eq("for groups of 5 < 10 students")
+      expect(collab.reload.description).to eq("for groups of 5 < 10 students")
+    end
+
+    it "preserves <word>-shaped tokens (not stripped as unknown HTML tags)" do
+      collab.update!(description: "Sign up with <your initials> in the name")
+      expect(collab.description).to eq("Sign up with <your initials> in the name")
+      expect(collab.reload.description).to eq("Sign up with <your initials> in the name")
+    end
+
+    it "stores legacy unsanitized data verbatim on read (no implicit sanitize)" do
       collab.update_columns(description: "<script>alert(1)</script>safe")
-      expect(collab.reload.description).to eq("safe")
+      # Plain-text contract: the model returns whatever the column stores.
+      # Render-side defenses (ERB / JSX auto-escape) are responsible for
+      # producing safe HTML at emission time.
+      expect(collab.reload.description).to eq("<script>alert(1)</script>safe")
     end
   end
 end
