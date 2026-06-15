@@ -24,6 +24,36 @@ import StudentStudyDrawer from '../StudentStudyDrawer'
 import {_resetPageContentWrapper} from '@canvas/page-content-wrapper'
 import {ContentWithNoteWrapper, NotebookProvider} from '@instructure/platform-notebook'
 import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
+import * as a11yUtils from '@instructure/ui-a11y-utils'
+
+let capturedOnOverlayTrayChange: ((overlay: boolean) => void) | undefined
+
+vi.mock('@instructure/ui-drawer-layout', () => {
+  const MockTray = ({open, children, label, contentRef, id}: any) => {
+    if (!open) return null
+    return (
+      <div ref={contentRef} aria-label={label} id={id}>
+        {children}
+      </div>
+    )
+  }
+  const MockContent = ({children, contentRef, label}: any) => (
+    <div ref={contentRef} aria-label={label}>
+      {children}
+    </div>
+  )
+  const MockDrawerLayout = ({children, onOverlayTrayChange}: any) => {
+    capturedOnOverlayTrayChange = onOverlayTrayChange
+    return <>{children}</>
+  }
+  MockDrawerLayout.Content = MockContent
+  MockDrawerLayout.Tray = MockTray
+  return {DrawerLayout: MockDrawerLayout}
+})
+
+vi.mock('@instructure/ui-a11y-utils', () => ({
+  scopeTab: vi.fn(),
+}))
 
 const server = setupServer()
 
@@ -584,6 +614,186 @@ describe('StudentStudyDrawer', () => {
       message: 'An outdated note could not be removed after the page changed.',
       type: 'error',
       err: expect.any(Error),
+    })
+  })
+
+  describe('focus trap in overlay mode', () => {
+    beforeEach(() => {
+      capturedOnOverlayTrayChange = undefined
+      vi.mocked(a11yUtils.scopeTab).mockClear()
+    })
+
+    it('traps Tab focus in the tray when overlay mode is active and panel is open', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+      act(() => {
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}))
+      })
+
+      expect(a11yUtils.scopeTab).toHaveBeenCalled()
+    })
+
+    it('does not trap Tab when overlay mode is inactive', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}))
+      })
+
+      expect(a11yUtils.scopeTab).not.toHaveBeenCalled()
+    })
+
+    it('does not trap Tab when panel is closed even in overlay mode', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}))
+      })
+
+      expect(a11yUtils.scopeTab).not.toHaveBeenCalled()
+    })
+
+    it('does not call scopeTab when focus is outside the tray in overlay mode', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+      })
+      act(() => {
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      // Move focus to an element outside the tray to prove the contains-guard fires
+      const outsideButton = document.createElement('button')
+      document.body.appendChild(outsideButton)
+      outsideButton.focus()
+
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}))
+      })
+
+      expect(a11yUtils.scopeTab).not.toHaveBeenCalled()
+      outsideButton.remove()
+    })
+
+    it('removes the focus trap when the panel is closed', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+      })
+
+      vi.mocked(a11yUtils.scopeTab).mockClear()
+
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}))
+      })
+
+      expect(a11yUtils.scopeTab).not.toHaveBeenCalled()
+    })
+
+    it('sets inert on page content when overlay mode is active and panel is open', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      const contentEl = document.querySelector('[aria-label="Page content"]')
+      expect(contentEl).toHaveAttribute('inert')
+    })
+
+    it('removes inert from page content when the panel is closed', () => {
+      const pageContent = makePageContent()
+
+      render(
+        <StudentStudyDrawer
+          pageContent={pageContent}
+          showStudyAssist={true}
+          showNotebook={false}
+        />,
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('study-assist:open'))
+        capturedOnOverlayTrayChange?.(true)
+      })
+
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+      })
+
+      const contentEl = document.querySelector('[aria-label="Page content"]')
+      expect(contentEl).not.toHaveAttribute('inert')
     })
   })
 

@@ -17,6 +17,7 @@
  */
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {scopeTab} from '@instructure/ui-a11y-utils'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {DrawerLayout} from '@instructure/ui-drawer-layout'
 import {View} from '@instructure/ui-view'
@@ -114,9 +115,20 @@ function StudentStudyDrawerInner({
   }, [showNotebook])
   const [activePanel, setActivePanel] = useState<ActivePanel>(initialNoteId ? 'notebook' : null)
   const [containerReady, setContainerReady] = useState(false)
+  const [isOverlayTray, setIsOverlayTray] = useState(false)
   const containerRef = useRef<HTMLElement | null>(null)
   const closeButtonRef = useRef<Element | null>(null)
   const triggerElementRef = useRef<HTMLElement | null>(null)
+  const trayRef = useRef<HTMLDivElement | null>(null)
+  const contentElemRef = useRef<HTMLDivElement | null>(null)
+
+  const handleTrayContentRef = useCallback((el: HTMLDivElement | null) => {
+    trayRef.current = el
+  }, [])
+
+  const handleContentRef = useCallback((el: HTMLDivElement | null) => {
+    contentElemRef.current = el
+  }, [])
 
   const handleDismiss = useCallback(() => setActivePanel(null), [])
 
@@ -203,6 +215,36 @@ function StudentStudyDrawerInner({
     window.dispatchEvent(new CustomEvent(STATE_EVENT, {detail: {activePanel}}))
   }, [activePanel])
 
+  // Trap keyboard focus within the tray when it's overlaying the full viewport.
+  // The DrawerLayout.Tray's built-in shouldContainFocus doesn't activate reliably
+  // because the Dialog mounts during the CSS transition (when transitioning=true
+  // forces shouldContainFocus=false) and never re-activates after transition ends.
+  // Guard on activeElement so flash alerts and nested dialogs outside the tray
+  // aren't affected when they legitimately hold focus.
+  useEffect(() => {
+    if (!isOverlayTray || activePanel === null) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' && trayRef.current?.contains(document.activeElement)) {
+        scopeTab(trayRef.current, e as unknown as React.KeyboardEvent)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isOverlayTray, activePanel])
+
+  // Inert the page content behind the tray in full-viewport overlay mode so
+  // screen-reader virtual cursor (arrow keys) can't navigate into hidden content.
+  useEffect(() => {
+    const el = contentElemRef.current
+    if (!el) return
+    if (isOverlayTray && activePanel !== null) {
+      el.setAttribute('inert', '')
+    } else {
+      el.removeAttribute('inert')
+    }
+    return () => el.removeAttribute('inert')
+  }, [isOverlayTray, activePanel])
+
   // Notebook owns its own mount focus.
   useEffect(() => {
     if (activePanel === null || activePanel === 'notebook') return
@@ -245,8 +287,8 @@ function StudentStudyDrawerInner({
 
   const content = (
     <View as="div" display="block" height="100vh" data-testid="student-study-drawer-layout">
-      <DrawerLayout minWidth="40rem">
-        <DrawerLayout.Content label={I18n.t('Page content')}>
+      <DrawerLayout minWidth="40rem" onOverlayTrayChange={setIsOverlayTray}>
+        <DrawerLayout.Content label={I18n.t('Page content')} contentRef={handleContentRef}>
           <div ref={handleHostRef} />
         </DrawerLayout.Content>
         <DrawerLayout.Tray
@@ -256,6 +298,7 @@ function StudentStudyDrawerInner({
           onDismiss={handleDismiss}
           defaultFocusElement={() => closeButtonRef.current}
           id={TRAY_ID}
+          contentRef={handleTrayContentRef}
         >
           {activePanel === 'study-assist' && showStudyAssist && (
             <StudyAssistPanel
