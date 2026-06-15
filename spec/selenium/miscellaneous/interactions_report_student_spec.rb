@@ -36,10 +36,12 @@ describe "student interactions report" do
       @sub1.update!({ score: 10 })
       @sub2.update!({ score: 5 })
 
-      get "/users/#{@teacher.id}/teacher_activity/course/#{@course.id}"
+      with_timeouts(script: 30) do
+        get "/users/#{@teacher.id}/teacher_activity/course/#{@course.id}"
+      end
     end
 
-    it "has sortable columns, except the email header" do
+    it "has sortable columns, except the email header", custom_timeout: 25 do # flaky-fix: QE-157
       ths = ff(".report th")
       expect(ths[0]).to have_class("header")
       expect(ths[1]).to have_class("header")
@@ -49,7 +51,7 @@ describe "student interactions report" do
       expect(ths[5]).to have_class("sorter-false")
     end
 
-    it "allows sorting by columns" do
+    it "allows sorting by columns", custom_timeout: 35 do # flaky-fix: QE-157
       ths = ff(".report th")
       trs = ff(".report tbody tr")
       ths[0].click

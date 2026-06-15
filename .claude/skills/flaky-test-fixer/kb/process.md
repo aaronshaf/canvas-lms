@@ -74,27 +74,56 @@ Three reports reveal whether the failure pattern is consistent or varies.
 | Multiple tests always fail together | Shared environment variable | Case 12, Case 06 (env) |
 | `RuntimeError: Don't know how to build task` (all tests) | Conditional task loading with stale guard | Case 08 |
 
-### 4c. Implement the fix
+### 4c. Implement the fix locally
 
-- Apply the appropriate pattern from the KB
+- Apply the appropriate pattern from the KB to the working tree
 - Tag the test with `# flaky-fix: <JIRA>` (S-01)
 - Preserve all original assertions (S-03, S-04)
 - Proactively fix sibling tests with the same pattern
+- Do not stage or commit yet — the user reviews the analysis and diffs
+  together before approving
 
-### 4d. Stage and commit; pause for review before pushing
+### 4d. Critically review every change for actual value
+
+Before staging, review each change in the fix and ask: **does this change
+directly address the identified root cause?** Drop any change that does not.
+
+- A change that saves 2 s of DB setup does not help when the root cause is
+  a 10 s Chrome script timeout — the two are independent.
+- A refactor from `before` to `before(:once)` is not a flaky fix unless the
+  per-test data creation is itself the source of the flakiness.
+- A `custom_timeout` bump is not a fix for a race condition.
+
+Every line in the diff should be traceable to the root cause. If it is not,
+remove it — cosmetic improvements and "while we're here" refactors dilute
+the patch, complicate review, and risk introducing new issues.
+
+### 4e. Push once the user approves, then generate JIRA comment
+
+Each test fix is pushed to the PS before moving to the next test.
+The user has already reviewed the analysis and diffs (4c–4d). Once they
+approve:
 
 - `git add` the changed files
 - `git commit --amend --no-edit` (or with updated message) — same Change-Id (S-05)
-- **Stop here.** Present a summary of all staged changes and ask the user
-  to review. Do not push autonomously.
-- Only after the user explicitly approves run:
-  `git push origin HEAD:refs/for/master`
+- `git push origin HEAD:refs/for/master`
+- Generate an HTML file for the JIRA comment (S-02) covering:
+  test location/stats, error signature, root cause, fix applied (with
+  PS reference), and fallback if insufficient.
 
-### 4e. Verify in CI
+Then move to the next test (back to 4a).
 
-Check the PS CI run for failures of the fixed tests. The Jenkins summary
+## 5. Close out the batch
+
+### 5a. CI verification
+
+After all tests in the batch are fixed and pushed, verify in CI.
+Run at least 2 consecutive clean CI builds with no flaky failures on
+any of the fixed tests.
+
+Check the PS CI run for failures of any fixed test. The Jenkins summary
 report page (same format as the Breakdown `parent_build_url`) is used to
-search for any reoffending tests.
+search for reoffending tests.
 
 - If the test fails: download the MHTML, diagnose, adjust, push again
 - If the MHTML does not contain enough information to diagnose, add
@@ -103,22 +132,6 @@ search for any reoffending tests.
 - If the test passes: move to the next test
 - Also check for new failures in the same spec file — a fix can introduce
   flakiness in sibling tests (e.g. a `before(:once)` creating shared data)
-
-### 4f. Generate JIRA comment
-
-Per S-02, write an HTML file with the fix description and paste into JIRA:
-- Test location and stats
-- Error signature
-- Root cause analysis
-- Fix applied (with PS reference)
-- Fallback if the fix proves insufficient
-
-## 5. Close out the batch
-
-### 5a. Final CI verification
-
-Run at least 2 consecutive clean CI builds with no flaky failures on
-any of the fixed tests.
 
 ### 5b. Update the KB
 

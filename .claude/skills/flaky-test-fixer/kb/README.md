@@ -36,6 +36,7 @@ Use this table to jump to the right case from the error signature.
 |---|---|---|
 | `SpecTimeLimit::Error` with under-set `custom_timeout` | Timeout budget | 02 |
 | `SpecTimeLimit::Error` at 60s cap | Cap optimisation | 03 |
+| `ScriptTimeoutError` during `get` / page load | Chrome async script timeout | 02 (with_timeouts) |
 | `RuntimeError` from JS console (CDP session) | Browser artifact | 04A |
 | `NoSuchElementError` after page load / refresh | Deferred AJAX miss | 04B |
 | `ExpectationNotMetError` wrong value, DB ordering | DB ordering assumption | 04C |

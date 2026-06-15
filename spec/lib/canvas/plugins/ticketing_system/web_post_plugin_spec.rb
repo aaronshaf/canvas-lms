@@ -20,8 +20,7 @@
 module Canvas::Plugins::TicketingSystem
   describe WebPostPlugin do
     describe "#export_error" do
-      it "posts the error_report document to the configured endpoint" do # flaky-fix: QE-155
-        original_post = CanvasHttp.singleton_class.instance_method(:post)
+      it "posts the error_report document to the configured endpoint" do # flaky-fix: QE-155, QE-157
         ticketing = instance_double(Canvas::Plugins::TicketingSystem)
         document = { key: "value", info: "data" }
         report = instance_double(Canvas::Plugins::TicketingSystem::CustomError, to_document: document)
@@ -30,12 +29,9 @@ module Canvas::Plugins::TicketingSystem
         plugin = WebPostPlugin.new(ticketing)
         expect(CanvasHttp).to receive(:post).with(endpoint, include(body: document.to_json))
         plugin.export_error(report, config)
-      ensure
-        CanvasHttp.singleton_class.define_method(:post, original_post) if original_post
       end
 
-      it "truncates become_user_uri to the maximum string length" do # flaky-fix: QE-155
-        original_post = CanvasHttp.singleton_class.instance_method(:post)
+      it "truncates become_user_uri to the maximum string length" do # flaky-fix: QE-155, QE-157
         ticketing = instance_double(Canvas::Plugins::TicketingSystem)
         long_uri = "http://something.com/path?become_user_id=42&state=#{"x" * 300}"
         document = { reporter: { become_user_uri: long_uri } }
@@ -51,11 +47,9 @@ module Canvas::Plugins::TicketingSystem
           request_body = JSON.parse(opts[:body])
           expect(request_body.dig("reporter", "become_user_uri").length).to be <= ErrorReport.maximum_string_length
         end
-      ensure
-        CanvasHttp.singleton_class.define_method(:post, original_post) if original_post
       end
 
-      it "rejects an insecure URI without posting" do # flaky-fix: QE-142, QE-147, QE-155
+      it "rejects an insecure URI without posting" do # flaky-fix: QE-142, QE-147, QE-155, QE-157
         ticketing = instance_double(Canvas::Plugins::TicketingSystem)
         report = instance_double(Canvas::Plugins::TicketingSystem::CustomError, to_document: { ok: 1 })
         plugin = WebPostPlugin.new(ticketing)

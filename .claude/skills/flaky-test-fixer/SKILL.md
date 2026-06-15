@@ -54,49 +54,41 @@ For each test (or group):
    backtrace, Rails log entries, and screenshot observations.
 2. **Read the full spec file** — not just the failing line. Check
    `before` blocks, shared contexts, and helper methods.
+   If the test already carries a `# flaky-fix:` tag, retrieve the
+   prior fix per S-16 and ask the user for the detailed breakdown CSV
+   from the Observe worksheet. Build a daily failure timeline and
+   compare the rate before vs after each prior fix merge to determine
+   whether each fix helped, partially helped, or had no effect.
 3. **Classify** using the table below. Read the referenced case file.
 4. **Present the root-cause analysis** to the user before implementing.
-5. **Implement the fix** following the case's procedure. Tag the test
-   with `# flaky-fix: <JIRA>` per S-01 (in `kb/style.md`).
-6. **Re-evaluate `custom_timeout`** per S-09 (in `kb/style.md`) if the
+5. **Implement the fix locally** following the case's procedure. Tag the
+   test with `# flaky-fix: <JIRA>` per S-01 (in `kb/style.md`).
+   Apply the changes to the working tree — do not stage or commit yet.
+6. **Verify every change addresses the root cause.** For each change
+   in the diff, ask: does this directly fix the identified failure
+   mechanism? Drop any change that does not — cosmetic refactors,
+   marginal optimisations on an unrelated axis, and "while we're here"
+   cleanups dilute the patch without reducing flakiness.
+7. **Re-evaluate `custom_timeout`** per S-09 (in `kb/style.md`) if the
    fix changes the test's runtime or the file will be in HEAD.
-7. **Check for sibling tests** with the same pattern — fix proactively.
-8. **Generate the JIRA comment** as an HTML file per S-02 (in
-   `kb/style.md`). Open it in the browser so the user can copy-paste
-   into JIRA.
+8. **Check for sibling tests** with the same pattern — fix proactively.
+9. **Show the diff** so the user can review both the analysis and the
+   code changes together before approving.
+10. **Once the user approves:** `git add` the changed files,
+    `git commit --amend --no-edit` (same Change-Id per S-05 in
+    `kb/style.md`), push to Gerrit, and generate the JIRA comment as
+    an HTML file per S-02 (in `kb/style.md`).
 
-After each test, ask: *"Ready for the next test, or should we move to
-review and push?"*
+Each test fix is pushed to the PS before moving to the next test.
+After pushing, ask: *"Ready for the next test?"*
 
-### Phase 3 — Verify
+### Phase 3 — Close out
 
-When the user says to push (or after all tests are done):
-
-1. **Pause for review before touching git.** Present a summary of every
-   file changed and the nature of each change. Use AskUserQuestion:
-   *"Please review the changes above. Any corrections before I commit?"*
-   Wait for explicit approval. Do not stage or commit until the user
-   confirms.
-2. Once approved: `git add` the changed files,
-   `git commit --amend --no-edit` (same Change-Id per S-05 in
-   `kb/style.md`). Then tell the user:
-   *"Committed. Run `git push origin HEAD:refs/for/master` when ready."*
-   Do not push autonomously.
-3. Use AskUserQuestion: *"Paste the CI run report MHTML when the build
-   completes."* (The user downloads the Jenkins build summary page as
-   MHTML and provides it as a file path.)
-4. Check the report for failures in any fixed test. If found:
-   - Read the failure MHTML, diagnose, adjust the fix, re-commit.
-5. If clean: note which CI run passed. Need 2 consecutive clean runs
-   per process step 5a in `kb/process.md`.
-
-### Phase 4 — Close out
-
-After 2 clean CI runs, execute steps 5a–5d in `kb/process.md`:
-update KB cases, verify the lookup tables in `README.md` and
-`SKILL.md`, amend the commit message to cover all fixes, push the
-final PS, and summarise the batch (tests fixed, patterns used, KB
-changes, tests skipped and why).
+After all tests are fixed, execute steps 5a–5d in `kb/process.md`:
+verify CI (2 consecutive clean runs), update KB cases, verify the
+lookup tables in `README.md` and `SKILL.md`, amend the commit message
+to cover all fixes, push the final PS, and summarise the batch (tests
+fixed, patterns used, KB changes, tests skipped and why).
 
 ## Classification
 
@@ -107,6 +99,7 @@ case file for the full diagnostic procedure and fix pattern.
 |---|---|---|
 | `SpecTimeLimit::Error`, `custom_timeout` too low | Timeout budget | `kb/case_02.md` |
 | `SpecTimeLimit::Error` at 60s absolute cap | Cap optimisation | `kb/case_03.md` |
+| `ScriptTimeoutError` during `get` / page load | Chrome async script timeout | `kb/case_02.md` (with_timeouts) |
 | `RuntimeError` from JS console (CDP / session) | Browser artifact | `kb/case_04.md` Pattern A |
 | `NoSuchElementError` after page load / refresh | Deferred AJAX miss | `kb/case_04.md` Pattern B |
 | `ExpectationNotMetError`, wrong value from DB | DB ordering assumption | `kb/case_04.md` Pattern C |

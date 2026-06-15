@@ -189,67 +189,98 @@ runs, no error is raised.
   runs immediately after a stubbing test and N is the number of tests in the
   describe group (e.g. ~33% for a 3-test group with 1 stubbing test)
 
-### Fix — at the source (S-12)
+### Fix — use only RSpec-managed stubs (S-12)
 
-Add `ensure` blocks to the contaminating tests that save and restore the
-original method using pure Ruby, bypassing `RSpec::Mocks.teardown`:
+**Do not use `ensure` + `define_method` to manually restore methods.** This
+approach was attempted in QE-155 and proved ineffective: the flaky rate
+remained ~14/day unchanged over 4 days of CI data (QE-157 analysis). The
+`ensure` block runs before RSpec's `after(:each)` teardown and can leave
+RSpec's internal proxy references in a stale state, causing the stub to
+survive into the next example.
+
+Instead, trust RSpec's built-in `expect/allow` cleanup — it handles method
+stub restoration automatically:
 
 ```ruby
+# GOOD — standard RSpec; cleanup is automatic
 it "truncates become_user_uri" do
-  original_post = CanvasHttp.singleton_class.instance_method(:post)
   allow(CanvasHttp).to receive(:post)
   plugin.export_error(report, config)
   expect(CanvasHttp).to have_received(:post) { |_, opts| ... }
+end
+
+# BAD — manual ensure conflicts with RSpec teardown (QE-155, reverted QE-157)
+it "truncates become_user_uri" do
+  original_post = CanvasHttp.singleton_class.instance_method(:post)
+  allow(CanvasHttp).to receive(:post)
+  ...
 ensure
   CanvasHttp.singleton_class.define_method(:post, original_post) if original_post
 end
 ```
 
-`singleton_class.instance_method(:post)` captures the real method as an
-`UnboundMethod` before the RSpec stub replaces it. `define_method` in
-`ensure` restores it unconditionally. This is idempotent with RSpec's own
-teardown — both restore the same method.
+When the contamination involves a **class-level ivar mutation** (not an RSpec
+stub), replace the ivar mutation with an RSpec stub on the method that reads
+it:
 
-**Do not fix the victim.** Adding defensive overrides (`.and_call_original`)
-to the victim means every new test added to the file that depends on the
-real method would also need the defense. Fixing at the source protects all
-sibling tests — present and future.
+```ruby
+# BAD — mutates class ivar; ensure cleanup is unreliable
+CanvasHttp.blocked_ip_ranges = []
+# ...
+ensure
+  CanvasHttp.blocked_ip_ranges = nil
 
-### Contributing factor: Ruby 3.x `...` delegation
+# GOOD — RSpec stub; cleanup is automatic
+allow(CanvasHttp).to receive(:resolve_and_validate_host).and_return(["1.2.3.4"])
+```
 
-`CanvasHttp.post` is defined with `def self.post(...)`. The `...` delegation
-syntax in Ruby 3.x may interact poorly with rspec-mocks' method
-save/restore mechanism (`singleton_class.instance_method` + `define_method`),
-causing intermittent failure to restore the original. The explicit
-`ensure` in the contaminating test provides a second restore that runs
-regardless of rspec-mocks' internal state.
+### How to recognise
 
-### Eliminated hypothesis: `spec_helper.rb:96`
+- Error: "expected SomeError but nothing was raised"
+- The same spec file has other tests that stub the method in the call chain
+- High flaky_fails, low build_fails, no common preceding test across reports
+  (the contaminator is INSIDE the file, not from a preceding file)
+- Failure rate ≈ K/N! where K is the number of orderings where the victim
+  runs immediately after a stubbing test and N is the number of tests in the
+  describe group (e.g. ~33% for a 3-test group with 1 stubbing test)
 
-`spec/spec_helper.rb:96` stubs `resolve_and_validate_host` → nil in
-describe groups that `include WebMock::API`. Analysis proved this stub is
-correctly scoped to its describe group via `before(:each)` and cannot leak
-to tests that do not include `WebMock::API`.
+### Unsuccessful approach: `ensure` + `define_method` (QE-155)
+
+The QE-155 fix added `ensure` blocks that capture the original method via
+`singleton_class.instance_method(:post)` and restore it via `define_method`.
+Daily failure rate analysis (QE-157) showed zero improvement:
+
+```
+Pre-QE-155:  ~14 flaky/day
+Post-QE-155: ~14 flaky/day (4 days of data)
+```
+
+The likely mechanism: `ensure` runs before RSpec's `after(:each)`, replacing
+the proxy with the original method. RSpec's teardown then operates on stale
+internal references, and on some orderings the proxy survives.
+
+Ruby 3.x `...` delegation syntax on `CanvasHttp.post` may compound this by
+interacting poorly with rspec-mocks' method save/restore mechanism.
 
 ### Difference from Pattern A
 
 Pattern A: a mutable class variable leaks a DATA value across examples.
-Fixed by resetting the variable in `ensure`.
+Fixed by replacing the ivar mutation with an RSpec stub.
 
 Pattern E: an RSpec method stub leaks a METHOD OVERRIDE across examples
 within the same file. The class's data is correct, but the method itself
-is replaced with a no-op. Fixed by saving and restoring the original method
-via `ensure` in the contaminating tests.
+is replaced with a no-op. Fixed by removing manual `ensure` restoration and
+trusting RSpec's built-in cleanup.
 
-Both can co-exist on the same test (as in `web_post_plugin_spec.rb:52`),
-requiring separate defenses for each vector.
+Both can co-exist on the same test (as in `web_post_plugin_spec.rb:58`),
+requiring fixes for each vector.
 
 ---
 
 ## Files affected
 
-- `spec/lib/canvas/plugins/ticketing_system/web_post_plugin_spec.rb:52` (Pattern A — QE-142, QE-147; Pattern E — QE-155)
-- `spec/initializers/canvas_http_spec.rb` (Pattern A source — QE-147)
+- `spec/lib/canvas/plugins/ticketing_system/web_post_plugin_spec.rb:58` (Pattern A — QE-142, QE-147; Pattern E — QE-155, QE-157)
+- `spec/initializers/canvas_http_spec.rb` (Pattern A source — QE-147, QE-157)
 - `spec/controllers/application_controller_spec.rb:1513` (Pattern B source — QE-147)
 - `spec/selenium/context_modules/shared_examples/context_modules_teacher_shared_examples.rb:843,:797` (Pattern B — QE-147)
 - `spec/lib/canvas_operations_rake_spec.rb` (Pattern C — QE-146)

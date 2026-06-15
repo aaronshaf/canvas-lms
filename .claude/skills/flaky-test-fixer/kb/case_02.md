@@ -55,21 +55,23 @@ Derived from calibrating against 7 known-passing tests with measured timeouts.
 |---|---|---|
 | **H (Heavy)** | Page nav: `get`, `refresh_page`, `visit_*`, `open_*_form`, `expect_new_page_load` | **6 s each** |
 | **H (Heavy)** | RCE/TinyMCE: `type_in_tiny`, `wait_for_rce`, `set_answer_comment`, `set_question_comment` | **6 s each** |
+| **H (Heavy)** | Submit-with-redirect: form submit that triggers a 302 redirect and full page reload | **6 s each** |
 | **M (Medium)** | AJAX: `wait_for_ajaximations`, `wait_for_ajax_requests` | **2 s each** |
-| **M (Medium)** | Submit/dialog: `submit_form`, `submit_dialog`, explicit save-button click | **2 s each** |
+| **M (Medium)** | Submit/dialog: `submit_form`, `submit_dialog`, explicit save-button click (AJAX-only, no redirect) | **2 s each** |
+| **M (Medium)** | jQuery UI datepicker: each open-trigger → select-day cycle | **2 s each** |
 | **ignored** | DOM ops: `.click`, `f()`, `replace_content`, `send_keys`, assertions | 0 |
 
 ### Formula
 
 ```
-minimum_timeout = max(20,  H×6 + M×2 + 5)
+minimum_timeout = max(20,  H×6 + M×2 + 10)
 ```
 
 Round up to the nearest 5. Cap at 60 (system max). If result > 60, follow
 the optimisation procedure in Case 03 before splitting the test.
 
-The `+5` is fixed overhead: Selenium driver handshake, cookie setup, initial
-DOM settle.
+The `+10` is fixed overhead: Selenium driver handshake, cookie setup, initial
+DOM settle, `before` block data creation, and CI load variance.
 
 ### DB-bulk amendment
 
@@ -253,12 +255,22 @@ optimisation.
    or `Capybara::ElementNotFound` point to a different cause.
 
 2. **Count H and M across the full example**, including all `before` hooks in
-   scope. Watch especially for `before` hooks that call page-navigating helpers
-   like `open_quiz_edit_form` or `visit_assignments_index_page`.
+   scope. Watch especially for:
+   - `before` hooks that call page-navigating helpers like
+     `open_quiz_edit_form` or `visit_assignments_index_page`.
+   - **Submit-with-redirect:** Does the form submit trigger a 302 redirect
+     (and therefore a full page reload)? Check the Rails controller action
+     for `redirect_to` after the update/create. If yes, count as **H** not
+     M. Signals: the test does not call `wait_for_ajax_requests` after the
+     submit (because the page navigates away), or the MHTML Rails log shows
+     `Completed 302 Found` followed by a fresh `GET` request.
+   - **jQuery UI datepicker cycles:** Each `.ui-datepicker-trigger` click
+     followed by a day selection (`fln("1")`, `fln("15")`, etc.) is one
+     **M**. These open a calendar overlay and render day cells — not free.
 
 3. **Apply the formula:**
    ```
-   minimum_timeout = max(20,  H×6 + M×2 + 5)
+   minimum_timeout = max(20,  H×6 + M×2 + 10)
    ```
    Add 1H per 25 in-test bulk DB creates. Add 1H per 5 `replace_content(tab_out: true)`
    calls if the test exercises checkpoint-enabled or React-intensive assign-to tray
@@ -333,14 +345,25 @@ are not in HEAD's changed files and have no `custom_timeout`.
 **`SIDEBAR_LOADING_TIMEOUT`** — 35 s. Applied automatically to all specs under
 `spec/selenium/rcs/`. Cannot be overridden by `custom_timeout`.
 
-**H (Heavy interaction)** — Page navigation or RCE/TinyMCE call. Costs 6 s in
-the formula. Includes: `get`, `refresh_page`, `visit_*`, `open_*_form`,
-`expect_new_page_load`, `wait_for_new_page_load`, `type_in_tiny`, `wait_for_rce`,
-`set_answer_comment`, `set_question_comment`.
+**H (Heavy interaction)** — Page navigation, RCE/TinyMCE call, or
+submit-with-redirect. Costs 6 s in the formula. Includes: `get`,
+`refresh_page`, `visit_*`, `open_*_form`, `expect_new_page_load`,
+`wait_for_new_page_load`, `type_in_tiny`, `wait_for_rce`,
+`set_answer_comment`, `set_question_comment`, and any form submit whose
+Rails controller responds with `redirect_to` (302 → full page reload).
 
-**M (Medium interaction)** — AJAX wait or form submit. Costs 2 s in the
-formula. Includes: `wait_for_ajaximations`, `wait_for_ajax_requests`,
-`submit_form`, `submit_dialog`, explicit save/update button clicks.
+**M (Medium interaction)** — AJAX wait, AJAX-only form submit, or jQuery UI
+datepicker cycle. Costs 2 s in the formula. Includes:
+`wait_for_ajaximations`, `wait_for_ajax_requests`, `submit_form` (AJAX-only,
+no redirect), `submit_dialog`, explicit save/update button clicks, and each
+`.ui-datepicker-trigger` click + day selection pair.
+
+**Submit-with-redirect** — A form submit that triggers a 302 redirect and a
+full page reload. Counted as **H** (not M) because the redirect loads the
+entire page with all its deferred AJAX — the same cost as a fresh `get`.
+Signals: the Rails log shows `Completed 302 Found` followed by a new `GET`
+request, or the test does not call `wait_for_ajax_requests` after the submit
+because the browser navigates away. *Added: QE-157.*
 
 **DB-bulk amendment** — For tests that create 25+ records in the test body
 (before any browser step), add 1H per 25 records. These contend for DB

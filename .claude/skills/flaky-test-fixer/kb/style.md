@@ -648,6 +648,26 @@ git log --all --oneline | grep <JIRA>   # find the commit(s)
 git show <sha> -- <spec_file>           # read the exact diff
 ```
 
+**How to assess whether a prior fix helped:**
+
+The aggregate CSV row (e.g. 281 flaky_fails over 20 days) does not show
+whether the rate changed after a fix. Ask the user for the detailed
+breakdown from the "Jenkins Flaky Test Breakdown" Observe worksheet — a
+CSV with one row per CI run where the test was noteworthy. Key columns:
+
+| Column | Meaning |
+|---|---|
+| `status` | `PASSED` (eventually) or `FAILURE` (all attempts failed) |
+| `number_of_attempts` | 1 = clean pass, 2+ = failed at least once |
+| `BUNDLE_TIMESTAMP` | Epoch nanoseconds — convert to date for timeline |
+| `gerrit_ps_number` | Gerrit PS that was under test |
+
+Build a daily failure count and compare the rate before vs after each fix
+merge date. A fix that works shows a clear rate drop; a fix that doesn't
+shows a flat or rising rate. This distinction is critical for classifying
+the outcome — without it, you may incorrectly assume a prior fix helped
+and miss that the contamination vector is still open.
+
 **Outcome A — Unrelated (different root cause):**
 
 The prior fix addressed a genuinely different problem in the same test.

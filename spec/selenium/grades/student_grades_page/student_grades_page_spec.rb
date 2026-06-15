@@ -531,7 +531,7 @@ describe "gradebook - logged in as a student" do
       @course.save!
     end
 
-    it "does not show quantitative data" do
+    it "does not show quantitative data", custom_timeout: 35 do # flaky-fix: QE-157
       future_period_name = "Future Grading Period"
       current_period_name = "Current Grading Period"
       future_assignment_name = "Future Assignment"
@@ -559,6 +559,7 @@ describe "gradebook - logged in as a student" do
       user_session(@student)
       StudentGradesPage.visit_as_student(@course)
       ffj("tr:contains('Assignments')")
+      wait_for_ajaximations
 
       current_assignment_selector = "tr:contains('#{current_assignment_name}')"
       future_assignment_selector = "tr:contains('#{future_assignment_name}')"
@@ -599,6 +600,7 @@ describe "gradebook - logged in as a student" do
       group.save!
 
       StudentGradesPage.visit_as_student(@course)
+      wait_for_ajaximations
 
       f("#grading_period_select_menu").click
       fj("li:contains('All Grading Periods')").click

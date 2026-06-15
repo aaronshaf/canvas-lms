@@ -126,7 +126,7 @@ describe "settings tabs" do
       expect(f("a.previous_page")).to have_attribute("href", /page=1#tab-announcements/)
     end
 
-    it "copies and saves an announcement", custom_timeout: 45 do # flaky-fix: QE-147
+    it "copies and saves an announcement", custom_timeout: 45 do # flaky-fix: QE-147, QE-157
       notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load
@@ -142,6 +142,7 @@ describe "settings tabs" do
       ff(".edit_notification_form .ui-datepicker-trigger")[1].click
       fln("15").click
       f("form button.btn.btn-primary").click
+      wait_for_ajax_requests
 
       notification.reload
 
@@ -174,7 +175,7 @@ describe "settings tabs" do
       expect(AccountNotification.active.count).to eq 2
     end
 
-    it "resets form properly on new announcement", custom_timeout: 30 do # flaky-fix: QE-147, QE-151
+    it "resets form properly on new announcement", custom_timeout: 35 do # flaky-fix: QE-147, QE-151, QE-157
       notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load
@@ -189,6 +190,7 @@ describe "settings tabs" do
       ff(".edit_notification_form .ui-datepicker-trigger")[1].click
       fln("15").click
       f("form button.btn.btn-primary").click
+      wait_for_ajax_requests
       notification.reload
 
       # Copy content
