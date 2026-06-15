@@ -286,6 +286,36 @@ describe LlmConversation::HttpClient do
     end
   end
 
+  describe "request id propagation" do
+    let(:client) { described_class.new(account:) }
+
+    it "forwards the current request id to llma as X-Request-Id" do
+      allow(RequestContext::Generator).to receive(:request_id).and_return("req-abc-123")
+      stub_request(:get, "https://llm.test/ping").to_return(status: 200, body: "null")
+      client.get("/ping")
+      expect(WebMock).to have_requested(:get, "https://llm.test/ping")
+        .with(headers: { "X-Request-Id" => "req-abc-123" })
+    end
+
+    it "omits the header when there is no current request id" do
+      allow(RequestContext::Generator).to receive(:request_id).and_return(nil)
+      stub_request(:get, "https://llm.test/ping").to_return(status: 200, body: "null")
+      client.get("/ping")
+      expect(WebMock).not_to have_requested(:get, "https://llm.test/ping")
+        .with(headers: { "X-Request-Id" => /.+/ })
+    end
+
+    it "tags the raised ConversationError with the request id as reference_id" do
+      allow(RequestContext::Generator).to receive(:request_id).and_return("req-xyz")
+      stub_request(:get, "https://llm.test/conversations").to_return(status: 500, body: "boom")
+      client.get("/conversations")
+    rescue LlmConversation::Errors::ConversationError => e
+      expect(e.reference_id).to eq("req-xyz")
+    else
+      raise "expected ConversationError to be raised"
+    end
+  end
+
   describe "base_url from credentials" do
     it "uses the base_url from Rails credentials" do
       stub_request(:get, "https://llm.test/ping").to_return(status: 200, body: "null")

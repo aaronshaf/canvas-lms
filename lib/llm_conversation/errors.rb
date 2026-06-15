@@ -23,6 +23,9 @@ module LlmConversation
     #   - #message — internal detail (full llma body, validation reason, etc.) — safe to log,
     #     never safe to render to API clients (may contain stack traces, uuids, internal paths).
     #   - #user_message — generic, client-safe string. Controllers MUST render this, never #message.
+    #   - #reference_id — non-sensitive request id (set by HttpClient from the current
+    #     RequestContext). Safe to render so support can join a client failure to the
+    #     llma log line for the same request.
     class ConversationError < StandardError
       DEFAULT_USER_MESSAGE = "AI service is temporarily unavailable. Please try again."
 
@@ -34,11 +37,12 @@ module LlmConversation
         "conversation_completed" => "This conversation has already been completed."
       }.freeze
 
-      attr_reader :user_message
+      attr_reader :user_message, :reference_id
 
-      def initialize(message = nil, user_message: nil)
+      def initialize(message = nil, user_message: nil, reference_id: nil)
         super(message)
         @user_message = user_message || DEFAULT_USER_MESSAGE
+        @reference_id = reference_id
       end
     end
 

@@ -41,13 +41,20 @@ class AiConversationsController < ApplicationController
   before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
 
   rescue_from InstLLMHelper::RateLimitExceededError do
-    render json: { error: t("You've hit the AI Experiences rate limit. Please try again later.") },
+    render json: {
+             error: t("You've hit the AI Experiences rate limit. Please try again later."),
+             reference_id: RequestContext::Generator.request_id
+           },
            status: :too_many_requests
   end
 
   rescue_from LlmConversation::Errors::ConversationError do |e|
     Rails.logger.warn("[AiConversationsController] llma error: #{e.message}")
-    render json: { error: e.user_message }, status: :service_unavailable
+    render json: {
+             error: e.user_message,
+             reference_id: e.reference_id || RequestContext::Generator.request_id
+           },
+           status: :service_unavailable
   end
 
   # @API Show conversation

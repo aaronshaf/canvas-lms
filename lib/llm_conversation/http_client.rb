@@ -154,6 +154,13 @@ module LlmConversation
         "Authorization" => "Bearer #{@bearer_token}"
       }
 
+      # Propagate the Canvas request id so llma logs the same correlation id
+      # (it reads x-request-id / x-correlation-id; absent it logs all-zeros).
+      # This is the join key support/engineers use to tie a Canvas failure to the
+      # llma log line. The same id is on the Canvas response as X-Request-Context-Id.
+      request_id = RequestContext::Generator.request_id
+      headers["X-Request-Id"] = request_id if request_id
+
       req = case method
             when :get
               Net::HTTP::Get.new(uri.request_uri, headers)
@@ -198,7 +205,8 @@ module LlmConversation
 
         raise LlmConversation::Errors::ConversationError.new(
           error_detail,
-          user_message: LlmConversation::Errors::ConversationError::SAFE_USER_MESSAGES[llma_code]
+          user_message: LlmConversation::Errors::ConversationError::SAFE_USER_MESSAGES[llma_code],
+          reference_id: RequestContext::Generator.request_id
         )
       end
 
