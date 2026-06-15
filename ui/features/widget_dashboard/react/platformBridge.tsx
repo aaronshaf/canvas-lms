@@ -51,6 +51,13 @@ const NAMED_THUNKS: Record<NamedTranslationKey, TranslationThunk> = {
   removeWidget: () => I18n.t('Remove widget'),
   loadingWidgetData: () => I18n.t('Loading widget data...'),
   noContentAvailable: () => I18n.t('No content available'),
+  hubWelcomeAlert: () => I18n.t('New Feature Alert!'),
+  hubWelcomeTitle: () => I18n.t('Introducing "The Hub"'),
+  hubWelcomeBody: () =>
+    I18n.t(
+      "Do you have more than 1 Canvas account? Do you use Parchment? The Hub is Instructure's new product that consolidates all of your Instructure accounts into one convenient sign on with one unified dashboard!",
+    ),
+  hubWelcomeCta: () => I18n.t('Try it out now'),
 
   dashboard: () => I18n.t('Dashboard'),
   courses: () => I18n.t('Courses'),
@@ -361,7 +368,6 @@ const NAMED_THUNKS: Record<NamedTranslationKey, TranslationThunk> = {
   addStudentModalSuccess: () => I18n.t('Student added.'),
   addStudentModalTitle: () => I18n.t('Add a student'),
   allAccounts: () => I18n.t('All accounts'),
-  allUpcoming: () => I18n.t('All upcoming'),
   assignmentsAndQuizzes: () => I18n.t('Assignments and quizzes'),
   assignmentsDueThisWeek: () => I18n.t('Assignments due this week'),
   assignmentsOverdue: () => I18n.t('Assignments overdue'),
@@ -384,8 +390,6 @@ const NAMED_THUNKS: Record<NamedTranslationKey, TranslationThunk> = {
   messageInstructor: () => I18n.t('Message instructor'),
   messages: () => I18n.t('Messages'),
   newGrade: () => I18n.t('New grade'),
-  next24Hours: () => I18n.t('Next 24 hours'),
-  next48Hours: () => I18n.t('Next 48 hours'),
   observerPickerAddStudent: () => I18n.t('Add student'),
   observerPickerAssistiveText: () => I18n.t('Type to filter the list of observed students.'),
   observerPickerLabel: () => I18n.t('Observing:'),
@@ -399,6 +403,17 @@ const NAMED_THUNKS: Record<NamedTranslationKey, TranslationThunk> = {
   view: () => I18n.t('View'),
   viewAccountDashboard: () => I18n.t('View account dashboard'),
   workDue: () => I18n.t('Work due'),
+  closed: () => I18n.t('Closed'),
+  done: () => I18n.t('Done'),
+  editToDo: () => I18n.t('Edit To Do'),
+  failedToUpdateTodoItem: () => I18n.t('Failed to update to-do item. Please try again.'),
+  markAsDone: () => I18n.t('Mark as done'),
+  saving: () => I18n.t('Saving...'),
+  showAll: () => I18n.t('Show all'),
+  showOverdue: () => I18n.t('Show overdue'),
+  showUpcoming: () => I18n.t('Show upcoming'),
+  todoItemUpdatedSuccessfully: () => I18n.t('To-do item updated successfully'),
+  unnamedTodo: () => I18n.t('Unnamed To-Do'),
 }
 
 // Literal-keyed thunks: platform-widget-dashboard passes English source strings

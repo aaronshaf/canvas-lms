@@ -3127,6 +3127,11 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-alerts/-/platform-alerts-1.0.0.tgz#8bdb3f4937dd65445e4f7dd9f372d9e6104692e1"
   integrity sha512-peixMqMxxNdT+C6bk2skvEME35Sa7U0CYx1Tgs3doZL9OTpg/LcIftjhtpnrqzSHN8Yry2eJp6yE7DuuJAFHWQ==
 
+"@instructure/platform-alerts@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-alerts/-/platform-alerts-1.0.1.tgz#4cd37263b43690930d29e54ba9f171bd4438975c"
+  integrity sha512-bM2MgaXAowVp4sTrBCbd5t2X/5EmXcZKtOAUSQDmx+0eNlN6/cxZXwye+9YoI1H8uRFQWzENoe4rzUTGjOtTcA==
+
 "@instructure/platform-canvas-fetch@0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@instructure/platform-canvas-fetch/-/platform-canvas-fetch-0.1.3.tgz#623b7bfaa44a5cda4ff43068f670d0550dcd9392"
@@ -3264,12 +3269,12 @@
   dependencies:
     uuid "^11.1.1"
 
-"@instructure/platform-widget-dashboard@6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-6.1.0.tgz#36b0bdc411e9c8637ab3cae8638f67fe843b792d"
-  integrity sha512-LEMst6WiHL8oOeYE/q7dlV2gjXBtrU+Ct/3y73N243kLHaKpDQd4UlaQ4lrDFqagRDJohFlY/N9Ga0N9qCSspA==
+"@instructure/platform-widget-dashboard@6.4.2":
+  version "6.4.2"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-6.4.2.tgz#c1beb8c04bdefb0ce525c582f129a1fce996506b"
+  integrity sha512-JdDN41LsAjqITViiJAlysXWZFx0PJ3iQalX61p0KDyPxAGb9HQ5074zDkL2d0pdAJOX2H+M0//3spQHpjTS+4A==
   dependencies:
-    "@instructure/platform-alerts" "1.0.0"
+    "@instructure/platform-alerts" "1.0.1"
     "@instructure/platform-canvas-fetch" "0.1.3"
     "@instructure/platform-datetime" "0.2.0"
     "@instructure/platform-graphql-types" "0.1.3"
