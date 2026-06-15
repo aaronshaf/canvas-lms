@@ -51,6 +51,11 @@ describe('ToolDetailsInner', () => {
 
   beforeEach(() => {
     mockFlash.mockClear()
+    fakeENV.setup()
+  })
+
+  afterEach(() => {
+    fakeENV.teardown()
   })
 
   const renderToolDetailsInner = (
@@ -168,15 +173,11 @@ describe('ToolDetailsInner', () => {
   })
 
   describe('Reinstall App button', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       fakeENV.setup({
         LTI_DR_REGISTRATIONS_UPDATE: true,
         REINSTALL_DYNAMIC_REGISTRATION: true,
       })
-    })
-
-    afterAll(() => {
-      fakeENV.teardown()
     })
 
     it('shows the "Reinstall App" button when dynamic_registration_url is present and reinstall is not disabled', async () => {
@@ -230,10 +231,6 @@ describe('ToolDetailsInner', () => {
       fakeENV.setup({
         FEATURES: {lti_deactivate_registrations: true},
       })
-    })
-
-    afterEach(() => {
-      fakeENV.teardown()
     })
 
     it('shows "App is On" pill when workflow_state is active', () => {
