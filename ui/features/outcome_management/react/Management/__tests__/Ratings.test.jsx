@@ -188,4 +188,41 @@ describe('Ratings', () => {
       expect(queryByTestId(ratingsTableTestId)).not.toBeInTheDocument()
     })
   })
+
+  describe('scale restriction alert', () => {
+    const sixRatings = [
+      createRating('Level 1', 5, false),
+      createRating('Level 2', 4, false),
+      createRating('Level 3', 3, true),
+      createRating('Level 4', 2, false),
+      createRating('Level 5', 1, false),
+      createRating('Level 6', 0, false),
+    ]
+
+    it('does not show alert when ratings count is 5 or fewer', () => {
+      const {queryByTestId} = render(<Ratings {...defaultProps()} />)
+      expect(queryByTestId('scale-restriction-alert')).not.toBeInTheDocument()
+    })
+
+    it('shows alert when ratings count exceeds 5', () => {
+      const {getByTestId} = render(<Ratings {...defaultProps({ratings: sixRatings})} />)
+      expect(getByTestId('scale-restriction-alert')).toBeInTheDocument()
+    })
+
+    it('shows alert with correct message when ratings exceed 5', () => {
+      const {getByText} = render(<Ratings {...defaultProps({ratings: sixRatings})} />)
+      expect(
+        getByText(
+          'Mastery scales with more than five levels disable Message Students Who and Differentiation Tags for this outcome. Mastery icons and distribution charts in the gradebook will also be turned off.',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('shows alert when canManage is false and ratings exceed 5', () => {
+      const {getByTestId} = render(
+        <Ratings {...defaultProps({ratings: sixRatings, canManage: false})} />,
+      )
+      expect(getByTestId('scale-restriction-alert')).toBeInTheDocument()
+    })
+  })
 })

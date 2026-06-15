@@ -26,8 +26,10 @@ import {Table} from '@instructure/ui-table'
 import {Text} from '@instructure/ui-text'
 import {TextInput} from '@instructure/ui-text-input'
 import {View} from '@instructure/ui-view'
+import {Alert} from '@instructure/ui-alerts'
 import {ScreenReaderContent, PresentationContent} from '@instructure/ui-a11y-content'
 import {createRating} from '@canvas/outcomes/react/hooks/useRatings'
+import {exceedsMasteryScaleLimit} from '@canvas/outcomes/react/utils/masteryScaleLogic'
 import useCanvasContext from '@canvas/outcomes/react/hooks/useCanvasContext'
 import ProficiencyRating from '../MasteryScale/ProficiencyRating'
 
@@ -333,6 +335,13 @@ const Ratings = ({
           )}
           {renderEditMasteryPoints()}
         </>
+      )}
+      {exceedsMasteryScaleLimit(ratings.length) && (
+        <Alert variant="info" hasShadow={false} data-testid="scale-restriction-alert">
+          {I18n.t(
+            'Mastery scales with more than five levels disable Message Students Who and Differentiation Tags for this outcome. Mastery icons and distribution charts in the gradebook will also be turned off.',
+          )}
+        </Alert>
       )}
     </>
   )
