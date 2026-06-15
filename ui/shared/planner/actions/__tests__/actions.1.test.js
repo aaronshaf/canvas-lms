@@ -160,6 +160,39 @@ describe('api actions', () => {
       Actions.getNextOpportunities()(mockDispatch, getState)
       expect(mockDispatch).not.toHaveBeenCalled()
     })
+
+    it('treats an unparseable (oversize) link header as no next page', async () => {
+      // Observers of students with many enrollments produce a missing_submissions
+      // request whose Link header echoes the course_ids[] query string multiple
+      // times, pushing it past parseLinkHeader's 4000-char cap and making it
+      // return null. Don't surface this as a "Failed to load opportunities" toast.
+      const oversizeUrl = '/api/v1/users/self/missing_submissions?' + 'x'.repeat(5000)
+      server.use(
+        http.get('*', () => {
+          return new HttpResponse(JSON.stringify([{id: 1}]), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              link: `<${oversizeUrl}>; rel="next"`,
+            },
+          })
+        }),
+      )
+
+      const fakeAlert = vi.fn()
+      alertInitialize({
+        visualErrorCallback: fakeAlert,
+      })
+      const mockDispatch = vi.fn(action => (isPromise(action) ? action : undefined))
+      const state = getBasicState()
+      state.opportunities.nextUrl = '/'
+      await Actions.getNextOpportunities()(mockDispatch, () => state)
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'ADD_OPPORTUNITIES',
+        payload: {items: [{id: 1}], nextUrl: null},
+      })
+      expect(fakeAlert).not.toHaveBeenCalled()
+    })
   })
 
   describe('getOpportunities', () => {
@@ -200,6 +233,33 @@ describe('api actions', () => {
           nextUrl: '/',
         },
       })
+    })
+
+    it('treats an unparseable (oversize) link header as no next page on initial load', async () => {
+      const oversizeUrl = '/api/v1/users/self/missing_submissions?' + 'x'.repeat(5000)
+      server.use(
+        http.get('*', () => {
+          return new HttpResponse(JSON.stringify([{id: 1}]), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              link: `<${oversizeUrl}>; rel="next"`,
+            },
+          })
+        }),
+      )
+
+      const fakeAlert = vi.fn()
+      alertInitialize({
+        visualErrorCallback: fakeAlert,
+      })
+      const mockDispatch = vi.fn(action => (isPromise(action) ? action : undefined))
+      await Actions.getInitialOpportunities()(mockDispatch, getBasicState)
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'ADD_OPPORTUNITIES',
+        payload: {items: [{id: 1}], nextUrl: null},
+      })
+      expect(fakeAlert).not.toHaveBeenCalled()
     })
 
     it('dispatches allOpportunitiesLoaded when response is empty', async () => {

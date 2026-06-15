@@ -115,16 +115,8 @@ export const getNextOpportunities = () => {
       const nextUrl = state.opportunities.nextUrl
       return asAxios(getPrefetchedXHR(nextUrl) ?? fetch(nextUrl, defaultFetchOptions()))
         .then(response => {
-          if (parseLinkHeader(getResponseHeader(response, 'link')).next) {
-            dispatch(
-              addOpportunities({
-                items: response.data,
-                nextUrl: parseLinkHeader(getResponseHeader(response, 'link')).next.url,
-              }),
-            )
-          } else {
-            dispatch(addOpportunities({items: response.data, nextUrl: null}))
-          }
+          const next = parseLinkHeader(getResponseHeader(response, 'link'))?.next
+          dispatch(addOpportunities({items: response.data, nextUrl: next?.url ?? null}))
         })
         .catch(_ex => {
           alert(I18n.t('Failed to load opportunities'), true)
@@ -154,11 +146,11 @@ export const getInitialOpportunities = () => {
 
     return request
       .then(response => {
-        const next = parseLinkHeader(getResponseHeader(response, 'link')).next
+        const next = parseLinkHeader(getResponseHeader(response, 'link'))?.next
         if (response.data.length === 0) {
           dispatch(allOpportunitiesLoaded())
         } else {
-          dispatch(addOpportunities({items: response.data, nextUrl: next ? next.url : null}))
+          dispatch(addOpportunities({items: response.data, nextUrl: next?.url ?? null}))
         }
       })
       .catch(_ex => {
