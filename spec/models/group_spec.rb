@@ -1288,42 +1288,45 @@ describe Group do
     end
   end
 
-  describe "#description sanitization" do
-    it "strips disallowed elements on save" do
-      @group.update!(description: "<script>alert(1)</script>" \
-                                  "<form><input name='x'/></form>safe")
-      expect(@group.description).to eql("safe")
+  describe "#description (plain-text contract)" do
+    it "stores ampersands verbatim (not entity-encoded)" do
+      @group.update!(description: "Snacks & games for everyone")
+      expect(@group.reload.description).to eq "Snacks & games for everyone"
     end
 
-    it "strips disallowed elements when persisted unsanitized" do
+    it "preserves a literal NBSP on round-trip" do
+      input = "before#{0xa0.chr(Encoding::UTF_8)}after"
+      @group.update!(description: input)
+      expect(@group.reload.description).to eq input
+    end
+
+    it "preserves a bare '<' followed by a space" do
+      @group.update!(description: "for groups of 5 < 10 students")
+      expect(@group.reload.description).to eq "for groups of 5 < 10 students"
+    end
+
+    it "preserves <word>-shaped tokens (not stripped as unknown HTML tags)" do
+      @group.update!(description: "Sign up with <your name> in the field")
+      expect(@group.reload.description).to eq "Sign up with <your name> in the field"
+    end
+
+    it "returns legacy unsanitized data verbatim on read (no implicit sanitize)" do
+      # The model is not the XSS perimeter. The API doc-string declares
+      # the field as plain text; consumers escape in their output context
+      # (same contract as User#name, Conversation#subject, and the five
+      # merged sibling fixes — CFA-1134/5/6/7/8).
       @group.update_columns(description: "<script>alert(1)</script>safe")
-      expect(@group.reload.description).not_to include("<script>")
-      expect(@group.description).to include("safe")
+      expect(@group.reload.description).to eq "<script>alert(1)</script>safe"
     end
 
-    it "strips disallowed attributes from allowed tags" do
-      @group.update!(description: "<a href='#' onclick='alert(1)'>ok</a>")
-      expect(@group.description).to eql('<a href="#">ok</a>')
-    end
-
-    it "strips javascript: URIs from href/src/data attributes" do
-      @group.update_columns(
-        description: "<a href='javascript:alert(1)'>x</a>" \
-                     "<iframe src='javascript:alert(2)'></iframe>" \
-                     "<embed src='javascript:alert(3)'>" \
-                     "<object data='javascript:alert(4)'></object>"
-      )
-      expect(@group.reload.description).not_to include("javascript:")
-    end
-
-    it "preserves allowed HTML on read" do
-      @group.update_columns(description: "<p>hello <strong>world</strong></p>")
-      expect(@group.reload.description).to eql("<p>hello <strong>world</strong></p>")
-    end
-
-    it "leaves nil unchanged on read" do
+    it "returns nil unchanged on read" do
       @group.update_columns(description: nil)
       expect(@group.reload.description).to be_nil
+    end
+
+    it "returns empty string unchanged on read" do
+      @group.update_columns(description: "")
+      expect(@group.reload.description).to eq ""
     end
   end
 end

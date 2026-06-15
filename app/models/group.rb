@@ -34,11 +34,11 @@ class Group < ApplicationRecord
   attr_readonly :non_collaborative
   validate :validate_non_collaborative_constraints
 
-  sanitize_field :description, CanvasSanitize::SANITIZE
-  def description
-    raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
-  end
+  # Group#description stores plain text. The API docstring at
+  # GroupsController#create explicitly declares the field as "plain text"
+  # and no UI surface inside Canvas authors or renders it — only third-
+  # party REST/SIS clients write to it. Server-side HTML sanitization is
+  # intentionally NOT applied; consumers escape in their output context.
 
   # use to skip queries in can_participate?, called by policy block
   attr_accessor :can_participate
