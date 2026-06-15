@@ -240,7 +240,7 @@ module AttachmentHelper
       raise "A files domain must be configured in domain.yml for files access."
     elsif attachment.stored_locally?
       @headers = false if @files_domain
-      send_file(attachment.full_filename, type: attachment.content_type_with_encoding, disposition: (inline ? "inline" : "attachment"), filename: attachment.display_name)
+      safe_send_file(attachment.full_filename, type: attachment.content_type_with_encoding, disposition: (inline ? "inline" : "attachment"), filename: attachment.display_name)
     elsif can_proxy
       body = attachment.open.read
       add_csp_for_file if attachment.mime_class == "html"

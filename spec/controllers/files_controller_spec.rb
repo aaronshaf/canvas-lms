@@ -783,6 +783,22 @@ describe FilesController do
       expect(response).to be_redirect
     end
 
+    it "streams a locally-stored file through safe_send_file when on the files domain" do
+      # Exercises the real safe_send_file path (no stubbing of safe_send_file):
+      # the trusted-directory guard must pass for a legitimate attachment and
+      # the file bytes must be streamed back.
+      local_storage!
+      allow(controller).to receive_messages(safer_domain_available?: false, files_domain?: true)
+      user_session(@teacher)
+      file = @course.attachments.create!(uploaded_data: io)
+
+      get "show", params: { course_id: @course.id, id: file.id, download: 1 }
+
+      expect(response).to be_successful
+      expect(response.headers["Content-Disposition"]).to include("attachment")
+      expect(response.body).to eq(file.open.read)
+    end
+
     it "preserves location parameter when redirecting to files domain for preview" do
       user_session(@teacher)
       # create an HTML file to trigger inline content check

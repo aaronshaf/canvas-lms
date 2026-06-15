@@ -357,7 +357,7 @@ describe AttachmentHelper do
         allow(@kaltura_attachment).to receive(:stored_locally?).and_return(true)
         expect(self).not_to receive(:redirect_to)
           .with(a_string_including("kaltura.example.com"))
-        expect(self).to receive(:send_file)
+        expect(self).to receive(:safe_send_file)
         render_or_redirect_to_stored_file(attachment: @kaltura_attachment, inline: true)
       end
 
@@ -368,7 +368,7 @@ describe AttachmentHelper do
         )
         expect(self).not_to receive(:redirect_to)
           .with(a_string_including("kaltura.example.com"))
-        expect(self).to receive(:send_file)
+        expect(self).to receive(:safe_send_file)
         render_or_redirect_to_stored_file(attachment: @kaltura_attachment, inline: false)
       end
     end
@@ -381,12 +381,12 @@ describe AttachmentHelper do
       it "does not redirect to Kaltura for regular files" do
         expect(self).not_to receive(:redirect_to)
           .with(a_string_including("kaltura"))
-        expect(self).to receive(:send_file)
+        expect(self).to receive(:safe_send_file)
         render_or_redirect_to_stored_file(attachment: @attachment, inline: false)
       end
 
       it "handles regular file downloads normally" do
-        expect(self).to receive(:send_file).with(
+        expect(self).to receive(:safe_send_file).with(
           @attachment.full_filename,
           type: @attachment.content_type_with_encoding,
           disposition: "attachment",
