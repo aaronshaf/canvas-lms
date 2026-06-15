@@ -22,6 +22,7 @@
 # API for managing conversations with AI Experiences.
 class AiConversationsController < ApplicationController
   include Api::V1::AiExperience
+  include LLMConversationErrorRendering
 
   # Lightweight duck-type for InstLLMHelper.with_rate_limit. The helper only reads
   # `#name` and `#rate_limit` — no template/model_id involved because llma owns the
@@ -41,20 +42,8 @@ class AiConversationsController < ApplicationController
   before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
 
   rescue_from InstLLMHelper::RateLimitExceededError do
-    render json: {
-             error: t("You've hit the AI Experiences rate limit. Please try again later."),
-             reference_id: RequestContext::Generator.request_id
-           },
+    render json: llm_error_payload(t("You've hit the AI Experiences rate limit. Please try again later.")),
            status: :too_many_requests
-  end
-
-  rescue_from LlmConversation::Errors::ConversationError do |e|
-    Rails.logger.warn("[AiConversationsController] llma error: #{e.message}")
-    render json: {
-             error: e.user_message,
-             reference_id: e.reference_id || RequestContext::Generator.request_id
-           },
-           status: :service_unavailable
   end
 
   # @API Show conversation

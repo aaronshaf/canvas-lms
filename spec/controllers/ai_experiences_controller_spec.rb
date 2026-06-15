@@ -1747,6 +1747,19 @@ describe AiExperiencesController, type: :request do
         expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
         expect(json_response["error"]).not_to include("stack trace")
       end
+
+      it "includes a reference_id on the error response for support correlation" do
+        allow(RequestContext::Generator).to receive(:request_id).and_return("req-show-456")
+        mock_service = instance_double(AiExperiences::ConversationMessagesService)
+        allow(AiExperiences::ConversationMessagesService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:fetch_with_progress)
+          .and_raise(LlmConversation::Errors::ConversationError.new("internal llma stack trace"))
+
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
+
+        json_response = json_parse(response.body)
+        expect(json_response["reference_id"]).to eq("req-show-456")
+      end
     end
 
     context "as student" do

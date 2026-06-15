@@ -72,6 +72,7 @@
 
 class AiExperiencesController < ApplicationController
   include Api::V1::AiExperience
+  include LLMConversationErrorRendering
 
   before_action :require_context
   before_action :check_ai_experiences_feature_flag
@@ -428,8 +429,6 @@ class AiExperiencesController < ApplicationController
       messages: messages_and_progress[:messages],
       progress: messages_and_progress[:progress]
     )
-  rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   private
