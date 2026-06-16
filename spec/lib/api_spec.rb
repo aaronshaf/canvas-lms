@@ -1257,9 +1257,9 @@ describe Api do
       expect(links.first).to eq "<www.example.com/?page=4&per_page=10>; rel=\"next\""
     end
 
-    it "prevents link headers from consuming more than 6K of header space" do
+    it "prevents link headers from exceeding the frontend parseLinkHeader cap" do
       links = Api.build_links("www.example.com/", {
-                                query_parameters: { blah: "a" * 2000 },
+                                query_parameters: { blah: "a" * 1000 },
                                 per_page: 10,
                                 current: 8,
                                 next: 4,
@@ -1273,6 +1273,20 @@ describe Api do
       expect(links.find { |l| l.include?('rel="prev"') }).to match(/page=2&per_page=10>/)
       expect(links.find { |l| l.include?('rel="first"') }).to be_nil
       expect(links.find { |l| l.include?('rel="last"') }).to match(/page=10&per_page=10>/)
+    end
+
+    it "keeps the joined header under the frontend parseLinkHeader cap with many array query parameters" do
+      course_ids = (1..40).to_a
+      links = Api.build_links("www.example.com/missing_submissions", {
+                                query_parameters: { course_ids: },
+                                per_page: 10,
+                                current: 1,
+                                next: 2,
+                                first: 1,
+                                last: 10,
+                              })
+      expect(links.join(",").length).to be < 4000
+      expect(links.find { |l| l.include?('rel="next"') }).to match(/page=2&per_page=10>/)
     end
   end
 

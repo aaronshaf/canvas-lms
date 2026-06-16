@@ -509,6 +509,11 @@ module Api
   PAGINATION_PARAMS = %i[current next prev first last].freeze
   LINK_PRIORITY = %i[next last prev current first].freeze
   EXCLUDE_IN_PAGINATION_LINKS = %w[page per_page access_token api_key].freeze
+  # Coupled to PARSE_LINK_HEADER_MAXLEN (4000) in
+  # ui/shared/parse-link-header/parseLinkHeader.ts — the frontend drops the
+  # entire header above that cap. 3500 leaves ~500 bytes for rel="..." wrapping
+  # across up to five links (~90 bytes margin per link).
+  MAX_LINK_HEADERS_SIZE = 3500
   def self.build_links(base_url, opts = {})
     links = build_links_hash(base_url, opts)
     build_links_from_hash(links)
@@ -528,15 +533,12 @@ module Api
     qp = qp.with_indifferent_access.except(*EXCLUDE_IN_PAGINATION_LINKS)
     base_url += "#{qp.to_query}&" if qp.present?
 
-    # Apache limits the HTTP response headers to 8KB total; with lots of query parameters, link headers can exceed this
-    # so prioritize the links we include and don't exceed (by default) 6KB in total
-    max_link_headers_size = 6.kilobytes.to_i
     link_headers_size = 0
     LINK_PRIORITY.each_with_object({}) do |param, obj|
       next unless opts[param].present?
 
       link = "#{base_url}page=#{opts[param]}&per_page=#{opts[:per_page]}"
-      return obj if link_headers_size + link.size > max_link_headers_size
+      return obj if link_headers_size + link.size > MAX_LINK_HEADERS_SIZE
 
       link_headers_size += link.size
       obj[param] = link
