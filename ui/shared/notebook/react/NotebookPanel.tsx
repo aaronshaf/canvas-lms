@@ -51,7 +51,7 @@ function NotebookPanelHeader({onDismiss, closeButtonRef}: HeaderProps) {
   return (
     <View as="div" padding="medium" borderWidth="none none small none">
       <Flex justifyItems="space-between" alignItems="center">
-        <Heading level="h3">{I18n.t('Notebook')}</Heading>
+        <Heading level="h2">{I18n.t('Notebook')}</Heading>
         <CloseButton
           elementRef={el => {
             closeButtonRef.current = el
