@@ -32,13 +32,7 @@ class FilePreviewsController < ApplicationController
   def show
     @file = @context.attachments.not_deleted.find_by(id: params[:file_id] || params[:id])
     css_bundle :react_files
-    unless @file
-      @headers = false
-      @show_left_side = false
-      return render template: "shared/errors/404_message",
-                    status: :not_found,
-                    formats: [:html]
-    end
+    return render_file_preview_not_found unless @file
 
     if access_allowed(attachment: @file, user: @current_user, access_type: :read, no_error_on_failure: true)
       unless access_allowed(attachment: @file, user: @current_user, access_type: :download, no_error_on_failure: true)
@@ -73,7 +67,17 @@ class FilePreviewsController < ApplicationController
         render template: "file_previews/no_preview", layout: false
       end
     else
-      render "file_previews/unauthorized_preview", status: :unauthorized, layout: false
+      render_file_preview_not_found
     end
+  end
+
+  private
+
+  def render_file_preview_not_found
+    @headers = false
+    @show_left_side = false
+    render template: "shared/errors/404_message",
+           status: :not_found,
+           formats: [:html]
   end
 end

@@ -65,17 +65,16 @@ describe FilePreviewsController, type: :request do
       token_string = InstAccess::Token.send(:new, jwt_payload).to_unencrypted_token_string
       attachment_model.update!(file_state: "hidden", instfs_uuid: "otherstuff")
       get "/courses/#{@course.id}/files/#{@attachment.id}/file_preview", params: { access_token: token_string, instfs_id: "stuff" }
-      expect(response).to be_unauthorized
+      expect(response).to have_http_status :not_found
     end
   end
 
-  it "requires authorization to view the file" do
+  it "renders a generic 404 (not 401) when unauthorized, to avoid leaking file existence" do
     course_model
     attachment_model
     remove_user_session
     get "/courses/#{@course.id}/files/#{@attachment.id}/file_preview"
-    expect(response).to have_http_status :unauthorized
-    expect(response).to render_template "unauthorized_preview"
+    expect(response).to have_http_status :not_found
   end
 
   it "accepts a valid verifier token" do
@@ -98,7 +97,7 @@ describe FilePreviewsController, type: :request do
     user_session(@student)
     attachment_model
     get "/courses/#{@course.id}/files/#{@attachment.id}/file_preview", params: { verifier: "nope" }
-    expect(response).to have_http_status :unauthorized
+    expect(response).to have_http_status :not_found
   end
 
   it "renders lock information for the file" do
@@ -280,6 +279,43 @@ describe FilePreviewsController, type: :request do
       }
       expect(response).to have_http_status :ok
       expect(response).to render_template "img_preview"
+    end
+  end
+
+  describe "does not reveal whether a file exists or who owns it to unauthorized callers" do
+    before do
+      @owner = user_factory(active_all: true)
+      @file = attachment_model(context: @owner)
+      @other_user = user_factory(active_all: true)
+      remove_user_session
+    end
+
+    it "returns 404 for a real file under its owning user when unauthorized" do
+      get "/users/#{@owner.id}/files/#{@file.id}/file_preview"
+      expect(response).to have_http_status :not_found
+    end
+
+    it "returns 404 for a nonexistent file id under the same user" do
+      get "/users/#{@owner.id}/files/0/file_preview"
+      expect(response).to have_http_status :not_found
+    end
+
+    it "returns 404 for a real file id under the wrong user" do
+      get "/users/#{@other_user.id}/files/#{@file.id}/file_preview"
+      expect(response).to have_http_status :not_found
+    end
+
+    it "returns indistinguishable responses across all three cases" do
+      get "/users/#{@owner.id}/files/#{@file.id}/file_preview"
+      existing_unauthorized = response.status
+
+      get "/users/#{@owner.id}/files/0/file_preview"
+      nonexistent = response.status
+
+      get "/users/#{@other_user.id}/files/#{@file.id}/file_preview"
+      wrong_context = response.status
+
+      expect([existing_unauthorized, nonexistent, wrong_context]).to all(eq(404))
     end
   end
 end
