@@ -28,6 +28,7 @@ import {
 } from '@canvas/assignments/graphql/student/Queries'
 import {useQuery} from '@apollo/client'
 import {transformRubricData, transformRubricAssessmentData} from '../helpers/RubricHelpers'
+import {isPeerReviewCompleted} from '@canvas/assignments/helpers/PeerReviewHelpers'
 import useStore from './stores/index'
 import {fillAssessment} from '@canvas/rubrics/react/helpers'
 import {useAllPages} from '@instructure/platform-query'
@@ -46,6 +47,7 @@ const queryFn = ({queryKey, pageParam}: {queryKey: string[]; pageParam: unknown}
 type Props = {
   assignment: Assignment
   submission: Submission
+  reviewerSubmission?: Submission | null
   rubricExpanded: boolean
   toggleRubricExpanded: () => void
 }
@@ -53,6 +55,7 @@ type Props = {
 export default function RubricsQuery({
   assignment,
   submission,
+  reviewerSubmission,
   rubricExpanded,
   toggleRubricExpanded,
 }: Props) {
@@ -132,6 +135,11 @@ export default function RubricsQuery({
     )
   }
 
+  const peerReviewModeCompleted = isPeerReviewCompleted(
+    reviewerSubmission?.assignedAssessments,
+    submission._id,
+  )
+
   return (
     <RubricTab
       // @ts-expect-error
@@ -150,6 +158,7 @@ export default function RubricsQuery({
       rubric={transformRubricData(data.assignment.rubric)}
       rubricAssociation={data.assignment.rubricAssociation}
       peerReviewModeEnabled={assignment.env.peerReviewModeEnabled}
+      peerReviewModeCompleted={peerReviewModeCompleted}
       rubricExpanded={rubricExpanded}
       toggleRubricExpanded={toggleRubricExpanded}
       isAiEvaluated={submission.autoGradeResultPresent && submission.state === 'graded'}

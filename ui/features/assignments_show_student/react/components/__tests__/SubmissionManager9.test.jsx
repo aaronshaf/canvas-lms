@@ -271,6 +271,17 @@ describe('SubmissionManager peer reviews with rubrics - submit button states', (
 
   it('does not render a submit button when the assessment has been submitted', async () => {
     fakeENV.setup({COURSE_ID: '4', current_user: {id: '2'}})
+    props.reviewerSubmission = {
+      id: 'test-id',
+      _id: 'test-id',
+      assignedAssessments: [
+        {
+          assetId: props.submission._id,
+          workflowState: 'completed',
+          assetSubmissionType: 'online-text',
+        },
+      ],
+    }
     store.setState({
       displayedAssessment: mocks[0].result.data.submission.rubricAssessmentsConnection.nodes[0],
     })
@@ -284,6 +295,32 @@ describe('SubmissionManager peer reviews with rubrics - submit button states', (
     await waitFor(() => {
       expect(screen.queryByText('Submit')).not.toBeInTheDocument()
     })
+  })
+
+  it('renders a submit button when a peer review is re-assigned even if a prior assessment exists', async () => {
+    fakeENV.setup({COURSE_ID: '4', current_user: {id: '2'}})
+    props.reviewerSubmission = {
+      id: 'test-id',
+      _id: 'test-id',
+      assignedAssessments: [
+        {
+          assetId: props.submission._id,
+          workflowState: 'assigned',
+          assetSubmissionType: 'online-text',
+        },
+      ],
+    }
+    store.setState({
+      displayedAssessment: mocks[0].result.data.submission.rubricAssessmentsConnection.nodes[0],
+    })
+
+    render(
+      <ApolloProvider client={mswClient}>
+        <SubmissionManager {...props} />
+      </ApolloProvider>,
+    )
+
+    expect(await screen.findByTestId('submit-peer-review-button')).toBeInTheDocument()
   })
 
   it('renders an enabled submit button when every criterion has a comment', async () => {

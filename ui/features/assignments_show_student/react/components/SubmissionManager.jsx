@@ -51,8 +51,9 @@ import {
   getPeerReviewHeaderText,
   getPeerReviewSubHeaderText,
   getRedirectUrlToFirstPeerReview,
+  isPeerReviewCompleted,
 } from '@canvas/assignments/helpers/PeerReviewHelpers'
-import {shouldRenderSelfAssessment, transformRubricAssessmentData} from '../helpers/RubricHelpers'
+import {shouldRenderSelfAssessment} from '../helpers/RubricHelpers'
 import {
   friendlyTypeName,
   isSubmitted,
@@ -485,20 +486,13 @@ const SubmissionManager = ({
     )
   }
 
-  const hasSubmittedAssessment = () => {
-    const assessments = rubricData?.submission?.rubricAssessmentsConnection?.nodes?.map(
-      assessment => transformRubricAssessmentData(assessment),
-    )
-    return assessments?.some(assessment => assessment.assessor?._id === ENV.current_user.id)
-  }
-
   const shouldRenderSubmitPeerReview = () => {
     const hasRubrics = displayedAssessment !== null
     return (
       assignment.env.peerReviewModeEnabled &&
       assignment.env.peerReviewAvailable &&
       hasRubrics &&
-      !hasSubmittedAssessment() &&
+      !isPeerReviewCompleted(assignedAssessments, submission._id) &&
       !ENV.enhanced_rubrics_enabled
     )
   }

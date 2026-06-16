@@ -154,6 +154,7 @@ describe('RubricTab - Peer Reviews', () => {
   it('sets displayed assessment as the assessment of the reviewer', async () => {
     const props = await makeProps({graded: true})
     props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = true
     makeStore(props)
     const {findByText} = renderRubricTab(props)
     expect(await findByText('Total Points: 8')).toBeInTheDocument()
@@ -174,6 +175,7 @@ describe('RubricTab - Peer Reviews', () => {
   it('does not display alert explaining that the rubric needs to be filled out if already completed ', async () => {
     const props = await makeProps({graded: false})
     props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = true
     const assessment = {_id: '1', assessor: {_id: '1'}}
     props.assessments = [assessment]
     window.ENV.current_user.id = '1'

@@ -154,6 +154,7 @@ describe('RubricTab - Peer Review Tests', () => {
   it('sets displayed assessment as the assessment of the reviewer', async () => {
     const props = await makeProps({graded: true})
     props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = true
     makeStore(props)
     const {findByText} = renderRubricTab(props)
     expect(await findByText('Total Points: 8')).toBeInTheDocument()
@@ -174,6 +175,7 @@ describe('RubricTab - Peer Review Tests', () => {
   it('does not display alert explaining that the rubric needs to be filled out if already completed ', async () => {
     const props = await makeProps({graded: false})
     props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = true
     const assessment = {_id: '1', assessor: {_id: '1'}}
     props.assessments = [assessment]
     window.ENV.current_user.id = '1'
@@ -184,6 +186,34 @@ describe('RubricTab - Peer Review Tests', () => {
         'Fill out the rubric below after reviewing the student submission to complete this review.',
       ),
     ).not.toBeInTheDocument()
+  })
+
+  it('keeps the rubric editable when a peer review is re-assigned even if a prior assessment exists', async () => {
+    const props = await makeProps({graded: false})
+    props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = false
+    props.assessments = [{_id: '1', assessor: {_id: '1'}, data: []}]
+    window.ENV.current_user.id = '1'
+    props.rubric.criteria[0].ratings[0].points = 9
+    makeStore(props)
+    const {findByText} = renderRubricTab(props)
+
+    fireEvent.click(await findByText('9 pts'))
+    expect(await findByText(/^Total Points: 9 out of/)).toBeInTheDocument()
+  })
+
+  it('keeps the rubric read-only once the peer review is completed', async () => {
+    const props = await makeProps({graded: false})
+    props.peerReviewModeEnabled = true
+    props.peerReviewModeCompleted = true
+    props.assessments = [{_id: '1', assessor: {_id: '1'}, data: []}]
+    window.ENV.current_user.id = '1'
+    props.rubric.criteria[0].ratings[0].points = 9
+    makeStore(props)
+    const {findByText, findByTestId} = renderRubricTab(props)
+
+    fireEvent.click(await findByText('9 pts'))
+    expect(await findByTestId('rubric-total')).toHaveTextContent('Total Points: 0')
   })
 
   describe('enhanced rubrics', () => {

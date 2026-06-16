@@ -76,9 +76,9 @@ export default function RubricTab(props) {
     useStore.setState({displayedAssessment: filledAssessment})
   }
 
-  const hasSubmittedAssessment = rubricAssessments.some(
-    assessment => assessment.assessor?._id === ENV.current_user.id,
-  )
+  const hasSubmittedAssessment = props.peerReviewModeEnabled
+    ? !!props.peerReviewModeCompleted
+    : rubricAssessments.some(assessment => assessment.assessor?._id === ENV.current_user.id)
 
   const rubricAssessmentData = (displayedAssessment?.data ?? []).map(data => {
     const points = data.points
@@ -266,6 +266,7 @@ RubricTab.propTypes = {
   rubric: Rubric.shape,
   rubricAssociation: RubricAssociation.shape,
   peerReviewModeEnabled: bool,
+  peerReviewModeCompleted: bool,
   rubricExpanded: bool,
   toggleRubricExpanded: func,
   isAiEvaluated: bool,
@@ -273,4 +274,5 @@ RubricTab.propTypes = {
 
 RubricTab.defaultProps = {
   peerReviewModeEnabled: false,
+  peerReviewModeCompleted: false,
 }

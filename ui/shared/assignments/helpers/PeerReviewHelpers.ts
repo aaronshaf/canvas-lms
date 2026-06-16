@@ -82,6 +82,14 @@ export const isAvailableToReview = (assessment: AssignedAssessments): boolean =>
   return assessment.assetSubmissionType !== null && assessment.workflowState === 'assigned'
 }
 
+export const isPeerReviewCompleted = (
+  assignedAssessments: Partial<AssignedAssessments>[] = [],
+  submissionId?: string,
+): boolean => {
+  const request = assignedAssessments.find(assessment => assessment.assetId === submissionId)
+  return request?.workflowState === 'completed'
+}
+
 export const COMPLETED_PEER_REVIEW_TEXT = I18n.t('You have completed your Peer Reviews!')
 
 export const getPeerReviewHeaderText = (

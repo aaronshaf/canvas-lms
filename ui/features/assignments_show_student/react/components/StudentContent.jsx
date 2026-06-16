@@ -257,6 +257,7 @@ function renderContentBaseOnAvailability(
                   <RubricsQuery
                     assignment={assignment}
                     submission={submission}
+                    reviewerSubmission={reviewerSubmission}
                     rubricExpanded={rubricExpanded}
                     toggleRubricExpanded={toggleRubricExpanded}
                   />
