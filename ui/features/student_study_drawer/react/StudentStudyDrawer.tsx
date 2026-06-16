@@ -182,7 +182,11 @@ function StudentStudyDrawerInner({
   useEffect(() => {
     if (activePanel === null) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setActivePanel(null)
+      if (e.key === 'Escape') {
+        const aiInfoButton = document.querySelector('[data-testid="study-assist-ai-info-button"]')
+        if (aiInfoButton?.getAttribute('aria-expanded') === 'true') return
+        setActivePanel(null)
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)

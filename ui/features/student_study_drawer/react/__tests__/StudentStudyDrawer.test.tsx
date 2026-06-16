@@ -418,6 +418,30 @@ describe('StudentStudyDrawer', () => {
     expect(screen.queryByTestId('study-assist-panel')).not.toBeInTheDocument()
   })
 
+  it('keeps drawer open when Escape is pressed while the AI info popover is open', () => {
+    const pageContent = makePageContent()
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+    expect(screen.getByTestId('study-assist-panel')).toBeInTheDocument()
+
+    const aiInfoButton = document.createElement('button')
+    aiInfoButton.setAttribute('data-testid', 'study-assist-ai-info-button')
+    aiInfoButton.setAttribute('aria-expanded', 'true')
+    document.body.appendChild(aiInfoButton)
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+    })
+
+    expect(screen.getByTestId('study-assist-panel')).toBeInTheDocument()
+  })
+
   it('ignores study-assist:open when showStudyAssist is false', () => {
     const pageContent = makePageContent()
 
