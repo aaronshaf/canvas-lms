@@ -23067,7 +23067,7 @@ fr:
           body: "La tâche « %{title} » du cours %{course} a été modifiée."
           link: "Cliquez ici pour afficher la tâche"
           subject: "Tâche modifiée : %{title}, %{course}"
-        subject: "La tâche a changé : %{title}, %{course}"
+        subject: "Tâche modifiée : %{title}, %{course}"
       sms: 
         body: |-
             %{title}, %{course} a changé.
