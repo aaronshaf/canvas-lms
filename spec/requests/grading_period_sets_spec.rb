@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Copyright (C) 2016 - present Instructure, Inc.
+# Copyright (C) 2026 - present Instructure, Inc.
 #
 # This file is part of Canvas.
 #
@@ -15,9 +15,10 @@
 # details.
 #
 # You should have received a copy of the GNU Affero General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
-RSpec.describe GradingPeriodSetsController, type: :request do
+RSpec.describe GradingPeriodSetsController do
   let(:group_helper) { Factories::GradingPeriodGroupHelper.new }
 
   context "given a root account" do

@@ -20,7 +20,7 @@
 
 require_relative "../apis/api_spec_helper"
 
-RSpec.describe LoginController, type: :request do
+RSpec.describe LoginController do
   describe "#new" do
     it "redirects to dashboard if already logged in" do
       user_session(user_with_pseudonym(active: true))

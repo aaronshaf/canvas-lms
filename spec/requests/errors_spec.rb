@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-RSpec.describe ErrorsController, type: :request do
+RSpec.describe ErrorsController do
   def authenticate_user!
     @user = User.create!
     Account.site_admin.account_users.create!(user: @user)

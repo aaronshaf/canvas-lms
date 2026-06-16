@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-RSpec.describe SubmissionCommentsController, type: :request do
+RSpec.describe SubmissionCommentsController do
   describe "GET 'index'" do
     before do
       @course = Account.default.courses.create!
