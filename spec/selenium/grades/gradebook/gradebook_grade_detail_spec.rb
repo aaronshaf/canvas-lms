@@ -634,6 +634,14 @@ shared_examples "Grade Detail Tray:" do |ff_enabled|
       Gradebook.visit(@course)
       expect(f("body")).not_to contain_css(Gradebook.assignment_header_cell_selector(peer_review_column_name))
     end
+
+    it "displays a needs grading icon for ungraded peer review submissions in the gradebook cell" do
+      @peer_review_sub_assignment.submit_homework(@students[0], submission_type: "online_text_entry", body: "peer review work")
+
+      Gradebook.visit(@course)
+
+      expect(Gradebook::Cells.grading_cell(@students[0], @peer_review_sub_assignment)).to contain_css(".icon-not-graded")
+    end
   end
 end
 

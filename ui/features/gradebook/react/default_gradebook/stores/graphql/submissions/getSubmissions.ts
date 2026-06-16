@@ -210,7 +210,10 @@ const submissionsConnectionNode = ({
     // States is an array of enums.
     // buildGraphQLQuery would wrap each enum in quotes, causing the query to fail.
     // So we pass it as a variable.
-    filter: {states: '$states'},
+    filter: {
+      states: '$states',
+      includePeerReviewSubmissions: !!window.ENV?.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED,
+    },
   },
   fields: [
     {name: 'pageInfo', fields: ['hasNextPage', 'endCursor']},
