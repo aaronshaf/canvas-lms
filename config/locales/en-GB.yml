@@ -10833,7 +10833,7 @@ en-GB:
       late_policy: "Failed to export late policy"
       learning_outcomes: "Failed to export learning outcomes"
       lti_context_controls: "Failed to export LTI context controls"
-      lti_links: "Failed to export some web links"
+      lti_links: "Failed to export some external tool configurations"
       media_file: "A media file failed to export"
       media_files: "Failed to export some media files"
       media_files_too_large: "Media files were not exported because the total file size was too large."
