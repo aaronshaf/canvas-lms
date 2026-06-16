@@ -38,9 +38,10 @@ begin
         autoloader.dirs.include?(lib_path)
       end
 
-      t.before = proc { FileUtils.rm_rf(API_DOC_DIR) }
-      t.before = proc { `script/generate_lti_variable_substitution_markdown` }
       t.before = proc do
+        FileUtils.rm_rf(API_DOC_DIR)
+        `script/generate_lti_variable_substitution_markdown`
+
         lib_dir_is_loaded = CanvasRails::Application.autoloaders.any? do |autoloader|
           lib_path = Rails.root.join("lib").to_s
           autoloader.dirs.include?(lib_path)
