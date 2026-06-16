@@ -24,10 +24,12 @@ module Canvas::OAuth
       # assertion and checks that the key is a usable site_admin_service_auth
       # key with an active service_user, then issues an InstAccess token.
       class AsymmetricProvider < Canvas::OAuth::ClientCredentials::ServiceUser::Provider
-        def initialize(jwt, host, scopes: nil, protocol: "http://", root_account: nil)
+        include Canvas::OAuth::VanityAudience
+
+        def initialize(jwt, host, root_account:, scopes: nil, protocol: "http://")
           @assertion = Canvas::OAuth::ClientAssertion.new(
             jwt,
-            expected_aud: token_url(host, protocol),
+            expected_aud: build_expected_aud(host, protocol, root_account),
             skip_jti_check: false,
             require_iss: true
           )

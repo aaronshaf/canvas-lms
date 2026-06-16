@@ -4,19 +4,18 @@ module Canvas::OAuth
   module GrantTypes
     class BaseType
       include Canvas::OAuth::ResourceIndicators
+      include Canvas::OAuth::VanityAudience
 
       attr_reader :opts, :provider
 
-      # TODO: INTEROP-10672 — accept both vanity and canonical aud
-      def initialize(client_id, secret, opts, host: nil, protocol: "http://")
+      def initialize(client_id, secret, opts, host: nil, protocol: "http://", root_account: nil)
         @secret = secret
         @opts = opts
 
         if host && jwt_bearer_assertion?
-          expected_aud = Rails.application.routes.url_helpers.oauth2_token_url(host:, protocol:)
           @jwt_assertion = Canvas::OAuth::ClientAssertion.new(
             opts[:client_assertion],
-            expected_aud:,
+            expected_aud: build_expected_aud(host, protocol, root_account),
             expected_client_id: client_id.presence
           )
           client_id = @jwt_assertion.client_id

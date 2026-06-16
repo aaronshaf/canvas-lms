@@ -76,7 +76,8 @@ module Canvas::OAuth
             raw_jwt,
             host,
             scopes: scopes_from_opts(opts),
-            protocol:
+            protocol:,
+            root_account:
           )
         end
 

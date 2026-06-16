@@ -57,6 +57,11 @@ describe Canvas::OAuth::ClientCredentials::ServiceUser::AsymmetricProvider do
 
     it { is_expected.to be true }
 
+    it "delegates audience building to VanityAudience" do
+      expect_any_instance_of(described_class).to receive(:build_expected_aud).and_call_original
+      provider
+    end
+
     context "with bad aud (LTI OIDC auth_domain)" do
       let(:aud) { Lti::Oidc.auth_domain("example.com") }
 

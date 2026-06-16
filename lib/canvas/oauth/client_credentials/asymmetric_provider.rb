@@ -21,8 +21,10 @@ module Canvas::OAuth
   module ClientCredentials
     # JWT assertion provider for non-LTI API keys (client_credentials_audience == "external").
     class AsymmetricProvider < Provider
-      def initialize(jwt, host, scopes: nil, protocol: "http://", root_account: nil)
-        @assertion = Canvas::OAuth::ClientAssertion.new(jwt, **assertion_options(host, protocol))
+      include Canvas::OAuth::VanityAudience
+
+      def initialize(jwt, host, root_account:, scopes: nil, protocol: "http://")
+        @assertion = Canvas::OAuth::ClientAssertion.new(jwt, **assertion_options(host, protocol, root_account))
         super(@assertion.client_id, host, scopes:, protocol:, key: @assertion.key, root_account:)
       end
 
@@ -34,9 +36,9 @@ module Canvas::OAuth
 
       protected
 
-      def assertion_options(host, protocol)
+      def assertion_options(host, protocol, root_account)
         {
-          expected_aud: token_url(host, protocol),
+          expected_aud: build_expected_aud(host, protocol, root_account),
           skip_jti_check: false,
           require_iss: true
         }

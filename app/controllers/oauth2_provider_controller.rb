@@ -195,16 +195,16 @@ class OAuth2ProviderController < ApplicationController
               when "authorization_code"
                 if Canvas::OAuth::PKCE.use_pkce_in_token?(params) ||
                    Canvas::OAuth::PKCE.code_has_challenge?(params[:code])
-                  Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE.new(client_id, secret, params, **host_opts)
+                  Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE.new(client_id, secret, params, **host_opts, root_account: @domain_root_account)
                 else
-                  Canvas::OAuth::GrantTypes::AuthorizationCode.new(client_id, secret, params, **host_opts)
+                  Canvas::OAuth::GrantTypes::AuthorizationCode.new(client_id, secret, params, **host_opts, root_account: @domain_root_account)
                 end
               when "refresh_token"
-                Canvas::OAuth::GrantTypes::RefreshToken.new(client_id, secret, params, **host_opts)
+                Canvas::OAuth::GrantTypes::RefreshToken.new(client_id, secret, params, **host_opts, root_account: @domain_root_account)
               when "client_credentials"
                 Canvas::OAuth::GrantTypes::ClientCredentials.new(params, @domain_root_account, **host_opts)
               else
-                Canvas::OAuth::GrantTypes::BaseType.new(client_id, secret, params, **host_opts)
+                Canvas::OAuth::GrantTypes::BaseType.new(client_id, secret, params, **host_opts, root_account: @domain_root_account)
               end
 
     raise Canvas::OAuth::RequestError, :unsupported_grant_type unless granter.supported_type?
