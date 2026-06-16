@@ -18,8 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe ContentSharesController do
-  before :once do
+describe ContentSharesController, type: :request do
+  before do
     course_with_teacher(active_all: true)
     @course_1 = @course
     @teacher_1 = @teacher
@@ -41,15 +41,21 @@ describe ContentSharesController do
     end
 
     shared_examples_for "a successful create" do
-      let(:json_response) { JSON.parse(subject.body) }
+      let(:json_response) do
+        subject
+        response.parsed_body
+      end
       let(:content_export) { ContentExport.find(json_response["content_export"]["id"]) }
 
       it "has the http status 'created'" do
-        expect(subject).to have_http_status(:created)
+        subject
+        expect(response).to have_http_status(:created)
       end
 
       it "includes the content export id in the response" do
-        expect(json_response["content_export"]["id"]).to eq content_export.id
+        subject
+        sent_share = SentContentShare.find_by(user_id: sender.id)
+        expect(response.parsed_body["content_export"]["id"]).to eq(sent_share.content_export_id)
       end
 
       it "includes the sender id in the response" do
@@ -57,11 +63,11 @@ describe ContentSharesController do
       end
 
       it "includes the receiver id in the response" do
-        expect(json_response["receivers"].select { |receiver_json| receiver_json["id"] == receiver.id }).to be_present
+        expect(json_response["receivers"].pluck("id")).to eq([receiver.id])
       end
 
       it "creates a ContentExport" do
-        expect(content_export).to be_present
+        expect(content_export.user_id).to eq(sender.id)
       end
 
       it "creates a SentContentShare with the sender id" do
@@ -69,7 +75,7 @@ describe ContentSharesController do
           content_export_id: content_export.id,
           user_id: sender.id
         )
-        expect(sent_content_share).to be_present
+        expect(sent_content_share&.user_id).to eq(sender.id)
       end
 
       it "creates a ReceivedContentShare with the receiver and sender ids" do
@@ -78,16 +84,15 @@ describe ContentSharesController do
           sender_id: sender.id,
           user_id: receiver.id
         )
-        expect(received_content_share).to be_present
+        expect(received_content_share&.sender_id).to eq(sender.id)
       end
     end
 
     context "when sharing an assignment" do
       subject do
         post(
-          :create,
+          "/api/v1/users/#{sender.id}/content_shares",
           params: {
-            user_id: sender.id,
             content_type: "assignment",
             content_id: @assignment.id,
             receiver_ids: [receiver.id]
@@ -98,18 +103,16 @@ describe ContentSharesController do
       it_behaves_like "a successful create"
 
       it "includes the name of the assignment in the response" do
-        expect(JSON.parse(subject.body)["name"]).to eq @assignment.title
+        subject
+        expect(response.parsed_body["name"]).to eq @assignment.title
       end
     end
 
     context "when sharing an attachment" do
-      let_once(:attachment) { attachment_model(context: sender) }
-
       subject do
         post(
-          :create,
+          "/api/v1/users/#{sender.id}/content_shares",
           params: {
-            user_id: sender.id,
             content_type: "attachment",
             content_id: attachment.id,
             receiver_ids: [receiver.id]
@@ -117,19 +120,21 @@ describe ContentSharesController do
         )
       end
 
+      let(:attachment) { attachment_model(context: sender) }
+
       it_behaves_like "a successful create"
 
-      it "includes the name of the assignment in the response" do
-        expect(JSON.parse(subject.body)["name"]).to eq attachment.filename
+      it "includes the name of the attachment in the response" do
+        subject
+        expect(response.parsed_body["name"]).to eq attachment.filename
       end
     end
 
     context "when sharing a module item in a horizon course" do
       subject do
         post(
-          :create,
+          "/api/v1/users/#{sender.id}/content_shares",
           params: {
-            user_id: sender.id,
             content_type: "module_item",
             content_id: module_item.id,
             receiver_ids: [receiver.id],
@@ -143,9 +148,9 @@ describe ContentSharesController do
         @course_1.update!(horizon_course: true)
       end
 
-      let_once(:course) { @course_1 }
-      let_once(:context_module) { course.context_modules.create! name: "Module 1" }
-      let_once(:module_item) do
+      let(:course) { @course_1 }
+      let(:context_module) { course.context_modules.create! name: "Module 1" }
+      let(:module_item) do
         context_module.content_tags.create!(
           content_id: 0,
           tag_type: "context_module",
@@ -158,9 +163,10 @@ describe ContentSharesController do
       end
 
       it "includes the module in the export" do
-        export = ContentExport.find JSON.parse(subject.body)["content_export"]["id"]
-        expect(export.settings["selected_content"]["content_tags"]).not_to be_nil
-        expect(export.settings["selected_content"]["context_modules"]).not_to be_nil
+        subject
+        export = ContentExport.find response.parsed_body["content_export"]["id"]
+        expect(export.settings["selected_content"]["content_tags"].length).to eq(1)
+        expect(export.settings["selected_content"]["context_modules"].length).to eq(1)
       end
 
       it "sets selective_content_tag_export setting on the export" do
@@ -192,7 +198,7 @@ describe ContentSharesController do
           export = ContentExport.find response.parsed_body["content_export"]["id"]
           export.export(synchronous: true)
 
-          expect(export.workflow_state).to eq "exported"
+          expect(export.reload.workflow_state).to eq "exported"
           attachment = export.attachment
           require "zip"
           Zip::File.open(attachment.open.path) do |zip_file|
@@ -210,55 +216,55 @@ describe ContentSharesController do
     end
 
     it "returns 400 if required parameters aren't included" do
-      post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id }
       expect(response).to have_http_status(:bad_request)
 
-      post :create, params: { user_id: @teacher_1.id, content_type: "assignment", receiver_ids: [@teacher_2.id] }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:bad_request)
 
-      post :create, params: { user_id: @teacher_1.id, content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:bad_request)
 
       announcement_model(context: @course_1)
-      post :create, params: { user_id: @teacher_1.id, content_type: "announcement", content_id: @a.id, receiver_ids: [@teacher_2.id] }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "announcement", content_id: @a.id, receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:bad_request)
     end
 
     it "returns 400 if the associated content cannot be found" do
-      post :create, params: { user_id: @teacher_1.id, content_type: "discussion_topic", content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "discussion_topic", content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:bad_request)
     end
 
-    it "returns 401 if the user doesn't have access to export the associated content" do
+    it "returns 403 if the user doesn't have access to export the associated content" do
       user_session(@teacher_2)
-      post :create, params: { user_id: @teacher_2.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_1.id] }
-      expect(response).to have_http_status(:unauthorized)
+      post "/api/v1/users/#{@teacher_2.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_1.id] }
+      expect(response).to have_http_status(:forbidden)
     end
 
     it "returns 401 if the sharing user doesn't match current user" do
       user_session(@teacher_2)
-      post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
+      post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:forbidden)
     end
 
     context "recipient authorization" do
-      let_once(:unrelated_user) { user_with_pseudonym(active_user: true) }
+      let(:unrelated_user) { user_with_pseudonym(active_user: true) }
 
       before do
         user_session(@teacher_1)
       end
 
       it "rejects when the only recipient has no shared course or group with the sender" do
-        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
+        post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "No valid receiving users found"
+        expect(response.parsed_body["message"]).to eq("No valid receiving users found")
         expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
         expect(SentContentShare.where(user_id: @teacher_1.id)).not_to exist
         expect(ContentExport.where(user_id: @teacher_1.id)).not_to exist
       end
 
       it "silently drops unauthorized recipients when at least one is authorized" do
-        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id, unrelated_user.id] }
+        post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id, unrelated_user.id] }
         expect(response).to have_http_status(:created)
         expect(ReceivedContentShare.where(user_id: @teacher_2.id)).to exist
         expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
@@ -267,16 +273,18 @@ describe ContentSharesController do
       it "lets site admins with :send_messages share with unrelated users" do
         site_admin = account_admin_user(account: Account.site_admin)
         user_session(site_admin)
-        post :create, params: { user_id: site_admin.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
+        post "/api/v1/users/#{site_admin.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
         expect(response).to have_http_status(:created)
         expect(ReceivedContentShare.where(user_id: unrelated_user.id)).to exist
+        json = response.parsed_body
+        expect(json["user_id"]).to eq(site_admin.id)
+        expect(json["receivers"].pluck("id")).to eq([unrelated_user.id])
       end
 
       it "rejects when receiver_ids exceeds the per-request cap" do
-        stub_const("ContentSharesController::MAX_RECEIVERS", 2)
-        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id, @teacher_2.id, @teacher_2.id] }
+        post "/api/v1/users/#{@teacher_1.id}/content_shares", params: { content_type: "assignment", content_id: @assignment.id, receiver_ids: Array.new(ContentSharesController::MAX_RECEIVERS + 1, @teacher_2.id) }
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "Too many recipients"
+        expect(response.parsed_body["message"]).to eq("Too many recipients (max #{ContentSharesController::MAX_RECEIVERS})")
         expect(SentContentShare.where(user_id: @teacher_1.id)).not_to exist
         expect(ContentExport.where(user_id: @teacher_1.id)).not_to exist
       end
@@ -284,7 +292,7 @@ describe ContentSharesController do
   end
 
   describe "rest of CRUD" do
-    before :once do
+    before do
       @export = @course_1.content_exports.create!(settings: { "selected_content" => { "assignments" => { CC::CCHelper.create_key(@assignment) => "1" } } })
       @export_2 = @course_1.content_exports.create!(settings: { "selected_content" => { "assignments" => { CC::CCHelper.create_key(@assignment) => "1" } } })
       @sent_share = @teacher_1.sent_content_shares.create! name: "booga", content_export: @export, read_state: "read"
@@ -295,8 +303,8 @@ describe ContentSharesController do
     describe "GET #index" do
       it "lists sent content shares" do
         user_session @teacher_1
-        get :index, params: { user_id: @teacher_1.id, list: "sent" }
-        expect(response).to be_successful
+        get "/api/v1/users/#{@teacher_1.id}/content_shares/sent"
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json.length).to eq 1
         expect(json[0]["id"]).to eq @sent_share.id
@@ -307,7 +315,7 @@ describe ContentSharesController do
         expect(json[0]["receivers"][0]["id"]).to eq @teacher_2.id
         expect(json[0]["content_type"]).to eq "assignment"
         expect(json[0]["source_course"]).to eq({ "id" => @course_1.id, "name" => @course_1.name })
-        expect(json[0]["content_export"]).to be_present
+        expect(json[0]["content_export"]["id"]).to eq @export.id
       end
 
       it "paginates sent content shares" do
@@ -317,7 +325,7 @@ describe ContentSharesController do
         end
         user_session @teacher_1
 
-        get :index, params: { user_id: "self", list: "sent", per_page: 1 }
+        get "/api/v1/users/self/content_shares/sent", params: { per_page: 1 }
         json = response.parsed_body
         expect(json.length).to eq 1
         expect(json[0]["name"]).to eq "booga"
@@ -329,7 +337,7 @@ describe ContentSharesController do
         expect(link[:uri].query).to include "page=2"
         expect(link[:uri].query).to include "per_page=1"
 
-        get :index, params: { user_id: "self", list: "sent", per_page: 1, page: 2 }
+        get "/api/v1/users/self/content_shares/sent", params: { per_page: 1, page: 2 }
         json = response.parsed_body
         expect(json.length).to eq 1
         expect(json[0]["name"]).to eq "ooga"
@@ -341,8 +349,8 @@ describe ContentSharesController do
 
       it "lists received content shares" do
         user_session @teacher_2
-        get :index, params: { user_id: @teacher_2.id, list: "received" }
-        expect(response).to be_successful
+        get "/api/v1/users/#{@teacher_2.id}/content_shares/received"
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json.length).to eq 2
         expect(json[1]["id"]).to eq @received_share.id
@@ -352,12 +360,12 @@ describe ContentSharesController do
         expect(json[1]["receivers"]).to eq([])
         expect(json[1]["content_type"]).to eq "assignment"
         expect(json[1]["source_course"]).to eq({ "id" => @course_1.id, "name" => @course_1.name })
-        expect(json[1]["content_export"]).to be_present
+        expect(json[1]["content_export"]["id"]).to eq @export.id
       end
 
       it "includes sender information" do
         user_session @teacher_2
-        get :index, params: { user_id: @teacher_2.id, list: "received", per_page: 1 }
+        get "/api/v1/users/#{@teacher_2.id}/content_shares/received", params: { per_page: 1 }
         json = response.parsed_body
         expect(json.map { |share| share["sender"]["id"] }).to eq([@teacher_1.id])
       end
@@ -369,7 +377,7 @@ describe ContentSharesController do
         end
         user_session @teacher_2
 
-        get :index, params: { user_id: "self", list: "received", per_page: 2 }
+        get "/api/v1/users/self/content_shares/received", params: { per_page: 2 }
         json = response.parsed_body
         expect(json.length).to eq 2
         expect(json[0]["name"]).to eq "u read me"
@@ -381,7 +389,7 @@ describe ContentSharesController do
         expect(link[:uri].query).to include "page=2"
         expect(link[:uri].query).to include "per_page=2"
 
-        get :index, params: { user_id: "self", list: "received", per_page: 2, page: 2 }
+        get "/api/v1/users/self/content_shares/received", params: { per_page: 2, page: 2 }
         json = response.parsed_body
         expect(json.length).to eq 1
         expect(json[0]["name"]).to eq "ooga"
@@ -393,16 +401,16 @@ describe ContentSharesController do
 
       it "requires permission on user" do
         user_session @teacher_1
-        get :index, params: { user_id: @teacher_2.id, list: "received" }
-        expect(response).to have_http_status(:unauthorized)
+        get "/api/v1/users/#{@teacher_2.id}/content_shares/received"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     describe "GET #show" do
       it "returns a content share" do
         user_session @teacher_1
-        get :show, params: { user_id: @teacher_1.id, id: @sent_share.id }
-        expect(response).to be_successful
+        get "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}"
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json["id"]).to eq @sent_share.id
         expect(json["name"]).to eq "booga"
@@ -412,12 +420,12 @@ describe ContentSharesController do
         expect(json["receivers"][0]["id"]).to eq @teacher_2.id
         expect(json["content_type"]).to eq "assignment"
         expect(json["source_course"]).to eq({ "id" => @course_1.id, "name" => @course_1.name })
-        expect(json["content_export"]).to be_present
+        expect(json["content_export"]["id"]).to eq @export.id
       end
 
       it "scopes to user" do
         user_session @teacher_1
-        get :show, params: { user_id: @teacher_1.id, id: @received_share.id }
+        get "/api/v1/users/#{@teacher_1.id}/content_shares/#{@received_share.id}"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -425,101 +433,99 @@ describe ContentSharesController do
     describe "DELETE #destroy" do
       it "deletes a content share" do
         user_session @teacher_1
-        delete :destroy, params: { user_id: @teacher_1.id, id: @sent_share.id }
-        expect(response).to be_successful
+        delete "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}"
+        expect(response).to have_http_status(:ok)
         expect(ContentShare.where(id: @sent_share.id).exists?).to be false
       end
 
       it "scopes to user" do
         user_session @teacher_2
-        delete :destroy, params: { user_id: @teacher_2.id, id: @sent_share.id }
+        delete "/api/v1/users/#{@teacher_2.id}/content_shares/#{@sent_share.id}"
         expect(response).to have_http_status(:not_found)
       end
 
       it "requires user=self" do
         user_session @teacher_1
-        delete :destroy, params: { user_id: @teacher_2.id, id: @sent_share.id }
+        delete "/api/v1/users/#{@teacher_2.id}/content_shares/#{@sent_share.id}"
         expect(response).to have_http_status(:forbidden)
       end
     end
 
     describe "POST #add_users" do
-      before :once do
+      before do
         @teacher_3 = user_with_pseudonym(active_user: true)
         @shared_course.enroll_teacher(@teacher_3, enrollment_state: "active")
       end
 
       it "adds users" do
         user_session @teacher_1
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id] }
-        expect(response).to be_successful
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [@teacher_3.id] }
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json["receivers"].length).to eq 2
         expect(json["receivers"].pluck("id")).to match_array([@teacher_2.id, @teacher_3.id])
-        expect(@sent_share.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
+        expect(@sent_share.reload.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
       end
 
       it "ignores users already shared" do
         user_session @teacher_1
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_2.id, @teacher_3.id] }
-        expect(response).to be_successful
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [@teacher_2.id, @teacher_3.id] }
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
-        expect(json["receivers"].length).to eq 2
         expect(json["receivers"].pluck("id")).to match_array([@teacher_2.id, @teacher_3.id])
-        expect(@sent_share.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
+        expect(@sent_share.reload.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
       end
 
       it "allows sharing with yourself, because why not" do
         user_session @teacher_1
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_1.id, @teacher_3.id] }
-        expect(response).to be_successful
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [@teacher_1.id, @teacher_3.id] }
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json["receivers"].pluck("id")).to match_array([@teacher_1.id, @teacher_2.id, @teacher_3.id])
-        expect(@sent_share.receivers.pluck(:id)).to match_array([@teacher_1.id, @teacher_2.id, @teacher_3.id])
+        expect(@sent_share.reload.receivers.pluck(:id)).to match_array([@teacher_1.id, @teacher_2.id, @teacher_3.id])
       end
 
       it "complains if no valid users are included" do
         user_session @teacher_1
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [0] }
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [0] }
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "No valid receiving users found"
+        expect(response.parsed_body["message"]).to eq("No valid receiving users found")
       end
 
       it "drops unauthorized recipients" do
         user_session @teacher_1
         unrelated_user = user_with_pseudonym(active_user: true)
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [unrelated_user.id, @teacher_3.id] }
-        expect(response).to be_successful
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [unrelated_user.id, @teacher_3.id] }
+        expect(response).to have_http_status(:ok)
         expect(@sent_share.reload.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
         expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
       end
 
       it "rejects when receiver_ids exceeds the per-request cap" do
-        stub_const("ContentSharesController::MAX_RECEIVERS", 2)
         user_session @teacher_1
         expect do
-          post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id, @teacher_3.id, @teacher_3.id] }
+          post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: Array.new(ContentSharesController::MAX_RECEIVERS + 1, @teacher_3.id) }
         end.not_to change { @sent_share.reload.receivers.pluck(:id) }
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "Too many recipients"
+        expect(response.parsed_body["message"]).to include("Too many recipients")
       end
 
       it "disallows resharing somebody else's share" do
         user_session @teacher_2
-        post :add_users, params: { user_id: @teacher_2.id, id: @received_share.id, receiver_ids: [@teacher_3.id] }
+        post "/api/v1/users/#{@teacher_2.id}/content_shares/#{@received_share.id}/add_users", params: { receiver_ids: [@teacher_3.id] }
         expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "Content share not owned by you"
+        expect(response.parsed_body["message"]).to eq("Content share not owned by you")
       end
 
       it "scopes to user" do
         user_session @teacher_2
-        post :add_users, params: { user_id: @teacher_2.id, id: @sent_share.id, receiver_ids: [@teacher_3.id] }
+        post "/api/v1/users/#{@teacher_2.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [@teacher_3.id] }
         expect(response).to have_http_status(:not_found)
       end
 
       it "requires user=self" do
         user_session @teacher_2
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id] }
+        post "/api/v1/users/#{@teacher_1.id}/content_shares/#{@sent_share.id}/add_users", params: { receiver_ids: [@teacher_3.id] }
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -527,47 +533,50 @@ describe ContentSharesController do
     describe "GET #unread_count" do
       it "returns the correct count" do
         user_session @teacher_2
-        get :unread_count, params: { user_id: @teacher_2 }
-        expect(response).to be_successful
+        get "/api/v1/users/#{@teacher_2.id}/content_shares/unread_count"
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
-        expect(json["unread_count"]).to eq 1
+        expect(json["unread_count"]).to eq(1)
       end
     end
 
     describe "PUT #update" do
       it "marks a content share read" do
         user_session @teacher_2
-        put :update, params: { user_id: @teacher_2.id, id: @received_share.id, read_state: "read" }
-        expect(response).to be_successful
+        put "/api/v1/users/#{@teacher_2.id}/content_shares/#{@received_share.id}", params: { read_state: "read" }
+        expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json["read_state"]).to eq "read"
-        expect(json["content_export"]).to be_present
+        expect(json["content_export"]["id"]).to eq @export.id
         expect(@received_share.reload.read_state).to eq "read"
       end
 
       it "rejects an invalid read state" do
         user_session @teacher_2
-        put :update, params: { user_id: @teacher_2.id, id: @received_share.id, read_state: "malarkey" }
+        put "/api/v1/users/#{@teacher_2.id}/content_shares/#{@received_share.id}", params: { read_state: "malarkey" }
         expect(response).to have_http_status(:bad_request)
       end
 
       it "ignores invalid attributes" do
         user_session @teacher_2
-        put :update, params: { user_id: @teacher_2.id, id: @received_share.id, content_export_id: 0, read_state: "read" }
-        expect(response).to be_successful
+        put "/api/v1/users/#{@teacher_2.id}/content_shares/#{@received_share.id}", params: { content_export_id: 0, read_state: "read" }
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["read_state"]).to eq "read"
+        expect(json["content_export"]["id"]).to eq @export.id
         expect(@received_share.reload.read_state).to eq "read"
-        expect(@received_share.content_export_id).to eq @export.id
+        expect(@received_share.reload.content_export_id).to eq @export.id
       end
 
       it "scopes to user" do
         user_session @teacher_1
-        put :update, params: { user_id: @teacher_1.id, id: @received_share.id, read_state: "read" }
+        put "/api/v1/users/#{@teacher_1.id}/content_shares/#{@received_share.id}", params: { read_state: "read" }
         expect(response).to have_http_status(:not_found)
       end
 
       it "requires user=self" do
         user_session @teacher_1
-        put :update, params: { user_id: @teacher_2.id, id: @received_share.id, read_state: "read" }
+        put "/api/v1/users/#{@teacher_2.id}/content_shares/#{@received_share.id}", params: { read_state: "read" }
         expect(response).to have_http_status(:forbidden)
       end
     end

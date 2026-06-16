@@ -18,8 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe DiscoveryPagesApiController do
-  let_once(:account) { Account.default }
+describe DiscoveryPagesApiController, type: :request do
+  let(:account) { Account.default }
 
   describe "PUT 'upsert'" do
     let!(:auth_provider) { account.authentication_providers.create!(auth_type: "saml") }
@@ -38,9 +38,9 @@ describe DiscoveryPagesApiController do
     end
 
     context "when not logged in" do
-      it "redirects to login" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
-        expect(response).to redirect_to(login_url)
+      it "returns unauthorized" do
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
@@ -50,9 +50,9 @@ describe DiscoveryPagesApiController do
         user_session(@user)
       end
 
-      it "returns unauthorized" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
-        expect(response).to have_http_status(:unauthorized)
+      it "returns forbidden" do
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -63,8 +63,8 @@ describe DiscoveryPagesApiController do
       end
 
       it "stores discovery_page settings successfully" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
-        expect(response).to be_successful
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         expect(json["discovery_page"]["primary"].length).to eq(1)
         expect(json["discovery_page"]["primary"][0]["authentication_provider_id"]).to eq(auth_provider.id.to_s)
@@ -74,11 +74,15 @@ describe DiscoveryPagesApiController do
       end
 
       it "persists settings to the domain root account" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
 
         account.reload
         expect(account.settings[:discovery_page][:primary].length).to eq(1)
+        expect(account.settings[:discovery_page][:primary][0][:authentication_provider_id]).to eq(auth_provider.id.to_s)
+        expect(account.settings[:discovery_page][:primary][0][:label]).to eq("Test Provider")
         expect(account.settings[:discovery_page][:secondary].length).to eq(1)
+        expect(account.settings[:discovery_page][:secondary][0][:authentication_provider_id]).to eq(secondary_auth_provider.id.to_s)
+        expect(account.settings[:discovery_page][:secondary][0][:label]).to eq("Other Provider")
       end
 
       it "returns 422 when required fields are missing" do
@@ -89,9 +93,11 @@ describe DiscoveryPagesApiController do
           secondary: []
         }
 
-        put :upsert, params: { discovery_page: invalid_page }
+        put "/api/v1/discovery_pages", params: { discovery_page: invalid_page }
 
         expect(response).to have_http_status(:unprocessable_content)
+        json = json_parse(response.body)
+        expect(json["errors"].pluck("message")).to include(a_string_including("label"))
       end
 
       it "returns 422 when total items exceed the maximum of 10" do
@@ -100,7 +106,7 @@ describe DiscoveryPagesApiController do
           primary: providers.first(6).map { |p| { authentication_provider_id: p.id, label: "Provider" } },
           secondary: providers.last(5).map { |p| { authentication_provider_id: p.id, label: "Provider" } }
         }
-        put :upsert, params: { discovery_page: over_limit_page }
+        put "/api/v1/discovery_pages", params: { discovery_page: over_limit_page }
         expect(response).to have_http_status(:unprocessable_content)
         json = json_parse(response.body)
         expect(json["errors"].pluck("message"))
@@ -115,7 +121,7 @@ describe DiscoveryPagesApiController do
           secondary: []
         }
 
-        put :upsert, params: { discovery_page: invalid_page }
+        put "/api/v1/discovery_pages", params: { discovery_page: invalid_page }
 
         expect(response).to have_http_status(:unprocessable_content)
       end
@@ -130,25 +136,31 @@ describe DiscoveryPagesApiController do
           ]
         }
 
-        put :upsert, params: { discovery_page: page_without_icon }
+        put "/api/v1/discovery_pages", params: { discovery_page: page_without_icon }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
+        json = json_parse(response.body)
+        expect(json["discovery_page"]["primary"][0]["label"]).to eq("Test Provider")
+        expect(json["discovery_page"]["primary"][0]).not_to have_key("icon")
       end
 
       it "updates existing discovery_page settings" do
         account.settings[:discovery_page] = { primary: [], secondary: [] }
         account.save!
 
-        put :upsert, params: { discovery_page: valid_discovery_page }
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
+        json = json_parse(response.body)
+        expect(json["discovery_page"]["primary"].length).to eq(1)
+        expect(json["discovery_page"]["primary"][0]["label"]).to eq("Test Provider")
         account.reload
         expect(account.settings[:discovery_page][:primary].length).to eq(1)
       end
 
       it "stores active flag when provided as true" do
-        put :upsert, params: { discovery_page: valid_discovery_page.merge(active: true) }
-        expect(response).to be_successful
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page.merge(active: true) }
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         expect(json["discovery_page"]["active"]).to be true
         account.reload
@@ -156,18 +168,18 @@ describe DiscoveryPagesApiController do
       end
 
       it "replaces entire discovery_page on subsequent updates (PUT semantics)" do
-        put :upsert, params: { discovery_page: valid_discovery_page.merge(active: true) }
-        expect(response).to be_successful
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page.merge(active: true) }
+        expect(response).to have_http_status(:ok)
         account.reload
         expect(account.settings[:discovery_page][:primary].length).to eq(1)
         expect(account.settings[:discovery_page][:active]).to be true
-        put :upsert, params: {
+        put "/api/v1/discovery_pages", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: secondary_auth_provider.id, label: "NewPrimary" }],
             secondary: []
           }
         }
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         account.reload
         expect(account.settings[:discovery_page][:primary].length).to eq(1)
         expect(account.settings[:discovery_page][:primary][0][:label]).to eq("NewPrimary")
@@ -176,36 +188,38 @@ describe DiscoveryPagesApiController do
       end
 
       it "clears primary array when provided empty" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
-        expect(response).to be_successful
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
+        expect(response).to have_http_status(:ok)
         account.reload
-        expect(account.settings[:discovery_page][:primary]).to be_present
-        put :upsert, params: {
+        expect(account.settings[:discovery_page][:primary].length).to eq(1)
+        put "/api/v1/discovery_pages", params: {
           discovery_page: {
             primary: [],
             secondary: [{ authentication_provider_id: secondary_auth_provider.id, label: "Secondary" }]
           }
         }
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         account.reload
         expect(account.settings[:discovery_page][:primary]).to be_empty
         expect(account.settings[:discovery_page][:secondary].length).to eq(1)
       end
 
       it "clears secondary array when provided empty" do
-        put :upsert, params: { discovery_page: valid_discovery_page }
-        expect(response).to be_successful
+        put "/api/v1/discovery_pages", params: { discovery_page: valid_discovery_page }
+        expect(response).to have_http_status(:ok)
         account.reload
-        expect(account.settings[:discovery_page][:secondary]).to be_present
-        put :upsert, params: {
+        expect(account.settings[:discovery_page][:secondary].length).to eq(1)
+        put "/api/v1/discovery_pages", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Primary" }],
             secondary: []
           }
         }
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         account.reload
         expect(account.settings[:discovery_page][:primary].length).to eq(1)
+        expect(account.settings[:discovery_page][:primary][0][:authentication_provider_id]).to eq(auth_provider.id.to_s)
+        expect(account.settings[:discovery_page][:primary][0][:label]).to eq("Primary")
         expect(account.settings[:discovery_page][:secondary]).to be_empty
       end
 
@@ -218,12 +232,12 @@ describe DiscoveryPagesApiController do
             secondary: []
           }
 
-          put :upsert, params: { discovery_page: invalid_page }
+          put "/api/v1/discovery_pages", params: { discovery_page: invalid_page }
 
           expect(response).to have_http_status(:unprocessable_content)
           json = json_parse(response.body)
 
-          expect(json["errors"].any? { |e| e["message"].include?("authentication_provider_id is invalid or inactive") }).to be true
+          expect(json["errors"].pluck("message")).to include(a_string_including("authentication_provider_id is invalid or inactive"))
         end
 
         it "returns 422 when authentication_provider is soft deleted" do
@@ -237,11 +251,11 @@ describe DiscoveryPagesApiController do
             secondary: []
           }
 
-          put :upsert, params: { discovery_page: invalid_page }
+          put "/api/v1/discovery_pages", params: { discovery_page: invalid_page }
 
           expect(response).to have_http_status(:unprocessable_content)
           json = json_parse(response.body)
-          expect(json["errors"].any? { |e| e["message"].include?("authentication_provider_id is invalid or inactive") }).to be true
+          expect(json["errors"].pluck("message")).to include(a_string_including("authentication_provider_id is invalid or inactive"))
         end
       end
     end
@@ -249,9 +263,9 @@ describe DiscoveryPagesApiController do
 
   describe "GET 'show'" do
     context "when not logged in" do
-      it "redirects to login" do
-        get :show
-        expect(response).to redirect_to(login_url)
+      it "returns unauthorized" do
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
@@ -261,9 +275,9 @@ describe DiscoveryPagesApiController do
         user_session(@user)
       end
 
-      it "returns unauthorized" do
-        get :show
-        expect(response).to have_http_status(:unauthorized)
+      it "returns forbidden" do
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -285,9 +299,9 @@ describe DiscoveryPagesApiController do
         end
 
         it "returns configured discovery_page with active defaulted to false" do
-          get :show
+          get "/api/v1/discovery_pages"
 
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           json = json_parse(response.body)
           expect(json["discovery_page"]["primary"].length).to eq(1)
           expect(json["discovery_page"]["primary"][0]["label"]).to eq("Test")
@@ -298,8 +312,8 @@ describe DiscoveryPagesApiController do
         it "returns active flag when set to true" do
           account.settings[:discovery_page][:active] = true
           account.save!
-          get :show
-          expect(response).to be_successful
+          get "/api/v1/discovery_pages"
+          expect(response).to have_http_status(:ok)
           json = json_parse(response.body)
           expect(json["discovery_page"]["active"]).to be true
         end
@@ -307,8 +321,8 @@ describe DiscoveryPagesApiController do
         it "returns active flag when set to false" do
           account.settings[:discovery_page][:active] = false
           account.save!
-          get :show
-          expect(response).to be_successful
+          get "/api/v1/discovery_pages"
+          expect(response).to have_http_status(:ok)
           json = json_parse(response.body)
           expect(json["discovery_page"]["active"]).to be false
         end
@@ -316,9 +330,9 @@ describe DiscoveryPagesApiController do
 
       context "when discovery_page is not configured" do
         it "returns discovery_page with defaults for all fields" do
-          get :show
+          get "/api/v1/discovery_pages"
 
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           json = json_parse(response.body)
           expect(json["discovery_page"]).to eq({ "primary" => [], "secondary" => [], "active" => false })
         end
@@ -332,10 +346,13 @@ describe DiscoveryPagesApiController do
             secondary: []
           }
           account.save(validate: false)
-          get :show
-          expect(response).to be_successful
+          get "/api/v1/discovery_pages"
+          expect(response).to have_http_status(:ok)
           json = json_parse(response.body)
           expect(json["discovery_page"]["primary"].length).to eq(11)
+          expect(json["discovery_page"]["primary"][0]["label"]).to eq("Provider")
+          expect(json["discovery_page"]["secondary"]).to eq([])
+          expect(json["discovery_page"]["active"]).to be false
         end
       end
     end
@@ -345,22 +362,11 @@ describe DiscoveryPagesApiController do
     let(:past_key) { CanvasSecurity::KeyStorage.new_key }
     let(:present_key) { CanvasSecurity::KeyStorage.new_key }
     let(:future_key) { CanvasSecurity::KeyStorage.new_key }
-    let(:fallback_proxy) do
-      DynamicSettings::FallbackProxy.new({
-                                           CanvasSecurity::KeyStorage::PAST => past_key,
-                                           CanvasSecurity::KeyStorage::PRESENT => present_key,
-                                           CanvasSecurity::KeyStorage::FUTURE => future_key
-                                         })
-    end
-
-    before do
-      allow(DynamicSettings).to receive(:kv_proxy).and_return(fallback_proxy)
-    end
 
     context "when not logged in" do
-      it "redirects to login" do
-        post :token
-        expect(response).to redirect_to(login_url)
+      it "returns unauthorized" do
+        post "/api/v1/discovery_pages/token"
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
@@ -370,9 +376,9 @@ describe DiscoveryPagesApiController do
         user_session(@user)
       end
 
-      it "returns unauthorized" do
-        post :token
-        expect(response).to have_http_status(:unauthorized)
+      it "returns forbidden" do
+        post "/api/v1/discovery_pages/token"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -381,24 +387,40 @@ describe DiscoveryPagesApiController do
       let(:secondary_auth_provider) { account.authentication_providers.create!(auth_type: "cas") }
 
       before do
+        DynamicSettings.fallback_data = {
+          "store" => {
+            "canvas" => {
+              "services-jwt" => {
+                CanvasSecurity::KeyStorage::PAST => past_key,
+                CanvasSecurity::KeyStorage::PRESENT => present_key,
+                CanvasSecurity::KeyStorage::FUTURE => future_key
+              }
+            }
+          }
+        }
         account_admin_user(account:, active_all: true)
         user_session(@admin)
       end
 
+      after do
+        DynamicSettings.fallback_data = nil
+      end
+
       it "returns a JWT token" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Students", icon: "google" }],
             secondary: []
           }
         }
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
-        expect(json["token"]).to be_present
+        decoded = CanvasSecurity.decode_jwt(json["token"], [CanvasSecurity::ServicesJwt::KeyStorage.present_key])
+        expect(decoded["scope"]).to eq("discovery.preview")
       end
 
       it "returns a valid RS256-signed JWT" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Students" }],
             secondary: []
@@ -410,7 +432,7 @@ describe DiscoveryPagesApiController do
       end
 
       it "includes all required claims" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Students", icon: "google" }],
             secondary: [{ authentication_provider_id: secondary_auth_provider.id, label: "Admins" }]
@@ -419,19 +441,23 @@ describe DiscoveryPagesApiController do
         token = json_parse(response.body)["token"]
         decoded = CanvasSecurity.decode_jwt(token, [CanvasSecurity::ServicesJwt::KeyStorage.present_key])
         expect(decoded["sub"]).to eq(@admin.global_id.to_s)
-        expect(decoded["iat"]).to be_a(Integer)
-        expect(decoded["exp"]).to eq(decoded["iat"] + 30)
+        # The 5-second buffer guards against clock skew between the moment the JWT is issued
+        # (inside the controller during the request) and the moment Time.now is evaluated
+        # in the test assertion — they're two separate calls to the system clock,
+        # so even on a fast machine there's a non-zero gap. In CI, that gap can widen under load (GC pauses, process scheduling, slow Docker
+        # I/O).
+        expect(decoded["iat"]).to be_within(5).of(Time.now.utc.to_i)
+        expect(decoded["exp"]).to eql(decoded["iat"] + 30)
         expect(decoded["org"]).to eq(account.uuid)
         expect(decoded["scope"]).to eq("discovery.preview")
-        expect(decoded).to have_key("aud")
-        expect(decoded["primary"]).to be_an(Array)
         expect(decoded["primary"].length).to eq(1)
-        expect(decoded["secondary"]).to be_an(Array)
+        expect(decoded["primary"].first).to include("label" => "Students", "icon" => "google")
         expect(decoded["secondary"].length).to eq(1)
+        expect(decoded["secondary"].first).to include("label" => "Admins")
       end
 
       it "serializes button links in identity service format" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Students", icon: "google" }],
             secondary: []
@@ -442,11 +468,11 @@ describe DiscoveryPagesApiController do
         link = decoded["primary"].first
         expect(link["label"]).to eq("Students")
         expect(link["icon"]).to eq("google")
-        expect(link["path"]).to eq(auth_provider.login_authentication_provider_path)
+        expect(link["path"]).to eq("/login/saml/#{auth_provider.id}")
       end
 
       it "omits entries for non-existent providers" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [
               { authentication_provider_id: auth_provider.id, label: "Valid" },
@@ -462,12 +488,12 @@ describe DiscoveryPagesApiController do
       end
 
       it "returns 400 when no body is provided" do
-        post :token
+        post "/api/v1/discovery_pages/token"
         expect(response).to have_http_status(:bad_request)
       end
 
       it "sanitizes HTML from labels before including them in the JWT" do
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "<script>alert('xss')</script>Students" }],
             secondary: []
@@ -495,40 +521,40 @@ describe DiscoveryPagesApiController do
     describe "GET #show" do
       it "succeeds with read_authentication_provider only" do
         session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
-        get :show
-        expect(response).to be_successful
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:ok)
       end
 
       it "is forbidden without either permission" do
         session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: false)
-        get :show
-        expect(response).to have_http_status(:unauthorized)
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     describe "PUT #upsert" do
       it "is forbidden with only read_authentication_provider" do
         session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
-        put :upsert, params: {
+        put "/api/v1/discovery_pages", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Test" }],
             secondary: []
           }
         }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     describe "POST #token" do
       it "is forbidden with only read_authentication_provider" do
         session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
-        post :token, params: {
+        post "/api/v1/discovery_pages/token", params: {
           discovery_page: {
             primary: [{ authentication_provider_id: auth_provider.id, label: "Test" }],
             secondary: []
           }
         }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -539,15 +565,15 @@ describe DiscoveryPagesApiController do
         session_as_admin_with(manage_authentication_provider: false,
                               read_authentication_provider: false,
                               manage_account_settings: true)
-        get :show
-        expect(response).to be_successful
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:ok)
       end
 
       it "denies show when only the new perms are granted" do
         session_as_admin_with(manage_authentication_provider: true,
                               read_authentication_provider: true)
-        get :show
-        expect(response).to have_http_status(:unauthorized)
+        get "/api/v1/discovery_pages"
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
