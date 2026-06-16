@@ -41,6 +41,11 @@ const I18n = createI18nScope('student_study_drawer')
 
 const STUDY_ASSIST_OPEN_EVENT = 'study-assist:open'
 const NOTEBOOK_OPEN_EVENT = 'notebook:open'
+// Broadcast which panel is open so the (separately mounted) trigger buttons can
+// keep their aria-expanded / aria-controls in sync. TRAY_ID is the aria-controls
+// target shared by both triggers.
+const STATE_EVENT = 'student-study-drawer:state'
+const TRAY_ID = 'student-study-drawer-tray'
 
 type ActivePanel = 'study-assist' | 'notebook' | null
 
@@ -166,6 +171,11 @@ function StudentStudyDrawerInner({
     triggerElementRef.current?.focus()
   }, [activePanel])
 
+  // Let the trigger buttons mirror the open panel in their aria attributes.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(STATE_EVENT, {detail: {activePanel}}))
+  }, [activePanel])
+
   // Notebook owns its own mount focus.
   useEffect(() => {
     if (activePanel === null || activePanel === 'notebook') return
@@ -218,6 +228,7 @@ function StudentStudyDrawerInner({
           open={activePanel !== null}
           onDismiss={handleDismiss}
           defaultFocusElement={() => closeButtonRef.current}
+          id={TRAY_ID}
         >
           {activePanel === 'study-assist' && showStudyAssist && (
             <StudyAssistPanel

@@ -16,16 +16,20 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {render} from '@canvas/react'
 import ready from '@instructure/ready'
 import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {Tooltip} from '@instructure/ui-tooltip'
+import {View} from '@instructure/ui-view'
 import {IconAiSolid} from '@instructure/ui-icons'
 
 const ICON_MOUNT_IDS = ['study_assist_mount_point', 'study_assist_mobile_mount_point']
 const OPEN_EVENT = 'study-assist:open'
+// Kept in sync with StudentStudyDrawer, which lives in a separate bundle.
+const STATE_EVENT = 'student-study-drawer:state'
+const TRAY_ID = 'student-study-drawer-tray'
 
 function dispatchOpen() {
   window.dispatchEvent(new CustomEvent(OPEN_EVENT))
@@ -33,18 +37,32 @@ function dispatchOpen() {
 
 export function StudyAssistTrigger() {
   const {t} = useTranslation('study_assist')
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) =>
+      setExpanded((e as CustomEvent).detail?.activePanel === 'study-assist')
+    window.addEventListener(STATE_EVENT, handler)
+    return () => window.removeEventListener(STATE_EVENT, handler)
+  }, [])
+
   return (
     <Tooltip renderTip={t('IgniteAI Study Tools')}>
-      <IconButton
-        screenReaderLabel={t('IgniteAI Study Tools')}
-        shape="circle"
-        color="ai-primary"
-        onClick={dispatchOpen}
-        data-pendo="study-assist-trigger"
-        data-testid="study-assist-trigger"
-      >
-        <IconAiSolid />
-      </IconButton>
+      <View as="span" display="inline-block">
+        <IconButton
+          screenReaderLabel={t('IgniteAI Study Tools')}
+          shape="circle"
+          color="ai-primary"
+          onClick={dispatchOpen}
+          aria-haspopup="dialog"
+          aria-expanded={expanded ? 'true' : 'false'}
+          aria-controls={expanded ? TRAY_ID : undefined}
+          data-pendo="study-assist-trigger"
+          data-testid="study-assist-trigger"
+        >
+          <IconAiSolid />
+        </IconButton>
+      </View>
     </Tooltip>
   )
 }

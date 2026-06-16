@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {StudyAssistTrigger} from '../index'
 
@@ -48,5 +48,59 @@ describe('StudyAssistTrigger', () => {
 
     expect(handler).toHaveBeenCalledTimes(1)
     window.removeEventListener('study-assist:open', handler)
+  })
+
+  it('marks the button as a collapsed dialog trigger by default', () => {
+    render(<StudyAssistTrigger />)
+
+    const button = getTriggerButton()
+    expect(button).toHaveAttribute('aria-haspopup', 'dialog')
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    expect(button).not.toHaveAttribute('aria-controls')
+  })
+
+  it('reflects the open tray when the study-assist panel becomes active', () => {
+    render(<StudyAssistTrigger />)
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('student-study-drawer:state', {detail: {activePanel: 'study-assist'}}),
+      )
+    })
+
+    const button = getTriggerButton()
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    expect(button).toHaveAttribute('aria-controls', 'student-study-drawer-tray')
+  })
+
+  it('stays collapsed when a different panel (notebook) is active', () => {
+    render(<StudyAssistTrigger />)
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('student-study-drawer:state', {detail: {activePanel: 'notebook'}}),
+      )
+    })
+
+    const button = getTriggerButton()
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    expect(button).not.toHaveAttribute('aria-controls')
+  })
+
+  it('collapses again when the tray closes', () => {
+    render(<StudyAssistTrigger />)
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('student-study-drawer:state', {detail: {activePanel: 'study-assist'}}),
+      )
+    })
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('student-study-drawer:state', {detail: {activePanel: null}}),
+      )
+    })
+
+    expect(getTriggerButton()).toHaveAttribute('aria-expanded', 'false')
   })
 })

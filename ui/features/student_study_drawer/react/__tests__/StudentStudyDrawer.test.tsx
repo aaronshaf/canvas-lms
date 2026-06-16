@@ -201,6 +201,45 @@ describe('StudentStudyDrawer', () => {
     expect(screen.queryByLabelText('IgniteAI Study Tools')).not.toBeInTheDocument()
   })
 
+  it('gives the open tray the id its triggers reference via aria-controls', () => {
+    const pageContent = makePageContent()
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+
+    expect(document.getElementById('student-study-drawer-tray')).toBeInTheDocument()
+  })
+
+  it('broadcasts the active panel so triggers can sync aria-expanded', () => {
+    const pageContent = makePageContent()
+    const handler = vi.fn()
+    window.addEventListener('student-study-drawer:state', handler)
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('study-assist:open'))
+    })
+
+    const lastDetail = handler.mock.calls.at(-1)?.[0].detail
+    expect(lastDetail).toEqual({activePanel: 'study-assist'})
+
+    handler.mockClear()
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
+    })
+
+    expect(handler.mock.calls.at(-1)?.[0].detail).toEqual({activePanel: null})
+    window.removeEventListener('student-study-drawer:state', handler)
+  })
+
   it('opens the study-assist panel when the study-assist:open event fires', () => {
     const pageContent = makePageContent()
 
