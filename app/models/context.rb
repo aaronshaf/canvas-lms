@@ -85,22 +85,6 @@ module Context
   end
 
   def self.sorted_rubrics(context, search_term: nil)
-    if Account.site_admin.feature_enabled?(:optimized_grading_rubrics)
-      sorted_rubrics_optimized(context, search_term:)
-    else
-      sorted_rubrics_legacy(context)
-    end
-  end
-
-  # LEGACY: Original implementation
-  # This version has N+1 queries on association's context
-  def self.sorted_rubrics_legacy(context)
-    associations = RubricAssociation.active.bookmarked.for_context_codes(context.asset_string).joins(:rubric).where(rubrics: { workflow_state: "active" }).preload(rubric: :context)
-    Canvas::ICU.collate_by(associations.to_a.uniq(&:rubric_id).select(&:rubric)) { |r| r.rubric.title || CanvasSort::Last }
-  end
-
-  # OPTIMIZED: Removed redundant .select(&:rubric) since .joins guarantees rubric exists
-  def self.sorted_rubrics_optimized(context, search_term: nil)
     associations = RubricAssociation.active.bookmarked
                                     .for_context_codes(context.asset_string)
                                     .joins(:rubric)
@@ -113,44 +97,6 @@ module Context
   end
 
   def rubric_contexts(user, context_code: nil)
-    if Account.site_admin.feature_enabled?(:optimized_grading_rubrics)
-      rubric_contexts_optimized(user, context_code:)
-    else
-      rubric_contexts_legacy(user)
-    end
-  end
-
-  # LEGACY: Original implementation (kept for comparison)
-  # This version has N+1 queries and loads all contexts even when filtering
-  def rubric_contexts_legacy(user)
-    associations = []
-    course_ids = [id]
-    course_ids = (course_ids + user.participating_instructor_course_with_concluded_ids.map { |id| Shard.relative_id_for(id, user.shard, Shard.current) }).uniq if user
-    Shard.partition_by_shard(course_ids) do |sharded_course_ids|
-      context_codes = sharded_course_ids.map { |id| "course_#{id}" }
-      if Shard.current == shard
-        context = self
-        while context.respond_to?(:account) || context.respond_to?(:parent_account)
-          context = context.respond_to?(:account) ? context.account : context.parent_account
-          context_codes << context.asset_string if context
-        end
-      end
-      associations += RubricAssociation.active.bookmarked.for_context_codes(context_codes).joins(:rubric).where(rubrics: { workflow_state: "active" }).preload(rubric: :context).to_a
-    end
-
-    associations = associations.select(&:rubric).uniq { |a| [a.rubric_id, a.context.asset_string] }
-    contexts = associations.group_by { |a| a.context.asset_string }.map do |code, code_associations|
-      {
-        rubrics: code_associations.length,
-        context_code: code,
-        name: code_associations.first.context_name
-      }
-    end
-    Canvas::ICU.collate_by(contexts) { |r| r[:name] }
-  end
-
-  # OPTIMIZED: New implementation with N+1 fix and context filtering
-  def rubric_contexts_optimized(user, context_code: nil)
     associations = []
     course_ids = [id]
     course_ids = (course_ids + user.participating_instructor_course_with_concluded_ids.map { |id| Shard.relative_id_for(id, user.shard, Shard.current) }).uniq if user

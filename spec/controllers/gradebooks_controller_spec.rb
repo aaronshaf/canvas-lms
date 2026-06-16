@@ -4957,7 +4957,6 @@ describe GradebooksController do
 
     context "with :grading_rubrics_pagination disabled" do
       before do
-        Account.site_admin.enable_feature!(:optimized_grading_rubrics)
         @course.root_account.disable_feature!(:grading_rubrics_pagination)
         user_session(@teacher)
       end

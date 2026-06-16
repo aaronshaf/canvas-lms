@@ -372,81 +372,70 @@ describe Context do
       end
     end
 
-    context "with :optimized_grading_rubrics disabled" do
-      before { Account.site_admin.disable_feature!(:optimized_grading_rubrics) }
+    it_behaves_like "rubric_contexts contract"
 
-      it_behaves_like "rubric_contexts contract"
-    end
-
-    context "with :optimized_grading_rubrics enabled" do
-      before { Account.site_admin.enable_feature!(:optimized_grading_rubrics) }
-
-      it_behaves_like "rubric_contexts contract"
-
-      # context_code: is new API — only present in rubric_contexts_optimized
-      context "with context_code filter" do
-        it "returns only the specified context's associations" do
-          course1 = Course.create!(name: "Course A")
-          course2 = Course.create!(name: "Course B")
-          user = user_factory(active_all: true)
-          [course1, course2].each do |c|
-            add_rubric(c)
-            c.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
-          end
-
-          result = course1.rubric_contexts(user, context_code: course1.asset_string)
-          expect(result.length).to eq(1)
-          expect(result.first[:context_code]).to eq(course1.asset_string)
-          expect(result.first[:rubrics]).to eq(1)
+    context "with context_code filter" do
+      it "returns only the specified context's associations" do
+        course1 = Course.create!(name: "Course A")
+        course2 = Course.create!(name: "Course B")
+        user = user_factory(active_all: true)
+        [course1, course2].each do |c|
+          add_rubric(c)
+          c.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
         end
 
-        it "returns empty when context_code refers to a context the user cannot access" do
-          accessible = Course.create!(name: "Accessible")
-          inaccessible = Course.create!(name: "Locked")
-          user = user_factory(active_all: true)
-          accessible.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
-          add_rubric(inaccessible) # rubric exists but user is not enrolled
-
-          result = accessible.rubric_contexts(user, context_code: inaccessible.asset_string)
-          expect(result).to be_empty
-        end
-
-        it "returns the account context when filtering to an account context_code" do
-          course = Course.create!(name: "c1")
-          account = course.account
-          user = user_factory(active_all: true)
-          course.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
-          add_rubric(account)
-
-          result = course.rubric_contexts(user, context_code: account.asset_string)
-          expect(result.length).to eq(1)
-          expect(result.first[:context_code]).to eq(account.asset_string)
-        end
+        result = course1.rubric_contexts(user, context_code: course1.asset_string)
+        expect(result.length).to eq(1)
+        expect(result.first[:context_code]).to eq(course1.asset_string)
+        expect(result.first[:rubrics]).to eq(1)
       end
 
-      context "sharding" do
-        specs_require_sharding
+      it "returns empty when context_code refers to a context the user cannot access" do
+        accessible = Course.create!(name: "Accessible")
+        inaccessible = Course.create!(name: "Locked")
+        user = user_factory(active_all: true)
+        accessible.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
+        add_rubric(inaccessible) # rubric exists but user is not enrolled
 
-        it "skips non-matching shards when filtering by context_code" do
-          course1 = Course.create!(name: "c1")
-          user = user_factory(active_all: true)
-          add_rubric(course1)
-          course1.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
+        result = accessible.rubric_contexts(user, context_code: inaccessible.asset_string)
+        expect(result).to be_empty
+      end
 
-          cs_course = @shard1.activate do
-            a = Account.create!
-            c = Course.create!(account: a, name: "c_shard1")
-            r = Rubric.create!(context: c, title: "CS Rubric")
-            RubricAssociation.create!(context: c, rubric: r, purpose: :bookmark, association_object: c)
-            c.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
-            c
-          end
+      it "returns the account context when filtering to an account context_code" do
+        course = Course.create!(name: "c1")
+        account = course.account
+        user = user_factory(active_all: true)
+        course.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
+        add_rubric(account)
 
-          result = course1.rubric_contexts(user, context_code: course1.asset_string)
-          codes = result.pluck(:context_code)
-          expect(codes).to eq([course1.asset_string])
-          expect(codes).not_to include(cs_course.global_asset_string)
+        result = course.rubric_contexts(user, context_code: account.asset_string)
+        expect(result.length).to eq(1)
+        expect(result.first[:context_code]).to eq(account.asset_string)
+      end
+    end
+
+    context "sharding" do
+      specs_require_sharding
+
+      it "skips non-matching shards when filtering by context_code" do
+        course1 = Course.create!(name: "c1")
+        user = user_factory(active_all: true)
+        add_rubric(course1)
+        course1.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
+
+        cs_course = @shard1.activate do
+          a = Account.create!
+          c = Course.create!(account: a, name: "c_shard1")
+          r = Rubric.create!(context: c, title: "CS Rubric")
+          RubricAssociation.create!(context: c, rubric: r, purpose: :bookmark, association_object: c)
+          c.enroll_user(user, "TeacherEnrollment", enrollment_state: "active")
+          c
         end
+
+        result = course1.rubric_contexts(user, context_code: course1.asset_string)
+        codes = result.pluck(:context_code)
+        expect(codes).to eq([course1.asset_string])
+        expect(codes).not_to include(cs_course.global_asset_string)
       end
     end
   end
@@ -569,79 +558,69 @@ describe Context do
       end
     end
 
-    context "with :optimized_grading_rubrics disabled" do
-      before { Account.site_admin.disable_feature!(:optimized_grading_rubrics) }
+    it_behaves_like "sorted_rubrics contract"
 
-      it_behaves_like "sorted_rubrics contract"
+    context "with :grading_rubrics_pagination enabled" do
+      before { @course.root_account.enable_feature!(:grading_rubrics_pagination) }
+
+      it "filters rubrics by search_term (case-insensitive, partial match)" do
+        result = Context.sorted_rubrics(@course, search_term: "rubric 1")
+
+        expect(result.map { |ra| ra.rubric.title }).to eql(["Rubric 1 Active"])
+      end
+
+      it "performs a partial match on search_term" do
+        result = Context.sorted_rubrics(@course, search_term: "active")
+
+        titles = result.map { |ra| ra.rubric.title }
+        expect(titles).to include("Rubric 1 Active", "Rubric 2 Active", "Rubric 4 Active")
+      end
+
+      it "returns an empty array when search_term matches nothing" do
+        result = Context.sorted_rubrics(@course, search_term: "zzznomatch")
+
+        expect(result).to eql([])
+      end
+
+      it "returns all rubrics when search_term is nil" do
+        result = Context.sorted_rubrics(@course, search_term: nil)
+
+        expect(result.length).to be 3
+      end
     end
 
-    context "with :optimized_grading_rubrics enabled" do
-      before { Account.site_admin.enable_feature!(:optimized_grading_rubrics) }
+    context "with :grading_rubrics_pagination disabled" do
+      before { @course.root_account.disable_feature!(:grading_rubrics_pagination) }
 
-      it_behaves_like "sorted_rubrics contract"
+      it "ignores search_term and returns all rubrics" do
+        result = Context.sorted_rubrics(@course, search_term: "rubric 1")
 
-      context "with :grading_rubrics_pagination enabled" do
-        before { @course.root_account.enable_feature!(:grading_rubrics_pagination) }
-
-        it "filters rubrics by search_term (case-insensitive, partial match)" do
-          result = Context.sorted_rubrics(@course, search_term: "rubric 1")
-
-          expect(result.map { |ra| ra.rubric.title }).to eql(["Rubric 1 Active"])
-        end
-
-        it "performs a partial match on search_term" do
-          result = Context.sorted_rubrics(@course, search_term: "active")
-
-          titles = result.map { |ra| ra.rubric.title }
-          expect(titles).to include("Rubric 1 Active", "Rubric 2 Active", "Rubric 4 Active")
-        end
-
-        it "returns an empty array when search_term matches nothing" do
-          result = Context.sorted_rubrics(@course, search_term: "zzznomatch")
-
-          expect(result).to eql([])
-        end
-
-        it "returns all rubrics when search_term is nil" do
-          result = Context.sorted_rubrics(@course, search_term: nil)
-
-          expect(result.length).to be 3
-        end
+        expect(result.length).to be 3
       end
+    end
 
-      context "with :grading_rubrics_pagination disabled" do
-        before { @course.root_account.disable_feature!(:grading_rubrics_pagination) }
+    it "preloads the association's own context" do
+      result = Context.sorted_rubrics(@course)
 
-        it "ignores search_term and returns all rubrics" do
-          result = Context.sorted_rubrics(@course, search_term: "rubric 1")
+      expect(result.first.association(:context)).to be_loaded
+      expect(result.first.rubric.association(:context)).to be_loaded
+    end
 
-          expect(result.length).to be 3
+    context "sharding" do
+      specs_require_sharding
+
+      it "preloads both the association context and rubric context cross-shard" do
+        cs_course = @shard1.activate do
+          a = Account.create!
+          c = Course.create!(account: a, name: "CS Course")
+          r = Rubric.create!(context: c, title: "CS Rubric")
+          RubricAssociation.create!(context: c, rubric: r, purpose: :bookmark, association_object: c)
+          c
         end
-      end
 
-      it "preloads the association's own context" do
-        result = Context.sorted_rubrics(@course)
-
+        result = @shard1.activate { Context.sorted_rubrics(cs_course) }
         expect(result.first.association(:context)).to be_loaded
         expect(result.first.rubric.association(:context)).to be_loaded
-      end
-
-      context "sharding" do
-        specs_require_sharding
-
-        it "preloads both the association context and rubric context cross-shard" do
-          cs_course = @shard1.activate do
-            a = Account.create!
-            c = Course.create!(account: a, name: "CS Course")
-            r = Rubric.create!(context: c, title: "CS Rubric")
-            RubricAssociation.create!(context: c, rubric: r, purpose: :bookmark, association_object: c)
-            c
-          end
-
-          result = @shard1.activate { Context.sorted_rubrics(cs_course) }
-          expect(result.first.association(:context)).to be_loaded
-          expect(result.first.rubric.association(:context)).to be_loaded
-        end
       end
     end
   end
