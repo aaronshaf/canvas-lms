@@ -110,13 +110,14 @@ module AssignmentOverrideApplicator
 
         context.shard.activate do
           if (context.user_has_been_admin?(user) || context.user_has_no_enrollments?(user)) && context.grants_right?(user, :read_as_admin)
-            overrides = learning_object.all_assignment_overrides
+            preloaded_overrides = learning_object.preloaded_all_overrides
+            overrides = preloaded_overrides || learning_object.all_assignment_overrides
             if learning_object.is_a?(SimplyVersioned::InstanceMethods) && !learning_object.current_version?
               overrides = current_override_version(learning_object, overrides)
             else
               visible_user_ids = context.enrollments_visible_to(user).select(:user_id)
 
-              overrides = if overrides.loaded?
+              overrides = if preloaded_overrides || overrides.loaded?
                             ovs, adhoc_ovs = overrides.select { |ov| ov.workflow_state == "active" }
                                                       .partition { |ov| ov.set_type != "ADHOC" }
 

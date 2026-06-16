@@ -493,6 +493,43 @@ describe AssignmentOverrideApplicator do
       @assignment = create_assignment(course: @course, due_at: 5.days.from_now)
     end
 
+    context "with preloaded override data" do
+      before do
+        teacher_in_course(active_all: true)
+        @assignments = Array.new(3) do
+          assignment = create_assignment(course: @course, due_at: 5.days.from_now)
+          override = assignment.assignment_overrides.create!(set_type: "ADHOC", title: "ADHOC")
+          override.assignment_override_students.create!(user: @student)
+          assignment
+        end
+      end
+
+      it "returns the same overrides whether or not they are preloaded" do
+        without_preload = @assignments.map do |assignment|
+          AssignmentOverrideApplicator.overrides_for_assignment_and_user(assignment, @teacher)
+        end
+
+        DatesOverridable.preload_override_data_for_objects(@assignments)
+        with_preload = @assignments.map do |assignment|
+          AssignmentOverrideApplicator.overrides_for_assignment_and_user(assignment, @teacher)
+        end
+
+        expect(with_preload).to eq without_preload
+      end
+
+      it "does not query the assignment_overrides table per object" do
+        DatesOverridable.preload_override_data_for_objects(@assignments)
+
+        query_count = count_sql_queries(matcher: /\bassignment_overrides\b/i) do
+          @assignments.each do |assignment|
+            AssignmentOverrideApplicator.overrides_for_assignment_and_user(assignment, @teacher)
+          end
+        end
+
+        expect(query_count).to be 0
+      end
+    end
+
     context "it works" do
       it "is serializable" do
         override = AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @student)

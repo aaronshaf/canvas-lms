@@ -2977,6 +2977,7 @@ class User < ApplicationRecord
       if AssignmentOverrideApplicator.should_preload_override_students?(assignments, self, "upcoming_events")
         AssignmentOverrideApplicator.preload_assignment_override_students(assignments, self)
       end
+      DatesOverridable.preload_override_data_for_objects(assignments)
 
       events += select_available_assignments(
         select_upcoming_assignments(assignments.map { |a| a.overridden_for(self) }, opts.merge(time: now))
@@ -2999,6 +3000,7 @@ class User < ApplicationRecord
         if AssignmentOverrideApplicator.should_preload_override_students?(sub_assignments, self, "upcoming_events")
           AssignmentOverrideApplicator.preload_assignment_override_students(sub_assignments, self)
         end
+        DatesOverridable.preload_override_data_for_objects(sub_assignments)
 
         events += select_available_assignments(
           select_upcoming_assignments(sub_assignments.map { |a| a.overridden_for(self) }, opts.merge(time: now))
@@ -3023,6 +3025,7 @@ class User < ApplicationRecord
         if AssignmentOverrideApplicator.should_preload_override_students?(peer_review_sub_assignments, self, "upcoming_events")
           AssignmentOverrideApplicator.preload_assignment_override_students(peer_review_sub_assignments, self)
         end
+        DatesOverridable.preload_override_data_for_objects(peer_review_sub_assignments)
 
         events += select_available_assignments(
           select_upcoming_assignments(peer_review_sub_assignments.map { |a| a.overridden_for(self) }, opts.merge(time: now))

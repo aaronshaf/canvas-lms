@@ -3186,6 +3186,29 @@ describe User do
     describe "upcoming_events" do
       before(:once) { course_with_teacher(active_all: true) }
 
+      it "does not issue more override queries as the number of assignments grows" do
+        student = student_in_course(course: @course, active_all: true).user
+        create_assignment_with_adhoc_override = lambda do
+          assignment = @course.assignments.create!(submission_types: "online_text_entry",
+                                                   workflow_state: "published",
+                                                   due_at: 2.days.from_now)
+          override = assignment.assignment_overrides.create!(set_type: "ADHOC", title: "ADHOC")
+          override.assignment_override_students.create!(user: student)
+        end
+
+        create_assignment_with_adhoc_override.call
+        baseline = count_sql_queries(matcher: /\bassignment_overrides\b/i) do
+          @teacher.upcoming_events(end_at: 1.week.from_now)
+        end
+
+        4.times { create_assignment_with_adhoc_override.call }
+        grown = count_sql_queries(matcher: /\bassignment_overrides\b/i) do
+          @teacher.upcoming_events(end_at: 1.week.from_now)
+        end
+
+        expect(grown).to eq baseline
+      end
+
       it "handles assignments where the applied due_at is nil" do
         assignment = @course.assignments.create!(title: "Should not throw",
                                                  due_at: 2.days.from_now)
