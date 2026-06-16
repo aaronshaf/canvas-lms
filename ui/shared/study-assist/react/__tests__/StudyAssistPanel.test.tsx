@@ -123,6 +123,59 @@ describe('StudyAssistPanel', () => {
     expect(screen.getByText('Study tools')).toBeInTheDocument()
   })
 
+  it('orders the DOM as close button, study tools heading, AI info button, then body', () => {
+    render(
+      <StudyAssistPanel
+        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+    const closeButton = screen.getByTestId('study-assist-close-button')
+    const heading = screen.getByText('Study tools')
+    const studyTools = screen.getByTestId('assist-content')
+    const aiInfoButton = screen.getByTestId('study-assist-ai-info-button')
+
+    expect(closeButton.compareDocumentPosition(heading)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(heading.compareDocumentPosition(aiInfoButton)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(aiInfoButton.compareDocumentPosition(studyTools)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('keeps the AI info button before the study tools body even with no tools available', () => {
+    window.ENV = {
+      ...window.ENV,
+      STUDY_ASSIST_TOOLS: [],
+    } as any
+    render(
+      <StudyAssistPanel
+        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+    const emptyState = screen.getByTestId('study-assist-no-tools')
+    const aiInfoButton = screen.getByTestId('study-assist-ai-info-button')
+
+    expect(aiInfoButton.compareDocumentPosition(emptyState)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('keeps the back button after the close button and before the AI info button', () => {
+    mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
+    render(
+      <StudyAssistPanel
+        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+    const closeButton = screen.getByTestId('study-assist-close-button')
+    const backButton = screen.getByTestId('study-assist-back-button')
+    const aiInfoButton = screen.getByTestId('study-assist-ai-info-button')
+
+    expect(closeButton.compareDocumentPosition(backButton)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(backButton.compareDocumentPosition(aiInfoButton)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
   it('exposes the IgniteAI logo to screen readers with an accessible name', () => {
     render(
       <StudyAssistPanel

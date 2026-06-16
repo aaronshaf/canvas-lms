@@ -56,8 +56,21 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
   const {showBackButton, resetChat} = useAssistContext()
 
   return (
-    <Flex as="div" padding="small" alignItems="center">
-      <Flex.Item shouldGrow={true}>
+    <Flex as="div" padding="small" alignItems="center" gap="small">
+      <Flex.Item order={3}>
+        <CloseButton
+          elementRef={el => {
+            closeButtonRef.current = el
+          }}
+          onClick={onDismiss}
+          size="small"
+          color="primary-inverse"
+          screenReaderLabel={t('Close')}
+          data-testid="study-assist-close-button"
+          data-pendo="study-assist-close"
+        />
+      </Flex.Item>
+      <Flex.Item shouldGrow={true} order={1}>
         <Flex gap="x-small" alignItems="center">
           {showBackButton && (
             <Flex.Item margin="0 x-small 0 0">
@@ -85,62 +98,45 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
           </Flex.Item>
         </Flex>
       </Flex.Item>
-      <Flex.Item>
-        <Flex gap="small">
-          <Flex.Item>
-            <CanvasAiInformation
-              title={t('Nutrition Facts')}
-              privacyNoticeText={t('AI Privacy Notice')}
-              featureName={t('Study Tools')}
-              modelName={t('Claude 3 Haiku')}
-              isTrainedWithUserData={false}
-              dataSharedWithModel={t('Page')}
-              dataSharedWithModelDescription={t(
-                'Page content is sent to the model to generate study materials.',
-              )}
-              dataRetention={t('Data is not stored or reused by the model.')}
-              dataLogging={t('Does Not Log Data')}
-              regionsSupported={t('Global')}
-              isPIIExposed={false}
-              isPIIExposedDescription={t(
-                'PII in page content may be included, but no PII is intentionally sent to the model.',
-              )}
-              isFeatureBehindSetting={true}
-              isHumanInTheLoop={true}
-              expectedRisks={t('Generated study content may be inaccurate or incomplete.')}
-              intendedOutcomes={t(
-                'Students are able to efficiently study course material through AI-generated summaries, quizzes, and flashcards.',
-              )}
-              permissionsLevel={2}
-              triggerButton={
-                <IconButton
-                  size="small"
-                  color="primary-inverse"
-                  withBackground={false}
-                  withBorder={false}
-                  screenReaderLabel={t('AI information')}
-                  data-testid="study-assist-ai-info-button"
-                  data-pendo="study-assist-info"
-                >
-                  <IconInfoLine />
-                </IconButton>
-              }
-            />
-          </Flex.Item>
-          <Flex.Item>
-            <CloseButton
-              elementRef={el => {
-                closeButtonRef.current = el
-              }}
-              onClick={onDismiss}
+      <Flex.Item order={2}>
+        <CanvasAiInformation
+          title={t('Nutrition Facts')}
+          privacyNoticeText={t('AI Privacy Notice')}
+          featureName={t('Study Tools')}
+          modelName={t('Claude 3 Haiku')}
+          isTrainedWithUserData={false}
+          dataSharedWithModel={t('Page')}
+          dataSharedWithModelDescription={t(
+            'Page content is sent to the model to generate study materials.',
+          )}
+          dataRetention={t('Data is not stored or reused by the model.')}
+          dataLogging={t('Does Not Log Data')}
+          regionsSupported={t('Global')}
+          isPIIExposed={false}
+          isPIIExposedDescription={t(
+            'PII in page content may be included, but no PII is intentionally sent to the model.',
+          )}
+          isFeatureBehindSetting={true}
+          isHumanInTheLoop={true}
+          expectedRisks={t('Generated study content may be inaccurate or incomplete.')}
+          intendedOutcomes={t(
+            'Students are able to efficiently study course material through AI-generated summaries, quizzes, and flashcards.',
+          )}
+          permissionsLevel={2}
+          triggerButton={
+            <IconButton
               size="small"
               color="primary-inverse"
-              screenReaderLabel={t('Close')}
-              data-testid="study-assist-close-button"
-              data-pendo="study-assist-close"
-            />
-          </Flex.Item>
-        </Flex>
+              withBackground={false}
+              withBorder={false}
+              screenReaderLabel={t('AI information')}
+              data-testid="study-assist-ai-info-button"
+              data-pendo="study-assist-info"
+            >
+              <IconInfoLine />
+            </IconButton>
+          }
+        />
       </Flex.Item>
     </Flex>
   )
@@ -203,14 +199,14 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
       >
         <TrayHeader onDismiss={onDismiss} closeButtonRef={closeButtonRef} />
         {allowedPrompts.length > 0 ? (
-          <div style={{padding: '0 1rem'}}>
+          <View as="div" padding="0 small">
             <AssistContent
               showLargePrompts={true}
               onAnalyticsEvent={handleAnalyticsEvent}
               allowedPrompts={allowedPrompts}
               renderFlashCards={renderFlashCards}
             />
-          </div>
+          </View>
         ) : (
           <View as="div" padding="large" textAlign="center">
             <Text color="primary-inverse" data-testid="study-assist-no-tools">
