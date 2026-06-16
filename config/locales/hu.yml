@@ -23544,6 +23544,7 @@ hu:
   site_admin_only_send_to_1_denominator_users_in_ena_b4b3ed14: "Csak adminisztrátoroknak. Elküldve 1/%{denominator} engedélyezett fiókú felhasználónak havonta."
   site_admin_service_authentication_8f424551: "A webhely adminisztrátori szolgáltatásának hitelesítése"
   size_b30e1077: Méret
+  size_of_file_is_greater_than_the_maximum_max_mb_al_82941483: "%{file} nagyobb, mint a feltöltési maximum: %{max} MB."
   size_size_a77bd760: "méret: %{size}"
   skillcode_685526a6: skillcode
   skip_bcb86160: Kihagyás
