@@ -17627,6 +17627,7 @@ tr:
   kindergarten_3c95802: Anaokulu
   know_your_users_5c1323be: "Kullanıcılarınızı tanıyın"
   knowledge_check_4aade5c5: "Bilgi Kontrolü"
+  knowledge_checks_1d608c85: "Yapay Zeka Deneyimleri"
   korean_da812d9: Korece
   label_3c9a991: "%{label}:"
   label_9fe386a0: "%{label}"
@@ -29873,6 +29874,7 @@ tr:
   site_admin_rate_limiting_b3222a4c: "Site Yöneticisi - Hız Sınırı"
   size_b30e1077: Boyut
   size_by_cecd6002: "Şuna göre boyutlandır:"
+  size_of_file_is_greater_than_the_maximum_max_mb_al_82941483: "%{file} boyutu, izin verilen azami %{max} MB dosya boyutundan daha büyük."
   size_size_a77bd760: "boyut: %{size}"
   sizing_5f87126f: Boyutlandırma
   skillcode_685526a6: skillcode
