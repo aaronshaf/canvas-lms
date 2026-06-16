@@ -41,6 +41,7 @@ module Api::V1::Account
       return api_json(account, current_principal, session, only: attributes).tap do |hash|
         hash["root_account_id"] = nil if account.root_account?
         hash["default_time_zone"] = account.default_time_zone.tzinfo.name
+        hash["default_time_zone_friendly_name"] = account.default_time_zone.name
       end
     end
 
@@ -48,6 +49,7 @@ module Api::V1::Account
     api_json(account, current_principal, session, only: attributes, methods:).tap do |hash|
       hash["root_account_id"] = nil if account.root_account?
       hash["default_time_zone"] = account.default_time_zone.tzinfo.name
+      hash["default_time_zone_friendly_name"] = account.default_time_zone.name
       hash["sis_account_id"] = account.sis_source_id if !account.root_account? && account.root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
       hash["sis_import_id"] = account.sis_batch_id if !account.root_account? && account.root_account.grants_right?(current_principal, session, :manage_sis)
       hash["integration_id"] = account.integration_id if !account.root_account? && account.root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)

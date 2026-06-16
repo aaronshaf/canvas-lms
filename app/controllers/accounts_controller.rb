@@ -72,6 +72,11 @@
 #           "example": "America/Denver",
 #           "type": "string"
 #         },
+#         "default_time_zone_friendly_name": {
+#           "description": "The friendly Ruby on Rails name of the account's default time zone. Since several Rails time zones can share a single IANA identifier (the value returned in default_time_zone), this field disambiguates which one is configured.",
+#           "example": "Mountain Time (US & Canada)",
+#           "type": "string"
+#         },
 #         "sis_account_id": {
 #           "description": "The account's identifier in the Student Information System. Only included if the user has permission to view SIS information.",
 #           "example": "123xyz",

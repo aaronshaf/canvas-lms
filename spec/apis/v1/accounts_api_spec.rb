@@ -48,6 +48,7 @@ describe "Accounts API", type: :request do
           "root_account_id" => nil,
           "parent_account_id" => nil,
           "default_time_zone" => "Etc/UTC",
+          "default_time_zone_friendly_name" => "UTC",
           "default_storage_quota_mb" => 123,
           "default_user_storage_quota_mb" => 45,
           "default_group_storage_quota_mb" => 42,
@@ -64,6 +65,7 @@ describe "Accounts API", type: :request do
           "sis_account_id" => "sis1",
           "sis_import_id" => @sis_batch.id,
           "default_time_zone" => "America/Juneau",
+          "default_time_zone_friendly_name" => "Alaska",
           "default_storage_quota_mb" => 321,
           "default_user_storage_quota_mb" => 54,
           "default_group_storage_quota_mb" => 41,
@@ -96,6 +98,7 @@ describe "Accounts API", type: :request do
           "root_account_id" => nil,
           "parent_account_id" => nil,
           "default_time_zone" => "Etc/UTC",
+          "default_time_zone_friendly_name" => "UTC",
           "default_storage_quota_mb" => 123,
           "default_user_storage_quota_mb" => 45,
           "default_group_storage_quota_mb" => 42,
@@ -122,6 +125,7 @@ describe "Accounts API", type: :request do
           "parent_account_id" => nil,
           "workflow_state" => "active",
           "default_time_zone" => "Etc/UTC",
+          "default_time_zone_friendly_name" => "UTC",
           "uuid" => @a1.uuid
         },
         {
@@ -131,6 +135,7 @@ describe "Accounts API", type: :request do
           "parent_account_id" => @a1.id,
           "workflow_state" => "active",
           "default_time_zone" => "America/Juneau",
+          "default_time_zone_friendly_name" => "Alaska",
           "uuid" => @a2.uuid
         },
       ]
@@ -156,6 +161,7 @@ describe "Accounts API", type: :request do
             "parent_account_id" => nil,
             "workflow_state" => "active",
             "default_time_zone" => "Etc/UTC",
+            "default_time_zone_friendly_name" => "UTC",
             "uuid" => @a1.uuid
           },
           {
@@ -165,6 +171,7 @@ describe "Accounts API", type: :request do
             "parent_account_id" => nil,
             "workflow_state" => "active",
             "default_time_zone" => "Etc/UTC",
+            "default_time_zone_friendly_name" => "UTC",
             "uuid" => @a5.uuid
           },
         ]
@@ -379,6 +386,7 @@ describe "Accounts API", type: :request do
           "root_account_id" => nil,
           "parent_account_id" => nil,
           "default_time_zone" => "Etc/UTC",
+          "default_time_zone_friendly_name" => "UTC",
           "default_storage_quota_mb" => 123,
           "default_user_storage_quota_mb" => 45,
           "default_group_storage_quota_mb" => 42,
@@ -386,6 +394,25 @@ describe "Accounts API", type: :request do
           "course_template_id" => nil
         }
       )
+    end
+
+    it "disambiguates time zones that share an IANA name via default_time_zone_friendly_name" do
+      @a1.update!(default_time_zone: "Osaka")
+      @a2.update!(default_time_zone: "Tokyo")
+
+      osaka = api_call(:get,
+                       "/api/v1/accounts/#{@a1.id}",
+                       { controller: "accounts", action: "show", id: @a1.to_param, format: "json" })
+      tokyo = api_call(:get,
+                       "/api/v1/accounts/#{@a2.id}",
+                       { controller: "accounts", action: "show", id: @a2.to_param, format: "json" })
+
+      # Both Rails zones collapse to the same IANA identifier...
+      expect(osaka["default_time_zone"]).to eql "Asia/Tokyo"
+      expect(tokyo["default_time_zone"]).to eql "Asia/Tokyo"
+      # ...but default_time_zone_friendly_name keeps them distinct.
+      expect(osaka["default_time_zone_friendly_name"]).to eql "Osaka"
+      expect(tokyo["default_time_zone_friendly_name"]).to eql "Tokyo"
     end
 
     it "returns an individual account for a teacher (but in limited form)" do
@@ -403,6 +430,7 @@ describe "Accounts API", type: :request do
           "parent_account_id" => nil,
           "workflow_state" => "active",
           "default_time_zone" => "Etc/UTC",
+          "default_time_zone_friendly_name" => "UTC",
           "uuid" => limited.uuid
         }
       )

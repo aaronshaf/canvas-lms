@@ -169,6 +169,7 @@ describe "AuthenticationAudit API", type: :request do
           "root_account_id" => nil,
           "workflow_state" => "active",
           "default_time_zone" => @account.default_time_zone.tzinfo.name,
+          "default_time_zone_friendly_name" => @account.default_time_zone.name,
           "default_storage_quota_mb" => @account.default_storage_quota_mb,
           "default_user_storage_quota_mb" => @account.default_user_storage_quota_mb,
           "default_group_storage_quota_mb" => @account.default_group_storage_quota_mb,
