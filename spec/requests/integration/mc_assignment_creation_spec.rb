@@ -33,6 +33,8 @@ require "spec_helper"
 # logic and is not observable here; what Canvas guarantees is that it honors the
 # published flag and points_possible the caller sends.
 describe "Mastery Connect Assignment Creation" do
+  include NQHelpers
+
   def create_mc_tool(course)
     course.context_external_tools.create!(
       name: "Mastery Connect",
@@ -43,15 +45,15 @@ describe "Mastery Connect Assignment Creation" do
     )
   end
 
-  # The world every MC creation test shares: a course with a linked Mastery
-  # Connect tool and a teacher who creates assignments through a Bearer token
-  # (mc-mothership acts as the teacher). Returns [course, tool, token].
-  def setup_mc_creation_course
+  def setup_mc_teacher_course
     teacher_enrollment = course_with_teacher(active_all: true)
     teacher = teacher_enrollment.user
     pseudonym(teacher) # bearer-token auth requires an active pseudonym
-    course = teacher_enrollment.course
-    token = teacher.access_tokens.create!(purpose: "test")
+    [teacher_enrollment.course, teacher.access_tokens.create!(purpose: "test")]
+  end
+
+  def setup_mc_creation_course
+    course, token = setup_mc_teacher_course
     [course, create_mc_tool(course), token]
   end
 
@@ -59,7 +61,7 @@ describe "Mastery Connect Assignment Creation" do
     # Arrange
     course, tool, token = setup_mc_creation_course
 
-    # Act — mc-mothership creates the Canvas assignment for the new MC assessment.
+    # Act
     post "/api/v1/courses/#{course.id}/assignments",
          params: {
            assignment: {
@@ -74,7 +76,7 @@ describe "Mastery Connect Assignment Creation" do
          },
          headers: { "Authorization" => "Bearer #{token.full_token}" }
 
-    # Assert — Canvas creates the assignment and returns it.
+    # Assert
     expect(response).to have_http_status(:created)
 
     body = response.parsed_body
@@ -91,8 +93,7 @@ describe "Mastery Connect Assignment Creation" do
     # Arrange
     course, tool, token = setup_mc_creation_course
 
-    # Act — a raw-score MC assessment: mc-mothership sends published:true so the
-    # assignment is immediately visible to students.
+    # Act
     post "/api/v1/courses/#{course.id}/assignments",
          params: {
            assignment: {
@@ -108,7 +109,7 @@ describe "Mastery Connect Assignment Creation" do
          },
          headers: { "Authorization" => "Bearer #{token.full_token}" }
 
-    # Assert — Canvas honors published:true and persists the assignment published.
+    # Assert
     expect(response).to have_http_status(:created)
 
     body = response.parsed_body
@@ -122,8 +123,7 @@ describe "Mastery Connect Assignment Creation" do
     # Arrange
     course, tool, token = setup_mc_creation_course
 
-    # Act — an item-based/benchmark MC assessment: mc-mothership sends
-    # published:false so the teacher controls when it is released to students.
+    # Act
     post "/api/v1/courses/#{course.id}/assignments",
          params: {
            assignment: {
@@ -139,7 +139,7 @@ describe "Mastery Connect Assignment Creation" do
          },
          headers: { "Authorization" => "Bearer #{token.full_token}" }
 
-    # Assert — Canvas honors published:false and persists the assignment unpublished.
+    # Assert
     expect(response).to have_http_status(:created)
 
     body = response.parsed_body
@@ -154,8 +154,7 @@ describe "Mastery Connect Assignment Creation" do
     course, tool, token = setup_mc_creation_course
     mc_points = 25
 
-    # Act — mc-mothership sends the MC assessment's points value so the Canvas
-    # assignment matches it; mismatched values break gradebook math.
+    # Act
     post "/api/v1/courses/#{course.id}/assignments",
          params: {
            assignment: {
@@ -171,7 +170,7 @@ describe "Mastery Connect Assignment Creation" do
          },
          headers: { "Authorization" => "Bearer #{token.full_token}" }
 
-    # Assert — Canvas stores the points_possible the caller sent (as a Float).
+    # Assert
     expect(response).to have_http_status(:created)
 
     body = response.parsed_body
@@ -179,5 +178,129 @@ describe "Mastery Connect Assignment Creation" do
 
     assignment = course.assignments.find_by(id: body["id"])
     expect(assignment.reload.points_possible).to eql(mc_points.to_f)
+  end
+
+  describe "quiz conversion" do
+    it "creates a new Canvas assignment and leaves the original Classic Quiz unchanged", guid: "8d3f2a67" do
+      # Arrange
+      course, tool, token = setup_mc_creation_course
+      classic_quiz = quiz_model(course:, quiz_type: "assignment", title: "Unit 1 Classic Quiz")
+      quiz_assignment = classic_quiz.assignment
+      original_quiz_state = classic_quiz.workflow_state
+      original_assignment_state = quiz_assignment.workflow_state
+      original_submission_types = quiz_assignment.submission_types
+
+      # Act
+      post "/api/v1/courses/#{course.id}/assignments",
+           params: {
+             assignment: {
+               name: "Unit 1 (Mastery Connect)",
+               submission_types: ["external_tool"],
+               external_tool_tag_attributes: {
+                 url: tool.url,
+                 content_type: "ContextExternalTool",
+                 content_id: tool.id
+               }
+             }
+           },
+           headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+      # Assert
+      expect(response).to have_http_status(:created)
+      body = response.parsed_body
+      expect(body["name"]).to eq("Unit 1 (Mastery Connect)")
+      expect(body["submission_types"]).to eq(["external_tool"])
+      expect(body["external_tool_tag_attributes"]["url"]).to eq(tool.url)
+
+      mc_assignment = course.assignments.find_by(id: body["id"])
+      expect(mc_assignment.id).not_to eq(quiz_assignment.id)
+      expect(mc_assignment.external_tool_tag.content).to eq(tool)
+
+      # Assert
+      classic_quiz.reload
+      quiz_assignment.reload
+      expect(classic_quiz.workflow_state).to eq(original_quiz_state)
+      expect(quiz_assignment.workflow_state).to eq(original_assignment_state)
+      expect(quiz_assignment.submission_types).to eq(original_submission_types)
+      expect(quiz_assignment.quiz).to eq(classic_quiz)
+      expect(course.assignments.reload).to include(quiz_assignment, mc_assignment)
+    end
+
+    it "creates a new Canvas assignment and leaves the original New Quiz unchanged", guid: "f4c91e5b" do
+      # Arrange
+      course, mc_tool, token = setup_mc_creation_course
+      nq_tool = create_nq_tool(course)
+      new_quiz = create_nq_external_tool_assignment(course, nq_tool, title: "Unit 2 New Quiz", workflow_state: "published")
+      original_quiz_state = new_quiz.workflow_state
+      original_submission_types = new_quiz.submission_types
+
+      # Act
+      post "/api/v1/courses/#{course.id}/assignments",
+           params: {
+             assignment: {
+               name: "Unit 2 (Mastery Connect)",
+               submission_types: ["external_tool"],
+               external_tool_tag_attributes: {
+                 url: mc_tool.url,
+                 content_type: "ContextExternalTool",
+                 content_id: mc_tool.id
+               }
+             }
+           },
+           headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+      # Assert
+      expect(response).to have_http_status(:created)
+      body = response.parsed_body
+      expect(body["name"]).to eq("Unit 2 (Mastery Connect)")
+      expect(body["submission_types"]).to eq(["external_tool"])
+      expect(body["external_tool_tag_attributes"]["url"]).to eq(mc_tool.url)
+
+      mc_assignment = course.assignments.find_by(id: body["id"])
+      expect(mc_assignment.id).not_to eq(new_quiz.id)
+      expect(mc_assignment.external_tool_tag.content).to eq(mc_tool)
+
+      # Assert
+      new_quiz.reload
+      expect(new_quiz.workflow_state).to eq(original_quiz_state)
+      expect(new_quiz.submission_types).to eq(original_submission_types)
+      expect(new_quiz.external_tool_tag.content).to eq(nq_tool)
+      expect(course.assignments.reload).to include(new_quiz, mc_assignment)
+    end
+
+    it "binds a pre-existing assessment's assignment to the MC tool resolved from its launch URL", guid: "c3d56a92" do
+      # Arrange
+      course, token = setup_mc_teacher_course
+      course.context_external_tools.create!(
+        name: "Unrelated Tool",
+        consumer_key: "other_key",
+        shared_secret: "other_secret",
+        url: "https://other-tool.example.com/launch",
+        domain: "other-tool.example.com"
+      )
+      mc_tool = create_mc_tool(course)
+      assessment_launch_url = "https://masteryconnect.example.com/assessments/pre-existing-9281"
+
+      # Act
+      post "/api/v1/courses/#{course.id}/assignments",
+           params: {
+             assignment: {
+               name: "Pre-existing MC Assessment",
+               submission_types: ["external_tool"],
+               external_tool_tag_attributes: { url: assessment_launch_url }
+             }
+           },
+           headers: { "Authorization" => "Bearer #{token.full_token}" }
+
+      # Assert
+      expect(response).to have_http_status(:created)
+      body = response.parsed_body
+      expect(body["name"]).to eq("Pre-existing MC Assessment")
+      expect(body["submission_types"]).to eq(["external_tool"])
+
+      assignment = course.assignments.find_by(id: body["id"])
+      expect(assignment.external_tool_tag.url).to eq(assessment_launch_url)
+      expect(assignment.external_tool_tag.content).to eq(mc_tool)
+    end
   end
 end

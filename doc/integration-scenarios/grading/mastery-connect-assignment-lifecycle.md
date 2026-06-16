@@ -72,12 +72,15 @@ Then a new Canvas assignment is created for the Mastery Connect assessment
 And the original New Quiz remains unchanged in the course
 ```
 
-**Scenario MC-2.7 — Pre-existing MC assessment promoted to linked Canvas assignment**
+**Scenario MC-2.7 — Pre-existing MC assessment is bound to the MC tool by its launch URL**
 - **GUID:** `c3d56a92`
-- **Reason:** Teachers cannot administer pre-existing tracker assessments through Canvas if the manual assignment creation action does not produce a Canvas assignment.
+- **Reason:** A pre-existing tracker assessment is identified only by its Mastery Connect launch URL, not a Canvas tool id; if Canvas could not resolve the MC tool from that URL, the promoted assignment would not launch into the assessment.
+- **Note:** Reframed from the original "a Canvas assignment is created" wording, which at the Canvas boundary was indistinguishable from MC-2.1 (a plain Assignments API POST). The unique, request-testable contract is Canvas resolving the external tool from the launch URL's domain when no `content_id` is supplied — a code path MC-2.1 (explicit `content_id`) never exercises.
 ```
-Given a Canvas course with a linked Mastery Connect tracker
-And the tracker contains assessments that were added before the tracker was linked to Canvas
-When the teacher creates a Canvas assignment from one of those pre-existing assessments
-Then a corresponding Canvas assignment is created in the course
+Given a Canvas course with a Mastery Connect tool and another external tool on a different domain
+And a pre-existing Mastery Connect assessment identified only by its launch URL
+When the teacher creates a Canvas assignment from that assessment (launch URL, no tool content_id)
+Then a corresponding Canvas assignment is created
+And its external tool tag is bound to the Mastery Connect tool whose domain matches the launch URL
+And the assignment is not bound to the other tool
 ```
