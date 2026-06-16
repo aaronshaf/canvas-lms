@@ -113,7 +113,7 @@ class SubmissionProgressBars extends React.Component {
 
   render() {
     // @ts-expect-error TS2339,TS7006 (typescriptify)
-    const submissions = this.props.submissions.filter(s => s.grade != null)
+    const submissions = this.props.submissions.filter(s => s.grade != null && s.user != null)
     if (submissions.length > 0) {
       return (
         <section

@@ -190,6 +190,28 @@ describe('SubmissionProgressBars', () => {
       expect(screen.getAllByTestId('submission-progress-bar')).toHaveLength(submissions.length)
     })
 
+    it('ignores submissions with null user', () => {
+      const submissions = [
+        {
+          id: '1',
+          score: 5,
+          grade: '5',
+          assignment: {name: 'test', html_url: '/test', points_possible: 1},
+          user: {short_name: 'bob', _id: '1'},
+        },
+        {
+          id: '2',
+          score: 10,
+          grade: '10',
+          assignment: {name: 'test', html_url: '/test', points_possible: 20},
+          user: null,
+        },
+      ]
+
+      render(<SubmissionProgressBars submissions={submissions} />)
+      expect(screen.getAllByTestId('submission-progress-bar')).toHaveLength(1)
+    })
+
     it('ignores submissions with null grades', () => {
       const submissions = [
         {
