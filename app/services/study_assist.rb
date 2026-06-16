@@ -320,6 +320,7 @@ module StudyAssist
 
     def strip_canvas_file_links(html)
       doc = Nokogiri::HTML.fragment(html.to_s.encode("UTF-8", invalid: :replace, undef: :replace))
+      doc.css("img[src]").each(&:remove)
       doc.css("a[href], iframe[src]").each do |el|
         url = el["href"] || el["src"]
         el.remove if canvas_file_id(url)

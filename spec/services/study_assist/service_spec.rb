@@ -537,6 +537,31 @@ describe StudyAssist::Service do
         expect(content).not_to include("img.png")
       end
 
+      it "strips embedded canvas images so file paths do not leak into the summary" do
+        image = attachment_model(context: @course, content_type: "image/png", filename: "SectionHeaders_05.jpg")
+        p = @course.wiki_pages.create!(
+          title: "Page with embedded image",
+          body: "<p>Some context.</p><img src=\"/courses/#{@course.id}/files/#{image.id}/preview\" alt=\"SectionHeaders_05.jpg\">",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("Some context")
+        expect(content).not_to include("/courses/#{@course.id}/files/#{image.id}")
+        expect(content).not_to include("SectionHeaders_05.jpg")
+      end
+
+      it "strips embedded external images so their src does not leak into the summary" do
+        p = @course.wiki_pages.create!(
+          title: "Page with external image",
+          body: "<p>Some context.</p><img src=\"https://flic.kr/p/5anoq.jpg\" alt=\"freedom.jpg\">",
+          saving_user: @student
+        )
+        content = captured_cedar_content { call_service(prompt: "Summarize", state: { "pageID" => p.url }) }
+        expect(content).to include("Some context")
+        expect(content).not_to include("flic.kr")
+        expect(content).not_to include("freedom.jpg")
+      end
+
       it "skips embedded files of unsupported types without raising" do
         image = attachment_model(context: @course, content_type: "image/png", filename: "img.png")
         p = @course.wiki_pages.create!(
