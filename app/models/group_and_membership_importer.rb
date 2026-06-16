@@ -25,7 +25,7 @@ class GroupAndMembershipImporter < ApplicationRecord
   belongs_to :course, inverse_of: :group_and_membership_importers, optional: true
   belongs_to :attachment, inverse_of: :group_and_membership_importer
 
-  attr_accessor :progress, :total_lines, :update_every, :seen_groups, :group_members, :seen_user_ids
+  attr_accessor :progress, :total_lines, :update_every, :seen_groups, :group_members, :seen_user_ids, :seen_memberships
 
   def self.create_import_with_attachment(import_obj, file_obj)
     is_tag_import = import_obj.is_a?(Course)
@@ -61,6 +61,7 @@ class GroupAndMembershipImporter < ApplicationRecord
     @update_every ||= [total_lines / 99.to_f.round(0), 50].max
     @seen_groups = {}
     @seen_user_ids = Set.new
+    @seen_memberships = Set.new
     @group_members = {}
     @group_size = 0
     create_groups_and_members(csv_contents)
@@ -100,8 +101,13 @@ class GroupAndMembershipImporter < ApplicationRecord
       user = user_from_row(row)
       next unless user
 
-      seen_user_ids.include?(user.id) ? next : validate_user(user, group)
+      # collaborative categories allow one group per student, non-collaborative/tag
+      # categories allow many, so dedup per-tag rather than per-user for tag imports
+      dedup_key = tag_import? ? [group.id, user.id] : user.id
+      next if seen_memberships.include?(dedup_key)
 
+      validate_user(user, group)
+      seen_memberships << dedup_key
       seen_user_ids << user.id
       group_members[group] ||= []
       group_members[group] << user
@@ -112,9 +118,21 @@ class GroupAndMembershipImporter < ApplicationRecord
   end
 
   def validate_user(user, group)
-    category = group_category || group.group_category
     # if they have any memberships, we are moving them via delete and add
-    GroupMembership.where(group_id: category.groups.select(:id), user_id: user.id).destroy_all
+    if tag_import?
+      # clear only this one tag, unlike collaborative below which clears every group in the
+      # category, so the student keeps other tags; delete-before-add keeps re-imports idempotent
+      GroupMembership.where(group_id: group.id, user_id: user.id).destroy_all
+    else
+      category = group_category || group.group_category
+      GroupMembership.where(group_id: category.groups.select(:id), user_id: user.id).destroy_all
+    end
+  end
+
+  # an importer is created with either a course (tag import) or a group_category
+  # (collaborative group import), never both, so a course is what marks a tag import
+  def tag_import?
+    course_id.present?
   end
 
   def user_from_row(row)
@@ -141,7 +159,7 @@ class GroupAndMembershipImporter < ApplicationRecord
     key = group_key(group_id, group_sis_id, group_name)
     return unless key
 
-    is_tag_import = !course.nil?
+    is_tag_import = tag_import?
     group = seen_groups[key]
     group ||= is_tag_import ? Group.non_collaborative.where(context: course).find_by(id: group_id) : group_category.groups.find_by(id: group_id) if group_id
     group ||= is_tag_import ? Group.non_collaborative.where(context: course).find_by(sis_source_id: group_sis_id) : group_category.groups.find_by(sis_source_id: group_sis_id) if group_sis_id
@@ -171,7 +189,7 @@ class GroupAndMembershipImporter < ApplicationRecord
     group.save!
 
     # For tags, restore the tag set as well if it was deleted
-    group.group_category&.restore if !course.nil? && group.group_category&.deleted_at.present?
+    group.group_category&.restore if tag_import? && group.group_category&.deleted_at.present?
   end
 
   def create_new_group(name)

@@ -129,6 +129,16 @@ describe GroupAndMembershipImporter do
       expect(progress.workflow_state).to eq "completed"
     end
 
+    it "keeps a student in only their first group when listed in multiple groups in one import" do
+      import_csv_data(%(user_id,group_name
+                        user_0, first group
+                        user_0, second group
+                       ))
+
+      expect(Pseudonym.where(user: gc1.groups.find_by(name: "first group").users).pluck(:sis_user_id)).to eq ["user_0"]
+      expect(gc1.groups.find_by(name: "second group")&.users).to be_blank
+    end
+
     it "works multiple times" do
       import_csv_data(%(user_id,group_name
                         user_0, first group
@@ -393,6 +403,49 @@ describe GroupAndMembershipImporter do
                       is_tags: true)
       expect(@tag_0.reload.workflow_state).to eq "available"
       expect(Pseudonym.where(user: @tag_0.users).pluck(:sis_user_id)).to eq ["user_0"]
+    end
+
+    it "assigns a student to multiple tags across different tag sets" do
+      import_csv_data(%(user_id,tag_name
+                        user_0,X Tag
+                        user_0,Y Tag
+                        user_0,Z Tag
+                       ),
+                      is_tags: true)
+
+      tags = @course.differentiation_tags.where(name: ["X Tag", "Y Tag", "Z Tag"])
+      expect(tags.count).to eq 3
+      tags.each do |tag|
+        expect(Pseudonym.where(user: tag.users).pluck(:sis_user_id)).to eq ["user_0"]
+      end
+    end
+
+    it "assigns a student to multiple tags within the same tag set" do
+      tag_a = @tag_set_1.groups.create!(name: "tag a", context: @course, non_collaborative: true)
+      tag_b = @tag_set_1.groups.create!(name: "tag b", context: @course, non_collaborative: true)
+      import_csv_data(%(user_id,canvas_tag_id,canvas_tag_set_id
+                        user_0,#{tag_a.id},#{@tag_set_1.id}
+                        user_0,#{tag_b.id},#{@tag_set_1.id}
+                       ),
+                      is_tags: true)
+
+      expect(Pseudonym.where(user: tag_a.users).pluck(:sis_user_id)).to eq ["user_0"]
+      expect(Pseudonym.where(user: tag_b.users).pluck(:sis_user_id)).to eq ["user_0"]
+    end
+
+    it "does not create duplicate tag memberships when the same CSV is re-imported" do
+      csv = %(user_id,tag_name
+              user_0,X Tag
+              user_0,Y Tag
+             )
+      import_csv_data(csv, is_tags: true)
+      import_csv_data(csv, is_tags: true)
+
+      tags = @course.differentiation_tags.where(name: ["X Tag", "Y Tag"])
+      expect(tags.count).to eq 2
+      tags.each do |tag|
+        expect(GroupMembership.active.where(group: tag, user: User.where(id: Pseudonym.where(sis_user_id: "user_0").select(:user_id))).count).to eq 1
+      end
     end
   end
 end
