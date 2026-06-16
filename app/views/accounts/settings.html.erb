@@ -519,6 +519,60 @@
 
         <%= render partial: "additional_settings", locals: { f: } %>
 
+        <% if @account.primary_settings_root_account? && @account.feature_enabled?(:security_contacts) %>
+          <% security_contact = @account.security_contact %>
+          <% secondary_security_contact = @account.secondary_security_contact %>
+          <fieldset>
+            <legend><%= t("Primary Security Contact") %></legend>
+            <p><%= t("This contact will receive security-related updates on behalf of your institution, including incident-related user files and privacy notices, as well as ongoing security communications. This is typically a Chief Information Security Officer or equivalent, but it doesn't have to be. Please confirm in your institution's agreements that this contact is designated to receive notice of privacy or security incidents.") %></p>
+            <p><%= t("One contact can be listed at a time. Your institution can update the designee as needed by changing this field, and Instructure will communicate with whoever is listed when a message is sent.") %></p>
+            <p><%= t("This contact should be an individual, not a mailing list or distribution list.") %></p>
+            <table class="formtable narrow">
+              <tr>
+                <td><%= label_tag "account_security_contact_name", t("Name") %></td>
+                <td><%= text_field_tag "account[security_contact][name]", security_contact&.name, id: "account_security_contact_name", class: "same-width-as-select" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_security_contact_email", t("Email") %></td>
+                <td><%= text_field_tag "account[security_contact][email]", security_contact&.email, id: "account_security_contact_email", class: "same-width-as-select security-contact-email", placeholder: "security@example.edu" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_security_contact_title", t("Job Title") %></td>
+                <td><%= text_field_tag "account[security_contact][title]", security_contact&.title, id: "account_security_contact_title", class: "same-width-as-select" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_security_contact_phone_number", t("Phone Number") %></td>
+                <td><%= text_field_tag "account[security_contact][phone_number]", security_contact&.phone_number, id: "account_security_contact_phone_number", class: "same-width-as-select" %></td>
+              </tr>
+            </table>
+          </fieldset>
+
+          <fieldset>
+            <legend><%= t("Secondary Security Contact (Optional)") %></legend>
+            <p><%= t("The secondary security contact will receive all of the same information as the primary security contact.") %></p>
+            <p><%= t("This contact should be an individual, not a mailing list or distribution list.") %></p>
+            <table class="formtable narrow">
+              <tr>
+                <td><%= label_tag "account_secondary_security_contact_name", t("Name") %></td>
+                <td><%= text_field_tag "account[secondary_security_contact][name]", secondary_security_contact&.name, id: "account_secondary_security_contact_name", class: "same-width-as-select" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_secondary_security_contact_email", t("Email") %></td>
+                <td><%= text_field_tag "account[secondary_security_contact][email]", secondary_security_contact&.email, id: "account_secondary_security_contact_email", class: "same-width-as-select security-contact-email", placeholder: "security@example.edu" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_secondary_security_contact_title", t("Job Title") %></td>
+                <td><%= text_field_tag "account[secondary_security_contact][title]", secondary_security_contact&.title, id: "account_secondary_security_contact_title", class: "same-width-as-select" %></td>
+              </tr>
+              <tr>
+                <td><%= label_tag "account_secondary_security_contact_phone_number", t("Phone Number") %></td>
+                <td><%= text_field_tag "account[secondary_security_contact][phone_number]", secondary_security_contact&.phone_number, id: "account_secondary_security_contact_phone_number", class: "same-width-as-select" %></td>
+              </tr>
+            </table>
+            <div id="security_contact_warning_mount"></div>
+          </fieldset>
+        <% end %>
+
         <% if !@account.site_admin? && @account.primary_settings_root_account? && @account.feature_enabled?(:slack_notifications) %>
           <% slack_api_key = @account.root_account.settings[:encrypted_slack_key] ? Canvas::Security.decrypt_password(@account.root_account.settings[:encrypted_slack_key], @account.root_account.settings[:encrypted_slack_key_salt], "instructure_slack_encrypted_key") : "" %>
           <fieldset>

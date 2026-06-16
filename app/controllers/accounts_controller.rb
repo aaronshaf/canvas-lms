@@ -1638,12 +1638,28 @@ class AccountsController < ApplicationController
           can_manage_links: @account.grants_right?(current_principal, session, :manage_nav_menu_links)
         )
 
+        # Security contacts are root-only; staged here and applied in @account.update.
+        if @account.root_account?
+          security_contact = params[:account].delete(:security_contact)&.permit(*Account::SECURITY_CONTACT_FIELDS)
+          secondary_security_contact = params[:account].delete(:secondary_security_contact)&.permit(*Account::SECURITY_CONTACT_FIELDS)
+
+          @account.security_contact_editor = @current_user if security_contact.present? || secondary_security_contact.present?
+          @account.security_contact = security_contact if security_contact.present?
+          @account.secondary_security_contact = secondary_security_contact if secondary_security_contact.present?
+        end
+
         if nav_menu_links_success && @account.update(strong_account_params)
           update_user_dashboards
           format.html { redirect_to account_settings_url(@account) }
           format.json { render json: @account }
         else
-          flash[:error] = t(:update_failed_notice, "Account settings update failed")
+          # Append specific validation messages so admins see what to fix.
+          details = @account.errors.full_messages.to_sentence
+          flash[:error] = if details.present?
+                            t("Account settings update failed: %{errors}", errors: details)
+                          else
+                            t(:update_failed_notice, "Account settings update failed")
+                          end
           format.html { redirect_to account_settings_url(@account) }
           format.json { render json: @account.errors, status: :bad_request }
         end

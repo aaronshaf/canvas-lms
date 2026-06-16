@@ -101,3 +101,8 @@ block_cross_domain_session_cookies:
       state: allowed_on
     ci:
       state: allowed_on
+security_contacts:
+  state: hidden
+  applies_to: RootAccount
+  display_name: Security Contacts
+  description: Adds a Security Contact field to Account Settings for storing institutional security contact email addresses

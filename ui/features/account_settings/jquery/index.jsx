@@ -39,6 +39,8 @@ import RunReportForm from '@canvas/account_reports/react/RunReportForm'
 import RQDModal from '../react/components/RQDModal'
 import OpenRegistrationWarning from '../react/components/OpenRegistrationWarning'
 import ServiceDescriptionModal from '../react/components/ServiceDescriptionModal'
+import SecurityContactWarningModal from '../react/components/SecurityContactWarningModal'
+import {isPersonalEmailDomain} from '../react/personalEmail'
 import {LoadTab} from '../../../shared/tabs/react/LoadTab'
 import ready from '@instructure/ready'
 
@@ -107,6 +109,16 @@ ready(function () {
   checkFutureListingSetting()
   $('#account_settings_restrict_student_future_view_value').change(checkFutureListingSetting)
 
+  // Soft warning when the security contact looks like a personal email address.
+  const securityContactWarningMount = document.getElementById('security_contact_warning_mount')
+  let securityContactWarningRoot
+  let securityContactEmailConfirmed = false
+  document.querySelectorAll('.security-contact-email').forEach(input => {
+    input.addEventListener('input', () => {
+      securityContactEmailConfirmed = false
+    })
+  })
+
   $('#account_settings').on('submit', function (event) {
     const $this = $(this)
 
@@ -148,7 +160,36 @@ ready(function () {
     const suppressMount = document.getElementById('suppress-notifications-mount')
     if (suppressMount?.__performValidation) result = result && suppressMount.__performValidation()
 
-    if (!result) event.preventDefault()
+    if (!result) {
+      event.preventDefault()
+      return
+    }
+
+    // If a security contact email looks personal, confirm before submitting.
+    if (!securityContactWarningMount || securityContactEmailConfirmed) return
+
+    const aSecurityContactLooksPersonal = Array.from(
+      document.querySelectorAll('.security-contact-email'),
+    ).some(input => isPersonalEmailDomain(input.value))
+    if (!aSecurityContactLooksPersonal) return
+
+    event.preventDefault()
+    const closeWarning = () => rerender(securityContactWarningRoot, null)
+    const modal = (
+      <SecurityContactWarningModal
+        onClose={closeWarning}
+        onConfirm={() => {
+          securityContactEmailConfirmed = true
+          closeWarning()
+          this.submit() // native submit bypasses this handler
+        }}
+      />
+    )
+    if (!securityContactWarningRoot) {
+      securityContactWarningRoot = render(modal, securityContactWarningMount)
+    } else {
+      rerender(securityContactWarningRoot, modal)
+    }
   })
 
   renderDatetimeField($('.datetime_field'), {

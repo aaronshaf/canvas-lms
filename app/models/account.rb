@@ -43,6 +43,9 @@ class Account < ApplicationRecord
   has_many :favorites, inverse_of: :root_account
   has_many :learner_dashboard_layouts
   has_many :learner_dashboard_activations
+  # Active contacts only; full history is security_contact_history.
+  has_many :security_contacts, -> { active }, inverse_of: :account
+  has_many :security_contact_history, -> { order(created_at: :desc) }, class_name: "SecurityContact", inverse_of: :account
   has_many :all_courses, class_name: "Course", foreign_key: "root_account_id", inverse_of: :root_account
   has_one :terms_of_service, dependent: :destroy
   has_one :terms_of_service_content, dependent: :destroy
@@ -226,6 +229,8 @@ class Account < ApplicationRecord
   validate :no_active_courses, if: ->(a) { a.workflow_state_changed? && !a.active? }
   validate :no_active_sub_accounts, if: ->(a) { a.workflow_state_changed? && !a.active? }
   validate :validate_help_links, if: ->(a) { a.settings_changed? }
+  validate :validate_security_contact, if: ->(a) { a.security_contact_assigned? }
+  after_save :apply_security_contact, if: ->(a) { a.security_contact_assigned? }
   validate :validate_course_template, if: ->(a) { a.has_attribute?(:course_template_id) && a.course_template_id_changed? }
   validates :account_calendar_subscription_type, inclusion: { in: CALENDAR_SUBSCRIPTION_TYPES }
   validate :validate_number_separators, if: ->(a) { a.settings_changed? && (a.settings.dig(:decimal_separator, :value) != a.settings_was.dig(:decimal_separator, :value) || a.settings.dig(:thousand_separator, :value) != a.settings_was.dig(:thousand_separator, :value)) }
@@ -2552,6 +2557,42 @@ class Account < ApplicationRecord
     true
   end
 
+  # Set by the controller to the user making the change; stored as created_by.
+  attr_accessor :security_contact_editor
+
+  SECURITY_CONTACT_FIELDS = %i[name email title phone_number].freeze
+
+  def security_contact=(attrs)
+    stage_security_contact("primary", attrs)
+  end
+
+  def secondary_security_contact=(attrs)
+    stage_security_contact("secondary", attrs)
+  end
+
+  def security_contact_assigned?
+    security_contact_assignments.any?
+  end
+
+  def security_contact
+    security_contacts.primary.order(:id).first
+  end
+
+  def secondary_security_contact
+    security_contacts.secondary.order(:id).first
+  end
+
+  def validate_security_contact
+    security_contact_assignments.each do |kind, attrs|
+      next if security_contact_attrs_blank?(attrs) || !security_contact_changed?(kind, attrs)
+
+      candidate = build_security_contact_candidate(kind, attrs)
+      next if candidate.valid?
+
+      candidate.errors.full_messages.each { |msg| errors.add(:security_contact, msg) }
+    end
+  end
+
   def help_links
     links = settings[:custom_help_links]
 
@@ -3214,6 +3255,100 @@ class Account < ApplicationRecord
   end
 
   private
+
+  def security_contact_assignments
+    @security_contact_assignments ||= {}
+  end
+
+  def stage_security_contact(kind, attrs)
+    security_contact_assignments[kind] = (attrs || {}).to_h.symbolize_keys
+  end
+
+  def active_security_contact(kind)
+    security_contacts.where(kind:).order(:id).first
+  end
+
+  def security_contact_attrs_blank?(attrs)
+    attrs.values.all?(&:blank?)
+  end
+
+  def security_contact_changed?(kind, attrs)
+    current = active_security_contact(kind)
+    return true unless current
+
+    SECURITY_CONTACT_FIELDS.any? { |key| current.public_send(key).to_s != attrs[key].to_s }
+  end
+
+  def build_security_contact_candidate(kind, attrs)
+    SecurityContact.new(
+      account: self,
+      root_account_id: resolved_root_account_id,
+      kind:,
+      workflow_state: "active",
+      created_by: security_contact_editor,
+      **attrs
+    )
+  end
+
+  def apply_security_contact
+    security_contact_assignments.each do |kind, attrs|
+      current = active_security_contact(kind)
+
+      if security_contact_attrs_blank?(attrs)
+        retire_security_contact(current, kind)
+        next
+      end
+
+      next if current && SECURITY_CONTACT_FIELDS.all? { |key| current.public_send(key).to_s == attrs[key].to_s }
+
+      retire_security_contact(current, kind)
+      security_contacts.create!(attrs.merge(kind:, workflow_state: "active", created_by: security_contact_editor))
+    end
+    @security_contact_assignments = {}
+  end
+
+  def retire_security_contact(current, kind)
+    return unless current
+
+    retired_email = current.email
+    # update_columns: only flipping state on an already-valid row, so skip
+    # validations -- re-validating would re-run a DNS check on the old email.
+    current.update_columns(workflow_state: "historic", updated_at: Time.now.utc)
+    # Deferred so a rolled-back save never emails anyone.
+    delay.notify_retired_security_contact(retired_email, kind:)
+  end
+
+  # Emails a retired contact that they were removed/replaced.
+  # NOTE: placeholder copy pending final wording from the security team.
+  def notify_retired_security_contact(email, kind:)
+    return if email.blank?
+
+    role = (kind.to_s == "secondary") ? I18n.t("secondary security contact") : I18n.t("primary security contact")
+    message = Message.new(
+      to: email,
+      from: HostUrl.outgoing_email_address,
+      from_name: HostUrl.outgoing_email_default_name,
+      subject: I18n.t("You are no longer the %{role} for %{institution}", role:, institution: name),
+      body: I18n.t(
+        "security_contact_removal_notice",
+        <<~TEXT,
+          Hello,
+
+          This is a notice that %{institution} has updated its %{role} in Canvas, and your email address (%{email}) is no longer listed for that role. As the %{role}, this address may have been designated to receive security-incident files and privacy notices on behalf of the institution.
+
+          If you expected this change, no action is needed. If you did not, please contact your institution's Canvas administrator.
+
+          This is an automated message; please do not reply.
+        TEXT
+        institution: name,
+        role:,
+        email:
+      ),
+      context: self,
+      path_type: "email"
+    )
+    Mailer.deliver(Mailer.create_message(message))
+  end
 
   def sanitize_discovery_page
     return unless settings[:discovery_page]
