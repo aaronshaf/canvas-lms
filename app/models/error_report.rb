@@ -224,12 +224,12 @@ class ErrorReport < ApplicationRecord
   def guess_email
     self.email = nil if email && email.empty?
     self.email ||= user&.email
-    unless self.email
+    unless email
       domain = HostUrl.outgoing_email_domain.gsub(/[^a-zA-Z0-9]/, "-")
       # example.com definitely won't exist
       self.email = "unknown-#{domain}@instructure.example.com"
     end
-    self.email
+    email
   end
 
   # delete old error reports before a given date

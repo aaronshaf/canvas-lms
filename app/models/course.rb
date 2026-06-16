@@ -1544,11 +1544,11 @@ class Course < ApplicationRecord
   def assert_defaults
     self.name = nil if name&.strip&.empty?
     self.name ||= t("missing_name", "Unnamed Course")
-    self.name.delete!("\r")
+    name.delete!("\r")
     self.course_code = nil if course_code == ""
-    if !course_code && self.name
+    if !course_code && name
       res = []
-      split = self.name.split(/\s/)
+      split = name.split(/\s/)
       res << split[0]
       res << split[1..].find { |txt| txt.match?(/\d/) }
       self.course_code = res.compact.join(" ")
@@ -1557,7 +1557,7 @@ class Course < ApplicationRecord
     if account_id && account_id_changed?
       infer_root_account
     end
-    if self.root_account_id && root_account_id_changed?
+    if root_account_id && root_account_id_changed?
       if account
         if account.root_account?
           self.account = nil if root_account_id != account.id
@@ -1565,11 +1565,11 @@ class Course < ApplicationRecord
           self.account = nil
         end
       end
-      self.account_id ||= self.root_account_id
+      self.account_id ||= root_account_id
     end
     self.root_account = Account.default if root_account_id.nil?
-    self.account_id ||= self.root_account_id
-    self.enrollment_term = nil if enrollment_term.try(:root_account_id) != self.root_account_id
+    self.account_id ||= root_account_id
+    self.enrollment_term = nil if enrollment_term.try(:root_account_id) != root_account_id
     self.enrollment_term ||= root_account.default_enrollment_term
     self.allow_student_wiki_edits = (default_wiki_editing_roles || "").split(",").include?("students")
     if course_format && !%w[on_campus online blended].include?(course_format)
@@ -1619,8 +1619,8 @@ class Course < ApplicationRecord
       end
 
       if root_account_id_changed?
-        CourseSection.where(course_id: self).update_all(root_account_id: self.root_account_id)
-        Enrollment.where(course_id: self).update_all(root_account_id: self.root_account_id)
+        CourseSection.where(course_id: self).update_all(root_account_id:)
+        Enrollment.where(course_id: self).update_all(root_account_id:)
       end
 
       self.class.connection.after_transaction_commit do
@@ -1841,11 +1841,11 @@ class Course < ApplicationRecord
     if migration
       updating_master_template_id = migration.master_course_subscription.master_template_id
       self.syllabus_master_template_id ||= updating_master_template_id if syllabus_body_was.blank?
-      if self.syllabus_master_template_id.to_i != updating_master_template_id
+      if syllabus_master_template_id.to_i != updating_master_template_id
         restore_syllabus_body!
         migration.add_skipped_item(:syllabus)
       end
-    elsif self.syllabus_master_template_id
+    elsif syllabus_master_template_id
       self.syllabus_master_template_id = nil
     end
   end
@@ -2102,7 +2102,7 @@ class Course < ApplicationRecord
 
   def to_atom
     {
-      title: self.name,
+      title: name,
       updated: updated_at,
       published: created_at,
       link: "/#{context_url_prefix}/courses/#{id}"
@@ -2471,7 +2471,7 @@ class Course < ApplicationRecord
   end
 
   def institution_name
-    return root_account.name if self.root_account_id != Account.default.id
+    return root_account.name if root_account_id != Account.default.id
 
     (account || root_account).name
   end
@@ -2926,7 +2926,7 @@ class Course < ApplicationRecord
     limit_privileges_to_course_section = opts[:limit_privileges_to_course_section] || false
     associated_user_id = opts[:associated_user_id]
 
-    role = opts[:role] || shard.activate { Enrollment.get_built_in_role_for_type(type, root_account_id: self.root_account_id) }
+    role = opts[:role] || shard.activate { Enrollment.get_built_in_role_for_type(type, root_account_id:) }
 
     start_at = opts[:start_at]
     end_at = opts[:end_at]
@@ -3094,7 +3094,7 @@ class Course < ApplicationRecord
       section = course_sections.build
       section.default_section = true
       section.course = self
-      section.root_account_id = self.root_account_id
+      section.root_account_id = root_account_id
       unless new_record?
         GuardRail.activate(:primary) do
           CourseSection.unique_constraint_retry do |retry_count|
@@ -3254,7 +3254,7 @@ class Course < ApplicationRecord
   end
 
   def real_start_date
-    return self.start_at.to_date if self.start_at
+    return start_at.to_date if start_at
 
     all_dates.min
   end
@@ -3269,7 +3269,7 @@ class Course < ApplicationRecord
   end
 
   def real_end_date
-    return self.conclude_at.to_date if self.conclude_at
+    return conclude_at.to_date if conclude_at
 
     all_dates.max
   end

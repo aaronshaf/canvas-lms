@@ -752,10 +752,10 @@ class Account < ApplicationRecord
   def ensure_defaults
     name&.delete!("\r")
     self.uuid ||= CanvasSlug.generate_securish_uuid if has_attribute?(:uuid)
-    self.lti_guid ||= "#{self.uuid}:#{INSTANCE_GUID_SUFFIX}" if has_attribute?(:lti_guid)
+    self.lti_guid ||= "#{uuid}:#{INSTANCE_GUID_SUFFIX}" if has_attribute?(:lti_guid)
     self.root_account_id ||= parent_account.root_account_id if parent_account && !parent_account.root_account?
     self.root_account_id ||= parent_account_id
-    self.parent_account_id ||= self.root_account_id unless root_account?
+    self.parent_account_id ||= root_account_id unless root_account?
     unless root_account_id
       Account.ensure_dummy_root_account
       self.root_account_id = 0
@@ -1370,7 +1370,7 @@ class Account < ApplicationRecord
     # valid
     if parent_account.account_chain.include?(self)
       errors.add(:parent_account_id,
-                 "Setting account #{sis_source_id || id}'s parent to #{parent_account.sis_source_id || self.parent_account_id} would create a loop")
+                 "Setting account #{sis_source_id || id}'s parent to #{parent_account.sis_source_id || parent_account_id} would create a loop")
     end
   end
 

@@ -816,7 +816,7 @@ describe OAuth2ProviderController do
           bad_jws = JSON::JWT.new(assertion_claims).sign(imposter, :RS256).to_s
           post :token,
                params: base_params.except(:client_secret)
-                       .merge(code: valid_code)
+                                  .merge(code: valid_code)
                                   .merge(client_assertion_type: assertion_params[:client_assertion_type],
                                          client_assertion: bad_jws)
           expect(response).to have_http_status(:unauthorized)
@@ -833,9 +833,9 @@ describe OAuth2ProviderController do
                                   .sign(JSON::JWK.new(attacker_pair.to_jwk), :RS256).to_s
           post :token,
                params: base_params.except(:client_secret)
-                       .merge(code: valid_code)
-                       .merge(client_assertion_type: assertion_params[:client_assertion_type],
-                              client_assertion: attacker_jws)
+                                  .merge(code: valid_code)
+                                  .merge(client_assertion_type: assertion_params[:client_assertion_type],
+                                         client_assertion: attacker_jws)
           expect(response).not_to be_successful
           expect(response.parsed_body).not_to have_key("access_token")
         end

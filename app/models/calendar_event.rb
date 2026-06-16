@@ -366,9 +366,9 @@ class CalendarEvent < ApplicationRecord
   # Populate the start and end dates if they are not set, or if they are invalid
   def populate_missing_dates
     self.end_at ||= start_at
-    self.start_at ||= self.end_at
-    if self.start_at && self.end_at && self.end_at < self.start_at
-      self.end_at = self.start_at
+    self.start_at ||= end_at
+    if start_at && end_at && end_at < start_at
+      self.end_at = start_at
     end
   end
   protected :populate_missing_dates
@@ -379,7 +379,7 @@ class CalendarEvent < ApplicationRecord
       self.start_at = zoned_start_at&.beginning_of_day
       self.end_at = zoned_end_at&.beginning_of_day
     elsif start_at_changed? || end_at_changed? || Canvas::Plugin.value_to_boolean(remove_child_events)
-      self.all_day = self.start_at && self.start_at == self.end_at && zoned_start_at.strftime("%H:%M") == "00:00"
+      self.all_day = start_at && start_at == end_at && zoned_start_at.strftime("%H:%M") == "00:00"
     end
 
     if all_day && (!all_day_date || start_at_changed? || all_day_date_changed?)
@@ -688,7 +688,7 @@ class CalendarEvent < ApplicationRecord
   end
 
   def all_day
-    super || (new_record? && self.start_at && self.start_at == self.end_at && self.start_at.strftime("%H:%M") == "00:00")
+    super || (new_record? && start_at && start_at == end_at && start_at.strftime("%H:%M") == "00:00")
   end
 
   def to_atom(opts = {})

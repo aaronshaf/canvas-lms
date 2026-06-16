@@ -117,7 +117,7 @@ class AccountReport < ApplicationRecord
     shard.activate do
       parameters["locale"] = infer_locale(user:, root_account: account)
       self.report_type ||= type
-      if AccountReport.available_reports[self.report_type]
+      if AccountReport.available_reports[report_type]
         begin
           AccountReports.generate_report(self, attempt:)
         rescue

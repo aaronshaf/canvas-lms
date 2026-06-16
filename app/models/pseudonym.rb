@@ -510,8 +510,8 @@ class Pseudonym < ApplicationRecord
     # owner's rights (if any) on the pseudonym's account. some fields of the
     # pseudonym may require additional conditions to update (see below)
     given do |principal|
-      self.account.grants_right?(principal, :manage_user_logins) &&
-        user.has_subset_of_account_permissions?(principal&.user, self.account) &&
+      account.grants_right?(principal, :manage_user_logins) &&
+        user.has_subset_of_account_permissions?(principal&.user, account) &&
         user.grants_right?(principal, :read) &&
         directly_editable?
     end
@@ -522,8 +522,8 @@ class Pseudonym < ApplicationRecord
     # directly_editable? -- which would otherwise block merging any user
     # whose only pseudonym is tied to Instructure Identity.
     given do |user|
-      self.account.grants_right?(user, :manage_user_logins) &&
-        self.user.has_subset_of_account_permissions?(user, self.account) &&
+      account.grants_right?(user, :manage_user_logins) &&
+        self.user.has_subset_of_account_permissions?(user, account) &&
         self.user.grants_right?(user, :read)
     end
     can :merge_into
@@ -563,7 +563,7 @@ class Pseudonym < ApplicationRecord
     # an admin can only update a pseudonym's SIS ID when they have :manage_sis
     # permission on the pseudonym's account
     given do |principal|
-      self.account.grants_right?(principal, :manage_sis) &&
+      account.grants_right?(principal, :manage_sis) &&
         grants_right?(principal, :update) &&
         directly_editable?
     end

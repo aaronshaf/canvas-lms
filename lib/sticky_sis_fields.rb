@@ -113,7 +113,7 @@ module StickySisFields
     #       to write out an empty stickiness list on every save.
     def process_as_sis(opts = {}, &)
       self.sis_stickiness_options ||= {}
-      old_options = self.sis_stickiness_options.clone
+      old_options = sis_stickiness_options.clone
       self.sis_stickiness_options = opts
       begin
         if opts[:add_sis_stickiness] || opts[:clear_sis_stickiness]

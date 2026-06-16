@@ -140,7 +140,7 @@ class EportfolioEntry < ApplicationRecord
   def infer_unique_slug
     pages = eportfolio_category.eportfolio_entries
     self.name ||= t(:default_name, "Page Name")
-    self.slug = self.name.to_url.presence || CanvasSlug.generate
+    self.slug = name.to_url.presence || CanvasSlug.generate
     pages = pages.where("id<>?", self) unless new_record?
     match_cnt = pages.where(slug:).count
     if match_cnt > 0
@@ -155,7 +155,7 @@ class EportfolioEntry < ApplicationRecord
     url += "?verifier=#{eportfolio.uuid}" if opts[:private]
 
     {
-      title: self.name.to_s,
+      title: name.to_s,
       author: t(:atom_author, "ePortfolio Entry"),
       updated: updated_at,
       published: created_at,

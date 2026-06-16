@@ -35,7 +35,7 @@ class EportfolioCategory < ApplicationRecord
   def infer_unique_slug
     categories = eportfolio.eportfolio_categories
     self.name ||= t(:default_section, "Section Name")
-    self.slug = self.name.to_url.presence || CanvasSlug.generate
+    self.slug = name.to_url.presence || CanvasSlug.generate
     categories = categories.where("id<>?", self) unless new_record?
     match_cnt = categories.where(slug:).count
     if match_cnt > 0

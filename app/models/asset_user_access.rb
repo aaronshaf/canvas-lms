@@ -292,7 +292,7 @@ class AssetUserAccess < ApplicationRecord
   def corrected_view_score
     deductible_points = 0
 
-    if self.asset_group_code == "quizzes"
+    if asset_group_code == "quizzes"
       deductible_points = participate_score || 0
     end
 

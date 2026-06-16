@@ -993,7 +993,7 @@ class Enrollment < ApplicationRecord
   def has_permission_to?(action)
     @permission_lookup ||= {}
     unless @permission_lookup.key? action
-      @permission_lookup[action] = RoleOverride.enabled_for?(course, action, self.role_id, nil)
+      @permission_lookup[action] = RoleOverride.enabled_for?(course, action, role_id, nil)
     end
     @permission_lookup[action].include?(:self)
   end

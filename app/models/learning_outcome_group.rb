@@ -361,8 +361,8 @@ class LearningOutcomeGroup < ApplicationRecord
 
   def infer_defaults
     self.context ||= parent_outcome_group&.context
-    if self.context&.learning_outcome_groups&.exists? && !building_default
-      default = self.context.root_outcome_group
+    if context&.learning_outcome_groups&.exists? && !building_default
+      default = context.root_outcome_group
       self.learning_outcome_group_id ||= default.id unless self == default
     end
     true

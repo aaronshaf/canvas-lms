@@ -205,7 +205,7 @@ class ContentTag < ApplicationRecord
     self.title ||= content.try(:display_name)
     self.title ||= t(:no_title, "No title")
     self.comments ||= ""
-    self.comments = "" if self.comments == "Comments"
+    self.comments = "" if comments == "Comments"
     self.context_code = "#{context_type.to_s.underscore}_#{context_id}"
   end
   protected :default_values
@@ -359,7 +359,7 @@ class ContentTag < ApplicationRecord
   end
 
   def asset_safe_title(column)
-    name = self.title.to_s
+    name = title.to_s
     if (limit = content.class.try(:columns_hash)[column].try(:limit)) && name.length > limit
       name = name[0, limit][/.{0,#{limit}}/mu]
     end

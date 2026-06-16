@@ -1265,7 +1265,7 @@ class AbstractAssignment < ApplicationRecord
     self.title ||= assignment_group.default_assignment_name || "Assignment"
 
     self.submission_types ||= "none"
-    if will_save_change_to_submission_types? && ["none", "on_paper"].include?(self.submission_types)
+    if will_save_change_to_submission_types? && ["none", "on_paper"].include?(submission_types)
       self.allowed_attempts = nil
     end
 
@@ -1331,7 +1331,7 @@ class AbstractAssignment < ApplicationRecord
   def delete_empty_abandoned_children
     if governs_submittable? && saved_change_to_submission_types?
       each_submission_type do |submittable, type|
-        unless self.submission_types == type.to_s
+        unless submission_types == type.to_s
           submittable&.unlink!(:assignment)
         end
       end
@@ -1358,10 +1358,10 @@ class AbstractAssignment < ApplicationRecord
     # grades, don't bother doing this
     return true if !governs_submittable? || deleted? || grade_posting_in_progress
 
-    if self.submission_types == "online_quiz" && @saved_by != :quiz
+    if submission_types == "online_quiz" && @saved_by != :quiz
       quiz = Quizzes::Quiz.where(assignment_id: self).first || context.quizzes.build
       quiz.assignment_id = id
-      quiz.title = self.title
+      quiz.title = title
       quiz.description = description
       quiz.due_at = due_at
       quiz.unlock_at = unlock_at
@@ -1374,13 +1374,13 @@ class AbstractAssignment < ApplicationRecord
       quiz.skip_attachment_association_update = skip_attachment_association_update
       quiz.updating_user = updating_user
       quiz.save if quiz.changed?
-    elsif self.submission_types == "discussion_topic" && !%i[discussion_topic sub_assignment].include?(@saved_by)
+    elsif submission_types == "discussion_topic" && !%i[discussion_topic sub_assignment].include?(@saved_by)
       topic = discussion_topic || context.discussion_topics.build(user: updating_user)
       topic.message = description
       save_submittable(topic)
       self.discussion_topic = topic
     elsif context.conditional_release? &&
-          self.submission_types == "wiki_page" && @saved_by != :wiki_page
+          submission_types == "wiki_page" && @saved_by != :wiki_page
       page = wiki_page || context.wiki_pages.build(user: updating_user)
       save_submittable(page)
       self.wiki_page = page
@@ -1391,7 +1391,7 @@ class AbstractAssignment < ApplicationRecord
     submittable.skip_attachment_association_update = skip_attachment_association_update
     submittable.updating_user = updating_user
     submittable.assignment_id = id
-    submittable.title = self.title
+    submittable.title = title
     submittable.saved_by = :assignment
     submittable.updated_at = Time.zone.now
     submittable.workflow_state = "active" if submittable.deleted?
@@ -1656,7 +1656,7 @@ class AbstractAssignment < ApplicationRecord
   end
 
   def points_uneditable?
-    (self.submission_types == "online_quiz") # && self.quiz && (self.quiz.edited? || self.quiz.available?))
+    (submission_types == "online_quiz") # && self.quiz && (self.quiz.edited? || self.quiz.available?))
   end
 
   workflow do
@@ -1775,7 +1775,7 @@ class AbstractAssignment < ApplicationRecord
   end
 
   def process_if_quiz
-    if self.submission_types == "online_quiz"
+    if submission_types == "online_quiz"
       self.points_possible = quiz.points_possible if quiz&.available?
       copy_attrs = %w[due_at lock_at unlock_at]
       if quiz && @saved_by != :quiz &&
@@ -1792,8 +1792,8 @@ class AbstractAssignment < ApplicationRecord
 
   def infer_grading_type
     self.grading_type = nil if grading_type.blank?
-    self.grading_type = "pass_fail" if self.submission_types == "attendance"
-    self.grading_type = "not_graded" if self.submission_types == "wiki_page"
+    self.grading_type = "pass_fail" if submission_types == "attendance"
+    self.grading_type = "not_graded" if submission_types == "wiki_page"
     self.grading_type ||= "points"
   end
 
@@ -1818,7 +1818,7 @@ class AbstractAssignment < ApplicationRecord
 
   def score_to_grade(score = 0.0, given_grade = nil, force_letter_grade: false)
     result = score.to_f
-    case force_letter_grade ? "letter_grade" : self.grading_type
+    case force_letter_grade ? "letter_grade" : grading_type
     when "percent"
       result = "#{round_if_whole(score_to_grade_percent(score))}%"
     when "pass_fail"
@@ -1889,7 +1889,7 @@ class AbstractAssignment < ApplicationRecord
     return nil if grade.blank?
 
     parsed_grade = interpret_grade(grade, prefer_points_over_scheme:)
-    case self.grading_type
+    case grading_type
     when *POINTED_GRADING_TYPES
       score = parsed_grade
     when "pass_fail"
@@ -2099,7 +2099,7 @@ class AbstractAssignment < ApplicationRecord
   end
 
   def submission_types_array
-    (self.submission_types || "").split(",")
+    (submission_types || "").split(",")
   end
 
   def submittable_type?
@@ -2111,11 +2111,11 @@ class AbstractAssignment < ApplicationRecord
       "discussion_topic",
       "wiki_page",
       "attendance"
-    ].include?(self.submission_types)
+    ].include?(submission_types)
   end
 
   def submittable_object
-    case self.submission_types
+    case submission_types
     when "online_quiz"
       quiz
     when "discussion_topic"
@@ -3631,7 +3631,7 @@ class AbstractAssignment < ApplicationRecord
   def readable_submission_types
     return nil unless expects_submission? || expects_external_submission?
 
-    res = (self.submission_types || "").split(",").filter_map { |s| readable_submission_type(s) }
+    res = (submission_types || "").split(",").filter_map { |s| readable_submission_type(s) }
     res.to_sentence(:or)
   end
 
@@ -4606,12 +4606,12 @@ class AbstractAssignment < ApplicationRecord
 
   def new_quizzes_type=(type)
     self.settings ||= {}
-    self.settings["new_quizzes"] = (settings["new_quizzes"] || {}).merge({ "type" => type })
+    settings["new_quizzes"] = (settings["new_quizzes"] || {}).merge({ "type" => type })
   end
 
   def anonymous_participants=(enabled)
     self.settings ||= {}
-    self.settings["new_quizzes"] = (settings["new_quizzes"] || {}).merge({ "anonymous_participants" => ActiveModel::Type::Boolean.new.cast(enabled) || false })
+    settings["new_quizzes"] = (settings["new_quizzes"] || {}).merge({ "anonymous_participants" => ActiveModel::Type::Boolean.new.cast(enabled) || false })
   end
 
   # Returns true if the migration Canvas Plagiarism Platform (LTI2 / CPF) configuration to LTI1.3 Asset Processor has been started
@@ -4740,9 +4740,9 @@ class AbstractAssignment < ApplicationRecord
     # Due to the removal of the multiple `validates_length_of :title` validations we need this nil check
     # here to act as those validations so we can reduce the number of validations for this attribute
     # to just one single check
-    return false if nil? || self.title.nil?
+    return false if nil? || title.nil?
 
-    if self.title.to_s.length > name_length && self.grading_type != "not_graded"
+    if title.to_s.length > name_length && grading_type != "not_graded"
       errors.add(:title, I18n.t("The title cannot be longer than %{length} characters", length: name_length))
     end
   end

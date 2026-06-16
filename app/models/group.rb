@@ -606,7 +606,7 @@ class Group < ApplicationRecord
     self.group_category ||= GroupCategory.student_organized_for(context)
     self.join_level ||= "invitation_only"
     self.is_public ||= false
-    self.is_public = false unless self.group_category.try(:communities?)
+    self.is_public = false unless group_category.try(:communities?)
     self.non_collaborative = group_category.non_collaborative if group_category && !non_collaborative_changed?
     set_default_account
   end
@@ -770,7 +770,7 @@ class Group < ApplicationRecord
       given { |principal| principal && can_participate?(principal.user) && free_association?(principal.user) }
       can :join and can :read_roster
 
-      given { |principal| principal && (self.group_category.try(:allows_multiple_memberships?) || allow_self_signup?(principal.user)) }
+      given { |principal| principal && (group_category.try(:allows_multiple_memberships?) || allow_self_signup?(principal.user)) }
       can :leave
 
       given do |principal, session|
@@ -896,7 +896,7 @@ class Group < ApplicationRecord
   def can_participate?(user)
     return true if can_participate
     return false unless user.present? && context.present?
-    return true if self.group_category.try(:communities?)
+    return true if group_category.try(:communities?)
 
     case context
     when Course
@@ -993,9 +993,9 @@ class Group < ApplicationRecord
     if json && json["group"]
       # remove anything coming automatically from deprecated db column
       json["group"].delete("category")
-      if self.group_category
+      if group_category
         # put back version from association
-        json["group"]["group_category"] = self.group_category.name
+        json["group"]["group_category"] = group_category.name
       end
     end
     json
@@ -1117,7 +1117,7 @@ class Group < ApplicationRecord
       errors.add(:base, "Non-collaborative groups cannot have a leader") if leader_id.present?
       errors.add(:base, "Non-collaborative groups must be private") if is_public
       errors.add(:base, "Variant limit reached for tag") if (new_record? || group_category_id_changed?) && Group.active.non_collaborative.where(group_category_id:).count >= self.MAX_VARIANTS_PER_TAG_CATEGORY
-      errors.add(:base, "You have reached the tag limit for this course") if new_record? && self.group_category.max_diff_tag_validation_count >= GroupCategory.MAX_DIFFERENTIATION_TAG_PER_COURSE
+      errors.add(:base, "You have reached the tag limit for this course") if new_record? && group_category.max_diff_tag_validation_count >= GroupCategory.MAX_DIFFERENTIATION_TAG_PER_COURSE
     end
 
     if group_category && non_collaborative != group_category.non_collaborative

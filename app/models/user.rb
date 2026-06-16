@@ -1114,7 +1114,7 @@ class User < ApplicationRecord
     self.name = nil if name == "User"
     self.name ||= short_name || email || default_name || t("#user.default_user_name", "User")
     self.short_name = nil if short_name == ""
-    self.short_name ||= self.name
+    self.short_name ||= name
     self.sortable_name = nil if sortable_name == ""
     # recalculate the sortable name if the name changed, but the sortable name didn't, and the sortable_name matches the old name
     self.sortable_name = nil if !sortable_name_changed? &&
@@ -1122,7 +1122,7 @@ class User < ApplicationRecord
                                 name_changed? &&
                                 User.name_parts(sortable_name, likely_already_surname_first: true).compact.join(" ") == name_was
     unless self["sortable_name"]
-      self.sortable_name = User.last_name_first(self.name, sortable_name_was, likely_already_surname_first: true)
+      self.sortable_name = User.last_name_first(name, sortable_name_was, likely_already_surname_first: true)
     end
     self.reminder_time_for_due_dates ||= 48.hours.to_i
     self.reminder_time_for_grading ||= 0
@@ -1137,7 +1137,7 @@ class User < ApplicationRecord
     old_lti_id = context.shard.activate do
       past_lti_ids.find_by(context:)&.user_lti_id
     end
-    old_lti_id || self.lti_id
+    old_lti_id || lti_id
   end
 
   def preserve_lti_id
@@ -1150,7 +1150,7 @@ class User < ApplicationRecord
 
   def sortable_name
     self.sortable_name = super ||
-                         User.last_name_first(self.name, likely_already_surname_first: false)
+                         User.last_name_first(name, likely_already_surname_first: false)
   end
 
   def email_channel
@@ -1404,7 +1404,7 @@ class User < ApplicationRecord
 
   def to_atom
     {
-      title: self.name,
+      title: name,
       updated: updated_at,
       published: created_at,
       link: "/users/#{id}"
@@ -2375,11 +2375,11 @@ class User < ApplicationRecord
     Rails.cache.fetch_with_batched_keys("course_creating_teacher_enrollment_accounts", batch_object: self, batched_keys: :enrollments) do
       Shard.with_each_shard(in_region_associated_shards) do
         Account.where(id: Course.where(id: enrollments.active.shard(Shard.current)
-                                           .select(:course_id)
-                                           .where(type: %w[TeacherEnrollment DesignerEnrollment])
-                                           .joins(:root_account)
-                                           .where("accounts.settings LIKE ?", "%teachers_can_create_courses: true%"))
-                          .select(:account_id))
+                                                      .select(:course_id)
+                                                      .where(type: %w[TeacherEnrollment DesignerEnrollment])
+                                                      .joins(:root_account)
+                                                      .where("accounts.settings LIKE ?", "%teachers_can_create_courses: true%"))
+                                .select(:account_id))
       end
     end
   end
@@ -2388,11 +2388,11 @@ class User < ApplicationRecord
     Rails.cache.fetch_with_batched_keys("course_creating_student_enrollment_accounts", batch_object: self, batched_keys: :enrollments) do
       Shard.with_each_shard(in_region_associated_shards) do
         Account.where(id: Course.where(id: enrollments.active.shard(Shard.current)
-                                           .select(:course_id)
-                                           .where(type: %w[StudentEnrollment ObserverEnrollment])
-                                           .joins(:root_account)
-                                           .where("accounts.settings LIKE ?", "%students_can_create_courses: true%"))
-                          .select(:account_id))
+                                                      .select(:course_id)
+                                                      .where(type: %w[StudentEnrollment ObserverEnrollment])
+                                                      .joins(:root_account)
+                                                      .where("accounts.settings LIKE ?", "%students_can_create_courses: true%"))
+                                .select(:account_id))
       end
     end
   end
@@ -3573,7 +3573,7 @@ class User < ApplicationRecord
   end
 
   def group_member_json(context)
-    h = { user_id: id, name: last_name_first, display_name: self.short_name }
+    h = { user_id: id, name: last_name_first, display_name: short_name }
     if context.is_a?(Course)
       sections_for_course(context).each do |section|
         h[:sections] ||= []
@@ -3843,8 +3843,8 @@ class User < ApplicationRecord
     adminable_accounts_ids = account_users.active.shard(shard_scope).distinct.pluck(:account_id)
     root_accounts = Account.active.where(
       id: Account.active
-          .where(id: adminable_accounts_ids)
-          .select(Arel.sql("DISTINCT COALESCE(NULLIF(root_account_id, 0), id)"))
+                 .where(id: adminable_accounts_ids)
+                 .select(Arel.sql("DISTINCT COALESCE(NULLIF(root_account_id, 0), id)"))
     )
 
     horizon_account_ids = Set.new

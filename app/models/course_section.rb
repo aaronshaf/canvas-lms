@@ -265,7 +265,7 @@ class CourseSection < ApplicationRecord
   # The only place this is used by itself right now is when listing
   # enrollments within a course
   def display_name
-    @section_display_name ||= self.name
+    @section_display_name ||= name
   end
 
   def move_to_course(course, **opts)
@@ -350,7 +350,7 @@ class CourseSection < ApplicationRecord
   end
 
   def uncrosslist(**opts)
-    return unless self.nonxlist_course_id
+    return unless nonxlist_course_id
 
     if nonxlist_course.workflow_state == "deleted"
       nonxlist_course.workflow_state = "claimed"
@@ -366,7 +366,7 @@ class CourseSection < ApplicationRecord
   end
 
   def crosslisted?
-    !!self.nonxlist_course_id
+    !!nonxlist_course_id
   end
 
   def destroy_course_if_no_more_sections

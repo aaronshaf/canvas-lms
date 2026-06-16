@@ -842,7 +842,7 @@ class Attachment < ApplicationRecord
              end
 
     if method == :overwrite
-      atts = shard.activate { folder.active_file_attachments.where("display_name=? AND id<>?", self.display_name, id).to_a }
+      atts = shard.activate { folder.active_file_attachments.where("display_name=? AND id<>?", display_name, id).to_a }
       method = :rename if atts.any? { |att| att.editing_restricted?(:any) }
     end
 
@@ -856,7 +856,7 @@ class Attachment < ApplicationRecord
           iter_count = 1
           until valid_name
             existing_names = folder.active_file_attachments.where.not(id:).pluck(:display_name)
-            new_name = opts[:name] || self.display_name
+            new_name = opts[:name] || display_name
             self.display_name = Attachment.make_unique_filename(new_name, existing_names, iter_count)
             if Attachment.where(id: self)
                          .where.not(
@@ -873,7 +873,7 @@ class Attachment < ApplicationRecord
       rescue UniqueRenameFailure => e
         Canvas::Errors.capture_exception(:attachment, e, :warn)
         # Failed to uniquely rename attachment, slapping on a UUID and moving on
-        self.display_name = self.display_name + SecureRandom.uuid
+        self.display_name = display_name + SecureRandom.uuid
         Attachment.where(id: self).limit(1).update_all(display_name:)
       end
     elsif method == :overwrite && atts.any?
@@ -1323,7 +1323,7 @@ class Attachment < ApplicationRecord
       published: created_at,
       id: "tag:#{HostUrl.default_host},#{created_at.strftime("%Y-%m-%d")}:/files/#{feed_code}",
       link: "http://#{HostUrl.context_host(context)}/#{context_url_prefix}/files/#{id}",
-      content: self.display_name.to_s,
+      content: display_name.to_s,
     }
   end
 
@@ -1601,7 +1601,7 @@ class Attachment < ApplicationRecord
 
   def locked_for?(user, opts = {})
     return false if opts[:check_policies] && grants_right?(user, :read_as_admin)
-    return { asset_string:, manually_locked: true } if locked || Folder.is_locked?(self.folder_id)
+    return { asset_string:, manually_locked: true } if locked || Folder.is_locked?(folder_id)
 
     RequestCache.cache(locked_request_cache_key(user)) do
       locked = false
@@ -1625,7 +1625,7 @@ class Attachment < ApplicationRecord
   def hidden?
     return @hidden if defined?(@hidden)
 
-    @hidden = self.file_state == "hidden" || folder&.hidden?
+    @hidden = file_state == "hidden" || folder&.hidden?
   end
 
   def published?
@@ -1638,15 +1638,15 @@ class Attachment < ApplicationRecord
   end
 
   def just_hide
-    self.file_state == "hidden"
+    file_state == "hidden"
   end
 
   def public?
-    self.file_state == "public"
+    file_state == "public"
   end
 
   def currently_locked
-    locked || (lock_at && Time.zone.now > lock_at) || (unlock_at && Time.zone.now < unlock_at) || self.file_state == "hidden"
+    locked || (lock_at && Time.zone.now > lock_at) || (unlock_at && Time.zone.now < unlock_at) || file_state == "hidden"
   end
   alias_method :currently_locked?, :currently_locked
 
@@ -2100,11 +2100,11 @@ class Attachment < ApplicationRecord
   end
 
   def deleted?
-    self.file_state == "deleted"
+    file_state == "deleted"
   end
 
   def available?
-    self.file_state == "available"
+    file_state == "available"
   end
 
   def canvadocable?

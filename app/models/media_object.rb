@@ -361,13 +361,13 @@ class MediaObject < ApplicationRecord
   def viewed! # rubocop:disable Naming/PredicateMethod
     # in the delayed job, current_attachment gets reset
     # so we pass it in here and then set it again in the next method
-    delay.updated_viewed_at_and_retrieve_details(Time.zone.now, current_attachment) if !self.data[:last_viewed_at] || self.data[:last_viewed_at] > 1.hour.ago
+    delay.updated_viewed_at_and_retrieve_details(Time.zone.now, current_attachment) if !data[:last_viewed_at] || data[:last_viewed_at] > 1.hour.ago
     true
   end
 
   def updated_viewed_at_and_retrieve_details(time, current_attachment = nil)
     self.current_attachment = current_attachment if current_attachment
-    self.data[:last_viewed_at] = [time, self.data[:last_viewed_at]].compact.max
+    data[:last_viewed_at] = [time, data[:last_viewed_at]].compact.max
     retrieve_details
   end
 
@@ -405,7 +405,7 @@ class MediaObject < ApplicationRecord
     sources = media_sources
     return unless sources.present?
 
-    url = self.data[:download_url]
+    url = data[:download_url]
     ext, url = sources.find { |s| s[:isOriginal] == "1" }&.slice(:fileExt, :url)&.values if url.blank?
     ext, url = sources.min_by { |a| a[:bitrate].to_i }&.slice(:fileExt, :url)&.values if url.blank?
 

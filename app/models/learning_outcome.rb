@@ -221,7 +221,7 @@ class LearningOutcome < ApplicationRecord
   # |weighted_average | decaying_average [after data migration this old decaying_average                   |
   # |                 | will be named as weighted_average]                                                 |
   # |------------------------------------------------------------------------------------------------------|
-  def adjust_calculation_method(method = self.calculation_method)
+  def adjust_calculation_method(method = calculation_method)
     if new_decaying_average_calculation_ff_enabled?
       self.calculation_method = "decaying_average" if method == "weighted_average"
     elsif method == "standard_decaying_average"
@@ -241,7 +241,7 @@ class LearningOutcome < ApplicationRecord
     end
   end
 
-  def default_calculation_int(method = self.calculation_method)
+  def default_calculation_int(method = calculation_method)
     case method
     when "decaying_average", "standard_decaying_average", "weighted_average" then 65
     when "n_mastery" then 5
@@ -379,7 +379,7 @@ class LearningOutcome < ApplicationRecord
       criterion = self.class.default_rubric_criterion
     end
 
-    self.data[:rubric_criterion] = criterion
+    data[:rubric_criterion] = criterion
   end
 
   def sanitize_rubric_criterion_field(value)

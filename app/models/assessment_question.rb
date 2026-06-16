@@ -92,13 +92,13 @@ class AssessmentQuestion < ApplicationRecord
 
   def infer_defaults
     self.question_data ||= ActiveSupport::HashWithIndifferentAccess.new
-    if self.question_data.is_a?(Hash)
-      if self.question_data[:question_name].try(:strip).blank?
-        self.question_data[:question_name] = t :default_question_name, "Question"
+    if question_data.is_a?(Hash)
+      if question_data[:question_name].try(:strip).blank?
+        question_data[:question_name] = t :default_question_name, "Question"
       end
-      self.question_data[:name] = self.question_data[:question_name]
+      question_data[:name] = question_data[:question_name]
     end
-    self.name = self.question_data[:question_name] || name
+    self.name = question_data[:question_name] || name
     self.assessment_question_bank ||= AssessmentQuestionBank.unfiled_for_context(initial_context)
   end
 
@@ -225,8 +225,8 @@ class AssessmentQuestion < ApplicationRecord
       end
     end
 
-    hash = deep_translate.call(self.question_data)
-    if hash != self.question_data
+    hash = deep_translate.call(question_data)
+    if hash != question_data
       self.question_data = hash
 
       @skip_translate_links = true
@@ -236,7 +236,7 @@ class AssessmentQuestion < ApplicationRecord
   end
 
   def data
-    res = self.question_data || ActiveSupport::HashWithIndifferentAccess.new
+    res = question_data || ActiveSupport::HashWithIndifferentAccess.new
     res[:assessment_question_id] = id
     res[:question_name] = t :default_question_name, "Question" if res[:question_name].blank?
     # TODO: there's a potential id conflict here, where if a quiz
@@ -303,7 +303,7 @@ class AssessmentQuestion < ApplicationRecord
        # it shouldn't be affected by changes to the quiz_question since it wasn't
        # based on the quiz_question to begin with
        (!new_record? && question.assessment_question_id == id && question.created_at && created_at < question.created_at + 5.minutes && created_at > question.created_at + 30.seconds) ||
-       (self.assessment_question_bank && self.assessment_question_bank.title != AssessmentQuestionBank.default_unfiled_title) ||
+       (assessment_question_bank && assessment_question_bank.title != AssessmentQuestionBank.default_unfiled_title) ||
        (question.is_a?(Quizzes::QuizQuestion) && question.generated?)
       false
     else
@@ -377,7 +377,7 @@ class AssessmentQuestion < ApplicationRecord
 
   alias_method :destroy_permanently!, :destroy
   def destroy
-    self.assessment_question_bank.touch
+    assessment_question_bank.touch
     self.workflow_state = "deleted"
     self.deleted_at = Time.now.utc
     save

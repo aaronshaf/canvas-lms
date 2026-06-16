@@ -62,8 +62,8 @@ module UserLearningObjectScopes
 
   # everything is relative to the user's shard
   def course_ids_for_todo_lists(permission_type, course_ids: nil, contexts: nil, include_concluded: false)
-    return [] if course_ids&.empty?
-    return [] if contexts&.empty?
+    return [] if course_ids && course_ids.empty?
+    return [] if contexts && contexts.empty?
 
     shard.activate do
       GuardRail.activate(:secondary) do
@@ -87,8 +87,8 @@ module UserLearningObjectScopes
 
   # everything is relative to the user's shard
   def group_ids_for_todo_lists(group_ids: nil, contexts: nil)
-    return [] if group_ids&.empty?
-    return [] if contexts&.empty?
+    return [] if group_ids && group_ids.empty?
+    return [] if contexts && contexts.empty?
 
     shard.activate do
       result = cached_current_group_memberships_by_date.map(&:group_id)

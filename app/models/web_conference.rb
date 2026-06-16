@@ -374,11 +374,11 @@ class WebConference < ApplicationRecord
     if title.blank?
       self.title = context.is_a?(Course) ? t("#web_conference.default_name_for_courses", "Course Web Conference") : t("#web_conference.default_name_for_groups", "Group Web Conference")
     end
-    self.start_at ||= self.started_at
+    self.start_at ||= started_at
     self.end_at ||= ended_at
-    self.end_at ||= self.start_at + duration.minutes if self.start_at && duration
-    if self.started_at && ended_at && ended_at < self.started_at
-      self.ended_at = self.started_at
+    self.end_at ||= start_at + duration.minutes if start_at && duration
+    if started_at && ended_at && ended_at < started_at
+      self.ended_at = started_at
     end
   end
 
@@ -387,11 +387,11 @@ class WebConference < ApplicationRecord
   end
 
   def available?
-    !self.started_at
+    !started_at
   end
 
   def finished?
-    self.started_at && !active?
+    started_at && !active?
   end
 
   def long_running?
@@ -417,15 +417,15 @@ class WebConference < ApplicationRecord
 
   def restart
     self.start_at ||= Time.zone.now
-    self.end_at = duration && (self.start_at + duration_in_seconds)
-    self.started_at ||= self.start_at
+    self.end_at = duration && (start_at + duration_in_seconds)
+    self.started_at ||= start_at
     self.ended_at = nil
     save
   end
 
   # Default implementation since most implementations don't support scheduling yet
   def scheduled?
-    self.started_at.nil? && scheduled_date && scheduled_date > Time.zone.now
+    started_at.nil? && scheduled_date && scheduled_date > Time.zone.now
   end
 
   # Default implementation since most implementations don't support scheduling yet
@@ -436,7 +436,7 @@ class WebConference < ApplicationRecord
   def active?(force_check: false, allow_check: true)
     unless force_check
       return false if ended_at && Time.zone.now > ended_at
-      return true if self.start_at && (self.end_at.nil? || (self.end_at && Time.zone.now > self.start_at && Time.zone.now < self.end_at))
+      return true if start_at && (end_at.nil? || (end_at && Time.zone.now > start_at && Time.zone.now < end_at))
       return true if ended_at && Time.zone.now < ended_at
       return @conference_active unless @conference_active.nil?
     end
@@ -449,21 +449,21 @@ class WebConference < ApplicationRecord
     @conference_active = (conference_status == :active)
     # If somehow the end_at didn't get set, set the end date
     # based on the start time and duration
-    if @conference_active && !self.end_at && !long_running?
+    if @conference_active && !end_at && !long_running?
       self.start_at ||= Time.zone.now
-      self.end_at = [self.start_at, Time.zone.now].compact.min + duration_in_seconds
+      self.end_at = [start_at, Time.zone.now].compact.min + duration_in_seconds
       save
     # If the conference is still active but it's been more than fifteen minutes
     # since it was supposed to end, just go ahead and end it
-    elsif @conference_active && self.end_at && self.end_at < 15.minutes.ago && !ended_at
+    elsif @conference_active && end_at && end_at < 15.minutes.ago && !ended_at
       self.ended_at = Time.zone.now
-      self.start_at ||= self.started_at
+      self.start_at ||= started_at
       self.end_at ||= ended_at
       @conference_active = false
       save
     # If the conference is no longer in use and its end_at has passed,
     # consider it ended
-    elsif @conference_active == false && self.started_at && self.end_at && self.end_at < Time.zone.now && !ended_at
+    elsif @conference_active == false && started_at && end_at && end_at < Time.zone.now && !ended_at
       close
     end
     @conference_active
@@ -481,7 +481,7 @@ class WebConference < ApplicationRecord
   end
 
   def presenter_key
-    @presenter_key ||= "instructure_" + Digest::MD5.hexdigest([user_id, self.uuid].join(","))
+    @presenter_key ||= "instructure_" + Digest::MD5.hexdigest([user_id, uuid].join(","))
   end
 
   def attendee_key

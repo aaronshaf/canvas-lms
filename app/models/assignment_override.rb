@@ -357,7 +357,7 @@ class AssignmentOverride < ApplicationRecord
   # override set read accessor and set_id read/write accessors so that reading
   # set while set_type=ADHOC doesn't try and find the # ADHOC model
   def set
-    case self.set_type
+    case set_type
     when "ADHOC"
       assignment_override_students.preload(:user).map(&:user)
     when "CourseSection", "Group", "Course"

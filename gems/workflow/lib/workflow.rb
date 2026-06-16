@@ -129,8 +129,8 @@ module Workflow
       end
       workflow_methods = const_get(:WorkflowMethods, false)
       self.workflow_spec ||= Specification.new
-      self.workflow_spec.add(&)
-      self.workflow_spec.states.each_value do |state|
+      workflow_spec.add(&)
+      workflow_spec.states.each_value do |state|
         state_name = state.name
         workflow_methods.module_eval do
           define_method :"#{state_name}?" do

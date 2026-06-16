@@ -153,7 +153,7 @@ class AccountUser < ApplicationRecord
   end
 
   def readable_type
-    AccountUser.readable_type(self.role.name)
+    AccountUser.readable_type(role.name)
   end
 
   def account_user_registration!
@@ -170,7 +170,7 @@ class AccountUser < ApplicationRecord
 
   def enabled_for?(context, action)
     @permission_lookup ||= {}
-    @permission_lookup[[context.class, context.global_id, action]] ||= RoleOverride.enabled_for?(context, action, self.role, account)
+    @permission_lookup[[context.class, context.global_id, action]] ||= RoleOverride.enabled_for?(context, action, role, account)
   end
 
   def permission_check(context, action)

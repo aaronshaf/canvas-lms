@@ -368,11 +368,11 @@ class RubricAssociation < ApplicationRecord
       save_comment = data[:save_comment] == "1" && params[:assessment_type] != "peer_review"
       if rating[:comments].present? && save_comment
         self.summary_data ||= {}
-        self.summary_data[:saved_comments] ||= {}
-        self.summary_data[:saved_comments][criterion.id.to_s] ||= []
-        self.summary_data[:saved_comments][criterion.id.to_s] << rating[:comments]
+        summary_data[:saved_comments] ||= {}
+        summary_data[:saved_comments][criterion.id.to_s] ||= []
+        summary_data[:saved_comments][criterion.id.to_s] << rating[:comments]
         # TODO: i18n
-        self.summary_data[:saved_comments][criterion.id.to_s] = self.summary_data[:saved_comments][criterion.id.to_s].select { |desc| desc.present? && desc != "No Details" }.uniq.sort
+        summary_data[:saved_comments][criterion.id.to_s] = summary_data[:saved_comments][criterion.id.to_s].select { |desc| desc.present? && desc != "No Details" }.uniq.sort
         self.skip_updating_points_possible = true
         save
       end

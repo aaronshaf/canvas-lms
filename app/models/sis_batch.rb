@@ -463,8 +463,8 @@ class SisBatch < ApplicationRecord
   def fail_with_error!(error)
     reload # might have failed trying to save; also ensure workflow_state is up to date
     self.data ||= {}
-    self.data[:error_message] = error&.to_s
-    self.data[:stack_trace] = "#{error}\n#{error&.backtrace&.join("\n")}"
+    data[:error_message] = error&.to_s
+    data[:stack_trace] = "#{error}\n#{error&.backtrace&.join("\n")}"
     self.workflow_state = if %w[restoring restored partially_restored restore_failed].include?(workflow_state)
                             "restore_failed"
                           else
@@ -502,7 +502,7 @@ class SisBatch < ApplicationRecord
                                                    .where(updated_workflow_state: stat_deleted_state(type)).count
     end
     self.data ||= {}
-    self.data[:statistics] = stats
+    data[:statistics] = stats
   end
 
   def add_zero_stats(stats)
@@ -590,7 +590,7 @@ class SisBatch < ApplicationRecord
       fast_update_progress(current_row.to_f / total_rows * 100)
     end
 
-    self.data[:counts][:batch_courses_deleted] = course_count
+    data[:counts][:batch_courses_deleted] = course_count
     current_row
   end
 
@@ -627,7 +627,7 @@ class SisBatch < ApplicationRecord
       section_count += count
       current_row += count
     end
-    self.data[:counts][:batch_sections_deleted] = section_count
+    data[:counts][:batch_sections_deleted] = section_count
     current_row
   end
 
@@ -785,10 +785,10 @@ class SisBatch < ApplicationRecord
 
   def populate_old_warnings_and_errors
     self.data ||= {}
-    self.data[:counts] ||= {}
+    data[:counts] ||= {}
     unless @has_errors
-      self.data[:counts][:error_count] = 0
-      self.data[:counts][:warning_count] = 0
+      data[:counts][:error_count] = 0
+      data[:counts][:warning_count] = 0
       return
     end
     fail_count = sis_batch_errors.failed.count
@@ -803,8 +803,8 @@ class SisBatch < ApplicationRecord
       processing_warnings << ["and #{warning_count - 24} more warnings that were not included",
                               "Download the error file to see all warnings."]
     end
-    self.data[:counts][:error_count] = fail_count
-    self.data[:counts][:warning_count] = warning_count
+    data[:counts][:error_count] = fail_count
+    data[:counts][:warning_count] = warning_count
   end
 
   def write_errors_to_file

@@ -125,7 +125,7 @@ class MicrosoftSync::Group < ApplicationRecord
     syncer_job.delay(
       singleton: "#{self.class.name}:#{global_id}:enqueue_future_sync",
       run_at: Setting.get("microsoft_group_enrollments_syncing_debounce_minutes", "10")
-              .to_i.minutes.from_now,
+                     .to_i.minutes.from_now,
       on_conflict: :overwrite
     ).run_later
   end
@@ -138,7 +138,7 @@ class MicrosoftSync::Group < ApplicationRecord
     syncer_job.delay(
       singleton: "#{self.class.name}:#{global_id}:enqueue_future_partial_sync",
       run_at: Setting.get("microsoft_group_enrollments_partial_syncing_debounce_minutes", "10")
-              .to_f.minutes.from_now,
+                     .to_f.minutes.from_now,
       on_conflict: :overwrite
     ).run_later(:partial)
   end

@@ -28,10 +28,10 @@
       js_env({
                PASSWORD_POLICIES: Account.root_accounts.active.non_shadow.to_h { |a| [a.id, a.password_policy] },
                ACCOUNT_SELECT_OPTIONS: Account.root_accounts
-                                       .active
-                                       .non_shadow
-                                       .map { |a| { label: a.name || t("Unnamed Account (%{id})", id: a.id), value: a.id } }
-                                       .sort_by(&:first)
+                                              .active
+                                              .non_shadow
+                                              .map { |a| { label: a.name || t("Unnamed Account (%{id})", id: a.id), value: a.id } }
+                                              .sort_by(&:first)
              })
     end
   %>

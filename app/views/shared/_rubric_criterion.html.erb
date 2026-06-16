@@ -120,7 +120,7 @@
     <% else %>
       <div class="ratings" style="<%= hidden if rubric&.free_form_criterion_comments %>">
         <% ratings = criterion.ratings rescue nil
-           ratings = nil if ratings&.empty? %>
+           ratings = nil if ratings && ratings.empty? %>
         <% ratings ||= [Rubric::Rating.new(id: "blank", description: t(:full_marks, "Full Marks"), points: 5), Rubric::Rating.new(id: "blank_2", description: t(:no_marks, "No Marks"), points: 0)] %>
         <% ratings.each_index do |idx| %>
           <% rating = ratings[idx]

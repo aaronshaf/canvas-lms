@@ -28,12 +28,12 @@ module BroadcastPolicy
     # macro.  The policy block will be stored in @broadcast_policy.
     def set_broadcast_policy(&)
       self.broadcast_policy_list ||= PolicyList.new
-      self.broadcast_policy_list.populate(&)
+      broadcast_policy_list.populate(&)
     end
 
     def set_broadcast_policy!(&)
       self.broadcast_policy_list = PolicyList.new
-      self.broadcast_policy_list.populate(&)
+      broadcast_policy_list.populate(&)
     end
   end
 end

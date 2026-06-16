@@ -247,7 +247,7 @@ class Quizzes::Quiz < ApplicationRecord
     if !assignment_id && (graded? || (force && survey?)) && (force || !%i[assignment clone migration].include?(@saved_by))
       assignment = self.assignment
       assignment ||= context.assignments.build(title:, due_at:, submission_types: "online_quiz")
-      assignment.assignment_group_id = self.assignment_group_id
+      assignment.assignment_group_id = assignment_group_id
       assignment.only_visible_to_overrides = only_visible_to_overrides
       assignment.saved_by = :quiz
       unless deleted?
@@ -387,19 +387,19 @@ class Quizzes::Quiz < ApplicationRecord
   end
 
   def assignment?
-    self.quiz_type == "assignment"
+    quiz_type == "assignment"
   end
 
   def survey?
-    self.quiz_type == "survey" || graded_survey?
+    quiz_type == "survey" || graded_survey?
   end
 
   def graded?
-    self.quiz_type == "assignment" || graded_survey?
+    quiz_type == "assignment" || graded_survey?
   end
 
   def graded_survey?
-    self.quiz_type == "graded_survey"
+    quiz_type == "graded_survey"
   end
 
   def ungraded?
@@ -512,7 +512,7 @@ class Quizzes::Quiz < ApplicationRecord
       a.unlock_at = unlock_at
       a.only_visible_to_overrides = only_visible_to_overrides
       a.submission_types = "online_quiz"
-      a.assignment_group_id = self.assignment_group_id
+      a.assignment_group_id = assignment_group_id
       a.saved_by = :quiz
       a.skip_attachment_association_update = skip_attachment_association_update
       a.updating_user = updating_user
@@ -976,9 +976,9 @@ class Quizzes::Quiz < ApplicationRecord
   end
 
   def validate_quiz_type
-    return if self.quiz_type.blank?
+    return if quiz_type.blank?
 
-    unless valid_quiz_type_values.include?(self.quiz_type)
+    unless valid_quiz_type_values.include?(quiz_type)
       errors.add(:invalid_quiz_type, t("#quizzes.quiz.errors.invalid_quiz_type", "Quiz type is not valid"))
     end
   end

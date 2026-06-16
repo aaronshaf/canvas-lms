@@ -188,7 +188,7 @@ class DiscussionEntry < ApplicationRecord
   end
 
   def validate_depth
-    if !self.depth || self.depth > MAX_DEPTH
+    if !depth || depth > MAX_DEPTH
       errors.add(:base, "Maximum entry depth reached")
     end
   end

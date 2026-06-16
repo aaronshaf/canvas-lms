@@ -214,14 +214,14 @@ class DiscussionTopic < ApplicationRecord
 
     if unlocked_teacher.count > 0
       CourseSection.where(id: DiscussionTopicSectionVisibility.active
-                              .where(discussion_topic_id: id)
+                                                              .where(discussion_topic_id: id)
                                                               .select("discussion_topic_section_visibilities.course_section_id"))
     else
       CourseSection.where(id: DiscussionTopicSectionVisibility.active.where(discussion_topic_id: id)
                                                               .where(Enrollment.active_or_pending
-                              .where(user_id: user)
-                              .where("enrollments.course_section_id = discussion_topic_section_visibilities.course_section_id")
-                              .arel.exists)
+                                                                               .where(user_id: user)
+                                                                               .where("enrollments.course_section_id = discussion_topic_section_visibilities.course_section_id")
+                                                                               .arel.exists)
                                                               .select("discussion_topic_section_visibilities.course_section_id"))
     end
   end
@@ -2334,7 +2334,7 @@ class DiscussionTopic < ApplicationRecord
         workflow_state: "unread",
         unread_entry_count: 0,
         subscribed: false, # Default for bulk creation of announcements
-        root_account_id: self.root_account_id,
+        root_account_id:,
         created_at: current_time,
         updated_at: current_time
       }

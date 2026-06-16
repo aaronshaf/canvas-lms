@@ -55,19 +55,19 @@ class SubmissionLifecycleManager
   # at the time you create the delayed job.
   def self.with_executing_user(user)
     self.executing_users ||= []
-    self.executing_users.push(user)
+    executing_users.push(user)
 
     begin
       result = yield
     ensure
-      self.executing_users.pop
+      executing_users.pop
     end
     result
   end
 
   def self.current_executing_user
     self.executing_users ||= []
-    self.executing_users.last
+    executing_users.last
   end
 
   def self.infer_submission_workflow_state_sql

@@ -235,7 +235,7 @@ class StreamItem < ApplicationRecord
     end
     if context_type
       res["context_short_name"] = Rails.cache.fetch(["short_name_lookup", "#{context_type.underscore}_#{context_id}"].cache_key) do
-        self.context.try(:short_name) || ""
+        context.try(:short_name) || ""
       end
     end
     res["type"] = object.class.to_s
@@ -424,8 +424,8 @@ class StreamItem < ApplicationRecord
   scope :after, ->(start_at) { where("updated_at>?", start_at).order(updated_at: :desc).limit(21) }
 
   def associated_shards
-    if self.context.try(:respond_to?, :associated_shards)
-      self.context.associated_shards
+    if context.try(:respond_to?, :associated_shards)
+      context.associated_shards
     elsif data.respond_to?(:associated_shards)
       data.associated_shards
     else

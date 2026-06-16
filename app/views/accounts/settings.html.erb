@@ -955,9 +955,9 @@
               {
                 suppressNotifications: @account.settings[:suppress_notifications].presence || false,
                 notificationCategories: Notification.all_cached
-                                        .map { |n| { slug: n.category_slug, displayName: n.category_display_name } }
-                                        .uniq { |c| c[:slug] }
-                                        .sort_by { |c| c[:displayName] }
+                                                    .map { |n| { slug: n.category_slug, displayName: n.category_display_name } }
+                                                    .uniq { |c| c[:slug] }
+                                                    .sort_by { |c| c[:displayName] }
               }.to_json
                                                                 %>"></div>
           </fieldset>

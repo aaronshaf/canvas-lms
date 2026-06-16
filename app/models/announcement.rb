@@ -205,7 +205,7 @@ class Announcement < DiscussionTopic
                             alert_type: "course_announcement",
                             action_date: updated_at,
                             title: I18n.t("Course announcement: \"%{title}\" in %{course_code}", {
-                                            title: self.title,
+                                            title:,
                                             course_code: course.course_code
                                           }))
     end

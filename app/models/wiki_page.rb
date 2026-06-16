@@ -220,7 +220,7 @@ class WikiPage < ApplicationRecord
     self.title ||= to_cased_title.call(self["url"] || "page")
     # TODO: i18n (see wiki.rb)
 
-    if self.title == "Front Page" && new_record?
+    if title == "Front Page" && new_record?
       baddies = context.wiki_pages.not_deleted.where(title: "Front Page").reject { |p| p.url == "front-page" }
       baddies.each do |p|
         p.title = to_cased_title.call(p.url)
@@ -228,8 +228,8 @@ class WikiPage < ApplicationRecord
       end
     end
 
-    if context.wiki_pages.not_deleted.where(title: self.title).where.not(id:).first
-      if /-\d+\z/.match?(self.title)
+    if context.wiki_pages.not_deleted.where(title:).where.not(id:).first
+      if /-\d+\z/.match?(title)
         # A page with this title already exists and the title ends in -<some number>.
         # This has potential to conflict with our handling of duplicate title names.
         # We tried to fix in earnest but there are too many edge cases. Thus, we just disallow this.
@@ -239,7 +239,7 @@ class WikiPage < ApplicationRecord
       new_title = nil
       loop do
         mod = "-#{n}"
-        new_title = self.title[0...(TITLE_LENGTH - mod.length)] + mod
+        new_title = title[0...(TITLE_LENGTH - mod.length)] + mod
         n = n.succ
         break unless context.wiki_pages.not_deleted.where(title: new_title).where.not(id:).exists?
       end
@@ -559,7 +559,7 @@ class WikiPage < ApplicationRecord
   end
 
   def get_potentially_conflicting_titles(title_base)
-    WikiPage.not_deleted.where(wiki_id: self.wiki_id).starting_with_title(title_base)
+    WikiPage.not_deleted.where(wiki_id:).starting_with_title(title_base)
             .pluck("title").to_set
   end
 
@@ -567,7 +567,7 @@ class WikiPage < ApplicationRecord
     context = opts[:context]
 
     {
-      title: t(:atom_entry_title, "Wiki Page, %{course_or_group_name}: %{page_title}", course_or_group_name: context.name, page_title: self.title),
+      title: t(:atom_entry_title, "Wiki Page, %{course_or_group_name}: %{page_title}", course_or_group_name: context.name, page_title: title),
       author: t(:atom_author, "Wiki Page"),
       updated: updated_at,
       published: created_at,
@@ -586,7 +586,7 @@ class WikiPage < ApplicationRecord
   end
 
   def last_revision_at
-    res = self.revised_at || updated_at
+    res = revised_at || updated_at
     res = Time.zone.now if res.is_a?(String)
     res
   end
@@ -662,8 +662,8 @@ class WikiPage < ApplicationRecord
     opts_with_default = default_opts.merge(opts)
 
     result = WikiPage.new({
-                            title: opts_with_default[:copy_title] || get_copy_title(self, t("Copy"), self.title),
-                            wiki_id: self.wiki_id,
+                            title: opts_with_default[:copy_title] || get_copy_title(self, t("Copy"), title),
+                            wiki_id:,
                             context_id:,
                             context_type:,
                             body:,
@@ -721,7 +721,7 @@ class WikiPage < ApplicationRecord
     if saved_change_to_revised_at?
       CanvasPandaPub.post_update(
         "/private/wiki_page/#{global_id}/update", {
-          revised_at: self.revised_at
+          revised_at:
         }
       )
     end

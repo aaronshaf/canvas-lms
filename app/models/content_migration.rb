@@ -1378,7 +1378,7 @@ class ContentMigration < ApplicationRecord
 
   def add_attachment_path(path, migration_id)
     self.attachment_path_id_lookup ||= {}
-    self.attachment_path_id_lookup[path] = migration_id
+    attachment_path_id_lookup[path] = migration_id
   end
 
   def add_external_tool_translation(migration_id, target_tool, custom_fields)

@@ -879,8 +879,8 @@ class Submission < ApplicationRecord
     # check all assets in the turnitin_data (self.turnitin_assets is only the
     # current assets) so that we get the status for assets of previous versions
     # of the submission as well
-    self.turnitin_data.each_key do |asset_string|
-      data = self.turnitin_data[asset_string]
+    turnitin_data.each_key do |asset_string|
+      data = turnitin_data[asset_string]
       next unless data.is_a?(Hash) && data[:object_id]
 
       if data[:similarity_score].blank?
@@ -904,7 +904,7 @@ class Submission < ApplicationRecord
       else
         data[:status] = "scored"
       end
-      self.turnitin_data[asset_string] = data
+      turnitin_data[asset_string] = data
     end
 
     delay(run_at: (2**attempt).minutes.from_now).check_turnitin_status(attempt + 1) if needs_retry
@@ -913,7 +913,7 @@ class Submission < ApplicationRecord
   end
 
   def turnitin_report_url(asset_string, user)
-    if self.turnitin_data && self.turnitin_data[asset_string] && self.turnitin_data[asset_string][:similarity_score]
+    if turnitin_data && turnitin_data[asset_string] && turnitin_data[asset_string][:similarity_score]
       turnitin = Turnitin::Client.new(*context.turnitin_settings)
       delay.check_turnitin_status
       if grants_right?(user, :grade)
@@ -945,9 +945,9 @@ class Submission < ApplicationRecord
         delay(run_at: 5.minutes.from_now, **TURNITIN_JOB_OPTS).submit_to_turnitin(attempt + 1)
       else
         assignment_error = assignment.turnitin_settings[:error]
-        self.turnitin_data[:status] = "error"
-        self.turnitin_data[:assignment_error] = assignment_error if assignment_error.present?
-        self.turnitin_data[:student_error] = turnitin_enrollment.error_hash if turnitin_enrollment.error?
+        turnitin_data[:status] = "error"
+        turnitin_data[:assignment_error] = assignment_error if assignment_error.present?
+        turnitin_data[:student_error] = turnitin_enrollment.error_hash if turnitin_enrollment.error?
         turnitin_data_changed!
         save
       end
@@ -957,10 +957,10 @@ class Submission < ApplicationRecord
     # Submit the file(s)
     submission_response = turnitin.submitPaper(self)
     submission_response.each do |res_asset_string, response|
-      self.turnitin_data[res_asset_string].merge!(response)
+      turnitin_data[res_asset_string].merge!(response)
       turnitin_data_changed!
       if !response[:object_id] && attempt >= TURNITIN_RETRY
-        self.turnitin_data[res_asset_string][:status] = "error"
+        turnitin_data[res_asset_string][:status] = "error"
       end
     end
 
@@ -1121,9 +1121,9 @@ class Submission < ApplicationRecord
   end
 
   def delete_turnitin_errors
-    self.turnitin_data.delete(:status)
-    self.turnitin_data.delete(:assignment_error)
-    self.turnitin_data.delete(:student_error)
+    turnitin_data.delete(:status)
+    turnitin_data.delete(:assignment_error)
+    turnitin_data.delete(:student_error)
   end
   private :delete_turnitin_errors
 
@@ -1131,12 +1131,12 @@ class Submission < ApplicationRecord
     self.turnitin_data ||= {}
     delete_turnitin_errors
     turnitin_assets.each do |a|
-      asset_data = self.turnitin_data[a.asset_string] || {}
+      asset_data = turnitin_data[a.asset_string] || {}
       asset_data[:status] = "pending"
       %i[error_code error_message public_error_message].each do |key|
         asset_data.delete(key)
       end
-      self.turnitin_data[a.asset_string] = asset_data
+      turnitin_data[a.asset_string] = asset_data
       turnitin_data_changed!
     end
   end
@@ -1187,7 +1187,7 @@ class Submission < ApplicationRecord
     # check to see if the score is stale, if so, fetch it again
     update_scores = false
     if Canvas::Plugin.find(:vericite).try(:enabled?) && !readonly? && lookup_data
-      self.vericite_data_hash.each_value do |data|
+      vericite_data_hash.each_value do |data|
         next unless data.is_a?(Hash) && data[:object_id]
 
         update_scores ||= vericite_recheck_score(data)
@@ -1202,7 +1202,7 @@ class Submission < ApplicationRecord
     # This prevents the vericite provider from being added to turnitin_data when
     # both turnitinData and vericiteData GraphQL fields are queried together.
     # Mutating the shared hash causes turnitin permission checks to fail.
-    result = self.vericite_data_hash.dup
+    result = vericite_data_hash.dup
     unless result.empty?
       # only set vericite provider flag if the hash isn't empty
       result[:provider] = :vericite
@@ -1212,7 +1212,7 @@ class Submission < ApplicationRecord
 
   def vericite_data_hash
     # use the same backend structure to store "content review" data
-    self.turnitin_data
+    turnitin_data
   end
 
   # this function looks at a vericite data object and determines whether the score needs to be rechecked (i.e. cache for 20 mins)
@@ -1257,7 +1257,7 @@ class Submission < ApplicationRecord
     # flag to make sure that all scores are just updates and not new
     recheck_score_all = true
     data_changed = false
-    self.vericite_data_hash.each do |asset_string, data|
+    vericite_data_hash.each do |asset_string, data|
       # keep track whether the score state changed
       data_orig = data.dup
       next unless data.is_a?(Hash) && data[:object_id]
@@ -1290,7 +1290,7 @@ class Submission < ApplicationRecord
       else
         data[:status] = "scored"
       end
-      self.vericite_data_hash[asset_string] = data
+      vericite_data_hash[asset_string] = data
       data_changed = data_changed ||
                      data_orig[:similarity_score] != data[:similarity_score] ||
                      data_orig[:state] != data[:state] ||
@@ -1298,9 +1298,9 @@ class Submission < ApplicationRecord
                      data_orig[:public_error_message] != data[:public_error_message]
     end
 
-    if !self.vericite_data_hash.empty? && self.vericite_data_hash[:provider].nil?
+    if !vericite_data_hash.empty? && vericite_data_hash[:provider].nil?
       # only set vericite provider flag if the hash isn't empty
-      self.vericite_data_hash[:provider] = :vericite
+      vericite_data_hash[:provider] = :vericite
       data_changed = true
     end
     retry_mins = 2**attempt
@@ -1322,7 +1322,7 @@ class Submission < ApplicationRecord
   end
 
   def vericite_report_url(asset_string, user, session)
-    if self.vericite_data_hash && self.vericite_data_hash[asset_string] && self.vericite_data_hash[asset_string][:similarity_score]
+    if vericite_data_hash && vericite_data_hash[asset_string] && vericite_data_hash[asset_string][:similarity_score]
       vericite = VeriCite::Client.new
       if grants_right?(user, :grade)
         vericite.submissionReportUrl(self, user, asset_string)
@@ -1354,12 +1354,12 @@ class Submission < ApplicationRecord
       delete_vericite_errors
     else
       assignment_error = assignment.vericite_settings[:error]
-      self.vericite_data_hash[:assignment_error] = assignment_error if assignment_error.present?
+      vericite_data_hash[:assignment_error] = assignment_error if assignment_error.present?
       # self.vericite_data_hash[:student_error] = vericite_enrollment.error_hash if vericite_enrollment.error?
       vericite_data_changed!
-      unless self.vericite_data_hash.empty?
+      unless vericite_data_hash.empty?
         # only set vericite provider flag if the hash isn't empty
-        self.vericite_data_hash[:provider] = :vericite
+        vericite_data_hash[:provider] = :vericite
       end
       save
     end
@@ -1370,23 +1370,23 @@ class Submission < ApplicationRecord
     update = false
     submission_response.each do |res_asset_string, response|
       update = true
-      self.vericite_data_hash[res_asset_string].merge!(response)
+      vericite_data_hash[res_asset_string].merge!(response)
       # keep track of when we first submitted
-      self.vericite_data_hash[res_asset_string][:submit_time] = Time.now.to_i if self.vericite_data_hash[res_asset_string][:submit_time].blank?
+      vericite_data_hash[res_asset_string][:submit_time] = Time.now.to_i if vericite_data_hash[res_asset_string][:submit_time].blank?
       vericite_data_changed!
       if !response[:object_id] && attempt >= VERICITE_RETRY
-        self.vericite_data_hash[res_asset_string][:status] = "error"
+        vericite_data_hash[res_asset_string][:status] = "error"
       elsif response[:object_id]
         # success, make sure any error messages are cleared
-        self.vericite_data_hash[res_asset_string] = clear_vericite_errors(self.vericite_data_hash[res_asset_string])
+        vericite_data_hash[res_asset_string] = clear_vericite_errors(vericite_data_hash[res_asset_string])
       end
     end
     # only save if there were newly submitted attachments
     if update
       delay(run_at: 5.minutes.from_now, **VERICITE_JOB_OPTS).check_vericite_status
-      unless self.vericite_data_hash.empty?
+      unless vericite_data_hash.empty?
         # only set vericite provider flag if the hash isn't empty
-        self.vericite_data_hash[:provider] = :vericite
+        vericite_data_hash[:provider] = :vericite
       end
       save
 
@@ -1413,9 +1413,9 @@ class Submission < ApplicationRecord
   end
 
   def delete_vericite_errors
-    self.vericite_data_hash.delete(:status)
-    self.vericite_data_hash.delete(:assignment_error)
-    self.vericite_data_hash.delete(:student_error)
+    vericite_data_hash.delete(:status)
+    vericite_data_hash.delete(:assignment_error)
+    vericite_data_hash.delete(:student_error)
   end
   private :delete_vericite_errors
 
@@ -1423,10 +1423,10 @@ class Submission < ApplicationRecord
     self.vericite_data_hash ||= {}
     delete_vericite_errors
     vericite_assets.each do |a|
-      asset_data = self.vericite_data_hash[a.asset_string] || {}
+      asset_data = vericite_data_hash[a.asset_string] || {}
       asset_data[:status] = "pending"
       asset_data = clear_vericite_errors(asset_data)
-      self.vericite_data_hash[a.asset_string] = asset_data
+      vericite_data_hash[a.asset_string] = asset_data
       vericite_data_changed!
     end
   end
@@ -1453,9 +1453,9 @@ class Submission < ApplicationRecord
 
   def resubmit_to_vericite
     reset_vericite_assets
-    unless self.vericite_data_hash.empty?
+    unless vericite_data_hash.empty?
       # only set vericite provider flag if the hash isn't empty
-      self.vericite_data_hash[:provider] = :vericite
+      vericite_data_hash[:provider] = :vericite
     end
 
     @submit_to_vericite = true
@@ -1496,11 +1496,11 @@ class Submission < ApplicationRecord
     return unless plagiarism_service_to_use
 
     if plagiarism_service_to_use == :vericite
-      plagData = self.vericite_data_hash
+      plagData = vericite_data_hash
       @submit_to_vericite = false
       canSubmit = vericiteable?
     else
-      plagData = self.turnitin_data
+      plagData = turnitin_data
       @submit_to_turnitin = false
       canSubmit = turnitinable?
     end
@@ -1734,10 +1734,10 @@ class Submission < ApplicationRecord
       end
     end
     self.media_comment_type = nil unless media_comment_id
-    if self.submitted_at
+    if submitted_at
       self.attempt ||= 0
       self.attempt += 1 if submitted_at_changed?
-      self.attempt = 1 if self.attempt < 1
+      self.attempt = 1 if attempt < 1
     end
     if submission_type == "media_recording" && !media_comment_id
       raise "Can't create media submission without media object"
@@ -1978,7 +1978,7 @@ class Submission < ApplicationRecord
   def attempts_left
     return nil if assignment.allowed_attempts.nil? || assignment.allowed_attempts < 0
 
-    [0, assignment.allowed_attempts + (extra_attempts || 0) - (self.attempt || 0)].max
+    [0, assignment.allowed_attempts + (extra_attempts || 0) - (attempt || 0)].max
   end
 
   def ensure_attempts_are_in_range
@@ -2316,8 +2316,8 @@ class Submission < ApplicationRecord
 
   def update_if_pending
     @attachments = nil
-    if submission_type == "online_quiz" && quiz_submission_id && score && score == self.quiz_submission.score
-      self.workflow_state = self.quiz_submission.complete? ? "graded" : "pending_review"
+    if submission_type == "online_quiz" && quiz_submission_id && score && score == quiz_submission.score
+      self.workflow_state = quiz_submission.complete? ? "graded" : "pending_review"
     end
     true
   end
@@ -2513,13 +2513,13 @@ class Submission < ApplicationRecord
   end
 
   def has_submission?
-    !!self.submission_type
+    !!submission_type
   end
 
   def quiz_submission_version
-    return nil unless self.quiz_submission
+    return nil unless quiz_submission
 
-    self.quiz_submission.versions.each do |version|
+    quiz_submission.versions.each do |version|
       return version.number if version.model.finished_at
     end
     nil
@@ -2627,7 +2627,7 @@ class Submission < ApplicationRecord
     opts[:attachments] ||= opts[:comment_attachments]
     opts[:draft] = !!opts[:draft_comment]
     opts[:attempt] = if !unsubmitted? && !opts.key?(:attempt)
-                       self.attempt
+                       attempt
                      elsif opts[:attempt] && opts[:group_comment_id].present?
                        # A group comment fans one attempt out to every member;
                        # clamp it to each member's own attempt so a member on a
@@ -2765,7 +2765,7 @@ class Submission < ApplicationRecord
   def feedback_for_current_attempt?
     visible_submission_comments.any? do |comment|
       comment.author_id != user_id &&
-        ((comment.attempt&.nonzero? ? comment.attempt : 1) == (self.attempt || 1))
+        ((comment.attempt&.nonzero? ? comment.attempt : 1) == (attempt || 1))
     end
   end
 
@@ -2935,7 +2935,7 @@ class Submission < ApplicationRecord
   include Tardiness
 
   def current_submission_graded?
-    graded? && (!self.submitted_at || (graded_at && graded_at >= self.submitted_at))
+    graded? && (!submitted_at || (graded_at && graded_at >= submitted_at))
   end
 
   def context
@@ -3034,7 +3034,7 @@ class Submission < ApplicationRecord
   # Note that this will return an Array (not an ActiveRecord::Relation) if comments are preloaded
   def comments_excluding_drafts_for(user)
     comments =
-      if user_can_read_grade?(user) && course.present? && !self.course.user_is_student?(user)
+      if user_can_read_grade?(user) && course.present? && !course.user_is_student?(user)
         submission_comments
       else
         visible_submission_comments

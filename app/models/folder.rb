@@ -248,13 +248,13 @@ class Folder < ApplicationRecord
   def visible?
     return @visible if defined?(@visible)
 
-    @visible = (self.workflow_state == "visible") && (!parent_folder || parent_folder.visible?)
+    @visible = (workflow_state == "visible") && (!parent_folder || parent_folder.visible?)
   end
 
   def hidden?
     return @hidden if defined?(@hidden)
 
-    @hidden = self.workflow_state == "hidden" || parent_folder&.hidden?
+    @hidden = workflow_state == "hidden" || parent_folder&.hidden?
   end
 
   def hidden
@@ -266,13 +266,13 @@ class Folder < ApplicationRecord
   end
 
   def just_hide
-    self.workflow_state == "hidden"
+    workflow_state == "hidden"
   end
 
   def public?
     return @public if defined?(@public)
 
-    @public = self.workflow_state == "public" || parent_folder&.public?
+    @public = workflow_state == "public" || parent_folder&.public?
   end
 
   def mime_class
@@ -588,7 +588,7 @@ class Folder < ApplicationRecord
   end
 
   def currently_locked
-    locked || (lock_at && Time.zone.now > lock_at) || (unlock_at && Time.zone.now < unlock_at) || self.workflow_state == "hidden"
+    locked || (lock_at && Time.zone.now > lock_at) || (unlock_at && Time.zone.now < unlock_at) || workflow_state == "hidden"
   end
 
   alias_method :currently_locked?, :currently_locked
@@ -685,7 +685,7 @@ class Folder < ApplicationRecord
   end
 
   def restore
-    return unless self.workflow_state == "deleted"
+    return unless workflow_state == "deleted"
 
     self.workflow_state = "visible"
     if save

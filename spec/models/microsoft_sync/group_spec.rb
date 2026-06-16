@@ -194,7 +194,7 @@ describe MicrosoftSync::Group do
           singleton: "#{described_class.name}:#{subject.global_id}:enqueue_future_sync",
           # Using a different default value for the setting here will test the code uses the same one
           run_at: Setting.get("microsoft_group_enrollments_syncing_debounce_minutes", 123)
-                  .to_i.minutes.from_now,
+                         .to_i.minutes.from_now,
           on_conflict: :overwrite
         ).and_return(delay_double)
         expect(delay_double).to receive(:run_later).with(no_args)
@@ -225,7 +225,7 @@ describe MicrosoftSync::Group do
         expect(syncer_job).to receive(:delay).with(
           singleton: "#{described_class.name}:#{subject.global_id}:enqueue_future_partial_sync",
           run_at: Setting.get("microsoft_group_enrollments_partial_syncing_debounce_minutes", 123)
-                  .to_i.minutes.from_now,
+                         .to_i.minutes.from_now,
           on_conflict: :overwrite
         ).and_return(delay_double)
         expect(delay_double).to receive(:run_later).with(:partial)

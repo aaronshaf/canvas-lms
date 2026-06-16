@@ -32,7 +32,7 @@ module CanvasQuizStatistics::Analyzers
     # analyzer which really does nothing.
     def [](question_type)
       self.available_analyzers ||= {}
-      self.available_analyzers[question_type.to_sym] || Base
+      available_analyzers[question_type.to_sym] || Base
     end
   end
 

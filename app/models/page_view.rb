@@ -259,10 +259,10 @@ class PageView < ApplicationRecord
 
   def store_page_view_to_user_counts
     return unless Setting.get("page_views_store_active_user_counts", "false") == "redis" && Canvas.redis_enabled?
-    return unless self.created_at.present? && user.present?
+    return unless created_at.present? && user.present?
 
     exptime = Setting.get("page_views_active_user_exptime", 1.day.to_s).to_i
-    bucket = PageView.user_count_bucket_for_time(self.created_at)
+    bucket = PageView.user_count_bucket_for_time(created_at)
     Canvas.redis.pipelined(bucket, failsafe: nil) do |pipeline|
       pipeline.sadd(bucket, user.global_id)
       pipeline.expire(bucket, exptime)
