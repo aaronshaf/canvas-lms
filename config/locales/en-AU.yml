@@ -10835,7 +10835,7 @@ en-AU:
       late_policy: "Failed to export late policy"
       learning_outcomes: "Failed to export learning outcomes"
       lti_context_controls: "Failed to export LTI context controls"
-      lti_links: "Failed to export some web links"
+      lti_links: "Failed to export some external tool configurations"
       media_file: "A media file failed to export"
       media_files: "Failed to export some media files"
       media_files_too_large: "Media files were not exported because the total file size was too large."
@@ -12661,7 +12661,7 @@ en-AU:
   delete_app_configuration_ba62e121: "Delete App Configuration"
   delete_appname_token_4f712df9: "Delete %{appName} Token"
   delete_assignment_5d3f3f15: "delete assignment"
-  delete_assignment_group_7c3b01c4: Delete
+  delete_assignment_group_7c3b01c4: "Delete Assignment Group"
   delete_assignment_name_deec56e3: "Delete Assignment %{name}"
   delete_assignments_and_quizzes_b30347d7: "Delete assignments and quizzes"
   delete_bad_settings_ef7f3bc9: "Delete bad settings"
