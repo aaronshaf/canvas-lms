@@ -158,31 +158,29 @@ describe CoursesController do
         controller.instance_variable_set(:@current_user, @student)
       end
 
-      context "with optimized_load_enrollments_for_index feature flag enabled" do
-        it "preloads role on enrollments" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.association(:role).loaded?).to be true
-        end
+      it "preloads role on enrollments" do
+        enrollments = controller.send(:_load_enrollments_for_index)
+        expect(enrollments.first.association(:role).loaded?).to be true
+      end
 
-        it "preloads enrollment_state on enrollments" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.association(:enrollment_state).loaded?).to be true
-        end
+      it "preloads enrollment_state on enrollments" do
+        enrollments = controller.send(:_load_enrollments_for_index)
+        expect(enrollments.first.association(:enrollment_state).loaded?).to be true
+      end
 
-        it "preloads course_section on enrollments" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.association(:course_section).loaded?).to be true
-        end
+      it "preloads course_section on enrollments" do
+        enrollments = controller.send(:_load_enrollments_for_index)
+        expect(enrollments.first.association(:course_section).loaded?).to be true
+      end
 
-        it "preloads course on enrollments" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.association(:course).loaded?).to be true
-        end
+      it "preloads course on enrollments" do
+        enrollments = controller.send(:_load_enrollments_for_index)
+        expect(enrollments.first.association(:course).loaded?).to be true
+      end
 
-        it "preloads enrollment_term through course" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.course.association(:enrollment_term).loaded?).to be true
-        end
+      it "preloads enrollment_term through course" do
+        enrollments = controller.send(:_load_enrollments_for_index)
+        expect(enrollments.first.course.association(:enrollment_term).loaded?).to be true
       end
     end
 

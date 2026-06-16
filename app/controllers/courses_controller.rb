@@ -588,12 +588,8 @@ class CoursesController < ApplicationController
   end
 
   def _load_enrollments_for_index
-    if Account.site_admin.feature_enabled?(:optimized_load_enrollments_for_index)
-      @current_user.user_preference_values.load
-      @current_user.enrollments.not_deleted.shard(@current_user.in_region_associated_shards).preload(:enrollment_state, :role, :course_section, course: :enrollment_term).to_a
-    else
-      @current_user.enrollments.not_deleted.shard(@current_user.in_region_associated_shards).preload(:enrollment_state, :course, :course_section).to_a
-    end
+    @current_user.user_preference_values.load
+    @current_user.enrollments.not_deleted.shard(@current_user.in_region_associated_shards).preload(:enrollment_state, :role, :course_section, course: :enrollment_term).to_a
   end
 
   def load_enrollments_for_index
