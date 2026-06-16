@@ -124,14 +124,14 @@ export const OutcomeResultSection: React.FC<OutcomeResultSectionProps> = ({
                       </Flex>
                     </FlexItem>
                     <Flex direction="row">
-                      <FlexItem size="2rem">
+                      <FlexItem>
                         <StudentOutcomeScore
                           outcome={outcome}
                           score={score}
                           scoreDisplayFormat={ScoreDisplayFormat.ICON_ONLY}
                         />
                       </FlexItem>
-                      <FlexItem width="2rem">
+                      <FlexItem>
                         <Text>{score !== undefined ? score.toFixed(1) : ''}</Text>
                       </FlexItem>
                     </Flex>
