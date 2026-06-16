@@ -58,7 +58,8 @@ class OutcomesController < ApplicationController
                manage_proficiency_scales:
           @context.grants_right?(current_principal, session, :manage_proficiency_scales),
                manage_proficiency_calculations:
-          @context.grants_right?(current_principal, session, :manage_proficiency_calculations)
+          @context.grants_right?(current_principal, session, :manage_proficiency_calculations),
+               import_global_outcomes: @context.is_a?(Account) && context.root_account? && Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes) && AcademicBenchmark.check_config.nil?,
              },
              OUTCOMES_FRIENDLY_DESCRIPTION: Account.site_admin.feature_enabled?(:outcomes_friendly_description),
              OUTCOME_AVERAGE_CALCULATION: @context.root_account.feature_enabled?(:outcome_average_calculation),

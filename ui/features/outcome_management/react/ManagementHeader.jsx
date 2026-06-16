@@ -23,6 +23,7 @@ import {Menu} from '@instructure/ui-menu'
 import {View} from '@instructure/ui-view'
 import {Button} from '@instructure/ui-buttons'
 import {
+  IconCloudDownloadLine,
   IconImportLine,
   IconOutcomesLine,
   IconPlusSolid,
@@ -31,6 +32,7 @@ import {
 import {showImportOutcomesModal} from '@canvas/outcomes/react/ImportOutcomesModal'
 import FindOutcomesModal from './FindOutcomesModal'
 import CreateOutcomeModal from './CreateOutcomeModal'
+import ImportGlobalOutcomesModal from './ImportGlobalOutcomesModal'
 import useCanvasContext from '@canvas/outcomes/react/hooks/useCanvasContext'
 import useModal from '@canvas/outcomes/react/hooks/useModal'
 
@@ -47,7 +49,8 @@ const ManagementHeader = ({
 }) => {
   const [isFindOutcomeModalOpen, openFindOutcomeModal, closeFindOutcomeModal] = useModal()
   const [isCreateOutcomeModalOpen, openCreateOutcomeModal, closeCreateOutcomeModal] = useModal()
-  const {isMobileView, canManage, canImport} = useCanvasContext()
+  const [isImportGlobalModalOpen, openImportGlobalModal, closeImportGlobalModal] = useModal()
+  const {isMobileView, canManage, canImport, canImportGlobal} = useCanvasContext()
   const showImportModal = () => showImportOutcomesModal({onFileDrop: handleFileDrop})
 
   const handleCloseFindModal = hasAddedOutcomes => {
@@ -64,7 +67,7 @@ const ManagementHeader = ({
           </h1>
         </View>
         <View as="div">
-          {isMobileView && (canManage || canImport) ? (
+          {isMobileView && (canManage || canImport || canImportGlobal) ? (
             <Menu
               trigger={
                 <Button renderIcon={IconOutcomesLine} margin="x-small">
@@ -72,6 +75,12 @@ const ManagementHeader = ({
                 </Button>
               }
             >
+              {canImportGlobal && (
+                <Menu.Item onSelect={openImportGlobalModal}>
+                  <IconCloudDownloadLine size="x-small" />
+                  <View padding="0 small">{I18n.t('Global Import')}</View>
+                </Menu.Item>
+              )}
               {canImport && (
                 <Menu.Item onSelect={showImportModal}>
                   <IconImportLine size="x-small" />
@@ -93,6 +102,15 @@ const ManagementHeader = ({
             </Menu>
           ) : (
             <>
+              {canImportGlobal && (
+                <Button
+                  onClick={openImportGlobalModal}
+                  renderIcon={IconCloudDownloadLine}
+                  margin="x-small xx-small x-small"
+                >
+                  {I18n.t('Global Import')}
+                </Button>
+              )}
               {canImport && (
                 <Button
                   onClick={showImportModal}
@@ -138,6 +156,9 @@ const ManagementHeader = ({
           onSuccess={onSuccessfulCreateOutcome}
           starterGroupId={lhsGroupId}
         />
+      )}
+      {isImportGlobalModalOpen && (
+        <ImportGlobalOutcomesModal isOpen={true} onCloseHandler={closeImportGlobalModal} />
       )}
     </div>
   )

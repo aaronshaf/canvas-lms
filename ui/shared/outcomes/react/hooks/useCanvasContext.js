@@ -29,6 +29,7 @@ const useCanvasContext = () => {
   const isMobileView = context?.env?.isMobileView
   const canManage = context?.env?.canManage
   const canImport = context?.env?.canImport
+  const canImportGlobal = context?.env?.canImportGlobal
   const isAdmin = context?.env?.isAdmin
   const isStudent = context?.env?.isStudent
   const globalRootId = context?.env?.globalRootId
@@ -49,6 +50,7 @@ const useCanvasContext = () => {
     isMobileView,
     canManage,
     canImport,
+    canImportGlobal,
     isAdmin,
     isStudent,
     globalRootId,

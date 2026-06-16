@@ -115,8 +115,54 @@ describe OutcomesController do
         import_outcomes
         manage_proficiency_scales
         manage_proficiency_calculations
+        import_global_outcomes
       ].each do |permission|
         expect(permissions).to have_key(permission)
+      end
+    end
+
+    describe "import_global_outcomes permission" do
+      before :once do
+        @site_admin = account_admin_user(account: Account.site_admin)
+      end
+
+      before do
+        # check_config returns nil when Academic Benchmark is configured; in
+        # the test environment it is unconfigured, so stub the happy path.
+        allow(AcademicBenchmark).to receive(:check_config).and_return(nil)
+      end
+
+      it "is true for a root account when the site admin has manage_global_outcomes and AB is configured" do
+        user_session(@site_admin)
+        get "index", params: { account_id: @account.id }
+        expect(assigns[:js_env][:PERMISSIONS][:import_global_outcomes]).to be true
+      end
+
+      it "is false when Academic Benchmark is not configured" do
+        allow(AcademicBenchmark).to receive(:check_config).and_return("(needs partner_key and partner_id)")
+        user_session(@site_admin)
+        get "index", params: { account_id: @account.id }
+        expect(assigns[:js_env][:PERMISSIONS][:import_global_outcomes]).to be false
+      end
+
+      it "is false when the user lacks site admin manage_global_outcomes" do
+        account_admin = account_admin_user(account: @account)
+        user_session(account_admin)
+        get "index", params: { account_id: @account.id }
+        expect(assigns[:js_env][:PERMISSIONS][:import_global_outcomes]).to be false
+      end
+
+      it "is false for a non-root (sub) account" do
+        sub_account = @account.sub_accounts.create!
+        user_session(@site_admin)
+        get "index", params: { account_id: sub_account.id }
+        expect(assigns[:js_env][:PERMISSIONS][:import_global_outcomes]).to be false
+      end
+
+      it "is false for a course context" do
+        user_session(@site_admin)
+        get "index", params: { course_id: @course.id }
+        expect(assigns[:js_env][:PERMISSIONS][:import_global_outcomes]).to be false
       end
     end
 

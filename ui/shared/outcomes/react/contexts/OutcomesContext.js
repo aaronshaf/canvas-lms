@@ -30,6 +30,7 @@ export const getContext = isMobileView => {
   const friendlyDescriptionFF = ENV.OUTCOMES_FRIENDLY_DESCRIPTION
   const canManage = ENV.PERMISSIONS?.manage_outcomes
   const canImport = ENV.PERMISSIONS?.import_outcomes
+  const canImportGlobal = ENV.PERMISSIONS?.import_global_outcomes
   const isAdmin = ENV.current_user_is_admin
   const isStudent = ENV.current_user_is_student
   const globalRootId = ENV.GLOBAL_ROOT_OUTCOME_GROUP_ID?.toString()
@@ -51,6 +52,7 @@ export const getContext = isMobileView => {
       isMobileView,
       canManage,
       canImport,
+      canImportGlobal,
       isAdmin,
       isStudent,
       globalRootId,
