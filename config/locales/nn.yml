@@ -25179,6 +25179,7 @@ nn:
   site_admin_only_send_to_1_denominator_users_in_ena_b4b3ed14: "Kun for systemadmin. Send til 1 / %{denominator} brukarar i aktiverte kontoar kvar månad."
   site_admin_service_authentication_8f424551: "Autentisering av områdeadministratortenesta"
   size_b30e1077: Storleik
+  size_of_file_is_greater_than_the_maximum_max_mb_al_82941483: "Storleiken på %{file} er større enn lovleg maksgrense på %{max} MB."
   size_size_a77bd760: "storleik: %{size}"
   skillcode_685526a6: ferdigheitskode
   skip_bcb86160: "Hopp over"
