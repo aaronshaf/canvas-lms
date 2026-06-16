@@ -376,4 +376,67 @@ describe('CourseAvailabilityOptions', () => {
       expect(getByText(`Course: Jul 5, ${year}, 4:00 AM`)).toBeInTheDocument()
     })
   })
+
+  describe('public/institution visibility bypass warning', () => {
+    function createVisibilitySelect(parent, value) {
+      const select = document.createElement('select')
+      select.id = 'course_course_visibility'
+      ;['course', 'institution', 'public'].forEach(v => {
+        const opt = document.createElement('option')
+        opt.value = v
+        opt.textContent = v
+        select.appendChild(opt)
+      })
+      select.value = value
+      parent.appendChild(select)
+      return select
+    }
+
+    it('does not warn when visibility is Course, even with restrictions enabled', () => {
+      createVisibilitySelect(wrapper, 'course')
+      const {queryByTestId} = renderComponent(wrapper, {
+        course_restrict_student_future_view: 'true',
+        course_restrict_student_past_view: 'true',
+      })
+      expect(queryByTestId('visibility-date-restriction-warning')).not.toBeInTheDocument()
+    })
+
+    it('does not warn when visibility is Public but no restriction is enabled', () => {
+      createVisibilitySelect(wrapper, 'public')
+      const {queryByTestId} = renderComponent(wrapper)
+      expect(queryByTestId('visibility-date-restriction-warning')).not.toBeInTheDocument()
+    })
+
+    it('warns when visibility is Public and restrictBefore is enabled', () => {
+      createVisibilitySelect(wrapper, 'public')
+      const {getByTestId, getByText} = renderComponent(wrapper, {
+        course_restrict_student_future_view: 'true',
+      })
+      expect(getByTestId('visibility-date-restriction-warning')).toBeInTheDocument()
+      expect(getByText(/Course visibility is set to Public/)).toBeInTheDocument()
+    })
+
+    it('warns when visibility is Institution and restrictAfter is enabled', () => {
+      createVisibilitySelect(wrapper, 'institution')
+      const {getByTestId, getByText} = renderComponent(wrapper, {
+        course_restrict_student_past_view: 'true',
+      })
+      expect(getByTestId('visibility-date-restriction-warning')).toBeInTheDocument()
+      expect(getByText(/Course visibility is set to Institution/)).toBeInTheDocument()
+    })
+
+    it('reacts to changes on the visibility select', () => {
+      const select = createVisibilitySelect(wrapper, 'course')
+      const {queryByTestId} = renderComponent(wrapper, {
+        course_restrict_student_future_view: 'true',
+      })
+      expect(queryByTestId('visibility-date-restriction-warning')).not.toBeInTheDocument()
+
+      fireEvent.change(select, {target: {value: 'public'}})
+      expect(queryByTestId('visibility-date-restriction-warning')).toBeInTheDocument()
+
+      fireEvent.change(select, {target: {value: 'course'}})
+      expect(queryByTestId('visibility-date-restriction-warning')).not.toBeInTheDocument()
+    })
+  })
 })

@@ -19,7 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {isMidnight} from '@instructure/moment-utils'
 import moment from 'moment'
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {bool} from 'prop-types'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Text} from '@instructure/ui-text'
@@ -75,6 +75,19 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
   const [restrictAfter, setRestrictAfter] = useState(
     getFormValue(FORM_IDS.RESTRICT_PAST) === 'true',
   )
+  const visibilitySelect = () => document.getElementById('course_course_visibility')
+  const [visibility, setVisibility] = useState(visibilitySelect()?.value ?? '')
+
+  useEffect(() => {
+    const el = visibilitySelect()
+    if (!el) return undefined
+    const handler = e => setVisibility(e.target.value)
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [])
+
+  const visibilityBypassesDateRestriction =
+    (visibility === 'public' || visibility === 'institution') && (restrictBefore || restrictAfter)
 
   const startDateInputValue =
     selectedApplicabilityValue === 'course' ? startDate : TERM_DATES.START_DATE
@@ -278,6 +291,26 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
             setRestrictAfter(e.target.checked)
           }}
         />
+        {visibilityBypassesDateRestriction && (
+          <Flex data-testid="visibility-date-restriction-warning">
+            <Flex.Item margin="xx-small small xx-small 0" align="start">
+              <AccessibleContent alt={I18n.t('Warning')}>
+                <IconWarningSolid size="x-small" color="warning" />
+              </AccessibleContent>
+            </Flex.Item>
+            <Flex.Item>
+              <Text size="small">
+                {visibility === 'public'
+                  ? I18n.t(
+                      'Course visibility is set to Public, so anyone with the course link can view this course regardless of the date restrictions above. Date restrictions only apply to enrolled users.',
+                    )
+                  : I18n.t(
+                      'Course visibility is set to Institution, so users associated with this institution can view this course regardless of the date restrictions above. Date restrictions only apply to enrolled users.',
+                    )}
+              </Text>
+            </Flex.Item>
+          </Flex>
+        )}
       </FormFieldGroup>
     </div>
   )
