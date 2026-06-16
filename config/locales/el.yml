@@ -14548,6 +14548,7 @@ el:
       page_title: "To ίδρυμα αυτό έχει ανασταλεί"
   site_admin_d0417171: "Διαχειριστής Ιστοτόπου"
   size_b30e1077: Μέγεθος
+  size_of_file_is_greater_than_the_maximum_max_mb_al_82941483: "Το μέγεθος του αρχείου %{file} είναι μεγαλύτερο από το μέγιστο %{max} επιτρεπόμενο μέγεθος αρχείου."
   skip_to_content_22ad1d00: "Μεταφορά προς το Περιεχόμενο"
   skipped_file_filename_due_to_error_94f0194: "Παραλήφθηκε το αρχείο %{filename} λόγω σφάλματος"
   skipping_unknown_file_type_cd1086ee: "Παράλειψη άγνωστου τύπου αρχείου"
