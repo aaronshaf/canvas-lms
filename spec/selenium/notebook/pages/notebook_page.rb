@@ -79,6 +79,41 @@ module NotebookPage
     %(a[href$="note_id=#{note_id}"])
   end
 
+  def notebook_index_filter_selector
+    "#notebook_index_mount_point input[role='combobox']"
+  end
+
+  # `notes-pagination` testid and `data-direction` attr are produced by the
+  # upstream @instructure/platform-notebook package, not Canvas source — a
+  # package rename would break these selectors with no in-repo signal.
+  def notebook_index_pagination_selector
+    "span[data-testid='notes-pagination']"
+  end
+
+  def notebook_index_pagination_button_selector(direction)
+    "#{notebook_index_pagination_selector} button[data-direction='#{direction}']"
+  end
+
+  def left_nav_container_selector
+    "div#sticky-container ul#section-tabs"
+  end
+
+  def access_denied_message_selector
+    "#unauthorized_message"
+  end
+
+  def observed_student_label_selector
+    "div[data-testid='observed-student-label']"
+  end
+
+  def notebook_index_heading_selector
+    "#notebook_index_mount_point h3"
+  end
+
+  def notebook_total_notes_count_selector
+    "#notebook_index_mount_point [data-testid='notebook-total-results']"
+  end
+
   #------------------------------ Elements ------------------------------
   def wiki_page_content
     f(wiki_page_content_selector)
@@ -136,6 +171,38 @@ module NotebookPage
     f(note_card_link_selector(note_id))
   end
 
+  def notebook_index_filter
+    f(notebook_index_filter_selector)
+  end
+
+  def notebook_index_pagination
+    f(notebook_index_pagination_selector)
+  end
+
+  def notebook_index_pagination_button(direction)
+    f(notebook_index_pagination_button_selector(direction))
+  end
+
+  def left_nav_container
+    f(left_nav_container_selector)
+  end
+
+  def access_denied_message
+    f(access_denied_message_selector)
+  end
+
+  def observed_student_label
+    f(observed_student_label_selector)
+  end
+
+  def notebook_index_heading
+    f(notebook_index_heading_selector)
+  end
+
+  def notebook_total_notes_count
+    f(notebook_total_notes_count_selector)
+  end
+
   #------------------------------ Actions -------------------------------
   def visit_wiki_page(course, wiki_page)
     get "/courses/#{course.id}/pages/#{wiki_page.url}"
@@ -176,5 +243,38 @@ module NotebookPage
     note_card_delete_button(study_note.id).click
     expect(note_card_confirm_delete_button(study_note.id)).to be_displayed
     note_card_confirm_delete_button(study_note.id).click
+  end
+
+  def filter_notes_by(reaction)
+    expect(notebook_index_filter).to be_displayed
+    case reaction
+    when :all
+      click_INSTUI_Select_option(notebook_index_filter_selector, "All notes")
+    when :important
+      click_INSTUI_Select_option(notebook_index_filter_selector, "Important")
+    when :unclear
+      click_INSTUI_Select_option(notebook_index_filter_selector, "Unclear")
+    else
+      raise ArgumentError, "Unsupported filter option: #{reaction}"
+    end
+    wait_for_ajaximations
+  end
+
+  def assert_note_card_count(expected_count)
+    expect(notes_grid).to be_displayed
+    expect(all_note_cards.size).to eq(expected_count)
+  end
+
+  def control_pagination(direction)
+    expect(notebook_index_pagination_button(direction)).to be_displayed
+    notebook_index_pagination_button(direction).click
+    wait_for_ajaximations
+  end
+
+  def verify_observer_session(student)
+    get "/"
+    wait_for_ajaximations
+    expect(observed_student_label).to be_displayed
+    expect(observed_student_label.text).to include(student.name)
   end
 end

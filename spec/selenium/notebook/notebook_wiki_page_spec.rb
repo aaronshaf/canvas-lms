@@ -28,7 +28,6 @@ describe "notebook on a wiki page" do
 
   before :once do
     notebook_student_setup
-    create_studynote_with_usertext
   end
 
   before do
@@ -43,8 +42,7 @@ describe "notebook on a wiki page" do
   it "opens the drawer panel and renders Note and its user text" do
     visit_wiki_page(@course, @page_a)
     open_notebook_panel
-    expect(notes_grid).to be_displayed
-    expect(all_note_cards.size).to eq(1)
+    assert_note_card_count(1)
     expect(note_card(@studynote_a.id)).to be_displayed
     expect(note_card(@studynote_a.id).text).to include("Important\nlight\nfirst note")
   end
@@ -55,7 +53,7 @@ describe "notebook on a wiki page" do
 
     open_notebook_panel
     expect(note_card(@studynote_b.id)).to be_displayed
-    expect(all_note_cards.size).to eq(1)
+    assert_note_card_count(1)
     note_card(@studynote_b.id).click
     delete_study_note(@studynote_b)
 
