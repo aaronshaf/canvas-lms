@@ -25,7 +25,7 @@ describe "New Quizzes Enrollment Boundary Integration" do
   include NQGradePassbackHelpers
 
   describe "Grade Passback" do
-    it "rejects a grade passback for a student whose course has concluded", guid: "1d7f4a26" do
+    it "rejects a grade passback for a student whose course has concluded", guid: "17a60e2d" do
       # Arrange
       student_enrollment = course_with_student(active_all: true)
       course = student_enrollment.course

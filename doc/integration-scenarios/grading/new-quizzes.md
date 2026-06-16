@@ -61,15 +61,16 @@ Then the student's Canvas submission score remains 85
 And the gradebook displays the teacher's manually entered score
 ```
 
-**Scenario NQ-1.5 — New Quizzes grade passback for a moderated assignment creates a provisional grade**
+**Scenario NQ-1.5 — New Quizzes grade passback for a moderated assignment is withheld from the student**
 - **GUID:** `e7d3a429`
-- **Reason:** The moderated grading workflow is bypassed if a NQ grade passback writes directly to the final submission score instead of creating a provisional grade for moderator review.
+- **Reason:** Students could see an unreviewed score on a moderated assignment if a NQ grade passback posts the grade instead of leaving it hidden until the moderator releases grades.
 ```
 Given a New Quizzes quiz assignment with moderated grading enabled and a grader count of 2
 And a student has submitted the quiz
-When a grader grades the submission in New Quizzes and NQ sends a grade passback with a score of 80
-Then Canvas records the score as a provisional grade for that grader
-And the student's final submission score is not yet updated
+When New Quizzes sends a grade passback with a score of 80
+Then Canvas records the score on the student's submission
+And no provisional grade is created
+And the submission is not posted
 And the student cannot view the score
 ```
 

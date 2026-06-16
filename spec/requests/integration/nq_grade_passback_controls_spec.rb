@@ -29,7 +29,7 @@ describe "New Quizzes Grade Passback Controls Integration" do
       Account.default.enable_feature!(:quizzes_next_submission_history)
     end
 
-    it "manual posting policy keeps a passed-back grade hidden from the student", guid: "f3a91c47" do
+    it "manual posting policy keeps a passed-back grade hidden from the student", guid: "3d2f9e74" do
       # Arrange
       student_enrollment = course_with_student(active_all: true)
       course = student_enrollment.course
@@ -59,7 +59,7 @@ describe "New Quizzes Grade Passback Controls Integration" do
       expect(submission.reload.posted?).to be(false)
     end
 
-    it "manual teacher grade is not overwritten when passback prioritizes the non-tool grade", guid: "a2c7e914" do
+    it "manual teacher grade is not overwritten when passback prioritizes the non-tool grade", guid: "a0b5c81f" do
       # Arrange
       teacher_enrollment = course_with_teacher(active_all: true)
       course = teacher_enrollment.course
@@ -98,7 +98,7 @@ describe "New Quizzes Grade Passback Controls Integration" do
       expect(submission.reload.workflow_state).to eq("submitted")
     end
 
-    it "passback without prioritizeNonToolGrade does overwrite the teacher grade (negative control)", guid: "b9f4c2a1" do
+    it "passback without prioritizeNonToolGrade does overwrite the teacher grade (negative control)", guid: "a0b5c81f" do
       # Arrange
       teacher_enrollment = course_with_teacher(active_all: true)
       course = teacher_enrollment.course
@@ -133,7 +133,7 @@ describe "New Quizzes Grade Passback Controls Integration" do
       expect(submission.reload.grader_id).to eql(-tool.id)
     end
 
-    it "moderated grading withholds a passed-back grade from the student", guid: "e6b1d370" do
+    it "moderated grading withholds a passed-back grade from the student", guid: "e7d3a429" do
       # Arrange
       teacher_enrollment = course_with_teacher(active_all: true)
       course = teacher_enrollment.course

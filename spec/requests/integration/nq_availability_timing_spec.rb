@@ -31,7 +31,7 @@ require "spec_helper"
 describe "New Quizzes Availability & Timing Integration" do
   include NQAvailabilityTimingHelpers
 
-  it "locks a student out of the launch before the Available From date", guid: "91a84353" do
+  it "locks a student out of the launch before the Available From date", guid: "8d4f1b63" do
     # Arrange
     student_enrollment = course_with_student(active_all: true)
     course = student_enrollment.course
@@ -59,7 +59,7 @@ describe "New Quizzes Availability & Timing Integration" do
     expect(response).to have_http_status(:forbidden)
   end
 
-  it "locks a student out of the launch after the Until date", guid: "652d35ba" do
+  it "locks a student out of the launch after the Until date", guid: "4d7e2b93" do
     # Arrange
     student_enrollment = course_with_student(active_all: true)
     course = student_enrollment.course
@@ -90,7 +90,7 @@ describe "New Quizzes Availability & Timing Integration" do
     expect(response).to have_http_status(:forbidden)
   end
 
-  it "pushes the student's effective unlock, lock, and due dates to the launch", guid: "0910d571" do
+  it "pushes the student's effective unlock, lock, and due dates to the launch", guid: "9b3e7d52" do
     # Arrange
     student_enrollment = course_with_student(active_all: true)
     course = student_enrollment.course
@@ -134,7 +134,7 @@ describe "New Quizzes Availability & Timing Integration" do
       .not_to eq(tool_settings["custom_canvas_assignment_due_at"])
   end
 
-  it "launches a student with their override dates, not the locked base dates", guid: "d364c286" do
+  it "launches a student with their override dates, not the locked base dates", guid: "f2c8a41b" do
     # Arrange
     student_enrollment = course_with_student(active_all: true)
     course = student_enrollment.course
@@ -184,7 +184,7 @@ describe "New Quizzes Availability & Timing Integration" do
       .to be_within(1.second).of(override_lock_at)
   end
 
-  it "pushes a section override's lock date in place of the base lock date", guid: "244de1b7" do
+  it "pushes a section override's lock date in place of the base lock date", guid: "f2c8a41b" do
     # Arrange
     course = course_factory(active_all: true)
     section = course.course_sections.create!(name: "Early-close Section")
@@ -228,7 +228,7 @@ describe "New Quizzes Availability & Timing Integration" do
     expect(pushed_lock_at).to be < base_lock_at
   end
 
-  it "lets a teacher launch a quiz that has not opened for students yet", guid: "49427d94" do
+  it "lets a teacher launch a quiz that has not opened for students yet", guid: "8d4f1b63" do
     # Arrange
     teacher_enrollment = course_with_teacher(active_all: true)
     course = teacher_enrollment.course

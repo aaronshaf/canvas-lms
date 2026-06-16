@@ -23,7 +23,7 @@ describe "New Quizzes Content Lifecycle Integration" do
   include NQHelpers
 
   describe "Duplication" do
-    it "leaves the duplicate of a published New Quiz unpublished when the service finalizes it", guid: "8b3e1f54" do
+    it "leaves the duplicate of a published New Quiz unpublished when the service finalizes it", guid: "b6e4a10d" do
       # Arrange
       teacher_enrollment = course_with_teacher(active_all: true)
       course = teacher_enrollment.course
@@ -55,7 +55,7 @@ describe "New Quizzes Content Lifecycle Integration" do
       expect(duplicating_copy.reload.workflow_state).to eq("unpublished")
     end
 
-    it "leaves the duplicate of a published New Quiz unpublished when course_copy_alignments routes through alignment cloning", guid: "3c5e9d71" do
+    it "leaves the duplicate of a published New Quiz unpublished when course_copy_alignments routes through alignment cloning", guid: "b6e4a10d" do
       skip("2026-06-15 QUIZ-14864 did not fix this issue when course_copy_alignments is on")
 
       # Arrange
