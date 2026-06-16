@@ -22816,6 +22816,7 @@ fa:
   site_admin_d0417171: "مدیر تارنما"
   site_admin_only_send_to_1_denominator_users_in_ena_b4b3ed14: "فقط مدیر تارنما. برای 1 / %{denominator} کاربر در حساب های فعال شده در هر ماه ارسال شود."
   size_b30e1077: اندازه
+  size_of_file_is_greater_than_the_maximum_max_mb_al_82941483: "اندازه %{file} از حداکثر اندازه مجاز فایل %{max} مگابایت بیشتر است."
   size_size_a77bd760: "اندازه: %{size}"
   skip_bcb86160: "رد کردن"
   skip_to_content_22ad1d00: "رفتن به محتوا"
