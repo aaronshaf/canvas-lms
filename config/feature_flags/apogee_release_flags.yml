@@ -489,19 +489,6 @@ gradebook_use_sis_pseudonym_order_for_sorting:
       state: allowed_on # enable for automated testing builds and local testing
     development:
       state: allowed_on # enable for local development
-optimized_needs_grading_count:
-  state: hidden
-  applies_to: SiteAdmin
-  display_name: Optimized Needs Grading Count
-  description: |
-    Uses bulk SQL (GROUP BY) instead of per-assignment Redis calls for
-    needs_grading_count. Eliminates N+1 Redis round trips during course
-    list serialization.
-  environments:
-    ci:
-      state: allowed_on
-    development:
-      state: allowed_on
 grading_rubrics_pagination:
   state: hidden
   applies_to: RootAccount

@@ -43,7 +43,7 @@ module Assignments
   #       skip it here because this class is instantiated per-assignment
   #       and the cache would never get more than one entry.
   #
-  #   See `NeedsGradingCountQueryOptimized` for the shape the optimized
+  #   See `NeedsGradingCountQuery` for the shape the bulk
   #   version should take.
   class TeacherTodoMetricsQuery
     VISIBLE_LEVELS = %i[full limited sections sections_limited].freeze
@@ -119,7 +119,7 @@ module Assignments
     end
 
     def restrict_to_visible_sections(submissions)
-      # Moderated path skips section filtering — matches NeedsGradingCountQueryOptimized.
+      # Moderated path skips section filtering — matches NeedsGradingCountQuery.
       return submissions if visibility_level == :sections_limited && @assignment.moderated_grading_enabled_and_no_grades_published?
       return submissions unless %i[sections sections_limited].include?(visibility_level)
 
@@ -139,7 +139,7 @@ module Assignments
     # assignment before grades are published — i.e. submissions this grader has
     # already provisionally scored, plus submissions that have hit the
     # provisional-grade threshold from other graders. Mirrors the logic in
-    # NeedsGradingCountQueryOptimized#needs_moderated_grading_count.
+    # NeedsGradingCountQuery#needs_moderated_grading_count.
     def submission_ids_resolved_for_grader
       assignment_id = @assignment.id
 

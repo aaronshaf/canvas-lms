@@ -21,9 +21,6 @@
 
 module Assignments
   # Shared behavioural examples for NeedsGradingCountQuery.
-  # Run once for the legacy implementation (feature flag off) and once for the
-  # optimized implementation (feature flag on), so both paths are fully covered
-  # without duplicating test code.
   shared_examples "NeedsGradingCountQuery behavior" do
     describe "#count" do
       it "only counts submissions in the user's visible section(s)" do
@@ -767,28 +764,7 @@ module Assignments
       student_in_course(active_all: true, user_name: "some user")
     end
 
-    context "with optimized implementation" do
-      before { Account.site_admin.enable_feature!(:optimized_needs_grading_count) }
-
-      it "delegates to NeedsGradingCountQueryOptimized, not legacy" do
-        assignment = @course.assignments.create!(title: "dispatch", submission_types: ["online_text_entry"])
-        expect(NeedsGradingCountQueryOptimized).to receive(:new).and_call_original
-        NeedsGradingCountQuery.new([assignment], @teacher).count
-      end
-
-      it_behaves_like "NeedsGradingCountQuery behavior"
-    end
-
-    describe "optimized? memoization" do
-      it "looks up the feature flag only once per instance across multiple calls" do
-        assignment = @course.assignments.create!(title: "flag test", submission_types: ["online_text_entry"])
-        query = NeedsGradingCountQuery.new([assignment], @teacher)
-        expect(Account.site_admin).to receive(:feature_enabled?)
-          .with(:optimized_needs_grading_count).once.and_return(false)
-        query.count
-        query.count
-      end
-    end
+    it_behaves_like "NeedsGradingCountQuery behavior"
   end
 
   describe "RequestCache warming" do

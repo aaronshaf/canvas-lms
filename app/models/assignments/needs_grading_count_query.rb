@@ -63,45 +63,25 @@ module Assignments
 
     # Returns { assignment.global_id => Integer }, defaults to 0 for unknown keys
     def count
-      fetch_or_compute(:count, default: 0) do |assignments|
-        if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, principal).count
-        else
-          map_results(assignments, &:count)
-        end
-      end
+      fetch_or_compute(:count, default: 0) { |assignments| compute_count(assignments) }
     end
 
     # Returns { assignment.global_id => Integer }, defaults to 0 for unknown keys
     def manual_count
-      fetch_or_compute(:manual_count, default: 0) do |assignments|
-        if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, principal).manual_count
-        else
-          map_results(assignments, &:manual_count)
-        end
-      end
+      fetch_or_compute(:manual_count, default: 0) { |assignments| compute_manual_count(assignments) }
     end
 
     # Returns { assignment.global_id => Array<Hash> }, defaults to [] for unknown keys
     # Each hash is { section_id: <local Integer>, needs_grading_count: Integer }
     # (section_id is the local shard ID, not a global ID)
     def count_by_section
-      fetch_or_compute(:count_by_section, default: []) do |assignments|
-        if optimized?
-          NeedsGradingCountQueryOptimized.new(assignments, principal).count_by_section
-        else
-          map_results(assignments, &:count_by_section)
-        end
-      end
+      fetch_or_compute(:count_by_section, default: []) { |assignments| compute_count_by_section(assignments) }
     end
 
     private
 
     # Checks the request cache for each assignment, computes only for missing ones,
     # writes the new values back, and returns the complete hash keyed by global_id.
-    # When the optimized implementation lands, only the block passed by the public
-    # methods needs to change — this layer stays untouched.
     def fetch_or_compute(method_key, default: nil)
       missing = @assignments.reject { |a| RequestCache.exist?("ngcq_#{method_key}", a.global_id, principal&.user&.global_id) }
 
@@ -129,177 +109,11 @@ module Assignments
       result
     end
 
-    def map_results(assignments)
-      assignments.each_with_object({}) do |assignment, h|
-        proxy = course_proxy_for(assignment)
-        legacy = NeedsGradingCountQueryLegacy.new(assignment, principal, proxy)
-        h[assignment.global_id] = yield legacy
-      end
-    end
-
-    def optimized?
-      return @optimized unless @optimized.nil?
-
-      @optimized = Account.site_admin.feature_enabled?(:optimized_needs_grading_count)
-    end
-  end
-
-  class NeedsGradingCountQueryLegacy
-    attr_reader :assignment, :user, :course_proxy
-
-    delegate :course, :section_visibilities, :visibility_level, :visible_section_ids, to: :course_proxy
-
-    def initialize(assignment, principal = nil, course_proxy = nil)
-      @assignment = assignment
-      @user = principal&.user
-      @course_proxy = course_proxy || CourseProxyCache::CourseProxy.new(@assignment.context, principal)
-    end
-
-    def count
-      assignment.shard.activate do
-        # the needs_grading_count trigger should clear the assignment's needs_grading cache
-        Rails.cache.fetch_with_batched_keys(["assignment_user_grading_count", assignment.cache_key(:needs_grading), user].cache_key,
-                                            batch_object: user,
-                                            batched_keys: :todo_list) do
-          if assignment.moderated_grading? && !assignment.grades_published?
-            needs_moderated_grading_count
-          else
-            case visibility_level
-            when :full, :limited
-              manual_count
-            when :sections, :sections_limited
-              count_submissions(section_filtered_submissions)
-            else
-              0
-            end
-          end
-        end
-      end
-    end
-
-    def needs_moderated_grading_count
-      level = visibility_level
-      return 0 unless %i[full limited sections sections_limited].include?(level)
-
-      # ignore submissions this user has graded
-      graded_sub_ids = assignment.submissions.joins(:provisional_grades)
-                                 .where(moderated_grading_provisional_grades: { final: false, scorer_id: user.id })
-                                 .where.not(moderated_grading_provisional_grades: { score: nil }).pluck(:id)
-
-      moderation_set_student_ids = assignment.moderated_grading_selections.pluck(:student_id)
-
-      # ignore submissions that don't need any more provisional grades
-      pg_scope = assignment.submissions.joins(:provisional_grades)
-                           .where(moderated_grading_provisional_grades: { final: false })
-                           .where.not(moderated_grading_provisional_grades: { scorer_id: user.id })
-                           .group("submissions.id", "submissions.user_id")
-      pg_scope = pg_scope.where.not(submissions: { id: graded_sub_ids }) if graded_sub_ids.any?
-      pg_scope.count.each do |key, count|
-        sub_id, user_id = key
-        graded_sub_ids << sub_id if count >= (moderation_set_student_ids.include?(user_id) ? 2 : 1)
-      end
-
-      scope = (level == :sections) ? section_filtered_submissions : all_submissions
-      scope = scope.where.not(submissions: { id: graded_sub_ids }) if graded_sub_ids.any?
-      count_submissions(scope)
-    end
-
-    # Returns Array<Hash> — { section_id: <local Integer>, needs_grading_count: Integer }
-    # (section_id is the local shard ID, not a global ID)
-    def count_by_section
-      assignment.shard.activate do
-        Rails.cache.fetch(["assignment_user_grading_count_by_section", assignment.cache_key(:needs_grading), user].cache_key,
-                          batch_object: user,
-                          batched_keys: :todo_list) do
-          submissions = if visibility_level == :sections
-                          section_filtered_submissions
-                        else
-                          all_submissions
-                        end
-
-          submissions
-            .group("e.course_section_id")
-            .distinct
-            .count("submissions.user_id")
-            .map { |k, v| { section_id: k.to_i, needs_grading_count: v } }
-        end
-      end
-    end
-
-    def manual_count
-      assignment.shard.activate do
-        count_submissions(all_submissions)
-      end
-    end
-
-    private
-
-    def count_submissions(scope)
-      scope.distinct.count(:user_id)
-    end
-
-    def all_submissions
-      if assignment.has_sub_assignments
-        sub_assignment_submissions
-      else
-        all_outer_submissions
-      end
-    end
-
-    def section_filtered_submissions
-      all_submissions.where(e: { course_section_id: visible_section_ids })
-    end
-
-    def all_outer_submissions
-      string = <<~SQL.squish
-        submissions.assignment_id = ?
-          AND e.course_id = ?
-          AND e.type IN ('StudentEnrollment', 'StudentViewEnrollment')
-          AND e.workflow_state = 'active'
-          AND #{Submission.needs_grading_conditions}
-      SQL
-      joined_submissions.where(string, assignment, course)
-    end
-
-    def sub_assignment_submissions
-      # a better solution would be to fix the logic in submission_aggregator_service.rb
-      # to apply a proper workflow_state to the parent submission based on the states of the child submissions
-      # but this is a quick fix to make the needs_grading_count work correctly for sub-assignments
-
-      sub_assignment_ids = assignment.sub_assignments.pluck(:id)
-      return Submission.none if sub_assignment_ids.empty?
-
-      string = <<~SQL.squish
-        submissions.assignment_id IN (?)
-          AND e.course_id = ?
-          AND e.type IN ('StudentEnrollment', 'StudentViewEnrollment')
-          AND e.workflow_state = 'active'
-          AND #{Submission.needs_grading_conditions}
-      SQL
-      Submission.joins("INNER JOIN #{Enrollment.quoted_table_name} e ON e.user_id = submissions.user_id")
-                .where(string, sub_assignment_ids, course)
-    end
-
-    def joined_submissions
-      assignment.submissions.joins("INNER JOIN #{Enrollment.quoted_table_name} e ON e.user_id = submissions.user_id")
-    end
-  end
-
-  class NeedsGradingCountQueryOptimized
-    include CourseProxyCache
-
-    attr_reader :principal
-
-    def initialize(assignments, principal = nil)
-      @assignments = assignments
-      @principal = principal
-    end
-
     # Returns { assignment.global_id => Integer }
-    def count
-      results = @assignments.to_h { |a| [a.global_id, 0] }
+    def compute_count(assignments)
+      results = assignments.to_h { |a| [a.global_id, 0] }
 
-      Shard.partition_by_shard(@assignments) do |shard_assignments|
+      Shard.partition_by_shard(assignments) do |shard_assignments|
         moderated, non_moderated = shard_assignments.partition do |a|
           a.moderated_grading? && !a.grades_published?
         end
@@ -312,10 +126,10 @@ module Assignments
     end
 
     # Returns { assignment.global_id => Integer }
-    def manual_count
-      results = @assignments.to_h { |a| [a.global_id, 0] }
+    def compute_manual_count(assignments)
+      results = assignments.to_h { |a| [a.global_id, 0] }
 
-      partition_by_course(@assignments) do |course_id, course_assignments|
+      partition_by_course(assignments) do |course_id, course_assignments|
         results.merge!(count_by_assignment(all_submissions_scope(course_assignments, course_id)))
       end
 
@@ -325,10 +139,10 @@ module Assignments
     # Returns { assignment.global_id => Array<Hash> }
     # Each hash is { section_id: <local Integer>, needs_grading_count: Integer }
     # (section_id is the local shard ID, not a global ID)
-    def count_by_section
-      results = @assignments.to_h { |a| [a.global_id, []] }
+    def compute_count_by_section(assignments)
+      results = assignments.to_h { |a| [a.global_id, []] }
 
-      partition_by_course(@assignments) do |course_id, course_assignments|
+      partition_by_course(assignments) do |course_id, course_assignments|
         proxy = course_proxy_for(course_assignments.first)
 
         scope = all_submissions_scope(course_assignments, course_id)
@@ -345,8 +159,6 @@ module Assignments
 
       results
     end
-
-    private
 
     def needs_moderated_grading_count(assignments)
       results = assignments.to_h { |a| [a.global_id, 0] }
