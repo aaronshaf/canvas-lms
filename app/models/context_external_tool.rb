@@ -566,17 +566,26 @@ class ContextExternalTool < ApplicationRecord
       end
     )
       .compact
-      .map { |u| validate_url(u) }
+      .each { |url_value| validate_url(url_value) }
+
+    (
+      [settings[:icon_url]] + Lti::ResourcePlacement::PLACEMENTS.map do |p|
+        settings[p]&.with_indifferent_access&.fetch("icon_url", nil)
+      end
+    )
+      .compact
+      .each { |url_value| validate_url(url_value, field: :settings, allow_relative: true) }
   end
   private :validate_urls
 
-  def validate_url(u)
-    return if u.blank?
+  def validate_url(url_value, field: :url, allow_relative: false)
+    return if url_value.blank?
+    return if allow_relative && Addressable::URI.parse(url_value)&.relative?
 
-    u = CanvasHttp.validate_url(u, allowed_schemes: %w[http https])
+    CanvasHttp.validate_url(url_value, allowed_schemes: %w[http https])
   rescue
-    errors.add(:url,
-               t("url_or_domain_no_valid", "Incorrect url for %{url}", url: u))
+    errors.add(field,
+               t("url_or_domain_no_valid", "Incorrect url for %{url}", url: url_value))
   end
   private :validate_url
 

@@ -1383,6 +1383,52 @@ describe ContextExternalTool do
 
       it { is_expected.to be false }
     end
+
+    context "with dangerous scheme in top-level icon_url" do
+      let(:settings) { { icon_url: "javascript://host/alert(1)" } }
+
+      it { is_expected.to be false }
+
+      it "adds an error on :settings" do
+        subject
+        expect(tool.errors[:settings]).to be_present
+      end
+    end
+
+    context "with dangerous scheme in placement icon_url" do
+      let(:settings) do
+        { course_navigation: {
+          url: "https://example.com",
+          icon_url: "javascript://host/alert(1)",
+          text: "Example"
+        } }
+      end
+
+      it { is_expected.to be false }
+
+      it "adds an error on :settings" do
+        subject
+        expect(tool.errors[:settings]).to be_present
+      end
+    end
+
+    context "with valid https top-level icon_url" do
+      let(:settings) { { icon_url: "https://example.com/icon.png" } }
+
+      it { is_expected.to be true }
+    end
+
+    context "with valid http top-level icon_url" do
+      let(:settings) { { icon_url: "http://example.com/icon.png" } }
+
+      it { is_expected.to be true }
+    end
+
+    context "with relative path top-level icon_url" do
+      let(:settings) { { icon_url: "/images/delete.png" } }
+
+      it { is_expected.to be true }
+    end
   end
 
   describe "active?" do
