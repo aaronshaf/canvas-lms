@@ -37,6 +37,13 @@ differentiation_tag.csv
 <th>Description</th>
 </tr>
 <tr>
+<td>name</td>
+<td>text</td>
+<td></td>
+<td>The full name of the user in "Last, First" format. Present in exported CSVs
+for reference only; this column is ignored during import.</td>
+</tr>
+<tr>
 <td>canvas_user_id</td>
 <td>text</td>
 <td>✓&#42;</td>
