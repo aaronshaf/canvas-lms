@@ -23,10 +23,46 @@ require_relative "concerns/lti_services_shared_examples"
 
 module Lti
   module IMS
-    RSpec.describe LineItemsController do
+    RSpec.describe LineItemsController, type: :request do
       include_context "advantage services context"
       include AccountDomainSpecHelper
 
+      def send_request
+        course_id = params_overrides[:course_id]
+        item_id = params_overrides[:id]
+        query_params = params_overrides.except(:course_id, :id)
+
+        url = case action
+              when :create, :index
+                "/api/lti/courses/#{course_id}/line_items"
+              when :show, :update, :destroy
+                "/api/lti/courses/#{course_id}/line_items/#{item_id}"
+              else
+                raise "Unknown action: #{action}"
+              end
+
+        method = case action
+                 when :create
+                   :post
+                 when :show, :index
+                   :get
+                 when :update
+                   :put
+                 when :destroy
+                   :delete
+                 else
+                   raise "Unknown action: #{action}"
+                 end
+
+        auth_headers = access_token_jwt ? { "Authorization" => "Bearer #{access_token_jwt}" } : {}
+        auth_headers["Content-Type"] = content_type if content_type.present?
+
+        body = (content_type.present? && %i[post put].include?(method)) ? query_params.to_json : query_params
+        send(method, url, params: body, headers: auth_headers)
+        run_jobs
+      end
+
+      let(:test_request_host) { "www.example.com" }
       let(:context) { course }
       let(:unknown_context_id) { (Course.maximum(:id) || 0) + 1 }
       let(:resource_link) do

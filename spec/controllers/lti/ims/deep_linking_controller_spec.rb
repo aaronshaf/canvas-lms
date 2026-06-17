@@ -22,7 +22,7 @@ require_relative "../concerns/parent_frame_shared_examples"
 
 module Lti
   module IMS
-    RSpec.describe DeepLinkingController do
+    RSpec.describe DeepLinkingController, type: :request do
       include_context "deep_linking_spec_helper"
 
       describe "#deep_linking_cancel" do
@@ -34,11 +34,12 @@ module Lti
             lti_errormsg: "error",
             lti_errorlog: "error log"
           }
-          get :deep_linking_cancel, params:
+          get "/deep_linking_cancel", params:
         end
 
         it "renders the same page as the deep linking response URL" do
-          expect(subject).to render_template("lti/ims/deep_linking/deep_linking_response")
+          subject
+          expect(response).to render_template("lti/ims/deep_linking/deep_linking_response")
         end
 
         it "sets the JS ENV with no content_items" do
@@ -54,14 +55,22 @@ module Lti
             replaceEditorContents: false
           }
 
-          expect(controller).to receive(:js_env).with({ deep_link_response: expected_dl_resp })
-
           subject
+          expect(js_env_from_response(response)["deep_link_response"].deep_symbolize_keys).to eq(expected_dl_resp)
         end
       end
 
       describe "#deep_linking_response" do
-        subject { post :deep_linking_response, params: }
+        subject do
+          path = if params[:account_id]
+                   "/accounts/#{params[:account_id]}/deep_linking_response"
+                 elsif params[:course_id]
+                   "/courses/#{params[:course_id]}/deep_linking_response"
+                 else
+                   "/groups/#{params[:group_id]}/deep_linking_response"
+                 end
+          post path, params:
+        end
 
         let(:placement) { "editor_button" }
         let(:return_url_params) { { placement:, content_item_id: 123 } }
@@ -71,33 +80,35 @@ module Lti
 
         let(:context_external_tool) { registration.deployments.first }
 
-        it { is_expected.to be_ok }
+        it "returns a successful response" do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
 
         it "renders the page" do
-          expect(subject).to render_template("lti/ims/deep_linking/deep_linking_response")
+          subject
+          expect(response).to render_template("lti/ims/deep_linking/deep_linking_response")
         end
 
         it "sets the JS ENV" do
-          expect(controller).to receive(:js_env).with({
-                                                        deep_link_response: {
-                                                          placement:,
-                                                          content_items:,
-                                                          service_id: 123,
-                                                          msg:,
-                                                          log:,
-                                                          errormsg:,
-                                                          errorlog:,
-                                                          ltiEndpoint: Rails.application.routes.url_helpers.polymorphic_url(
-                                                            [:retrieve, account, :external_tools],
-                                                            host: "test.host"
-                                                          ),
-                                                          reloadpage: false,
-                                                          moduleCreated: false,
-                                                          replaceEditorContents: false
-                                                        }
-                                                      })
-
           subject
+          dl_resp = js_env_from_response(response)["deep_link_response"].deep_symbolize_keys
+          expect(dl_resp).to eq({
+                                  placement:,
+                                  content_items: JSON.parse(content_items.to_json, symbolize_names: true),
+                                  service_id: "123",
+                                  msg:,
+                                  log:,
+                                  errormsg:,
+                                  errorlog:,
+                                  ltiEndpoint: Rails.application.routes.url_helpers.polymorphic_url(
+                                    [:retrieve, account, :external_tools],
+                                    host: "www.example.com"
+                                  ),
+                                  reloadpage: false,
+                                  moduleCreated: false,
+                                  replaceEditorContents: false
+                                })
         end
 
         context "when returning from a non-internal service" do
@@ -105,8 +116,7 @@ module Lti
 
           it "does not change the DEEP_LINKING_POST_MESSAGE_ORIGIN value in jsenv" do
             subject
-            # base_url is the default
-            expect(assigns(:js_env)[:DEEP_LINKING_POST_MESSAGE_ORIGIN]).to eq(@controller.request.base_url)
+            expect(js_env_from_response(response)["DEEP_LINKING_POST_MESSAGE_ORIGIN"]).to eq("http://www.example.com")
           end
         end
 
@@ -121,7 +131,7 @@ module Lti
 
           it "sets the DEEP_LINKING_POST_MESSAGE_ORIGIN value in js_env" do
             subject
-            expect(assigns(:js_env)[:DEEP_LINKING_POST_MESSAGE_ORIGIN]).to eq("http://tool.url")
+            expect(js_env_from_response(response)["DEEP_LINKING_POST_MESSAGE_ORIGIN"]).to eq("http://tool.url")
           end
         end
 
@@ -142,15 +152,12 @@ module Lti
           let(:errorlog) { { html: "some error log" } }
 
           it "turns them into strings before calling js_env to prevent HTML injection" do
-            expect(controller).to receive(:js_env).with({
-                                                          deep_link_response: hash_including(
-                                                            msg: %({"html" => "some message"}),
-                                                            log: %({"html" => "some log"}),
-                                                            errormsg: %({"html" => "some error message"}),
-                                                            errorlog: %({"html" => "some error log"})
-                                                          )
-                                                        })
             subject
+            dl_resp = js_env_from_response(response)["deep_link_response"]
+            expect(dl_resp["msg"]).to eq(%({"html" => "some message"}))
+            expect(dl_resp["log"]).to eq(%({"html" => "some log"}))
+            expect(dl_resp["errormsg"]).to eq(%({"html" => "some error message"}))
+            expect(dl_resp["errorlog"]).to eq(%({"html" => "some error log"}))
           end
         end
 
@@ -169,7 +176,14 @@ module Lti
             let(:context) { raise "set in examples " }
 
             before do
-              subject
+              path = if params[:account_id]
+                       "/accounts/#{params[:account_id]}/deep_linking_response"
+                     elsif params[:course_id]
+                       "/courses/#{params[:course_id]}/deep_linking_response"
+                     else
+                       "/groups/#{params[:group_id]}/deep_linking_response"
+                     end
+              post path, params:
             end
 
             it "creates a resource link in the context" do
@@ -180,7 +194,7 @@ module Lti
             end
 
             it "sends resource link uuid in content item response" do
-              expect(controller.content_items.first["lookup_uuid"]).to eq context.lti_resource_links.first.lookup_uuid
+              expect(js_env_from_response(response).dig("deep_link_response", "content_items", 0, "lookup_uuid")).to eq context.lti_resource_links.first.lookup_uuid
             end
           end
 
@@ -214,7 +228,10 @@ module Lti
         shared_examples_for "errors" do
           let(:response_message) { raise "set in examples" }
 
-          it { is_expected.to be_bad_request }
+          it do
+            subject
+            expect(response).to be_bad_request
+          end
 
           it "reports error metric" do
             allow(InstStatsd::Statsd).to receive(:distributed_increment).and_call_original
@@ -267,7 +284,10 @@ module Lti
 
           before { Lti::Security.check_and_store_nonce(nonce_key, iat, 30.seconds) }
 
-          it { is_expected.to be_successful }
+          it "returns a successful response" do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
         end
 
         context "when the aud is invalid" do
@@ -333,11 +353,17 @@ module Lti
           context "when there is no public jwk" do
             before { developer_key.update!(public_jwk: nil) }
 
-            it { is_expected.to be_successful }
+            it "returns a successful response" do
+              subject
+              expect(response).to have_http_status(:ok)
+            end
           end
 
           context "when there is a public jwk" do
-            it { is_expected.to be_successful }
+            it "returns a successful response" do
+              subject
+              expect(response).to have_http_status(:ok)
+            end
           end
 
           context "when an empty object is returned" do
@@ -356,7 +382,10 @@ module Lti
             # so tools may be relying on it...
             let(:public_jwk_url_response_code) { 404 }
 
-            it { is_expected.to be_successful }
+            it "returns a successful response" do
+              subject
+              expect(response).to have_http_status(:ok)
+            end
           end
 
           context "when the url response is not a valid JWT" do
@@ -444,7 +473,10 @@ module Lti
             let(:content_items) { nil }
             let(:return_url_params) { super().merge({ placement: "editor_button" }) }
 
-            it { is_expected.to be_ok }
+            it "returns a successful response" do
+              subject
+              expect(response).to have_http_status(:ok)
+            end
 
             it "does not create a new module" do
               expect { subject }.not_to change { course.context_modules.count }
@@ -452,7 +484,7 @@ module Lti
 
             it "doesn't ask to reload page" do
               subject
-              expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be false
+              expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be false
             end
           end
 
@@ -478,7 +510,10 @@ module Lti
               JSON::JWT.new(body).sign(private_jwk, alg).to_s
             end
 
-            it { is_expected.to be_ok }
+            it "returns a successful response" do
+              subject
+              expect(response).to have_http_status(:ok)
+            end
 
             it "does not create a new module" do
               expect { subject }.not_to change { course.context_modules.count }
@@ -486,7 +521,7 @@ module Lti
 
             it "doesn't ask to reload page" do
               subject
-              expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be false
+              expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be false
             end
           end
 
@@ -527,7 +562,7 @@ module Lti
 
                 it "asks to reload page" do
                   subject
-                  expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be true
+                  expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be true
                 end
 
                 context "when placement is link_selection (placement with lineItem support)" do
@@ -544,7 +579,7 @@ module Lti
 
                   it "doesn't ask to reload page" do
                     subject
-                    expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be false
+                    expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be false
                   end
 
                   context "with line item" do
@@ -563,7 +598,7 @@ module Lti
 
                     it "asks to reload page" do
                       subject
-                      expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be true
+                      expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be true
                     end
                   end
                 end
@@ -579,7 +614,8 @@ module Lti
                 end
 
                 it "creates multiple module items" do
-                  expect(subject).to be_successful
+                  subject
+                  expect(response).to be_successful
                   expect(context_module.content_tags.count).to eq(3)
                 end
 
@@ -590,12 +626,14 @@ module Lti
 
                 it "creates all resource links" do
                   expect(course.lti_resource_links).to be_empty
-                  expect(subject).to be_successful
+                  subject
+                  expect(response).to be_successful
                   expect(course.lti_resource_links.size).to eq 3
                 end
 
                 it "adds the resource link as the content tag's associated asset" do
-                  expect(subject).to be_successful
+                  subject
+                  expect(response).to be_successful
 
                   content_tags = context_module.content_tags
                   lti_resource_links = course.lti_resource_links
@@ -606,12 +644,14 @@ module Lti
                 end
 
                 it "adds custom params to the resource links" do
-                  expect(subject).to be_successful
+                  subject
+                  expect(response).to be_successful
                   expect(course.lti_resource_links.second.custom).to eq("mycustom" => "123")
                 end
 
                 it "does not pass launch dimensions" do
-                  expect(subject).to be_successful
+                  subject
+                  expect(response).to be_successful
                   expect(context_module.content_tags[0][:link_settings]).to be_nil
                 end
 
@@ -621,7 +661,7 @@ module Lti
 
                 it "asks to reload page" do
                   subject
-                  expect(assigns.dig(:js_env, :deep_link_response, :reloadpage)).to be true
+                  expect(js_env_from_response(response).dig("deep_link_response", "reloadpage")).to be true
                 end
 
                 context "when content items have iframe property" do
@@ -634,7 +674,8 @@ module Lti
                   end
 
                   it "passes launch dimensions as link_settings" do
-                    expect(subject).to be_successful
+                    subject
+                    expect(response).to be_successful
                     expect(context_module.content_tags[0][:link_settings]["selection_width"]).to be(642)
                     expect(context_module.content_tags[0][:link_settings]["selection_height"]).to be(842)
 
@@ -728,7 +769,7 @@ module Lti
 
                 it "tells the frontend a module was created" do
                   subject
-                  expect(assigns.dig(:js_env, :deep_link_response, :moduleCreated)).to be true
+                  expect(js_env_from_response(response).dig("deep_link_response", "moduleCreated")).to be true
                 end
 
                 it "names the module with the default name when no module_name claim is given" do
@@ -838,7 +879,7 @@ module Lti
               it_behaves_like "does nothing"
               it "sends error in content item response" do
                 subject
-                expect(assigns.dig(:js_env, :deep_link_response, :content_items).first).to have_key(:errors)
+                expect(js_env_from_response(response).dig("deep_link_response", "content_items", 0)).to have_key("errors")
               end
 
               it "does not create a context module" do
@@ -853,7 +894,7 @@ module Lti
 
                 it "includes title in response" do
                   subject
-                  expect(assigns.dig(:js_env, :deep_link_response, :content_items, 0, :title)).to eq title
+                  expect(js_env_from_response(response).dig("deep_link_response", "content_items", 0, "title")).to eq title
                 end
               end
 
@@ -1068,14 +1109,10 @@ module Lti
             end
 
             it "includes tool_id in the js_env deep_link_response" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                tool_id: context_external_tool.id,
-                content_items:
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              dl_resp = js_env_from_response(response)["deep_link_response"]
+              expect(dl_resp["tool_id"]).to eq(context_external_tool.id.to_s)
+              expect(dl_resp["content_items"]).to eq(JSON.parse(content_items.to_json))
             end
           end
 
@@ -1109,14 +1146,11 @@ module Lti
             end
 
             it "includes tool_id and ltiAssetProcessor type content items in the js_env deep_link_response" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                tool_id: context_external_tool.id,
-                content_items: content_items.filter { |item| item[:type] == "ltiAssetProcessor" }
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              dl_resp = js_env_from_response(response)["deep_link_response"]
+              expected_items = content_items.filter { |item| item[:type] == "ltiAssetProcessor" }
+              expect(dl_resp["tool_id"]).to eq(context_external_tool.id.to_s)
+              expect(dl_resp["content_items"]).to eq(JSON.parse(expected_items.to_json))
             end
           end
 
@@ -1150,14 +1184,11 @@ module Lti
             end
 
             it "includes tool_id and ltiAssetProcessorContribution type content items in the js_env deep_link_response" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                tool_id: context_external_tool.id,
-                content_items: content_items.filter { |item| item[:type] == "ltiAssetProcessorContribution" }
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              dl_resp = js_env_from_response(response)["deep_link_response"]
+              expected_items = content_items.filter { |item| item[:type] == "ltiAssetProcessorContribution" }
+              expect(dl_resp["tool_id"]).to eq(context_external_tool.id.to_s)
+              expect(dl_resp["content_items"]).to eq(JSON.parse(expected_items.to_json))
             end
           end
         end
@@ -1173,13 +1204,8 @@ module Lti
             let(:replace_editor_contents) { true }
 
             it "then replace content shall be enabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: false
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be false
             end
           end
 
@@ -1187,13 +1213,8 @@ module Lti
             let(:replace_editor_contents) { false }
 
             it "then replace contents shall be disabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: false
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be false
             end
           end
 
@@ -1201,13 +1222,8 @@ module Lti
             let(:replace_editor_contents) { nil } # so that compact will filter this value out
 
             it "then replace contents shall be disabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: false
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be false
             end
           end
         end
@@ -1222,13 +1238,8 @@ module Lti
             let(:developer_key_scopes) { ["https://canvas.instructure.com/lti/replace_editor_contents"] }
 
             it "then replace content shall be enabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: true
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be true
             end
           end
 
@@ -1237,13 +1248,8 @@ module Lti
             let(:developer_key_scopes) { ["https://canvas.instructure.com/lti/replace_editor_contents"] }
 
             it "then replace contents shall be disabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: false
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be false
             end
           end
 
@@ -1252,13 +1258,8 @@ module Lti
             let(:developer_key_scopes) { ["https://canvas.instructure.com/lti/replace_editor_contents"] }
 
             it "then replace contents shall be disabled on the UI" do
-              allow(controller).to receive(:js_env)
               subject
-              expected_js_env_attributes = {
-                replaceEditorContents: false
-              }
-
-              expect(controller).to have_received(:js_env).with(deep_link_response: hash_including(expected_js_env_attributes))
+              expect(js_env_from_response(response).dig("deep_link_response", "replaceEditorContents")).to be false
             end
           end
         end
