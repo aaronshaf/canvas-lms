@@ -66,71 +66,175 @@ pointer, not a summary. Keep detail in the JIRA and in the KB case files.
 
 ---
 
-## S-02 — Write JIRA fix comments as HTML files, not inline Markdown
+## S-02 — Post fix summaries to the Jira Description via MCP
 
-**Rule:** When producing a JIRA comment summarising a flaky fix, write it to
-a local HTML file, open it in a browser, and copy the rendered content into
-JIRA's visual editor. Do not paste raw Markdown or JIRA wiki markup.
+**Rule:** After the user approves a fix, append (or replace) a structured
+`[flaky-fix]` section in the Jira batch ticket's **Description field** using
+the Atlassian MCP (`getJiraIssue` / `editJiraIssue`). Do not create HTML
+files or paste into the visual editor.
 
-**Why:**
-- JIRA's visual editor does not render Markdown — backtick fences, `**bold**`,
-  and `#` headings all appear as literal characters.
-- JIRA wiki markup (`{code}`, `*bold*`) only renders in Text mode, which most
-  users do not switch to by default.
-- A browser copies rendered HTML to the clipboard. JIRA's visual editor accepts
-  that clipboard content and preserves bold, code blocks, and structure.
+**First-time setup (one-time, if the MCP has not been configured):**
 
-**Workflow:**
-1. Write the comment to a file — e.g. `~/Downloads/jira_<ticket>.html`.
-2. Open it in the default browser (`open <file>` on macOS).
-3. `Cmd+A` → `Cmd+C` in the browser.
-4. Paste into JIRA's visual editor. Formatting transfers intact.
+The Atlassian MCP must be added to the project config and authenticated
+before this workflow can be used. If `getJiraIssue` or `editJiraIssue`
+are not available or return an auth error, guide the user through these
+three steps — each can be run from the Claude Code prompt with a `!` prefix:
 
-**Minimal HTML template:**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  body { font-family: sans-serif; font-size: 14px; line-height: 1.5;
-         max-width: 800px; padding: 24px; }
-  pre  { background: #f4f4f4; border: 1px solid #ddd; border-radius: 3px;
-         padding: 10px; font-size: 13px; white-space: pre-wrap; }
-  code { font-family: monospace; background: #f4f4f4;
-         padding: 1px 4px; border-radius: 2px; font-size: 13px; }
-  p    { margin: 6px 0; }
-</style>
-</head>
-<body>
-  <!-- comment content here -->
-</body>
-</html>
+1. Add the MCP server (project-level, persists across sessions):
+   ```
+   ! claude mcp add --transport http atlassian https://mcp.atlassian.com/v1/mcp
+   ```
+2. Restart the Claude Code session so the new MCP is loaded.
+3. Authenticate via the browser OAuth flow (Okta SSO):
+   Run `/mcp` in the Claude Code prompt and follow the browser prompt.
+
+After completing these steps, retry the `getJiraIssue` call to confirm
+the connection is live before continuing with the workflow.
+
+**If the MCP is unavailable mid-session** (e.g. auth expired), surface
+the error message to the user and ask them to run `/mcp` to re-authenticate,
+then retry. Do not fall back to the HTML file workflow.
+
+**Why:** The Description field is machine-readable, survives the MCP
+read/write round-trip (markdown format), and enables the S-16 lookup
+workflow (reading prior fix history for re-offenders). Jira comments cannot
+be read back via the MCP.
+
+**Section format — mandatory fields:**
+```
+### (flaky-fix) "it description string"
+
+* **Spec:** spec/path/to/file.rb
+* **Stats:** N build_fails, N flaky_fails (at time of fix)
+* **Satellite-fixes:** "sibling test description" (filename.rb), "another sibling" (filename.rb)
+* **Error:** <error signature — single line, no forced breaks>
+* **Root cause:** <prose — single line; include satellite-specific notes inline if needed>
+* **Fix applied (PS NNNNN):** <prose — single line>
+* **If insufficient:** <next steps — single line>
 ```
 
-**Content structure** (one `<p>` per field, `<strong>` for labels,
-`<pre>` for error output, `<code>` for inline identifiers):
-```html
-<p><strong>Test:</strong> spec/path/to/spec.rb:LINE</p>
-<p><strong>Stats:</strong> N build_fails, N flaky_fails</p>
-<p><strong>Error:</strong></p>
-<pre>paste raw error here</pre>
-<p><strong>Root cause:</strong></p>
-<p>Explanation using <code>method_name</code> for inline code.</p>
-<p><strong>Fix applied (PS NNNNNN):</strong></p>
-<p>Description.</p>
-<p><strong>If this fix proves insufficient:</strong></p>
-<p>Next steps.</p>
+**Optional fields** — add these between the mandatory ones when the original
+comment contains the corresponding information:
+
+| Field | When to add | Placement |
+|---|---|---|
+| `* **Prior fixes (S-16):**` | Test already had a `# flaky-fix:` tag | between Stats and Error |
+| `* **Server-side cause:**` | Server log shows a distinct cause (e.g. Rails RoutingError behind a Selenium WebDriverError) | after Error |
+| `* **Timeline:**` or `* **Breakdown timeline:**` | MHTML or Observe CSV provides a timeline | as a sub-bullet of Root cause, or after Prior fixes |
+
+Additional named bullets may be added freely — the format is extensible.
+Use the same `* **Label:** value` pattern.
+
+Each property is a bullet on a **single unbroken line** — Jira wraps long
+lines automatically in the UI. Property labels are bold for scannability.
+
+For properties with multiple distinct points (e.g. a multi-step fix or a
+list of rejected approaches), sub-bullets are supported and survive the
+round-trip. Use a blank line after the parent bullet label, then indent
+sub-bullets with 2+ spaces (Jira normalises to 4):
+
+```
+* **Fix applied (PS NNNNN):**
+  * First change made and why.
+  * Second change made and why.
+  * Rejected: approach X — reason it failed.
 ```
 
-**Trailing spaces:** strip all trailing spaces from every line. They cause
-extra blank lines in JIRA's visual editor after paste.
+**Including a code block inside a sub-bullet group:** wrap the code fence
+as its own sub-bullet item (`  * ``` ... ```). This keeps all sibling
+sub-bullets at the same indent level — no context break. Write with 2+
+spaces of indentation on the fence and its content; Jira normalises to 4:
 
-**File naming:** `jira_<TICKET>_<short_test_name>.html` — e.g.
-`jira_qe141_serializer.html`. One file per test comment so each can be
-pasted independently.
+```
+* **Fix applied (PS NNNNN):**
+  * Prose description of the change.
+  * ```
+    code_example_here
+    ```
+  * Next sub-bullet continues at the same level.
+```
 
-*Introduced: QE-141*
+**Avoid** placing a fenced code block as a free-standing top-level element
+between sub-bullets — that breaks out of the list context and all items
+after the code block revert to top-level bullets.
+
+**Primary vs satellite:**
+- The **primary section** is the test that drove the investigation — full
+  analysis goes here.
+- **Satellite-fixes** lists other changes made in the same pass with the same
+  root cause. This includes:
+  - Other `it` tests fixed (same pattern, proactive): `"it description" (filename.rb)`
+  - Source fixes (e.g. `after :all` blocks added to contaminating spec files):
+    `` `reload_routes!` added to horizon_mode_spec.rb, ... — source fixes, not `it` blocks ``
+  No separate sections for satellites — any satellite-specific details go
+  inline in the Root cause or Fix applied prose.
+- When a fix is revised after CI failure, replace the section entirely and
+  fold lessons learned into the new version.
+
+**Section delimiter:** the `### (flaky-fix)` heading itself. No separator
+line between sections — a blank line between the last bullet of one section
+and the `###` heading of the next is sufficient.
+
+**Workflow — posting a new fix after approval:**
+1. `getJiraIssue(JIRA_KEY, fields=["description"], responseContentFormat="markdown")`
+   — read the current Description.
+2. Scan for a `### (flaky-fix)` header matching the `it` description:
+   - **Match found** → replace the entire section (revised fix).
+   - **No match** → append a blank line then the new section.
+3. `editJiraIssue(JIRA_KEY, fields={description: <updated content>}, contentFormat="markdown")`
+   — write back.
+
+**Workflow — migrating raw comments into the structured format (Phase 1.5):**
+1. `getJiraIssue` — read the raw comment blocks from Description.
+2. **Run `git grep` to enumerate every tagged line:**
+   ```
+   git grep -n "flaky-fix:.*QE-NNN" -- spec/
+   ```
+   This is the authoritative list of what was changed in the batch. Cross-check
+   against the raw comments to verify no satellites are missing — the comments
+   sometimes omit satellites that are visible in git.
+3. **Resolve `it` descriptions** for any raw comment that only gives a line
+   number: `sed -n 'LINE,+3p' spec/path/to/file.rb` to find the `it` line.
+4. **Map tagged lines to sections:**
+   - Primary = the test whose failure drove the investigation (usually the one
+     with the full error report in the comments)
+   - Satellites = all other tagged `it` lines in the same batch
+   - Source fixes (e.g. `reload_routes!`, `ensure` blocks in contaminating tests)
+     = list in Satellite-fixes with `— source fixes, not it blocks` annotation
+     if they are not `it` blocks themselves; list normally if they are `it` blocks
+5. Compose sections and write back via `editJiraIssue`.
+
+**Parse notes (validated 2026-06-16):**
+- `(flaky-fix)` round-trips without any escaping — match heading lines as-is.
+- Bold markers (`**Key:**`) round-trip cleanly — strip `* **Key:** ` prefix
+  to extract field values.
+- Bullet lines have no trailing `  ` hard breaks.
+
+**Character escaping (Jira ADF → markdown round-trip, exhaustively tested):**
+
+Jira escapes these characters when converting ADF back to markdown:
+
+| Character | Escaped to | Preferred alternative in prose |
+|---|---|---|
+| `~` | `\~` | spell out "approx" or use `≈` |
+| `[` `]` | `\[` `\]` | use `(` `)` for grouping in prose |
+| `*` (bare, not bold/italic) | `\*` | use `x` for multiply, avoid stray asterisks |
+| `` ` `` (bare, not in code span) | `` \` `` | wrap in a proper code span instead |
+
+Additional behaviours to be aware of:
+- `*italic*` → `_italic_` (normalised, not escaped — safe, renders identically)
+- `&amp;` → `&` (HTML entity decoded — write `&` directly, never `&amp;`)
+- `_` mid-word (e.g. `some_method`) — **safe**, not escaped
+
+These characters are all **safe** (no escaping): `( ) { } # + - . ! | > < ^ & \ @ $ % = /`
+
+**General rule:** use plain prose phrasing or code spans (`` `identifier` ``) for
+technical content. Code spans survive intact and are the right tool for method
+names, flags, and error class names — which is most of what goes in these fields.
+
+**cloudId:** `4d2c21bc-0f18-46c6-947f-0d0dcbab3ca3` (instructure.atlassian.net)
+
+*Introduced: QE-141 (HTML workflow), replaced by MCP workflow: QE-157*
 
 ---
 
@@ -643,10 +747,37 @@ insufficient.
 
 **How to retrieve the prior fix:**
 
+**Step 1 — Read from Jira Description (primary, richest context):**
+
+For each JIRA key in the `# flaky-fix:` tag list, look up the structured
+`(flaky-fix)` section in that ticket's Description via MCP:
+
+```
+getJiraIssue(QE-NNN, fields=["description"], responseContentFormat="markdown")
+```
+
+Then locate the relevant section using this lookup order:
+
+1. **Primary hit** — scan for a `### (flaky-fix)` heading whose quoted
+   `it` description matches the test being investigated.
+2. **Satellite hit** — if no heading match, scan each section's
+   `* **Satellite-fixes:**` line for the `it` description (strip the
+   `(filename.rb)` suffix before matching).
+3. **Section found** → read the full section (Root cause, Fix applied,
+   If insufficient) into context before classifying the current failure.
+4. **No section found** (ticket not yet migrated) → fall back to git.
+
+**Step 2 — Fall back to git (if Jira has no structured section):**
+
 ```bash
 git log --all --oneline | grep <JIRA>   # find the commit(s)
 git show <sha> -- <spec_file>           # read the exact diff
 ```
+
+Use the git diff to reconstruct what was changed and why. After the
+current fix is complete, the new batch ticket's `(flaky-fix)` section
+should record the prior fix relationship in the Prior fixes (S-16) field
+(Outcome A/B/C) so future lookups find it in Jira directly.
 
 **How to assess whether a prior fix helped:**
 

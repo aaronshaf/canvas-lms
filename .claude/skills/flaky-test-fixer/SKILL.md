@@ -4,7 +4,7 @@ description: >
   Fix flaky Ruby RSpec tests in Canvas LMS. Classifies failure patterns,
   applies documented fixes from the KB, and drives the full batch workflow.
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Bash, Edit, Write, Agent, AskUserQuestion]
+allowed-tools: [Read, Grep, Glob, Bash, Edit, Write, Agent, AskUserQuestion, mcp__atlassian__getJiraIssue, mcp__atlassian__editJiraIssue]
 ---
 
 ## Purpose
@@ -54,11 +54,15 @@ For each test (or group):
    backtrace, Rails log entries, and screenshot observations.
 2. **Read the full spec file** — not just the failing line. Check
    `before` blocks, shared contexts, and helper methods.
-   If the test already carries a `# flaky-fix:` tag, retrieve the
-   prior fix per S-16 and ask the user for the detailed breakdown CSV
-   from the Observe worksheet. Build a daily failure timeline and
-   compare the rate before vs after each prior fix merge to determine
-   whether each fix helped, partially helped, or had no effect.
+   If the test already carries a `# flaky-fix:` tag:
+   - For each JIRA key in the tag, call `getJiraIssue` and scan the
+     Description for a matching `(flaky-fix)` section per S-16.
+     This gives the prior root cause, what was tried, and the fallback
+     plan — feed this into classification before reading the new failure.
+   - Ask the user for the detailed breakdown CSV from the Observe
+     worksheet. Build a daily failure timeline and compare the rate
+     before vs after each prior fix merge to determine whether each fix
+     helped, partially helped, or had no effect.
 3. **Classify** using the table below. Read the referenced case file.
 4. **Present the root-cause analysis** to the user before implementing.
 5. **Implement the fix locally** following the case's procedure. Tag the
@@ -74,13 +78,41 @@ For each test (or group):
 8. **Check for sibling tests** with the same pattern — fix proactively.
 9. **Show the diff** so the user can review both the analysis and the
    code changes together before approving.
-10. **Once the user approves:** `git add` the changed files,
-    `git commit --amend --no-edit` (same Change-Id per S-05 in
-    `kb/style.md`), push to Gerrit, and generate the JIRA comment as
-    an HTML file per S-02 (in `kb/style.md`).
+10. **Once the user approves:**
+
+    **a. Commit and push:**
+    `git add` the changed files, `git commit --amend --no-edit`
+    (same Change-Id per S-05), push to Gerrit.
+
+    **b. Capture the PS number** from the push output. Gerrit prints
+    the change URL in the push response:
+    `remote: https://gerrit.instructure.com/c/canvas-lms/+/NNNNN`
+    Extract NNNNN — this is the PS number for the "Fix applied" field.
+
+    **c. Post to Jira** using the MCP workflow from S-02. Compose the
+    `(flaky-fix)` section from the data already in session context:
+
+    | Field | Source |
+    |---|---|
+    | `it` description | read from the spec file in step 2 |
+    | Spec path | from the CSV row / failure report |
+    | Stats | from the CSV row provided in Phase 1 |
+    | Satellite-fixes | from step 8 (sibling tests fixed) |
+    | Error | from the failure report (MHTML error line) |
+    | Prior fixes (S-16) | from step 2 (if `# flaky-fix:` tag existed) |
+    | Root cause | from the analysis in steps 3–4 |
+    | Fix applied (PS NNNNN) | from the analysis + PS number from step b |
+    | If insufficient | from the analysis |
+
+    Then follow the S-02 workflow: `getJiraIssue` → scan for existing
+    section → append or replace → `editJiraIssue`.
+
+    **d. If the MCP call fails** (tools unavailable or auth error):
+    follow the first-time setup instructions in S-02, then retry.
+    Do not fall back to HTML files.
 
 Each test fix is pushed to the PS before moving to the next test.
-After pushing, ask: *"Ready for the next test?"*
+After pushing and posting to Jira, ask: *"Ready for the next test?"*
 
 ### Phase 3 — Close out
 
