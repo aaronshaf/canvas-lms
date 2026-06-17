@@ -312,6 +312,7 @@ module Api::V1::PlannerItem
     return nil unless assignment
     return nil unless submission_info
     return nil unless submission_info[:submitted] || submission_info[:graded] || submission_info[:has_feedback]
+    return nil if assignment.context.is_a?(Course) && assignment.context.feature_enabled?(:assignments_2_student)
 
     context_url(assignment.context, :context_assignment_submission_url, assignment.id, current_principal.user)
   end

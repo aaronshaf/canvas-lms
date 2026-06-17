@@ -887,6 +887,22 @@ describe Api::V1::PlannerItem do
       graded_submission_model(assignment: @checkpoint_topic, user: @student).update(score: 5)
       expect(api.planner_item_json(@checkpoint_topic, @student.principal, session)[:html_url]).to eq "course_assignment_submission_url"
     end
+
+    context "with assignments_2_student enabled" do
+      before { @course.enable_feature!(:assignments_2_student) }
+
+      it "links to the assignment page even when submitted" do
+        assignment_model course: @course, submission_types: "online_text_entry"
+        @assignment.submit_homework(@student, body: "...")
+        expect(api.planner_item_json(@assignment, @student.principal, session)[:html_url]).to eq "named_context_url"
+      end
+
+      it "links to the discussion topic page even when the graded discussion is submitted" do
+        group_discussion_assignment
+        graded_submission_model(assignment: @topic.assignment, user: @student).update(score: 5)
+        expect(api.planner_item_json(@topic.assignment, @student.principal, session)[:html_url]).to eq "named_context_url"
+      end
+    end
   end
 
   describe "sharding" do
