@@ -1005,13 +1005,18 @@ class FilesController < ApplicationController
   end
   protected :temporary_file?
 
+  VALID_CREATE_PENDING_INTENTS = %w[upload comment submit attach_discussion_file message submissions_zip_upload].freeze
+
   def create_pending
     # to what entity should the attachment "belong"?
     # regarding which entity is the attachment being created?
     # with what intent is the attachment being created?
     @context = Context.find_by_asset_string(params[:attachment][:context_code])
     @asset = Context.find_asset_by_asset_string(params[:attachment][:asset_string], @context) if params[:attachment][:asset_string]
-    intent = params[:attachment][:intent]
+    intent = params[:attachment][:intent].presence
+    if intent && !VALID_CREATE_PENDING_INTENTS.include?(intent)
+      return render status: :unprocessable_content, json: { message: "invalid intent" }
+    end
 
     # Discussions Redesign is now using this endpoint and this is how we make it work for them.
     # We need to find the asset if it's a discussion topic and the asset_string is provided.

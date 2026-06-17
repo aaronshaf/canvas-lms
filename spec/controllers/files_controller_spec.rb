@@ -1836,6 +1836,28 @@ describe FilesController do
       expect(response).to redirect_to login_url
     end
 
+    it "rejects unknown intent values with 422" do
+      user_session(@teacher)
+      post "create_pending", params: { attachment: {
+        context_code: @course.asset_string,
+        filename: "bob.txt",
+        intent: "bogus_intent"
+      } }
+      expect(response).to have_http_status :unprocessable_content
+      expect(assigns[:attachment]).to be_nil
+    end
+
+    it "accepts submissions_zip_upload intent (gradebook re-upload flow)" do
+      user_session(@teacher)
+      post "create_pending", params: { attachment: {
+        context_code: @teacher.asset_string,
+        filename: "submissions.zip",
+        intent: "submissions_zip_upload"
+      } }
+      expect(response).to be_successful
+      expect(assigns[:attachment]).not_to be_nil
+    end
+
     it "creates file placeholder (in local mode)" do
       local_storage!
       user_session(@teacher)
