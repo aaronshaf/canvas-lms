@@ -19,14 +19,15 @@
 
 module AiExperiences
   class ConversationSnapshotService
-    # Computes snapshot counts from a pre-queried array of latest conversations.
-    # Used by the show page, which owns its own query (it preloads users etc.).
-    def self.counts_from_conversations(latest_conversations, student_ids)
-      users_with_conv = latest_conversations.to_set(&:user_id)
+    # Snapshot counts from a pre-queried array of latest conversations (one row
+    # per student) plus the total student count. Callers scope the conversations
+    # to the student set, so students without a conversation are simply
+    # student_count minus the rows present.
+    def self.counts_from_conversations(latest_conversations, student_count)
       {
         completed: latest_conversations.count(&:completed?),
         in_progress: latest_conversations.count { |c| c.active? && !c.completed? },
-        not_started: student_ids.count { |id| !users_with_conv.include?(id) }
+        not_started: student_count - latest_conversations.length
       }
     end
 
@@ -44,7 +45,7 @@ module AiExperiences
 
       by_experience = latest_convs.group_by(&:ai_experience_id)
       experience_ids.index_with do |exp_id|
-        counts_from_conversations(by_experience[exp_id] || [], student_ids)
+        counts_from_conversations(by_experience[exp_id] || [], student_ids.size)
       end
     end
   end

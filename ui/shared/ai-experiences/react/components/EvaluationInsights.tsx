@@ -23,10 +23,12 @@ import {Text} from '@instructure/ui-text'
 import {Heading} from '@instructure/ui-heading'
 import {Pill} from '@instructure/ui-pill'
 import {Spinner} from '@instructure/ui-spinner'
-import {IconCompleteLine, IconAiColoredSolid} from '@instructure/ui-icons'
+import {Alert} from '@instructure/ui-alerts'
+import {Button} from '@instructure/ui-buttons'
+import {IconCompleteLine, IconAiColoredSolid, IconRefreshLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {EvaluationMetric, ConversationEvaluation, LlmaError} from '../../types'
-import {RADIUS_MD} from '../brand'
+import {RADIUS_MD, navButtonTheme} from '../brand'
 import AIExperienceError from './AIExperienceError'
 
 const I18n = createI18nScope('ai_experiences_ai_conversations')
@@ -36,11 +38,17 @@ interface EvaluationInsightsProps {
   evaluation?: ConversationEvaluation | null
   isLoading: boolean
   error?: LlmaError | null
+  stale?: boolean
+  isRegenerating?: boolean
+  onRegenerate?: () => void
 }
 
+// Match both the current GA metric names ("Objectives", "Opportunities") and the
+// pre-GA names, so the built-in evaluation sections render for experiences
+// created under either naming.
 const SUMMARY_NAMES = ['summary']
-const LEARNING_TARGETS_NAMES = ['learning targets met', 'learning targets']
-const AREAS_NAMES = ['areas for improvement', 'areas for improvements']
+const LEARNING_TARGETS_NAMES = ['objectives', 'learning targets met', 'learning targets']
+const AREAS_NAMES = ['opportunities', 'areas for improvement', 'areas for improvements']
 
 function renderMetricContent(
   metric: EvaluationMetric,
@@ -88,6 +96,13 @@ function renderMetricContent(
             </Flex.Item>
             <Flex.Item shouldGrow shouldShrink>
               <Text size="small">{item.objective}</Text>
+              {item.met && item.met_at_turn != null && (
+                <View as="div" margin="xxx-small 0 0 0">
+                  <Text size="x-small">
+                    {I18n.t('Met at turn %{turn}', {turn: item.met_at_turn})}
+                  </Text>
+                </View>
+              )}
             </Flex.Item>
           </Flex>
         ))}
@@ -129,10 +144,16 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
   evaluation,
   isLoading,
   error,
+  stale = false,
+  isRegenerating = false,
+  onRegenerate,
 }) => {
   const enabledMetrics = metrics.filter(m => m.enabled)
 
   if (!isLoading && !error && enabledMetrics.length === 0) return null
+
+  // Reset is available whenever an evaluation exists (not only when stale).
+  const showReset = Boolean(evaluation) && Boolean(onRegenerate) && !isLoading && !error
 
   return (
     <View
@@ -149,9 +170,38 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
       tabIndex={0}
       aria-label={I18n.t('Evaluation insights')}
     >
-      <Heading level="h3" margin="0 0 medium 0">
-        {I18n.t('Evaluation insights')}
-      </Heading>
+      <Flex
+        justifyItems="space-between"
+        alignItems="center"
+        gap="small"
+        wrap="wrap"
+        margin="0 0 medium 0"
+      >
+        <Flex.Item>
+          <Heading level="h3">{I18n.t('Evaluation insights')}</Heading>
+        </Flex.Item>
+        {showReset && (
+          <Flex.Item shouldShrink={false}>
+            <Button
+              data-testid="evaluation-regenerate-button"
+              renderIcon={<IconRefreshLine size="x-small" />}
+              interaction={isRegenerating ? 'disabled' : 'enabled'}
+              onClick={onRegenerate}
+              themeOverride={navButtonTheme}
+            >
+              {isRegenerating ? I18n.t('Resetting…') : I18n.t('Reset evaluation')}
+            </Button>
+          </Flex.Item>
+        )}
+      </Flex>
+
+      {stale && !isLoading && !error && (
+        <Alert variant="info" margin="0 0 medium 0" data-testid="evaluation-stale-alert">
+          {I18n.t(
+            'This Knowledge check was edited after this evaluation was generated. Reset to get an updated evaluation.',
+          )}
+        </Alert>
+      )}
 
       {error ? (
         <AIExperienceError error={error} />
@@ -171,9 +221,7 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
               <Flex justifyItems="space-between" alignItems="center" margin="0 0 xx-small 0">
                 <Flex.Item>
                   <Text weight="bold" size="medium">
-                    {AREAS_NAMES.includes(metric.name.toLowerCase())
-                      ? I18n.t('Areas for improvement')
-                      : metric.name}
+                    {metric.name}
                   </Text>
                 </Flex.Item>
                 <Flex.Item>

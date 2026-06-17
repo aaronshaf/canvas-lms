@@ -1644,6 +1644,49 @@ describe AiExperiencesController, type: :request do
           expect(json_parse(response.body)["snapshot"]["total_objectives"]).to eq(0)
         end
       end
+
+      context "pagination" do
+        it "limits results to the requested per_page and exposes Link headers" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?per_page=2"
+          expect(response).to be_successful
+          expect(json_parse(response.body)["conversations"].length).to eq(2)
+          expect(response.headers["Link"]).to include('rel="next"')
+        end
+
+        it "returns the remaining students on the next page" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?per_page=2&page=2"
+          expect(response).to be_successful
+          expect(json_parse(response.body)["conversations"].length).to eq(1)
+        end
+
+        it "only includes the whole-roster snapshot on the first page" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?per_page=2"
+          expect(json_parse(response.body)).to have_key("snapshot")
+
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?per_page=2&page=2"
+          expect(json_parse(response.body)).not_to have_key("snapshot")
+        end
+      end
+
+      context "search" do
+        before do
+          @student2.update!(name: "Zzyland Searchable", sortable_name: "Searchable, Zzyland")
+        end
+
+        it "filters students by search_term" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?search_term=Zzyland"
+          expect(response).to be_successful
+          conversations = json_parse(response.body)["conversations"]
+          user_ids = conversations.map { |c| c["user_id"].to_s }
+          expect(user_ids).to include(@student2.id.to_s)
+          expect(user_ids).not_to include(@student3.id.to_s)
+        end
+
+        it "omits the snapshot from search responses" do
+          get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json?search_term=Zzyland"
+          expect(json_parse(response.body)).not_to have_key("snapshot")
+        end
+      end
     end
 
     context "as student" do

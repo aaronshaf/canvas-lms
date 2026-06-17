@@ -47,27 +47,27 @@ describe AiExperiences::ConversationSnapshotService do
 
   describe ".counts_from_conversations" do
     it "returns zero counts when no conversations exist" do
-      counts = described_class.counts_from_conversations([], student_ids)
+      counts = described_class.counts_from_conversations([], student_ids.size)
       expect(counts).to eq(completed: 0, in_progress: 0, not_started: 3)
     end
 
     it "counts completed conversations" do
       conv = create_conversation(@experience, @students[0], all_objectives_met: true)
-      counts = described_class.counts_from_conversations([conv], student_ids)
+      counts = described_class.counts_from_conversations([conv], student_ids.size)
       expect(counts[:completed]).to eq(1)
       expect(counts[:not_started]).to eq(2)
     end
 
     it "counts in_progress conversations" do
       conv = create_conversation(@experience, @students[0], workflow_state: "active", all_objectives_met: false)
-      counts = described_class.counts_from_conversations([conv], student_ids)
+      counts = described_class.counts_from_conversations([conv], student_ids.size)
       expect(counts[:in_progress]).to eq(1)
       expect(counts[:not_started]).to eq(2)
     end
 
     it "counts ended conversations as not in_progress" do
       conv = create_conversation(@experience, @students[0], workflow_state: "ended", all_objectives_met: false)
-      counts = described_class.counts_from_conversations([conv], student_ids)
+      counts = described_class.counts_from_conversations([conv], student_ids.size)
       expect(counts[:in_progress]).to eq(0)
       expect(counts[:not_started]).to eq(2)
     end
@@ -75,7 +75,7 @@ describe AiExperiences::ConversationSnapshotService do
     it "counts all three states correctly" do
       completed = create_conversation(@experience, @students[0], all_objectives_met: true)
       in_progress = create_conversation(@experience, @students[1], workflow_state: "active", all_objectives_met: false)
-      counts = described_class.counts_from_conversations([completed, in_progress], student_ids)
+      counts = described_class.counts_from_conversations([completed, in_progress], student_ids.size)
       expect(counts).to eq(completed: 1, in_progress: 1, not_started: 1)
     end
   end

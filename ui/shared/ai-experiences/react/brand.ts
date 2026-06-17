@@ -43,6 +43,14 @@ export const RADIUS_PILL = '999px' // pill / fully-rounded
 // Reusable InstUI themeOverride: any button that only needs rounded corners (secondary/outline)
 export const buttonTheme = {borderRadius: RADIUS_SM}
 
+// Reusable InstUI themeOverride: white secondary button (nav / reset controls)
+export const navButtonTheme = {
+  borderRadius: RADIUS_SM,
+  secondaryBackground: '#ffffff',
+  secondaryHoverBackground: '#f5f5f5',
+  secondaryActiveBackground: '#ebebeb',
+}
+
 // Reusable InstUI themeOverride: published (green) button
 export const publishedButtonTheme = {
   borderRadius: RADIUS_SM,

@@ -18,7 +18,7 @@
 
 import '@instructure/canvas-theme'
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, fireEvent} from '@testing-library/react'
 import EvaluationInsights from '../EvaluationInsights'
 import type {EvaluationMetric, ConversationEvaluation} from '../../../types'
 
@@ -137,6 +137,36 @@ describe('EvaluationInsights', () => {
       expect(screen.getByText('Identify the commander')).toBeInTheDocument()
     })
 
+    it('shows "Met at turn" for a met talking point with a turn', () => {
+      render(
+        <EvaluationInsights metrics={enabledMetrics} evaluation={evaluation} isLoading={false} />,
+      )
+      expect(screen.getByText('Met at turn 2')).toBeInTheDocument()
+    })
+
+    it('does not show "Met at turn" for an unmet talking point', () => {
+      render(
+        <EvaluationInsights metrics={enabledMetrics} evaluation={evaluation} isLoading={false} />,
+      )
+      // Only the met objective ("Identify the geologist", turn 2) shows a turn line;
+      // the unmet "Identify the commander" (met:false, met_at_turn:null) does not.
+      expect(screen.queryAllByText(/Met at turn/)).toHaveLength(1)
+    })
+
+    it('does not show "Met at turn" when met_at_turn is missing', () => {
+      const evalNoTurn: ConversationEvaluation = {
+        summary: 'No turn data.',
+        learning_objectives_evaluation: [
+          {objective: 'Identify the geologist', met: true, met_at_turn: null},
+        ],
+      }
+      render(
+        <EvaluationInsights metrics={enabledMetrics} evaluation={evalNoTurn} isLoading={false} />,
+      )
+      expect(screen.getByText('Identify the geologist')).toBeInTheDocument()
+      expect(screen.queryByText(/Met at turn/)).not.toBeInTheDocument()
+    })
+
     it('renders areas for improvement as bullet points', () => {
       render(
         <EvaluationInsights metrics={enabledMetrics} evaluation={evaluation} isLoading={false} />,
@@ -196,15 +226,128 @@ describe('EvaluationInsights', () => {
       expect(screen.getByText('No areas identified')).toBeInTheDocument()
     })
 
-    it('normalizes "Areas for improvements" legacy name to "Areas for improvement"', () => {
+    it('shows the configured metric name verbatim and still maps GA names to llma fields', () => {
+      // GA copy: "Objectives" / "Opportunities" must render as-is (no relabeling)
+      // AND resolve to llma's learning_objectives_evaluation / areas_for_improvement.
+      const gaMetrics: EvaluationMetric[] = [
+        {name: 'Objectives', enabled: true, visible_to_learners: false},
+        {name: 'Opportunities', enabled: true, visible_to_learners: false},
+      ]
+      render(<EvaluationInsights metrics={gaMetrics} evaluation={evaluation} isLoading={false} />)
+
+      // Headings keep the GA copy.
+      expect(screen.getByText('Objectives')).toBeInTheDocument()
+      expect(screen.getByText('Opportunities')).toBeInTheDocument()
+      // Content resolves to the llma evaluation fields (not "not yet available").
+      expect(screen.getByText('Identify the geologist')).toBeInTheDocument()
+      expect(screen.getByText('• Could elaborate on reasoning')).toBeInTheDocument()
+      expect(screen.queryByText('Evaluation not yet available')).not.toBeInTheDocument()
+    })
+
+    it('still maps the legacy "Learning targets met" / "Areas for improvement" names', () => {
       const legacyMetrics: EvaluationMetric[] = [
-        {name: 'Areas for improvements', enabled: true, visible_to_learners: false},
+        {name: 'Learning targets met', enabled: true, visible_to_learners: false},
+        {name: 'Areas for improvement', enabled: true, visible_to_learners: false},
       ]
       render(
         <EvaluationInsights metrics={legacyMetrics} evaluation={evaluation} isLoading={false} />,
       )
-      expect(screen.getByText('Areas for improvement')).toBeInTheDocument()
-      expect(screen.queryByText('Areas for improvements')).not.toBeInTheDocument()
+      expect(screen.getByText('Identify the geologist')).toBeInTheDocument()
+      expect(screen.getByText('• Could elaborate on reasoning')).toBeInTheDocument()
+      expect(screen.queryByText('Evaluation not yet available')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('reset button', () => {
+    const evaluation: ConversationEvaluation = {summary: 'Solid work.'}
+
+    it('renders the reset button when an evaluation exists and onRegenerate is provided', () => {
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={false}
+          onRegenerate={() => {}}
+        />,
+      )
+      expect(screen.getByTestId('evaluation-regenerate-button')).toBeInTheDocument()
+    })
+
+    it('does not render the reset button when no evaluation exists', () => {
+      render(
+        <EvaluationInsights metrics={enabledMetrics} isLoading={false} onRegenerate={() => {}} />,
+      )
+      expect(screen.queryByTestId('evaluation-regenerate-button')).not.toBeInTheDocument()
+    })
+
+    it('does not render the reset button while loading', () => {
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={true}
+          onRegenerate={() => {}}
+        />,
+      )
+      expect(screen.queryByTestId('evaluation-regenerate-button')).not.toBeInTheDocument()
+    })
+
+    it('calls onRegenerate when the reset button is clicked', () => {
+      const onRegenerate = jest.fn()
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={false}
+          onRegenerate={onRegenerate}
+        />,
+      )
+      fireEvent.click(screen.getByTestId('evaluation-regenerate-button'))
+      expect(onRegenerate).toHaveBeenCalledTimes(1)
+    })
+
+    it('disables the reset button while regenerating', () => {
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={false}
+          isRegenerating={true}
+          onRegenerate={() => {}}
+        />,
+      )
+      const button = screen.getByTestId('evaluation-regenerate-button')
+      expect(button).toBeDisabled()
+    })
+  })
+
+  describe('stale alert', () => {
+    const evaluation: ConversationEvaluation = {summary: 'Solid work.'}
+
+    it('renders the stale alert when stale is true', () => {
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={false}
+          stale={true}
+          onRegenerate={() => {}}
+        />,
+      )
+      expect(screen.getByTestId('evaluation-stale-alert')).toBeInTheDocument()
+    })
+
+    it('does not render the stale alert when stale is false', () => {
+      render(
+        <EvaluationInsights
+          metrics={enabledMetrics}
+          evaluation={evaluation}
+          isLoading={false}
+          stale={false}
+          onRegenerate={() => {}}
+        />,
+      )
+      expect(screen.queryByTestId('evaluation-stale-alert')).not.toBeInTheDocument()
     })
   })
 })

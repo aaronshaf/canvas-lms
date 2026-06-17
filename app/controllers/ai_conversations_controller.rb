@@ -39,7 +39,8 @@ class AiConversationsController < ApplicationController
   before_action :check_ai_experiences_feature_flag
   before_action :require_access_right
   before_action :load_experience
-  before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
+  before_action :load_conversation, only: %i[post_message destroy show evaluation create_evaluation create_feedback delete_feedback]
+  before_action :require_evaluation_manager, only: %i[evaluation create_evaluation]
 
   rescue_from InstLLMHelper::RateLimitExceededError do
     render json: llm_error_payload(t("You've hit the AI Experiences rate limit. Please try again later."), code: "rate_limited", retryable: true),
@@ -190,16 +191,34 @@ class AiConversationsController < ApplicationController
 
   # @API Get conversation evaluation
   #
-  # Fetch evaluation data for a conversation from the llm-conversation service
+  # Fetch the latest stored evaluation for a conversation from the
+  # llm-conversation service. Reads only — does not run the LLM and is not
+  # rate-limited. `evaluation` is null when none has been generated yet (llma
+  # returns 200 + null, never 404, so this is distinguishable from an outage).
+  # `stale` is true when the AI experience was edited after the stored
+  # evaluation was generated.
   #
-  # @returns {Object} Hash with evaluation metrics
+  # @returns {Object} Hash with { id, evaluation, stale }
   def evaluation
-    # Only teachers can request evaluations
-    permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(current_principal, *permissions)
-      return render_unauthorized_action
-    end
+    result = AiExperiences::ConversationEvaluationService.new(account: @context.root_account).get_latest(
+      conversation_id: @conversation.llm_conversation_id
+    )
 
+    render json: {
+      id: @conversation.id,
+      evaluation: result[:evaluation],
+      stale: result[:stale]
+    }
+  end
+
+  # @API Generate conversation evaluation
+  #
+  # Run the LLM to (re)generate an evaluation for a conversation and persist it
+  # in the llm-conversation service. Rate-limited. Also the Reset path — a fresh
+  # run replaces any prior stored evaluation.
+  #
+  # @returns {Object} Hash with { id, evaluation }
+  def create_evaluation
     evaluation_data = nil
     InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_evaluation")) do
       evaluation_data = AiExperiences::ConversationEvaluationService.new(account: @context.root_account).evaluate(
@@ -268,6 +287,17 @@ class AiConversationsController < ApplicationController
     default = RATE_LIMIT_DEFAULTS.fetch(name)
     limit = Setting.get("ai_experiences.rate_limit.#{name}_daily", default.to_s).to_i
     RateLimitConfig.new(name:, rate_limit: { limit:, period: "day" })
+  end
+
+  # Only course managers (teachers) may read or generate evaluations. Shared by
+  # the evaluation (GET) and create_evaluation (POST) actions so both enforce the
+  # same teacher-only rule.
+  def require_evaluation_manager
+    permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
+    return if @context.grants_any_right?(current_principal, *permissions)
+
+    render_unauthorized_action
+    false
   end
 
   def require_access_right

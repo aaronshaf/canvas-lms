@@ -311,75 +311,56 @@ class AiExperiencesController < ApplicationController
       return render_unauthorized_action
     end
 
-    # Get all students in the course with their enrollments preloaded
-    students = @context.students.distinct
+    # Paginate the roster (only this page is serialized — user_json is the cost).
+    # A search_term filters by name via the standard UserSearch idiom.
+    search_term = params[:search_term].to_s.strip
+    students_scope =
+      if SearchTermHelper.valid_search_term?(search_term)
+        UserSearch.for_user_in_context(search_term, @context, current_principal, session, enrollment_type: "student")
+      else
+        UserSearch.scope_for(@context, current_principal, enrollment_type: "student")
+      end
 
-    # Preload enrollments with sis_pseudonyms to avoid N+1 when calling user_json
-    ActiveRecord::Associations.preload(students, enrollments: :sis_pseudonym)
+    students = Api.paginate(
+      students_scope,
+      self,
+      api_v1_course_ai_experience_ai_conversations_url(@context, @experience),
+      # 50/page (vs the framework default of 10) so the client depaginates the
+      # roster in far fewer round-trips, while keeping each page's user_json
+      # serialization bounded.
+      default_per_page: 50,
+      total_entries: nil
+    )
 
-    # Preload user associations for user_json
-    user_json_preloads(students, accounts: true, pseudonyms: true, profile: true)
+    # Preload only what the rows need (id/name/avatar_url): accounts for
+    # avatar_url's user.account, and shard associations (no-op single-shard).
+    # excludes:["pseudonym"] below skips the admin-only SIS/login lookup, so
+    # enrollments/pseudonyms/profile don't need preloading.
+    user_json_preloads(students)
+    User.preload_shard_associations(students)
 
-    # Build enrollment lookup hash: user_id => enrollment
-    enrollments_by_user = students.flat_map(&:enrollments)
-                                  .select { |e| e.course_id == @context.id && e.workflow_state != "deleted" }
-                                  .group_by(&:user_id)
-                                  .transform_values(&:first)
-
-    # Get all latest conversations for all students in one query to avoid N+1
-    # Group by user_id and get the most recent conversation for each
-    student_ids = students.map(&:id)
+    # Latest conversation per student (one query, indexed for the loop below).
+    page_student_ids = students.map(&:id)
     latest_conversations = @experience.ai_conversations
-                                      .where(user_id: student_ids)
+                                      .where(user_id: page_student_ids)
                                       .where.not(workflow_state: "deleted")
                                       .select("DISTINCT ON (user_id) *")
                                       .order(:user_id, updated_at: :desc)
                                       .to_a
-
-    # Preload users on conversations to avoid N+1
-    ActiveRecord::Associations.preload(latest_conversations, :user)
-
-    # Build a hash for quick lookup: user_id => conversation
     conversations_by_user = latest_conversations.index_by(&:user_id)
 
-    # Compute snapshot counts
-    counts = AiExperiences::ConversationSnapshotService
-             .counts_from_conversations(latest_conversations, student_ids)
-    completed_count   = counts[:completed]
-    in_progress_count = counts[:in_progress]
-    not_started_count = counts[:not_started]
-    total_objectives = begin
-      AiExperiences::ConversationContextStatsService.new(account: @context.root_account)
-                                                    .total_objectives(context_id: @experience.llm_conversation_context_id)
-    rescue LlmConversation::Errors::ConversationError
-      0
-    end
-    evaluation_metrics = @experience.ai_experience_evaluation_metrics.map do |m|
-      { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
-    end
-    snapshot = {
-      completed: completed_count,
-      in_progress: in_progress_count,
-      not_started: not_started_count,
-      total_objectives:,
-      evaluation_metrics:
-    }
-
-    # For each student, get their latest conversation for this experience
     conversations = students.map do |student|
       latest_conversation = conversations_by_user[student.id]
-      enrollment = enrollments_by_user[student.id]
+
+      # Serialize the preloaded `student`; excludes "pseudonym" skips the
+      # admin-only SIS/login work this endpoint doesn't surface.
+      student_info = user_json(student, current_principal, session, ["avatar_url"], @context, nil, ["pseudonym"])
 
       if latest_conversation
-        # Need to manually build student info to pass enrollment
-        student_info = user_json(latest_conversation.user, current_principal, session, ["avatar_url"], @context, nil, [], enrollment)
         json = api_json(latest_conversation, current_principal, session, {})
         json[:student] = student_info
         json
       else
-        # Include students without conversations
-        # Pass enrollment to user_json to avoid N+1 query for sis_pseudonym
-        student_info = user_json(student, current_principal, session, ["avatar_url"], @context, nil, [], enrollment)
         {
           id: nil,
           user_id: student.id.to_s,
@@ -393,7 +374,11 @@ class AiExperiencesController < ApplicationController
       end
     end
 
-    render json: { conversations:, snapshot: }
+    # The snapshot is whole-roster (not page-scoped), so only compute and return
+    # it on the first unfiltered page. The client caches it across paging/search.
+    snapshot = (search_term.blank? && first_page?) ? ai_conversations_snapshot : nil
+
+    render json: { conversations:, snapshot: }.compact
   end
 
   # @API Show student AI conversation
@@ -432,6 +417,41 @@ class AiExperiencesController < ApplicationController
   end
 
   private
+
+  # True when no explicit page was requested or it's page 1. Used to decide
+  # whether to attach the whole-roster snapshot to a paginated response.
+  def first_page?
+    params[:page].blank? || params[:page].to_s == "1"
+  end
+
+  # Whole-roster snapshot (counts across every student, not just the page).
+  def ai_conversations_snapshot
+    students = @context.students.distinct
+    latest_conversations = @experience.ai_conversations
+                                      .where(user_id: students.select(:id))
+                                      .where.not(workflow_state: "deleted")
+                                      .select("DISTINCT ON (user_id) *")
+                                      .order(:user_id, updated_at: :desc)
+                                      .to_a
+    counts = AiExperiences::ConversationSnapshotService
+             .counts_from_conversations(latest_conversations, students.count)
+    total_objectives = begin
+      AiExperiences::ConversationContextStatsService.new(account: @context.root_account)
+                                                    .total_objectives(context_id: @experience.llm_conversation_context_id)
+    rescue LlmConversation::Errors::ConversationError
+      0
+    end
+    evaluation_metrics = @experience.ai_experience_evaluation_metrics.map do |m|
+      { name: m.name, enabled: m.enabled, visible_to_learners: m.visible_to_learners }
+    end
+    {
+      completed: counts[:completed],
+      in_progress: counts[:in_progress],
+      not_started: counts[:not_started],
+      total_objectives:,
+      evaluation_metrics:
+    }
+  end
 
   def check_ai_experiences_feature_flag
     unless @context&.feature_enabled?(:ai_experiences)

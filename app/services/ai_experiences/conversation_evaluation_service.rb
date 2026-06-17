@@ -30,5 +30,15 @@ module AiExperiences
       response = @client.post("/conversations/#{conversation_id}/evaluate")
       response["data"]
     end
+
+    # Reads the latest stored evaluation without running the LLM. llma returns
+    # 200 + data:null when none exists, so evaluation is nil (not an error) when
+    # nothing has been generated yet.
+    def get_latest(conversation_id:)
+      raise LlmConversation::Errors::ConversationError, "Conversation ID not set" unless conversation_id
+
+      response = @client.get("/conversations/#{conversation_id}/evaluation")
+      { evaluation: response["data"], stale: response["stale"] }
+    end
   end
 end

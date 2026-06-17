@@ -50,7 +50,6 @@ describe('OverallSnapshot', () => {
   it('displays card labels', () => {
     render(<OverallSnapshot snapshot={mockSnapshot} isLoading={false} />)
     expect(screen.getByText('Talking points included')).toBeInTheDocument()
-    expect(screen.getByText('Avg talking points hit')).toBeInTheDocument()
     expect(screen.getByText('Chats completed')).toBeInTheDocument()
     expect(screen.getByText('Chats in progress')).toBeInTheDocument()
     expect(screen.getByText('Chats not started')).toBeInTheDocument()
@@ -78,15 +77,9 @@ describe('OverallSnapshot', () => {
     expect(screen.getByTestId('overall-snapshot-loading')).toBeInTheDocument()
   })
 
-  it('renders avg met as completed/started fraction', () => {
+  it('does not render the avg talking points hit card', () => {
     render(<OverallSnapshot snapshot={mockSnapshot} isLoading={false} />)
-    // mockSnapshot: completed=6, in_progress=4 → started=10 → "6/10"
-    expect(screen.getByTestId('snapshot-avg-met')).toHaveTextContent('6/10')
-  })
-
-  it('renders avg met as 0/0 when no one has started', () => {
-    const noStarted = {...mockSnapshot, completed: 0, in_progress: 0}
-    render(<OverallSnapshot snapshot={noStarted} isLoading={false} />)
-    expect(screen.getByTestId('snapshot-avg-met')).toHaveTextContent('0/0')
+    expect(screen.queryByTestId('snapshot-avg-met')).not.toBeInTheDocument()
+    expect(screen.queryByText('Avg talking points hit')).not.toBeInTheDocument()
   })
 })

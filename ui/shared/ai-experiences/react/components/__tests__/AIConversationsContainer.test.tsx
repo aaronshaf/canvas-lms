@@ -108,6 +108,11 @@ describe('AIConversationsContainer', () => {
       http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations/conv1', () => {
         return HttpResponse.json(mockConversationDetail)
       }),
+      // The evaluation hook fires for any selected conversation. Default to a
+      // stored evaluation so no generate POST is triggered for unrelated tests.
+      http.get('/api/v1/courses/123/ai_experiences/1/conversations/:id/evaluation', () => {
+        return HttpResponse.json({id: 'conv1', evaluation: {summary: 'Stored'}, stale: false})
+      }),
     )
   })
 
@@ -169,33 +174,75 @@ describe('AIConversationsContainer', () => {
 
     await user.click(screen.getByLabelText('Filter by student'))
 
-    await waitFor(() => expect(screen.getByText('✓ Student One')).toBeInTheDocument())
-    expect(screen.getByText('✓ Student Two')).toBeInTheDocument()
-    expect(screen.getByText('Student Three (No conversation)')).toBeInTheDocument()
+    // Scope to the listbox options — the selected student's label also appears
+    // in the input's screen-reader announcement.
+    await waitFor(() =>
+      expect(screen.getByText('Student One ✓', {selector: '[role="option"]'})).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Student Two ✓', {selector: '[role="option"]'})).toBeInTheDocument()
+    expect(
+      screen.getByText('Student Three (no conversation)', {selector: '[role="option"]'}),
+    ).toBeInTheDocument()
   })
 
   it('disables dropdown options for students without conversations', async () => {
     const user = userEvent.setup()
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
 
-    // Wait for data to load so the select is no longer disabled (pointer-events: none)
-    await waitFor(() => {
-      expect(screen.getByLabelText('Filter by student')).not.toBeDisabled()
-    })
-
     await user.click(screen.getByLabelText('Filter by student'))
 
     await waitFor(() => {
-      expect(screen.getByText('Student Three (No conversation)')).toBeInTheDocument()
+      expect(
+        screen.getByText('Student Three (no conversation)', {selector: '[role="option"]'}),
+      ).toBeInTheDocument()
     })
 
-    const studentThreeOption = screen
-      .getByText('Student Three (No conversation)')
-      .closest('span[role="option"]')
+    const studentThreeOption = screen.getByText('Student Three (no conversation)', {
+      selector: '[role="option"]',
+    })
     expect(studentThreeOption).toHaveAttribute('aria-disabled', 'true')
 
-    const studentOneOption = screen.getByText('✓ Student One').closest('span[role="option"]')
+    const studentOneOption = screen.getByText('Student One ✓', {selector: '[role="option"]'})
     expect(studentOneOption).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('lists students with conversations before those without', async () => {
+    const user = userEvent.setup()
+    // Server returns the no-conversation student first; the UI must reorder so
+    // students with conversations lead.
+    server.use(
+      http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', () =>
+        HttpResponse.json({
+          conversations: [
+            {
+              id: null,
+              user_id: 'student3',
+              has_conversation: false,
+              student: {id: 'student3', name: 'Student Three'},
+            },
+            {
+              id: 'conv1',
+              user_id: 'student1',
+              has_conversation: true,
+              student: {id: 'student1', name: 'Student One'},
+            },
+          ],
+        }),
+      ),
+    )
+
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await user.click(screen.getByLabelText('Filter by student'))
+    await waitFor(() =>
+      expect(screen.getByText('Student One ✓', {selector: '[role="option"]'})).toBeInTheDocument(),
+    )
+
+    const optionTexts = Array.from(document.querySelectorAll('[role="option"]')).map(
+      o => o.textContent || '',
+    )
+    const withConvoIdx = optionTexts.findIndex(t => t.includes('Student One'))
+    const withoutConvoIdx = optionTexts.findIndex(t => t.includes('Student Three'))
+    expect(withConvoIdx).toBeLessThan(withoutConvoIdx)
   })
 
   it('shows student name heading when a student with a conversation is selected', async () => {
@@ -249,6 +296,25 @@ describe('AIConversationsContainer', () => {
     await waitFor(() => expect(screen.getByText('2/4 talking points')).toBeInTheDocument())
   })
 
+  it('shows the turns count pill (one per visible message)', async () => {
+    // mockConversationDetail has 4 messages → 4 turns
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await waitFor(() => expect(screen.getByText('4 turns')).toBeInTheDocument())
+  })
+
+  it('shows a singular turn label for a single-message conversation', async () => {
+    server.use(
+      http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations/conv1', () => {
+        return HttpResponse.json({
+          ...mockConversationDetail,
+          messages: [{role: 'User', text: 'Hello', timestamp: '2025-01-01T00:00:00Z'}],
+        })
+      }),
+    )
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await waitFor(() => expect(screen.getByText('1 turn')).toBeInTheDocument())
+  })
+
   it('shows helpful message when navigating to a student without a conversation', async () => {
     const user = userEvent.setup()
 
@@ -298,7 +364,7 @@ describe('AIConversationsContainer', () => {
     })
   })
 
-  it('disables dropdown while conversations are loading', () => {
+  it('keeps the student picker interactive while conversations are loading', () => {
     server.use(
       http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', async () => {
         await new Promise(resolve => setTimeout(resolve, 100))
@@ -308,7 +374,9 @@ describe('AIConversationsContainer', () => {
 
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
 
-    expect(screen.getByLabelText('Filter by student')).toBeDisabled()
+    // Typeahead stays enabled during load (shows a spinner) so the teacher can
+    // start typing a name immediately instead of waiting for the full roster.
+    expect(screen.getByLabelText('Filter by student')).not.toBeDisabled()
   })
 
   it('renders Previous and Next navigation buttons', async () => {
@@ -485,6 +553,105 @@ describe('AIConversationsContainer', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('ai-conversations-student-heading')).toBeInTheDocument()
+      })
+    })
+
+    it('upgrades the default to a conversation-haver that loads on a later page', async () => {
+      // Page 1 has only a no-conversation student; the conversation-haver arrives
+      // on page 2 via background depagination. The default selection should move
+      // from the page-1 no-conversation student to the conversation-haver.
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations', ({request}) => {
+          const url = new URL(request.url)
+          if (url.searchParams.get('page') === '2') {
+            return HttpResponse.json({
+              conversations: [
+                {
+                  id: 'conv1',
+                  user_id: 'student1',
+                  has_conversation: true,
+                  student: {id: 'student1', name: 'Student One'},
+                },
+              ],
+            })
+          }
+          return HttpResponse.json(
+            {
+              conversations: [
+                {
+                  id: null,
+                  user_id: 'student3',
+                  has_conversation: false,
+                  student: {id: 'student3', name: 'Student Three'},
+                },
+              ],
+            },
+            {
+              headers: {
+                Link: '<http://localhost/api/v1/courses/123/ai_experiences/1/ai_conversations?page=2>; rel="next"',
+              },
+            },
+          )
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('ai-conversations-student-heading')).toHaveTextContent(
+          'Student One',
+        ),
+      )
+    })
+  })
+
+  describe('evaluation panel', () => {
+    const experienceWithMetrics: AIExperience = {
+      ...mockAiExperience,
+      evaluation_metrics: [{name: 'Summary', enabled: true, visible_to_learners: false}],
+    }
+
+    it('shows the reset button when a stored evaluation exists', async () => {
+      render(<AIConversationsContainer aiExperience={experienceWithMetrics} courseId="123" />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-regenerate-button')).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId('evaluation-stale-alert')).not.toBeInTheDocument()
+    })
+
+    it('shows the stale alert when the stored evaluation is stale', async () => {
+      server.use(
+        http.get('/api/v1/courses/123/ai_experiences/1/conversations/:id/evaluation', () => {
+          return HttpResponse.json({id: 'conv1', evaluation: {summary: 'Stored'}, stale: true})
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={experienceWithMetrics} courseId="123" />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-stale-alert')).toBeInTheDocument()
+      })
+    })
+
+    it('regenerates via POST when the reset button is clicked', async () => {
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations/:id/evaluation', () => {
+          return HttpResponse.json({id: 'conv1', evaluation: {summary: 'Regenerated summary'}})
+        }),
+      )
+
+      render(<AIConversationsContainer aiExperience={experienceWithMetrics} courseId="123" />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('evaluation-regenerate-button')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByTestId('evaluation-regenerate-button'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Regenerated summary')).toBeInTheDocument()
       })
     })
   })

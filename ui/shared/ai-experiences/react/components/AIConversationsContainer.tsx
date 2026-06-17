@@ -16,14 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useMemo} from 'react'
 import {InstUISettingsProvider} from '@instructure/emotion'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Heading} from '@instructure/ui-heading'
-import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Button} from '@instructure/ui-buttons'
 import {Spinner} from '@instructure/ui-spinner'
 import {Pill} from '@instructure/ui-pill'
@@ -32,12 +31,13 @@ import {
   IconArrowOpenStartLine,
   IconArrowOpenEndLine,
 } from '@instructure/ui-icons'
-import {AIExperience, LLMConversationMessage} from '../../types'
+import {AIExperience, LLMConversationMessage, StudentConversation} from '../../types'
 import {
   useStudentConversations,
   useConversationDetail,
   useConversationEvaluation,
 } from '../hooks/useAIConversations'
+import StudentConversationPicker, {identifierFor} from './StudentConversationPicker'
 import FocusMode from './FocusMode'
 import MessageThread, {deriveMilestones} from './MessageThread'
 import GradientBorder from './GradientBorder'
@@ -45,19 +45,13 @@ import ConversationHeader from './ConversationHeader'
 import OverallSnapshot from './OverallSnapshot'
 import EvaluationInsights from './EvaluationInsights'
 import AIExperienceError from './AIExperienceError'
-import {roundedTheme, RADIUS_PILL, RADIUS_SM} from '../brand'
+import {roundedTheme, RADIUS_PILL, navButtonTheme} from '../brand'
 
 const I18n = createI18nScope('ai_experiences_ai_conversations')
 
 const expandButtonTheme = {borderRadius: RADIUS_PILL, smallHeight: '1.75rem'}
 const pillTextStyle: React.CSSProperties = {fontWeight: 'bold', color: '#000000'}
 const pillTextSuccessStyle: React.CSSProperties = {fontWeight: 'bold', color: '#03893D'}
-const navButtonTheme = {
-  borderRadius: RADIUS_SM,
-  secondaryBackground: '#ffffff',
-  secondaryHoverBackground: '#f5f5f5',
-  secondaryActiveBackground: '#ebebeb',
-}
 
 interface AIConversationsContainerProps {
   aiExperience: AIExperience
@@ -68,19 +62,30 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   aiExperience,
   courseId,
 }) => {
+  const [searchTerm, setSearchTerm] = useState('')
+
   const {
     conversations,
     snapshot,
     isLoading: isLoadingConversations,
+    isLoadingMore,
     error: conversationsError,
-  } = useStudentConversations(courseId, aiExperience.id)
+  } = useStudentConversations(courseId, aiExperience.id, searchTerm)
+
+  // Students with a conversation first (stable within each group).
+  const sortedConversations = useMemo(
+    () => [...conversations].sort((a, b) => Number(Boolean(b.id)) - Number(Boolean(a.id))),
+    [conversations],
+  )
 
   const [selectedIdentifier, setSelectedIdentifier] = useState<string | undefined>(undefined)
+  // Cached so the header survives search replacing the list.
+  const [selectedStudentData, setSelectedStudentData] = useState<StudentConversation | undefined>(
+    undefined,
+  )
+  const [userSelected, setUserSelected] = useState(false)
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false)
 
-  const selectedStudentData = conversations.find(
-    conv => (conv.id || `user_${conv.user_id}`) === selectedIdentifier,
-  )
   const hasConversation = selectedStudentData?.has_conversation !== false
   const selectedConversationId = hasConversation ? selectedStudentData?.id : undefined
 
@@ -90,46 +95,67 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
     error: conversationError,
   } = useConversationDetail(courseId, aiExperience.id, selectedConversationId || undefined)
 
+  // Gate the evaluation on the conversation loading, so the two llma calls run
+  // serially and can't race on token refresh.
+  const conversationLoaded = Boolean(conversation) && !isLoadingConversation && !conversationError
+
   const {
     evaluation,
+    stale: isEvaluationStale,
     isLoading: isLoadingEvaluation,
+    isRegenerating: isRegeneratingEvaluation,
+    regenerate: regenerateEvaluation,
     error: evaluationError,
-  } = useConversationEvaluation(courseId, aiExperience.id, selectedConversationId || undefined)
+  } = useConversationEvaluation(
+    courseId,
+    aiExperience.id,
+    selectedConversationId || undefined,
+    conversationLoaded,
+  )
 
-  const currentIndex = conversations.findIndex(
-    conv => (conv.id || `user_${conv.user_id}`) === selectedIdentifier,
+  const currentIndex = sortedConversations.findIndex(
+    conv => identifierFor(conv) === selectedIdentifier,
   )
   const hasPrevious = currentIndex > 0
-  const hasNext = currentIndex >= 0 && currentIndex < conversations.length - 1
+  const hasNext = currentIndex >= 0 && currentIndex < sortedConversations.length - 1
 
-  const handleSelectStudent = (_event: React.SyntheticEvent, data: {value?: string | number}) => {
-    setSelectedIdentifier(data.value as string)
+  const selectConversation = (conv: StudentConversation) => {
+    setSelectedIdentifier(identifierFor(conv))
+    setSelectedStudentData(conv)
+  }
+
+  // A teacher's own pick; stops auto-select from overriding it.
+  const selectByUser = (conv: StudentConversation) => {
+    setUserSelected(true)
+    selectConversation(conv)
+  }
+
+  const handleSelectStudent = (identifier: string) => {
+    const conv = sortedConversations.find(c => identifierFor(c) === identifier)
+    if (conv) selectByUser(conv)
   }
 
   const handlePrevious = () => {
-    if (hasPrevious) {
-      const prev = conversations[currentIndex - 1]
-      setSelectedIdentifier(prev.id || `user_${prev.user_id}`)
-    }
+    if (hasPrevious) selectByUser(sortedConversations[currentIndex - 1])
   }
 
   const handleNext = () => {
-    if (hasNext) {
-      const next = conversations[currentIndex + 1]
-      setSelectedIdentifier(next.id || `user_${next.user_id}`)
-    }
+    if (hasNext) selectByUser(sortedConversations[currentIndex + 1])
   }
 
+  // Default to the first student with a conversation (else the first student).
+  // Since the roster depaginates, upgrade a no-conversation pick once a
+  // conversation-haver streams in — until the teacher picks for themselves.
   useEffect(() => {
-    if (conversations.length === 0 || selectedIdentifier) return
-
-    const studentWithConversation = conversations.find(conv => Boolean(conv.id))
-    const studentToSelect = studentWithConversation || conversations[0]
-
-    if (studentToSelect) {
-      setSelectedIdentifier(studentToSelect.id || `user_${studentToSelect.user_id}`)
+    if (userSelected || sortedConversations.length === 0) return
+    const firstWithConversation = sortedConversations.find(conv => Boolean(conv.id))
+    const currentHasConversation = Boolean(selectedStudentData?.id)
+    if (!selectedIdentifier) {
+      selectConversation(firstWithConversation || sortedConversations[0])
+    } else if (firstWithConversation && !currentHasConversation) {
+      selectConversation(firstWithConversation)
     }
-  }, [conversations, selectedIdentifier])
+  }, [sortedConversations, selectedIdentifier, selectedStudentData, userSelected])
 
   const messages: LLMConversationMessage[] =
     conversation?.messages.map(msg => ({
@@ -176,33 +202,16 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
 
       {/* Filter row */}
       <Flex justifyItems="space-between" alignItems="end" margin="0 0 medium 0">
-        <Flex.Item>
-          <SimpleSelect
-            key={`student-select-${conversations.length}`}
-            renderLabel={I18n.t('Filter by student')}
-            value={selectedIdentifier}
-            onChange={handleSelectStudent}
-            placeholder={I18n.t('Select a student')}
-            disabled={isLoadingConversations}
-          >
-            {conversations.map(conv => {
-              const identifier = conv.id || `user_${conv.user_id}`
-              const hasConv = Boolean(conv.id)
-              const displayName = hasConv
-                ? `✓ ${conv.student.name}`
-                : `${conv.student.name} (No conversation)`
-              return (
-                <SimpleSelect.Option
-                  key={identifier}
-                  id={identifier}
-                  value={identifier}
-                  isDisabled={!hasConv}
-                >
-                  {displayName}
-                </SimpleSelect.Option>
-              )
-            })}
-          </SimpleSelect>
+        <Flex.Item width="22rem" shouldShrink>
+          <StudentConversationPicker
+            conversations={sortedConversations}
+            selectedIdentifier={selectedIdentifier}
+            selectedLabel={selectedStudentData?.student.name}
+            isLoading={isLoadingConversations}
+            isLoadingMore={isLoadingMore}
+            onSelect={handleSelectStudent}
+            onSearch={setSearchTerm}
+          />
         </Flex.Item>
         <Flex.Item>
           <Flex gap="small">
@@ -265,6 +274,15 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
               </Pill>
             </Flex.Item>
           )}
+          {messages.length > 0 && (
+            <Flex.Item>
+              <Pill>
+                <span style={pillTextStyle}>
+                  {I18n.t({one: '1 turn', other: '%{count} turns'}, {count: messages.length})}
+                </span>
+              </Pill>
+            </Flex.Item>
+          )}
         </Flex>
       )}
 
@@ -286,8 +304,11 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
                 <EvaluationInsights
                   metrics={aiExperience.evaluation_metrics || []}
                   evaluation={evaluation}
-                  isLoading={isLoadingEvaluation}
+                  isLoading={isLoadingConversation || isLoadingEvaluation}
                   error={evaluationError}
+                  stale={isEvaluationStale}
+                  isRegenerating={isRegeneratingEvaluation}
+                  onRegenerate={regenerateEvaluation}
                 />
               </div>
             </Flex.Item>

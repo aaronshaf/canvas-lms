@@ -723,10 +723,10 @@ describe AiConversationsController do
         }
         mock_service = instance_double(AiExperiences::ConversationEvaluationService)
         allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
-        allow(mock_service).to receive(:evaluate).and_return(@evaluation_data)
+        allow(mock_service).to receive(:get_latest).and_return({ evaluation: @evaluation_data, stale: false })
       end
 
-      it "returns evaluation data for a student conversation" do
+      it "returns the stored evaluation for a student conversation without generating" do
         get :evaluation,
             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
             format: :json
@@ -736,10 +736,43 @@ describe AiConversationsController do
         expect(json_response["id"]).to eq(@conversation.id)
         expect(json_response["evaluation"]).to be_present
         expect(json_response["evaluation"]["overall_score"]).to eq(85)
-        expect(json_response["evaluation"]["overall_assessment"]).to be_present
-        expect(json_response["evaluation"]["learning_objectives_evaluation"]).to be_an(Array)
-        expect(json_response["evaluation"]["strengths"]).to be_an(Array)
-        expect(json_response["evaluation"]["areas_for_improvement"]).to be_an(Array)
+        expect(json_response["stale"]).to be false
+      end
+
+      it "returns evaluation:null and stale:false when none is stored (no 503)" do
+        mock_service = instance_double(AiExperiences::ConversationEvaluationService)
+        allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:get_latest).and_return({ evaluation: nil, stale: false })
+
+        get :evaluation,
+            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+            format: :json
+
+        expect(response).to be_successful
+        json_response = json_parse(response.body)
+        expect(json_response["evaluation"]).to be_nil
+        expect(json_response["stale"]).to be false
+      end
+
+      it "surfaces stale:true when the stored evaluation is stale" do
+        mock_service = instance_double(AiExperiences::ConversationEvaluationService)
+        allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:get_latest).and_return({ evaluation: @evaluation_data, stale: true })
+
+        get :evaluation,
+            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+            format: :json
+
+        json_response = json_parse(response.body)
+        expect(json_response["stale"]).to be true
+      end
+
+      it "does not rate-limit the read path" do
+        expect(InstLLMHelper).not_to receive(:with_rate_limit)
+
+        get :evaluation,
+            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+            format: :json
       end
 
       it "returns 404 for non-existent conversation" do
@@ -753,7 +786,7 @@ describe AiConversationsController do
       it "returns service unavailable with a generic user-safe error on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationEvaluationService)
         allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
-        allow(mock_service).to receive(:evaluate)
+        allow(mock_service).to receive(:get_latest)
           .and_raise(LlmConversation::Errors::ConversationError, "Evaluation service unavailable")
 
         get :evaluation,
@@ -791,6 +824,69 @@ describe AiConversationsController do
             format: :json
 
         expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
+  describe "POST #create_evaluation" do
+    before :once do
+      @student2 = student_in_course(active_all: true, course: @course).user
+      @conversation = @ai_experience.ai_conversations.create!(
+        llm_conversation_id: "student-conv-456",
+        user: @student2,
+        course: @course,
+        root_account: @course.root_account,
+        account: @course.account,
+        workflow_state: "active"
+      )
+    end
+
+    context "as teacher" do
+      before do
+        user_session(@teacher)
+        @evaluation_data = { "overall_score" => 90, "summary" => "Generated." }
+        mock_service = instance_double(AiExperiences::ConversationEvaluationService)
+        allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:evaluate).and_return(@evaluation_data)
+      end
+
+      it "generates and returns a fresh evaluation" do
+        post :create_evaluation,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+             format: :json
+
+        expect(response).to be_successful
+        json_response = json_parse(response.body)
+        expect(json_response["id"]).to eq(@conversation.id)
+        expect(json_response["evaluation"]["overall_score"]).to eq(90)
+      end
+
+      it "rate-limits the generate path" do
+        expect(InstLLMHelper).to receive(:with_rate_limit).and_yield
+
+        post :create_evaluation,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+             format: :json
+      end
+
+      it "returns 404 for non-existent conversation" do
+        post :create_evaluation,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: 99_999 },
+             format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "as student" do
+      before { user_session(@student) }
+
+      it "returns unauthorized when generating an evaluation" do
+        post :create_evaluation,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
+             format: :json
+
+        assert_forbidden
       end
     end
   end
@@ -1140,12 +1236,12 @@ describe AiConversationsController do
       expect(body).not_to include("1000")
     end
 
-    it "renders 429 when #evaluation is over the daily limit, without leaking the limit number" do
+    it "renders 429 when #create_evaluation is over the daily limit, without leaking the limit number" do
       stub_over_limit("ai_experiences_evaluation", limit: 1000)
 
-      get :evaluation,
-          params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
-          format: :json
+      post :create_evaluation,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
+           format: :json
 
       expect(response).to have_http_status(:too_many_requests)
       body = json_parse(response.body)["error"]
@@ -1174,7 +1270,7 @@ describe AiConversationsController do
       expect(received.rate_limit).to eq({ limit: 42, period: "day" })
     end
 
-    it "does not throttle #destroy, #show, #active_conversation, or feedback actions" do
+    it "does not throttle #destroy, #show, #active_conversation, #evaluation, or feedback actions" do
       expect(InstLLMHelper).not_to receive(:with_rate_limit)
       delete :destroy,
              params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },

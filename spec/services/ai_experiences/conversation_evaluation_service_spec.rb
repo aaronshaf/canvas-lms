@@ -96,4 +96,41 @@ describe AiExperiences::ConversationEvaluationService do
       expect { service.evaluate(conversation_id:) }.to raise_error(LlmConversation::Errors::ConversationError)
     end
   end
+
+  describe "#get_latest" do
+    it "gets the evaluation endpoint and returns evaluation + stale" do
+      allow(http_client).to receive(:get)
+        .with("/conversations/#{conversation_id}/evaluation")
+        .and_return({ "data" => evaluation_response["data"], "stale" => false })
+
+      result = service.get_latest(conversation_id:)
+
+      expect(result[:evaluation]["overall_score"]).to eq(75)
+      expect(result[:stale]).to be false
+    end
+
+    it "returns evaluation:nil when llma has none stored (200 + null)" do
+      allow(http_client).to receive(:get)
+        .with("/conversations/#{conversation_id}/evaluation")
+        .and_return({ "data" => nil, "stale" => false })
+
+      result = service.get_latest(conversation_id:)
+
+      expect(result[:evaluation]).to be_nil
+      expect(result[:stale]).to be false
+    end
+
+    it "surfaces stale:true" do
+      allow(http_client).to receive(:get)
+        .and_return({ "data" => evaluation_response["data"], "stale" => true })
+
+      result = service.get_latest(conversation_id:)
+
+      expect(result[:stale]).to be true
+    end
+
+    it "raises ConversationError when conversation_id is not set" do
+      expect { service.get_latest(conversation_id: nil) }.to raise_error(LlmConversation::Errors::ConversationError, /Conversation ID not set/)
+    end
+  end
 end
