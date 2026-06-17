@@ -20,7 +20,7 @@
     "@craftjs/core": "0.2.11",
     "@hookform/resolvers": "^3.9.0",
     "@instructure.ai/aiinfo": "2.11.1",
-    "@instructure/brandable_css": "^3.1.0",
+    "@instructure/brandable_css": "^3.1.1",
     "@instructure/canvas-media": "*",
     "@instructure/debounce": "11.6.0",
     "@instructure/emotion": "11.6.0",
