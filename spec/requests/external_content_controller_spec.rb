@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "lti/concerns/parent_frame_shared_examples"
+require_relative "../controllers/lti/concerns/parent_frame_shared_examples"
 
-describe ExternalContentController, type: :request do
+describe ExternalContentController do
   describe "GET success" do
     it "doesn't require a context" do
       get "/external_content/success/equella"
