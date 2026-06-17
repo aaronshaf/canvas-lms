@@ -674,8 +674,8 @@ class Message < ApplicationRecord
   # path_type - The path to send the message across, e.g, 'email'.
   #
   # Returns nothing.
-  def parse!(path_type = nil, root_account: nil)
-    raise StandardError, "Cannot parse without a context" unless context
+  def parse!(path_type = nil, root_account: nil, asset: context)
+    raise StandardError, "Cannot parse without an asset" unless asset
 
     # set @root_account using our pre_loaded_account, because link_root_account
     # is called many times.
@@ -686,7 +686,7 @@ class Message < ApplicationRecord
     Time.zone          = user_time_zone
 
     # (temporarily) override course name with user's nickname for the course
-    hacked_course = apply_course_nickname_to_asset(context, user)
+    hacked_course = apply_course_nickname_to_asset(asset, user)
 
     path_type ||= communication_channel.try(:path_type) || "email"
 
@@ -698,11 +698,10 @@ class Message < ApplicationRecord
       message_body_template = get_template(filename)
     end
 
-    context, asset, user, delayed_messages, data = [self.context,
-      self.context,
-self.user,
-@delayed_messages,
-@data]
+    context, user, delayed_messages, data = [self.context,
+                                             self.user,
+                                             @delayed_messages,
+                                             @data]
 
     link_root_account.shard.activate do
       if message_body_template.present?
