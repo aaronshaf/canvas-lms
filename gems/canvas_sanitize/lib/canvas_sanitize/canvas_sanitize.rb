@@ -36,7 +36,7 @@ class Sanitize
       #
       # http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#embedding-custom-non-visible-data-with-the-data-*-attributes
       remove_const(:REGEX_DATA_ATTR)
-      REGEX_DATA_ATTR = /\Adata-(?!xml|kyle-menu|turn-into-dialog|flash-message|popup-within|html-tooltip-title|method)[a-z_][\w.\u00E0-\u00F6\u00F8-\u017F\u01DD-\u02AF-]*\z/u
+      REGEX_DATA_ATTR = /\Adata-(?!xml|kyle-menu|turn-into-dialog|flash-message|popup-within|html-tooltip-title)[a-z_][\w.\u00E0-\u00F6\u00F8-\u017F\u01DD-\u02AF-]*\z/u
     end
   end
 end
@@ -64,6 +64,7 @@ module CanvasSanitize # :nodoc:
     data
     data-item-href
     data-url
+    data-custom-url
     formaction
     href
     hreflang
@@ -149,6 +150,43 @@ module CanvasSanitize # :nodoc:
 
     encoding = node["encoding"].to_s.downcase.strip
     node.replace(Nokogiri::XML::Text.new("", node.document)) if %w[text/html application/xhtml+xml].include?(encoding)
+  end
+
+  UJS_ATTR_MAP = {
+    "data-method" => "data-custom-method",
+    "data-url" => "data-custom-url",
+    "data-remote" => "data-custom-remote",
+    "data-confirm" => "data-custom-confirm",
+    "data-disable-with" => "data-custom-disable-with",
+    "data-remove" => "data-custom-remove",
+  }.freeze
+
+  rename_ujs_attrs = lambda do |env|
+    node = env[:node]
+    return unless node&.element?
+
+    UJS_ATTR_MAP.each do |src, dst|
+      next unless node[src]
+
+      node[dst] = node[src] unless node[dst]
+      node.remove_attribute(src)
+    end
+
+    # Sanitize's config-based protocol check only covers elements explicitly
+    # listed in protocols (e.g. <a>). Enforce DEFAULT_PROTOCOLS on all
+    # URL-bearing data-* attributes for every element so injections like
+    # <div data-custom-url="javascript:..."> or <div data-item-href="...">
+    # are also rejected regardless of element type.
+    URL_PROTOCOL_ATTRIBUTES.each do |attr|
+      next unless attr.start_with?("data-")
+      next unless (val = node[attr])
+
+      if val =~ Sanitize::REGEX_PROTOCOL
+        node.remove_attribute(attr) unless DEFAULT_PROTOCOLS.include?($1.downcase)
+      else
+        node.remove_attribute(attr) unless DEFAULT_PROTOCOLS.include?(:relative)
+      end
+    end
   end
 
   SANITIZE = {
@@ -753,6 +791,7 @@ module CanvasSanitize # :nodoc:
       "a" => {
         "href" => ["ftp", "http", "https", "mailto", "tel", :relative],
         "data-url" => DEFAULT_PROTOCOLS,
+        "data-custom-url" => DEFAULT_PROTOCOLS,
         "data-item-href" => DEFAULT_PROTOCOLS
       },
       "blockquote" => { "cite" => DEFAULT_PROTOCOLS },
@@ -850,7 +889,7 @@ module CanvasSanitize # :nodoc:
       protocols: DEFAULT_PROTOCOLS
     },
 
-    transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value, scrub_annotation_xml]
+    transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value, scrub_annotation_xml, rename_ujs_attrs]
   }.freeze
 
   # Any allowed element attributes for which we don't explicitly declare a

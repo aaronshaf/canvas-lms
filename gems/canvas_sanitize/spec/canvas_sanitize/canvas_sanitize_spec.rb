@@ -48,11 +48,66 @@ describe CanvasSanitize do
     expect(cleaned).to eq("<p data-item-id=\"1234\">Item1234</p>")
   end
 
-  it "does strip the specific data-method attribute" do
-    input_html = "<a data-method='post'>Data-Method Attr</a>"
-    expected_html = "<a>Data-Method Attr</a>"
-    cleaned = Sanitize.clean(input_html, CanvasSanitize::SANITIZE)
-    expect(cleaned).to eq(expected_html)
+  it "renames data-method to data-custom-method" do
+    cleaned = Sanitize.clean("<a data-method='post'>Data-Method Attr</a>", CanvasSanitize::SANITIZE)
+    expect(cleaned).to eq("<a data-custom-method=\"post\">Data-Method Attr</a>")
+  end
+
+  describe "Rails UJS attribute renaming" do
+    {
+      "data-url" => "data-custom-url",
+      "data-method" => "data-custom-method",
+      "data-remote" => "data-custom-remote",
+      "data-confirm" => "data-custom-confirm",
+      "data-disable-with" => "data-custom-disable-with",
+      "data-remove" => "data-custom-remove",
+    }.each do |src, dst|
+      it "renames #{src} to #{dst}" do
+        cleaned = Sanitize.clean(%(<a #{src}="x">text</a>), CanvasSanitize::SANITIZE)
+        expect(cleaned).to eq(%(<a #{dst}="x">text</a>))
+      end
+    end
+
+    it "keeps data-custom-url when both data-url and data-custom-url are present" do
+      cleaned = Sanitize.clean('<a data-url="original" data-custom-url="kept">text</a>', CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("data-url=")
+      expect(cleaned).to include('data-custom-url="kept"')
+    end
+
+    it "rejects javascript: protocol in data-custom-url on <a>" do
+      cleaned = Sanitize.clean(%(<a data-custom-url="javascript:alert(1)">text</a>), CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("data-custom-url")
+      expect(cleaned).not_to include("javascript")
+    end
+
+    it "rejects javascript: when data-url is on a non-<a> element" do
+      cleaned = Sanitize.clean(%(<div data-url="javascript:alert(1)">text</div>), CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("javascript")
+      expect(cleaned).not_to include("data-custom-url")
+    end
+
+    it "rejects direct data-custom-url injection with javascript: on non-<a> elements" do
+      cleaned = Sanitize.clean(%(<div data-custom-url="javascript:alert(1)">text</div>), CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("javascript")
+      expect(cleaned).not_to include("data-custom-url")
+    end
+
+    it "preserves https data-custom-url on non-<a> elements" do
+      cleaned = Sanitize.clean(%(<div data-url="https://example.com">text</div>), CanvasSanitize::SANITIZE)
+      expect(cleaned).to include('data-custom-url="https://example.com"')
+    end
+
+    it "keeps data-custom-remove when both data-remove and data-custom-remove are present" do
+      cleaned = Sanitize.clean('<a data-remove=".original" data-custom-remove=".kept">click</a>', CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("data-remove=")
+      expect(cleaned).to include('data-custom-remove=".kept"')
+    end
+
+    it "rejects javascript: in data-item-href on non-<a> elements" do
+      cleaned = Sanitize.clean(%(<div data-item-href="javascript:alert(1)">text</div>), CanvasSanitize::SANITIZE)
+      expect(cleaned).not_to include("javascript")
+      expect(cleaned).not_to include("data-item-href")
+    end
   end
 
   it "does not strip track elements" do
