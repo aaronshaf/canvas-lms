@@ -21601,7 +21601,7 @@ mi:
   load_prior_dates_f2b0f6f0: "Uta ngā rā o mua"
   load_user_ids_upon_page_load_so_that_gradebook_loa_c51693aa: "Uta kaiwhakamahi ids i runga i whārangi uta ki a taea ai e Kōekepuka ki te uta tere ake"
   loaded_count_more_rubrics_f83028db: 
-    one: "Kua utaina %{count} ētahi atu rubrics"
+    one: "Kua utaina tētahi atu rubric"
     other: "Kua utaina %{count} ētahi atu rubrics"
   loaded_more_collaborations_13f1d630: "Utaina mahi ngātahi atu."
   loaded_more_developer_keys_7ea76fbe: "Kua utaina nui atu ngā Whakawhanake Kī ."
