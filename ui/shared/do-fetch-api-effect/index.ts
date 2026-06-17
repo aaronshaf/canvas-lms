@@ -129,51 +129,6 @@ export default async function doFetchApi<T = unknown>({
   return {response, link, text}
 }
 
-export type SafelyFetchResults<T> = {
-  json?: T
-  response: Response
-  link?: Links
-}
-
-/**
- * Fetch data from a API endpoint (that returns JSON!) and validate the response against a schema, but only in non-production environments.
- *
- * @deprecated Please use `doFetchWithSchema` instead. This function only validates the response in non-production environments,
- * leading to subtle issues in production where the schema validation or transformation is not applied.
- * @param param0 Arguments to pass along to doFetchApi
- * @param schema The Zod schema to validate the response against, but only in non-production environments.
- * @returns
- */
-export async function safelyFetch<T = unknown>(
-  {path, method = 'GET', headers = {}, params = {}, signal, body}: DoFetchApiOpts,
-  schema: z.Schema<T>,
-): Promise<SafelyFetchResults<T>> {
-  if (!schema) {
-    throw new Error('safelyFetch requires a schema')
-  }
-
-  const {json, response, link} = await doFetchApi<T>({path, method, headers, params, signal, body})
-
-  if (process.env.NODE_ENV !== 'production') {
-    try {
-      schema.parse(json)
-    } catch (err) {
-      // eslint-disable-next-line import/no-named-as-default-member
-      if (err instanceof z.ZodError) {
-        console.group(`Zod parsing error for ${path}`)
-        for (const issue of err.issues) {
-          console.error(`Error at ${issue.path.join('.')} - ${issue.message}`)
-        }
-        console.groupEnd()
-
-        throw err
-      }
-    }
-  }
-
-  return {json, response, link}
-}
-
 export type DoFetchWithSchemaResults<T = unknown> = {
   json: T
 } & DoFetchApiResults<T>
@@ -182,9 +137,6 @@ export type DoFetchWithSchemaResults<T = unknown> = {
  * Fetch data from a API endpoint (that returns JSON!) and validate the response against a schema.
  * If the response is not valid according to the schema, an error will be thrown.
  * Especially useful when used together with TanStack Query to automatically handle errors for you.
- *
- * This function will always validate the response against the schema, regardless of the environment. `safelyFetch`
- * only does schema validation in non-production environments and should thus not be used in new code.
  *
  * @param opts The arguments to pass to doFetchApi
  * @param schema The schema to validate the response against

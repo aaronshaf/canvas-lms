@@ -38,6 +38,7 @@ const accountFixture = {
   default_user_storage_quota_mb: 50,
   default_group_storage_quota_mb: 50,
   default_time_zone: 'America/Denver',
+  default_time_zone_friendly_name: 'Mountain West',
 }
 
 describe('AccountLists', () => {

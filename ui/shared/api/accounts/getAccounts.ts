@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {safelyFetch} from '@canvas/do-fetch-api-effect'
+import {doFetchWithSchema} from '@canvas/do-fetch-api-effect'
 import {ZAccount} from '@canvas/schemas'
 import type {QueryFunctionContext} from '@tanstack/react-query'
 import {z} from 'zod'
@@ -38,7 +38,7 @@ export default async function getAccounts({queryKey, signal}: QueryFunctionConte
     throw new Error('Invalid query key')
   }
   const pageIndex = queryKey[1].pageIndex
-  const {json, link} = await safelyFetch(
+  const {json, link} = await doFetchWithSchema(
     {
       path: `${ACCOUNTS_PATH}?include=course_count,sub_account_count&per_page=${ACC_PER_PAGE}&page=${pageIndex}`,
       method: 'GET',

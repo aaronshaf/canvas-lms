@@ -24,6 +24,7 @@ export const ZAccount = z
     default_group_storage_quota_mb: z.number(),
     default_storage_quota_mb: z.number(),
     default_time_zone: z.string(),
+    default_time_zone_friendly_name: z.string(),
     default_user_storage_quota_mb: z.number(),
     id: z.string(),
     integration_id: z.string().nullish(),
