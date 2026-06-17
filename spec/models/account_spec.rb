@@ -862,6 +862,16 @@ describe Account do
       expect(@account.users_with_permission(:view_feature_flags)).to match_array [@admin1, @admin2]
     end
 
+    it "scopes to the role's account" do
+      expect(Account.default.users_with_permission(:manage_storage_quotas)).to be_empty
+      expect(Account.default.users_with_permission(:view_feature_flags)).to be_empty
+    end
+
+    it "works with account_only: :root permissions" do
+      account_admin_user(user: @admin1, account: Account.default)
+      expect(Account.default.users_with_permission(:become_user)).to match_array [@admin1]
+    end
+
     it "excludes inactive users" do
       @admin1.account_users.find_by(account_id: @account).update!(workflow_state: "deleted")
       expect(@account.users_with_permission(:manage_storage_quotas)).to be_empty

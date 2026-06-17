@@ -933,7 +933,10 @@ class Account < ApplicationRecord
     shard.activate do
       role_ids_with_permission = Rails.cache.fetch([self, "role_ids_with", permission].cache_key, expires_in: 1.hour) do
         roles = Role.where(id: active_account_users.distinct.select(:role_id))
-        roles.filter_map { |role| role.id if RoleOverride.enabled_for?(self, permission, role).include?(:self) }
+        roles.filter_map do |role|
+          role.id if RoleOverride.enabled_for?(self, permission, role, role.account || self)
+                                 .include?(:self)
+        end
       end
       User.where(id: active_account_users.where(role_id: role_ids_with_permission).select(:user_id))
     end
