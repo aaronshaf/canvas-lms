@@ -19,8 +19,9 @@
 module Lti
   describe EulaLaunchController do
     include Lti::RedisMessageClient
+    include WebMock::API
 
-    before :once do
+    before do
       course_with_teacher(active_all: true)
     end
 
@@ -41,24 +42,13 @@ module Lti
         end
       end
 
-      shared_examples "logs launch with Lti::LogService" do
-        before do
-          allow(Lti::LogService).to receive(:new) do
-            instance_double(Lti::LogService, call: nil)
-          end
-        end
-
-        it "logs launch" do
-          expect(Lti::LogService).to receive(:new).with(
-            tool:,
-            context:,
-            user: @teacher,
-            session_id: nil,
-            launch_type: :direct_link,
-            launch_url: tool.launch_url,
-            message_type: "LtiEulaRequest"
-          )
+      shared_examples "logs launch" do
+        it "logs launch event" do
           subject
+
+          expect(response).to have_http_status :ok
+          expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/message_type"]).to eq("LtiEulaRequest")
+          expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/target_link_uri"]).to eq(tool.launch_url)
         end
       end
 
@@ -70,7 +60,7 @@ module Lti
           expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/version"]).to eq("1.3.0")
           expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/deployment_id"]).to eq(tool.deployment_id)
           expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/target_link_uri"]).to eq(tool.launch_url)
-          expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/roles"]).not_to be_nil
+          expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/roles"]).to include(a_string_including("Instructor"))
           expect(id_token_decoded["https://purl.imsglobal.org/spec/lti/claim/eulaservice"]["scope"]).to eq(
             ["https://purl.imsglobal.org/spec/lti/scope/eula/user",
              "https://purl.imsglobal.org/spec/lti/scope/eula/deployment"]
@@ -87,7 +77,7 @@ module Lti
           JSON.parse(launch)["post_payload"]
         end
 
-        subject { get :launch_eula, params: { context_external_tool_id: tool.id, course_id: @course.id } }
+        subject { get "/courses/#{@course.id}/external_tools/#{tool.id}/eula_launch" }
 
         context "with feature disabled" do
           before do
@@ -98,18 +88,16 @@ module Lti
         end
 
         context "with feature enabled" do
-          render_views
           before do
             context.root_account.enable_feature!(:lti_asset_processor)
           end
 
           it_behaves_like "returns 200 with required fields in token"
-
-          it_behaves_like "logs launch with Lti::LogService"
+          it_behaves_like "logs launch"
         end
 
         context "with invalid context_external_tool_id" do
-          subject { get :launch_eula, params: { context_external_tool_id: 0, course_id: @course.id } }
+          subject { get "/courses/#{@course.id}/external_tools/0/eula_launch" }
 
           it_behaves_like "returns 404"
         end
@@ -124,7 +112,7 @@ module Lti
           JSON.parse(launch)["post_payload"]
         end
 
-        subject { get :launch_eula, params: { context_external_tool_id: tool.id, account_id: account.id } }
+        subject { get "/accounts/#{account.id}/external_tools/#{tool.id}/eula_launch" }
 
         context "with feature disabled" do
           before do
@@ -135,19 +123,17 @@ module Lti
         end
 
         context "with feature enabled" do
-          render_views
           before do
             context.root_account.enable_feature!(:lti_asset_processor)
             user_session(@teacher)
           end
 
           it_behaves_like "returns 200 with required fields in token"
-
-          it_behaves_like "logs launch with Lti::LogService"
+          it_behaves_like "logs launch"
         end
 
         context "with invalid context_external_tool_id" do
-          subject { get :launch_eula, params: { context_external_tool_id: 0, account_id: account.id } }
+          subject { get "/accounts/#{account.id}/external_tools/0/eula_launch" }
 
           it_behaves_like "returns 404"
         end

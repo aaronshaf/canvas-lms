@@ -18,41 +18,78 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require_relative "ims/concerns/advantage_services_shared_context"
-require_relative "ims/concerns/lti_services_shared_examples"
+require_relative "../../controllers/lti/ims/concerns/advantage_services_shared_context"
+require_relative "../../controllers/lti/ims/concerns/lti_services_shared_examples"
 
 describe Lti::AccountExternalToolsController do
   include WebMock::API
 
   include_context "advantage services context"
+  include_context "advantage access token context"
 
   before do
     root_account.lti_context_id = SecureRandom.uuid
     root_account.save
   end
 
+  def action_url_for(action, params_overrides)
+    account_id = params_overrides[:account_id]
+    external_tool_id = params_overrides[:external_tool_id]
+
+    case action.to_sym
+    when :show, :destroy, :update
+      "/api/lti/accounts/#{account_id}/external_tools/#{external_tool_id}"
+    when :index, :create
+      "/api/lti/accounts/#{account_id}/external_tools"
+    end
+  end
+
+  def send_http
+    url = action_url_for(action, params_overrides)
+    headers = { "Host" => "test.host" }
+    headers["Authorization"] = "Bearer #{access_token_jwt}" if access_token_jwt
+    case request_method
+    when :get, :delete
+      send(request_method, url, headers:)
+    when :post, :put
+      body_params = (body_overrides || {}).merge(params_overrides.except(:account_id, :external_tool_id, :id))
+      send(request_method,
+           url,
+           params: body_params,
+           headers:)
+    end
+  end
+
+  def send_request
+    send_http
+  end
+
   describe "#show" do
+    let(:action) { :show }
+    let(:request_method) { :get }
+
     it_behaves_like "lti services" do
-      let(:action) { :show }
       let(:expected_mime_type) { described_class::MIME_TYPE }
       let(:scope_to_remove) { "https://canvas.instructure.com/lti/account_external_tools/scope/show" }
       let(:params_overrides) do
         { account_id: root_account.lti_context_id, external_tool_id: tool.id }
       end
+      let(:body_overrides) { {} }
     end
   end
 
   describe "#index" do
+    let(:action) { :index }
+    let(:request_method) { :get }
+
     it_behaves_like "lti services" do
-      let(:action) { :index }
       let(:expected_mime_type) { described_class::MIME_TYPE }
       let(:scope_to_remove) { "https://canvas.instructure.com/lti/account_external_tools/scope/list" }
       let(:params_overrides) do
         { account_id: root_account.lti_context_id }
       end
+      let(:body_overrides) { {} }
     end
-
-    let(:action) { :index }
 
     context "when given just an account id" do
       let(:params_overrides) do
@@ -88,21 +125,26 @@ describe Lti::AccountExternalToolsController do
   end
 
   describe "#destroy" do
+    let(:action) { :destroy }
+    let(:request_method) { :delete }
+
     it_behaves_like "lti services" do
-      let(:action) { :destroy }
       let(:expected_mime_type) { described_class::MIME_TYPE }
       let(:scope_to_remove) { "https://canvas.instructure.com/lti/account_external_tools/scope/destroy" }
       let(:params_overrides) do
         { account_id: root_account.lti_context_id, external_tool_id: tool.id }
       end
+      let(:body_overrides) { {} }
     end
   end
 
   describe "#create" do
     let(:action) { :create }
+    let(:request_method) { :post }
     let(:params_overrides) do
       { account_id: root_account.lti_context_id, client_id: tool_configuration.developer_key.id }
     end
+    let(:body_overrides) { {} }
 
     it_behaves_like "lti services" do
       let(:expected_mime_type) { described_class::MIME_TYPE }
@@ -172,11 +214,12 @@ describe Lti::AccountExternalToolsController do
       end
 
       context "with a locked registration" do
-        before(:once) do
+        before do
           tool_configuration.developer_key.lti_registration.update!(lock_deploying: true)
         end
 
         it "returns 403 if the appropriate flag is enabled" do
+          root_account.enable_feature!(:lock_lti_registrations)
           send_request
           expect(response).to have_http_status :forbidden
         end
