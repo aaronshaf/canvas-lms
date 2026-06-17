@@ -188,6 +188,9 @@
 
 class OutcomeResultsController < ApplicationController
   CACHE_EXPIRATION = 5.minutes
+  # How long to wait before re-enqueuing an on-demand rollup backfill for a
+  # course that still has no stored rollups (e.g. a course with no results).
+  ROLLUP_BACKFILL_THROTTLE = 1.hour
   include Api::V1::OutcomeResults
   include Outcomes::Enrollments
   include Outcomes::ResultAnalytics
@@ -794,6 +797,10 @@ class OutcomeResultsController < ApplicationController
         excludes:
       )
 
+      # A course that was never backfilled has no stored rollups, so LMGB shows
+      # no data. Enqueue a backfill to populate them.
+      maybe_backfill_stored_rollups
+
       # Filter outcomes without results when using stored rollups
       if excludes.include?("missing_outcome_results")
         outcome_ids_with_results = rollups.flat_map(&:scores).map { |score| score.outcome.id }.uniq
@@ -827,6 +834,17 @@ class OutcomeResultsController < ApplicationController
         outcome_results_rollups(results: @outcome_service_results, users: @users, excludes:, context: @context)
       end
     end
+  end
+
+  def maybe_backfill_stored_rollups
+    return unless Account.site_admin.feature_enabled?(:outcomes_rollup_propagation)
+    return if OutcomeRollup.active.where(course_id: @context.id).exists?
+
+    throttle_key = "outcome_rollup_backfill:#{@context.global_id}"
+    return if Rails.cache.read(throttle_key)
+
+    Rails.cache.write(throttle_key, true, expires_in: ROLLUP_BACKFILL_THROTTLE)
+    enqueue_rollup_calculation(course_id: @context.id)
   end
 
   # Filters @users based on enrollment status (concluded/inactive enrollments)

@@ -2835,6 +2835,65 @@ describe OutcomeResultsController do
       end
     end
 
+    context "on-demand rollup backfill" do
+      before do
+        Account.site_admin.enable_feature!(:outcomes_rollup_read)
+        Account.site_admin.enable_feature!(:outcomes_rollup_propagation)
+        allow(Outcomes::StudentOutcomeRollupCalculationService).to receive(:calculate_for_course)
+      end
+
+      it "enqueues a course backfill when reading rollups but none are stored" do
+        get_rollups({})
+
+        expect(Outcomes::StudentOutcomeRollupCalculationService)
+          .to have_received(:calculate_for_course).with(course_id: @course.id)
+      end
+
+      it "does not enqueue a backfill when stored rollups already exist" do
+        OutcomeRollup.create!(
+          course: @course,
+          user: @student1,
+          outcome: @outcome,
+          calculation_method: "highest",
+          aggregate_score: 4.5,
+          last_calculated_at: Time.zone.now
+        )
+
+        get_rollups({})
+
+        expect(Outcomes::StudentOutcomeRollupCalculationService)
+          .not_to have_received(:calculate_for_course)
+      end
+
+      it "does not enqueue a backfill when propagation is disabled" do
+        Account.site_admin.disable_feature!(:outcomes_rollup_propagation)
+
+        get_rollups({})
+
+        expect(Outcomes::StudentOutcomeRollupCalculationService)
+          .not_to have_received(:calculate_for_course)
+      end
+
+      it "does not enqueue a backfill when not reading from the rollup table" do
+        Account.site_admin.disable_feature!(:outcomes_rollup_read)
+
+        get_rollups({})
+
+        expect(Outcomes::StudentOutcomeRollupCalculationService)
+          .not_to have_received(:calculate_for_course)
+      end
+
+      it "only enqueues once per course within the throttle window" do
+        enable_cache do
+          get_rollups({})
+          get_rollups({})
+        end
+
+        expect(Outcomes::StudentOutcomeRollupCalculationService)
+          .to have_received(:calculate_for_course).with(course_id: @course.id).once
+      end
+    end
+
     context "StatsD metrics" do
       before do
         allow(InstStatsd::Statsd).to receive(:time).and_call_original
