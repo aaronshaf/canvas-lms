@@ -18,14 +18,13 @@
 
 import React, {useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import FancyMidnightDueDateInput from '@canvas/datetime/react/components/FancyMidnightDueDateInput'
 
-import {DateTimeInput} from '@instructure/ui-date-time-input'
 import {NumberInput} from '@instructure/ui-number-input'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {RadioInputGroup, RadioInput} from '@instructure/ui-radio-input'
 import {Checkbox} from '@instructure/ui-checkbox'
-import moment from 'moment'
 
 const I18n = createI18nScope('discussion_create')
 
@@ -34,26 +33,6 @@ const peerReviewOptions = [
   {value: 'manually', label: I18n.t('Assign manually'), testid: 'peer_review_manual'},
   {value: 'automatically', label: I18n.t('Automatically assign'), testid: 'peer_review_auto'},
 ]
-
-const fancyMidnightDueTime = '23:59:00'
-
-// @ts-expect-error TS7006 (typescriptify)
-function isFancyMidnightNeeded(value) {
-  const chosenDueTime = moment
-    .utc(value)
-    .tz(ENV.TIMEZONE || 'UTC')
-    .format('HH:mm:00')
-
-  return chosenDueTime === '00:00:00'
-}
-
-// @ts-expect-error TS7006 (typescriptify)
-function setTimeToStringDate(time, date) {
-  const [hour, minute, second] = time.split(':').map(Number)
-  const chosenDate = moment.utc(date).tz(ENV.TIMEZONE || 'UTC')
-  chosenDate.set({hour, minute, second})
-  return chosenDate.isValid() ? chosenDate.utc().toISOString() : date
-}
 
 export const PeerReviewOptions = ({
   // @ts-expect-error TS7031 (typescriptify)
@@ -127,18 +106,12 @@ export const PeerReviewOptions = ({
             />
           </View>
           <View as="div" margin="small 0 small large" data-testid="peer-review-due-date-container">
-            <DateTimeInput
+            <FancyMidnightDueDateInput
               timezone={ENV.TIMEZONE}
               description={I18n.t('Assign Reviews')}
               prevMonthLabel={I18n.t('previous')}
               nextMonthLabel={I18n.t('next')}
-              onChange={(_event, newDate) => {
-                const finalDate = isFancyMidnightNeeded(newDate)
-                  ? setTimeToStringDate(fancyMidnightDueTime, newDate)
-                  : newDate
-
-                setPeerReviewDueDate(finalDate)
-              }}
+              onChange={(_event, isoValue) => setPeerReviewDueDate(isoValue || '')}
               value={peerReviewDueDate}
               invalidDateTimeMessage={I18n.t('Invalid date and time')}
               layout="columns"

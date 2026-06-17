@@ -23,6 +23,11 @@ import DiscussionTopicForm from '../DiscussionTopicForm'
 
 vi.mock('@canvas/rce/react/CanvasRce')
 
+vi.mock('@instructure/platform-alerts', async importOriginal => ({
+  ...(await importOriginal()),
+  showFlashAlert: vi.fn(),
+}))
+
 describe('DiscussionTopicForm', () => {
   const setup = ({
     isEditing = true,
@@ -136,10 +141,7 @@ describe('DiscussionTopicForm', () => {
     })
   })
 
-  // FIXME: jsdom 25 changed how DateTimeInput generates timestamps when selecting dates,
-  // causing the midnight detection in isFancyMidnightNeeded to fail. The date picker now
-  // returns a different time value that doesn't trigger the 00:00:00 -> 23:59:00 conversion.
-  it.skip('applies fancy midnight to assign reviews when needed', () => {
+  it('applies fancy midnight to assign reviews when needed', async () => {
     const {getByTestId, getByText} = setup()
 
     fireEvent.click(getByTestId('graded-checkbox').querySelector('input'))
@@ -153,8 +155,9 @@ describe('DiscussionTopicForm', () => {
 
     fireEvent.change(dueDate, {target: {value: 'Nov 9, 2020'}})
     fireEvent.click(getByText('10 November 2020'))
+    fireEvent.blur(dueTime)
 
-    expect(dueTime).toHaveValue('11:59 PM')
+    await waitFor(() => expect(dueTime).toHaveValue('11:59 PM'))
   })
 
   it('does not apply fancy midnight to assign reviews when the user have other time set', () => {
