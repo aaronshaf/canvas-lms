@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe ContentSharesController, type: :request do
+describe ContentSharesController do
   before do
     course_with_teacher(active_all: true)
     @course_1 = @course

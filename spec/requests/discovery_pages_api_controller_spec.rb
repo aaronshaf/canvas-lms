@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe DiscoveryPagesApiController, type: :request do
+describe DiscoveryPagesApiController do
   let(:account) { Account.default }
 
   describe "PUT 'upsert'" do
