@@ -115,5 +115,97 @@ describe Schemas::Lti::IMS::LtiToolConfiguration do
 
       expect(config_errors).to be_blank
     end
+
+    context "standard LTI 1.3 presentation properties" do
+      it "accepts iframe presentation properties" do
+        config_with_iframe = valid_configuration.dup
+        config_with_iframe[:messages][0][:iframe] = {
+          width: 800,
+          height: 600
+        }
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_iframe,
+          error_format: :hash
+        )
+
+        expect(config_errors).to be_blank
+      end
+
+      it "accepts window presentation properties" do
+        config_with_window = valid_configuration.dup
+        config_with_window[:messages][0][:window] = {
+          target_name: "lti_launch",
+          width: 1024,
+          height: 768,
+          window_features: "menubar=yes,location=yes"
+        }
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_window,
+          error_format: :hash
+        )
+
+        expect(config_errors).to be_blank
+      end
+
+      it "accepts preferred_presentation with iframe value" do
+        config_with_pref = valid_configuration.dup
+        config_with_pref[:messages][0][:preferred_presentation] = "iframe"
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_pref,
+          error_format: :hash
+        )
+
+        expect(config_errors).to be_blank
+      end
+
+      it "accepts preferred_presentation with window value" do
+        config_with_pref = valid_configuration.dup
+        config_with_pref[:messages][0][:preferred_presentation] = "window"
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_pref,
+          error_format: :hash
+        )
+
+        expect(config_errors).to be_blank
+      end
+
+      it "accepts all presentation properties together" do
+        config_with_all = valid_configuration.dup
+        config_with_all[:messages][0][:preferred_presentation] = "window"
+        config_with_all[:messages][0][:iframe] = {
+          width: 800,
+          height: 600
+        }
+        config_with_all[:messages][0][:window] = {
+          target_name: "lti_launch",
+          width: 1024,
+          height: 768,
+          window_features: "menubar=yes"
+        }
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_all,
+          error_format: :hash
+        )
+
+        expect(config_errors).to be_blank
+      end
+
+      it "rejects invalid preferred_presentation value" do
+        config_with_invalid = valid_configuration.dup
+        config_with_invalid[:messages][0][:preferred_presentation] = "invalid"
+
+        config_errors = Schemas::Lti::IMS::LtiToolConfiguration.simple_validation_errors(
+          config_with_invalid,
+          error_format: :hash
+        )
+
+        expect(config_errors).not_to be_empty
+      end
+    end
   end
 end

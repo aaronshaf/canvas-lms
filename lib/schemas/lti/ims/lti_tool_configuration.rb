@@ -67,7 +67,29 @@ module Schemas::Lti::IMS
           }.freeze
         }.freeze,
 
-        # Optional extensions
+        # Standard LTI 1.3 presentation properties
+        "preferred_presentation" => {
+          "type" => %w[string null].freeze,
+          "enum" => [nil, "iframe", "window"].freeze
+        }.freeze,
+        "window" => {
+          "type" => %w[object null].freeze,
+          "properties" => {
+            "target_name" => { "type" => %w[string null].freeze }.freeze,
+            "width" => { "type" => %w[integer null].freeze }.freeze,
+            "height" => { "type" => %w[integer null].freeze }.freeze,
+            "window_features" => { "type" => %w[string null].freeze }.freeze
+          }.freeze
+        }.freeze,
+        "iframe" => {
+          "type" => %w[object null].freeze,
+          "properties" => {
+            "width" => { "type" => %w[integer null].freeze }.freeze,
+            "height" => { "type" => %w[integer null].freeze }.freeze
+          }.freeze
+        }.freeze,
+
+        # Optional Canvas extensions
         Lti::IMS::Registration::COURSE_NAV_DEFAULT_ENABLED_EXTENSION =>
           { type: "boolean" }.freeze,
         Lti::IMS::Registration::PLACEMENT_VISIBILITY_EXTENSION =>

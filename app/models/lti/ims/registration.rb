@@ -364,14 +364,31 @@ class Lti::IMS::Registration < ApplicationRecord
     uses_launch_width = ["assignment_edit", "post_grades"]
     keys = ["launch_width", "launch_height"] if uses_launch_width.include?(placement)
 
-    values = [
-      message[LAUNCH_WIDTH_EXTENSION]&.to_i,
-      message[LAUNCH_HEIGHT_EXTENSION]&.to_i,
-    ]
+    # Extract dimensions from standard LTI 1.3 fields first, then fall back to Canvas extensions
+    width = nil
+    height = nil
+
+    # Check standard LTI 1.3 presentation properties
+    preferred_presentation = message["preferred_presentation"]
+    iframe_config = message["iframe"]
+    window_config = message["window"]
+
+    # Prioritize based on preferred_presentation, defaulting to iframe
+    if preferred_presentation != "window" && iframe_config
+      width = iframe_config["width"]
+      height = iframe_config["height"]
+    elsif window_config
+      width = window_config["width"]
+      height = window_config["height"]
+    end
+
+    # Fall back to Canvas extension fields if standard fields not present
+    width ||= message[LAUNCH_WIDTH_EXTENSION]
+    height ||= message[LAUNCH_HEIGHT_EXTENSION]
 
     {
-      keys[0].to_sym => values[0],
-      keys[1].to_sym => values[1],
+      keys[0].to_sym => width&.to_i,
+      keys[1].to_sym => height&.to_i,
     }
   end
 
@@ -421,53 +438,5 @@ class Lti::IMS::Registration < ApplicationRecord
     else
       "anonymous"
     end
-  end
-
-  def canvas_placement_name(placement)
-    # IMS placement names that have different names in Canvas
-    return "link_selection" if placement == "ContentArea"
-    return "editor_button" if placement == "RichTextEditor"
-
-    # Otherwise, remove our URL prefix from the Canvas-specific placements
-    canvas_extension = CANVAS_EXTENSION_PREFIX + "/"
-    placement.start_with?(canvas_extension) ? placement.sub(canvas_extension, "") : placement
-  end
-
-  # placement_* Methods used to construct placement in build_placement_for:
-
-  def placement_display_settings(message)
-    display_type = message[DISPLAY_TYPE_EXTENSION]
-    if display_type == "new_window"
-      { display_type: "default", windowTarget: "_blank" }
-    else
-      { display_type: }
-    end
-  end
-
-  def placement_visibility(message)
-    availability = message[PLACEMENT_VISIBILITY_EXTENSION]
-    if availability
-      PLACEMENT_VISIBILITY_OPTIONS.include?(availability) ? availability : nil
-    else
-      nil
-    end
-  end
-
-  def placement_width_and_height_settings(message, placement)
-    keys = ["selection_width", "selection_height"]
-    # placements that use launch_width and launch_height
-    # instead of selection_width and selection_height
-    uses_launch_width = ["assignment_edit", "post_grades"]
-    keys = ["launch_width", "launch_height"] if uses_launch_width.include?(placement)
-
-    values = [
-      message[LAUNCH_WIDTH_EXTENSION]&.to_i,
-      message[LAUNCH_HEIGHT_EXTENSION]&.to_i,
-    ]
-
-    {
-      keys[0].to_sym => values[0],
-      keys[1].to_sym => values[1],
-    }
   end
 end

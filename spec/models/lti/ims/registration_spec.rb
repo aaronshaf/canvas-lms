@@ -467,6 +467,170 @@ module Lti::IMS
             expect(subject.find { |p| p[:placement] == "course_navigation" }).to eq(canvas_placement_hash.merge(placement: "course_navigation", default: "disabled", selection_width: 200, selection_height: 300))
             expect(subject.count { |p| p[:default] == "disabled" }).to be(1)
           end
+
+          context "with standard LTI 1.3 presentation properties" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  iframe: {
+                    width: 800,
+                    height: 600
+                  },
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "uses standard iframe dimensions" do
+              expect(subject.first).to include(selection_width: 800, selection_height: 600)
+            end
+          end
+
+          context "with standard window presentation properties" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  window: {
+                    width: 1024,
+                    height: 768
+                  },
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "uses standard window dimensions" do
+              expect(subject.first).to include(selection_width: 1024, selection_height: 768)
+            end
+          end
+
+          context "with preferred_presentation set to window" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  preferred_presentation: "window",
+                  iframe: {
+                    width: 800,
+                    height: 600
+                  },
+                  window: {
+                    width: 1024,
+                    height: 768
+                  },
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "prioritizes window dimensions over iframe" do
+              expect(subject.first).to include(selection_width: 1024, selection_height: 768)
+            end
+          end
+
+          context "with preferred_presentation set to iframe" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  preferred_presentation: "iframe",
+                  iframe: {
+                    width: 800,
+                    height: 600
+                  },
+                  window: {
+                    width: 1024,
+                    height: 768
+                  },
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "prioritizes iframe dimensions over window" do
+              expect(subject.first).to include(selection_width: 800, selection_height: 600)
+            end
+          end
+
+          context "with standard fields and Canvas extension fields" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  iframe: {
+                    width: 800,
+                    height: 600
+                  },
+                  "https://canvas.instructure.com/lti/launch_width": "500",
+                  "https://canvas.instructure.com/lti/launch_height": "400",
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "prioritizes standard fields over Canvas extensions" do
+              expect(subject.first).to include(selection_width: 800, selection_height: 600)
+            end
+          end
+
+          context "with only Canvas extension fields" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  "https://canvas.instructure.com/lti/launch_width": "500",
+                  "https://canvas.instructure.com/lti/launch_height": "400",
+                  placements: ["global_navigation"],
+                }],
+                claims: []
+              }
+            end
+
+            it "falls back to Canvas extension fields" do
+              expect(subject.first).to include(selection_width: 500, selection_height: 400)
+            end
+          end
+
+          context "with standard fields for assignment_edit placement" do
+            let(:lti_tool_configuration) do
+              {
+                domain: "example.com",
+                messages: [{
+                  type: "LtiResourceLinkRequest",
+                  target_link_uri: "http://example.com/launch",
+                  iframe: {
+                    width: 900,
+                    height: 700
+                  },
+                  placements: ["https://canvas.instructure.com/lti/assignment_edit"],
+                }],
+                claims: []
+              }
+            end
+
+            it "uses launch_width and launch_height for assignment_edit" do
+              expect(subject.first).to include(launch_width: 900, launch_height: 700)
+            end
+          end
         end
       end
 
