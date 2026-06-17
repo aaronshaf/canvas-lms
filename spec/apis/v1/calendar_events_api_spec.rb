@@ -1827,6 +1827,31 @@ describe CalendarEventsApiController, type: :request do
       expect(JSON.parse(response.body)["status"]).to eq "unauthorized"
     end
 
+    context "cross-course access via id (SEC-22348)" do
+      before :once do
+        @other_course = course_factory(active_all: true)
+        @other_event = @other_course.calendar_events.create!(title: "Afterschool Tutoring")
+        @student = course_with_student(active_all: true).user
+      end
+
+      it "denies a student reading an event from a private course they are not enrolled in" do
+        raw_api_call(:get,
+                     "/api/v1/calendar_events/#{@other_event.id}",
+                     { controller: "calendar_events_api", action: "show", id: @other_event.id.to_s, format: "json" })
+        expect(response).to have_http_status :forbidden
+        expect(JSON.parse(response.body)["status"]).to eq "unauthorized"
+      end
+
+      it "allows reading an event when the owning course is public (legitimate)" do
+        @other_course.update!(is_public: true)
+        json = api_call(:get,
+                        "/api/v1/calendar_events/#{@other_event.id}",
+                        { controller: "calendar_events_api", action: "show", id: @other_event.id.to_s, format: "json" })
+        expect(json["id"]).to eq @other_event.id
+        expect(json["context_code"]).to eq @other_course.asset_string
+      end
+    end
+
     it "creates a new event" do
       json = api_call(:post,
                       "/api/v1/calendar_events",
