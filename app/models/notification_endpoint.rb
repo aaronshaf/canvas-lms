@@ -121,5 +121,8 @@ class NotificationEndpoint < ApplicationRecord
     return unless endpoint_exists? && own_endpoint?
 
     sns_client.delete_endpoint(endpoint_arn: arn)
+  rescue Aws::Errors::ServiceError => e
+    # best-effort cleanup; an SNS failure shouldn't block destroying the token
+    Canvas::Errors.capture_exception(:push_notifications, e, :warn)
   end
 end

@@ -98,6 +98,16 @@ describe NotificationEndpoint do
       expect(@sns_client).not_to receive(:delete_endpoint)
       ne.destroy
     end
+
+    it "still destroys the endpoint when SNS raises a service error" do
+      allow(@sns_client).to receive(:create_platform_endpoint).and_return(endpoint_arn: "arn")
+      ne = @at.notification_endpoints.create!(token: "token")
+
+      expect(@sns_client).to receive(:get_endpoint_attributes).and_raise(Aws::SNS::Errors::AuthorizationError.new(nil, "not authorized"))
+      expect(Canvas::Errors).to receive(:capture_exception).with(:push_notifications, an_instance_of(Aws::SNS::Errors::AuthorizationError), :warn)
+      expect { ne.destroy }.not_to raise_error
+      expect(ne.reload.workflow_state).to eq "deleted"
+    end
   end
 
   it "is soft-deleteable" do
