@@ -59,10 +59,17 @@ For each test (or group):
      Description for a matching `(flaky-fix)` section per S-16.
      This gives the prior root cause, what was tried, and the fallback
      plan — feed this into classification before reading the new failure.
-   - Ask the user for the detailed breakdown CSV from the Observe
-     worksheet. Build a daily failure timeline and compare the rate
-     before vs after each prior fix merge to determine whether each fix
-     helped, partially helped, or had no effect.
+   - Use `AskUserQuestion` to request the detailed breakdown CSV from
+     the Observe worksheet. This is mandatory for S-16 — the aggregate
+     stats (flaky_fails total) are useless after a prior fix has been
+     applied; only the daily timeline reveals whether the prior fix
+     helped. **Important:** the breakdown CSV contains only flaky
+     failure events (runs where the test failed at least once), not all
+     test executions. It is only useful for computing average daily
+     flaky failures — not pass rates, total runs, or reliability
+     percentages. Build a daily flaky-failure count and compare the
+     rate before vs after each prior fix merge date to classify the
+     outcome (A/B/C).
 3. **Classify** using the table below. Read the referenced case file.
 4. **Present the root-cause analysis** to the user before implementing.
 5. **Implement the fix locally** following the case's procedure. Tag the
@@ -76,9 +83,14 @@ For each test (or group):
 7. **Re-evaluate `custom_timeout`** per S-09 (in `kb/style.md`) if the
    fix changes the test's runtime or the file will be in HEAD.
 8. **Check for sibling tests** with the same pattern — fix proactively.
-9. **Show the diff** so the user can review both the analysis and the
-   code changes together before approving.
-10. **Once the user approves:**
+   Tag every satellite with `# flaky-fix: <JIRA>` per S-01, including
+   tests whose fix lives entirely in the shared example or `before`
+   block. Verify all tags before proceeding to step 9.
+9. **Show the diff** and use `AskUserQuestion` to explicitly ask the
+   user to approve or reject before proceeding. This is a mandatory
+   human-in-the-loop gate — call `AskUserQuestion` even in Auto mode.
+   Do not proceed to step 10 until the user answers affirmatively.
+10. **Once the user approves via `AskUserQuestion`:**
 
     **a. Commit and push:**
     `git add` the changed files, `git commit --amend --no-edit`
@@ -115,6 +127,12 @@ Each test fix is pushed to the PS before moving to the next test.
 After pushing and posting to Jira, ask: *"Ready for the next test?"*
 
 ### Phase 3 — Close out
+
+The user decides when to end the batch. The 5–6 unique-case guideline
+in `kb/process.md` is a soft starting point, not a hard cap. When
+counting cases for the summary, count only **unique primary cases** —
+satellites (same shared example in a different context, sibling tests
+with the same pattern) and skipped/deferred tests do not count.
 
 After all tests are fixed, execute steps 5a–5d in `kb/process.md`:
 verify CI (2 consecutive clean runs), update KB cases, verify the

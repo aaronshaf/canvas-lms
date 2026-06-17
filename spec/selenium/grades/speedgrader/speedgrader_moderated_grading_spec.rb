@@ -61,7 +61,7 @@ describe "SpeedGrader" do
       wait_for_ajaximations
     end
 
-    it "creates provisional grades and submission comments" do
+    it "creates provisional grades and submission comments" do # flaky-fix: QE-161
       @submission.find_or_create_provisional_grade!(@user, score: 7)
       @submission.add_comment(commenter: @user, comment: "wat", provisional: true)
 
@@ -69,25 +69,19 @@ describe "SpeedGrader" do
       expect(f("#grading-box-extended")).to have_attribute("value", "7")
       expect(f("#discussion span.comment").text).to include "wat"
 
-      time = 5.minutes.from_now
-      Timecop.freeze(time) do
-        replace_content f("#grading-box-extended"), "8", tab_out: false
-        f(".gradebookHeader--rightside").click
-      end
+      replace_content f("#grading-box-extended"), "8", tab_out: false
+      f(".gradebookHeader--rightside").click
       wait_for_ajaximations
       provisional_grade = @submission.provisional_grades.find_by!(scorer: @user)
       expect(provisional_grade.grade).to eq "8"
 
-      time2 = 10.minutes.from_now
-      Timecop.freeze(time2) do
-        submit_comment "srsly"
-        # wait for comment to save and submission to update
-        expect { SubmissionComment.where(submission: @submission, comment: "srsly").any? }.to become(true)
-      end
-      @submission.reload
-      expect(@submission.updated_at.to_i).to eq time2.to_i
+      updated_at_before_comment = @submission.reload.updated_at
+
+      submit_comment "srsly"
+      expect { SubmissionComment.where(submission: @submission, comment: "srsly").any? }.to become(true)
 
       @submission.reload
+      expect(@submission.updated_at).to be > updated_at_before_comment
       expect(@submission.score).to be_nil
 
       pg = @submission.provisional_grade(@user)
@@ -95,19 +89,18 @@ describe "SpeedGrader" do
       expect(pg.submission_comments.map(&:comment)).to include "srsly"
     end
 
-    it "creates rubric assessments for the provisional grade", :ignore_js_errors do
+    it "creates rubric assessments for the provisional grade", :ignore_js_errors do # flaky-fix: QE-161
       get "/courses/#{@course.id}/gradebook/speed_grader?assignment_id=#{@assignment.id}"
 
       comment = "some silly comment"
-      time = 5.minutes.from_now
-      Timecop.freeze(time) do
-        add_rubric_assessment(3, comment)
-        expect(f("#rubric_summary_container caption")).to include_text(@rubric.title)
-        expect(fj(".rating-tier.selected:visible")).to include_text(comment)
-      end
+      updated_at_before = @submission.reload.updated_at
+
+      add_rubric_assessment(3, comment)
+      expect(f("#rubric_summary_container caption")).to include_text(@rubric.title)
+      expect(fj(".rating-tier.selected:visible")).to include_text(comment)
 
       @submission.reload
-      expect(@submission.updated_at.to_i).to eq time.to_i # should get touched
+      expect(@submission.updated_at).to be > updated_at_before
 
       ra = @association.rubric_assessments.first
       expect(ra.artifact).to be_a(ModeratedGrading::ProvisionalGrade)

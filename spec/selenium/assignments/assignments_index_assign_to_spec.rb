@@ -64,7 +64,7 @@ shared_examples_for "selective_release assign to tray" do |context|
     expect(assign_to_in_tray("Remove #{@student1.name}")[0]).to be_displayed
   end
 
-  it "saves and shows override updates when tray reaccessed" do
+  it "saves and shows override updates when tray reaccessed" do # flaky-fix: QE-161
     get @mod_url
 
     click_manage_assignment_button(@assignment1.id)
@@ -80,6 +80,9 @@ shared_examples_for "selective_release assign to tray" do |context|
     update_until_time(0, "9:00 PM")
 
     click_save_button
+    # wait for save AJAX before any further UI check; element_exists? uses
+    # disable_implicit_wait (zero timeout) and does not drain in-flight XHRs
+    wait_for_ajaximations
     expect(element_exists?(module_item_edit_tray_selector)).to be_falsey
 
     click_manage_assignment_button(@assignment1.id)

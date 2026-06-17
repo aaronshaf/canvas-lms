@@ -212,7 +212,7 @@ commit message, not just "test stability."
 
 ---
 
-## Pattern D — AJAX Preference Save Before Navigation
+## Pattern D — AJAX Save Before Next Action or Assertion
 
 ### Failure signature
 
@@ -225,48 +225,93 @@ RSpec::Expectations::ExpectationNotMetError:
 After refreshing the page, only half the modules are expanded despite
 clicking "Expand All" before the refresh.
 
+```
+Selenium::WebDriver::Error::ElementNotInteractableError:
+  element not interactable
+```
+
+After clicking Save on a tray, a menu item is not clickable when the
+tray is immediately re-opened.
+
 **Stats signature:** very low `build_fails`, high `flaky_fails`
 (ratio ~100:1). The AJAX save is fast enough most of the time.
 
 ### Root cause
 
-`expand_all_modules_button.click` fires an AJAX POST
-(`/courses/{id}/collapse_all_modules`) to persist the expand/collapse
-preference server-side. The test navigates away with `go_to_modules`
-immediately after the click, before the POST completes. On reload, the
-preference is partially or not saved — some modules revert to collapsed.
+A user action (button click) fires an AJAX POST. The test proceeds
+immediately to a downstream action or assertion without waiting for
+the POST to complete. Two forms:
 
-The sibling test "expands all modules" (same file, line 106) has
-`wait_for_ajaximations` after the click and passes consistently. The
-"retained on refresh" variant was missing it.
+**Navigation form:** The test navigates away before the POST commits.
+On reload, the server-side state is partially or not saved.
+
+**Re-access form:** The test re-interacts with UI that the POST is
+still in the process of updating. The component briefly enters a
+loading/re-rendering state, making elements non-interactable or
+returning stale values.
+
+`element_exists?`, `be_falsey`, and similar immediate checks do **not**
+drain AJAX — they only inspect the current DOM snapshot. An element
+disappearing from the DOM (e.g. a tray closing) is not a signal that
+the save POST has committed.
 
 ### How to recognise it
 
-A button click that triggers a server-side preference save (expand/collapse,
-sort order, view mode) followed directly by navigation (`go_to_modules`,
-`get`, `refresh_page`) with no `wait_for_ajaximations` between them. The
-test then asserts on the persisted state after reload.
+A button click that triggers a server-side save followed **without
+`wait_for_ajaximations`** by any of:
+- Navigation (`go_to_modules`, `get`, `refresh_page`)
+- Re-opening a menu, tray, or modal that was affected by the save
+- An assertion on the persisted state (`element_exists?`, attribute
+  checks, `expect(...)`)
+
+In the re-access form the element is **found** by `f()` (implicit wait
+fires) but then fails with `ElementNotInteractableError` — the DOM
+node exists but the component is still re-rendering after the AJAX.
 
 ### Fix
 
-Add `wait_for_ajaximations` after the click, before navigation:
+**Rule: place `wait_for_ajaximations` immediately after the triggering
+action — before any other action or assertion that expects the effects
+of that action.**
 
 ```ruby
-expand_all_modules_button.click
-wait_for_ajaximations # persist preference before navigating away
+# BAD — wait placed too late; element_exists? check runs during AJAX
+click_save_button
+expect(element_exists?(tray_selector)).to be_falsey  # ← runs while AJAX in-flight
+wait_for_ajaximations
+click_manage_button   # ← may still fail if re-render not done
 
+# GOOD — all downstream checks run after AJAX is settled
+click_save_button
+wait_for_ajaximations  # drain AJAX immediately after the action
+expect(element_exists?(tray_selector)).to be_falsey
+click_manage_button
+```
+
+```ruby
+# Navigation form
+expand_all_modules_button.click
+wait_for_ajaximations  # persist preference before navigating away
 go_to_modules
 ```
 
+Placing the wait after an intermediate check creates a whack-a-mole
+risk: the check itself may race the AJAX and become the new failure
+point in a future CI run.
+
 ### Difference from Pattern B
 
-Pattern B is about AJAX that fires **during page load** (deferred widget
-data fetch). Pattern D is about AJAX that fires **from a user action**
-(button click) and needs to complete before the test navigates away. Both
-are fixed with `wait_for_ajaximations` but the placement differs: Pattern B
-adds the wait **after** navigation; Pattern D adds it **before** navigation.
+Pattern B is about AJAX that fires **during page load** (deferred
+widget data fetch). Pattern D is about AJAX that fires **from a user
+action** and needs to settle before the test proceeds. Both are fixed
+with `wait_for_ajaximations` but the placement differs: Pattern B adds
+the wait **after** navigation; Pattern D adds it **before** the next
+action or assertion.
 
-### Files affected (QE-142)
+### Files affected (QE-142, QE-161)
 
 - `spec/selenium/context_modules_v2/students/course_modules2_student_spec.rb:148`
   and `:170` (proactive)
+- `spec/selenium/assignments/assignments_index_assign_to_spec.rb:82`
+  (QE-161 — re-access form: ElementNotInteractableError on tray
+  re-open after save)

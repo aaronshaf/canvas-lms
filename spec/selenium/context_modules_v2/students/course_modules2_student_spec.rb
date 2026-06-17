@@ -140,7 +140,7 @@ describe "context modules", :ignore_js_errors do
       expect(page_body).not_to contain_css(module_item_title_selector)
     end
 
-    it "expands all modules is retained on refresh" do # flaky-fix: QE-142
+    it "expands all modules is retained on refresh" do # flaky-fix: QE-142, QE-161
       # load page
       go_to_modules
       expect(student_modules_container).to be_displayed
@@ -153,6 +153,7 @@ describe "context modules", :ignore_js_errors do
       wait_for_ajaximations # persist expand preference before navigating away
 
       go_to_modules
+      wait_for_ajaximations # wait for deferred module-item AJAX after page load
       expect(student_modules_container).to be_displayed
 
       # all modules should be expanded
@@ -163,7 +164,7 @@ describe "context modules", :ignore_js_errors do
       expect(module_item_titles[3]).to be_displayed
     end
 
-    it "collapses all modules is retained on refresh" do # flaky-fix: QE-142
+    it "collapses all modules is retained on refresh" do # flaky-fix: QE-142, QE-161
       # load page
       go_to_modules
       expect(student_modules_container).to be_displayed
@@ -186,6 +187,7 @@ describe "context modules", :ignore_js_errors do
       expect(page_body).not_to contain_css(module_item_title_selector)
 
       go_to_modules
+      wait_for_ajaximations # wait for deferred AJAX after page load
       expect(student_modules_container).to be_displayed
       expect(page_body).not_to contain_css(module_item_title_selector)
     end

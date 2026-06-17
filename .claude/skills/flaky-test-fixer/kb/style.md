@@ -784,7 +784,10 @@ should record the prior fix relationship in the Prior fixes (S-16) field
 The aggregate CSV row (e.g. 281 flaky_fails over 20 days) does not show
 whether the rate changed after a fix. Ask the user for the detailed
 breakdown from the "Jenkins Flaky Test Breakdown" Observe worksheet — a
-CSV with one row per CI run where the test was noteworthy. Key columns:
+CSV with one row per CI run where the test **failed at least once**
+(flaky failure events only, not all executions). This dataset is only
+useful for computing average daily flaky failures — not pass rates,
+total runs, or reliability percentages. Key columns:
 
 | Column | Meaning |
 |---|---|

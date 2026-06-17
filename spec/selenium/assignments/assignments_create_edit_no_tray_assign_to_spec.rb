@@ -381,7 +381,7 @@ describe "override assignees" do
         @student2 = student_in_course(course: @course, active_all: true, name: "Student 2").user
       end
 
-      it "assigns student to NQ assignment and saves", :ignore_js_errors do
+      it "assigns student to NQ assignment and saves", :ignore_js_errors do # flaky-fix: QE-161
         AssignmentCreateEditPage.visit_assignment_edit_page(@course.id, @nq_assignment.id)
 
         click_add_assign_to_card
@@ -392,9 +392,11 @@ describe "override assignees" do
         update_available_time(1, "8:00 AM")
         update_until_date(1, "1/7/2023")
         update_until_time(1, "9:00 PM")
+        wait_for_ajaximations # let React finalize override state before save
 
         AssignmentCreateEditPage.save_assignment
 
+        @nq_assignment.reload
         expect(@nq_assignment.assignment_overrides.last.assignment_override_students.count).to eq(1)
       end
     end

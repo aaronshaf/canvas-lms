@@ -18,9 +18,12 @@ as the commit message mentions the ticket number (e.g. `refs QE-142`).
 Source: [Jenkins Flaky Test Ranking](https://103443579803.observeinc.com/workspace/41863084/worksheet/43099426)
 (rolling 30-day window).
 
-Pick 5–6 tests from the top of the ranking. If a test ends up split or the
-fix affects multiple sibling tests, pick fewer. The goal is to keep the
-patch set humanly reviewable.
+Pick 5–6 **unique cases** from the top of the ranking as a soft starting
+point. Satellites (same shared example in a different context, sibling
+tests with the same pattern) do not count — they are fixed by the
+primary case's change. Tests skipped or deferred also do not count.
+The user decides when to end the batch; the 5–6 guideline keeps the
+patch set humanly reviewable but is not a hard cap.
 
 Selection criteria:
 - High `flaky_fails` count (signal strength)
@@ -101,8 +104,10 @@ the patch, complicate review, and risk introducing new issues.
 ### 4e. Push once the user approves, then generate JIRA comment
 
 Each test fix is pushed to the PS before moving to the next test.
-The user has already reviewed the analysis and diffs (4c–4d). Once they
-approve:
+The user has already reviewed the analysis and diffs (4c–4d). Use
+`AskUserQuestion` to explicitly request approval — this is a mandatory
+human-in-the-loop gate that must not be bypassed even in Auto mode.
+Once they approve via `AskUserQuestion`:
 
 - `git add` the changed files
 - `git commit --amend --no-edit` (or with updated message) — same Change-Id (S-05)
