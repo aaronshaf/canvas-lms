@@ -18,6 +18,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Alert} from '@instructure/ui-alerts'
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {IconPlusLine} from '@instructure/ui-icons'
@@ -31,6 +32,7 @@ import NumberHelper from '@canvas/i18n/numberHelper'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {WithBreakpoints} from '@instructure/platform-with-breakpoints'
 import ConfirmMasteryModal from '../ConfirmMasteryModal'
+import {exceedsMasteryScaleLimit} from '@canvas/outcomes/react/utils/masteryScaleLogic'
 
 const I18n = createI18nScope('ProficiencyTable')
 
@@ -357,7 +359,7 @@ class ProficiencyTable extends React.Component {
   }
 
   render() {
-    const {showConfirmation} = this.state
+    const {showConfirmation, rows} = this.state
     const {breakpoints, canManage} = this.props
     const isMobileView = breakpoints.mobileOnly
     return (
@@ -442,6 +444,13 @@ class ProficiencyTable extends React.Component {
               onClose={this.hideConfirmationModal}
             />
           </>
+        )}
+        {exceedsMasteryScaleLimit(rows.size) && (
+          <Alert variant="info" margin="medium none">
+            {I18n.t(
+              'Mastery scales with more than five levels disable Message Students Who and Differentiation Tags for this outcome. Mastery icons and distribution charts in the gradebook will also be turned off.',
+            )}
+          </Alert>
         )}
       </>
     )

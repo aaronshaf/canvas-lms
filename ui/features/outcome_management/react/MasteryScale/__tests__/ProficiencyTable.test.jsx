@@ -269,4 +269,63 @@ describe('default proficiency', () => {
     // second call first argument
     expect(onNotifyPendingChangesSpy.mock.calls[1][0]).toBe(false)
   })
+
+  describe('restriction banner', () => {
+    const makeRatings = count =>
+      Array.from({length: count}, (_, i) => ({
+        description: `Rating ${i}`,
+        points: count - i,
+        mastery: i === 0,
+        color: '009606',
+      }))
+
+    const proficiencyWith = count => ({
+      proficiencyRatingsConnection: {nodes: makeRatings(count)},
+    })
+
+    it('shows banner when scale has more than 5 levels', () => {
+      const {getByText} = render(
+        <ProficiencyTable {...defaultProps({proficiency: proficiencyWith(6)})} />,
+      )
+      expect(
+        getByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).toBeInTheDocument()
+    })
+
+    it('does not show banner when scale has 5 or fewer levels', () => {
+      const {queryByText} = render(
+        <ProficiencyTable {...defaultProps({proficiency: proficiencyWith(5)})} />,
+      )
+      expect(
+        queryByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows banner after adding a 6th level', () => {
+      const {getByText, queryByText} = render(
+        <ProficiencyTable {...defaultProps({proficiency: proficiencyWith(5)})} />,
+      )
+      expect(
+        queryByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).not.toBeInTheDocument()
+      fireEvent.click(getByText(/Add Mastery Level/))
+      expect(
+        getByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).toBeInTheDocument()
+    })
+
+    it('hides banner after deleting to 5 levels', () => {
+      const {getAllByText, getByText, queryByText} = render(
+        <ProficiencyTable {...defaultProps({proficiency: proficiencyWith(6)})} />,
+      )
+      expect(
+        getByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).toBeInTheDocument()
+      fireEvent.click(getAllByText(/Delete mastery level/)[0])
+      fireEvent.click(getByText(/Confirm/))
+      expect(
+        queryByText(/Mastery scales with more than five levels disable Message Students Who/),
+      ).not.toBeInTheDocument()
+    })
+  })
 })
