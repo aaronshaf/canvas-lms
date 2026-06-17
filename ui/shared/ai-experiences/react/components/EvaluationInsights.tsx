@@ -25,8 +25,9 @@ import {Pill} from '@instructure/ui-pill'
 import {Spinner} from '@instructure/ui-spinner'
 import {IconCompleteLine, IconAiColoredSolid} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {EvaluationMetric, ConversationEvaluation} from '../../types'
+import {EvaluationMetric, ConversationEvaluation, LlmaError} from '../../types'
 import {RADIUS_MD} from '../brand'
+import AIExperienceError from './AIExperienceError'
 
 const I18n = createI18nScope('ai_experiences_ai_conversations')
 
@@ -34,6 +35,7 @@ interface EvaluationInsightsProps {
   metrics: EvaluationMetric[]
   evaluation?: ConversationEvaluation | null
   isLoading: boolean
+  error?: LlmaError | null
 }
 
 const SUMMARY_NAMES = ['summary']
@@ -126,10 +128,11 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
   metrics,
   evaluation,
   isLoading,
+  error,
 }) => {
   const enabledMetrics = metrics.filter(m => m.enabled)
 
-  if (!isLoading && enabledMetrics.length === 0) return null
+  if (!isLoading && !error && enabledMetrics.length === 0) return null
 
   return (
     <View
@@ -150,7 +153,9 @@ const EvaluationInsights: React.FC<EvaluationInsightsProps> = ({
         {I18n.t('Evaluation insights')}
       </Heading>
 
-      {isLoading ? (
+      {error ? (
+        <AIExperienceError error={error} />
+      ) : isLoading ? (
         <View as="div" textAlign="center" data-testid="evaluation-insights-loading">
           <Spinner renderTitle={I18n.t('Loading insights')} size="small" />
         </View>

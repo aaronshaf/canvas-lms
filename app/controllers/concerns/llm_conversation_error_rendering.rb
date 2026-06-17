@@ -34,7 +34,7 @@ module LLMConversationErrorRendering
   included do
     rescue_from LlmConversation::Errors::ConversationError do |e|
       Rails.logger.warn("[#{self.class.name}] llma error: #{e.message}")
-      render json: llm_error_payload(e.user_message, reference_id: e.reference_id),
+      render json: llm_error_payload(e.user_message, reference_id: e.reference_id, code: e.code, retryable: e.retryable?),
              status: :service_unavailable
     end
   end
@@ -42,9 +42,19 @@ module LLMConversationErrorRendering
   private
 
   # The single client-safe error shape. Must never include internal error detail.
-  def llm_error_payload(message, reference_id: nil)
+  #
+  # Status is intentionally always :service_unavailable. HTTP status describes the
+  # browser<->Canvas relationship; llma's status describes the Canvas<->llma hop, so
+  # mirroring it (e.g. llma 404 -> Canvas 404) would be a category error. Every AI
+  # Experiences action is expected to yield a happy llma/cedar/pine result, so any
+  # failure is an internal AI dependency being unavailable. `code` carries the
+  # fine-grained category for the client/support; `error` is the friendly message;
+  # `retryable` tells the UI whether offering "try again" makes sense.
+  def llm_error_payload(message, reference_id: nil, code: nil, retryable: false)
     {
       error: message,
+      code:,
+      retryable:,
       reference_id: reference_id || RequestContext::Generator.request_id
     }
   end

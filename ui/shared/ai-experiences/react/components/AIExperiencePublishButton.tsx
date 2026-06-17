@@ -23,6 +23,7 @@ import {Tooltip} from '@instructure/ui-tooltip'
 import {IconCompleteLine, IconMinimizeLine} from '@instructure/ui-icons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
+import {parseLlmaError} from '../parseLlmaError'
 import {publishedButtonTheme, buttonTheme} from '../brand'
 
 const I18n = createI18nScope('ai_experiences_show')
@@ -85,11 +86,12 @@ const AIExperiencePublishButton: React.FC<AIExperiencePublishButtonProps> = ({
 
       showFlashSuccess(message)()
       onPublishChange(newState)
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.errors?.workflow_state?.[0] ||
-        I18n.t('Failed to update Knowledge check')
-      showFlashError(message)()
+    } catch (error) {
+      const parsed = await parseLlmaError(error, I18n.t('Failed to update Knowledge check'))
+      const flash = parsed.referenceId
+        ? `${parsed.message} ${I18n.t('(Reference: %{ref})', {ref: parsed.referenceId})}`
+        : parsed.message
+      showFlashError(flash)()
     } finally {
       setIsUpdating(false)
     }

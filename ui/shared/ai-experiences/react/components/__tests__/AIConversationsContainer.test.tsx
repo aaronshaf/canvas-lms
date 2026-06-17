@@ -137,6 +137,27 @@ describe('AIConversationsContainer', () => {
     })
   })
 
+  it('surfaces an error in the conversation panel when the detail fetch fails', async () => {
+    server.use(
+      http.get('/api/v1/courses/123/ai_experiences/1/ai_conversations/conv1', () => {
+        return HttpResponse.json(
+          {
+            error: 'Could not load this conversation.',
+            code: 'internal_error',
+            reference_id: 'ref-7',
+          },
+          {status: 503},
+        )
+      }),
+    )
+    render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
+    await waitFor(() => {
+      expect(screen.getByTestId('ai-experience-error')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Could not load this conversation.')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-experience-error-reference')).toHaveTextContent('ref-7')
+  })
+
   it('displays all students in dropdown including those without conversations', async () => {
     const user = userEvent.setup()
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)

@@ -203,10 +203,12 @@ module LlmConversation
 
         raise LlmConversation::Errors::ConflictError, error_detail if response.is_a?(Net::HTTPConflict)
 
+        # user_message stays the generic default; per-code wording is the client's
+        # job (it gets `code`). We just pass the stable code + a reference id.
         raise LlmConversation::Errors::ConversationError.new(
           error_detail,
-          user_message: LlmConversation::Errors::ConversationError::SAFE_USER_MESSAGES[llma_code],
-          reference_id: RequestContext::Generator.request_id
+          reference_id: RequestContext::Generator.request_id,
+          code: llma_code
         )
       end
 
@@ -221,7 +223,13 @@ module LlmConversation
            EOFError,
            Net::HTTPBadResponse,
            Net::ProtocolError => e
-      raise LlmConversation::Errors::ConversationError, e.message
+      # llma was unreachable / gave no usable response: tag a stable catchall code
+      # so the client/support always see a category (never a null code).
+      raise LlmConversation::Errors::ConversationError.new(
+        e.message,
+        code: LlmConversation::Errors::ConversationError::SERVICE_UNAVAILABLE,
+        reference_id: RequestContext::Generator.request_id
+      )
     end
   end
 end

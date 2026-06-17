@@ -39,6 +39,23 @@ describe('EvaluationInsights', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  it('shows an error alert (not the empty "not yet available" state) when the evaluation fails to load', () => {
+    render(
+      <EvaluationInsights
+        metrics={enabledMetrics}
+        isLoading={false}
+        error={{
+          message: 'Could not load the evaluation.',
+          code: 'evaluation_failed',
+          referenceId: 'ref-9',
+        }}
+      />,
+    )
+    expect(screen.getByTestId('ai-experience-error')).toBeInTheDocument()
+    expect(screen.getByText('Could not load the evaluation.')).toBeInTheDocument()
+    expect(screen.queryByText('Evaluation not yet available')).not.toBeInTheDocument()
+  })
+
   it('renders nothing when metrics array is empty', () => {
     const {container} = render(<EvaluationInsights metrics={[]} isLoading={false} />)
     expect(container).toBeEmptyDOMElement()

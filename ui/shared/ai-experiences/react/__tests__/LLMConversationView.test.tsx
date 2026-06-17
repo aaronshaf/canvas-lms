@@ -586,17 +586,31 @@ describe('LLMConversationView', () => {
           return HttpResponse.json({})
         }),
         http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
-          return HttpResponse.json({error: 'Service unavailable'}, {status: 503})
+          return HttpResponse.json(
+            {
+              error: 'The AI service is temporarily unavailable.',
+              code: 'evaluation_parse_failed',
+              reference_id: 'ref-abc',
+              retryable: true,
+            },
+            {status: 503},
+          )
         }),
       )
 
       render(<LLMConversationView {...defaultProps} />)
 
+      // Surfaces the localized, code-specific message (from the frontend map) plus
+      // the support reference id + code — not the server's generic fallback.
       await waitFor(() => {
-        expect(
-          screen.getByText('Failed to start conversation. Please try again.'),
-        ).toBeInTheDocument()
+        expect(screen.getByText("The evaluation couldn't be completed.")).toBeInTheDocument()
       })
+      expect(screen.getByTestId('ai-experience-error-reference')).toHaveTextContent('ref-abc')
+      expect(screen.getByTestId('ai-experience-error-code')).toHaveTextContent(
+        'evaluation_parse_failed',
+      )
+      // retryable error -> a Try again affordance is offered
+      expect(screen.getByTestId('ai-experience-error-retry')).toBeInTheDocument()
     })
 
     it('displays error alert when sending message fails', async () => {
@@ -631,7 +645,7 @@ describe('LLMConversationView', () => {
       fireEvent.click(sendButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to send message. Please try again.')).toBeInTheDocument()
+        expect(screen.getByText('Failed to send')).toBeInTheDocument()
       })
 
       // Optimistically added message should be removed
@@ -666,9 +680,7 @@ describe('LLMConversationView', () => {
       fireEvent.click(restartButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Failed to restart conversation. Please try again.'),
-        ).toBeInTheDocument()
+        expect(screen.getByText('Failed to restart')).toBeInTheDocument()
       })
     })
 
@@ -686,18 +698,14 @@ describe('LLMConversationView', () => {
       render(<LLMConversationView {...defaultProps} />)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Failed to start conversation. Please try again.'),
-        ).toBeInTheDocument()
+        expect(screen.getByText('Service unavailable')).toBeInTheDocument()
       })
 
       const closeButton = screen.getByText('Close').closest('button')
       fireEvent.click(closeButton!)
 
       await waitFor(() => {
-        expect(
-          screen.queryByText('Failed to start conversation. Please try again.'),
-        ).not.toBeInTheDocument()
+        expect(screen.queryByText('Service unavailable')).not.toBeInTheDocument()
       })
     })
 
@@ -728,9 +736,7 @@ describe('LLMConversationView', () => {
       render(<LLMConversationView {...defaultProps} />)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('Failed to start conversation. Please try again.'),
-        ).toBeInTheDocument()
+        expect(screen.getByText('Failed')).toBeInTheDocument()
       })
 
       shouldSucceed = true
@@ -739,9 +745,7 @@ describe('LLMConversationView', () => {
       fireEvent.click(restartButton)
 
       await waitFor(() => {
-        expect(
-          screen.queryByText('Failed to start conversation. Please try again.'),
-        ).not.toBeInTheDocument()
+        expect(screen.queryByText('Failed')).not.toBeInTheDocument()
         expect(screen.getAllByText(/Hello/i)[0]).toBeInTheDocument()
       })
     })
@@ -823,7 +827,7 @@ describe('LLMConversationView', () => {
       fireEvent.click(screen.getByText('Send'))
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to send message. Please try again.')).toBeInTheDocument()
+        expect(screen.getByText('Failed')).toBeInTheDocument()
       })
 
       expect(HTMLElement.prototype.focus).toHaveBeenCalled()

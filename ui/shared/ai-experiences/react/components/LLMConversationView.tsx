@@ -25,7 +25,6 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {TextArea} from '@instructure/ui-text-area'
 import {Button} from '@instructure/ui-buttons'
-import {Alert} from '@instructure/ui-alerts'
 import {IconRefreshLine, IconFullScreenLine} from '@instructure/ui-icons'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import doFetchApi from '@canvas/do-fetch-api-effect'
@@ -33,7 +32,10 @@ import type {
   LLMConversationMessage,
   LLMConversationViewProps,
   ConversationProgress,
+  LlmaError,
 } from '../../types'
+import {parseLlmaError} from '../parseLlmaError'
+import AIExperienceError from './AIExperienceError'
 import ConversationHeader from './ConversationHeader'
 import ConversationProgressComponent from './ConversationProgress'
 import FocusMode from './FocusMode'
@@ -90,7 +92,12 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<LlmaError | null>(null)
+  // The action to re-run when a retryable error's "Try again" is clicked. A ref,
+  // not state: it's set alongside `error` in each catch and only read during the
+  // render that `setError` already triggers, so it never needs to drive a render
+  // itself.
+  const retryActionRef = useRef<(() => void) | null>(null)
   const [screenReaderAnnouncement, setScreenReaderAnnouncement] = useState('')
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -131,8 +138,9 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           setError(null)
         }
       }
-    } catch {
-      setError(I18n.t('Failed to start conversation. Please try again.'))
+    } catch (e) {
+      setError(await parseLlmaError(e, I18n.t('Failed to start conversation. Please try again.')))
+      retryActionRef.current = initializeConversation
     } finally {
       setIsInitializing(false)
     }
@@ -228,8 +236,11 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
         setProgress(json.progress || null)
         setError(null)
       }
-    } catch {
-      setError(I18n.t('Failed to send message. Please try again.'))
+    } catch (e) {
+      setError(await parseLlmaError(e, I18n.t('Failed to send message. Please try again.')))
+      // No in-alert "Try again" for send (by design): the optimistic message is
+      // removed and the input refocused, so the user simply re-sends directly.
+      retryActionRef.current = null
       // Remove the optimistically added message on error
       setMessages(prev => prev.slice(0, -1))
       // Focus text input after error
@@ -260,7 +271,13 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
       })
 
       if (!response?.ok) {
-        setError(I18n.t('Failed to restart conversation. Please try again.'))
+        setError(
+          await parseLlmaError(
+            {response},
+            I18n.t('Failed to restart conversation. Please try again.'),
+          ),
+        )
+        retryActionRef.current = handleRestart
         return
       }
 
@@ -270,8 +287,9 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
         setProgress(json.progress || null)
         setError(null)
       }
-    } catch {
-      setError(I18n.t('Failed to restart conversation. Please try again.'))
+    } catch (e) {
+      setError(await parseLlmaError(e, I18n.t('Failed to restart conversation. Please try again.')))
+      retryActionRef.current = handleRestart
       // Focus text input after error
       textAreaRef.current?.focus({preventScroll: true})
     } finally {
@@ -288,14 +306,11 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
   const renderConversationContent = (_inFocusMode = false) => (
     <View as="div" padding="medium" background="primary">
       {error && (
-        <Alert
-          variant="error"
-          margin="0 0 small 0"
-          renderCloseButtonLabel={I18n.t('Close')}
+        <AIExperienceError
+          error={error}
           onDismiss={() => setError(null)}
-        >
-          {error}
-        </Alert>
+          onRetry={retryActionRef.current ?? undefined}
+        />
       )}
       <div
         ref={el => {
@@ -490,14 +505,11 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                     style={{boxSizing: 'border-box'}}
                   >
                     {error && (
-                      <Alert
-                        variant="error"
-                        margin="0 0 small 0"
-                        renderCloseButtonLabel={I18n.t('Close')}
+                      <AIExperienceError
+                        error={error}
                         onDismiss={() => setError(null)}
-                      >
-                        {error}
-                      </Alert>
+                        onRetry={retryActionRef.current ?? undefined}
+                      />
                     )}
                     <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
                       <div

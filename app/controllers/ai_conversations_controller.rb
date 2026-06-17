@@ -42,7 +42,7 @@ class AiConversationsController < ApplicationController
   before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
 
   rescue_from InstLLMHelper::RateLimitExceededError do
-    render json: llm_error_payload(t("You've hit the AI Experiences rate limit. Please try again later.")),
+    render json: llm_error_payload(t("You've hit the AI Experiences rate limit. Please try again later."), code: "rate_limited", retryable: true),
            status: :too_many_requests
   end
 

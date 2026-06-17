@@ -23,10 +23,11 @@ import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {TextArea} from '@instructure/ui-text-area'
-import {Alert} from '@instructure/ui-alerts'
 import {IconLikeLine, IconLikeSolid} from '@instructure/ui-icons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
-import type {FeedbackItem} from '../../types'
+import type {FeedbackItem, LlmaError} from '../../types'
+import {parseLlmaError} from '../parseLlmaError'
+import AIExperienceError from './AIExperienceError'
 import {navyButtonTheme, navyPillButtonTheme, lightBlueButtonTheme, RADIUS_PILL} from '../brand'
 
 const I18n = createI18nScope('ai_experiences')
@@ -62,7 +63,7 @@ const MessageFeedback = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uiState, setUiState] = useState<UiState>('idle')
   const [feedbackText, setFeedbackText] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<LlmaError | null>(null)
   const formRef = useRef<HTMLDivElement | null>(null)
   const dislikeButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -94,8 +95,8 @@ const MessageFeedback = ({
         body,
       })
       if (json?.feedback) setFeedback(json.feedback)
-    } catch {
-      setError(I18n.t('Failed to save feedback. Please try again.'))
+    } catch (e) {
+      setError(await parseLlmaError(e, I18n.t('Failed to save feedback. Please try again.')))
       throw new Error('feedback_failed')
     } finally {
       setIsSubmitting(false)
@@ -112,8 +113,8 @@ const MessageFeedback = ({
         method: 'DELETE',
       })
       setFeedback(null)
-    } catch {
-      setError(I18n.t('Failed to remove feedback. Please try again.'))
+    } catch (e) {
+      setError(await parseLlmaError(e, I18n.t('Failed to remove feedback. Please try again.')))
       throw new Error('feedback_failed')
     } finally {
       setIsSubmitting(false)
@@ -211,15 +212,12 @@ const MessageFeedback = ({
       </Flex>
 
       {error && (
-        <Alert
-          variant="error"
-          margin="x-small 0 0 0"
-          renderCloseButtonLabel={I18n.t('Close')}
+        <AIExperienceError
+          error={error}
           onDismiss={() => setError(null)}
-          data-testid="message-feedback-error"
-        >
-          {error}
-        </Alert>
+          margin="x-small 0 0 0"
+          dataTestId="message-feedback-error"
+        />
       )}
 
       {uiState === 'dislike-form' && (

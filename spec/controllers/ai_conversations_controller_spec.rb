@@ -322,6 +322,36 @@ describe AiConversationsController do
         json_response = json_parse(response.body)
         expect(json_response["reference_id"]).to eq("req-create-123")
       end
+
+      it "surfaces the llma error code and a retryable flag on the error response" do
+        mock_service = instance_double(AiExperiences::ConversationStartService)
+        allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:start)
+          .and_raise(LlmConversation::Errors::ConversationError.new("boom", code: "evaluation_parse_failed"))
+
+        post :create,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
+             format: :json
+
+        json_response = json_parse(response.body)
+        expect(json_response["code"]).to eq("evaluation_parse_failed")
+        expect(json_response["retryable"]).to be true
+      end
+
+      it "marks a deterministic failure as not retryable" do
+        mock_service = instance_double(AiExperiences::ConversationStartService)
+        allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:start)
+          .and_raise(LlmConversation::Errors::ConversationError.new("bad", code: "context_invalid"))
+
+        post :create,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
+             format: :json
+
+        json_response = json_parse(response.body)
+        expect(json_response["code"]).to eq("context_invalid")
+        expect(json_response["retryable"]).to be false
+      end
     end
 
     context "as student" do

@@ -23,6 +23,18 @@ export interface EvaluationMetric {
   visible_to_learners: boolean
 }
 
+// Client-safe error surfaced from llma-backed endpoints. `message` is the friendly
+// server message (or a local fallback); `code` is llma's stable error category;
+// `referenceId` is the request id support uses to find the matching llma log line;
+// `retryable` indicates whether retrying the same action might succeed (so the UI
+// only offers "try again" when it isn't futile).
+export interface LlmaError {
+  message: string
+  code?: string
+  referenceId?: string
+  retryable?: boolean
+}
+
 export interface AIExperience {
   id: string
   course_id: string | number

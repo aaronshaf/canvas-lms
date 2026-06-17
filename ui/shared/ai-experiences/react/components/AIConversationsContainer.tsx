@@ -44,6 +44,7 @@ import GradientBorder from './GradientBorder'
 import ConversationHeader from './ConversationHeader'
 import OverallSnapshot from './OverallSnapshot'
 import EvaluationInsights from './EvaluationInsights'
+import AIExperienceError from './AIExperienceError'
 import {roundedTheme, RADIUS_PILL, RADIUS_SM} from '../brand'
 
 const I18n = createI18nScope('ai_experiences_ai_conversations')
@@ -71,6 +72,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
     conversations,
     snapshot,
     isLoading: isLoadingConversations,
+    error: conversationsError,
   } = useStudentConversations(courseId, aiExperience.id)
 
   const [selectedIdentifier, setSelectedIdentifier] = useState<string | undefined>(undefined)
@@ -82,17 +84,17 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   const hasConversation = selectedStudentData?.has_conversation !== false
   const selectedConversationId = hasConversation ? selectedStudentData?.id : undefined
 
-  const {conversation, isLoading: isLoadingConversation} = useConversationDetail(
-    courseId,
-    aiExperience.id,
-    selectedConversationId || undefined,
-  )
+  const {
+    conversation,
+    isLoading: isLoadingConversation,
+    error: conversationError,
+  } = useConversationDetail(courseId, aiExperience.id, selectedConversationId || undefined)
 
-  const {evaluation, isLoading: isLoadingEvaluation} = useConversationEvaluation(
-    courseId,
-    aiExperience.id,
-    selectedConversationId || undefined,
-  )
+  const {
+    evaluation,
+    isLoading: isLoadingEvaluation,
+    error: evaluationError,
+  } = useConversationEvaluation(courseId, aiExperience.id, selectedConversationId || undefined)
 
   const currentIndex = conversations.findIndex(
     conv => (conv.id || `user_${conv.user_id}`) === selectedIdentifier,
@@ -143,6 +145,9 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   const milestones = deriveMilestones(conversation?.progress, messages.length)
 
   const renderConversationMessages = () => {
+    if (conversationError) {
+      return <AIExperienceError error={conversationError} />
+    }
     if (isLoadingConversation) {
       return (
         <View as="div" padding="large" textAlign="center">
@@ -166,6 +171,8 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
   return (
     <View as="div" margin="medium 0">
       <OverallSnapshot snapshot={snapshot} isLoading={isLoadingConversations} />
+
+      {conversationsError && <AIExperienceError error={conversationsError} margin="0 0 medium 0" />}
 
       {/* Filter row */}
       <Flex justifyItems="space-between" alignItems="end" margin="0 0 medium 0">
@@ -280,6 +287,7 @@ const AIConversationsContainer: React.FC<AIConversationsContainerProps> = ({
                   metrics={aiExperience.evaluation_metrics || []}
                   evaluation={evaluation}
                   isLoading={isLoadingEvaluation}
+                  error={evaluationError}
                 />
               </div>
             </Flex.Item>

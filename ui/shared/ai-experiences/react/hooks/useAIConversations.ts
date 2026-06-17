@@ -18,12 +18,17 @@
 
 import {useState, useEffect} from 'react'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {useScope as createI18nScope} from '@canvas/i18n'
 import {
   StudentConversation,
   ConversationDetail,
   Snapshot,
   ConversationEvaluation,
+  LlmaError,
 } from '../../types'
+import {parseLlmaError} from '../parseLlmaError'
+
+const I18n = createI18nScope('ai_experiences_ai_conversations')
 
 export const useStudentConversations = (
   courseId: string | number,
@@ -32,7 +37,7 @@ export const useStudentConversations = (
   const [conversations, setConversations] = useState<StudentConversation[]>([])
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<LlmaError | null>(null)
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -45,7 +50,9 @@ export const useStudentConversations = (
         setConversations(data.conversations || [])
         setSnapshot(data.snapshot || null)
       } catch (err) {
-        setError(err as Error)
+        setError(
+          await parseLlmaError(err, I18n.t('Could not load conversations. Please try again.')),
+        )
       } finally {
         setIsLoading(false)
       }
@@ -64,7 +71,7 @@ export const useConversationDetail = (
 ) => {
   const [conversation, setConversation] = useState<ConversationDetail | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<LlmaError | null>(null)
 
   useEffect(() => {
     if (!conversationId) {
@@ -75,12 +82,15 @@ export const useConversationDetail = (
     const fetchConversation = async () => {
       try {
         setIsLoading(true)
+        setError(null)
         const {json} = await doFetchApi({
           path: `/api/v1/courses/${courseId}/ai_experiences/${aiExperienceId}/ai_conversations/${conversationId}`,
         })
         setConversation(json as ConversationDetail)
       } catch (err) {
-        setError(err as Error)
+        setError(
+          await parseLlmaError(err, I18n.t('Could not load this conversation. Please try again.')),
+        )
       } finally {
         setIsLoading(false)
       }
@@ -99,7 +109,7 @@ export const useConversationEvaluation = (
 ) => {
   const [evaluation, setEvaluation] = useState<ConversationEvaluation | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<LlmaError | null>(null)
 
   useEffect(() => {
     if (!conversationId) {
@@ -110,6 +120,7 @@ export const useConversationEvaluation = (
     const fetchEvaluation = async () => {
       try {
         setIsLoading(true)
+        setError(null)
         setEvaluation(null)
         const {json} = await doFetchApi({
           path: `/api/v1/courses/${courseId}/ai_experiences/${aiExperienceId}/conversations/${conversationId}/evaluation`,
@@ -117,7 +128,9 @@ export const useConversationEvaluation = (
         const data = json as {id: string; evaluation: ConversationEvaluation}
         setEvaluation(data.evaluation)
       } catch (err) {
-        setError(err as Error)
+        setError(
+          await parseLlmaError(err, I18n.t('Could not load the evaluation. Please try again.')),
+        )
       } finally {
         setIsLoading(false)
       }
