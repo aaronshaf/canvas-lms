@@ -11583,6 +11583,37 @@ describe Submission do
     end
   end
 
+  describe "#extraction_attempted?" do
+    before(:once) do
+      @course = Course.create!
+      @student = course_with_student(course: @course, active_all: true).user
+      @assignment = @course.assignments.create!(title: "Test Assignment")
+      @submission = @assignment.submit_homework(@student, submission_type: "online_upload", attachments: [])
+    end
+
+    it "returns false when no submission_texts row exists for the current attempt" do
+      expect(@submission.extraction_attempted?).to be false
+    end
+
+    it "returns true when a submission_texts row exists for the current attempt" do
+      SubmissionText.upsert_all(
+        [{
+          submission_id: @submission.id,
+          attachment_id: nil,
+          root_account_id: @course.root_account_id,
+          text: "extracted text",
+          contains_images: false,
+          attempt: @submission.attempt,
+          updated_at: Time.current,
+          created_at: Time.current,
+          submission_type: @submission.submission_type
+        }],
+        unique_by: :index_on_sub_attempt
+      )
+      expect(@submission.extraction_attempted?).to be true
+    end
+  end
+
   describe "#need_to_extract_text? (private method)" do
     before(:once) do
       @course = Course.create!
@@ -11697,7 +11728,7 @@ describe Submission do
         @submission.send(:extract_text)
       end
 
-      it "skips attachments when FileTextExtractionService returns nil" do
+      it "creates a row with empty text when FileTextExtractionService returns nil" do
         service_result1 = nil
         service_result2 = FileTextExtractionService::Result.new("extracted text 2", false)
 
@@ -11705,16 +11736,18 @@ describe Submission do
         allow(FileTextExtractionService).to receive(:new).with(attachment: @attachment2).and_return(instance_double(FileTextExtractionService, call: service_result2))
 
         expect(SubmissionText).to receive(:upsert_all) do |rows, _options|
-          valid_rows = rows.compact
-          expect(valid_rows.length).to eq(1)
-          expect(valid_rows[0][:text]).to eq("extracted text 2")
-          expect(valid_rows[0][:attachment_id]).to eq(@attachment2.id)
+          expect(rows.length).to eq(2)
+          expect(rows[0][:text]).to eq("")
+          expect(rows[0][:contains_images]).to be false
+          expect(rows[0][:attachment_id]).to eq(@attachment1.id)
+          expect(rows[1][:text]).to eq("extracted text 2")
+          expect(rows[1][:attachment_id]).to eq(@attachment2.id)
         end
 
         @submission.send(:extract_text)
       end
 
-      it "skips attachments when FileTextExtractionService returns empty text" do
+      it "creates a row with empty text when FileTextExtractionService returns empty text" do
         service_result1 = FileTextExtractionService::Result.new("", false)
         service_result2 = FileTextExtractionService::Result.new("extracted text 2", false)
 
@@ -11722,15 +11755,17 @@ describe Submission do
         allow(FileTextExtractionService).to receive(:new).with(attachment: @attachment2).and_return(instance_double(FileTextExtractionService, call: service_result2))
 
         expect(SubmissionText).to receive(:upsert_all) do |rows, _options|
-          valid_rows = rows.compact
-          expect(valid_rows.length).to eq(1)
-          expect(valid_rows[0][:text]).to eq("extracted text 2")
+          expect(rows.length).to eq(2)
+          expect(rows[0][:text]).to eq("")
+          expect(rows[0][:attachment_id]).to eq(@attachment1.id)
+          expect(rows[1][:text]).to eq("extracted text 2")
+          expect(rows[1][:attachment_id]).to eq(@attachment2.id)
         end
 
         @submission.send(:extract_text)
       end
 
-      it "skips attachments when FileTextExtractionService returns blank text" do
+      it "creates a row with the returned text when FileTextExtractionService returns blank text" do
         service_result1 = FileTextExtractionService::Result.new("   ", false)
         service_result2 = FileTextExtractionService::Result.new("extracted text 2", false)
 
@@ -11738,22 +11773,30 @@ describe Submission do
         allow(FileTextExtractionService).to receive(:new).with(attachment: @attachment2).and_return(instance_double(FileTextExtractionService, call: service_result2))
 
         expect(SubmissionText).to receive(:upsert_all) do |rows, _options|
-          valid_rows = rows.compact
-          expect(valid_rows.length).to eq(1)
-          expect(valid_rows[0][:text]).to eq("extracted text 2")
+          expect(rows.length).to eq(2)
+          expect(rows[0][:text]).to eq("   ")
+          expect(rows[0][:attachment_id]).to eq(@attachment1.id)
+          expect(rows[1][:text]).to eq("extracted text 2")
+          expect(rows[1][:attachment_id]).to eq(@attachment2.id)
         end
 
         @submission.send(:extract_text)
       end
 
-      it "does not call upsert_all when no valid text is extracted" do
+      it "calls upsert_all with empty text rows when all attachments return no text" do
         service_result1 = nil
         service_result2 = FileTextExtractionService::Result.new("", false)
 
         allow(FileTextExtractionService).to receive(:new).with(attachment: @attachment1).and_return(instance_double(FileTextExtractionService, call: service_result1))
         allow(FileTextExtractionService).to receive(:new).with(attachment: @attachment2).and_return(instance_double(FileTextExtractionService, call: service_result2))
 
-        expect(SubmissionText).not_to receive(:upsert_all)
+        expect(SubmissionText).to receive(:upsert_all) do |rows, _options|
+          expect(rows.length).to eq(2)
+          expect(rows[0][:text]).to eq("")
+          expect(rows[0][:attachment_id]).to eq(@attachment1.id)
+          expect(rows[1][:text]).to eq("")
+          expect(rows[1][:attachment_id]).to eq(@attachment2.id)
+        end
 
         @submission.send(:extract_text)
       end

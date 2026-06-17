@@ -268,7 +268,7 @@ describe GraphQLHelpers::AutoGradeEligibilityHelper do
         )
 
         bad_attachment = instance_double(Attachment, mimetype: "text/plain")
-        allow(submission).to receive_messages(attachments: [bad_attachment], extract_text_from_upload?: true, attachment_contains_images: false, word_count: 50)
+        allow(submission).to receive_messages(attachments: [bad_attachment], extract_text_from_upload?: true, extraction_attempted?: true, attachment_contains_images: false, word_count: 50)
 
         issues = described_class.validate_submission(submission:)
         expect(issues).to eq([{ level: "error", message: "Only PDF and DOCX files are supported." }])
@@ -308,7 +308,7 @@ describe GraphQLHelpers::AutoGradeEligibilityHelper do
     end
 
     context "when submission is an upload with no cached extracted text" do
-      it "returns an empty array (no issues)" do
+      it "returns a length error and enqueues extraction" do
         Account.site_admin.enable_feature!(:grading_assistance_file_uploads)
 
         submission = submission_model(
@@ -323,11 +323,36 @@ describe GraphQLHelpers::AutoGradeEligibilityHelper do
         allow(submission).to receive_messages(
           attachments: [attachment],
           extract_text_from_upload?: true,
-          extracted_text: ""
+          extraction_attempted?: false,
+          read_extracted_text: { text: "", contains_images: false }
         )
+        expect(submission).to receive(:extract_text_later)
 
         issues = described_class.validate_submission(submission:)
-        expect(issues).to eq([])
+        expect(issues).to include(hash_including(message: include("exceeds maximum length")))
+      end
+
+      it "does not enqueue extraction when already attempted" do
+        Account.site_admin.enable_feature!(:grading_assistance_file_uploads)
+
+        submission = submission_model(
+          user: @student,
+          assignment:,
+          submission_type: "online_upload",
+          attachments: []
+        )
+
+        attachment = instance_double(Attachment, mimetype: "application/pdf")
+        allow(submission).to receive_messages(
+          attachments: [attachment],
+          extract_text_from_upload?: true,
+          extraction_attempted?: true,
+          word_count: 0,
+          read_extracted_text: { text: "", contains_images: false }
+        )
+        expect(submission).not_to receive(:extract_text_later)
+
+        described_class.validate_submission(submission:)
       end
     end
 
@@ -380,12 +405,43 @@ describe GraphQLHelpers::AutoGradeEligibilityHelper do
         allow(submission).to receive_messages(
           attachments: [attachment],
           extract_text_from_upload?: true,
+          extraction_attempted?: true,
           word_count: 10_000,
-          extracted_text: "a" * 13_501
+          read_extracted_text: { text: "a" * 13_501, contains_images: false }
         )
 
         issues = described_class.validate_submission(submission:)
         expect(issues).to eq([{ level: "error", message: "Submission text exceeds maximum length of 13,500 characters." }])
+      end
+    end
+
+    context "when file upload text has not yet been extracted" do
+      it "returns a length error and enqueues extraction rather than unblocking grading" do
+        # Intentional: when we haven't extracted the file yet we don't know its
+        # length. Conservatively blocking grading (returning true) is safer than
+        # allowing a potentially massive essay through to the grading service.
+        # Extraction is kicked off in the background so the next check will resolve.
+        Account.site_admin.enable_feature!(:grading_assistance_file_uploads)
+
+        submission = submission_model(
+          user: @student,
+          assignment:,
+          submission_type: "online_upload",
+          attachments: []
+        )
+
+        attachment = instance_double(Attachment, mimetype: "application/pdf")
+        allow(submission).to receive_messages(
+          attachments: [attachment],
+          extract_text_from_upload?: true,
+          extraction_attempted?: false,
+          word_count: 10_000,
+          read_extracted_text: { text: "", contains_images: false }
+        )
+        expect(submission).to receive(:extract_text_later)
+
+        issues = described_class.validate_submission(submission:)
+        expect(issues).to include(hash_including(message: include("exceeds maximum length")))
       end
     end
   end

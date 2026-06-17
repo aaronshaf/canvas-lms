@@ -26,8 +26,17 @@ class AutoGradeOrchestrationService
     @current_user = current_user
   end
 
-  def self.extract_essay_text(submission)
-    essay_source = submission.extract_text_from_upload? ? submission.extracted_text : submission.body
+  def self.extract_essay_text(submission, async_extract: false)
+    essay_source = if submission.extract_text_from_upload?
+                     if async_extract
+                       submission.extract_text_later unless submission.extraction_attempted?
+                       submission.read_extracted_text[:text]
+                     else
+                       submission.extracted_text
+                     end
+                   else
+                     submission.body
+                   end
     ActionView::Base.full_sanitizer.sanitize(essay_source || "")
   end
 

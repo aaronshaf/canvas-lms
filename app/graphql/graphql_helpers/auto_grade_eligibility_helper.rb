@@ -132,7 +132,13 @@ module GraphQLHelpers::AutoGradeEligibilityHelper
   def self.essay_too_long?(submission)
     return false if submission.blank?
 
-    text = AutoGradeOrchestrationService.extract_essay_text(submission)
+    if submission.extract_text_from_upload? && !submission.extraction_attempted?
+      # Length is unknown — kick off extraction and block grading until we know.
+      submission.extract_text_later
+      return true
+    end
+
+    text = AutoGradeOrchestrationService.extract_essay_text(submission, async_extract: true)
     text.length > MAX_ESSAY_LENGTH
   end
 

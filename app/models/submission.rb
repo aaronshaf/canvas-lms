@@ -3637,6 +3637,19 @@ class Submission < ApplicationRecord
     submission_type == "online_upload" && Account.site_admin.feature_enabled?(:grading_assistance_file_uploads) && attachments.any?
   end
 
+  def extraction_attempted?
+    submission_texts.where(attempt:).exists?
+  end
+
+  def extract_text_later
+    return unless course&.feature_enabled?(:project_lhotse)
+
+    delay(
+      n_strand: ["Submission#extract_text", global_root_account_id],
+      singleton: "extract_text#{global_id}-attempt#{attempt}"
+    ).extract_text
+  end
+
   def effective_checkpoint_submission(sub_assignment_tag)
     return self unless sub_assignment_tag.present?
     return self unless assignment.checkpoints_parent?
@@ -3898,27 +3911,16 @@ class Submission < ApplicationRecord
     end
   end
 
-  def extract_text_later
-    return unless course&.feature_enabled?(:project_lhotse)
-
-    delay(
-      n_strand: ["Submission#extract_text", global_root_account_id],
-      singleton: "extract_text#{global_id}-attempt#{attempt}"
-    ).extract_text
-  end
-
   def extract_text
     upsert_rows = []
     unique_index = nil
 
     if extract_text_from_upload?
-      upsert_rows = attachments.filter_map do |attachment|
+      upsert_rows = attachments.map do |attachment|
         result = FileTextExtractionService.new(attachment:).call
-        next unless result && result.text.present?
-
         build_upsert_row(
-          text: result.text,
-          contains_images: result.contains_images,
+          text: result&.text || "",
+          contains_images: result&.contains_images || false,
           attachment_id: attachment.id
         )
       end
