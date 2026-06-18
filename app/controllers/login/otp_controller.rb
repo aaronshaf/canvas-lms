@@ -140,6 +140,13 @@ class Login::OtpController < ApplicationController
         }
       end
       if session.delete(:pending_otp)
+        login_provider = AuthenticationMethods::PseudonymAttributes.load_auth_provider
+
+        if login_provider && @current_pseudonym
+          Rails.logger.info("Inferring auth provider #{login_provider.global_id} from session")
+          @current_pseudonym.infer_auth_provider(login_provider)
+        end
+
         successful_login(@current_user, @current_pseudonym, otp_passed: true)
       else
         add_mfa_verified_ip_and_user_agent

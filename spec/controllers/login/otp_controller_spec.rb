@@ -325,6 +325,74 @@ describe Login::OtpController, type: :request do
         expect(request.env.fetch("extra-request-cost").to_f >= 150).to be_truthy
       end
 
+      context "when the login_aac is present in the current session" do
+        let(:login_provider) { Account.default.authentication_providers.create!(auth_type: "saml") }
+
+        before do
+          @pseudonym.update!(authentication_provider_id: nil)
+        end
+
+        it "keeps login_aac pointing at the session provider instead of dropping it" do
+          session_hash = { pending_otp: true, login_aac: login_provider.global_id }.with_indifferent_access
+          allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
+
+          post "/login/otp", params: { otp_login: { verification_code: ROTP::TOTP.new(@user.otp_secret_key).now } }
+
+          expect(response).to redirect_to dashboard_url(login_success: 1)
+          expect(AuthenticationProvider.active.find_by(id: session_hash[:login_aac])).to eq login_provider
+        end
+
+        it "infers the provider onto the current pseudonym in memory without persisting the binding" do
+          session_hash = { pending_otp: true, login_aac: login_provider.global_id }.with_indifferent_access
+          allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
+
+          post "/login/otp", params: { otp_login: { verification_code: ROTP::TOTP.new(@user.otp_secret_key).now } }
+
+          expect(response).to redirect_to dashboard_url(login_success: 1)
+          expect(@pseudonym.reload.authentication_provider_id).to be_nil
+        end
+
+        it "leaves an existing pseudonym binding untouched" do
+          existing_provider = Account.default.authentication_providers.create!(auth_type: "saml")
+          @pseudonym.update!(authentication_provider: existing_provider)
+          session_hash = { pending_otp: true, login_aac: login_provider.global_id }.with_indifferent_access
+          allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
+
+          post "/login/otp", params: { otp_login: { verification_code: ROTP::TOTP.new(@user.otp_secret_key).now } }
+
+          expect(response).to redirect_to dashboard_url(login_success: 1)
+          expect(@pseudonym.reload.authentication_provider).to eq existing_provider
+        end
+      end
+
+      context "when the session has no resolvable login_aac" do
+        before do
+          @pseudonym.update!(authentication_provider_id: nil)
+        end
+
+        it "does not infer a provider when login_aac is absent" do
+          session_hash = { pending_otp: true }
+          allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
+
+          post "/login/otp", params: { otp_login: { verification_code: ROTP::TOTP.new(@user.otp_secret_key).now } }
+
+          expect(response).to redirect_to dashboard_url(login_success: 1)
+          expect(session_hash[:login_aac]).to be_nil
+        end
+
+        it "does not infer a provider that is no longer active" do
+          inactive_provider = Account.default.authentication_providers.create!(auth_type: "saml")
+          inactive_provider.destroy
+          session_hash = { pending_otp: true, login_aac: inactive_provider.global_id }.with_indifferent_access
+          allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
+
+          post "/login/otp", params: { otp_login: { verification_code: ROTP::TOTP.new(@user.otp_secret_key).now } }
+
+          expect(response).to redirect_to dashboard_url(login_success: 1)
+          expect(session_hash[:login_aac]).to be_nil
+        end
+      end
+
       it "is not blocked by an IP mismatch" do
         session_hash = { pending_otp: true, mfa_verified_ips: ["1.2.3.4"] }
         allow_any_instance_of(Login::OtpController).to receive(:session) { session_hash }
