@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "../../../controllers/lti/concerns/parent_frame_shared_examples"
+require_relative "../concerns/parent_frame_shared_examples"
 
 describe Lti::IMS::AuthenticationController do
   include Lti::RedisMessageClient

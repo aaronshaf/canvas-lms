@@ -19,10 +19,10 @@
 #
 
 require_relative "../../feature_flag_helper"
-require_relative "ims/concerns/advantage_services_shared_context"
-require_relative "ims/concerns/lti_services_shared_examples"
+require_relative "../../controllers/lti/ims/concerns/advantage_services_shared_context"
+require_relative "../../controllers/lti/ims/concerns/lti_services_shared_examples"
 
-describe Lti::FeatureFlagsController, type: :request do
+describe Lti::FeatureFlagsController do
   include WebMock::API
   include FeatureFlagHelper
 

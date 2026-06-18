@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "concerns/deep_linking_spec_helper"
+require_relative "../../../controllers/lti/ims/concerns/deep_linking_spec_helper"
 require_relative "../concerns/parent_frame_shared_examples"
 
 module Lti
   module IMS
-    RSpec.describe DeepLinkingController, type: :request do
+    RSpec.describe DeepLinkingController do
       include_context "deep_linking_spec_helper"
 
       describe "#deep_linking_cancel" do

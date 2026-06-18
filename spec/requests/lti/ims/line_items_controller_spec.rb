@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "concerns/advantage_services_shared_context"
-require_relative "concerns/advantage_services_shared_examples"
-require_relative "concerns/lti_services_shared_examples"
+require_relative "../../../controllers/lti/ims/concerns/advantage_services_shared_context"
+require_relative "../../../controllers/lti/ims/concerns/advantage_services_shared_examples"
+require_relative "../../../controllers/lti/ims/concerns/lti_services_shared_examples"
 
 module Lti
   module IMS
-    RSpec.describe LineItemsController, type: :request do
+    RSpec.describe LineItemsController do
       include_context "advantage services context"
       include AccountDomainSpecHelper
 

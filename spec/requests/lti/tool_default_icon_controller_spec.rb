@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe Lti::ToolDefaultIconController, type: :request do
+describe Lti::ToolDefaultIconController do
   describe "#show" do
     it "generates an SVG icon" do
       get "/lti/tool_default_icon", params: { name: "test" }
