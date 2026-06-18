@@ -179,6 +179,33 @@ describe('pendo/index', () => {
       )
     })
 
+    it('includes top-level oemAccountId when USAGE_METRICS_METADATA.oem_account_id is set', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      ;(globalThis as any).ENV = {
+        ...baseEnv,
+        USAGE_METRICS_METADATA: {oem_account_id: 'oem-42'},
+      }
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+
+      await initializePendo()
+
+      expect(mockInitialize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          oemAccountId: 'oem-42',
+          account: expect.objectContaining({oemAccountId: 'oem-42'}),
+        }),
+      )
+    })
+
+    it('omits top-level oemAccountId when USAGE_METRICS_METADATA has no oem_account_id', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+
+      await initializePendo()
+
+      expect(mockInitialize.mock.calls[0][0]).not.toHaveProperty('oemAccountId')
+    })
+
     it('does not re-initialize on subsequent calls', async () => {
       window.CANVAS_COOKIE_CONSENT_STATE = true
       mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})

@@ -165,6 +165,11 @@ function init(): Promise<any> | null {
       excludeNonGuideAnalytics: eNGA,
     }
 
+    //oemAccountId is needed outside of the account object as well
+    if (ENV.USAGE_METRICS_METADATA?.oem_account_id) {
+      pendoInitParams.oemAccountId = ENV.USAGE_METRICS_METADATA.oem_account_id
+    }
+
     return initialize(pendoInitParams)
   })
 }

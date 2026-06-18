@@ -37,6 +37,7 @@ declare module '@pendo/agent' {
     account?: Account
     globalKey?: string
     plugins?: any[]
+    oemAccountId?: string
   }
 
   export function initialize(config: PendoConfig): Promise<any>
