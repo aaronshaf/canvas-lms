@@ -134,7 +134,7 @@ new_quizzes_native_experience:
     Enabling this feature moves the New Quizzes experience out of its
     isolation layer (iframe) to run natively within the main Canvas page.
 
-    Note: This feature option will be removed on July 1st, 2026, as the
+    Note: This feature option will be removed on August 15th, 2026, as the
     native integration becomes the standard experience for all production
     environments.
   state: hidden
