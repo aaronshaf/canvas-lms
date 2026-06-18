@@ -22,7 +22,7 @@ module Lti
   describe AssetProcessorLaunchController do
     include Lti::RedisMessageClient
 
-    before :once do
+    before do
       course_with_teacher(active_all: true)
     end
 
@@ -44,7 +44,7 @@ module Lti
     end
 
     describe "#launch_settings" do
-      subject { get :launch_settings, params: { asset_processor_id: asset_processor.id } }
+      subject { get "/asset_processors/#{asset_processor.id}/launch" }
 
       context "with feature disabled" do
         before do
@@ -59,7 +59,6 @@ module Lti
       end
 
       context "with feature enabled" do
-        render_views
         before do
           asset_processor.assignment.context.root_account.enable_feature!(:lti_asset_processor)
         end
@@ -88,7 +87,7 @@ module Lti
                 tool: asset_processor.context_external_tool,
                 context: @course,
                 user: @teacher,
-                session_id: nil,
+                session_id: anything,
                 launch_type: :content_item,
                 launch_url: asset_processor.url,
                 message_type: "LtiAssetProcessorSettingsRequest"
@@ -119,7 +118,7 @@ module Lti
       end
 
       context "with invalid asset_processor_id" do
-        subject { get :launch_settings, params: { asset_processor_id: 0 } }
+        subject { get "/asset_processors/0/launch" }
 
         it "returns 404" do
           user_session(@teacher)
@@ -132,7 +131,7 @@ module Lti
     describe "#launch_report" do
       let(:asset_report) { lti_asset_report_model(lti_asset_processor_id: asset_processor.id) }
 
-      subject { get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: asset_report } }
+      subject { get "/asset_processors/#{asset_processor.id}/reports/#{asset_report.id}/launch" }
 
       before do
         user_session(@teacher)
@@ -150,7 +149,6 @@ module Lti
       end
 
       context "with feature enabled" do
-        render_views
         before do
           asset_processor.assignment.context.root_account.enable_feature!(:lti_asset_processor)
         end
@@ -166,7 +164,7 @@ module Lti
         end
 
         context "with invalid asset_processor_id" do
-          subject { get :launch_report, params: { asset_processor_id: 0, report_id: asset_report } }
+          subject { get "/asset_processors/0/reports/#{asset_report.id}/launch" }
 
           it "returns 404" do
             subject
@@ -175,7 +173,7 @@ module Lti
         end
 
         context "with invalid asset_report_id" do
-          subject { get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: 0 } }
+          subject { get "/asset_processors/#{asset_processor.id}/reports/0/launch" }
 
           it "returns 404" do
             subject
@@ -186,7 +184,7 @@ module Lti
         context "with asset_report that does not belongs to asset_processor" do
           let(:asset_report) { lti_asset_report_model }
 
-          subject { get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: asset_report.id } }
+          subject { get "/asset_processors/#{asset_processor.id}/reports/#{asset_report.id}/launch" }
 
           it "returns 400" do
             subject
@@ -211,7 +209,7 @@ module Lti
 
             it "allows student to view their own report" do
               user_session(student)
-              get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: asset_report.id }
+              get "/asset_processors/#{asset_processor.id}/reports/#{asset_report.id}/launch"
               expect(response).to have_http_status :ok
             end
           end
@@ -221,7 +219,7 @@ module Lti
 
             it "prevents student from viewing the report" do
               user_session(student)
-              get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: asset_report.id }
+              get "/asset_processors/#{asset_processor.id}/reports/#{asset_report.id}/launch"
               expect(response).to have_http_status :unauthorized
             end
           end
@@ -241,7 +239,7 @@ module Lti
 
           it "allows teacher to view the report regardless of visible_to_owner setting" do
             user_session(@teacher)
-            get :launch_report, params: { asset_processor_id: asset_processor.id, report_id: asset_report.id }
+            get "/asset_processors/#{asset_processor.id}/reports/#{asset_report.id}/launch"
             expect(response).to have_http_status :ok
           end
         end
@@ -258,7 +256,7 @@ module Lti
               tool: asset_processor.context_external_tool,
               context: @course,
               user: @teacher,
-              session_id: nil,
+              session_id: anything,
               launch_type: :content_item,
               launch_url: asset_processor.report["url"],
               message_type: "LtiReportReviewRequest"

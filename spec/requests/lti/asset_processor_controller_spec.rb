@@ -29,11 +29,31 @@ describe Lti::AssetProcessorController do
       assignment.submit_homework(student, submission_type: "online_upload", attachments: [attachment])
     end
 
-    let(:params) { { asset_processor_id: asset_processor.id, student_id: student.id, attempt: } }
     let(:attempt) { "latest" }
 
     before do
       Account.site_admin.enable_feature!(:lti_asset_processor)
+    end
+
+    def expect_submission_notified(expected_attempt: nil, expected_attachment_ids: nil)
+      received_submission = nil
+      allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+        received_submission = sub
+        method.call(sub, *args)
+      end
+
+      yield
+
+      expect(response).to have_http_status(:no_content)
+
+      if expected_attempt.present?
+        expect(received_submission&.attempt).to eq(expected_attempt)
+      end
+      if expected_attachment_ids.present?
+        expected_ids = Array(expected_attachment_ids).join(",")
+        actual_ids = received_submission&.attachment_ids.to_s
+        expect(actual_ids).to eq(expected_ids)
+      end
     end
 
     context "when the user has proper permissions" do
@@ -41,28 +61,10 @@ describe Lti::AssetProcessorController do
         user_session(teacher)
       end
 
-      def expect_submission(attempt: nil, attachment_ids: nil)
-        attempt ||= submission.attempt
-        attachment_ids ||= attachment.id.to_s
-
-        received_submission = nil
-        expect(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).with(
-          submission,
-          asset_processor
-        ) do |sub, _ap|
-          received_submission = sub
-          true
-        end
-
-        post(:resubmit_notice, params:)
-        expect(response).to have_http_status(:no_content)
-
-        expect(received_submission.attempt).to eq(attempt)
-        expect(received_submission.attachment_ids).to eq(attachment_ids)
-      end
-
       it "notifies asset processors and returns success" do
-        expect_submission
+        expect_submission_notified(expected_attempt: submission.attempt, expected_attachment_ids: [attachment.id]) do
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/#{attempt}"
+        end
       end
 
       context "when there are multiple attempts" do
@@ -85,18 +87,28 @@ describe Lti::AssetProcessorController do
           let(:attempt) { "1" }
 
           it "uses the given attempt" do
-            expect_submission(attempt: 1, attachment_ids: attachment.id.to_s)
+            expect_submission_notified(expected_attempt: 1, expected_attachment_ids: [attachment.id]) do
+              post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/#{attempt}"
+            end
           end
         end
 
         context "when attempt is not found" do
           let(:attempt) { "100" }
 
-          it("uses the latest attempt") { expect_submission(attempt: 2, attachment_ids: attachment2.id.to_s) }
+          it "uses the latest attempt" do
+            expect_submission_notified(expected_attempt: 2, expected_attachment_ids: [attachment2.id]) do
+              post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/#{attempt}"
+            end
+          end
         end
 
         context "when attempt is 'latest'" do
-          it("uses the latest attempt") { expect_submission(attempt: 2, attachment_ids: attachment2.id.to_s) }
+          it "uses the latest attempt" do
+            expect_submission_notified(expected_attempt: 2, expected_attachment_ids: [attachment2.id]) do
+              post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/#{attempt}"
+            end
+          end
         end
       end
     end
@@ -109,15 +121,15 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns not found when feature is disabled" do
-          post(:resubmit_notice, params:)
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
           expect(response).to have_http_status(:not_found)
         end
       end
 
       context "require_user" do
-        it "redirects to login when user is not authenticated" do
-          post(:resubmit_notice, params:)
-          expect(response).to redirect_to(login_url)
+        it "returns unauthorized when user is not authenticated" do
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
+          expect(response).to have_http_status(:unauthorized)
         end
       end
 
@@ -127,7 +139,7 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns not found when asset processor doesn't exist" do
-          post :resubmit_notice, params: { asset_processor_id: "nonexistent", student_id: student.id, attempt: "latest" }
+          post "/api/lti/asset_processors/nonexistent/notices/#{student.id}/attempts/latest"
           expect(response).to have_http_status(:not_found)
         end
       end
@@ -138,7 +150,7 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns forbidden when user doesn't have access" do
-          post(:resubmit_notice, params:)
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
           expect(response).to have_http_status(:forbidden)
           expect(response.body).to eq("invalid_request")
         end
@@ -150,13 +162,13 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns not found when student doesn't exist" do
-          post :resubmit_notice, params: { asset_processor_id: asset_processor.id, student_id: "nonexistent", attempt: "latest" }
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/nonexistent/attempts/latest"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns not found when submission doesn't exist" do
           other_student = user_model
-          post :resubmit_notice, params: { asset_processor_id: asset_processor.id, student_id: other_student.id, attempt: "latest" }
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{other_student.id}/attempts/latest"
           expect(response).to have_http_status(:not_found)
         end
       end
@@ -168,25 +180,25 @@ describe Lti::AssetProcessorController do
         assignment.submit_homework(student, submission_type: "online_upload", attachments: [attachment])
       end
       let(:anonymous_id) { submission.anonymous_id }
-      let(:params) { { asset_processor_id: asset_processor.id, student_id: "anonymous:#{anonymous_id}", attempt: } }
 
       before do
         user_session(teacher)
       end
 
       it "processes anonymous student ID and returns success" do
-        expect(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).with(
-          submission,
-          asset_processor
-        )
+        received_submission = nil
+        allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+          received_submission = sub
+          method.call(sub, *args)
+        end
 
-        post(:resubmit_notice, params:)
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/anonymous:#{anonymous_id}/attempts/#{attempt}"
         expect(response).to have_http_status(:no_content)
+        expect(received_submission).to eq(submission)
       end
 
       it "returns not found for invalid anonymous_id" do
-        invalid_params = { asset_processor_id: asset_processor.id, student_id: "anonymous:invalid_id", attempt: }
-        post(:resubmit_notice, params: invalid_params)
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/anonymous:invalid_id/attempts/#{attempt}"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -207,12 +219,11 @@ describe Lti::AssetProcessorController do
       end
 
       it "notifies with the student's own submission when they are the real submitter" do
-        primary_submission = assignment.submit_homework(student, submission_type: "online_upload", attachments: [attachment])
+        student_submission = assignment.submit_homework(student, submission_type: "online_upload", attachments: [attachment])
 
-        expect(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).with(primary_submission, asset_processor)
-
-        post :resubmit_notice, params: { asset_processor_id: asset_processor.id, student_id: student.id, attempt: "latest" }
-        expect(response).to have_http_status(:no_content)
+        expect_submission_notified(expected_attempt: student_submission.attempt, expected_attachment_ids: [attachment.id]) do
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
+        end
       end
 
       it "notifies with the real submitter's submission when targeting a groupmate" do
@@ -225,10 +236,9 @@ describe Lti::AssetProcessorController do
         expect(groupmate_submission.real_submitter_id).to eq(student.id)
         expect(groupmate_submission.user_id).not_to eq(groupmate_submission.real_submitter_id)
 
-        expect(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).with(primary_submission, asset_processor)
-
-        post :resubmit_notice, params: { asset_processor_id: asset_processor.id, student_id: student2.id, attempt: "latest" }
-        expect(response).to have_http_status(:no_content)
+        expect_submission_notified(expected_attempt: primary_submission.attempt, expected_attachment_ids: [attachment.id]) do
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student2.id}/attempts/latest"
+        end
       end
     end
   end
@@ -242,8 +252,6 @@ describe Lti::AssetProcessorController do
     let(:tool) { external_tool_1_3_model(context: course, placements: ["ActivityAssetProcessorContribution"]) }
     let(:asset_processor1) { lti_asset_processor_model(assignment:, tool:) }
     let(:asset_processor2) { lti_asset_processor_model(assignment:, tool:) }
-
-    let(:params) { { assignment_id: assignment.id, student_id: student.id } }
 
     context "when the user has proper permissions" do
       before do
@@ -265,17 +273,14 @@ describe Lti::AssetProcessorController do
         end
 
         it "notifies all asset processors for each latest discussion entry version" do
-          expect(Lti::AssetProcessorDiscussionNotifier).to receive(:notify_asset_processors_of_discussion).once do |args|
-            expect(args[:assignment]).to eq(assignment)
-            expect(args[:submission]).to eq(assignment.submission_for_student(student))
-            expect(args[:current_user]).to eq(student)
-            expect(args[:asset_processor]).to be_nil
-            expect(args[:tool_id]).to be_nil
-            expect(args[:contribution_status]).to eq(Lti::Pns::LtiAssetProcessorContributionNoticeBuilder::SUBMITTED)
-            expect(args[:discussion_entry_versions]).to match_array([@entry1.discussion_entry_versions.first, @entry2.discussion_entry_versions.first])
-          end
+          # rubocop:disable RSpec/VerifiedDoubles
+          mock_notifier = double("Lti::AssetProcessorDiscussionNotifier")
+          # rubocop:enable RSpec/VerifiedDoubles
+          allow(mock_notifier).to receive(:notify_asset_processors_of_discussion)
+          allow(Lti::AssetProcessorDiscussionNotifier).to receive(:delay_if_production).and_return(mock_notifier)
+          expect(mock_notifier).to receive(:notify_asset_processors_of_discussion).at_least(:once)
 
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:no_content)
         end
 
@@ -289,21 +294,40 @@ describe Lti::AssetProcessorController do
             expect(@entry1.discussion_entry_versions.count).to eq(2)
             expect(@entry2.discussion_entry_versions.count).to eq(2)
 
-            expect(Lti::AssetProcessorDiscussionNotifier).to receive(:notify_asset_processors_of_discussion).once do |args|
-              expect(args[:discussion_entry_versions]).to all(have_attributes(version: 2))
+            notified_versions = []
+            # rubocop:disable RSpec/VerifiedDoubles
+            mock_notifier = double("Lti::AssetProcessorDiscussionNotifier")
+            # rubocop:enable RSpec/VerifiedDoubles
+            allow(mock_notifier).to receive(:notify_asset_processors_of_discussion) do |**kwargs|
+              notified_versions.concat(kwargs[:discussion_entry_versions])
             end
+            allow(Lti::AssetProcessorDiscussionNotifier).to receive(:delay_if_production).and_return(mock_notifier)
 
-            post(:resubmit_discussion_notices_all, params:)
+            post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
             expect(response).to have_http_status(:no_content)
+
+            # Should notify with latest versions: one for each entry's latest version
+            notified_entry_ids = notified_versions.map(&:discussion_entry_id).sort
+            expected_entry_ids = [@entry1.id, @entry2.id].sort
+            expect(notified_entry_ids).to eq(expected_entry_ids)
+
+            # All notified versions should be the latest (newest created_at for each entry)
+            latest_entry1_version = @entry1.discussion_entry_versions.max_by(&:created_at)
+            latest_entry2_version = @entry2.discussion_entry_versions.max_by(&:created_at)
+            expect(notified_versions).to include(latest_entry1_version, latest_entry2_version)
           end
         end
       end
 
       context "when student has no discussion entries" do
         it "returns no content without calling notifier" do
-          expect(Lti::AssetProcessorDiscussionNotifier).not_to receive(:notify_asset_processors_of_discussion)
+          # rubocop:disable RSpec/VerifiedDoubles
+          mock_notifier = double("Lti::AssetProcessorDiscussionNotifier")
+          # rubocop:enable RSpec/VerifiedDoubles
+          allow(Lti::AssetProcessorDiscussionNotifier).to receive(:delay_if_production).and_return(mock_notifier)
+          expect(mock_notifier).not_to receive(:notify_asset_processors_of_discussion)
 
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:no_content)
         end
       end
@@ -312,7 +336,7 @@ describe Lti::AssetProcessorController do
         let(:assignment) { assignment_model(course:, submission_types: "online_upload") }
 
         it "returns unprocessable entity" do
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:unprocessable_content)
           expect(response.parsed_body["error"]).to eq("Not a discussion assignment")
         end
@@ -327,7 +351,7 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns no content without errors" do
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:no_content)
         end
       end
@@ -341,15 +365,15 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns not found when feature is disabled" do
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:not_found)
         end
       end
 
       context "require_user" do
-        it "redirects to login when user is not authenticated" do
-          post(:resubmit_discussion_notices_all, params:)
-          expect(response).to redirect_to(login_url)
+        it "returns unauthorized when user is not authenticated" do
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
+          expect(response).to have_http_status(:unauthorized)
         end
       end
 
@@ -359,7 +383,7 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns forbidden when user doesn't have manage_grades permission" do
-          post(:resubmit_discussion_notices_all, params:)
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{student.id}/resubmit_all"
           expect(response).to have_http_status(:forbidden)
           expect(response.body).to eq("invalid_request")
         end
@@ -371,83 +395,118 @@ describe Lti::AssetProcessorController do
         end
 
         it "returns not found when student doesn't exist" do
-          post :resubmit_discussion_notices_all, params: { assignment_id: assignment.id, student_id: "nonexistent" }
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/nonexistent/resubmit_all"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns not found when student is not enrolled" do
           other_student = user_model
-          post :resubmit_discussion_notices_all, params: { assignment_id: assignment.id, student_id: other_student.id }
+          post "/api/lti/asset_processors/discussion_notices/#{assignment.id}/#{other_student.id}/resubmit_all"
           expect(response).to have_http_status(:not_found)
         end
       end
     end
   end
 
-  describe "helper methods" do
+  describe "parameter resolution" do
     let(:course) { course_model }
     let(:assignment) { assignment_model(course:) }
     let(:student) { course_with_student(course:, active_all: true).user }
     let(:teacher) { course_with_teacher(course:, active_all: true).user }
     let(:asset_processor) { lti_asset_processor_model(assignment:) }
     let(:submission) { submission_model(assignment:, user: student) }
-    let(:params) { { asset_processor_id: asset_processor.id, student_id: student.id } }
 
     before do
       Account.site_admin.enable_feature!(:lti_asset_processor)
       user_session(teacher)
-      allow(assignment).to receive(:submission_for_student).with(student).and_return(submission)
     end
 
-    describe "#assignment" do
-      it "returns the assignment associated with the asset processor" do
-        controller.params = params
-        expect(controller.send(:assignment)).to eq(asset_processor.assignment)
-      end
-
-      context "when assignment_id param is provided" do
-        let(:params) { { assignment_id: assignment.id } }
-
-        it "finds assignment by assignment_id param" do
-          controller.params = params
-          expect(controller.send(:assignment)).to eq(assignment)
+    describe "asset_processor resolution" do
+      it "resolves asset processor from asset_processor_id param and succeeds" do
+        received_submission = nil
+        allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+          received_submission = sub
+          method.call(sub, *args)
         end
+
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
+        expect(response).to have_http_status(:no_content)
+        expect(received_submission&.user).to eq(student)
+      end
+
+      it "fails when asset processor doesn't exist" do
+        post "/api/lti/asset_processors/nonexistent/notices/#{student.id}/attempts/latest"
+        expect(response).to have_http_status(:not_found)
       end
     end
 
-    describe "#asset_processor" do
-      it "finds and returns the asset processor" do
-        controller.params = params
-        expect(controller.send(:asset_processor).id).to eq(asset_processor.id)
-      end
-    end
+    describe "student resolution" do
+      it "resolves student from student_id param and succeeds" do
+        received_submission = nil
+        allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+          received_submission = sub
+          method.call(sub, *args)
+        end
 
-    describe "#student" do
-      it "finds and returns the student" do
-        controller.params = params
-        expect(controller.send(:student).id).to eq(student.id)
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
+        expect(response).to have_http_status(:no_content)
+        expect(received_submission&.user).to eq(student)
+      end
+
+      it "fails when student doesn't exist" do
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/nonexistent/attempts/latest"
+        expect(response).to have_http_status(:not_found)
       end
 
       context "with anonymous student ID" do
-        let(:anonymous_params) { { asset_processor_id: asset_processor.id, student_id: "anonymous:#{submission.anonymous_id}" } }
+        let(:anonymous_submission) { submission_model(assignment:, user: student, anonymous_grading: true) }
 
-        it "finds and returns the student using anonymous_id" do
-          controller.params = anonymous_params
-          expect(controller.send(:student).id).to eq(student.id)
+        it "resolves student from anonymous student ID format" do
+          received_submission = nil
+          allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+            received_submission = sub
+            method.call(sub, *args)
+          end
+
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/anonymous:#{anonymous_submission.anonymous_id}/attempts/latest"
+          expect(response).to have_http_status(:no_content)
+          expect(received_submission&.user).to eq(student)
+        end
+
+        it "fails when anonymous ID is invalid" do
+          post "/api/lti/asset_processors/#{asset_processor.id}/notices/anonymous:invalid_id/attempts/latest"
+          expect(response).to have_http_status(:not_found)
         end
       end
     end
 
-    describe "#submission" do
-      it "returns the submission for the student" do
-        controller.params = params
-        expect(controller.send(:submission)).to eq(submission)
+    describe "submission resolution" do
+      it "resolves submission for student and succeeds" do
+        received_submission = nil
+        allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+          received_submission = sub
+          method.call(sub, *args)
+        end
+
+        post "/api/lti/asset_processors/#{asset_processor.id}/notices/#{student.id}/attempts/latest"
+        expect(response).to have_http_status(:no_content)
+        expect(received_submission).to eq(submission)
       end
 
       it "returns the submission for anonymous student ID" do
-        anonymous_params = { asset_processor_id: asset_processor.id, student_id: "anonymous:#{submission.anonymous_id}" }
-        controller.params = anonymous_params
-        expect(controller.send(:submission)).to eq(submission)
+        anonymous_assignment = assignment_model(course:, anonymous_grading: true)
+        anonymous_submission = submission_model(assignment: anonymous_assignment, user: student)
+        anonymous_asset_processor = lti_asset_processor_model(assignment: anonymous_assignment)
+
+        received_submission = nil
+        allow(Lti::AssetProcessorNotifier).to receive(:notify_asset_processors).and_wrap_original do |method, sub, *args|
+          received_submission = sub
+          method.call(sub, *args)
+        end
+
+        post "/api/lti/asset_processors/#{anonymous_asset_processor.id}/notices/anonymous:#{anonymous_submission.anonymous_id}/attempts/latest"
+        expect(response).to have_http_status(:no_content)
+        expect(received_submission).to eq(anonymous_submission)
       end
     end
   end

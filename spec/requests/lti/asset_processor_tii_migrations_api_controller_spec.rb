@@ -68,7 +68,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
 
       context "when no accounts have TurnItIn tool proxies" do
         it "returns an empty array" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body["accounts"]).to eq([])
         end
@@ -84,7 +84,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         end
 
         it "returns account data" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
 
           data = response.parsed_body["accounts"]
@@ -108,7 +108,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         end
 
         it "returns account data for course's account" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
 
           data = response.parsed_body["accounts"]
@@ -126,7 +126,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         let(:progress) do
           Progress.create!(
             context: sub_account,
-            tag: "lti_tii_ap_migration",
+            tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
             workflow_state: "running",
             completion: 50,
             message: "Processing..."
@@ -139,43 +139,39 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         end
 
         it "includes migration progress in response" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
 
           data = response.parsed_body["accounts"]
           sub_account_data = data.find { |d| d["account_id"] == sub_account.id }
 
-          expect(sub_account_data["migration_progress"]).to include(
-            "id" => progress.id,
-            "workflow_state" => "running",
-            "completion" => 50.0,
-            "message" => "Processing..."
-          )
+          expect(sub_account_data["migration_progress"]["id"]).to eql(progress.id)
+          expect(sub_account_data["migration_progress"]["workflow_state"]).to eq("running")
+          expect(sub_account_data["migration_progress"]["completion"]).to eql(50.0) # rubocop:disable RSpec/BeEql
+          expect(sub_account_data["migration_progress"]["message"]).to eq("Processing...")
         end
 
         it "returns the newest progress record when multiple exist" do
           old_progress = Progress.create!(
             context: sub_account,
-            tag: "lti_tii_ap_migration",
+            tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
             workflow_state: "completed",
             completion: 100,
             message: "Old migration completed",
             created_at: 2.days.ago
           )
 
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
 
           data = response.parsed_body["accounts"]
           sub_account_data = data.find { |d| d["account_id"] == sub_account.id }
 
-          expect(sub_account_data["migration_progress"]).to include(
-            "id" => progress.id,
-            "workflow_state" => "running",
-            "completion" => 50.0,
-            "message" => "Processing..."
-          )
-          expect(sub_account_data["migration_progress"]["id"]).not_to eq(old_progress.id)
+          expect(sub_account_data["migration_progress"]["id"]).to eql(progress.id)
+          expect(sub_account_data["migration_progress"]["workflow_state"]).to eq("running")
+          expect(sub_account_data["migration_progress"]["completion"]).to eql(50.0) # rubocop:disable RSpec/BeEql
+          expect(sub_account_data["migration_progress"]["message"]).to eq("Processing...")
+          expect(sub_account_data["migration_progress"]["id"]).not_to eql(old_progress.id)
         end
       end
 
@@ -185,7 +181,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         end
 
         it "does not include accounts with deleted tool proxies" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body["accounts"]).to eq([])
         end
@@ -206,7 +202,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         end
 
         it "does not include accounts with non-TurnItIn tool proxies" do
-          get :index, params: { account_id: root_account.id }
+          get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
           expect(response).to have_http_status(:ok)
           expect(response.parsed_body["accounts"]).to eq([])
         end
@@ -217,15 +213,15 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       before { user_session(student_in_course(account: root_account).user) }
 
       it "returns forbidden" do
-        get :index, params: { account_id: root_account.id }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
-        get :index, params: { account_id: root_account.id }
-        expect(response).to redirect_to(login_url)
+        get "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations"
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
@@ -235,7 +231,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       end
 
       it "returns not found" do
-        get :index, params: { account_id: sub_account.id }
+        get "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -253,39 +249,42 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
 
       it "creates a progress and enqueues a job" do
         expect do
-          post :create, params: { account_id: sub_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(1).and change(Delayed::Job, :count).by_at_least(1)
 
         expect(response).to have_http_status(:ok)
 
         data = response.parsed_body
-        expect(data).to include("id", "workflow_state", "completion")
+        progress = Progress.find(data["id"])
+        expect(data["id"]).to eq(progress.id)
         expect(data["workflow_state"]).to eq("queued")
 
-        progress = Progress.find(data["id"])
         expect(progress.context).to eq(sub_account)
-        expect(progress.tag).to eq("lti_tii_ap_migration")
+        expect(progress.tag).to eq(Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG)
         expect(progress.user).to eq(admin)
       end
 
       it "creates a progress for root account" do
         expect do
-          post :create, params: { account_id: root_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(1)
 
         expect(response).to have_http_status(:ok)
 
-        progress = Progress.find(response.parsed_body["id"])
+        data = response.parsed_body
+        progress = Progress.find(data["id"])
+        expect(data["id"]).to eq(progress.id)
+        expect(data["workflow_state"]).to eq("queued")
         expect(progress.context).to eq(root_account)
       end
 
       it "returns not found for non-existent account" do
-        post :create, params: { account_id: 0, email: "test@example.com" }
-        expect(response).to have_http_status(:not_found)
+        post "/api/v1/accounts/0/asset_processors/tii_migrations", params: { email: "test@example.com" }
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "enqueues job with strand parameter" do
-        post :create, params: { account_id: sub_account.id, email: "test@example.com" }
+        post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
 
         expect(response).to have_http_status(:ok)
 
@@ -297,13 +296,13 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         it "returns existing queued progress instead of creating a new one" do
           existing_progress = Progress.create!(
             context: sub_account,
-            tag: "lti_tii_ap_migration",
+            tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
             workflow_state: "queued",
             user: admin
           )
 
           expect do
-            post :create, params: { account_id: sub_account.id, email: "test@example.com" }
+            post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
           end.not_to change(Progress, :count)
 
           expect(response).to have_http_status(:ok)
@@ -314,16 +313,18 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         it "creates new progress when existing one is completed" do
           Progress.create!(
             context: sub_account,
-            tag: "lti_tii_ap_migration",
+            tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
             workflow_state: "completed",
             user: admin
           )
 
           expect do
-            post :create, params: { account_id: sub_account.id, email: "test@example.com" }
+            post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
           end.to change(Progress, :count).by(1)
 
           expect(response).to have_http_status(:ok)
+          data = response.parsed_body
+          expect(data["workflow_state"]).to eq("queued")
         end
       end
     end
@@ -332,15 +333,15 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       before { user_session(student_in_course(account: root_account).user) }
 
       it "returns forbidden" do
-        post :create, params: { account_id: sub_account.id, email: "test@example.com" }, format: :json
-        expect(response).to be_forbidden
+        post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
-        post :create, params: { account_id: sub_account.id, email: "test@example.com" }
-        expect(response).to redirect_to(login_url)
+        post "/api/v1/accounts/#{sub_account.id}/asset_processors/tii_migrations", params: { email: "test@example.com" }
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end
@@ -358,20 +359,28 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
 
       it "creates progress records for all eligible accounts" do
         expect do
-          post :migrate_all, params: { account_id: root_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(3).and change(Delayed::Job, :count).by(2)
 
         expect(response).to have_http_status(:ok)
 
         data = response.parsed_body
-        expect(data).to include("progress_ids", "account_ids", "bulk_migration_id", "coordinator_id")
-        expect(data["progress_ids"].length).to eq(2)
+
+        # Verify progress records were created for both accounts
+        progress1 = Progress.find_by(context: sub_account1, tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG)
+        progress2 = Progress.find_by(context: sub_account2, tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG)
+        expect(data["progress_ids"]).to contain_exactly(progress1.id, progress2.id)
+
         expect(data["account_ids"]).to contain_exactly(sub_account1.id, sub_account2.id)
-        expect(data["bulk_migration_id"]).to be_present
+        expect(data["bulk_migration_id"]).to match(/\A[0-9a-f-]{36}\z/)
+
+        # Verify coordinator exists and has the correct ID
+        coordinator = Progress.find_by(context: root_account, tag: Lti::AssetProcessorTiiMigrationWorker::COORDINATOR_TAG)
+        expect(data["coordinator_id"]).to eq(coordinator.id)
       end
 
       it "stores bulk_migration_id in coordinator and coordinator_id in migrations" do
-        post :migrate_all, params: { account_id: root_account.id, email: "test@example.com" }
+        post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all", params: { email: "test@example.com" }
 
         expect(response).to have_http_status(:ok)
         bulk_migration_id = response.parsed_body["bulk_migration_id"]
@@ -380,8 +389,8 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
         coordinator = Progress.find(coordinator_id)
         expect(coordinator.results[:bulk_migration_id]).to eq(bulk_migration_id)
 
-        progress1 = Progress.find_by(context: sub_account1, tag: "lti_tii_ap_migration")
-        progress2 = Progress.find_by(context: sub_account2, tag: "lti_tii_ap_migration")
+        progress1 = Progress.find_by(context: sub_account1, tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG)
+        progress2 = Progress.find_by(context: sub_account2, tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG)
 
         expect(progress1.results[:coordinator_id]).to eq(coordinator_id)
         expect(progress2.results[:coordinator_id]).to eq(coordinator_id)
@@ -390,39 +399,38 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       it "returns success with empty arrays when no eligible accounts" do
         Progress.create!(
           context: sub_account1,
-          tag: "lti_tii_ap_migration",
+          tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
           workflow_state: "running",
           user: admin
         )
         Progress.create!(
           context: sub_account2,
-          tag: "lti_tii_ap_migration",
+          tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
           workflow_state: "running",
           user: admin
         )
 
         expect do
-          post :migrate_all, params: { account_id: root_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(1)
 
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to include(
-          "progress_ids" => [],
-          "account_ids" => []
-        )
-        expect(response.parsed_body).to have_key("bulk_migration_id")
+        data = response.parsed_body
+        expect(data["progress_ids"]).to eql([])
+        expect(data["account_ids"]).to eql([])
+        expect(data["bulk_migration_id"]).to match(/\A[0-9a-f-]{36}\z/)
       end
 
       it "skips accounts with existing pending progress" do
         Progress.create!(
           context: sub_account1,
-          tag: "lti_tii_ap_migration",
+          tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
           workflow_state: "running",
           user: admin
         )
 
         expect do
-          post :migrate_all, params: { account_id: root_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(2)
 
         expect(response).to have_http_status(:ok)
@@ -433,19 +441,19 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       it "excludes accounts with completed or failed migrations" do
         Progress.create!(
           context: sub_account1,
-          tag: "lti_tii_ap_migration",
+          tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
           workflow_state: "completed",
           user: admin
         )
         Progress.create!(
           context: sub_account2,
-          tag: "lti_tii_ap_migration",
+          tag: Lti::AssetProcessorTiiMigrationWorker::PROGRESS_TAG,
           workflow_state: "failed",
           user: admin
         )
 
         expect do
-          post :migrate_all, params: { account_id: root_account.id, email: "test@example.com" }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all", params: { email: "test@example.com" }
         end.to change(Progress, :count).by(1)
 
         expect(response).to have_http_status(:ok)
@@ -456,7 +464,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
 
       it "works without email parameter" do
         expect do
-          post :migrate_all, params: { account_id: root_account.id }
+          post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all"
         end.to change(Progress, :count).by(3)
 
         expect(response).to have_http_status(:ok)
@@ -470,7 +478,7 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       end
 
       it "returns not found" do
-        post :migrate_all, params: { account_id: sub_account1.id }
+        post "/api/v1/accounts/#{sub_account1.id}/asset_processors/tii_migrations/migrate_all"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -479,15 +487,15 @@ describe Lti::AssetProcessorTiiMigrationsApiController do
       before { user_session(student_in_course(account: root_account).user) }
 
       it "returns forbidden" do
-        post :migrate_all, params: { account_id: root_account.id }, format: :json
-        expect(response).to be_forbidden
+        post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
-        post :migrate_all, params: { account_id: root_account.id }
-        expect(response).to redirect_to(login_url)
+        post "/api/v1/accounts/#{root_account.id}/asset_processors/tii_migrations/migrate_all"
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

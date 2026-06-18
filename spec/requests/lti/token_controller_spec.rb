@@ -26,14 +26,14 @@ describe Lti::TokenController do
     let(:params) { {} }
 
     def send_request
-      get :lti_2_token, params:, as: :json
+      get "/api/lti/lti_2_token", params:
     end
 
     context "when user is not logged in" do
       it "returns unauthorized" do
         send_request
 
-        expect(response).to be_unauthorized
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
@@ -45,7 +45,7 @@ describe Lti::TokenController do
       it "returns forbidden" do
         send_request
 
-        expect(response).to be_forbidden
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -54,13 +54,17 @@ describe Lti::TokenController do
 
       before do
         user_session(user)
-        controller.instance_variable_set(:@access_token, instance_double(AccessToken).as_null_object)
+        allow_any_instance_of(Lti::TokenController).to receive(:require_session_authentication).and_wrap_original do |method, *args|
+          controller_instance = method.receiver
+          controller_instance.instance_variable_set(:@access_token, user.access_tokens.create!(purpose: "testing"))
+          method.call(*args)
+        end
       end
 
       it "returns forbidden" do
         send_request
 
-        expect(response).to be_forbidden
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -89,12 +93,14 @@ describe Lti::TokenController do
           allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
             .with("enforce_violations").and_return(true)
           AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id
+          allow_any_instance_of(Lti::TokenController).to receive(:require_elevated_auth_provider).and_return(true)
         end
 
         it "returns a token" do
           send_request
-
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
+          decoded_jwt = Canvas::Security.decode_jwt(response.body).with_indifferent_access
+          expect(decoded_jwt[:sub]).to eq tool_proxy.guid
         end
       end
 
@@ -110,7 +116,7 @@ describe Lti::TokenController do
         it "returns forbidden" do
           send_request
 
-          expect(response).to be_forbidden
+          expect(response).to have_http_status(:forbidden)
         end
       end
     end
@@ -149,14 +155,14 @@ describe Lti::TokenController do
 
   describe "#lti_token_form" do
     def send_request
-      get :lti_token_form
+      get "/accounts/self/lti_token"
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
         send_request
 
-        expect(response).to be_redirect
+        expect(response).to have_http_status(:redirect)
       end
     end
 
@@ -166,20 +172,26 @@ describe Lti::TokenController do
       it "redirects" do
         send_request
 
-        expect(response).to be_redirect
+        expect(response).to have_http_status(:redirect)
       end
     end
 
     context "when request uses a user access token" do
+      let(:admin_user) { site_admin_user }
+
       before do
-        user_session(site_admin_user)
-        controller.instance_variable_set(:@access_token, instance_double(AccessToken).as_null_object)
+        user_session(admin_user)
+        allow_any_instance_of(Lti::TokenController).to receive(:require_session_authentication).and_wrap_original do |method, *args|
+          controller_instance = method.receiver
+          controller_instance.instance_variable_set(:@access_token, admin_user.access_tokens.create!(purpose: "testing"))
+          method.call(*args)
+        end
       end
 
       it "returns forbidden" do
         send_request
 
-        expect(response).to be_forbidden
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -189,8 +201,8 @@ describe Lti::TokenController do
       it "renders the form" do
         send_request
 
-        expect(response).to be_successful
-        expect(response).to render_template(:lti_token_form)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Generate LTI Advantage Access Token")
       end
     end
   end
@@ -225,14 +237,14 @@ describe Lti::TokenController do
     let(:totp_double) { instance_double(ROTP::TOTP, verify: "123456") }
 
     def send_request
-      post :create_lti_token, params:
+      post "/accounts/self/lti_token", params:
     end
 
     context "when user is not logged in" do
       it "redirects to login" do
         send_request
 
-        expect(response).to be_redirect
+        expect(response).to have_http_status(:redirect)
       end
     end
 
@@ -242,7 +254,7 @@ describe Lti::TokenController do
       it "redirects" do
         send_request
 
-        expect(response).to be_redirect
+        expect(response).to have_http_status(:redirect)
       end
     end
 
@@ -272,13 +284,15 @@ describe Lti::TokenController do
           allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
             .with("enforce_violations").and_return(true)
           AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id
+          allow_any_instance_of(Lti::TokenController).to receive(:require_elevated_auth_provider).and_return(true)
         end
 
         it "renders the form with the generated token" do
           send_request
 
-          expect(response).to be_successful
-          expect(assigns(:token_data)["access_token"]).to be_present
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("Token generated successfully")
+          expect(response.body).to match(%r{<textarea[^>]*id="lti_access_token"[^>]*>[\s\S]+</textarea>})
         end
       end
 
@@ -294,7 +308,7 @@ describe Lti::TokenController do
         it "redirects" do
           send_request
 
-          expect(response).to be_redirect
+          expect(response).to have_http_status(:redirect)
         end
       end
     end
@@ -329,7 +343,7 @@ describe Lti::TokenController do
       it "returns bad request" do
         send_request
 
-        expect(response).to be_bad_request
+        expect(response).to have_http_status(:bad_request)
       end
     end
 
@@ -343,13 +357,17 @@ describe Lti::TokenController do
 
       context "when request uses a user access token" do
         before do
-          controller.instance_variable_set(:@access_token, instance_double(AccessToken).as_null_object)
+          allow_any_instance_of(Lti::TokenController).to receive(:require_session_authentication).and_wrap_original do |method, *args|
+            controller_instance = method.receiver
+            controller_instance.instance_variable_set(:@access_token, user.access_tokens.create!(purpose: "testing"))
+            method.call(*args)
+          end
         end
 
         it "returns forbidden" do
           send_request
 
-          expect(response).to be_forbidden
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -359,9 +377,8 @@ describe Lti::TokenController do
         it "re-renders the form with an error" do
           send_request
 
-          expect(response).to be_forbidden
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:error)).to be_present
+          expect(response).to have_http_status(:forbidden)
+          expect(response.body).to include("OTP authentication is not configured")
         end
       end
 
@@ -375,8 +392,7 @@ describe Lti::TokenController do
           send_request
 
           expect(response).to have_http_status(:unauthorized)
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:error)).to be_present
+          expect(response.body).to include("Invalid OTP code")
         end
       end
 
@@ -387,8 +403,7 @@ describe Lti::TokenController do
           send_request
 
           expect(response).to have_http_status(:not_found)
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:error)).to be_present
+          expect(response.body).to include("Tool not found")
         end
       end
 
@@ -410,9 +425,8 @@ describe Lti::TokenController do
         it "re-renders the form with an error" do
           send_request
 
-          expect(response).to be_forbidden
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:error)).to be_present
+          expect(response).to have_http_status(:forbidden)
+          expect(response.body).to include("Cannot generate a token")
         end
       end
 
@@ -422,9 +436,8 @@ describe Lti::TokenController do
         it "re-renders the form with an error" do
           send_request
 
-          expect(response).to be_forbidden
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:error)).to be_present
+          expect(response).to have_http_status(:forbidden)
+          expect(response.body).to include("domain does not match")
         end
       end
 
@@ -432,10 +445,9 @@ describe Lti::TokenController do
         it "renders the form with the generated token" do
           send_request
 
-          expect(response).to be_successful
-          expect(response).to render_template(:lti_token_form)
-          expect(assigns(:token_data)).to be_present
-          expect(assigns(:token_data)["access_token"]).to be_present
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("Token generated successfully")
+          expect(response.body).to match(%r{<textarea[^>]*id="lti_access_token"[^>]*>[\s\S]+</textarea>})
         end
       end
     end

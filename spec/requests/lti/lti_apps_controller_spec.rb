@@ -72,13 +72,12 @@ RSpec.describe Lti::LtiAppsController do
       end
 
       it "includes Quizzes 2 tool in launch definitions" do
-        get :launch_definitions, params: {
-          course_id: course.id,
+        get "/api/v1/courses/#{course.id}/lti_apps/launch_definitions", params: {
           placements: ["course_navigation"],
           format: :json
         }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         tool_ids = json.pluck("definition_id")
 
@@ -120,13 +119,12 @@ RSpec.describe Lti::LtiAppsController do
       end
 
       it "filters out Quizzes 2 tool from launch definitions" do
-        get :launch_definitions, params: {
-          course_id: course.id,
+        get "/api/v1/courses/#{course.id}/lti_apps/launch_definitions", params: {
           placements: ["course_navigation"],
           format: :json
         }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         tool_ids = json.pluck("definition_id")
 
@@ -148,13 +146,12 @@ RSpec.describe Lti::LtiAppsController do
           }
         )
 
-        get :launch_definitions, params: {
-          course_id: course.id,
+        get "/api/v1/courses/#{course.id}/lti_apps/launch_definitions", params: {
           placements: ["course_navigation"],
           format: :json
         }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         tool_ids = json.pluck("definition_id")
 
@@ -206,13 +203,12 @@ RSpec.describe Lti::LtiAppsController do
       end
 
       it "does not filter out Quizzes 2 tool from launch definitions when context is Account" do
-        get :launch_definitions, params: {
-          account_id: account.id,
+        get "/api/v1/accounts/#{account.id}/lti_apps/launch_definitions", params: {
           placements: ["account_navigation"],
           format: :json
         }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         tool_ids = json.pluck("definition_id")
 
@@ -228,13 +224,12 @@ RSpec.describe Lti::LtiAppsController do
       end
 
       it "includes Quizzes 2 tool when context is Account and feature is enabled" do
-        get :launch_definitions, params: {
-          account_id: account.id,
+        get "/api/v1/accounts/#{account.id}/lti_apps/launch_definitions", params: {
           placements: ["account_navigation"],
           format: :json
         }
 
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         json = json_parse(response.body)
         tool_ids = json.pluck("definition_id")
 
