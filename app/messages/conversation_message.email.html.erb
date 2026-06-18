@@ -92,7 +92,9 @@
   <p style="margin: 0px;"><%= t :attached_files, "Attached Files:" %></p>
   <ul style="padding-left: 20px;">
     <% asset.attachments.each do |attachment| %>
-    <li><%= attachment.display_name %> - <%= attachment.readable_size %> <a href="<%= file_download_url(attachment, verifier: attachment.uuid) %>">[<%= t :download, "download" %>]</a></li>
+    <% file_url = file_download_url(attachment, verifier: attachment.uuid) %>
+    <% file_url += "&location=#{asset.asset_string}" if asset.root_account_feature_enabled?(:file_association_access_conversation) %>
+    <li><%= attachment.display_name %> - <%= attachment.readable_size %> <a href="<%= file_url %>">[<%= t :download, "download" %>]</a></li>
     <% end %>
   </ul>
 </div>

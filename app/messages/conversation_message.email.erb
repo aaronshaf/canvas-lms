@@ -42,7 +42,9 @@
 <% unless asset.attachments.empty? %>
   <%= t :attached_files, "Attached Files:" %>
   <% asset.attachments.each do |attachment| %>
+    <% file_url = file_download_url(attachment, verifier: attachment.uuid) %>
+    <% file_url += "&location=#{asset.asset_string}" if asset.root_account_feature_enabled?(:file_association_access_conversation) %>
     <%= attachment.display_name %> - <%= attachment.readable_size %>
-    <%= file_download_url(attachment, verifier: attachment.uuid) %>
+    <%= file_url %>
   <% end %>
 <% end %>

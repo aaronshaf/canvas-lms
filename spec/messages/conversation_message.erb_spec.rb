@@ -66,5 +66,35 @@ message")
       msg = generate_message(:conversation_created, :email, @message)
       expect(msg.body.include?("replying directly to this email")).to be false
     end
+
+    it "includes location parameter in attachment URLs when feature flag is enabled" do
+      course_conversation = @teacher.initiate_conversation([@user], false, context_type: "Course", context_id: @course.id)
+      message = course_conversation.add_message("test message")
+
+      @course.root_account.enable_feature!(:file_association_access_conversation)
+      attachment = attachment_model(context: @teacher, folder: @teacher.conversation_attachments_folder)
+      message.attachment_ids = [attachment.id]
+      message.save!
+
+      msg = generate_message(notification_name, path_type, message)
+
+      expect(msg.body).to include("location=#{message.asset_string}")
+      expect(msg.html_body).to include("location=#{message.asset_string}")
+    end
+
+    it "does not include location parameter when feature flag is disabled" do
+      course_conversation = @teacher.initiate_conversation([@user], false, context_type: "Course", context_id: @course.id)
+      message = course_conversation.add_message("test message")
+
+      @course.root_account.disable_feature!(:file_association_access_conversation)
+      attachment = attachment_model(context: @teacher, folder: @teacher.conversation_attachments_folder)
+      message.attachment_ids = [attachment.id]
+      message.save!
+
+      msg = generate_message(notification_name, path_type, message)
+
+      expect(msg.body).not_to include("location=#{message.asset_string}")
+      expect(msg.html_body).not_to include("location=#{message.asset_string}")
+    end
   end
 end
