@@ -131,7 +131,7 @@ module UserSearch
             SELECT user_id FROM inner_user_scope
           SQL
         ))
-        .joins("INNER JOIN user_scope ON users.id = user_scope.user_id")
+        .where("users.id IN (SELECT user_id FROM user_scope)")
         .where.not(users: user_filter)
     end
 
@@ -386,7 +386,7 @@ module UserSearch
 
       if context.is_a?(Account)
         # if the context is an Account, the scope is determined by the outer CTE
-        complex_sql(User.shard(context.shard).joins("INNER JOIN user_scope ON users.id = user_scope.user_id"), params)
+        complex_sql(User.shard(context.shard).where("users.id IN (SELECT user_id FROM user_scope)"), params)
       else
         complex_sql(users_scope, params)
       end
