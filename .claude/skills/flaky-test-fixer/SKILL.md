@@ -40,8 +40,11 @@ offer observations at any point — adapt naturally. Examples:
 
 ### Phase 1 — Gather
 
-Use AskUserQuestion: *"Provide the CSV row and failure report MHTMLs
-for the next test (or group of related tests)."*
+Use AskUserQuestion: *"Provide the CSV data values (no header needed)
+and failure report MHTMLs for the next test (or group of related tests)."*
+
+The user pastes only the data values — match them positionally to the
+column definitions in `kb/process.md` § "Gather failure data" table.
 
 If the user has already provided them in the same message that invoked
 the skill, skip the prompt and proceed.

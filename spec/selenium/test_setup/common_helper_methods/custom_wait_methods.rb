@@ -301,6 +301,24 @@ module CustomWaitMethods
     true
   end
 
+  # waits until the number of elements matching +selector+ equals +count+.
+  # works for any transition: 0-to-N, N-to-0, and N-to-M. Canvas wraps
+  # ff() with FinderWaiting (raises NestedWaitError inside keep_trying_until),
+  # so disable_implicit_wait is needed to let ff() return immediately while
+  # keep_trying_until provides the outer retry loop (up to 10 s).
+  def wait_for_element_count(selector, count)
+    keep_trying_until do
+      disable_implicit_wait do
+        actual = begin
+          ff(selector).length
+        rescue Selenium::WebDriver::Error::NoSuchElementError # rubocop:disable Specs/NoNoSuchElementError -- intentional: treats 0 elements as count 0 for N-to-0 transitions
+          0
+        end
+        expect(actual).to equal(count)
+      end
+    end
+  end
+
   def wait_for_block_editor(parent_element = nil)
     parent_element ||= f("#content")
     keep_trying_until do

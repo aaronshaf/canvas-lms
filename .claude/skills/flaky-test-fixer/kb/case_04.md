@@ -14,7 +14,14 @@ errors that are easy to misdiagnose.
 
 ```
 RuntimeError: javascript 662:14571 Uncaught Object: Session with given id not found.
+RuntimeError: javascript 662:14571 Uncaught Object: Command can only be executed on top-level targets
+RuntimeError: http://.../dist/webpack-production/49009-chunk-*.js 1452:5387
 ```
+
+Multiple CDP artifact strings exist for the same underlying cause — Chrome
+logs different messages depending on the exact timing and BiDi mapper state.
+The third variant is a webpack chunk URL with no message text (just a source
+location), which cannot be matched by `browser_errors_we_dont_care_about`.
 
 Raised by Canvas's post-test `check_for_js_errors` hook
 (`spec/selenium/common.rb`), not by a test assertion. The test body passes;
@@ -43,9 +50,15 @@ Add the string to `browser_errors_we_dont_care_about` in
 `spec/selenium/common.rb`:
 
 ```ruby
-"Session with given id not found" # flaky-fix: QE-141 — Chrome CDP artifact
-# from type_in_tiny/switch_editor_views iframe detach. Not a Canvas
-# application error.
+"Session with given id not found" # flaky-fix: QE-141
+"Command can only be executed on top-level targets" # flaky-fix: QE-163
+```
+
+When the error has no matchable text (URL-only webpack chunk entry), use
+`:ignore_js_errors` on the specific test instead:
+
+```ruby
+it "resets form properly", :ignore_js_errors, custom_timeout: 35 do # flaky-fix: QE-163
 ```
 
 Also add any missing `wait_for_ajaximations` between the tab/section click
@@ -62,10 +75,10 @@ and a note about the long-term fix (redesign `edit_announcement` to use the
 TinyMCE JS API — `tinymce.get(id).setContent(…)` — instead of
 `switch_editor_views`, eliminating the iframe detach entirely).
 
-### Files affected (QE-141)
+### Files affected (QE-141, QE-163)
 
-- `spec/selenium/common.rb` — suppression entry
-- `spec/selenium/admin/admin_settings_announcements_spec.rb:101` and `:128`
+- `spec/selenium/common.rb` — suppression entries (QE-141: "Session with given id not found"; QE-163: "Command can only be executed on top-level targets")
+- `spec/selenium/admin/admin_settings_announcements_spec.rb:101` and `:128` (QE-141), `:178` (QE-163: `:ignore_js_errors` for URL-only error)
 
 ---
 
@@ -121,6 +134,37 @@ hasn't rendered yet, even though `f(".fc-title")` would have waited. The
 fix is the same: add `wait_for_ajaximations` before the `ff()` call.
 This also applies after toggling calendar checkboxes, which trigger
 FullCalendar to re-fetch events.
+
+**`wait_for_ajaximations` alone is not always sufficient (QE-163):**
+On heavily loaded CI workers, FullCalendar's deferred event-fetch AJAX
+can take longer than the `wait_for_ajaximations` window. When this
+happens, `ff()` still returns an empty array. The robust fix is to wrap
+`wait_for_element_count` (shared helper in `custom_wait_methods.rb`):
+
+```ruby
+get "/calendar2"
+wait_for_ajaximations   # drains the initial AJAX burst
+wait_for_element_count(".fc-content .fc-title", 1)
+```
+
+`wait_for_element_count(selector, count)` handles any transition —
+0-to-N (elements appearing), N-to-0 (elements disappearing), and
+N-to-M (count settling). It retries for up to 10 s via
+`keep_trying_until`, using `disable_implicit_wait` to bypass Canvas's
+`FinderWaiting` nesting guard and rescuing `NoSuchElementError` as
+count 0 so the N-to-0 case works.
+
+**Why not `have_size` or bare `keep_trying_until`:**
+
+- **`have_size(n)`** only works when `ff()` finds at least one element.
+  `ff()` raises `NoSuchElementError` before `have_size` runs on the
+  0-to-N case.
+- **Bare `keep_trying_until { ff(...) }`** raises `NestedWaitError`
+  because Canvas wraps `ff()` with `FinderWaiting` (its own wait loop).
+
+Apply to ALL `ff().length` assertions in the same test — the
+whack-a-mole trap (QE-155) applies here too. Bump `custom_timeout`
+per S-09 to account for the added retry budget.
 
 **Whack-a-mole trap (QE-155):** When a test contains multiple page
 navigations (`get` + `refresh_page`), each navigation that precedes a

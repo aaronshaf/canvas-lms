@@ -35,9 +35,30 @@ Selection criteria:
 
 For each test, collect:
 
-**CSV row** — copy the row from the Ranking worksheet. Key fields:
-`testcase_uniquename`, `build_fails`, `flaky_fails`, `latest_spec_location`,
-`drill_down_url`.
+**CSV row** — copy the data values from the Ranking worksheet (no header
+needed — the column order is fixed). The user pastes only the values;
+match them positionally to these columns:
+
+| # | Column | Meaning |
+|---|---|---|
+| 1 | `testcase_uniquename` | Unique test identifier (full description path) |
+| 2 | `build_fails` | Triple-fail count — times this test caused a build failure (each = 3 flaky fails) |
+| 3 | `flaky_fails` | Total flaky failures **including** triple-fails |
+| 4 | `gerrit_p_sets` | Distinct Gerrit patch sets where this test failed |
+| 5 | `credibility` | Signal reliability: `1High` (≥5 PS), `2Med` (3–4 PS), `3Low` (<3 PS) |
+| 6 | `freshness` | Recency: `1High` (recent), `2Med`, `3Low` (stale) — based on days since last failure vs expected failure interval |
+| 7 | `is_fixed` | Likely already fixed: `1High` (credible + stale → fix probably landed), `2Med` (credible + file touched within 6 h of last failure), `3Low` (not yet addressed) |
+| 8 | `first_event` | Timestamp of first failure in the rolling window |
+| 9 | `last_event` | Timestamp of most recent failure |
+| 10 | `latest_patch_ts` | Last time the test **file** was touched (used to temporarily hide tests being worked on) |
+| 11 | `daily_flaky_fails` | Average flaky failures per day |
+| 12 | `daily_build_fails` | Average build failures (triple-fails) per day |
+| 13 | `latest_spec_location` | Current file:line of the test |
+| 14 | `drill_down_url` | URL to the Observe Breakdown worksheet filtered for this test |
+
+Key relationships:
+- `build_fails` × 3 ≤ `flaky_fails` (every triple-fail contributes 3 flaky fails)
+- Selection targets: `credibility: 1High`, `freshness: 1High`, `is_fixed: 3Low`
 
 **Failure MHTMLs** — follow this path to download 3 failure reports:
 

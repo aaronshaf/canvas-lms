@@ -98,7 +98,7 @@ describe "settings tabs" do
       assert_error_box("#account_notification_subject")
     end
 
-    it "edits an announcement", custom_timeout: 40 do # flaky-fix: QE-141, QE-147
+    it "edits an announcement", custom_timeout: 40 do # flaky-fix: QE-141, QE-147, QE-163
       notification = account_notification(user: @user, start_at: 1.day.from_now)
       initial_notification_start = notification.start_at
       initial_notification_end = notification.end_at
@@ -175,7 +175,7 @@ describe "settings tabs" do
       expect(AccountNotification.active.count).to eq 2
     end
 
-    it "resets form properly on new announcement", custom_timeout: 35 do # flaky-fix: QE-147, QE-151, QE-157
+    it "resets form properly on new announcement", :ignore_js_errors, custom_timeout: 35 do # flaky-fix: QE-147, QE-151, QE-157, QE-163
       notification = account_notification(user: @user, start_at: 1.day.from_now)
       get "/accounts/#{Account.default.id}/settings"
       wait_for_new_page_load

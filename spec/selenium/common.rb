@@ -254,7 +254,8 @@ shared_context "in-process server selenium tests" do
         "NoSuchFrameException", # upgrading chrome version is throwing this for some testcases only in pipeline build
         "Uncaught Error: More value is provided", # upgrading chrome version is throwing this for some testcases only in pipeline build
         "Support for this event type has been removed", # Mutation events removed from Chrome from July 2024
-        "Session with given id not found" # flaky-fix: QE-141 — Chrome CDP artifact: emitted when a pending CDP command targets a detached iframe session (e.g. after type_in_tiny / switch_editor_views). Not a Canvas application error.
+        "Session with given id not found", # flaky-fix: QE-141 — Chrome CDP artifact: emitted when a pending CDP command targets a detached iframe session (e.g. after type_in_tiny / switch_editor_views). Not a Canvas application error.
+        "Command can only be executed on top-level targets" # flaky-fix: QE-163 — Chrome CDP artifact from BiDi mapper when a TinyMCE iframe is removed from the DOM (e.g. form submit/close after type_in_tiny). Same family as "Session with given id not found" and "NoSuchFrameException". TODO: if more TinyMCE iframe CDP artifacts surface, consider refactoring type_in_tiny to use the TinyMCE JS API (tinymce.get(id).setContent()) instead of iframe-based interaction, eliminating the iframe detach entirely.
       ].freeze
 
       javascript_errors = browser_logs.select do |e|
