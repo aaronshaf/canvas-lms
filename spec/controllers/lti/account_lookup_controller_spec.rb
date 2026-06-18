@@ -21,10 +21,18 @@
 require_relative "ims/concerns/advantage_services_shared_context"
 require_relative "ims/concerns/lti_services_shared_examples"
 
-describe Lti::AccountLookupController do
+describe Lti::AccountLookupController, type: :request do
   include WebMock::API
 
   include_context "advantage services context"
+
+  def send_request
+    h = {}
+    h["Authorization"] = "Bearer #{access_token_jwt}" if access_token_jwt
+    host!(test_request_host)
+    get "/api/lti/accounts/#{params_overrides[:account_id]}", headers: h
+    run_jobs
+  end
 
   describe "#show" do
     it_behaves_like "lti services" do

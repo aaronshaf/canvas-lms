@@ -17,12 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe Lti::ToolDefaultIconController do
+describe Lti::ToolDefaultIconController, type: :request do
   describe "#show" do
-    render_views
-
     it "generates an SVG icon" do
-      get :show, params: { name: "test" }
+      get "/lti/tool_default_icon", params: { name: "test" }
       expect(response).to have_http_status(:ok)
       expect(response.content_type).to eq("image/svg+xml; charset=utf-8")
     end
@@ -38,7 +36,7 @@ describe Lti::ToolDefaultIconController do
       }
 
       expectations.each do |name, expected_glyph|
-        get :show, params: { name: }
+        get "/lti/tool_default_icon", params: { name: }
         expect(response.body).to include(">#{expected_glyph}</text>")
       end
     end
@@ -49,13 +47,13 @@ describe Lti::ToolDefaultIconController do
 
       color = Lti::ToolDefaultIconController::COLORS[hash % Lti::ToolDefaultIconController::COLORS.length]
 
-      get :show, params: { name: }
+      get "/lti/tool_default_icon", params: { name: }
 
       expect(response.body).to include("fill=\"#{color}\"")
     end
 
     it "returns a bad request if no name is provided" do
-      get :show
+      get "/lti/tool_default_icon"
 
       expect(response).to have_http_status(:bad_request)
     end

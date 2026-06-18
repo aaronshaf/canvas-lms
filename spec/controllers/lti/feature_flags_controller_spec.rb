@@ -22,11 +22,24 @@ require_relative "../../feature_flag_helper"
 require_relative "ims/concerns/advantage_services_shared_context"
 require_relative "ims/concerns/lti_services_shared_examples"
 
-describe Lti::FeatureFlagsController do
+describe Lti::FeatureFlagsController, type: :request do
   include WebMock::API
   include FeatureFlagHelper
 
   include_context "advantage services context"
+
+  def send_request
+    h = {}
+    h["Authorization"] = "Bearer #{access_token_jwt}" if access_token_jwt
+    host!(test_request_host)
+    path = if params_overrides[:course_id]
+             "/api/lti/courses/#{params_overrides[:course_id]}/feature_flags/#{params_overrides[:feature]}"
+           else
+             "/api/lti/accounts/#{params_overrides[:account_id]}/feature_flags/#{params_overrides[:feature]}"
+           end
+    get path, headers: h
+    run_jobs
+  end
 
   let(:account) { root_account }
   let(:course) { course_model(root_account: account) }
@@ -108,7 +121,9 @@ describe Lti::FeatureFlagsController do
 
       it "returns a valid feature" do
         send_request
-        expect(response.body).not_to eq("null")
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body) # rubocop:disable Rails/ResponseParsedBody
+        expect(body["feature"]).to eq("site_admin_feature")
       end
     end
   end
