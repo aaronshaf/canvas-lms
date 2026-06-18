@@ -105,11 +105,10 @@ function useKeysEvents(
       }
       onKeyDown(event)
     }
-    // Adds the event listener when component did mount
     document.addEventListener('keydown', onKeyDownWrapper)
     return () => {
-      // Removes the event listener when component will unmount
       document.removeEventListener('keydown', onKeyDownWrapper)
+      stopMovement.cancel()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
