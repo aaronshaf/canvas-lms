@@ -25,32 +25,19 @@ class BackfillAiConversationCompletedToEnded < ActiveRecord::Migration[8.0]
   disable_ddl_transaction!
 
   def up
-    unless check_constraint_exists?(:ai_conversations, name: "chk_workflow_state_enum_old")
-      execute("ALTER TABLE #{connection.quote_table_name(:ai_conversations)} RENAME CONSTRAINT chk_workflow_state_enum TO chk_workflow_state_enum_old")
-    end
-
+    AiConversation.where(workflow_state: "completed").in_batches.update_all(workflow_state: "ended")
+    remove_check_constraint :ai_conversations, name: "chk_workflow_state_enum", if_exists: true
     add_check_constraint :ai_conversations,
                          "workflow_state IN ('active', 'ended', 'deleted')",
                          name: "chk_workflow_state_enum",
-                         validate: false
-
-    AiConversation.where(workflow_state: "completed").in_batches.update_all(workflow_state: "ended")
-
-    validate_constraint :ai_conversations, :chk_workflow_state_enum
-    remove_check_constraint :ai_conversations, name: "chk_workflow_state_enum_old"
+                         if_not_exists: true
   end
 
   def down
-    unless check_constraint_exists?(:ai_conversations, name: "chk_workflow_state_enum_old")
-      execute("ALTER TABLE #{connection.quote_table_name(:ai_conversations)} RENAME CONSTRAINT chk_workflow_state_enum TO chk_workflow_state_enum_old")
-    end
-
+    remove_check_constraint :ai_conversations, name: "chk_workflow_state_enum", if_exists: true
     add_check_constraint :ai_conversations,
                          "workflow_state IN ('active', 'ended', 'completed', 'deleted')",
                          name: "chk_workflow_state_enum",
-                         validate: false
-
-    validate_constraint :ai_conversations, :chk_workflow_state_enum
-    remove_check_constraint :ai_conversations, name: "chk_workflow_state_enum_old"
+                         if_not_exists: true
   end
 end
