@@ -1,6 +1,12 @@
 {
   "ConfirmationDialog": {
     "Cancel": "Cancel",
+    "Close": "Close",
+    "Confirm": "Confirm"
+  },
+  "ConfirmationDialogWithPrompt": {
+    "Cancel": "Cancel",
+    "Close": "Close",
     "Confirm": "Confirm"
   },
   "DueDateOverrideView": {
@@ -279,6 +285,7 @@
     "An error occurred accepting the Early Access Program terms": "An error occurred accepting the Early Access Program terms",
     "Anything you upload or use with these features stays yours. We may use it in limited ways to improve the features, but you're responsible for keeping your own backups. We may use your data to provide and maintain the features. Any aggregated or anonymized data stays with Instructure, and we may also use it to help improve our products.": "Anything you upload or use with these features stays yours. We may use it in limited ways to improve the features, but you're responsible for keeping your own backups. We may use your data to provide and maintain the features. Any aggregated or anonymized data stays with Instructure, and we may also use it to help improve our products.",
     "Cancel": "Cancel",
+    "Close": "Close",
     "Confidentiality: ": "Confidentiality: ",
     "Do you accept the Early Access Program Terms and Conditions?": "Do you accept the Early Access Program Terms and Conditions?",
     "Early Access Program Terms and Conditions": "Early Access Program Terms and Conditions",
@@ -355,23 +362,52 @@
     "Update question without regrading": "Update question without regrading"
   },
   "study_assist": {
+    "1 flashcard generated": "1 flashcard generated",
+    "1 flashcard regenerated": "1 flashcard regenerated",
     "AI Privacy Notice": "AI Privacy Notice",
     "AI information": "AI information",
+    "Answer": "Answer",
     "Back": "Back",
+    "Bad response": "Bad response",
+    "Card {{current}} of {{total}}": "Card {{current}} of {{total}}",
+    "Check Answer": "Check Answer",
     "Claude 3 Haiku": "Claude 3 Haiku",
     "Close": "Close",
+    "Correct answer": "Correct answer",
     "Data is not stored or reused by the model.": "Data is not stored or reused by the model.",
     "Does Not Log Data": "Does Not Log Data",
+    "Failed to load flashcards. Please try again.": "Failed to load flashcards. Please try again.",
+    "Failed to load quiz. Please try again.": "Failed to load quiz. Please try again.",
+    "Flashcards": "Flashcards",
     "Generated study content may be inaccurate or incomplete.": "Generated study content may be inaccurate or incomplete.",
+    "Global": "Global",
+    "Good response": "Good response",
+    "IgniteAI": "IgniteAI",
+    "IgniteAI Study Tools": "IgniteAI Study Tools",
+    "Incorrect answer. The correct answer is {{label}}": "Incorrect answer. The correct answer is {{label}}",
+    "Loading": "Loading",
+    "Next Card": "Next Card",
     "No study tools are currently available.": "No study tools are currently available.",
     "Nutrition Facts": "Nutrition Facts",
     "PII in page content may be included, but no PII is intentionally sent to the model.": "PII in page content may be included, but no PII is intentionally sent to the model.",
     "Page": "Page",
     "Page content is sent to the model to generate study materials.": "Page content is sent to the model to generate study materials.",
+    "Previous Card": "Previous Card",
+    "Question": "Question",
+    "Question regenerated": "Question regenerated",
+    "Quiz Me": "Quiz Me",
+    "Quiz generated with 1 question": "Quiz generated with 1 question",
+    "Quiz generated with {{num}} questions": "Quiz generated with {{num}} questions",
+    "Regenerate": "Regenerate",
+    "Regenerate Flashcards": "Regenerate Flashcards",
+    "Reveal answer": "Reveal answer",
+    "Show question": "Show question",
     "Students are able to efficiently study course material through AI-generated summaries, quizzes, and flashcards.": "Students are able to efficiently study course material through AI-generated summaries, quizzes, and flashcards.",
     "Study Tools": "Study Tools",
     "Study tools": "Study tools",
-    "US": "US"
+    "Summary": "Summary",
+    "{{num}} flashcards generated": "{{num}} flashcards generated",
+    "{{num}} flashcards regenerated": "{{num}} flashcards regenerated"
   },
   "submissions": {
     "Document Processors:": "Document Processors:"

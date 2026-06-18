@@ -3263,10 +3263,10 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.5.1.tgz#4d0a13c88e87b19e233d8a04b7cc81a2a50faebf"
   integrity sha512-wr+zfjX/Qdkgqn17XkfxRpNlngzAocH5k3Nd0n9k3z5PvWssbbXErdgiZwziwtRwFwwHpirvdh7/cBxECHq2Yw==
 
-"@instructure/platform-study-assist@2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-study-assist/-/platform-study-assist-2.2.1.tgz#664c537b6773c3305b254d850adac19988f34462"
-  integrity sha512-giTCM8VdWorRcH0w25iA09V4nYrnDkFcDZ5Qzr1/7Rbjdm1A5E1CY5FxZZhEzPOO5W9FNPo0Q/fy9O9iXuQLyw==
+"@instructure/platform-study-assist@2.8.0":
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-study-assist/-/platform-study-assist-2.8.0.tgz#8e9ad9a07b0d4f1db63e9a6551d7b116e7b023d5"
+  integrity sha512-b99xrm8iFvQOzMucNvSYlRCdmMo5gpKKPKQJx350qI+k89ttLJn77WIB/+JIv6asvB5GldmOQgEXWu4mvy5Olw==
   dependencies:
     uuid "^11.1.1"
 

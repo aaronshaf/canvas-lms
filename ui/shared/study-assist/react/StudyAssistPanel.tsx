@@ -34,8 +34,10 @@ import type {
   AssistRequest,
   AssistResponse,
   AssistChatFlashCard,
+  StudyAssistTranslations,
 } from '@instructure/platform-study-assist'
 import {IconAiSolid, IconArrowStartLine, IconInfoLine} from '@instructure/ui-icons'
+import {showFlashAlert} from '@instructure/platform-alerts'
 import CanvasAiInformation from '@canvas/ai-information'
 
 const GRADIENT = 'linear-gradient(135deg, #7b5ea7 0%, #5b7fa6 60%, #4a919e 100%)'
@@ -53,7 +55,20 @@ type TrayHeaderProps = {
 
 function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
   const {t} = useTranslation('study_assist')
-  const {showBackButton, resetChat} = useAssistContext()
+  const {showBackButton, resetChat, currentTool} = useAssistContext()
+
+  const heading = useMemo(() => {
+    switch (currentTool) {
+      case 'summarize':
+        return t('Summary')
+      case 'quiz':
+        return t('Quiz Me')
+      case 'flashcards':
+        return t('Flashcards')
+      default:
+        return t('Study tools')
+    }
+  }, [t, currentTool])
 
   return (
     <Flex as="div" padding="small" alignItems="center" gap="small">
@@ -94,7 +109,7 @@ function TrayHeader({onDismiss, closeButtonRef}: TrayHeaderProps) {
             </View>
           </Flex.Item>
           <Flex.Item>
-            <Heading themeOverride={{primaryColor: 'white'}}>{t('Study tools')}</Heading>
+            <Heading themeOverride={{primaryColor: 'white'}}>{heading}</Heading>
           </Flex.Item>
         </Flex>
       </Flex.Item>
@@ -157,12 +172,64 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
     [trackEvent],
   )
 
+  const handleFeedback = useCallback(
+    (vote: 'liked' | 'disliked') =>
+      trackEvent({eventName: 'study_assist_feedback', props: {type: 'track', vote}}),
+    [trackEvent],
+  )
+
+  const announceForScreenReader = useCallback(
+    (message: string) => showFlashAlert({message, srOnly: true, type: 'info'}),
+    [],
+  )
+
+  const studyAssistTranslations: StudyAssistTranslations = useMemo(
+    () => ({
+      correctAnswer: () => t('Correct answer'),
+      incorrectAnswer: (_k, o) =>
+        t('Incorrect answer. The correct answer is {{label}}', {label: o?.correctLabel ?? ''}),
+      questionRegenerated: () => t('Question regenerated'),
+      checkAnswer: () => t('Check Answer'),
+      regenerate: () => t('Regenerate'),
+      loading: () => t('Loading'),
+      failedToLoadQuiz: () => t('Failed to load quiz. Please try again.'),
+      previousCard: () => t('Previous Card'),
+      nextCard: () => t('Next Card'),
+      revealAnswer: () => t('Reveal answer'),
+      showQuestion: () => t('Show question'),
+      question: () => t('Question'),
+      answer: () => t('Answer'),
+      flashcardsRegenerated: (_k, o) => {
+        const num = Number(o?.count ?? 0)
+        return num === 1 ? t('1 flashcard regenerated') : t('{{num}} flashcards regenerated', {num})
+      },
+      flashcardsGenerated: (_k, o) => {
+        const num = Number(o?.count ?? 0)
+        return num === 1 ? t('1 flashcard generated') : t('{{num}} flashcards generated', {num})
+      },
+      quizGenerated: (_k, o) => {
+        const num = Number(o?.count ?? 0)
+        return num === 1
+          ? t('Quiz generated with 1 question')
+          : t('Quiz generated with {{num}} questions', {num})
+      },
+      flashcardChanged: (_k, o) =>
+        t('Card {{current}} of {{total}}', {current: o?.current ?? '', total: o?.total ?? ''}),
+      failedToLoadFlashcards: () => t('Failed to load flashcards. Please try again.'),
+      regenerateFlashcards: () => t('Regenerate Flashcards'),
+      goodResponse: () => t('Good response'),
+      badResponse: () => t('Bad response'),
+    }),
+    [t],
+  )
+
   const renderFlashCards = useCallback(
     (
       cards: AssistChatFlashCard[],
       isFetching: boolean,
       isError: boolean,
       getFlashCards: () => void,
+      onFeedback?: (vote: 'liked' | 'disliked') => void,
     ) => (
       <div style={{padding: '2rem'}}>
         <AssistFlashCardsInteraction
@@ -172,6 +239,7 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
           getFlashCards={getFlashCards}
           cardHeight="60vh"
           onAnalyticsEvent={handleAnalyticsEvent}
+          onFeedback={onFeedback}
         />
       </div>
     ),
@@ -196,6 +264,8 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
         pageId={window.ENV.WIKI_PAGE_ID}
         fileId={window.ENV.FILE_ID}
         featureSlug="canvas-lms:study-assist"
+        translations={studyAssistTranslations}
+        announceForScreenReader={announceForScreenReader}
       >
         <TrayHeader onDismiss={onDismiss} closeButtonRef={closeButtonRef} />
         {allowedPrompts.length > 0 ? (
@@ -203,6 +273,7 @@ export function StudyAssistPanel({onDismiss, closeButtonRef, fetchAssistResponse
             <AssistContent
               showLargePrompts={true}
               onAnalyticsEvent={handleAnalyticsEvent}
+              onFeedback={handleFeedback}
               allowedPrompts={allowedPrompts}
               renderFlashCards={renderFlashCards}
             />

@@ -24,15 +24,25 @@ import * as PendoModule from '@canvas/pendo'
 
 const mockAssistContent = vi.fn((_props: object) => <div data-testid="assist-content" />)
 const mockAssistFlashCardsInteraction = vi.fn((_props: object) => <div />)
+const mockAssistProvider = vi.fn((_props: object) => null)
 const mockAiInformation = vi.fn(({triggerButton}: {triggerButton: React.ReactNode}) => (
   <div data-testid="ai-information">{triggerButton}</div>
 ))
 const mockResetChat = vi.fn()
-const mockUseAssistContext = vi.fn(() => ({showBackButton: false, resetChat: mockResetChat}))
+const mockUseAssistContext = vi.fn(() => ({
+  showBackButton: false,
+  resetChat: mockResetChat,
+  currentTool: null as 'summarize' | 'quiz' | 'flashcards' | null,
+}))
 const mockTrack = vi.fn()
+const mockShowFlashAlert = vi.fn()
 
 vi.mock('@canvas/ai-information', () => ({
   default: (props: object) => mockAiInformation(props as {triggerButton: React.ReactNode}),
+}))
+
+vi.mock('@instructure/platform-alerts', () => ({
+  showFlashAlert: (props: object) => mockShowFlashAlert(props),
 }))
 
 vi.mock('@instructure/platform-study-assist', () => ({
@@ -41,21 +51,33 @@ vi.mock('@instructure/platform-study-assist', () => ({
     pageId,
     fileId,
     featureSlug,
+    translations,
+    announceForScreenReader,
   }: {
     children: React.ReactNode
     pageId?: string
     fileId?: string
     featureSlug?: string
-  }) => (
-    <div
-      data-testid="assist-provider"
-      data-page-id={pageId}
-      data-file-id={fileId}
-      data-feature-slug={featureSlug}
-    >
-      {children}
-    </div>
-  ),
+    translations?: Record<string, (key?: string, opts?: Record<string, unknown>) => string>
+    announceForScreenReader?: (message: string) => void
+  }) => {
+    mockAssistProvider({translations, announceForScreenReader})
+    return (
+      <div
+        data-testid="assist-provider"
+        data-page-id={pageId}
+        data-file-id={fileId}
+        data-feature-slug={featureSlug}
+      >
+        {/* Mirror how the real package calls a bridge fn, so tests can assert
+            the provider-boundary invocation (arg shape + localized output). */}
+        <span data-testid="assist-provider-quiz-generated">
+          {translations?.quizGenerated?.(undefined, {count: 5})}
+        </span>
+        {children}
+      </div>
+    )
+  },
   AssistContent: (props: object) => mockAssistContent(props),
   AssistFlashCardsInteraction: (props: object) => mockAssistFlashCardsInteraction(props),
   useAssistContext: () => mockUseAssistContext(),
@@ -77,10 +99,16 @@ describe('StudyAssistPanel', () => {
     onDismiss.mockReset()
     mockAssistContent.mockClear()
     mockAssistFlashCardsInteraction.mockClear()
+    mockAssistProvider.mockClear()
     mockAiInformation.mockClear()
     mockTrack.mockClear()
+    mockShowFlashAlert.mockClear()
     mockResetChat.mockReset()
-    mockUseAssistContext.mockReturnValue({showBackButton: false, resetChat: mockResetChat})
+    mockUseAssistContext.mockReturnValue({
+      showBackButton: false,
+      resetChat: mockResetChat,
+      currentTool: null,
+    })
     closeButtonRef.current = null
   })
 
@@ -160,7 +188,11 @@ describe('StudyAssistPanel', () => {
   })
 
   it('keeps the back button after the close button and before the AI info button', () => {
-    mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
+    mockUseAssistContext.mockReturnValue({
+      showBackButton: true,
+      resetChat: mockResetChat,
+      currentTool: null,
+    })
     render(
       <StudyAssistPanel
         onDismiss={onDismiss}
@@ -352,6 +384,197 @@ describe('StudyAssistPanel', () => {
     })
   })
 
+  describe('localization', () => {
+    const renderPanel = () =>
+      render(
+        <StudyAssistPanel
+          onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
+          fetchAssistResponse={fetchAssistResponse}
+        />,
+      )
+
+    const getTranslations = () =>
+      (
+        mockAssistProvider.mock.calls[0][0] as {
+          translations: Record<string, (key?: string, opts?: Record<string, unknown>) => string>
+        }
+      ).translations
+
+    it('passes a translations bridge to AssistProvider', () => {
+      renderPanel()
+      const translations = getTranslations()
+      expect(typeof translations.correctAnswer).toBe('function')
+      expect(translations.correctAnswer()).toBe('Correct answer')
+    })
+
+    it('interpolates the correct-answer label', () => {
+      renderPanel()
+      const {incorrectAnswer} = getTranslations()
+      expect(incorrectAnswer(undefined, {correctLabel: 'B'})).toBe(
+        'Incorrect answer. The correct answer is B',
+      )
+    })
+
+    it('uses the singular form when the count is 1', () => {
+      renderPanel()
+      const {flashcardsGenerated} = getTranslations()
+      expect(flashcardsGenerated(undefined, {count: 1})).toBe('1 flashcard generated')
+    })
+
+    it('uses the plural form with interpolated count when count is not 1', () => {
+      renderPanel()
+      const {flashcardsGenerated} = getTranslations()
+      expect(flashcardsGenerated(undefined, {count: 3})).toBe('3 flashcards generated')
+    })
+
+    it('uses the plural form for a count of 0', () => {
+      renderPanel()
+      const {flashcardsGenerated} = getTranslations()
+      expect(flashcardsGenerated(undefined, {count: 0})).toBe('0 flashcards generated')
+    })
+
+    it('splits flashcardsRegenerated on singular vs plural count', () => {
+      renderPanel()
+      const {flashcardsRegenerated} = getTranslations()
+      expect(flashcardsRegenerated(undefined, {count: 1})).toBe('1 flashcard regenerated')
+      expect(flashcardsRegenerated(undefined, {count: 2})).toBe('2 flashcards regenerated')
+    })
+
+    it('splits quizGenerated on singular vs plural count', () => {
+      renderPanel()
+      const {quizGenerated} = getTranslations()
+      expect(quizGenerated(undefined, {count: 1})).toBe('Quiz generated with 1 question')
+      expect(quizGenerated(undefined, {count: 5})).toBe('Quiz generated with 5 questions')
+    })
+
+    it('interpolates the flashcard position', () => {
+      renderPanel()
+      const {flashcardChanged} = getTranslations()
+      expect(flashcardChanged(undefined, {current: 2, total: 5})).toBe('Card 2 of 5')
+    })
+
+    it('falls back to an empty label when correctLabel is missing', () => {
+      renderPanel()
+      const {incorrectAnswer} = getTranslations()
+      // trailing space is intentional: the {{label}} interpolation resolves to ''
+      expect(incorrectAnswer(undefined, {})).toMatch(/^Incorrect answer\. The correct answer is $/)
+    })
+
+    it('produces a localized string when the provider invokes a bridge fn', () => {
+      renderPanel()
+      expect(screen.getByTestId('assist-provider-quiz-generated')).toHaveTextContent(
+        'Quiz generated with 5 questions',
+      )
+    })
+  })
+
+  describe('dynamic heading', () => {
+    const renderPanel = () =>
+      render(
+        <StudyAssistPanel
+          onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
+          fetchAssistResponse={fetchAssistResponse}
+        />,
+      )
+
+    it('shows the default heading when no tool is active', () => {
+      renderPanel()
+      expect(screen.getByText('Study tools')).toBeInTheDocument()
+    })
+
+    it.each([
+      ['summarize', 'Summary'],
+      ['quiz', 'Quiz Me'],
+      ['flashcards', 'Flashcards'],
+    ] as const)('shows %s heading when currentTool is %s', (tool, expected) => {
+      mockUseAssistContext.mockReturnValue({
+        showBackButton: false,
+        resetChat: mockResetChat,
+        currentTool: tool,
+      })
+      renderPanel()
+      expect(screen.getByText(expected)).toBeInTheDocument()
+    })
+  })
+
+  describe('screen reader announcements', () => {
+    it('routes announcements through the Canvas flash SR region', () => {
+      render(
+        <StudyAssistPanel
+          onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
+          fetchAssistResponse={fetchAssistResponse}
+        />,
+      )
+      const {announceForScreenReader} = mockAssistProvider.mock.calls[0][0] as {
+        announceForScreenReader: (message: string) => void
+      }
+      expect(typeof announceForScreenReader).toBe('function')
+      announceForScreenReader('Card 1 of 3')
+      expect(mockShowFlashAlert).toHaveBeenCalledWith({
+        message: 'Card 1 of 3',
+        srOnly: true,
+        type: 'info',
+      })
+    })
+  })
+
+  describe('feedback', () => {
+    it.each(['liked', 'disliked'] as const)(
+      'tracks a %s chat feedback vote to Pendo via onFeedback',
+      async vote => {
+        render(
+          <StudyAssistPanel
+            onDismiss={onDismiss}
+            closeButtonRef={closeButtonRef}
+            fetchAssistResponse={fetchAssistResponse}
+          />,
+        )
+        const {onFeedback} = mockAssistContent.mock.calls[0][0] as {
+          onFeedback: (vote: 'liked' | 'disliked') => void
+        }
+        onFeedback(vote)
+        await vi.waitFor(() => {
+          expect(mockTrack).toHaveBeenCalledWith('study_assist_feedback', {
+            type: 'track',
+            vote,
+          })
+        })
+      },
+    )
+
+    it('forwards the package onFeedback to flashcards so flashcard votes are captured', () => {
+      render(
+        <StudyAssistPanel
+          onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
+          fetchAssistResponse={fetchAssistResponse}
+        />,
+      )
+      const {renderFlashCards} = mockAssistContent.mock.calls[0][0] as {
+        renderFlashCards: (
+          cards: object[],
+          isFetching: boolean,
+          isError: boolean,
+          getFlashCards: () => void,
+          onFeedback?: (vote: 'liked' | 'disliked') => void,
+        ) => React.ReactNode
+      }
+      const packageFeedback = vi.fn()
+      render(
+        <>
+          {renderFlashCards([{question: 'Q', answer: 'A'}], false, false, vi.fn(), packageFeedback)}
+        </>,
+      )
+      const flashCardsProps = mockAssistFlashCardsInteraction.mock.calls[0][0] as {
+        onFeedback?: (vote: 'liked' | 'disliked') => void
+      }
+      expect(flashCardsProps.onFeedback).toBe(packageFeedback)
+    })
+  })
+
   describe('analytics events', () => {
     it('passes handleAnalyticsEvent to AssistContent', () => {
       render(
@@ -449,7 +672,11 @@ describe('StudyAssistPanel', () => {
     })
 
     it('is visible when showBackButton is true', () => {
-      mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
+      mockUseAssistContext.mockReturnValue({
+        showBackButton: true,
+        resetChat: mockResetChat,
+        currentTool: null,
+      })
       render(
         <StudyAssistPanel
           onDismiss={onDismiss}
@@ -462,7 +689,11 @@ describe('StudyAssistPanel', () => {
 
     it('calls resetChat when clicked', async () => {
       const user = userEvent.setup()
-      mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
+      mockUseAssistContext.mockReturnValue({
+        showBackButton: true,
+        resetChat: mockResetChat,
+        currentTool: null,
+      })
       render(
         <StudyAssistPanel
           onDismiss={onDismiss}
