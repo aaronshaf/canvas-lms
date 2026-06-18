@@ -65,6 +65,8 @@ class GradebooksController < ApplicationController
     return unless authorized_action(@context, current_principal, :read) &&
                   authorized_action(student_enrollment, current_principal, :read_grades)
 
+    return unless tab_enabled?(@context.class::TAB_GRADES)
+
     log_asset_access(["grades", @context], "grades", "other")
 
     js_env({

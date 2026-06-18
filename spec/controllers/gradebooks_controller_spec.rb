@@ -328,6 +328,46 @@ describe GradebooksController do
       assert_unauthorized
     end
 
+    context "when the Grades tab is hidden in course navigation" do
+      before do
+        @course.update_attribute(:tab_configuration, [{ "id" => Course::TAB_GRADES, "hidden" => true }])
+      end
+
+      it "redirects a student with a flash notice" do
+        user_session(@student)
+        get "grade_summary", params: { course_id: @course.id, id: @student.id }
+        expect(response).to be_redirect
+        expect(flash[:notice]).to match(/That page has been disabled/)
+      end
+
+      it "still allows a student when the tab is visible" do
+        @course.update_attribute(:tab_configuration, [])
+        user_session(@student)
+        get "grade_summary", params: { course_id: @course.id, id: @student.id }
+        expect(response).to render_template("grade_summary")
+      end
+
+      it "still allows a teacher to view a student's grades" do
+        user_session(@teacher)
+        get "grade_summary", params: { course_id: @course.id, id: @student.id }
+        expect(response).to render_template("grade_summary")
+      end
+
+      it "redirects a linked observer with a flash notice" do
+        user_session(@observer)
+        get "grade_summary", params: { course_id: @course.id, id: @student.id }
+        expect(response).to be_redirect
+        expect(flash[:notice]).to match(/That page has been disabled/)
+      end
+
+      it "still allows a linked observer when the tab is visible" do
+        @course.update_attribute(:tab_configuration, [])
+        user_session(@observer)
+        get "grade_summary", params: { course_id: @course.id, id: @student.id }
+        expect(response).to render_template("grade_summary")
+      end
+    end
+
     context "with default_student_gradebook_view set to true" do
       before do
         @course.enable_feature!(:outcome_gradebook)
