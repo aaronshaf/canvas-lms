@@ -28,6 +28,7 @@ import quizTakingPolice from './quiz_taking_police'
 import QuizLogAuditing from '@canvas/quiz-log-auditing'
 import QuizLogAuditingEventDumper from '@canvas/quiz-log-auditing/jquery/dump_events'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
+import authenticity_token from '@canvas/authenticity-token'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.toJSON'
 import {friendlyDatetime} from '@canvas/datetime/date-functions'
@@ -174,10 +175,9 @@ $(document).ready(() => {
                 }, 30000)
               }
               if (data && data.end_at) {
-                const endAtFromServer = Date.parse(data.end_at),
-                  submissionEndAt = Date.parse(endAt.text()),
-                  serverEndAtTime = endAtFromServer.getTime(),
-                  submissionEndAtTime = submissionEndAt.getTime()
+                // Fix the same bug previously fixed in https://gerrit.instructure.com/c/canvas-lms/+/366503.
+                const serverEndAtTime = Date.parse(data.end_at),
+                  submissionEndAtTime = Date.parse(endAt.text())
 
                 quizSubmission.timeLeft = data.time_left * 1000
 
@@ -191,7 +191,7 @@ $(document).ready(() => {
                   }
 
                   quizSubmission.endAt.text(data.end_at)
-                  quizSubmission.endAtParsed = endAtFromServer
+                  quizSubmission.endAtParsed = new Date(serverEndAtTime)
                 }
               }
               // if timer autosubmission is disabled, we need to know when the fallback autosubmission time is
@@ -608,21 +608,30 @@ $(document).ready(() => {
       window.addEventListener(
         'unload',
         _e => {
+          // We can skip the execution when the quiz is being submitted - it already
+          // persists every answer. It also helps to prevent freezes during mass auto-submit.
+          if (quizSubmission.submitting) {
+            return
+          }
+
           const data = $('#submit_quiz_form').getFormData()
           const url = $('.backup_quiz_submission_url').attr('href')
 
           data.leaving = !!quizSubmission.clearAccessCode
 
-          $.flashMessage(I18n.t('Saving...'))
-          $.ajax({
-            url,
-            data,
-            type: 'POST',
-            dataType: 'json',
-            async: false,
+          // XHR is synchronous, it blocks the main thread until the server responds.
+          // Result - page freeze under heavy load.
+          // sendBeacon is non-blocking and is not cancelled when the page navigates away.
+          const formData = new FormData()
+          Object.keys(data).forEach(key => {
+            formData.append(key, data[key])
           })
+          formData.append('authenticity_token', authenticity_token())
+          formData.append('utf8', '&#x2713')
 
-          // since this is sync, a callback never fires to reset this
+          $.flashMessage(I18n.t('Saving...'))
+          navigator.sendBeacon(url, formData)
+
           quizSubmission.currentlyBackingUp = false
         },
         false,
