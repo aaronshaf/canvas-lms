@@ -19,7 +19,7 @@
 
 require "json"
 
-describe HorizonController do
+describe "Horizon" do
   describe "GET canvas_career_validation" do
     it "should success when course has no errors" do
       course_factory(active_all: true)
@@ -29,7 +29,7 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation"
 
       json = json_parse(response.body)
       expect(json).to eq({ "errors" => {} })
@@ -38,14 +38,14 @@ describe HorizonController do
     it "unauthorized for user" do
       course_with_student_logged_in(active_all: true)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
       expect(response).to have_http_status(:forbidden)
     end
 
     it "unauthorized for teacher" do
       course_with_teacher_logged_in(active_all: true)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -56,10 +56,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]).to have_key("discussions")
+      expect(json["errors"]["discussions"]).to be_an(Array)
     end
 
     it "returns error when course has groups" do
@@ -69,10 +69,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]).to have_key("groups")
+      expect(json["errors"]["groups"]).not_to be_nil
       expect(json["errors"]["groups"].first).to include(
         "id" => group.id,
         "name" => "Group 1"
@@ -85,10 +85,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]["quizzes"]).to be_blank
+      expect(json["errors"]["quizzes"]).to be_nil
     end
 
     it "returns error when course has published classic quizzes" do
@@ -98,10 +98,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]).to have_key("quizzes")
+      expect(json["errors"]["quizzes"]).to be_an(Array)
       expect(json["errors"]["quizzes"].first).to include(
         "id" => quiz.id,
         "name" => "Quiz 1"
@@ -115,10 +115,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]).to have_key("outcomes")
+      expect(json["errors"]["outcomes"]).to be_an(Array)
       expect(json["errors"]["outcomes"].first).to include(
         "id" => outcome.id,
         "name" => "Outcome 1"
@@ -132,10 +132,10 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"]).to have_key("collaborations")
+      expect(json["errors"]["collaborations"]).to be_an(Array)
       expect(json["errors"]["collaborations"].first).to include(
         "id" => collab.id,
         "name" => "Collaboration 1"
@@ -150,10 +150,11 @@ describe HorizonController do
       account_admin_user
       user_session(@admin)
 
-      get "validate_course", format: :json, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation.json"
 
       json = json_parse(response.body)
-      expect(json["errors"].keys).to include("discussions", "quizzes")
+      expect(json["errors"]["discussions"]).to be_an(Array)
+      expect(json["errors"]["quizzes"]).to be_an(Array)
     end
 
     it "returns some errors when course has mixed learning objects" do
@@ -181,12 +182,11 @@ describe HorizonController do
       a3.rubric_association = rubric_assoc
       a3.save!
 
-      get "validate_course", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation"
       json = json_parse(response.body)
 
-      expect(json["errors"]["assignments"].any? { |a| a["name"] == a1.name }).to be_falsey
-      expect(json["errors"]["assignments"].any? { |a| a["name"] == a2.name }).to be_truthy
-      expect(json["errors"]["assignments"].any? { |a| a["name"] == a3.name }).to be_truthy
+      expect(json["errors"]["assignments"].pluck("name")).not_to include(a1.name)
+      expect(json["errors"]["assignments"].pluck("name")).to include(a2.name, a3.name)
     end
   end
 
@@ -224,7 +224,7 @@ describe HorizonController do
       a3.rubric_association = rubric_assoc
       a3.save!
 
-      get "validate_course", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation"
 
       json = JSON.parse(response.body, { symbolize_names: true })
 
@@ -233,10 +233,12 @@ describe HorizonController do
 
       @course.reload
       expect(@course.discussion_topics.only_discussion_topics.count).to eq(0)
-      expect(@course.assignments.all? { |a| a.submission_types == "online_text_entry" && !a.peer_reviews && !a.active_rubric_association? }).to be_truthy
+      expect(@course.assignments.map(&:submission_types).uniq).to eq(["online_text_entry"])
+      expect(@course.assignments.map(&:peer_reviews).uniq).to eq([false])
+      expect(@course.assignments.map(&:active_rubric_association?).uniq).to eq([false])
       expect(@course.groups.count).to eq(3)
       expect(@course.groups.active.count).to eq(0)
-      expect(@course.horizon_course?).to be_truthy
+      expect(@course.horizon_course?).to be(true)
     end
 
     it "converts instantly if course has only compatible learning objects" do
@@ -248,12 +250,12 @@ describe HorizonController do
       @course.account.enable_feature!(:horizon_course_setting)
       @course.assignments.create!(name: "Assignment 1", points_possible: 10, submission_types: "online_text_entry", workflow_state: "unpublished")
 
-      post "convert_course", params: { course_id: @course.id }, format: :json
+      post "/courses/#{@course.id}/canvas_career_conversion.json"
 
       json = JSON.parse(response.body, { symbolize_names: true })
       @course.reload
-      expect(json[:success]).to be_truthy
-      expect(@course.horizon_course?).to be_truthy
+      expect(json[:success]).to be(true)
+      expect(@course.horizon_course?).to be(true)
     end
 
     it "unpublishes already published assignments" do
@@ -273,7 +275,7 @@ describe HorizonController do
       a2.context_module_tags.create!(context_module: module2, context: a2.course, tag_type: "context_module", workflow_state: "active")
       a3.context_module_tags.create!(context_module: module1, context: a2.course, tag_type: "learning_outcome", workflow_state: "active")
 
-      get "validate_course", params: { course_id: @course.id }
+      get "/courses/#{@course.id}/canvas_career_validation"
 
       json = JSON.parse(response.body, { symbolize_names: true })
 
@@ -283,7 +285,7 @@ describe HorizonController do
       expect(a2.reload.workflow_state).to eq("unpublished")
       expect(a3.reload.workflow_state).to eq("unpublished")
       expect(a4.reload.workflow_state).to eq("unpublished")
-      expect(@course.horizon_course?).to be_truthy
+      expect(@course.horizon_course?).to be(true)
     end
   end
 
@@ -297,12 +299,12 @@ describe HorizonController do
       @course.account.enable_feature!(:horizon_course_setting)
       @course.update!(horizon_course: true)
 
-      expect(@course.horizon_course?).to be_truthy
+      expect(@course.horizon_course?).to be(true)
 
-      post "revert_course", params: { course_id: @course.id }, format: :json
+      post "/courses/#{@course.id}/canvas_career_reversion.json"
 
       @course.reload
-      expect(@course.horizon_course?).to be_falsey
+      expect(@course.horizon_course?).to be(false)
     end
   end
 end

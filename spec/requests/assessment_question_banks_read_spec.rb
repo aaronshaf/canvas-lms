@@ -18,24 +18,24 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe AssessmentQuestionBanksController do
+describe "AssessmentQuestionBanks" do
   describe "GET #show" do
     context "with a course-level question bank" do
-      before :once do
+      before do
         course_with_teacher(active_all: true)
-        @bank = @course.assessment_question_banks.create!(title: "Test Bank")
+        @bank = @course.assessment_question_banks.create!(title: "Test Bank", workflow_state: "active")
         3.times { @bank.assessment_questions.create! }
       end
 
       it "requires authorization" do
-        get :show, params: { id: @bank.id }, format: :json
+        get "/api/v1/question_banks/#{@bank.id}.json"
         assert_unauthorized
       end
 
       it "returns the question bank as JSON" do
         user_session(@teacher)
-        get :show, params: { id: @bank.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks/#{@bank.id}.json"
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json["id"]).to eq(@bank.id)
@@ -48,8 +48,8 @@ describe AssessmentQuestionBanksController do
 
       it "includes question count when requested" do
         user_session(@teacher)
-        get :show, params: { id: @bank.id, include_question_count: true }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks/#{@bank.id}.json", params: { include_question_count: true }
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json["assessment_question_count"]).to eq(3)
@@ -58,8 +58,8 @@ describe AssessmentQuestionBanksController do
       it "denies access for students" do
         student_in_course(active_all: true)
         user_session(@student)
-        get :show, params: { id: @bank.id }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/question_banks/#{@bank.id}.json"
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "denies access for teachers when read_question_banks role_override is disabled" do
@@ -73,7 +73,7 @@ describe AssessmentQuestionBanksController do
         user_session(@teacher)
 
         # Act
-        get :show, params: { id: @bank.id }, format: :json
+        get "/api/v1/question_banks/#{@bank.id}.json"
 
         # Assert
         expect(response).to have_http_status(:forbidden)
@@ -81,7 +81,7 @@ describe AssessmentQuestionBanksController do
     end
 
     context "with an account-level question bank" do
-      before :once do
+      before do
         @admin = account_admin_user(active_all: true)
         @account = @admin.account
         @bank = @account.assessment_question_banks.create!(title: "Account Bank")
@@ -89,8 +89,8 @@ describe AssessmentQuestionBanksController do
 
       it "returns the account question bank as JSON" do
         user_session(@admin)
-        get :show, params: { id: @bank.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks/#{@bank.id}.json"
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json["id"]).to eq(@bank.id)
@@ -103,13 +103,13 @@ describe AssessmentQuestionBanksController do
       it "denies access for non-admin users" do
         course_with_teacher(active_all: true, account: @account)
         user_session(@teacher)
-        get :show, params: { id: @bank.id }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/question_banks/#{@bank.id}.json"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "with a deleted question bank" do
-      before :once do
+      before do
         course_with_teacher(active_all: true)
         @bank = @course.assessment_question_banks.create!(title: "Deleted Bank")
         @bank.destroy
@@ -117,8 +117,8 @@ describe AssessmentQuestionBanksController do
 
       it "still returns the bank if user has access" do
         user_session(@teacher)
-        get :show, params: { id: @bank.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks/#{@bank.id}.json"
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json["workflow_state"]).to eq("deleted")
@@ -128,7 +128,7 @@ describe AssessmentQuestionBanksController do
 
   describe "GET #index" do
     context "with a course context" do
-      before :once do
+      before do
         course_with_teacher(active_all: true)
         @bank1 = @course.assessment_question_banks.create!(title: "Bank 1")
         @bank2 = @course.assessment_question_banks.create!(title: "Bank 2")
@@ -137,14 +137,14 @@ describe AssessmentQuestionBanksController do
       end
 
       it "requires authorization" do
-        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
-        assert_unauthorized
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id }
+        expect(response).to have_http_status(:unauthorized)
       end
 
       it "returns the list of question banks as JSON" do
         user_session(@teacher)
-        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id }
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json).to be_an(Array)
@@ -159,8 +159,8 @@ describe AssessmentQuestionBanksController do
 
       it "includes question count when requested" do
         user_session(@teacher)
-        get :index, params: { context_type: "Course", context_id: @course.id, include_question_count: true }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id, include_question_count: true }
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         bank1_json = json.find { |b| b["title"] == "Bank 1" }
@@ -173,8 +173,8 @@ describe AssessmentQuestionBanksController do
       it "only returns active banks" do
         @bank2.destroy
         user_session(@teacher)
-        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id }
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json.length).to eq(1)
@@ -184,8 +184,8 @@ describe AssessmentQuestionBanksController do
       it "denies access for students" do
         student_in_course(active_all: true)
         user_session(@student)
-        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id }
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "denies access for teachers when read_question_banks role_override is disabled" do
@@ -199,7 +199,7 @@ describe AssessmentQuestionBanksController do
         user_session(@teacher)
 
         # Act
-        get :index, params: { context_type: "Course", context_id: @course.id }, format: :json
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: @course.id }
 
         # Assert
         expect(response).to have_http_status(:forbidden)
@@ -207,7 +207,7 @@ describe AssessmentQuestionBanksController do
     end
 
     context "with an account context" do
-      before :once do
+      before do
         @admin = account_admin_user(active_all: true)
         @account = @admin.account
         @bank1 = @account.assessment_question_banks.create!(title: "Account Bank 1")
@@ -216,8 +216,8 @@ describe AssessmentQuestionBanksController do
 
       it "returns the list of account question banks as JSON" do
         user_session(@admin)
-        get :index, params: { context_type: "Account", context_id: @account.id }, format: :json
-        expect(response).to be_successful
+        get "/api/v1/question_banks.json", params: { context_type: "Account", context_id: @account.id }
+        expect(response).to have_http_status(:ok)
 
         json = json_parse(response.body)
         expect(json).to be_an(Array)
@@ -233,19 +233,19 @@ describe AssessmentQuestionBanksController do
       it "denies access for non-admin users" do
         course_with_teacher(active_all: true, account: @account)
         user_session(@teacher)
-        get :index, params: { context_type: "Account", context_id: @account.id }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/question_banks.json", params: { context_type: "Account", context_id: @account.id }
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "with invalid parameters" do
-      before :once do
+      before do
         course_with_teacher(active_all: true)
       end
 
       it "returns 400 when context_type is missing" do
         user_session(@teacher)
-        get :index, params: { context_id: @course.id }, format: :json
+        get "/api/v1/question_banks.json", params: { context_id: @course.id }
         expect(response).to have_http_status(:bad_request)
 
         json = json_parse(response.body)
@@ -254,7 +254,7 @@ describe AssessmentQuestionBanksController do
 
       it "returns 400 when context_id is missing" do
         user_session(@teacher)
-        get :index, params: { context_type: "Course" }, format: :json
+        get "/api/v1/question_banks.json", params: { context_type: "Course" }
         expect(response).to have_http_status(:bad_request)
 
         json = json_parse(response.body)
@@ -263,7 +263,7 @@ describe AssessmentQuestionBanksController do
 
       it "returns 400 when context_type is invalid" do
         user_session(@teacher)
-        get :index, params: { context_type: "User", context_id: @teacher.id }, format: :json
+        get "/api/v1/question_banks.json", params: { context_type: "User", context_id: @teacher.id }
         expect(response).to have_http_status(:bad_request)
 
         json = json_parse(response.body)
@@ -272,8 +272,8 @@ describe AssessmentQuestionBanksController do
 
       it "returns forbidden when context_id does not exist" do
         user_session(@teacher)
-        get :index, params: { context_type: "Course", context_id: 99_999 }, format: :json
-        expect(response).to be_forbidden
+        get "/api/v1/question_banks.json", params: { context_type: "Course", context_id: 99_999 }
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end

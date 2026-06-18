@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe PluginsController do
+describe "Plugins" do
   include Rails.application.routes.url_helpers
 
   describe "#index" do
@@ -27,16 +27,16 @@ describe PluginsController do
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
-      get :index
-      expect(response).to be_unauthorized
+      get "/plugins"
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "allows site-admins" do
       user = user_with_pseudonym(active_all: true)
       Account.site_admin.account_users.create!(user:)
       user_session(user)
-      get :index
-      expect(response).to be_successful
+      get "/plugins"
+      expect(response).to have_http_status(:ok)
     end
   end
 
@@ -46,16 +46,16 @@ describe PluginsController do
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
-      get :show, params: { id: "account_reports" }
-      expect(response).to be_unauthorized
+      get "/plugins/account_reports"
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "allows site-admins" do
       user = user_with_pseudonym(active_all: true)
       Account.site_admin.account_users.create!(user:)
       user_session(user)
-      get :show, params: { id: "account_reports" }
-      expect(response).to be_successful
+      get "/plugins/account_reports"
+      expect(response).to have_http_status(:ok)
     end
   end
 
@@ -65,28 +65,28 @@ describe PluginsController do
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
-      put :update, params: { id: "account_reports", plugin_setting: { disabled: false } }
-      expect(response).to be_unauthorized
+      put "/plugins/account_reports", params: { plugin_setting: { disabled: false } }
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "allows site-admins" do
       user = user_with_pseudonym(active_all: true)
       Account.site_admin.account_users.create!(user:)
       user_session(user)
-      put :update, params: { id: "account_reports", plugin_setting: { disabled: false } }
-      expect(response).to be_redirect
+      put "/plugins/account_reports", params: { plugin_setting: { disabled: false } }
+      expect(response).to have_http_status(:found)
     end
 
     it "still enables plugins even with no settings posted" do
       user = account_admin_user(account: Account.site_admin, active_all: true)
       user_session(user)
-      set_domain_root_account(account: Account.default)
+      set_domain_root_account(account: Account.site_admin)
       expect(PluginSetting.find_by(name: "account_reports")).to be_nil
 
-      put "update", params: { id: "account_reports", account_id: Account.default.id, plugin_setting: { disabled: false } }
-      expect(response).to be_redirect
+      put "/plugins/account_reports", params: { all: "1", plugin_setting: { disabled: false } }
+      expect(response).to have_http_status(:found)
       ps = PluginSetting.find_by!(name: "account_reports")
-      expect(ps).to be_enabled
+      expect(ps.disabled).to be(false)
     end
 
     it "trims posted params" do
@@ -99,8 +99,8 @@ describe PluginsController do
 
       # The 'all' parameter is necessary for this test to pass when the
       # multiple root accounts plugin is installed
-      put "update", params: { id: "big_blue_button", settings: { domain: " abc ", secret: "secret", recording_enabled: "0", free_trial: true, send_avatar: true, replace_with_alternatives: false, use_fallback: false }, all: 1 }
-      expect(response).to be_redirect
+      put "/plugins/big_blue_button", params: { settings: { domain: " abc ", secret: "secret", recording_enabled: "0", free_trial: true, send_avatar: true, replace_with_alternatives: false, use_fallback: false }, all: 1 }
+      expect(response).to have_http_status(:found)
       ps.reload
       expect(ps.settings[:domain]).to eq "abc"
     end
@@ -115,8 +115,8 @@ describe PluginsController do
 
         # The 'all' parameter is necessary for this test to pass when the
         # multiple root acoounts plugin is installed
-        put "update", params: { id: "account_reports", settings: { "course_storage_csv" => "0" }, all: 1 }
-        expect(response).to be_redirect
+        put "/plugins/account_reports", params: { settings: { "course_storage_csv" => "0" }, all: 1 }
+        expect(response).to have_http_status(:found)
         ps.reload
         expect(ps.settings[:course_storage_csv]).to be false
       end
@@ -151,8 +151,8 @@ describe PluginsController do
       let(:enforce_flag_enabled) { true }
 
       it "allows the request" do
-        get :index
-        expect(response).to be_successful
+        get "/plugins"
+        expect(response).to have_http_status(:ok)
       end
     end
 
@@ -165,29 +165,31 @@ describe PluginsController do
       context "and the session uses the elevated provider" do
         let(:enforce_flag_enabled) { true }
 
-        before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+        before do
+          allow(AuthenticationMethods::PseudonymAttributes).to receive(:load_auth_provider).and_return(elevated_provider)
+        end
 
         it "allows index" do
-          get :index
-          expect(response).to be_successful
+          get "/plugins"
+          expect(response).to have_http_status(:ok)
         end
 
         it "allows show" do
-          get :show, params: { id: "account_reports" }, format: :json
+          get "/plugins/account_reports.json"
           expect(response).to have_http_status(:ok)
         end
 
         it "allows update" do
-          put :update, params: { id: "account_reports", plugin_setting: { disabled: false } }
-          expect(response).to be_redirect
+          put "/plugins/account_reports", params: { plugin_setting: { disabled: false } }
+          expect(response).to have_http_status(:found)
         end
       end
 
       context "and the session does not use the elevated provider" do
         context "with both flags off" do
           it "allows the request" do
-            get :index
-            expect(response).to be_successful
+            get "/plugins"
+            expect(response).to have_http_status(:ok)
           end
         end
 
@@ -195,8 +197,8 @@ describe PluginsController do
           let(:log_flag_enabled) { true }
 
           it "allows the request" do
-            get :index
-            expect(response).to be_successful
+            get "/plugins"
+            expect(response).to have_http_status(:ok)
           end
         end
 
@@ -204,14 +206,14 @@ describe PluginsController do
           let(:enforce_flag_enabled) { true }
 
           it "blocks json requests with 403 unauthorized" do
-            get :show, params: { id: "account_reports" }, format: :json
+            get "/plugins/account_reports.json"
             expect(response).to have_http_status(:forbidden)
             expect(response.parsed_body["status"]).to eq "unauthorized"
           end
 
           it "redirects html requests with a flash error" do
-            get :index
-            expect(response).to be_redirect
+            get "/plugins"
+            expect(response).to have_http_status(:found)
             expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
           end
 
@@ -219,8 +221,8 @@ describe PluginsController do
             let(:plugins_flag_enabled) { false }
 
             it "bypasses the elevated auth provider check" do
-              get :index
-              expect(response).to be_successful
+              get "/plugins"
+              expect(response).to have_http_status(:ok)
             end
           end
         end
