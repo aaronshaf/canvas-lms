@@ -72,7 +72,7 @@ module Canvas
       delegate :[], to: :cached_context
 
       def to_headers
-        to_h.transform_keys { |key| to_header_key(key) }
+        to_h.transform_keys { |key| to_header_key(key) }.transform_values(&:to_s)
       end
 
       def to_header_key(key)

@@ -112,7 +112,7 @@ describe Canvas::ExecutionContext do
     end
 
     it "returns job context as hash without job object" do
-      job = instance_double(Delayed::Job, global_id: "job-789", source: "delayed_job", tag: "important")
+      job = instance_double(Delayed::Job, global_id: 10_120_000_000_000_789, source: "delayed_job", tag: "important")
       ActiveSupport::ExecutionContext[:job] = job
       Canvas::ExecutionContext.clear_cache
 
@@ -120,7 +120,7 @@ describe Canvas::ExecutionContext do
       expect(result).to eq(
         region: "us-east-1",
         revision: "abc123",
-        job_global_id: "job-789",
+        job_global_id: 10_120_000_000_000_789,
         job_source: "delayed_job",
         job_tag: "important"
       )
@@ -151,7 +151,7 @@ describe Canvas::ExecutionContext do
     end
 
     it "returns job context as HTTP headers" do
-      job = instance_double(Delayed::Job, global_id: "job-789", source: "delayed_job", tag: "important")
+      job = instance_double(Delayed::Job, global_id: 10_120_000_000_000_789, source: "delayed_job", tag: "important")
       ActiveSupport::ExecutionContext[:job] = job
       Canvas::ExecutionContext.clear_cache
 
@@ -159,10 +159,24 @@ describe Canvas::ExecutionContext do
       expect(headers).to eq(
         "canvas-region" => "us-east-1",
         "canvas-revision" => "abc123",
-        "canvas-job-global-id" => "job-789",
+        "canvas-job-global-id" => "10120000000000789",
         "canvas-job-source" => "delayed_job",
         "canvas-job-tag" => "important"
       )
+    end
+
+    it "coerces non-string values to strings so net/http can build the request" do
+      job = instance_double(Delayed::Job, global_id: 10_120_000_000_000_789, source: "delayed_job", tag: "important")
+      ActiveSupport::ExecutionContext[:job] = job
+      Canvas::ExecutionContext.clear_cache
+      expect(Canvas::ExecutionContext.to_headers.values).to all(be_a(String))
+    end
+
+    it "produces headers net/http can build a request from in a job context" do
+      job = instance_double(Delayed::Job, global_id: 10_120_000_000_000_789, source: "delayed_job", tag: "important")
+      ActiveSupport::ExecutionContext[:job] = job
+      Canvas::ExecutionContext.clear_cache
+      expect { Net::HTTP::Put.new("/x", Canvas::ExecutionContext.to_headers) }.not_to raise_error
     end
 
     it "returns only region and revision headers when no context is set" do
