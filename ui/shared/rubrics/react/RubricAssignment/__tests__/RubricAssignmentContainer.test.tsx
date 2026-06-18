@@ -162,7 +162,8 @@ describe('RubricAssignmentContainer Tests', () => {
       expect(getByTestId('save-rubric-button')).toBeDisabled()
     })
 
-    it('should save a new rubric and display the Rubric title, edit, preview, and remove buttons', async () => {  // fixed with QE-154
+    it('should save a new rubric and display the Rubric title, edit, preview, and remove buttons', async () => {
+      // flaky-fix: QE-154, QE-162
       const {getByTestId, findByTestId} = renderComponent()
       fireEvent.click(getByTestId('create-assignment-rubric-button'))
       const titleInput = await findByTestId('rubric-form-title')
@@ -181,13 +182,17 @@ describe('RubricAssignmentContainer Tests', () => {
         expect(document.querySelector('#flash_screenreader_holder')?.textContent?.trim()).toContain(
           'Rubric saved successfully',
         )
-        expect(getByTestId('preview-assignment-rubric-button')).toBeInTheDocument()
-        expect(getByTestId('edit-assignment-rubric-button')).toBeInTheDocument()
-        expect(getByTestId('remove-assignment-rubric-button')).toBeInTheDocument()
       })
+      // The flash fires early in the save flow, but the buttons don't mount until
+      // the parent rerenders. Wait for the button to appear instead of querying
+      // synchronously right after the flash.
+      expect(await findByTestId('preview-assignment-rubric-button')).toBeInTheDocument()
+      expect(getByTestId('edit-assignment-rubric-button')).toBeInTheDocument()
+      expect(getByTestId('remove-assignment-rubric-button')).toBeInTheDocument()
     }, 30000)
 
-    it('should call onRubricChange callback when a new rubric is saved', async () => {  // fixed with QE-154
+    it('should call onRubricChange callback when a new rubric is saved', async () => {
+      // flaky-fix: QE-154, QE-162
       const onRubricChange = vi.fn()
       const {getByTestId, findByTestId} = renderComponent({onRubricChange})
       fireEvent.click(getByTestId('create-assignment-rubric-button'))
@@ -204,7 +209,11 @@ describe('RubricAssignmentContainer Tests', () => {
       await waitFor(() => expect(getByTestId('save-rubric-button')).not.toBeDisabled())
       fireEvent.click(getByTestId('save-rubric-button'))
 
-      await waitFor(() => expect(onRubricChange).toHaveBeenCalledWith(RUBRIC, RUBRIC_ASSOCIATION))
+      // onRubricChange fires at the end of a multi-step save flow that can take
+      // well over the default 3000ms timeout under CI load.
+      await waitFor(() => expect(onRubricChange).toHaveBeenCalledWith(RUBRIC, RUBRIC_ASSOCIATION), {
+        timeout: 10000,
+      })
     })
   })
 

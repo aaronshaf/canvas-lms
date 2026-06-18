@@ -72,3 +72,75 @@ fireEvent.click(getByTestId('save-rubric-button'))
 Both tests pass consistently after the fix. The adjacent test that asserts
 `save-rubric-button` is initially disabled confirms the pre-condition is
 real, not hypothetical.
+
+---
+
+## Follow-up: QE-162 — Same error, deeper root cause
+
+After applying the QE-154 fix the tests continued to flake with the **same
+error** (`Unable to find an element by: [data-testid="preview-assignment-rubric-button"]`).
+This is an S-16 Outcome B: the first fix was correct but incomplete.
+
+### Why QE-154 was insufficient
+
+The `waitFor` guard ensured the save button was enabled before clicking, so
+the save mutation now runs reliably. However, the flash message
+`"Rubric saved successfully"` appeared (confirming the mutation completed)
+while the preview/edit/remove buttons still never rendered.
+
+The real defect is in `RubricForm/index.tsx`. After the mutation succeeds,
+`useSaveRubricForm` calls `handleSaveSuccess` (which sets `savedRubricResponse`)
+before the mutation transitions to `isSuccess: true`. A second
+`useEffect` in `RubricForm` is responsible for calling `onSaveRubric` and
+making those buttons appear:
+
+```ts
+useEffect(() => {
+  if (saveSuccess && savedRubricResponse) {
+    onSaveRubric(savedRubricResponse, updatePointsPossible)
+  }
+}, [saveSuccess, savedRubricResponse, onSaveRubric])   // ← onSaveRubric is unstable
+```
+
+`handleSaveRubric` in `RubricAssignmentContainer` is a plain function (not
+wrapped in `useCallback`), so every parent re-render produces a new reference.
+A parent re-render arriving between the two mutation-state updates fires the
+effect with the new callback reference while `saveSuccess` is still `false`
+— a no-op. `onSaveRubric` is never called and the buttons never appear.
+
+### Fix (QE-162)
+
+In `RubricForm/index.tsx`, introduce a `useRef` that tracks the latest
+callback and call it through the ref inside the effect. Remove `onSaveRubric`
+from the dependency array so the effect only re-runs when the data changes:
+
+```ts
+// Added just before the effect
+const onSaveRubricRef = useRef(onSaveRubric)
+onSaveRubricRef.current = onSaveRubric   // kept in sync on every render
+
+// Effect — ref.current call + onSaveRubric removed from deps
+useEffect(() => {
+  if (saveSuccess && savedRubricResponse) {
+    onSaveRubricRef.current(savedRubricResponse, updatePointsPossible)
+  }
+}, [saveSuccess, savedRubricResponse])   // ← callback no longer in deps
+```
+
+This is the **event-handler ref pattern**: the ref is always fresh (updated
+during render), but its identity is stable, so the effect's dep list no
+longer changes on every parent render. See **S-17** in `style.md` for the
+general rule.
+
+### If still insufficient
+
+Wrap `handleSaveRubric` in `useCallback` in `RubricAssignmentContainer` to
+stabilise the reference at the source, eliminating the dependency-change
+trigger entirely.
+
+### Additional files affected (QE-162)
+
+- `ui/shared/rubrics/react/RubricForm/index.tsx`
+  — `onSaveRubricRef` added; `onSaveRubricRef.current(...)` replaces
+    `onSaveRubric(...)`; `onSaveRubric` removed from `useEffect` deps.
+- Both `it` blocks retagged `// flaky-fix: QE-154, QE-162`.

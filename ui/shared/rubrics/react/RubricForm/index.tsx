@@ -141,6 +141,9 @@ export const RubricForm = ({
 
   const criteriaRef = useRef(rubricForm.criteria)
 
+  const onSaveRubricRef = useRef(onSaveRubric)
+  onSaveRubricRef.current = onSaveRubric
+
   const validateField = useCallback(
     <K extends keyof RubricFormProps>(key: K, value: RubricFormProps[K]): boolean => {
       if (key === 'title') {
@@ -374,9 +377,9 @@ export const RubricForm = ({
   useEffect(() => {
     if (saveSuccess && savedRubricResponse) {
       const updatePointsPossible = rubricForm.skipUpdatingPointsPossible === false
-      onSaveRubric(savedRubricResponse, updatePointsPossible)
+      onSaveRubricRef.current(savedRubricResponse, updatePointsPossible)
     }
-  }, [saveSuccess, savedRubricResponse, onSaveRubric])
+  }, [saveSuccess, savedRubricResponse])
 
   if (isLoading && !!rubricId) {
     return <LoadingIndicator />

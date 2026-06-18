@@ -870,4 +870,58 @@ applied this rule, both calls would have been guarded in one pass.
 
 ---
 
-<!-- Add new rules below as S-17, S-18, … -->
+## S-17 — Stabilize an unstable callback prop in `useEffect` deps via `useRef`
+
+**Rule:** When a `useEffect` lists a function prop (callback) in its
+dependency array and that prop is not guaranteed to be stable (i.e. the
+caller does not wrap it in `useCallback`), replace the direct dep with a
+`useRef` that is kept in sync during render. Call `ref.current(...)` inside
+the effect and remove the prop from the dep array.
+
+**Why:** A new function reference is created on every render by default. If
+it is in the dep array, the effect re-runs on every parent render regardless
+of whether the data the effect actually cares about changed. Under CI load a
+parent re-render can arrive mid-mutation (between two sequential state
+updates), causing the effect to fire when its conditions are still `false` —
+a silent no-op that leaves the UI in the wrong state.
+
+**Pattern (event-handler ref):**
+
+```ts
+// BAD — prop in deps: re-runs on every parent render
+useEffect(() => {
+  if (dataReady && result) onCallback(result)
+}, [dataReady, result, onCallback])   // ← onCallback changes every render
+
+// GOOD — ref tracks latest value; effect only re-runs when data changes
+const onCallbackRef = useRef(onCallback)
+onCallbackRef.current = onCallback   // kept in sync during render
+
+useEffect(() => {
+  if (dataReady && result) onCallbackRef.current(result)
+}, [dataReady, result])              // ← ref identity is stable
+```
+
+**The assignment `ref.current = prop` must be at the component's top level
+(during render), not inside the effect** — the effect runs asynchronously, so
+assigning inside it can miss re-renders that occur before the effect fires.
+
+**How to apply:**
+1. Identify a function prop in a `useEffect` dep array where the caller does
+   not use `useCallback`.
+2. Add `const cbRef = useRef(cb)` directly before the effect.
+3. Add `cbRef.current = cb` on the next line (unconditional, top-level).
+4. Replace `cb(...)` calls inside the effect with `cbRef.current(...)`.
+5. Remove `cb` from the dep array.
+
+**Prefer fixing at the source:** Wrapping `handleXxx` in `useCallback` in the
+parent component eliminates the unstable reference entirely and is the correct
+long-term fix. Use the ref pattern when you cannot change the caller (e.g. it
+is a third-party consumer or the parent is outside your PR scope). Document
+the `useCallback` fix as the "If insufficient" fallback.
+
+*Introduced: Case 13 / QE-162*
+
+---
+
+<!-- Add new rules below as S-18, S-19, … -->
