@@ -47,9 +47,11 @@ vi.mock('../../charts/MasteryDistributionChart', () => ({
   MasteryDistributionChart: ({
     onBarClick,
     selectedLabel,
+    unassessedCount,
   }: {
     onBarClick?: (label: string, value: number) => void
     selectedLabel?: string
+    unassessedCount?: number
   }) => (
     <div data-testid="mastery-distribution-chart">
       <button data-testid="bar-exceeds-mastery" onClick={() => onBarClick?.('Exceeds Mastery', 2)}>
@@ -61,6 +63,14 @@ vi.mock('../../charts/MasteryDistributionChart', () => ({
       <button data-testid="bar-near-mastery" onClick={() => onBarClick?.('Near Mastery', 1)}>
         Near Mastery {selectedLabel === 'Near Mastery' && '(selected)'}
       </button>
+      {unassessedCount !== undefined && (
+        <button
+          data-testid="bar-unassessed"
+          onClick={() => onBarClick?.('Unassessed', unassessedCount)}
+        >
+          Unassessed {selectedLabel === 'Unassessed' && '(selected)'}
+        </button>
+      )}
     </div>
   ),
 }))
@@ -1126,6 +1136,116 @@ describe('OutcomeDistributionPopover', () => {
       expect(screen.queryByTestId('student-list-section')).not.toBeInTheDocument()
       expect(screen.queryByTestId('message-students-link')).not.toBeInTheDocument()
       expect(screen.queryByTestId('create-differentiation-tag-link')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Unassessed bar', () => {
+    const allStudents: Student[] = [
+      {id: '1', name: 'Alice', display_name: 'Alice', sortable_name: 'Alice', avatar_url: ''},
+      {id: '2', name: 'Bob', display_name: 'Bob', sortable_name: 'Bob', avatar_url: ''},
+      {id: '3', name: 'Charlie', display_name: 'Charlie', sortable_name: 'Charlie', avatar_url: ''},
+    ]
+
+    const ratingsWithTwoAssessed: RatingDistribution[] = [
+      {description: 'Mastery', points: 3, color: '#0B874B', count: 2, student_ids: ['1', '2']},
+    ]
+
+    const outcomeDistributionPartial: OutcomeDistribution = {
+      outcome_id: '1',
+      ratings: ratingsWithTwoAssessed,
+      total_students: 2,
+    }
+
+    it('renders unassessed bar when distributionStudents has unassessed members', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={outcomeDistributionPartial}
+          distributionStudents={allStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      expect(screen.getByTestId('bar-unassessed')).toBeInTheDocument()
+    })
+
+    it('does not render unassessed bar when distributionStudents is not provided', () => {
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={outcomeDistributionPartial}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      expect(screen.queryByTestId('bar-unassessed')).not.toBeInTheDocument()
+    })
+
+    it('shows unassessed students in list when unassessed bar is clicked', async () => {
+      const user = userEvent.setup()
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={outcomeDistributionPartial}
+          distributionStudents={allStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      await user.click(screen.getByTestId('bar-unassessed'))
+
+      expect(await screen.findByTestId('student-list-section')).toBeInTheDocument()
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+      expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+      expect(screen.getByText('Charlie')).toBeInTheDocument()
+    })
+
+    it('clicking unassessed bar twice toggles the student list', async () => {
+      const user = userEvent.setup()
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={outcomeDistributionPartial}
+          distributionStudents={allStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      await user.click(screen.getByTestId('bar-unassessed'))
+      expect(await screen.findByTestId('student-list-section')).toBeInTheDocument()
+
+      await user.click(screen.getByTestId('bar-unassessed'))
+      expect(screen.queryByTestId('student-list-section')).not.toBeInTheDocument()
+    })
+
+    it('shows message students link for unassessed students', async () => {
+      const user = userEvent.setup()
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={outcomeDistributionPartial}
+          distributionStudents={allStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      await user.click(screen.getByTestId('bar-unassessed'))
+      expect(await screen.findByTestId('message-students-link')).toBeInTheDocument()
     })
   })
 })

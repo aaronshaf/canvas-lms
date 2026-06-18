@@ -28,7 +28,7 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
-import {MasteryDistributionChart} from '../charts'
+import {MasteryDistributionChart, UNASSESSED_COLOR} from '../charts'
 import {DisabledMasteryDistributionChart} from '../charts/DisabledMasteryDistributionChart'
 import {Text} from '@instructure/ui-text'
 import useLMGBContext from '@canvas/outcomes/react/hooks/useLMGBContext'
@@ -222,6 +222,15 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
   const calculationMethod = getCalculationMethod(outcome)
   const isScaleRestricted = exceedsMasteryScaleLimit(outcome.ratings?.length ?? 0)
 
+  const unassessedStudentIds = useMemo(() => {
+    if (!distributionStudents || !outcomeDistribution) return []
+    const assessedIds = new Set(outcomeDistribution.ratings.flatMap(r => r.student_ids))
+    return distributionStudents.filter(s => !assessedIds.has(s.id)).map(s => s.id)
+  }, [distributionStudents, outcomeDistribution])
+
+  const unassessedCount =
+    distributionStudents !== undefined ? unassessedStudentIds.length : undefined
+
   const selectedStudents = useMemo(() => {
     if (!selectedRating || !distributionStudents) return []
     const studentIds = new Set(selectedRating.student_ids)
@@ -254,6 +263,20 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
 
   const handleBarClick = React.useCallback(
     (label: string, _value: number) => {
+      const unassessedLabel = I18n.t('Unassessed')
+      if (label === unassessedLabel) {
+        const unassessedRating: RatingDistribution = {
+          description: unassessedLabel,
+          // RatingDistribution.points requires number; -1 is a sentinel never used for display
+          points: -1,
+          color: UNASSESSED_COLOR,
+          count: unassessedStudentIds.length,
+          student_ids: unassessedStudentIds,
+        }
+        setSelectedRating(prev => (prev?.description === unassessedLabel ? null : unassessedRating))
+        return
+      }
+
       const ratings = outcomeDistribution?.ratings ?? []
       const clickedRating = ratings.find(r => r.description === label)
       if (clickedRating) {
@@ -262,7 +285,7 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
         )
       }
     },
-    [outcomeDistribution?.ratings],
+    [outcomeDistribution?.ratings, unassessedStudentIds],
   )
 
   const handleTagCreationSuccess = React.useCallback(
@@ -300,9 +323,10 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
         showYAxisGrid={true}
         onBarClick={handleBarClick}
         selectedLabel={selectedRating?.description}
+        unassessedCount={unassessedCount}
       />
     ),
-    [outcome, outcomeDistribution, handleBarClick, selectedRating?.description],
+    [outcome, outcomeDistribution, handleBarClick, selectedRating?.description, unassessedCount],
   )
 
   return (

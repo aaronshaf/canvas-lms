@@ -37,11 +37,12 @@ vi.mock('../DisabledMasteryDistributionChart', () => ({
 }))
 
 vi.mock('../MasteryDistributionChart', () => ({
-  MasteryDistributionChart: ({outcome, distributionData, isPreview}: any) => (
+  MasteryDistributionChart: ({outcome, distributionData, isPreview, unassessedCount}: any) => (
     <div data-testid="mastery-distribution-chart">
       <span data-testid="chart-outcome">{outcome.title}</span>
       <span data-testid="chart-data">{JSON.stringify(distributionData)}</span>
       <span data-testid="chart-preview">{String(isPreview)}</span>
+      <span data-testid="chart-unassessed-count">{String(unassessedCount)}</span>
     </div>
   ),
 }))
@@ -209,6 +210,53 @@ describe('MasteryDistributionChartCell', () => {
     expect(
       screen.getByRole('button', {name: 'Expand distribution for outcome 1'}).closest('div[style]'),
     ).toHaveStyle({opacity: '1'})
+  })
+
+  describe('unassessed count', () => {
+    it('passes unassessedCount to chart based on distributionStudents not in any rating', () => {
+      const propsWithExtraStudent = {
+        ...defaultProps(),
+        distributionStudents: [
+          ...MOCK_STUDENTS,
+          {
+            id: '99',
+            name: 'Unassessed Student',
+            display_name: 'Unassessed Student',
+            sortable_name: 'Student, Unassessed',
+            avatar_url: '/avatar-url-99',
+            status: 'active' as const,
+          },
+        ],
+      }
+      render(<MasteryDistributionChartCell {...propsWithExtraStudent} />)
+      expect(screen.getByTestId('chart-unassessed-count')).toHaveTextContent('1')
+    })
+
+    it('passes unassessedCount of 0 when all students are assessed', () => {
+      const allAssessedProps = {
+        ...defaultProps(),
+        distributionStudents: MOCK_STUDENTS.slice(0, 2),
+        outcomeDistribution: {
+          ...outcomeDistribution,
+          ratings: [
+            {
+              description: 'Exceeds',
+              points: 5,
+              color: '#127A1B',
+              count: 2,
+              student_ids: ['1', '2'],
+            },
+          ],
+        },
+      }
+      render(<MasteryDistributionChartCell {...allAssessedProps} />)
+      expect(screen.getByTestId('chart-unassessed-count')).toHaveTextContent('0')
+    })
+
+    it('passes undefined when distributionStudents is not provided', () => {
+      render(<MasteryDistributionChartCell {...defaultProps()} distributionStudents={undefined} />)
+      expect(screen.getByTestId('chart-unassessed-count')).toHaveTextContent('undefined')
+    })
   })
 
   describe('when the mastery scale exceeds 5 levels', () => {

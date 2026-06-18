@@ -18,5 +18,5 @@
 
 export {BarChart} from './BarChart'
 export type {BarChartProps} from './BarChart'
-export {MasteryDistributionChart} from './MasteryDistributionChart'
+export {MasteryDistributionChart, UNASSESSED_COLOR} from './MasteryDistributionChart'
 export type {MasteryDistributionChartProps} from './MasteryDistributionChart'

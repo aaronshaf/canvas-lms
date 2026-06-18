@@ -29,6 +29,8 @@ import {useTheme} from '@instructure/emotion'
 
 const I18n = createI18nScope('learning_mastery_gradebook')
 
+export const UNASSESSED_COLOR = '#6B7280'
+
 export interface MasteryDistributionChartProps {
   outcome: Outcome
   distributionData: RatingDistribution[]
@@ -48,6 +50,7 @@ export interface MasteryDistributionChartProps {
   }
   onBarClick?: (label: string, value: number) => void
   selectedLabel?: string
+  unassessedCount?: number
 }
 
 export const MasteryDistributionChart: React.FC<MasteryDistributionChartProps> = ({
@@ -63,30 +66,46 @@ export const MasteryDistributionChart: React.FC<MasteryDistributionChartProps> =
   isPreview = false,
   onBarClick,
   selectedLabel,
+  unassessedCount,
 }) => {
   const theme = useTheme() as CanvasTheme
   const themeBorderColor = theme.colors?.contrasts?.grey1424 ?? canvas.colors.contrasts.grey1424
   const masteryLevels = useMemo(() => {
+    let levels: Array<{description: string; color: string; count: number; points: number | null}>
+
     if (distributionData.length === 0 && outcome.ratings) {
       const sortedRatings = [...outcome.ratings].sort((a, b) => b.points - a.points)
-      return sortedRatings.map(rating => ({
+      levels = sortedRatings.map(rating => ({
         description: rating.description || `${rating.points} pts`,
         color: ensureHashPrefix(rating.color) ?? '#666666',
         count: 0,
         points: rating.points,
       }))
+    } else {
+      levels = distributionData.map(rating => ({
+        description: rating.description,
+        color: ensureHashPrefix(rating.color) ?? '#666666',
+        count: rating.count,
+        points: rating.points,
+      }))
     }
 
-    return distributionData.map(rating => ({
-      description: rating.description,
-      color: ensureHashPrefix(rating.color) ?? '#666666',
-      count: rating.count,
-      points: rating.points,
-    }))
-  }, [distributionData, outcome.ratings])
+    if (unassessedCount !== undefined) {
+      levels.push({
+        description: I18n.t('Unassessed'),
+        color: UNASSESSED_COLOR,
+        count: unassessedCount,
+        points: null,
+      })
+    }
+
+    return levels
+  }, [distributionData, outcome.ratings, unassessedCount])
 
   const descriptions = masteryLevels.map(level => level.description)
-  const displayLabels = masteryLevels.map(level => String(level.points))
+  const displayLabels = masteryLevels.map(level =>
+    level.points != null ? String(level.points) : '',
+  )
   const values = masteryLevels.map(level => level.count)
   const colors = useMemo(() => {
     return masteryLevels.map(level => {

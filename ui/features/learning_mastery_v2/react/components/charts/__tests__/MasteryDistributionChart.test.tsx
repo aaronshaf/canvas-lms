@@ -367,4 +367,37 @@ describe('MasteryDistributionChart', () => {
     expect(values).toHaveLength(3)
     expect(values).toEqual([1, 1, 1])
   })
+
+  describe('unassessed bar', () => {
+    it('appends Unassessed bar when unassessedCount is provided', () => {
+      render(<MasteryDistributionChart {...defaultProps()} unassessedCount={3} />)
+      const values = JSON.parse(screen.getByTestId('chart-values').textContent || '[]')
+
+      expect(values).toHaveLength(5)
+      expect(values[4]).toBe(3)
+    })
+
+    it('appends Unassessed bar with empty label', () => {
+      render(<MasteryDistributionChart {...defaultProps()} unassessedCount={2} />)
+      const labels = JSON.parse(screen.getByTestId('chart-labels').textContent || '[]')
+
+      expect(labels).toHaveLength(5)
+      expect(labels[4]).toBe('')
+    })
+
+    it('does not append Unassessed bar when unassessedCount is not provided', () => {
+      render(<MasteryDistributionChart {...defaultProps()} />)
+      const values = JSON.parse(screen.getByTestId('chart-values').textContent || '[]')
+
+      expect(values).toHaveLength(4)
+    })
+
+    it('supports unassessedCount of zero', () => {
+      render(<MasteryDistributionChart {...defaultProps()} unassessedCount={0} />)
+      const values = JSON.parse(screen.getByTestId('chart-values').textContent || '[]')
+
+      expect(values).toHaveLength(5)
+      expect(values[4]).toBe(0)
+    })
+  })
 })

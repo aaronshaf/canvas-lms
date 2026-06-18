@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import React, {useState} from 'react'
+import React, {useMemo, useState} from 'react'
 import {Spinner} from '@instructure/ui-spinner'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconFullScreenLine} from '@instructure/ui-icons'
@@ -71,6 +71,12 @@ export const MasteryDistributionChartCell: React.FC<MasteryDistributionChartCell
   const [focused, setFocused] = useState(false)
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const isScaleRestricted = exceedsMasteryScaleLimit(outcome.ratings?.length ?? 0)
+
+  const unassessedCount = useMemo(() => {
+    if (!distributionStudents || !outcomeDistribution) return undefined
+    const assessedIds = new Set(outcomeDistribution.ratings.flatMap(r => r.student_ids))
+    return distributionStudents.filter(s => !assessedIds.has(s.id)).length
+  }, [distributionStudents, outcomeDistribution])
   const visible = isHovered || focused
 
   const canExpand = !!courseId
@@ -146,6 +152,7 @@ export const MasteryDistributionChartCell: React.FC<MasteryDistributionChartCell
           height={BAR_CHART_HEIGHT}
           width={CELL_WIDTH}
           isPreview={true}
+          unassessedCount={unassessedCount}
         />
       )}
     </div>
