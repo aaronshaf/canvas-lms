@@ -984,6 +984,65 @@ describe TabsController, type: :request do
         expect(tab["html_url"]).to eql("/courses/#{@course.id}/lti/basic_lti_launch_request/123?resource_link_fragment=nav")
       end
     end
+
+    describe "anonymous access (no logged-in user)" do
+      it "lists navigation tabs for a public course" do
+        course_factory(active_all: true, is_public: true)
+
+        json = api_call(:get,
+                        "/api/v1/courses/#{@course.id}/tabs",
+                        { controller: "tabs", action: "index", course_id: @course.to_param, format: "json" },
+                        {},
+                        {},
+                        { expected_status: 200 })
+
+        expect(json.pluck("id")).to match_array %w[home syllabus ai_experiences]
+      end
+
+      it "returns 404 for a non-public course" do
+        course_factory(active_all: true)
+
+        api_call(:get,
+                 "/api/v1/courses/#{@course.id}/tabs",
+                 { controller: "tabs", action: "index", course_id: @course.to_param, format: "json" },
+                 {},
+                 {},
+                 { expected_status: 404 })
+      end
+
+      it "returns 404 for a group" do
+        group_model
+
+        api_call(:get,
+                 "/api/v1/groups/#{@group.id}/tabs",
+                 { controller: "tabs", action: "index", group_id: @group.to_param, format: "json" },
+                 {},
+                 {},
+                 { expected_status: 404 })
+      end
+
+      it "returns 404 for an account" do
+        account = Account.default
+
+        api_call(:get,
+                 "/api/v1/accounts/#{account.id}/tabs",
+                 { controller: "tabs", action: "index", account_id: account.to_param, format: "json" },
+                 {},
+                 {},
+                 { expected_status: 404 })
+      end
+
+      it "returns 404 for a user" do
+        target = User.create!
+
+        api_call(:get,
+                 "/api/v1/users/#{target.id}/tabs",
+                 { controller: "tabs", action: "index", user_id: target.to_param, format: "json" },
+                 {},
+                 {},
+                 { expected_status: 404 })
+      end
+    end
   end
 
   describe "update" do

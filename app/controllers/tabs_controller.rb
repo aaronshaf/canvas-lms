@@ -62,6 +62,7 @@ class TabsController < ApplicationController
   include Api::V1::Tab
 
   before_action :require_context
+  skip_before_action :require_user, only: [:index]
 
   # @API List available tabs for a course or group
   #
