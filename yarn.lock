@@ -5654,10 +5654,10 @@
     tslib "^2.4.1"
     tsyringe "^4.7.0"
 
-"@pendo/agent@^2.278.0":
-  version "2.278.0"
-  resolved "https://registry.yarnpkg.com/@pendo/agent/-/agent-2.278.0.tgz#ae89920d383728d1d14513409161bcb560fd4792"
-  integrity sha512-lrllhh+w01+Zw3+pLfmrcys16b9Wzl6L8cJgWFYBWjSyyM+VQkKCPHYSiGyYnr+mpR2feJXO5uUygV8W5T1PEA==
+"@pendo/web-sdk@^2.329.0":
+  version "2.329.0"
+  resolved "https://registry.yarnpkg.com/@pendo/web-sdk/-/web-sdk-2.329.0.tgz#341a48552e53d176892aca91afddb9cb7e1f1027"
+  integrity sha512-z7z1E+TEEmvfR42w3EDvGSrZHGajm0ZyB3Q+6gorQtRPyJJnoySlHNyS2P0Y5AytccpeSfyN5PPpGBraU1yseg==
   dependencies:
     minimist "^1.2.8"
 

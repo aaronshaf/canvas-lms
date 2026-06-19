@@ -16,9 +16,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {PendoConfig} from '@pendo/agent'
+import {PendoConfig} from '@pendo/web-sdk'
 import {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {buildAccountData, buildVisitorData} from './buildPendoData'
+import {version as pendoVersion} from '@pendo/web-sdk/package.json'
 
 declare global {
   interface Window {
@@ -148,7 +149,7 @@ function init(): Promise<any> | null {
   if (!ENV.PENDO_APP_ID) return null
 
   // Lazy-load Pendo only when needed (e.g., in browser)
-  return import('@pendo/agent').then(({initialize, GuideMarkdown, Replay, VocPortal}) => {
+  return import('@pendo/web-sdk').then(({initialize, GuideMarkdown, Replay, VocPortal}) => {
     let eNGA: boolean = false
     if (window.CANVAS_COOKIE_CONSENT_STATE !== true && pendoInImpactMode) {
       eNGA = true
@@ -158,6 +159,7 @@ function init(): Promise<any> | null {
     pendoInitParams = {
       apiKey: ENV.PENDO_APP_ID,
       env: ENV.PENDO_APP_ENV,
+      assets: {host: `https://cdn.pendo.io`, path: `agent/releases/${pendoVersion}/`},
       visitor: buildVisitorData(ENV),
       account: buildAccountData(ENV),
       globalKey: 'canvasUsageMetrics',

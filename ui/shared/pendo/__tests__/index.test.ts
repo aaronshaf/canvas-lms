@@ -46,7 +46,7 @@ describe('pendo/index', () => {
     vi.resetModules()
 
     mockInitialize = vi.fn()
-    vi.doMock('@pendo/agent', () => ({
+    vi.doMock('@pendo/web-sdk', () => ({
       initialize: mockInitialize,
       GuideMarkdown: {},
       Replay: {},
@@ -126,6 +126,15 @@ describe('pendo/index', () => {
             surveyOptOut: false,
           }),
         }),
+      )
+    })
+
+    it('overrides the assets host and pins the path to the installed SDK version', async () => {
+      window.CANVAS_COOKIE_CONSENT_STATE = true
+      mockInitialize.mockResolvedValue({isReady: vi.fn().mockReturnValue(true), teardown: vi.fn()})
+      await initializePendo()
+      expect(mockInitialize).toHaveBeenCalledWith(
+        expect.objectContaining({assets: expect.objectContaining({host: 'https://cdn.pendo.io'})}),
       )
     })
 

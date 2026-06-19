@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-declare module '@pendo/agent' {
+declare module '@pendo/web-sdk' {
   export interface Visitor {
     id: string
     canvasRoles?: string[]

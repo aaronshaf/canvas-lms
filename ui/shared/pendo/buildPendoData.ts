@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {Visitor} from '@pendo/agent'
+import {Visitor} from '@pendo/web-sdk'
 import {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {getPrimaryRole} from './utils'
 import {IGNITE_AI_FLAGS} from './constants'
