@@ -463,6 +463,69 @@ describe "Canvas Cartridge importing" do
     expect(rubric2_2.rating_order).to eq "descending"
   end
 
+  # Non-outcome criterion and rating long_description must round-trip
+  # verbatim — angle brackets can be intentional content (SEI tracking
+  # GUIDs, "<your initials>" placeholders). Outcome-linked criterion
+  # long_description, by contrast, is RCE HTML and must stay sanitized.
+  # See Importers::RubricImporter#sanitize_criteria_html.
+  it "round-trips non-outcome placeholders verbatim while sanitizing outcome HTML" do
+    crit_text = "Add <your initials> here <1362c51c-bb54-4aef-98e1-969294aa89f3>"
+    rating_text = "Described the potential impact. <5527f489-b426-4f5f-849f-e0222bcb8f47>"
+
+    lo = create_learning_outcome
+    import_learning_outcomes
+    lo.update!(description: "<p>Outcome</p><script>alert('xss')</script>")
+
+    rubric = @copy_from.rubrics.new
+    rubric.title = "Mixed Rubric"
+    rubric.data = [
+      {
+        description: "Plain crit",
+        long_description: crit_text,
+        points: 5,
+        id: "crit_plain",
+        ratings: [
+          {
+            criterion_id: "crit_plain",
+            points: 5,
+            description: "Exemplary",
+            id: "rat_plain",
+            long_description: rating_text,
+          },
+        ],
+      },
+      {
+        description: "Outcome crit",
+        long_description: lo.description,
+        points: 5,
+        id: "crit_lo",
+        learning_outcome_id: lo.id,
+        ratings: [
+          { criterion_id: "crit_lo", points: 5, description: "Meets", id: "rat_lo", long_description: "" },
+        ],
+      },
+    ]
+    rubric.save!
+    rubric.associate_with(@copy_from, @copy_from)
+
+    builder = Builder::XmlMarkup.new(indent: 2)
+    @resource.create_rubrics(builder)
+    doc = Nokogiri::XML(builder.target!)
+    hash = @converter.convert_rubrics(doc)
+    hash[0] = hash[0].with_indifferent_access
+    Importers::RubricImporter.process_migration({ "rubrics" => hash }, @migration)
+    @copy_to.save!
+
+    imported = @copy_to.rubrics.where(migration_id: CC::CCHelper.create_key(rubric)).first
+    plain_crit = imported.data.find { |c| c[:id] == "crit_plain" }
+    outcome_crit = imported.data.find { |c| c[:id] == "crit_lo" }
+
+    expect(plain_crit[:long_description]).to eq crit_text
+    expect(plain_crit[:ratings].first[:long_description]).to eq rating_text
+    expect(outcome_crit[:long_description]).not_to include("<script")
+    expect(outcome_crit[:long_description]).to include("<p>Outcome</p>")
+  end
+
   it "imports context info" do
     doc = Nokogiri::XML(<<~XML)
       <?xml version="1.0" encoding="UTF-8"?>

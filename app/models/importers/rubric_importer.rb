@@ -115,8 +115,17 @@ module Importers
       item
     end
 
-    # CC packages are authored outside Canvas — sanitize HTML before it
-    # reaches the rubric data JSONB so render paths can trust the field.
+    # Criterion long_description is dual-typed (matches the branching in
+    # Rubric#generate_criteria and the React render path):
+    #   - Outcome-linked → LearningOutcome.description (RCE HTML).
+    #     Sanitize as defense-in-depth; LearningOutcome itself runs
+    #     sanitize_field, but CC packages bypass that.
+    #   - Non-outcome → htmlified plain text whose angle brackets are
+    #     intentional content (SEI GUIDs "<HEX-UUID>", "<your initials>",
+    #     etc.). Sanitize would mangle these; render paths entity-escape.
+    #
+    # Rating long_description is always plain text (ratings cannot link to
+    # outcomes); render paths auto-escape. Do not sanitize here.
     def self.sanitize_criteria_html(criteria)
       return criteria unless criteria.is_a?(Array)
 
@@ -124,19 +133,10 @@ module Importers
         next crit unless crit.is_a?(Hash)
 
         crit = crit.with_indifferent_access
-        if crit[:long_description].is_a?(String)
+        outcome_linked = crit[:learning_outcome_migration_id].present? ||
+                         crit[:learning_outcome_external_identifier].present?
+        if outcome_linked && crit[:long_description].is_a?(String)
           crit[:long_description] = Sanitize.clean(crit[:long_description], CanvasSanitize::SANITIZE)
-        end
-        if crit[:ratings].is_a?(Array)
-          crit[:ratings] = crit[:ratings].map do |rating|
-            next rating unless rating.is_a?(Hash)
-
-            rating = rating.with_indifferent_access
-            if rating[:long_description].is_a?(String)
-              rating[:long_description] = Sanitize.clean(rating[:long_description], CanvasSanitize::SANITIZE)
-            end
-            rating
-          end
         end
         crit
       end

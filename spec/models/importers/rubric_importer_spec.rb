@@ -150,36 +150,38 @@ describe "Importing Rubrics" do
     end
   end
 
-  describe "long_description sanitization" do
+  describe "long_description handling" do
     let(:context) { course_model }
     let(:migration) do
       m = double
       allow(m).to receive(:add_imported_item)
-      allow(m).to receive_messages(context:, migration_settings: {}, cross_institution?: false)
+      allow(m).to receive_messages(context:, migration_settings: {}, cross_institution?: false, copied_external_outcome_map: {})
       m
     end
 
+    let(:rating_long_description) { "" }
+    let(:outcome_migration_id) { nil }
+
     let(:base_hash) do
+      crit = {
+        description: "Crit",
+        long_description:,
+        points: 5,
+        id: "crit1",
+        ratings: [
+          { description: "Full", long_description: rating_long_description, points: 5, id: "rat1" },
+        ],
+      }
+      crit[:learning_outcome_migration_id] = outcome_migration_id if outcome_migration_id
+
       {
         migration_id: "rubric_xss_1",
         title: "Rubric",
         points_possible: 5,
         rubrics_to_import: { "rubric_xss_1" => true },
-        data: [
-          {
-            description: "Crit",
-            long_description:,
-            points: 5,
-            id: "crit1",
-            ratings: [
-              { description: "Full", long_description: rating_long_description, points: 5, id: "rat1" },
-            ],
-          },
-        ],
+        data: [crit],
       }
     end
-
-    let(:rating_long_description) { "" }
 
     def stored_long_description
       Rubric.where(migration_id: "rubric_xss_1").first.data.first[:long_description]
@@ -189,50 +191,159 @@ describe "Importing Rubrics" do
       Rubric.where(migration_id: "rubric_xss_1").first.data.first[:ratings].first[:long_description]
     end
 
-    context "with a script payload" do
-      let(:long_description) { "<script>alert('xss')</script>safe text" }
+    # Outcome-linked criteria carry RCE-authored Rich HTML in long_description.
+    # The importer keeps a defense-in-depth Sanitize.clean pass on this branch.
+    # The branch is triggered by either learning_outcome_migration_id (typical
+    # CC import) or learning_outcome_external_identifier (cross-institution).
+    context "outcome-linked criterion long_description" do
+      let(:outcome_migration_id) { "outcome_mig_1" }
 
-      it "strips the script tag before persisting" do
-        Importers::RubricImporter.import_from_migration(base_hash, migration)
-        expect(stored_long_description).not_to include("<script")
-        expect(stored_long_description).to include("safe text")
+      context "with a script payload" do
+        let(:long_description) { "<script>alert('xss')</script>safe text" }
+
+        it "strips the script tag before persisting" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).not_to include("<script")
+          expect(stored_long_description).to include("safe text")
+        end
+      end
+
+      context "with only learning_outcome_external_identifier set" do
+        let(:long_description) { "<script>alert('xss')</script>safe text" }
+        let(:base_hash) do
+          {
+            migration_id: "rubric_xss_1",
+            title: "Rubric",
+            points_possible: 5,
+            rubrics_to_import: { "rubric_xss_1" => true },
+            data: [
+              {
+                description: "Crit",
+                long_description:,
+                learning_outcome_external_identifier: "vendor:abc123",
+                points: 5,
+                id: "crit1",
+                ratings: [],
+              },
+            ],
+          }
+        end
+
+        it "still strips the script tag on the cross-institution branch" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).not_to include("<script")
+          expect(stored_long_description).to include("safe text")
+        end
+      end
+
+      context "with an onerror payload" do
+        let(:long_description) { '<img src="x" onerror="alert(1)">' }
+
+        it "strips the event handler attribute" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).not_to include("onerror")
+        end
+      end
+
+      context "with a javascript: href" do
+        let(:long_description) { '<a href="javascript:alert(1)">click</a>' }
+
+        it "strips the javascript: scheme" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).not_to include("javascript:")
+        end
+      end
+
+      context "with safe formatting markup" do
+        let(:long_description) { "<p>Hello <strong>world</strong></p>" }
+
+        it "preserves benign HTML" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).to include("<strong>world</strong>")
+        end
+      end
+
+      # Locks the invariant that outcome-linked content stays sanitized.
+      # If a future PR makes the outcome-linked branch also preserve
+      # placeholders, this spec must be updated deliberately — silently
+      # flipping it would reopen the LearningOutcome XSS surface
+      # (see commit 58cbc61871a / CNVS-72824).
+      context "with a placeholder-shaped token on the outcome-linked branch" do
+        let(:long_description) { "Outcome <1362c51c-bb54-4aef-98e1-969294aa89f3>" }
+
+        it "still strips the bracketed token (defense-in-depth)" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).not_to include("<1362c51c")
+        end
       end
     end
 
-    context "with an onerror payload" do
-      let(:long_description) { '<img src="x" onerror="alert(1)">' }
+    # Non-outcome criteria store htmlified plain text — angle brackets are
+    # intentional content (SEI GUIDs, "<your initials>", etc.) and must
+    # round-trip verbatim. Render paths entity-escape on display.
+    context "non-outcome criterion long_description" do
+      context "with an SEI tracking GUID placeholder" do
+        let(:long_description) { "Speaker notes are missing. <1362c51c-bb54-4aef-98e1-969294aa89f3>" }
 
-      it "strips the event handler attribute" do
-        Importers::RubricImporter.import_from_migration(base_hash, migration)
-        expect(stored_long_description).not_to include("onerror")
+        it "preserves the GUID placeholder verbatim" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).to eq long_description
+        end
+      end
+
+      context "with a word-shaped placeholder" do
+        let(:long_description) { "Add <your initials> here" }
+
+        it "preserves the placeholder verbatim" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).to eq long_description
+        end
+      end
+
+      context "with mixed inequality operators and placeholders" do
+        let(:long_description) { "Use 5 < 10 & note <1234abcd-ef56-7890-abcd-ef1234567890>" }
+
+        it "preserves the text verbatim" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_long_description).to eq long_description
+        end
       end
     end
 
-    context "with a javascript: href" do
-      let(:long_description) { '<a href="javascript:alert(1)">click</a>' }
-
-      it "strips the javascript: scheme" do
-        Importers::RubricImporter.import_from_migration(base_hash, migration)
-        expect(stored_long_description).not_to include("javascript:")
-      end
-    end
-
-    context "with safe formatting markup" do
-      let(:long_description) { "<p>Hello <strong>world</strong></p>" }
-
-      it "preserves benign HTML" do
-        Importers::RubricImporter.import_from_migration(base_hash, migration)
-        expect(stored_long_description).to include("<strong>world</strong>")
-      end
-    end
-
-    context "with a payload nested in a rating" do
+    # Rating long_description is always plain text — ratings cannot link to
+    # outcomes. Render paths auto-escape on display.
+    context "rating long_description" do
       let(:long_description) { "" }
-      let(:rating_long_description) { '<img src="x" onerror="alert(1)">' }
 
-      it "sanitizes nested rating long_description" do
-        Importers::RubricImporter.import_from_migration(base_hash, migration)
-        expect(stored_rating_long_description).not_to include("onerror")
+      context "with an SEI tracking GUID placeholder" do
+        let(:rating_long_description) { "Identified the potential impact. <5527f489-b426-4f5f-849f-e0222bcb8f47>" }
+
+        it "preserves the GUID placeholder verbatim" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_rating_long_description).to eq rating_long_description
+        end
+      end
+
+      context "with a word-shaped placeholder" do
+        let(:rating_long_description) { "Sign with <your initials>" }
+
+        it "preserves the placeholder verbatim" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          expect(stored_rating_long_description).to eq rating_long_description
+        end
+      end
+
+      context "with a payload that looks like HTML" do
+        let(:rating_long_description) { '<img src="x" onerror="alert(1)">' }
+
+        it "stores the value verbatim; render layer auto-escapes" do
+          Importers::RubricImporter.import_from_migration(base_hash, migration)
+          # The render layer escapes this on display (ERB auto-escape +
+          # plain JSX text content); we deliberately do NOT mutate the
+          # stored value, since doing so would also destroy benign
+          # placeholders like "<your initials>".
+          expect(stored_rating_long_description).to eq rating_long_description
+        end
       end
     end
   end

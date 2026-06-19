@@ -500,6 +500,7 @@ class Rubric < ApplicationRecord
         # Outcome-linked (see below): stores LearningOutcome.description verbatim,
         # which is RCE-authored Rich HTML already sanitized at the model layer via
         # sanitize_field on LearningOutcome. Two different content types, same column.
+        # Importers::RubricImporter#sanitize_criteria_html honors the same split.
         unless criterion_data[:learning_outcome_id].present?
           criterion[:long_description] = format_message((criterion_data[:long_description] || "").strip).first
         end
