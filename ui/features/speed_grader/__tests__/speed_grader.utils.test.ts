@@ -349,28 +349,49 @@ describe('buildAlertMessage', () => {
       } as any
     })
 
-    it('strips disallowed elements injected via course_id', () => {
+    // course_id is html-escaped before interpolation, so injected markup is
+    // inert text rather than live DOM. Assert structurally (no live elements /
+    // attributes) instead of substring-matching: the escaped text legitimately
+    // still contains substrings like "onerror" or "javascript:" inside an
+    // attribute value, but never as an executable element or attribute.
+    const parseHtml = (html: string) => {
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return div
+    }
+
+    it('does not render markup injected via course_id', () => {
       window.ENV.course_id =
         '"><script>alert(1)</script><embed src="x"><object data="x"></object>' as any
-      const html = buildAlertMessage().__html
-      expect(html).not.toContain('<script')
-      expect(html).not.toContain('<embed')
-      expect(html).not.toContain('<object')
+      const dom = parseHtml(buildAlertMessage().__html)
+      expect(dom.querySelector('script')).toBeNull()
+      expect(dom.querySelector('embed')).toBeNull()
+      expect(dom.querySelector('object')).toBeNull()
     })
 
-    it('strips disallowed attributes from allowed tags', () => {
+    it('does not render event-handler attributes injected via course_id', () => {
       window.ENV.course_id = '"><img src=x onerror="alert(1)"><a onclick="alert(2)">x</a>' as any
-      const html = buildAlertMessage().__html
-      expect(html).not.toContain('onerror')
-      expect(html).not.toContain('onclick')
+      const dom = parseHtml(buildAlertMessage().__html)
+      expect(dom.querySelector('img')).toBeNull()
+      expect(dom.querySelector('[onerror]')).toBeNull()
+      expect(dom.querySelector('[onclick]')).toBeNull()
     })
 
-    it('strips javascript: URIs from href/src/data attributes', () => {
+    it('does not render javascript: URIs injected via course_id', () => {
       window.ENV.course_id = ('"><a href="javascript:alert(1)">x</a>' +
         '<iframe src="javascript:alert(2)"></iframe>' +
         '<embed src="javascript:alert(3)">' +
         '<object data="javascript:alert(4)"></object>') as any
-      expect(buildAlertMessage().__html).not.toContain('javascript:')
+      const dom = parseHtml(buildAlertMessage().__html)
+      expect(dom.querySelector('iframe')).toBeNull()
+      expect(dom.querySelector('embed')).toBeNull()
+      expect(dom.querySelector('object')).toBeNull()
+      const hasJsUri = Array.from(dom.querySelectorAll('*')).some(el =>
+        Array.from(el.attributes).some(attr =>
+          attr.value.trim().toLowerCase().startsWith('javascript:'),
+        ),
+      )
+      expect(hasJsUri).toBe(false)
     })
 
     it('preserves the legitimate course settings link after sanitization', () => {

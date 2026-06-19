@@ -34,6 +34,7 @@ export default class DashboardView extends View {
       'click .stream_header .links a': 'stopPropagation',
       'click .stream-details': 'handleDetailsClick',
       'click .close_conference_link': 'closeConference',
+      'click .ignore-item': 'dismissStreamItem',
       'focus .todo-tooltip': 'handleTooltipFocus',
       'beforeremove .stream-category': 'updateCategoryCounts', // ujsLinks event
     }
@@ -175,6 +176,39 @@ export default class DashboardView extends View {
       parent[0].remove()
     }
     return this.setShowMoreLink($(event.target).closest('.stream-category'))
+  }
+
+  // The recent-activity stream is fetched over XHR and run through
+  // @canvas/sanitize-html before insertion. As of @instructure/platform-sanitize
+  // 0.5.1 that sanitizer renames Rails UJS data-* attributes (data-remove ->
+  // data-custom-remove, data-url -> data-custom-url) to neutralize jquery-ujs on
+  // sanitized content, so the global jquery-ujs click handler no longer matches
+  // these dismiss links. Handle the dismiss here off the renamed attributes,
+  // mirroring jquery-ujs' remove flow (and its beforeremove/remove events so
+  // updateCategoryCounts still collapses an emptied category).
+  dismissStreamItem(event) {
+    event.preventDefault()
+    const $link = $(event.currentTarget)
+    const selector = $link.data('customRemove')
+    if (!selector) return
+    const url = $link.data('customUrl')
+    const $elToRemove = $link.closest(selector)
+    $elToRemove.on({
+      beforeremove() {
+        $elToRemove.hide()
+      },
+      remove() {
+        $elToRemove.remove()
+      },
+    })
+    $elToRemove.trigger('beforeremove')
+    const triggerRemove = () => $elToRemove.trigger('remove')
+    const revert = () => $elToRemove.show()
+    if (url) {
+      $.ajaxJSON(url, 'DELETE', {}, triggerRemove, revert)
+    } else {
+      triggerRemove()
+    }
   }
 
   handleTooltipFocus(event) {

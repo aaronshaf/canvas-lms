@@ -80,7 +80,7 @@
     "@instructure/emotion": "11.6.0",
     "@instructure/k5uploader": "*",
     "@instructure/studio-capture": "12.2.2",
-    "@instructure/platform-sanitize": "0.4.0",
+    "@instructure/platform-sanitize": "0.5.1",
     "@instructure/ui-a11y-content": "11.6.0",
     "@instructure/ui-a11y-utils": "11.6.0",
     "@instructure/ui-alerts": "11.6.0",

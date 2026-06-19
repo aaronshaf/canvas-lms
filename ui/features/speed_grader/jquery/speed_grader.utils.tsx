@@ -192,7 +192,7 @@ export function buildAlertMessage() {
       'Something went wrong. Please try refreshing the page. If the problem persists, you can try loading a single student group in SpeedGrader by using the *Large Course setting*.',
       {
         wrappers: ['<a href="/courses/%{course_id}/settings#course_large_course">$1</a>'],
-        course_id: ENV.course_id,
+        course_id: htmlEscape(ENV.course_id),
       },
     ).string
   } else {
