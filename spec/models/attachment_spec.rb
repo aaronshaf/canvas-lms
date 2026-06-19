@@ -2608,6 +2608,118 @@ describe Attachment do
       expect(quota[:quota_used]).to eq 0
     end
 
+    describe "performant_quota_calculation flag" do
+      before(:once) do
+        @root_account = account_model
+        @root_folder = Folder.root_folders(@root_account).first
+      end
+
+      def quota_used(context)
+        Attachment.get_quota(context)[:quota_used]
+      end
+
+      def sized_attachment(size, **)
+        attachment_model(uploaded_data: stub_text_data, **).tap { |a| a.update_attribute(:size, size) }
+      end
+
+      shared_examples "quota exemption rules" do
+        context "for an Account" do
+          it "excludes attachments in a root account's root folder" do
+            sized_attachment(1.megabyte, context: @root_account, folder: @root_folder)
+            expect(quota_used(@root_account)).to eq 0
+          end
+
+          it "excludes attachments in a root account's immediate sub-folder" do
+            sub_folder = @root_folder.sub_folders.create!(name: "sub", context: @root_account)
+            sized_attachment(1.megabyte, context: @root_account, folder: sub_folder)
+            expect(quota_used(@root_account)).to eq 0
+          end
+
+          it "counts attachments nested deeper than the immediate sub-folders" do
+            sub_folder = @root_folder.sub_folders.create!(name: "sub", context: @root_account)
+            nested = sub_folder.sub_folders.create!(name: "nested", context: @root_account)
+            sized_attachment(1.megabyte, context: @root_account, folder: nested)
+            expect(quota_used(@root_account)).to eq 1.megabyte
+          end
+
+          it "counts root account attachments that have no folder" do
+            attachment = sized_attachment(1.megabyte, context: @root_account, folder: @root_folder)
+            attachment.update_columns(folder_id: nil)
+            expect(quota_used(@root_account)).to eq 1.megabyte
+          end
+
+          it "does not exempt sub-account attachments" do
+            sub_account = @root_account.sub_accounts.create!
+            folder = Folder.root_folders(sub_account).first
+            sized_attachment(1.megabyte, context: sub_account, folder:)
+            expect(quota_used(sub_account)).to eq 1.megabyte
+          end
+        end
+
+        context "for a User" do
+          it "counts user attachments that have no folder" do
+            user = user_model
+            attachment = sized_attachment(1.megabyte, context: user)
+            attachment.update_columns(folder_id: nil)
+            expect(quota_used(user)).to eq 1.megabyte
+          end
+
+          it "excludes user attachments associated with a submission" do
+            course_with_student(active_all: true)
+            submission = @course.assignments.create!.find_or_create_submission(@student)
+            attachment = sized_attachment(1.megabyte, context: @student)
+            attachment.attachment_associations.create!(context: submission)
+            expect(quota_used(@student)).to eq 0
+          end
+
+          it "excludes user attachments in submissions folders" do
+            user = user_model
+            sized_attachment(1.megabyte, context: user, folder: user.submissions_folder)
+            expect(quota_used(user)).to eq 0
+          end
+
+          it "counts user attachments in a non-submission folder" do
+            user = user_model
+            sized_attachment(1.megabyte, context: user, folder: Folder.root_folders(user).first)
+            expect(quota_used(user)).to eq 1.megabyte
+          end
+        end
+
+        context "for a Group" do
+          it "counts group attachments that have no folder" do
+            group = group_model
+            attachment = sized_attachment(1.megabyte, context: group)
+            attachment.update_columns(folder_id: nil)
+            expect(quota_used(group)).to eq 1.megabyte
+          end
+
+          it "excludes group attachments in submissions folders" do
+            group = group_model
+            sized_attachment(1.megabyte, context: group, folder: group.submissions_folder)
+            expect(quota_used(group)).to eq 0
+          end
+
+          it "counts group attachments in a non-submission folder" do
+            group = group_model
+            sized_attachment(1.megabyte, context: group, folder: Folder.root_folders(group).first)
+            expect(quota_used(group)).to eq 1.megabyte
+          end
+        end
+      end
+
+      context "when enabled" do
+        before { Account.site_admin.enable_feature!(:performant_quota_calculation) }
+
+        it_behaves_like "quota exemption rules"
+      end
+
+      context "when disabled" do
+        before { Account.site_admin.disable_feature!(:performant_quota_calculation) }
+
+        it_behaves_like "quota exemption rules"
+      end
+    end
+
     it "returns available quota" do
       course_model
       @course.update storage_quota: 5.megabytes

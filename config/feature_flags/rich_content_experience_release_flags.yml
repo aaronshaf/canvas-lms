@@ -14,6 +14,16 @@ auto_show_cc:
     language (if available) when playing canvas media.
   applies_to: User
 
+performant_quota_calculation:
+  state: hidden
+  display_name: Performant Quota Calculation
+  description: |-
+    Calculates storage quota usage for accounts, groups, and users with a
+    folder-scoped query instead of materializing every excluded attachment id into a
+    large NOT IN clause, avoiding slow and timeout-prone quota checks on contexts
+    with many attachments. Disable to revert to the id-based calculation (kill switch).
+  applies_to: SiteAdmin
+
 block_editor:
   applies_to: Account
   state: disabled

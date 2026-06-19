@@ -784,9 +784,7 @@ class Attachment < ApplicationRecord
           quota = context.quota if context.respond_to?(:quota) && context.quota
 
           attachment_scope = context.attachments.active.where(root_attachment_id: nil)
-          excluded_attachment_ids = excluded_ids_for_context(context)
-
-          attachment_scope = attachment_scope.where.not(id: excluded_attachment_ids) if excluded_attachment_ids.present?
+          attachment_scope = build_exclusion_attachment_scope(context, attachment_scope)
 
           min = MINIMUM_SIZE_FOR_QUOTA
           # translated to ruby this is [size, min].max || 0
@@ -795,6 +793,60 @@ class Attachment < ApplicationRecord
       end
     end
     { quota:, quota_used: }
+  end
+
+  def self.build_exclusion_attachment_scope(context, scope)
+    if Account.site_admin.feature_enabled?(:performant_quota_calculation)
+      folder_scoped_exclusion_scope(context, scope)
+    else
+      id_based_exclusion_scope(context, scope)
+    end
+  end
+
+  def self.folder_scoped_exclusion_scope(context, scope)
+    case context
+    when Account
+      exclude_root_account_system_folders(context, scope)
+    when Group
+      exclude_submissions_folders(context, scope)
+    when User
+      exclude_user_quota_exempt(context, scope)
+    else
+      scope
+    end
+  end
+
+  def self.id_based_exclusion_scope(context, scope)
+    excluded_ids = excluded_ids_for_context(context)
+    excluded_ids.present? ? scope.where.not(id: excluded_ids) : scope
+  end
+
+  def self.exclude_root_account_system_folders(context, scope)
+    return scope unless context.root_account?
+
+    root_folder = Folder.root_folders(context).first
+    return scope unless root_folder
+
+    folder_ids = Array(root_folder.id) + root_folder.sub_folders.ids
+    scope.where(folder_id: nil).or(scope.where.not(folder_id: folder_ids))
+  end
+
+  def self.exclude_submissions_folders(context, scope)
+    folder_ids = context.submissions_folders.pluck(:id)
+    return scope if folder_ids.empty?
+
+    scope.where(folder_id: nil).or(scope.where.not(folder_id: folder_ids))
+  end
+
+  def self.exclude_user_quota_exempt(context, scope)
+    submission_attachment_ids =
+      context.attachments
+             .joins(:attachment_associations)
+             .where(attachment_associations: { context_type: "Submission" })
+             .select(:id)
+    scope = scope.where.not(id: submission_attachment_ids)
+
+    exclude_submissions_folders(context, scope)
   end
 
   def self.excluded_ids_for_context(context)
