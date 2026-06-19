@@ -2865,10 +2865,10 @@
   resolved "https://registry.yarnpkg.com/@instructure.ai/aiinfo/-/aiinfo-2.11.1.tgz#8daee7e8340c9fcc603f660fb9ec0f7e2e14ea1f"
   integrity sha512-JdkFWcX8gAUX+b9wikL8UI1zXOqVocyd+KedmNeLsbSYMZ1R1DhgaeQLhy38+BVRYiTWolgHvTxr+BEh7OM1NA==
 
-"@instructure/brandable_css@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@instructure/brandable_css/-/brandable_css-3.1.1.tgz#450e436ec5bb502860a1775937a8c30de79d703d"
-  integrity sha512-IL9WNjIQrJwPWEjlc11zrgVTmO0Px9ZlM5SwGFIDLF2AioPBaDx0pO2ZrLf+q18vmKPyyD/wIf57rv+lT8nwAg==
+"@instructure/brandable_css@^3.1.2":
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/@instructure/brandable_css/-/brandable_css-3.1.2.tgz#ccad99ec4d63ec01da190e37515c723ac03c9d96"
+  integrity sha512-pflP0M4nP/3jebJUbNsRCvnLvZtT0DDpaOv+U90fSDqx8UwiBROrTFuu5Ym6wQ7hySQv64tXLJlsRNlnEUD84Q==
   dependencies:
     autoprefixer "^10.4.20"
     chalk "^2"
@@ -2878,7 +2878,7 @@
     fs-extra-promise "^1"
     glob "^7"
     js-yaml "^3.14.1"
-    lodash "^4.17.21"
+    lodash "^4.18.1"
     minimatch "^3.1.2"
     postcss "^8.4.31"
     postcss-url "^10.1.3"
@@ -15123,7 +15123,7 @@ lodash.truncate@^4.4.2:
   resolved "https://registry.yarnpkg.com/lodash.truncate/-/lodash.truncate-4.4.2.tgz#5a350da0b1113b837ecfffd5812cbe58d6eae193"
   integrity sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==
 
-lodash@4.18.1, lodash@^4.0.0, lodash@^4.0.1, lodash@^4.13.1, lodash@^4.17.11, lodash@^4.17.15, lodash@^4.17.21, lodash@^4.17.23, lodash@^4.17.4, lodash@^4.18, lodash@^4.3.0:
+lodash@4.18.1, lodash@^4.0.0, lodash@^4.0.1, lodash@^4.13.1, lodash@^4.17.11, lodash@^4.17.15, lodash@^4.17.21, lodash@^4.17.23, lodash@^4.17.4, lodash@^4.18, lodash@^4.18.1, lodash@^4.3.0:
   version "4.18.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
   integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
@@ -17327,11 +17327,6 @@ react-immutable-proptypes@^2.1.0:
   version "19.2.6"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.6.tgz#aeee6159b159eb7f520d672cffcc69e7052d288f"
   integrity sha512-XjBR15BhXuylgWGuslhDKqlSayuqvqBX91BP8pauG8kd1zY8kotkNWbXksTCNRarse4kuGbe2kIY05ARtwNIvw==
-
-"react-is@^16.12.0 || ^17.0.0 || ^18.0.0", react-is@^18.0.0, react-is@^18.3.1:
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.3.1.tgz#e83557dc12eae63a99e003a46388b1dcbb44db7e"
-  integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
 
 react-is@^16.13.1, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.4:
   version "16.13.1"
