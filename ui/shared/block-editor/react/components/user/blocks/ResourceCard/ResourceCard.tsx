@@ -27,6 +27,7 @@ import {ButtonBlock} from '../ButtonBlock'
 import {IconBlock} from '../IconBlock'
 import {type ResourceCardProps} from './types'
 import {isLastChild} from '../../../../utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 
@@ -73,7 +74,7 @@ const ResourceCard = ({id, title, description, iconName, linkText, linkUrl}: Res
         <Element
           id={`${myId}__link`}
           is={ButtonBlock}
-          href={myLinkUrl}
+          href={myLinkUrl ? sanitizeUrl(myLinkUrl) : undefined}
           color="#fff"
           text={myLinkText}
           custom={{displayName: I18n.t('Link')}}

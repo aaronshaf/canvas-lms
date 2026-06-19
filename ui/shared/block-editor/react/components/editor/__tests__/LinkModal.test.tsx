@@ -56,9 +56,24 @@ describe('LinkModal', () => {
     const submitButton = getByText('Submit').closest('button') as HTMLButtonElement
 
     fireEvent.change(textInput, {target: {value: 'text'}})
-    fireEvent.change(urlInput, {target: {value: 'url'}})
+    fireEvent.change(urlInput, {target: {value: 'https://example.com'}})
     await user.click(submitButton)
 
-    expect(onSubmit).toHaveBeenCalledWith('text', 'url')
+    expect(onSubmit).toHaveBeenCalledWith('text', 'https://example.com')
+  })
+
+  it('sanitizes a javascript: url before calling onSubmit', async () => {
+    const onSubmit = vi.fn()
+    const {getByLabelText, getByText} = render(
+      <LinkModal open={true} onClose={() => {}} onSubmit={onSubmit} />,
+    )
+
+    const urlInput = getByLabelText('URL')
+    const submitButton = getByText('Submit').closest('button') as HTMLButtonElement
+
+    fireEvent.change(urlInput, {target: {value: 'javascript:alert(document.cookie)'}})
+    await user.click(submitButton)
+
+    expect(onSubmit).toHaveBeenCalledWith('', 'about:blank')
   })
 })

@@ -32,6 +32,7 @@ import type {ButtonBlockProps, ButtonSize, ButtonVariant} from './types'
 import {white, black, getContrastingColor, getEffectiveBackgroundColor} from '../../../../utils'
 import {IconPopup} from '../../common/IconPopup'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('block-editor')
 
@@ -103,8 +104,11 @@ const ButtonBlockToolbar = () => {
     (text: string, url: string) => {
       setProp((prps: ButtonBlockProps) => {
         prps.text = text
+        // Sanitize before persisting: this href is serialized into the saved
+        // block JSON, so a javascript: payload would otherwise live at rest in
+        // the DB even though the render path also sanitizes (defense in depth).
         // oxlint-disable-next-line canvas-sanitize-url/imperative -- Craft.js setProp callback: prps is an in-memory node props object, not a DOM element
-        prps.href = url
+        prps.href = url ? sanitizeUrl(url) : ''
       })
     },
     [setProp],

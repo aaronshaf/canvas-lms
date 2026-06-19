@@ -65,5 +65,14 @@ describe('ResourceCard', () => {
     expect(getByText('My Link').closest('a')).toHaveAttribute('href', 'https://example.com')
   })
 
+  it('neutralizes a javascript: linkUrl to prevent stored XSS', () => {
+    const {getByText} = renderBlock(true, {
+      linkText: 'My Link',
+      linkUrl: 'javascript:alert(document.cookie)',
+    })
+
+    expect(getByText('My Link').closest('a')).toHaveAttribute('href', 'about:blank')
+  })
+
   // test RescourceCard.craft.custom.isDeletable either in RecourcesSection or selenium
 })

@@ -164,6 +164,31 @@ describe('ButtonBlockToolbar', () => {
     expect(props.iconName).toBe('apple')
   })
 
+  it('sanitizes a javascript: url before persisting it to the href prop', async () => {
+    const {getByText} = render(<ButtonBlockToolbar />)
+
+    await userEvent.click(getByText('Button Text/Link*').closest('button') as HTMLButtonElement)
+
+    const urlInput = screen.getByLabelText('URL') as HTMLInputElement
+    await userEvent.type(urlInput, 'javascript:alert(document.cookie)')
+    await userEvent.click(screen.getByText('Submit').closest('button') as HTMLButtonElement)
+
+    expect(mockSetProp).toHaveBeenCalled()
+    expect(props.href).toBe('about:blank')
+  })
+
+  it('preserves a safe url when persisting the href prop', async () => {
+    const {getByText} = render(<ButtonBlockToolbar />)
+
+    await userEvent.click(getByText('Button Text/Link*').closest('button') as HTMLButtonElement)
+
+    const urlInput = screen.getByLabelText('URL') as HTMLInputElement
+    await userEvent.type(urlInput, 'https://example.com')
+    await userEvent.click(screen.getByText('Submit').closest('button') as HTMLButtonElement)
+
+    expect(props.href).toBe('https://example.com')
+  })
+
   // vi is loading the commonjs version
   // @instructure/ui-color-picker/lib/ColorMixer/index.js
   // I get ReferenceError: colorToHex8 is not defined,

@@ -23,6 +23,7 @@ import {Modal} from '@instructure/ui-modal'
 import {TextInput} from '@instructure/ui-text-input'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('block-editor')
 
@@ -47,7 +48,9 @@ const LinkModal = ({open, text = '', url = '', onClose, onSubmit}: LinkModalProp
   }, [])
 
   const handleSubmit = useCallback(() => {
-    onSubmit(currText, currUrl)
+    // Sanitize at the modal boundary so no consumer ever receives a
+    // dangerous (e.g. javascript:) url, regardless of its own handling.
+    onSubmit(currText, currUrl ? sanitizeUrl(currUrl) : '')
     onClose()
   }, [onSubmit, onClose, currText, currUrl])
 
