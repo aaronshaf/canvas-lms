@@ -69,6 +69,18 @@ describe AssignmentsHelper do
       end
 
       it "renders multiple dates" do
+        # Add a second differentiated date so the teacher always sees at least
+        # two distinct due dates. Relying on the base "Everyone else" date plus a
+        # single section override makes this assertion fragile: if the base date
+        # is ever dropped from the visible set (e.g. differentiated-assignment
+        # state leaked from another spec in the same CI node), the dates collapse
+        # to one and the helper renders that single date instead of "Multiple".
+        other_section = @course.course_sections.create!(name: "other test section")
+        create_section_override_for_assignment(
+          @assignment,
+          course_section: other_section,
+          due_at: 3.months.from_now
+        )
         expect(due_at(@assignment, @teacher.principal)).to eq "Multiple Due Dates"
       end
 
