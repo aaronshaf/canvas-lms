@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {ConfigureModal} from '../ConfigureModal'
 import {fetchDiscoveryConfig, saveDiscoveryConfig} from '../../api'
@@ -33,7 +33,9 @@ vi.mock('../../api', async importOriginal => {
 })
 
 vi.mock('@instructure/platform-instui-bindings', async () => ({
-  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>('@instructure/platform-instui-bindings')),
+  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>(
+    '@instructure/platform-instui-bindings',
+  )),
   confirm: vi.fn(),
 }))
 
@@ -252,6 +254,10 @@ describe('ConfigureModal', () => {
       const onClose = vi.fn()
       render(<ConfigureModal open={true} onClose={onClose} />)
       await screen.findByText('0/10 sign-in options added.')
+      // The close button is disabled while the config is still loading, and the
+      // item-count label above renders during loading too — so wait for the
+      // button to be enabled before clicking, otherwise the click is a no-op.
+      await waitFor(() => expect(screen.getByTestId('close-button')).not.toBeDisabled())
       await user.click(screen.getByTestId('close-button'))
       expect(mockedConfirm).not.toHaveBeenCalled()
       expect(onClose).toHaveBeenCalled()
