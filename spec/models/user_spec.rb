@@ -146,7 +146,10 @@ describe User do
       let(:course) { course_model }
       let(:user) { course.student_view_student }
 
-      before { user.update!(preferences: {}) }
+      before do
+        user.update!(preferences: {})
+        user.remove_instance_variable(:@fake_student)
+      end
 
       it { is_expected.to be false }
     end

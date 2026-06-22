@@ -1472,6 +1472,7 @@ describe ApplicationHelper do
         enrollment = @user.enrollments.first
         enrollment.type = "StudentViewEnrollment"
         enrollment.save!
+        @user.remove_instance_variable(:@fake_student)
         expect(helper).not_to be_show_cc_prefs
       end
 

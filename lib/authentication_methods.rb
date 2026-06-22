@@ -64,7 +64,12 @@ module AuthenticationMethods
     @current_principal = Canvas::AdheresToPolicy::Current.principal =
       if AuthenticationMethods.masquerade_without_all_permissions_allowed?(@real_current_user, account: @real_current_pseudonym.account)
         real_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@real_current_pseudonym)
-        AdheresToPolicy::MasqueradingPrincipal.new(effective_principal, real_principal)
+        klass = if effective_principal.user.fake_student?
+                  Canvas::AdheresToPolicy::StudentViewPrincipal
+                else
+                  AdheresToPolicy::MasqueradingPrincipal
+                end
+        klass.new(effective_principal, real_principal)
       else
         effective_principal
       end

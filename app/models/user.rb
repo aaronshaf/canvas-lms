@@ -3614,7 +3614,10 @@ class User < ApplicationRecord
   end
 
   def fake_student?
-    !!preferences[:fake_student] && enrollments.where(type: "StudentViewEnrollment").exists?
+    unless instance_variable_defined?(:@fake_student)
+      @fake_student = !!preferences[:fake_student] && enrollments.where(type: "StudentViewEnrollment").exists?
+    end
+    @fake_student
   end
 
   def underage?

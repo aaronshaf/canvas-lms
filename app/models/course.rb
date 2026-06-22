@@ -4442,6 +4442,8 @@ class Course < ApplicationRecord
     User.transaction do
       fake_student = find_or_create_student_view_student
       sync_enrollments(fake_student)
+      fake_student.instance_variable_set(:@fake_student, true)
+      fake_student
     end
   end
 
