@@ -159,7 +159,7 @@ function init(): Promise<any> | null {
     pendoInitParams = {
       apiKey: ENV.PENDO_APP_ID,
       env: ENV.PENDO_APP_ENV,
-      assets: {host: `https://cdn.pendo.io`, path: `agent/releases/${pendoVersion}/`},
+      assets: {host: `https://cdn.pendo.io`, path: `agent/releases/${pendoVersion}`},
       visitor: buildVisitorData(ENV),
       account: buildAccountData(ENV),
       globalKey: 'canvasUsageMetrics',
