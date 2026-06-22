@@ -93,7 +93,7 @@ export function getOriginalityData(
     return false
   } else {
     return {
-      reportUrl: data.report_url,
+      reportUrl: data.view_report_url ?? data.report_url,
       score: data.similarity_score,
       status: data.status,
       state: data.state,

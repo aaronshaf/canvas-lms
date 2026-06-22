@@ -245,4 +245,28 @@ describe('getOriginalityData', () => {
       status: 'scored',
     })
   })
+
+  it('uses the Canvas-routed view_report_url over the direct report_url when present', () => {
+    const sub = submission({
+      submissionType: 'online_upload',
+      attachments,
+      originalityData: {
+        attachment_1: {
+          similarity_score: 42,
+          state: 'acceptable',
+          report_url: 'https://api.turnitin.com/api/lti/1p0/dv/report/123?lang=en_us',
+          view_report_url:
+            '/courses/1/assignments/1/submissions/1/turnitin/attachment_1?attempt=1',
+          status: 'scored',
+          data: '{}',
+        },
+      },
+    })
+    expect(getOriginalityData(sub, 0)).toEqual({
+      score: 42,
+      state: 'acceptable',
+      reportUrl: '/courses/1/assignments/1/submissions/1/turnitin/attachment_1?attempt=1',
+      status: 'scored',
+    })
+  })
 })
