@@ -123,7 +123,7 @@ export default function CommentsTray({
                     data-testid="tray-close-button"
                     placement="end"
                     offset="medium"
-                    screenReaderLabel="Close"
+                    screenReaderLabel={I18n.t('Close')}
                     size="small"
                     onClick={closeTray}
                   />
