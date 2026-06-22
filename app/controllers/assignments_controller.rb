@@ -338,7 +338,10 @@ class AssignmentsController < ApplicationController
         if @assignment.external_tool? && @unlocked
           @tool = Lti::ToolFinder.from_assignment(@assignment)
 
-          js_env({ LTI_TOOL: "true", LTI_TOOL_ID: @tool&.id, LTI_TOOL_SELECTION_WIDTH: @tool&.settings&.dig("selection_width"), LTI_TOOL_SELECTION_HEIGHT: @tool&.settings&.dig("selection_height") })
+          link_settings = @assignment.external_tool_tag&.link_settings || {}
+          selection_width  = link_settings["selection_width"].to_s.gsub(/px$/, "").presence || @tool&.settings&.dig("selection_width")
+          selection_height = link_settings["selection_height"].to_s.gsub(/px$/, "").presence || @tool&.settings&.dig("selection_height")
+          js_env({ LTI_TOOL: "true", LTI_TOOL_ID: @tool&.id, LTI_TOOL_SELECTION_WIDTH: selection_width, LTI_TOOL_SELECTION_HEIGHT: selection_height })
         end
 
         if @assignment.external_tool?

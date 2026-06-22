@@ -1462,6 +1462,25 @@ describe AssignmentsController do
       expect(assigns[:js_env][:LTI_TOOL_SELECTION_HEIGHT]).to eq 600
     end
 
+    it "sets LTI tool selection dimensions from link_settings for LTI 1.1 tools" do
+      @course.context_external_tools.create!(
+        shared_secret: "test_secret",
+        consumer_key: "test_key",
+        name: "lti 1.1 tool",
+        domain: "example.com"
+      )
+      user_session(@teacher)
+      @assignment.submission_types = "external_tool"
+      tag = @assignment.build_external_tool_tag(url: "http://example.com/test")
+      tag.link_settings = { "selection_width" => "500", "selection_height" => "400" }
+      @assignment.save!
+
+      get "show", params: { course_id: @course.id, id: @assignment.id }
+      expect(assigns[:js_env][:LTI_TOOL_ID]).not_to be_nil
+      expect(assigns[:js_env][:LTI_TOOL_SELECTION_WIDTH]).to eq "500"
+      expect(assigns[:js_env][:LTI_TOOL_SELECTION_HEIGHT]).to eq "400"
+    end
+
     it "sets first_annotation_submission to true if it's the first submission and the assignment is annotatable" do
       user_session(@student)
       attachment = attachment_model(content_type: "application/pdf", display_name: "file.pdf", user: @teacher)
