@@ -241,6 +241,7 @@ describe('CreateCourseModal (1)', () => {
   })
 
   it('shows an error message if subject creation fails', async () => {
+    // flaky-fix: QE-165
     const user = userEvent.setup(USER_EVENT_OPTIONS)
     server.use(
       http.get('/api/v1/manageable_accounts', () => HttpResponse.json(MANAGEABLE_COURSES)),
@@ -252,8 +253,10 @@ describe('CreateCourseModal (1)', () => {
       <CreateCourseModal {...getProps()} />,
     )
     await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-    fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+    const accountSelect = getByLabelText('Which account will this subject be associated with?')
+    await user.click(accountSelect)
     await user.click(await screen.findByText('CS'))
+    await waitFor(() => expect(accountSelect).toHaveValue('CS'))
     await user.type(getByLabelText('Subject Name'), 'Math')
     // Wait for the button to be enabled after both account selection and name entry
     await waitFor(() => expect(getByRole('button', {name: 'Create'})).not.toBeDisabled())

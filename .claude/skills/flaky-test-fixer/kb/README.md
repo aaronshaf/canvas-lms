@@ -51,6 +51,7 @@ Use this table to jump to the right case from the error signature.
 | Unguarded ref + `isLoading` in observer effect deps | React stuck ref | 11 |
 | "expected X but nothing was raised", sibling tests stub the method | Same-file stub leak | 12E |
 | `waitFor` timeout, button disabled when `fireEvent.click` fired | Disabled-button click race | 13 |
+| `waitFor` timeout on a `CanvasAsyncSelect` test QE-149 already touched | Whack-a-mole (S-16 Outcome B) | 14 |
 
 ## Case File Naming
 

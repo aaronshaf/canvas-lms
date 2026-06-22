@@ -532,7 +532,17 @@ without it.
 **Remove inflated timeouts** (`{timeout: 5000}`, `{timeout: 20000}`) that were
 masking the race. After fixing the event sequence the default timeout suffices.
 
-*Introduced: QE-149*
+**Whack-a-mole warning (S-16 Outcome B):** this pattern tends to recur multiple
+times within the same file. QE-149 fixed two named tests but missed a third in
+`CreateCourseModal1` that used the identical sequence; it re-flaked and needed
+QE-165 (see KB case 14). When fixing this pattern, `git grep` the **whole file
+and suite** for every `fireEvent.click`-open + `user.click`-select pair and fix
+them all in one pass — do not fix only the test named in the current backtrace:
+```bash
+git grep -n "fireEvent.click" -- '*CreateCourseModal*'
+```
+
+*Introduced: QE-149, updated: QE-165*
 
 ---
 
@@ -825,7 +835,14 @@ is now the failure point ("whack-a-mole").
 - Update the relevant KB case with a whack-a-mole warning so future engineers
   guard all instances in a single pass.
 - Keep the prior fix tag; append the new JIRA to the comma-separated list
-  (`# flaky-fix: QE-141, QE-155`).
+  (`# flaky-fix: QE-141, QE-155`). When the new failure is a *different* test
+  that never carried the prior tag, tag only the new JIRA on that test — the
+  lineage lives in the new ticket's Prior fixes (S-16) field and the KB case.
+
+A second Outcome B example in component-test land (QE-149 → QE-165, KB case 14):
+the `CanvasAsyncSelect` mixed-event pattern (S-11) recurred in a third test in
+the same file that the QE-149 pass left untouched. The fix grepped the whole
+file for the pattern rather than fixing only the backtraced test.
 
 **Outcome C — Unsuccessful (prior fix did not help or made it worse):**
 
