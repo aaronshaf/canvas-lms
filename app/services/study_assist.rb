@@ -356,7 +356,7 @@ module StudyAssist
     # --- Cedar call + caching ---
 
     def response_cache_key(tool_key, llm_config, content)
-      template_fingerprint = Digest::SHA256.hexdigest("#{llm_config.template}:#{llm_config.model_id}")[0, 12]
+      template_fingerprint = Digest::SHA256.hexdigest("#{llm_config.template}:#{llm_config.model_id}:#{llm_config.options}")[0, 12]
       [
         "study_assist",
         tool_key,
@@ -379,7 +379,8 @@ module StudyAssist
           feature_slug: "study-assist-#{tool_key}",
           root_account_uuid: @course.root_account.uuid,
           current_user: @user,
-          document:
+          document:,
+          temperature: llm_config.options["temperature"]
         )
       end
 
@@ -408,7 +409,13 @@ module StudyAssist
       substitutions = { LOCALE: pretty_locale }
       substitutions[:KIND] = summarize_kind(content) if tool_key == :summarize
       prompt, = llm_config.generate_prompt_and_options(substitutions:)
-      prompt
+      @regenerate ? "#{prompt}\n\n#{regeneration_directive}" : prompt
+    end
+
+    def regeneration_directive
+      "This is a regeneration request. Produce a new, different set than any " \
+        "previous response and avoid repeating earlier content. Variation token " \
+        "(ignore in output): #{SecureRandom.hex(8)}."
     end
 
     def pretty_locale

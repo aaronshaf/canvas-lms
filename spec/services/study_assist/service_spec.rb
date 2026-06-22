@@ -953,6 +953,15 @@ describe StudyAssist::Service do
       described_class.call(course: @course, user: @student, prompt: "Summarize", state: page_state, locale: "es")
     end
 
+    it "busts the cache when the llm config options change" do
+      config = LLMConfigs.config_for("study_assist_summarize")
+      allow(LLMConfigs).to receive(:config_for).and_return(config)
+      expect(CedarClient).to receive(:prompt).twice.and_call_original
+      call_service(prompt: "Summarize")
+      allow(config).to receive(:options).and_return(config.options.merge("temperature" => 0.2))
+      call_service(prompt: "Summarize")
+    end
+
     it "treats 'Generate quiz' as an implicit regenerate, busting the cache" do
       stub_cedar([{ question: "Q1", options: %w[a b c d], result: 0 }].to_json)
       expect(CedarClient).to receive(:prompt).twice.and_call_original
@@ -1002,6 +1011,35 @@ describe StudyAssist::Service do
       expect(CedarClient).to receive(:prompt).twice.and_call_original
       expect { call_service(prompt: "Quiz me") }.to raise_error(StudyAssist::CedarUnavailable)
       expect { call_service(prompt: "Quiz me") }.to raise_error(StudyAssist::CedarUnavailable)
+    end
+  end
+
+  describe "regeneration variety" do
+    def capture_cedar_kwargs(captured)
+      allow(CedarClient).to receive(:prompt) do |**kwargs|
+        captured << kwargs
+        Struct.new(:response, :response_id).new(
+          [{ question: "Q1", options: %w[a b c d], result: 0 }].to_json, "r1"
+        )
+      end
+    end
+
+    it "sends Cedar a distinct prompt on each regeneration so output is not repeated" do
+      calls = []
+      capture_cedar_kwargs(calls)
+      call_service(prompt: "Quiz me")
+      call_service(prompt: "Quiz me", regenerate: true)
+      call_service(prompt: "Quiz me", regenerate: true)
+      prompts = calls.pluck(:prompt)
+      expect(prompts.size).to eq(3)
+      expect(prompts.uniq.size).to eq(3)
+    end
+
+    it "passes the configured temperature to Cedar" do
+      calls = []
+      capture_cedar_kwargs(calls)
+      call_service(prompt: "Quiz me")
+      expect(calls.pluck(:temperature)).to all(eq(1.0))
     end
   end
 end
