@@ -27,6 +27,7 @@ import {
   type NoteType,
 } from '@instructure/platform-notebook'
 import {Flex} from '@instructure/ui-flex'
+import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 import {
   CanvasNotebookApi,
@@ -34,9 +35,12 @@ import {
   notebookTranslate,
   HIGHLIGHT_THEME,
 } from '@canvas/notebook'
+import {useScope as createI18nScope} from '@canvas/i18n'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import NotebookFilters from './NotebookFilters'
 import {useNotesColumnCount} from '../hooks/useNotesColumnCount'
+
+const I18n = createI18nScope('notebook_index')
 
 const DEFAULT_PAGE_SIZE = 24
 const EMPTY_STATE_MAX_WIDTH = '35rem'
@@ -89,6 +93,9 @@ function NotebookIndexBody() {
 
   return (
     <>
+      <Heading level="h1" margin="0 0 medium 0">
+        {I18n.t('Notebook')}
+      </Heading>
       <NotebookFilters filter={filter} setFilter={setFilter} totalCount={totalCount} />
       {isEmpty ? (
         <Flex height="100%" alignItems="center" justifyItems="center">

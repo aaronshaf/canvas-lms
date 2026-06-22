@@ -154,6 +154,12 @@ describe('NotebookIndexPage', () => {
     expect(container.innerHTML).toBe('')
   })
 
+  it('renders one and only one h1 "Notebook" heading', () => {
+    render(<NotebookIndexPage />)
+    expect(screen.getAllByRole('heading', {level: 1})).toHaveLength(1)
+    expect(screen.getByRole('heading', {level: 1, name: 'Notebook'})).toBeInTheDocument()
+  })
+
   it('renders the notes grid when data is present', () => {
     mockUseNotesData.mockReturnValue({
       ...defaultNotesDataReturn,
