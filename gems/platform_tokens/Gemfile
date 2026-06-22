@@ -8,9 +8,6 @@ gemspec
 gem "irb"
 gem "rake", "~> 13.0"
 
-plugin "bundler-multilock", "~> 1.4"
-return unless Plugin.installed?("bundler-multilock")
-
-Plugin.send(:load_plugin, "bundler-multilock")
+eval_gemfile("../gemfile_prefix.rb")
 
 gem "rspec", "~> 3.0"
