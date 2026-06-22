@@ -3091,7 +3091,7 @@ RSpec.describe ApplicationController do
     end
 
     it "wraps html notification text in an object" do
-      flash[:html_notice] = "<p>hello</p>"
+      flash[:html_notice] = "<p>hello</p>" # rubocop:disable Rails/I18nLocaleTexts
       expect(controller.send(:flash_notices)).to match_array([
                                                                { type: "success", content: { html: "<p>hello</p>" }, icon: "check" }
                                                              ])
@@ -3460,7 +3460,7 @@ RSpec.describe ApplicationController do
     end
 
     before do
-      flash[:notice] = "A flash notice"
+      flash[:notice] = "A flash notice" # rubocop:disable Rails/I18nLocaleTexts
     end
 
     it "sets flash discard if request is xhr" do

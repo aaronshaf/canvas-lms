@@ -136,7 +136,6 @@ Rails/Blank:
 Rails/ContentTag:
   Exclude:
     - "**/db/migrate/*" # this cop is for views, not migrations, where it gets confused with outrigger
-    - "doc/**/*"
 Rails/DefaultScope:
   Enabled: true
 Rails/DynamicFindBy:
@@ -154,10 +153,6 @@ Rails/HasManyOrHasOneDependent:
   Enabled: false # legacy code + most things we soft delete anyway
 Rails/HelperInstanceVariable:
   Enabled: false # legacy code
-Rails/I18nLocaleTexts:
-  Exclude:
-    - spec/**/*.rb
-    - "**/spec_canvas/**/*.rb"
 Rails/InverseOf:
   IgnoreScopes: true # config.active_record.automatic_scope_inversing is enabled
 Rails/NegateInclude:
@@ -166,9 +161,6 @@ Rails/Output:
   Exclude:
     - gems/dr_diff/**/*.rb
     - gems/i18n_tasks/**/*.rb
-    - gems/tatl_tael/**/*.rb
-    - spec/spec_helper.rb
-    - spec/support/test_database_utils.rb
   AutoCorrect: false # Force the developer to think about what to do; don't just silently convert it to a debug log
 Rails/Present:
   UnlessBlank: false # allow `unless foo.blank?`
