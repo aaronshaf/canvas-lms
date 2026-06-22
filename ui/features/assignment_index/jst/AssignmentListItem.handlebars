@@ -85,10 +85,10 @@
       <span class="screenreader-only">{{objectTypeDisplayName}}</span>
     </div>
     <div class="ig-info">
-      <a href="{{htmlUrl}}" class="ig-title" aria-live="polite" {{#if quizzesRespondusEnabled}}target="_blank"{{/if}}>
+      <a href="{{htmlUrl}}" class="ig-title" aria-live="polite" aria-describedby="assignment_details_{{id}}" {{#if quizzesRespondusEnabled}}target="_blank"{{/if}}>
         {{name}}
       </a>
-      <div class="ig-details">
+      <div class="ig-details" id="assignment_details_{{id}}">
         {{#if canManage}}
           {{#if has_modules}}
             <div class="ig-details__item ig-details__item--wrap-text modules">

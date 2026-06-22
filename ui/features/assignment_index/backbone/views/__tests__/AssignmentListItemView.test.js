@@ -230,6 +230,13 @@ describe('AssignmentListItemViewSpec', () => {
     await isAccessible(view, {a11yReport: true})
   })
 
+  test('associates the title link with its details via aria-describedby', () => {
+    const view = createView(assignment1(), {canManage: true})
+    const describedById = view.$('.ig-title').attr('aria-describedby')
+    expect(describedById).toBeTruthy()
+    expect(view.$(`#${describedById}`)[0]).toBe(view.$('.ig-details')[0])
+  })
+
   test('initializes child views if can manage', () => {
     const view = createView(assignment1(), {canManage: true})
     expect(view.publishIconView).toBeTruthy()
