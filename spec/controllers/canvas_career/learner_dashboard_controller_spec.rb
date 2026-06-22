@@ -44,6 +44,29 @@ describe CanvasCareer::LearnerDashboardController do
       expect(body["block_editor_data"]).to eq({ "blocks" => [] })
     end
 
+    it "returns a verifier that lets a learner download an account file they cannot read directly" do
+      attachment = attachment_model(context: @sub_account)
+      # sanity: the enrolled student cannot read the account file on their own
+      expect(attachment.grants_right?(@user, :download)).to be false
+
+      block_data = {
+        "templateData" => [
+          { "ImageBlock|i1" => { "asset_id" => attachment.id.to_s } }
+        ]
+      }
+      allow_any_instance_of(LearnerDashboardLayout).to receive(:get_block_editor_data).and_return(block_data)
+      user_session(@user)
+
+      get :show, format: :json
+
+      expect(response).to have_http_status(:ok)
+      verifier = response.parsed_body.dig("file_access_verifiers", attachment.id.to_s)
+      expect(verifier).to be_present
+
+      checker = Attachments::Verification.new(attachment)
+      expect(checker.valid_verifier_for_permission?(verifier, :download, @root_account, {})).to be true
+    end
+
     it "returns 404 when no layout is resolved" do
       user_without_enrollment = user_factory(active_all: true)
       user_session(user_without_enrollment)

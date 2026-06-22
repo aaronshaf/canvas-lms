@@ -189,5 +189,74 @@ describe LearnerDashboardLayoutsController, type: :request do
       delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "deletes the layout's uploaded files" do
+      layout = LearnerDashboardLayout.create!(name: "With Files", account: @root_account)
+      folder = Folder.assert_path("learner-dashboards/#{layout.id}", @root_account)
+      attachment = folder.file_attachments.create!(
+        filename: "img.png", display_name: "img.png", content_type: "image/png", context: @root_account
+      )
+      attachment.update_columns(file_state: "available")
+
+      delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{layout.id}"
+      expect(response).to have_http_status(:no_content)
+
+      expect(folder.reload.workflow_state).to eq("deleted")
+      expect(attachment.reload.file_state).to eq("deleted")
+    end
+
+    it "deletes the layout's content service entry" do
+      layout = LearnerDashboardLayout.create!(name: "With Content", account: @root_account)
+      layout.create_external_content_reference!(content_id: "ext-1", root_account: @root_account)
+
+      expect_any_instance_of(LearnerDashboardLayout)
+        .to receive(:delete_block_editor_data).with(user_uuid: @admin.uuid)
+
+      delete "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{layout.id}"
+      expect(response).to have_http_status(:no_content)
+    end
+  end
+
+  describe "file access verifiers" do
+    let(:attachment) { attachment_model(context: @root_account) }
+
+    def block_data_with(*attachment_ids)
+      {
+        "templateData" => attachment_ids.map.with_index do |aid, i|
+          { "ImageBlock|image-#{i}" => { "asset_id" => aid.to_s, "alt" => "img" } }
+        end
+      }
+    end
+
+    it "returns a signed verifier for each attachment referenced in the blocks" do
+      allow_any_instance_of(LearnerDashboardLayout)
+        .to receive(:get_block_editor_data).and_return(block_data_with(attachment.id))
+
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
+      expect(response).to have_http_status(:ok)
+
+      verifiers = response.parsed_body["file_access_verifiers"]
+      expect(verifiers.keys).to eq([attachment.id.to_s])
+
+      # the verifier must authorize reading that specific attachment
+      checker = Attachments::Verification.new(attachment)
+      expect(checker.valid_verifier_for_permission?(verifiers[attachment.id.to_s], :download, @root_account, {})).to be true
+    end
+
+    it "deduplicates repeated asset references" do
+      allow_any_instance_of(LearnerDashboardLayout)
+        .to receive(:get_block_editor_data).and_return(block_data_with(attachment.id, attachment.id))
+
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
+      expect(response.parsed_body["file_access_verifiers"].keys).to eq([attachment.id.to_s])
+    end
+
+    it "returns an empty map when no files are referenced" do
+      allow_any_instance_of(LearnerDashboardLayout)
+        .to receive(:get_block_editor_data).and_return({ "templateData" => [] })
+
+      get "/api/v1/accounts/#{@root_account.id}/learner_dashboard_layouts/#{@layout.id}"
+      expect(response.parsed_body["file_access_verifiers"]).to eq({})
+    end
   end
 end

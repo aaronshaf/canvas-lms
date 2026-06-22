@@ -20,6 +20,8 @@
 class LearnerDashboardLayout < ApplicationRecord
   include Canvas::SoftDeletable
 
+  FILES_PARENT_FOLDER_NAME = "learner-dashboards"
+
   belongs_to :account, optional: false
   belongs_to :root_account, class_name: "Account", optional: false
 
@@ -27,6 +29,7 @@ class LearnerDashboardLayout < ApplicationRecord
   has_many :learner_dashboard_activations, dependent: :destroy
 
   before_validation :set_root_account_id, on: :create
+  before_destroy :delete_associated_files
 
   validates :name, presence: true, length: { maximum: 255 }
 
@@ -75,7 +78,26 @@ class LearnerDashboardLayout < ApplicationRecord
     content.data
   end
 
+  def delete_block_editor_data(user_uuid:)
+    ref = external_content_reference
+    return unless ref
+
+    Canvas.retriable(tries: content_service_max_retries) do
+      ContentServiceClient.delete_content(
+        root_account_uuid: root_account.uuid,
+        user_uuid:,
+        external_content_id: ref.content_id
+      )
+    end
+    ref.destroy
+  end
+
   private
+
+  def delete_associated_files
+    folder = Folder.resolve_path(account, "#{FILES_PARENT_FOLDER_NAME}/#{id}")&.last
+    folder&.destroy
+  end
 
   def content_service_max_retries
     Setting.get("content_service_client_max_retries", "3").to_i

@@ -80,10 +80,13 @@ class LearnerDashboardLayoutsController < ApplicationController
     return unless authorized_action(@context, current_principal, :manage_learner_dashboards_delete)
 
     layout = @context.learner_dashboard_layouts.active.find(params[:id])
+    layout.delete_block_editor_data(user_uuid: @current_user.uuid)
     layout.destroy
     head :no_content
   rescue ActiveRecord::RecordNotFound
     render json: { error: "not found" }, status: :not_found
+  rescue InstructureMiscPlugin::Extensions::ContentServiceClient::ClientError => e
+    rescue_content_service_error(e)
   end
 
   private

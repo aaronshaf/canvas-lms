@@ -80,6 +80,26 @@ describe LearnerDashboardLayout do
 
       expect(LearnerDashboardActivation.where(learner_dashboard_layout_id: layout.id)).to be_empty
     end
+
+    it "deletes the layout's uploaded files folder" do
+      layout = LearnerDashboardLayout.create!(account:, name: "Layout")
+      folder = Folder.assert_path("learner-dashboards/#{layout.id}", account)
+      attachment = folder.file_attachments.create!(
+        filename: "img.png", display_name: "img.png", content_type: "image/png", context: account
+      )
+      attachment.update_columns(file_state: "available")
+
+      layout.destroy
+
+      expect(folder.reload.workflow_state).to eq("deleted")
+      expect(attachment.reload.file_state).to eq("deleted")
+    end
+
+    it "does not fail when the layout has no files folder" do
+      layout = LearnerDashboardLayout.create!(account:, name: "Layout")
+      expect { layout.destroy }.not_to raise_error
+      expect(layout.reload).to be_deleted
+    end
   end
 
   describe ".active" do

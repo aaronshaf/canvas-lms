@@ -29,9 +29,38 @@ module Api::V1::LearnerDashboardLayout
     }
 
     if include_block_editor_data
-      hash[:block_editor_data] = layout.get_block_editor_data(user_uuid: current_user.uuid)
+      block_editor_data = layout.get_block_editor_data(user_uuid: current_user.uuid)
+      hash[:block_editor_data] = block_editor_data
+      hash[:file_access_verifiers] = learner_dashboard_file_access_verifiers(block_editor_data)
     end
 
     hash
+  end
+
+  def learner_dashboard_file_access_verifiers(block_editor_data)
+    attachment_ids = collect_learner_dashboard_attachment_ids(block_editor_data)
+    return {} if attachment_ids.empty?
+
+    expires = Setting.get("learner_dashboard_file_verifier_ttl_minutes", "120").to_i.minutes.from_now
+
+    Attachment.where(id: attachment_ids).to_h do |attachment|
+      [attachment.id.to_s, Attachments::Verification.new(attachment).verifier_for_user(nil, expires:)]
+    end
+  end
+
+  def collect_learner_dashboard_attachment_ids(data, acc = [])
+    case data
+    when Hash
+      data.each do |key, value|
+        if key.to_s == "asset_id" && value.present?
+          acc << value
+        else
+          collect_learner_dashboard_attachment_ids(value, acc)
+        end
+      end
+    when Array
+      data.each { |item| collect_learner_dashboard_attachment_ids(item, acc) }
+    end
+    acc.uniq
   end
 end
