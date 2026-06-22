@@ -27,7 +27,7 @@ const I18n = createI18nScope('assignments_2_student_content')
 export const LtiToolIframe = ({submission, assignment}: LtiToolIframeProps) => {
   const showTool = ENV.LTI_TOOL === 'true'
   const showSubmissionDetailsLink =
-    submission.state === 'graded' && assignment.submissionTypes?.includes('external_tool')
+    submission.submittedAt != null && assignment.submissionTypes?.includes('external_tool')
 
   if (!showTool && !showSubmissionDetailsLink) {
     return null

@@ -34,7 +34,7 @@ describe('LtiToolIframe', () => {
 
   let globalEnv: GlobalEnv
 
-  const mockSubmission = {state: 'graded'}
+  const mockSubmission = {state: 'graded', submittedAt: '2026-06-22T00:00:00-06:00'}
   const mockAssignment = {submissionTypes: ['external_tool']}
 
   beforeAll(() => {
@@ -45,12 +45,35 @@ describe('LtiToolIframe', () => {
     window.ENV = {...globalEnv, ...ENV}
   })
 
-  it('renders the submission details link when submission is graded and includes external_tool', () => {
+  it('renders the submission details link when submission has been submitted and includes external_tool', () => {
     render(<LtiToolIframe submission={mockSubmission} assignment={mockAssignment} />)
 
     const link = screen.getByTestId('view-submission-link')
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute('href', `/courses/1/assignments/2/submissions/3`)
+  })
+
+  it('renders the submission details link when submitted but not yet graded', () => {
+    render(
+      <LtiToolIframe
+        submission={{state: 'submitted', submittedAt: '2026-06-22T00:00:00-06:00'}}
+        assignment={mockAssignment}
+      />,
+    )
+
+    expect(screen.getByTestId('view-submission-link')).toBeInTheDocument()
+  })
+
+  it('does not render the submission details link when the submission has not been submitted', () => {
+    window.ENV = {...globalEnv, ...ENV, LTI_TOOL: 'false'}
+    render(
+      <LtiToolIframe
+        submission={{state: 'unsubmitted', submittedAt: null}}
+        assignment={mockAssignment}
+      />,
+    )
+
+    expect(screen.queryByTestId('view-submission-link')).not.toBeInTheDocument()
   })
 
   it('renders the ToolLaunchIframe when showTool is true', () => {
@@ -63,7 +86,9 @@ describe('LtiToolIframe', () => {
 
   it('does not render anything when showTool, showSubmissionDetailsLink, and ltiConfig are all false/null', () => {
     window.ENV = {...globalEnv, ...ENV, LTI_TOOL: 'false'}
-    render(<LtiToolIframe submission={{state: 'ungraded'}} assignment={{submissionTypes: []}} />)
+    render(
+      <LtiToolIframe submission={{state: 'ungraded', submittedAt: null}} assignment={{submissionTypes: []}} />,
+    )
 
     expect(screen.queryByTestId('view-submission-link')).not.toBeInTheDocument()
     expect(screen.queryByTestId('lti-external-tool')).not.toBeInTheDocument()

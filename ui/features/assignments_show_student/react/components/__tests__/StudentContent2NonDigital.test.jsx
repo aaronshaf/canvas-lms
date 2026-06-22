@@ -89,6 +89,7 @@ describe('StudentContent Non-Digital Submissions', () => {
   it('renders only View Submission link when assignment accepts lti tool submissions and the submission is graded but LTI_TOOL is falsy', async () => {
     props.assignment.submissionTypes = ['external_tool']
     props.submission.state = 'graded'
+    props.submission.submittedAt = '2026-06-22T00:00:00-06:00'
     // in this case, LTI_TOOL is null
 
     const {getByTestId, queryByTestId} = render(
@@ -101,9 +102,23 @@ describe('StudentContent Non-Digital Submissions', () => {
     expect(queryByTestId('lti-external-tool')).not.toBeInTheDocument()
   })
 
-  it('only the LTI tool iframe LTI_TOOL is true and the submission is not graded', async () => {
+  it('renders the View Submission link once the submission is submitted but not yet graded', async () => {
+    props.assignment.submissionTypes = ['external_tool']
+    props.submission.state = 'submitted'
+    props.submission.submittedAt = '2026-06-22T00:00:00-06:00'
+
+    const {getByTestId} = render(
+      <MockedQueryProvider>
+        <StudentContent {...props} />
+      </MockedQueryProvider>,
+    )
+    expect(getByTestId('view-submission-link')).toBeInTheDocument()
+  })
+
+  it('only the LTI tool iframe LTI_TOOL is true and the submission has not been submitted', async () => {
     window.ENV.LTI_TOOL = 'true'
     props.submission.state = 'unsubmitted'
+    props.submission.submittedAt = null
 
     const {queryByTestId, getByTestId} = render(
       <MockedQueryProvider>
@@ -117,6 +132,7 @@ describe('StudentContent Non-Digital Submissions', () => {
 
   it('neither renders the View Submission link nor the LTI iframe when LTI_TOOL is false, and assignment does not accept external_tool', async () => {
     props.submission.state = 'graded'
+    props.submission.submittedAt = '2026-06-22T00:00:00-06:00'
     props.assignment.submissionTypes = ['file_upload']
 
     const {queryByTestId} = render(
@@ -132,6 +148,7 @@ describe('StudentContent Non-Digital Submissions', () => {
   it('both LTI Iframe and submission link when all their requirements are true', async () => {
     props.assignment.submissionTypes = ['external_tool']
     props.submission.state = 'graded'
+    props.submission.submittedAt = '2026-06-22T00:00:00-06:00'
     window.ENV.LTI_TOOL = 'true'
     const {getByTestId} = render(
       <MockedQueryProvider>

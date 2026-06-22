@@ -19,6 +19,7 @@
 export interface LtiToolIframeProps {
   submission: {
     state: string
+    submittedAt: string | null
   }
   assignment: {
     submissionTypes: string[]
