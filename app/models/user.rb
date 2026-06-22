@@ -1447,16 +1447,16 @@ class User < ApplicationRecord
     courses_for_enrollments(enrollments_to_check.shard(shards)).any? { |c| c.grants_right?(user, sought_right) }
   end
 
-  def check_accounts_right?(user, sought_right)
-    return false unless user && sought_right
+  def check_accounts_right?(principal, sought_right)
+    return false unless principal&.user && sought_right
 
-    check_accounts(user) { |account| account.grants_right?(user, sought_right, with_justifications: true) }
+    check_accounts(principal.user) { |account| account.grants_right?(principal, sought_right, with_justifications: true) }
   end
 
-  def check_accounts_any_right?(user, *sought_rights)
-    return false unless user && sought_rights.any?
+  def check_accounts_any_right?(principal, *sought_rights)
+    return false unless principal&.user && sought_rights.any?
 
-    check_accounts(user) { |account| account.grants_any_right?(user, *sought_rights, with_justifications: true) } == true
+    check_accounts(principal.user) { |account| account.grants_any_right?(principal, *sought_rights, with_justifications: true) } == true
   end
 
   def check_accounts(user, &)

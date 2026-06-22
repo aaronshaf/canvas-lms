@@ -4605,7 +4605,7 @@ class CoursesController < ApplicationController
 
     @user = (params[:user_id] == "self") ? @current_user : api_find(User, params[:user_id])
     acceptable_rights = %i[read_roster manage_students allow_course_admin_actions] + RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS
-    unless @user.grants_right?(current_principal, :read) || @user.check_accounts_any_right?(@current_user, *acceptable_rights)
+    unless @user.grants_right?(current_principal, :read) || @user.check_accounts_any_right?(current_principal, *acceptable_rights)
       render_unauthorized_action
     end
   end

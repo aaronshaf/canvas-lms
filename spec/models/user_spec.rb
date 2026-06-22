@@ -4534,7 +4534,7 @@ describe User do
       account_admin_user(user: target, account:)
       seeker = account_admin_user(account:, role: Role.get_built_in_role("AccountAdmin", root_account_id: account.id))
 
-      expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+      expect(target.check_accounts_right?(seeker.principal, :view_statistics)).to be true
     end
 
     it "preloads AccountUsers once across the iterated accounts (no N+1)" do
@@ -4552,7 +4552,7 @@ describe User do
       end
 
       begin
-        expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+        expect(target.check_accounts_right?(seeker.principal, :view_statistics)).to be true
         expect(account_user_queries).to be <= 2
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber)
@@ -4574,7 +4574,7 @@ describe User do
       end
 
       begin
-        expect(target.check_accounts_right?(non_admin_seeker, :view_statistics)).not_to be true
+        expect(target.check_accounts_right?(non_admin_seeker.principal, :view_statistics)).not_to be true
         expect(account_user_queries).to be <= 2
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber)
@@ -4639,7 +4639,7 @@ describe User do
           end
 
           begin
-            expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+            expect(target.check_accounts_right?(seeker.principal, :view_statistics)).to be true
             expect(account_user_queries).to be <= 4
           ensure
             ActiveSupport::Notifications.unsubscribe(subscriber)
@@ -4653,7 +4653,7 @@ describe User do
     it "returns false for empty rights array" do
       user1 = user_factory
       user2 = user_factory
-      expect(user1.check_accounts_any_right?(user2)).to be false
+      expect(user1.check_accounts_any_right?(user2.principal)).to be false
     end
 
     it "returns false when user is nil" do
@@ -4664,13 +4664,13 @@ describe User do
     it "returns true when any of multiple rights is granted" do
       target = user_factory
       seeker = account_admin_user_with_role_changes(role_changes: { view_user_logins: true, manage_user_logins: false })
-      expect(target.check_accounts_any_right?(seeker, :view_user_logins, :manage_user_logins)).to be true
+      expect(target.check_accounts_any_right?(seeker.principal, :view_user_logins, :manage_user_logins)).to be true
     end
 
     it "returns false when none of multiple rights are granted" do
       target = user_factory
       seeker = account_admin_user_with_role_changes(role_changes: { view_user_logins: false, manage_user_logins: false })
-      expect(target.check_accounts_any_right?(seeker, :view_user_logins, :manage_user_logins)).to be false
+      expect(target.check_accounts_any_right?(seeker.principal, :view_user_logins, :manage_user_logins)).to be false
     end
   end
 
