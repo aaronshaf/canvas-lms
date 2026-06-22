@@ -19,6 +19,10 @@
 #
 
 module EportfolioPage
+  def wrap_current_principal_with_eportfolio_ids
+    @current_principal = Eportfolio::Principal.wrap(current_principal, session)
+  end
+
   def eportfolio_page_attributes
     GuardRail.activate(:secondary) do
       @categories = @portfolio.eportfolio_categories

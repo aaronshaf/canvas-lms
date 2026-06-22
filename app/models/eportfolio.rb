@@ -19,6 +19,44 @@
 #
 
 class Eportfolio < ApplicationRecord
+  class Principal < AdheresToPolicy::WrappedPrincipal
+    class << self
+      def wrap(principal, session)
+        return principal unless Account.site_admin.feature_enabled?(:use_principals_for_anonymous_eportfolio_access)
+        return principal unless session[:eportfolio_ids].present?
+
+        if principal.is_a?(Eportfolio::Principal)
+          principal = principal.wrapped_principal
+        end
+
+        Eportfolio::Principal.new(principal, session[:eportfolio_ids])
+      end
+    end
+
+    attr_reader :eportfolio_ids
+
+    def initialize(principal, eportfolio_ids)
+      super(principal)
+      @eportfolio_ids = eportfolio_ids
+    end
+
+    def eql?(other)
+      super && eportfolio_ids == other.eportfolio_ids
+    end
+
+    def hash
+      [super, eportfolio_ids].hash
+    end
+
+    def ==(other)
+      super && eportfolio_ids == other.eportfolio_ids
+    end
+
+    def cache_key
+      ([super, :eportfolios] + eportfolio_ids).cache_key
+    end
+  end
+
   include Workflow
 
   has_many :eportfolio_categories, -> { ordered }, dependent: :destroy
@@ -107,10 +145,16 @@ class Eportfolio < ApplicationRecord
     # (we know this by way of the session having the eportfolio id), the
     # eportfolio hasn't been flagged or marked as spam, and eportfolios are
     # enabled for the author in the context.
-    given do |_, session|
-      active? && session && session[:eportfolio_ids] &&
-        session[:eportfolio_ids].include?(id) &&
-        !spam? && user.eportfolios_enabled?
+    given do |principal, session|
+      next false unless active? && !spam?
+
+      if principal.is_a?(Principal)
+        next false unless principal.eportfolio_ids.include?(id)
+      else
+        next false unless session && session[:eportfolio_ids]&.include?(id)
+      end
+
+      user.eportfolios_enabled?
     end
     can :read
 

@@ -18,6 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 class Attachments::Verification
+  include EportfolioPage
+
   # Attachment verifiers are tokens that can be added to attachment URLs that give
   # the holder of the URL the ability to read an attachment without having an
   # authenticated session. Verifiers capture in them the user id of the current user,
@@ -128,11 +130,12 @@ class Attachments::Verification
 
     user = body[:user_id] && User.find(body[:user_id])
 
+    principal = Eportfolio::Principal.wrap(user&.principal, session)
     if body[:ctx] && body[:pm]
-      return check_custom_permission(user, session, permission, body[:ctx], body[:pm].to_sym)
+      return check_custom_permission(principal, session, permission, body[:ctx], body[:pm].to_sym)
     end
 
-    attachment.grants_right?(user, session, permission)
+    attachment.grants_right?(principal, session, permission)
   end
 
   # TODO: Remove this method once disable_file_verifier_access flag is enabled everywhere
@@ -191,13 +194,13 @@ class Attachments::Verification
 
   private
 
-  def check_custom_permission(user, session, permission, context_asset_string, permission_map_id)
+  def check_custom_permission(principal, session, permission, context_asset_string, permission_map_id)
     permission_map = PERMISSION_MAPS[permission_map_id]
     return false unless permission_map
 
     context = Context.find_asset_by_asset_string(context_asset_string)
     return false unless context
 
-    context.grants_right?(user, session, permission_map[permission])
+    context.grants_right?(principal, session, permission_map[permission])
   end
 end

@@ -30,6 +30,7 @@ class EportfoliosController < ApplicationController
   before_action :load_canvas_career, only: %i[user_index]
   before_action :find_eportfolio, except: %i[index user_index create]
   before_action :set_eportfolio_deprecation_notice
+  before_action :wrap_current_principal_with_eportfolio_ids, only: %i[recent_submissions show]
 
   def index
     user_index
@@ -52,7 +53,8 @@ class EportfoliosController < ApplicationController
     if params[:verifier] == @portfolio.uuid
       session[:eportfolio_ids] ||= []
       session[:eportfolio_ids] << @portfolio.id
-      session[:permissions_key] = SecureRandom.uuid
+      session[:permissions_key] = SecureRandom.uuid # TODO: remove this when :use_principals_for_anonymous_eportfolio_access is removed
+      wrap_current_principal_with_eportfolio_ids
     end
     if authorized_action(@portfolio, current_principal, :read)
       hash = rce_js_env

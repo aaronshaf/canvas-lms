@@ -324,3 +324,14 @@ require_client_credentials_for_elevated_operations:
       state: hidden
     production:
       state: hidden
+use_principals_for_anonymous_eportfolio_access:
+  state: allowed_on
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Use Principals For Anonymous Eportfolio Access
+  description: |-
+    When enabled, anonymous eportfolio access checks will use a principal
+    object instead of plumbing through the session to determine access.
+  environments:
+    ci:
+      state: on

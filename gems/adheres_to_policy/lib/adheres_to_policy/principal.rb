@@ -103,8 +103,8 @@ module AdheresToPolicy
       @wrapped_principal = wrapped_principal
     end
 
-    def user = wrapped_principal.user
-    def cache_key = wrapped_principal.cache_key
+    def user = wrapped_principal&.user
+    def cache_key = wrapped_principal&.cache_key
 
     def eql?(other)
       other.instance_of?(self.class) && wrapped_principal.eql?(other.wrapped_principal)

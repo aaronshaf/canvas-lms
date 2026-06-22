@@ -24,6 +24,7 @@ class EportfolioCategoriesController < ApplicationController
   skip_before_action :require_user, only: %i[index show pages]
   before_action :rce_js_env
   before_action :get_eportfolio
+  before_action :wrap_current_principal_with_eportfolio_ids, only: %i[index show pages]
 
   def index
     if authorized_action(@portfolio, current_principal, :read)
@@ -68,7 +69,8 @@ class EportfolioCategoriesController < ApplicationController
     if params[:verifier] == @portfolio.uuid
       session[:eportfolio_ids] ||= []
       session[:eportfolio_ids] << @portfolio.id
-      session[:permissions_key] = SecureRandom.uuid
+      session[:permissions_key] = SecureRandom.uuid # TODO: remove this when :use_principals_for_anonymous_eportfolio_access is removed
+      wrap_current_principal_with_eportfolio_ids
     end
     if authorized_action(@portfolio, current_principal, :read)
       browser_env = rce_js_env
