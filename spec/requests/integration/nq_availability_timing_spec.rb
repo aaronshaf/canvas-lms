@@ -228,6 +228,120 @@ describe "New Quizzes Availability & Timing Integration" do
     expect(pushed_lock_at).to be < base_lock_at
   end
 
+  it "carries the student's override dates on the native launch, not the locked base dates", guid: "f2c8a41b" do
+    # Arrange
+    student_enrollment = course_with_student(active_all: true)
+    course = student_enrollment.course
+    student = student_enrollment.user
+    course.enable_feature!(:new_quizzes_native_experience)
+
+    tool = create_nq_tool(course)
+    # Base assignment is still locked for everyone (unlock_at in the future)...
+    assignment = create_nq_assignment(
+      course,
+      tool,
+      title: "NQ Native Differentiated Quiz",
+      unlock_at: 1.week.from_now,
+      lock_at: 2.weeks.from_now
+    )
+    # ...but this student has an override that opens the quiz now, gives them a
+    # later due date, and runs it to a later Until date.
+    override_unlock_at = 1.day.ago
+    override_due_at = 2.days.from_now
+    override_lock_at = 3.days.from_now
+    override = assignment.assignment_overrides.create!(
+      title: "Extended student",
+      set_type: "ADHOC",
+      unlock_at_overridden: true,
+      due_at_overridden: true,
+      lock_at_overridden: true,
+      unlock_at: override_unlock_at,
+      due_at: override_due_at,
+      lock_at: override_lock_at
+    )
+    override.assignment_override_students.create!(user: student)
+
+    user_session(student)
+
+    # Act
+    get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+
+    params = read_native_launch_params(response)
+    expect(Time.zone.parse(params["custom_canvas_assignment_unlock_at"]))
+      .to be_within(1.second).of(override_unlock_at)
+    expect(Time.zone.parse(params["custom_canvas_assignment_due_at"]))
+      .to be_within(1.second).of(override_due_at)
+    expect(Time.zone.parse(params["custom_canvas_assignment_lock_at"]))
+      .to be_within(1.second).of(override_lock_at)
+  end
+
+  it "blocks a locked-out student from the native quiz-taking launch", guid: "8d4f1b63" do
+    # Arrange
+    student_enrollment = course_with_student(active_all: true)
+    course = student_enrollment.course
+    student = student_enrollment.user
+    course.enable_feature!(:new_quizzes_native_experience)
+
+    tool = create_nq_tool(course)
+    # No override: the quiz is still locked for this student by a future
+    # Available From date.
+    assignment = create_nq_assignment(
+      course,
+      tool,
+      title: "NQ Native Locked Quiz",
+      unlock_at: 1.week.from_now,
+      lock_at: 2.weeks.from_now
+    )
+
+    user_session(student)
+
+    # Act
+    get "/courses/#{course.id}/assignments/#{assignment.id}/taking"
+
+    # Assert
+    # The native lock gate is enforced only on the /taking path, not /launch
+    # (assignment_locked_for_student?), so a locked student gets no launch.
+    expect(response).to have_http_status(:unauthorized)
+    expect(read_native_launch_params(response)).to be_empty
+  end
+
+  it "does not launch a locked New Quiz from the grades-page submission preview", guid: "8d4f1b63" do
+    skip("2026-06-22 EVAL-6355's show_preview lock guard was reverted under EVAL-6363 " \
+         "and not re-landed on master; the grades-page preview path is currently " \
+         "unprotected. Restore the locked_for? check in show_preview.html.erb, then un-skip.")
+
+    # Arrange
+    student_enrollment = course_with_student(active_all: true)
+    course = student_enrollment.course
+    student = student_enrollment.user
+
+    tool = create_nq_tool(course)
+    # Quiz is locked for the student by a future Available From date.
+    assignment = create_nq_assignment(
+      course,
+      tool,
+      title: "NQ Locked Quiz",
+      unlock_at: 1.week.from_now,
+      lock_at: 2.weeks.from_now
+    )
+    seed_nq_submission(assignment:, user: student, tool:, submitted_at: nil, workflow_state: "unsubmitted")
+
+    user_session(student)
+
+    # Act
+    get "/courses/#{course.id}/assignments/#{assignment.id}/submissions/#{student.id}",
+        params: { preview: 1 }
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to match(/HTTP-EQUIV=.REFRESH/i)
+    expect(response.body).not_to include(tool.url)
+    expect(response.body).to include("This assignment is locked until")
+  end
+
   it "lets a teacher launch a quiz that has not opened for students yet", guid: "8d4f1b63" do
     # Arrange
     teacher_enrollment = course_with_teacher(active_all: true)
@@ -235,7 +349,6 @@ describe "New Quizzes Availability & Timing Integration" do
     teacher = teacher_enrollment.user
 
     tool = create_nq_tool(course)
-    # Quiz is locked by date for students (its Available From date is in the future).
     assignment = create_nq_assignment(
       course,
       tool,
@@ -251,8 +364,6 @@ describe "New Quizzes Availability & Timing Integration" do
         params: { launch_type: "assessment", assignment_id: assignment.id }
 
     # Assert
-    # The date gate only applies to students; a teacher can always mint a usable
-    # launch to preview or moderate the quiz, regardless of availability dates.
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body["url"]).to be_present
   end

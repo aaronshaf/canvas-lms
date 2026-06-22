@@ -145,6 +145,93 @@ describe "New Quizzes Anonymous & Survey Behaviors Integration" do
     expect(record["user"]["display_name"]).to eq(student.short_name)
   end
 
+  it "withholds each student's user from a teacher's GraphQL submissions query for an anonymous survey", guid: "5a9c3e72" do
+    # Arrange
+    teacher_enrollment = course_with_teacher(active_all: true)
+    course = teacher_enrollment.course
+    teacher = teacher_enrollment.user
+    first_student = student_in_course(course:, active_all: true).user
+    second_student = student_in_course(course:, active_all: true).user
+
+    tool = create_nq_tool(course)
+    assignment = create_nq_survey(course, tool, title: "Anonymous NQ Survey", anonymous: true)
+    first_submission = seed_nq_submission(assignment:, user: first_student, tool:, score: 10)
+    second_submission = seed_nq_submission(assignment:, user: second_student, tool:, score: 10)
+
+    user_session(teacher)
+
+    # Act
+    post "/api/graphql",
+         params: {
+           query: <<~GQL
+             query {
+               assignment(id: "#{assignment.id}") {
+                 submissionsConnection {
+                   nodes {
+                     _id
+                     user { name }
+                   }
+                 }
+               }
+             }
+           GQL
+         }
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+    body = response.parsed_body
+    expect(body["errors"]).to be_nil
+    nodes = body.dig("data", "assignment", "submissionsConnection", "nodes")
+    expect(nodes.size).to eq(2)
+    # The nodes are the two real submissions (anonymized), not empty placeholders:
+    # their _id values are the actual submission ids, even though `user` is withheld.
+    expect(nodes.pluck("_id")).to match_array([first_submission.id.to_s, second_submission.id.to_s])
+    expect(nodes.pluck("user")).to all(be_nil)
+  end
+
+  it "exposes each student's user in a teacher's GraphQL submissions query for a non-anonymous survey (negative control)", guid: "5a9c3e72" do
+    # Arrange
+    teacher_enrollment = course_with_teacher(active_all: true)
+    course = teacher_enrollment.course
+    teacher = teacher_enrollment.user
+    first_student = student_in_course(course:, active_all: true).user
+    second_student = student_in_course(course:, active_all: true).user
+
+    tool = create_nq_tool(course)
+    assignment = create_nq_survey(course, tool, title: "Plain NQ Survey", anonymous: false)
+    seed_nq_submission(assignment:, user: first_student, tool:, score: 10)
+    seed_nq_submission(assignment:, user: second_student, tool:, score: 10)
+
+    user_session(teacher)
+
+    # Act
+    post "/api/graphql",
+         params: {
+           query: <<~GQL
+             query {
+               assignment(id: "#{assignment.id}") {
+                 submissionsConnection {
+                   nodes {
+                     _id
+                     user { name }
+                   }
+                 }
+               }
+             }
+           GQL
+         }
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+    body = response.parsed_body
+    expect(body["errors"]).to be_nil
+    nodes = body.dig("data", "assignment", "submissionsConnection", "nodes")
+    expect(nodes.size).to eq(2)
+    expect(nodes.pluck("user")).to all(be_present)
+    expect(nodes.map { |node| node.dig("user", "name") })
+      .to match_array([first_student.name, second_student.name])
+  end
+
   it "reports the NQ anonymity flag in the survey's assignment details", guid: "d3f9e27c" do
     # Arrange
     teacher_enrollment = course_with_teacher(active_all: true)
@@ -160,11 +247,6 @@ describe "New Quizzes Anonymous & Survey Behaviors Integration" do
     get "/api/v1/courses/#{course.id}/assignments/#{assignment.id}"
 
     # Assert
-    # New Quizzes carries survey anonymity in the assignment's
-    # new_quizzes_anonymous_participants flag (the NQ-specific seam, not the
-    # anonymous_grading column), and the assignment details API surfaces it so
-    # the gradebook knows to anonymize this survey rather than exposing who
-    # responded.
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body["new_quizzes_anonymous_participants"]).to be(true)
   end
@@ -184,8 +266,6 @@ describe "New Quizzes Anonymous & Survey Behaviors Integration" do
     get "/api/v1/courses/#{course.id}/assignments/#{assignment.id}"
 
     # Assert
-    # A survey left non-anonymous reports the flag as false — proving the flag
-    # tracks the NQ anonymity setting rather than defaulting on for every survey.
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body["new_quizzes_anonymous_participants"]).to be(false)
   end

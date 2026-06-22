@@ -82,4 +82,15 @@ module NQAvailabilityTimingHelpers
     redis_key = "#{course.class.name}:#{Lti::RedisMessageClient::SESSIONLESS_LAUNCH_PREFIX}#{verifier}"
     JSON.parse(Canvas.redis.get(redis_key))["tool_settings"]
   end
+
+  # The native New Quizzes launch (NewQuizzesController#launch, gated by the
+  # new_quizzes_native_experience flag) does not round-trip through Redis like the
+  # sessionless launch. It renders the app shell and exposes the expanded launch
+  # payload as ENV.NEW_QUIZZES.params. This reads back the same custom_canvas_*
+  # date params from that payload, so the native path can be asserted with the
+  # same custom_canvas_assignment_* keys read_launch_tool_settings uses for the
+  # sessionless path. Requires RequestHelper (included for type: :request).
+  def read_native_launch_params(response)
+    js_env_from_response(response).dig("NEW_QUIZZES", "params") || {}
+  end
 end
