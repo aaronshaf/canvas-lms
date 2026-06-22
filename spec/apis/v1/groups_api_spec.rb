@@ -43,6 +43,7 @@ describe "Groups API", type: :request do
       "group_category_id" => group.group_category_id,
       "storage_quota_mb" => group.storage_quota_mb,
       "leader" => group.leader,
+      "is_full" => group.full?,
       "has_submission" => group.submission?,
       "concluded" => group.context.concluded? || group.context.deleted?,
       "created_at" => group.created_at.iso8601,

@@ -51,6 +51,7 @@ module Api::V1::Group
     hash["role"] = group.group_category.role if group.group_category
     # hash['leader_id'] = group.leader_id
     hash["leader"] = group.leader ? user_display_json(group.leader, group) : nil
+    hash["is_full"] = group.full?
 
     # Apply section restrictions to members_count if applicable
     if user_has_section_restrictions?(group.context, current_principal)

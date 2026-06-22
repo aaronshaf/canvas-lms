@@ -101,8 +101,10 @@ class Group extends React.Component {
         this.props.group.group_category.self_signup === 'restricted') &&
       !selfSignupClosed
     const isFull =
-      this.props.group.max_membership != null &&
-      this.props.group.users.length >= this.props.group.max_membership
+      typeof this.props.group.is_full === 'boolean'
+        ? this.props.group.is_full
+        : this.props.group.max_membership != null &&
+          this.props.group.users.length >= this.props.group.max_membership
     const isAllowedToJoin = this.props.group.permissions.join
     const hasUsers = this.props.group.users.length > 0
     const shouldSwitch =
@@ -196,7 +198,13 @@ class Group extends React.Component {
     } else if (!isMember && canSelfSignup && !isFull && isAllowedToJoin && !shouldSwitch) {
       ariaLabel = I18n.t('Join group %{group_name}', {group_name: groupName})
       membershipAction = (
-        <Button onClick={this._onJoin} aria-label={ariaLabel} size="small" margin="0 auto">
+        <Button
+          onClick={this._onJoin}
+          aria-label={ariaLabel}
+          size="small"
+          margin="0 auto"
+          data-testid="join-group-button"
+        >
           {I18n.t('Join')}
         </Button>
       )
@@ -230,6 +238,7 @@ class Group extends React.Component {
           title={toolTip}
           data-tooltip="left"
           aria-label={ariaLabel}
+          data-testid="membership-locked"
         >
           <i className="icon-lock" />
         </span>

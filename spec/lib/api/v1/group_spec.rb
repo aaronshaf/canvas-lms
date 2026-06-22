@@ -137,6 +137,20 @@ describe Api::V1::Group do
         expect(user_ids).not_to include(@student_default.id)
       end
 
+      it "does not show members of a section the viewer was previously enrolled in" do
+        moved_student = user_model(name: "Moved Student")
+        old_enrollment = @course.enroll_student(moved_student, section: @section1, enrollment_state: "active")
+        old_enrollment.conclude
+        @course.enroll_student(moved_student, section: @section2, enrollment_state: "active", allow_multiple_enrollments: true)
+        Enrollment.limit_privileges_to_course_section!(@course, moved_student, true)
+
+        json = group_json(@mixed_group, moved_student, nil, include: ["users"])
+        user_ids = json["users"].pluck("id")
+        expect(user_ids).to include(@student2.id)
+        expect(user_ids).not_to include(@student1.id)
+        expect(user_ids).not_to include(@student_default.id)
+      end
+
       it "does not apply restrictions for non-course contexts" do
         account = Account.default
         account_group = account.groups.create!(name: "Account Group")
@@ -151,6 +165,33 @@ describe Api::V1::Group do
         empty_group = @course.groups.create!(name: "Empty Group", group_category: @group_category)
         json = group_json(empty_group, @restricted_teacher, nil)
         expect(json["members_count"]).to eq 0
+      end
+
+      context "is_full" do
+        before :once do
+          @full_category = @course.group_categories.create!(name: "Full Category")
+          @full_group = @course.groups.create!(name: "Full Group", group_category: @full_category, max_membership: 2)
+
+          @full_student1 = user_model(name: "Full Student 1")
+          @full_student2 = user_model(name: "Full Student 2")
+          @course.enroll_student(@full_student1, section: @section1, enrollment_state: "active")
+          @course.enroll_student(@full_student2, section: @section2, enrollment_state: "active")
+          @full_group.add_user(@full_student1)
+          @full_group.add_user(@full_student2)
+
+          @restricted_student = user_model(name: "Restricted Student")
+          @course.enroll_student(@restricted_student, section: @section1, enrollment_state: "active")
+          Enrollment.limit_privileges_to_course_section!(@course, @restricted_student, true)
+
+          @full_group.reload
+        end
+
+        it "reports the true full status to a section-restricted viewer" do
+          json = group_json(@full_group, @restricted_student, nil, include: ["users"])
+          expect(json["members_count"]).to eq 1
+          expect(json["users"].length).to eq 1
+          expect(json["is_full"]).to be true
+        end
       end
     end
   end

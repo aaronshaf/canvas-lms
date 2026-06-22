@@ -78,6 +78,11 @@
 #           "example": 0,
 #           "type": "integer"
 #         },
+#         "is_full": {
+#           "description": "Whether the group has reached its membership cap (or its group category's group limit). Reflects the true membership across all sections, even for viewers whose visible member list is restricted to their own section.",
+#           "example": false,
+#           "type": "boolean"
+#         },
 #         "avatar_url": {
 #           "description": "The url of the group's avatar",
 #           "example": "https://<canvas>/files/avatar_image.png",
@@ -278,7 +283,7 @@ class GroupsController < ApplicationController
       format.json do
         @groups = ShardedBookmarkedCollection.build(Group::Bookmarker, groups_scope.order(:name, :id)) do |scope|
           scope = scope.where(context_type: params[:context_type]) if params[:context_type]
-          scope.preload(:group_category, :context)
+          scope.preload(:group_category, :context, :participating_users)
         end
         @groups = Api.paginate(@groups, self, api_v1_current_user_groups_url)
         render json: @groups.map { |g| group_json(g, current_principal, session, includes) }
@@ -335,7 +340,7 @@ class GroupsController < ApplicationController
     end
 
     @groups = all_groups = @groups.order(GroupCategory::Bookmarker.order_by, Group::Bookmarker.order_by)
-                                  .eager_load(:group_category).preload(:root_account)
+                                  .eager_load(:group_category).preload(:root_account, :participating_users)
 
     if params[:section_restricted] && @context.is_a?(Course) && @context.user_is_student?(@current_user) && @context.membership_for_user(@current_user)&.limit_privileges_to_course_section
       candidate_ids = all_groups
@@ -390,7 +395,7 @@ class GroupsController < ApplicationController
 
         if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
           categories_json = @categories.map { |cat| group_category_json(cat, current_principal, session, include: %w[progress_url unassigned_users_count groups_count]) }
-          uncategorized = @context.groups.active.uncategorized.to_a
+          uncategorized = @context.groups.active.uncategorized.preload(:participating_users).to_a
           if uncategorized.present?
             json = group_category_json(GroupCategory.uncategorized(context: @context), @current_user, session)
             json["groups"] = uncategorized.map { |group| group_json(group, current_principal, session) }
