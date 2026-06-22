@@ -45,7 +45,7 @@
     "@instructure/platform-query": "0.2.2",
     "@instructure/platform-sanitize": "0.5.1",
     "@instructure/platform-study-assist": "2.2.1",
-    "@instructure/platform-widget-dashboard": "6.4.2",
+    "@instructure/platform-widget-dashboard": "6.5.1",
     "@instructure/platform-with-breakpoints": "^0.2.0",
     "@instructure/react-crop": "^5.0.1",
     "@instructure/reactour": "https://github.com/instructure/reactour#b908434fe544703e26bc67c67c4111252c401f92",
