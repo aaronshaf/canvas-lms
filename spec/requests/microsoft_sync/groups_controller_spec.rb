@@ -24,7 +24,7 @@ describe MicrosoftSync::GroupsController do
 
   let(:course_id) { course.id }
   let(:feature) { :microsoft_group_enrollments_syncing }
-  let(:params) { { course_id: } }
+  let(:params) { {} }
   let(:student) { course.student_enrollments.first.user }
   let(:teacher) { course.teacher_enrollments.first.user }
   let(:workflow_state) { :completed }
@@ -44,13 +44,19 @@ describe MicrosoftSync::GroupsController do
     context "when the course does not exist" do
       before { course.destroy! }
 
-      it { is_expected.to be_not_found }
+      it do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     context "when the course has no active microsoft group" do
       before { group.destroy! }
 
-      it { is_expected.to be_not_found }
+      it do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
@@ -58,7 +64,10 @@ describe MicrosoftSync::GroupsController do
     context "when there is no user" do
       before { remove_user_session }
 
-      it { is_expected.to redirect_to "/login" }
+      it do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
   end
 
@@ -70,7 +79,10 @@ describe MicrosoftSync::GroupsController do
 
       before { user_session(unauthorized_user) }
 
-      it { is_expected.to be_unauthorized }
+      it do
+        subject
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
     context "when the user has the update permission but not manage_students" do
@@ -79,7 +91,10 @@ describe MicrosoftSync::GroupsController do
         user_session(teacher)
       end
 
-      it { is_expected.not_to be_unauthorized }
+      it do
+        subject
+        expect(response.status).to be < 400
+      end
     end
   end
 
@@ -87,23 +102,40 @@ describe MicrosoftSync::GroupsController do
     context "when the release flag is off" do
       before { root_account.disable_feature! feature }
 
-      it { is_expected.to be_not_found }
+      it do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
   shared_examples_for "endpoints that return an existing group" do
     before { group.reload.update!(job_state: { step: "abc" }, last_error_report_id: 123) }
 
-    specify { expect(subject.parsed_body).not_to include("job_state") }
-    specify { expect(subject.parsed_body).not_to include("last_error_report_id") }
+    specify do
+      subject
+      expect(response.parsed_body).not_to include("job_state")
+    end
+
+    specify do
+      subject
+      expect(response.parsed_body).not_to include("last_error_report_id")
+    end
 
     context "when the user is a site admin" do
       before { user_session(site_admin) }
 
       let(:site_admin) { site_admin_user(user: user_with_pseudonym(account: Account.site_admin)) }
 
-      specify { expect(subject.parsed_body).not_to include("job_state") }
-      specify { expect(subject.parsed_body["last_error_report_id"]).to eq(123) }
+      specify do
+        subject
+        expect(response.parsed_body).not_to include("job_state")
+      end
+
+      specify do
+        subject
+        expect(response.parsed_body["last_error_report_id"]).to be(123)
+      end
     end
 
     it "deserializes and localizes the error" do
@@ -121,11 +153,14 @@ describe MicrosoftSync::GroupsController do
       root_account.save!
     end
 
-    it { is_expected.to be_bad_request }
+    it do
+      subject
+      expect(response).to have_http_status(:bad_request)
+    end
   end
 
   describe "#sync" do
-    subject { post :sync, params: }
+    subject { post "/api/v1/courses/#{course_id}/microsoft_sync/schedule_sync", params: }
 
     before { user_session(teacher) }
 
@@ -135,7 +170,10 @@ describe MicrosoftSync::GroupsController do
     it_behaves_like "endpoints that return an existing group"
     it_behaves_like "endpoints that require the integration to be available"
 
-    it { is_expected.to be_successful }
+    it do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
 
     it "schedules a sync" do
       expect_any_instance_of(MicrosoftSync::StateMachineJob).to receive(
@@ -152,7 +190,10 @@ describe MicrosoftSync::GroupsController do
     context 'when the group is in a "running" state' do
       let(:workflow_state) { MicrosoftSync::Group::RUNNING_STATES.first }
 
-      it { is_expected.to be_bad_request }
+      it do
+        subject
+        expect(response).to have_http_status(:bad_request)
+      end
 
       it "responds with an error" do
         subject
@@ -165,7 +206,10 @@ describe MicrosoftSync::GroupsController do
     context "when the cool down period has not passed" do
       before { group.update!(last_manually_synced_at: Time.zone.now) }
 
-      it { is_expected.to be_bad_request }
+      it do
+        subject
+        expect(response).to have_http_status(:bad_request)
+      end
 
       it "responds with an error" do
         subject
@@ -179,31 +223,46 @@ describe MicrosoftSync::GroupsController do
 
         let(:site_admin) { site_admin_user(user: user_with_pseudonym(account: Account.site_admin)) }
 
-        it { is_expected.to be_successful }
+        it do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
       end
 
       context 'and the group is in a "ready state"' do
         let(:workflow_state) { :errored }
 
-        it { is_expected.to be_successful }
+        it do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
       end
     end
   end
 
   describe "#create" do
-    subject { post :create, params: }
+    subject { post "/api/v1/courses/#{course_id}/microsoft_sync/group", params: }
 
     before { user_session(teacher) }
 
     it_behaves_like "endpoints that require a user"
-    it_behaves_like "endpoints that require permissions"
+
+    context "when shared permissions are checked" do
+      before { group.destroy_permanently! }
+
+      it_behaves_like "endpoints that require permissions"
+    end
+
     it_behaves_like "endpoints that require a release flag to be on"
     it_behaves_like "endpoints that require the integration to be available"
 
     context "when the course does not exist" do
       before { course.destroy! }
 
-      it { is_expected.to be_not_found }
+      it do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     context "when a deleted group exists for the course" do
@@ -223,7 +282,7 @@ describe MicrosoftSync::GroupsController do
 
       it 'responds with "created"' do
         subject
-        expect(response).to be_created
+        expect(response).to have_http_status(:created)
       end
 
       it "reactivates the existing group" do
@@ -245,7 +304,8 @@ describe MicrosoftSync::GroupsController do
 
     context "when an active group already exists for the course" do
       it 'responds with "conflict"' do
-        expect(subject.status).to eq 409
+        subject
+        expect(response).to have_http_status(:conflict)
       end
     end
 
@@ -304,7 +364,7 @@ describe MicrosoftSync::GroupsController do
   end
 
   describe "#deleted" do
-    subject { delete :destroy, params: }
+    subject { delete "/api/v1/courses/#{course_id}/microsoft_sync/group", params: }
 
     before { user_session(teacher) }
 
@@ -314,7 +374,10 @@ describe MicrosoftSync::GroupsController do
     it_behaves_like "endpoints that require a release flag to be on"
     it_behaves_like "endpoints that require the integration to be available"
 
-    it { is_expected.to be_no_content }
+    it do
+      subject
+      expect(response).to have_http_status(:no_content)
+    end
 
     it "destroys the group" do
       subject
@@ -323,7 +386,7 @@ describe MicrosoftSync::GroupsController do
   end
 
   describe "#show" do
-    subject { get :show, params: }
+    subject { get "/api/v1/courses/#{course_id}/microsoft_sync/group", params: }
 
     before { user_session(teacher) }
 
@@ -334,7 +397,10 @@ describe MicrosoftSync::GroupsController do
     it_behaves_like "endpoints that return an existing group"
     it_behaves_like "endpoints that require the integration to be available"
 
-    it { is_expected.to be_successful }
+    it do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
 
     it "responds with the expected group" do
       subject
@@ -354,7 +420,8 @@ describe MicrosoftSync::GroupsController do
         let(:site_admin) { site_admin_user(user: user_with_pseudonym(account: Account.site_admin)) }
 
         it "includes the debugging info and error report id" do
-          expect(subject).to be_successful
+          subject
+          expect(response).to have_http_status(:ok)
           expect(json_parse["debug_info"]).to eq(debug_info)
           expect(json_parse["last_error_report_id"]).to eq(group.last_error_report.id)
         end
@@ -362,7 +429,8 @@ describe MicrosoftSync::GroupsController do
 
       context "when the user is not SiteAdmin" do
         it "does not include the debugging info or last error report id" do
-          expect(subject).to be_successful
+          subject
+          expect(response).to have_http_status(:ok)
           expect(json_parse["debug_info"]).to be_nil
           expect(json_parse["last_error_report_id"]).to be_nil
         end

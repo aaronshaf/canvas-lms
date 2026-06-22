@@ -19,16 +19,16 @@
 #
 
 describe BlockEditorTemplatesApiController do
-  let_once(:account) { Account.default }
-  let_once(:course1) { course_factory(active_all: true, account:) }
-  let_once(:course2) { course_factory(active_all: true, account:) }
-  let_once(:teacher) do
+  let(:account) { Account.default }
+  let(:course1) { course_factory(active_all: true, account:) }
+  let(:course2) { course_factory(active_all: true, account:) }
+  let(:teacher) do
     user_factory(active_all: true).tap do |t|
       course1.enroll_teacher(t, enrollment_state: "active")
       course2.enroll_teacher(t, enrollment_state: "active")
     end
   end
-  let_once(:template_in_course1) do
+  let(:template_in_course1) do
     BlockEditorTemplate.create!(
       context: course1,
       name: "Course 1 Template",
@@ -38,7 +38,7 @@ describe BlockEditorTemplatesApiController do
       workflow_state: "unpublished"
     )
   end
-  let_once(:template_in_course2) do
+  let(:template_in_course2) do
     BlockEditorTemplate.create!(
       context: course2,
       name: "Course 2 Template",
@@ -51,7 +51,11 @@ describe BlockEditorTemplatesApiController do
 
   before do
     user_session(teacher)
-    allow(controller).to receive_messages(template_editor?: true, global_template_editor?: true)
+    account.role_overrides.create!(role: Role.get_built_in_role("TeacherEnrollment", root_account_id: account.id), permission: "block_editor_template_editor", enabled: true)
+    account.role_overrides.create!(role: Role.get_built_in_role("TeacherEnrollment", root_account_id: account.id), permission: "block_editor_global_template_editor", enabled: true)
+    allow_any_instance_of(Account).to receive(:feature_enabled?).and_call_original
+    allow_any_instance_of(Account).to receive(:feature_enabled?).with(:block_editor).and_return(true)
+    allow_any_instance_of(Account).to receive(:feature_enabled?).with(:block_template_editor).and_return(true)
   end
 
   describe "POST #create" do
@@ -68,14 +72,14 @@ describe BlockEditorTemplatesApiController do
 
     it "returns 400 for unknown template_type and does not persist" do
       before_count = BlockEditorTemplate.count
-      post :create, params: create_params.merge(template_type: "evil"), format: :json
+      post "/api/v1/courses/#{course1.id}/block_editor_templates", params: create_params.merge(template_type: "evil"), as: :json
       expect(response).to have_http_status(:bad_request)
       expect(BlockEditorTemplate.count).to eq(before_count)
     end
 
     it "returns 422 for svg thumbnail and does not persist" do
       before_count = BlockEditorTemplate.count
-      post :create, params: create_params.merge(thumbnail: "data:image/svg+xml;base64,PHN2Zy8+"), format: :json
+      post "/api/v1/courses/#{course1.id}/block_editor_templates", params: create_params.merge(thumbnail: "data:image/svg+xml;base64,PHN2Zy8+"), as: :json
       expect(response).to have_http_status(:unprocessable_content)
       expect(BlockEditorTemplate.count).to eq(before_count)
     end
@@ -84,16 +88,16 @@ describe BlockEditorTemplatesApiController do
       payload = {
         "ROOT" => { "props" => { "html" => "<p>ok</p><script>alert(1)</script>" } }
       }
-      post :create, params: create_params.merge(node_tree: payload), format: :json
-      expect(response).to be_successful
+      post "/api/v1/courses/#{course1.id}/block_editor_templates", params: create_params.merge(node_tree: payload), as: :json
+      expect(response).to have_http_status(:ok)
       template = BlockEditorTemplate.last
       expect(template.node_tree.dig("ROOT", "props", "html")).not_to include("<script>")
     end
 
     it "blanks scalar javascript: prop values at the HTTP boundary" do
       payload = { "ROOT" => { "props" => { "href" => "javascript:alert(1)" } } }
-      post :create, params: create_params.merge(node_tree: payload), format: :json, as: :json
-      expect(response).to be_successful
+      post "/api/v1/courses/#{course1.id}/block_editor_templates", params: create_params.merge(node_tree: payload), as: :json
+      expect(response).to have_http_status(:ok)
       expect(BlockEditorTemplate.last.node_tree.dig("ROOT", "props", "href")).to eq("")
     end
 
@@ -103,67 +107,68 @@ describe BlockEditorTemplatesApiController do
           "props" => { "href" => "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" }
         }
       }
-      post :create, params: create_params.merge(node_tree: payload), format: :json, as: :json
-      expect(response).to be_successful
+      post "/api/v1/courses/#{course1.id}/block_editor_templates", params: create_params.merge(node_tree: payload), as: :json
+      expect(response).to have_http_status(:ok)
       expect(BlockEditorTemplate.last.node_tree.dig("ROOT", "props", "href")).to eq("")
     end
   end
 
   describe "PUT #update" do
     it "allows updating a template in the same course" do
-      put :update, params: { course_id: course1.id, id: template_in_course1.id, name: "Updated Name" }, format: :json
-      expect(response).to be_successful
+      put "/api/v1/courses/#{course1.id}/block_editor_templates/#{template_in_course1.id}", params: { name: "Updated Name" }, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["name"]).to eq("Updated Name")
       expect(template_in_course1.reload.name).to eq("Updated Name")
     end
 
     it "rejects updating a template from a different course" do
-      put :update, params: { course_id: course1.id, id: template_in_course2.id, name: "Hacked" }, format: :json
-      expect(response).to be_not_found
+      put "/api/v1/courses/#{course1.id}/block_editor_templates/#{template_in_course2.id}", params: { name: "Hacked" }, as: :json
+      expect(response).to have_http_status(:not_found)
       expect(template_in_course2.reload.name).to eq("Course 2 Template")
     end
   end
 
   describe "POST #publish" do
     it "allows publishing a template in the same course" do
-      post :publish, params: { course_id: course1.id, id: template_in_course1.id }, format: :json
-      expect(response).to be_successful
+      post "/api/v1/courses/#{course1.id}/block_editor_templates/#{template_in_course1.id}/publish", as: :json
+      expect(response).to have_http_status(:ok)
       expect(template_in_course1.reload.workflow_state).to eq("active")
     end
 
     it "rejects publishing a template from a different course" do
-      post :publish, params: { course_id: course1.id, id: template_in_course2.id }, format: :json
-      expect(response).to be_not_found
+      post "/courses/#{course1.id}/block_editor_templates/#{template_in_course2.id}/publish", as: :json
+      expect(response).to have_http_status(:not_found)
       expect(template_in_course2.reload.workflow_state).to eq("unpublished")
     end
   end
 
   describe "DELETE #destroy" do
     it "allows deleting a template in the same course" do
-      delete :destroy, params: { course_id: course1.id, id: template_in_course1.id }, format: :json
-      expect(response).to be_successful
+      delete "/api/v1/courses/#{course1.id}/block_editor_templates/#{template_in_course1.id}", as: :json
+      expect(response).to have_http_status(:ok)
     end
 
     it "rejects deleting a template from a different course" do
-      delete :destroy, params: { course_id: course1.id, id: template_in_course2.id }, format: :json
-      expect(response).to be_not_found
+      delete "/api/v1/courses/#{course1.id}/block_editor_templates/#{template_in_course2.id}", as: :json
+      expect(response).to have_http_status(:not_found)
       expect(BlockEditorTemplate.find(template_in_course2.id)).to be_present
     end
   end
 
   describe "authorization split between local and global template editors" do
-    let_once(:course) { course_factory(active_all: true, account:) }
-    let_once(:local_editor) do
+    let(:course) { course_factory(active_all: true, account:) }
+    let(:local_editor) do
       user_factory(active_all: true).tap do |u|
         course.enroll_teacher(u, enrollment_state: "active")
       end
     end
-    let_once(:global_editor) do
+    let(:global_editor) do
       user_factory(active_all: true).tap do |u|
         course.enroll_teacher(u, enrollment_state: "active")
       end
     end
-    let_once(:teacher_role) { Role.get_built_in_role("TeacherEnrollment", root_account_id: course.root_account.id) }
-    let_once(:block_template) do
+    let(:teacher_role) { Role.get_built_in_role("TeacherEnrollment", root_account_id: course.root_account.id) }
+    let(:block_template) do
       BlockEditorTemplate.create!(
         context: course,
         name: "Local Block",
@@ -173,7 +178,7 @@ describe BlockEditorTemplatesApiController do
         workflow_state: "unpublished"
       )
     end
-    let_once(:page_template) do
+    let(:page_template) do
       BlockEditorTemplate.create!(
         context: course,
         name: "Global Page",
@@ -184,7 +189,8 @@ describe BlockEditorTemplatesApiController do
       )
     end
 
-    before(:once) do
+    before do
+      course.root_account.role_overrides.destroy_all
       course.root_account.role_overrides.create!(role: teacher_role, permission: "block_editor_template_editor", enabled: true)
       course.root_account.role_overrides.create!(role: teacher_role, permission: "block_editor_global_template_editor", enabled: false)
       course.root_account.role_overrides.create!(
@@ -198,54 +204,53 @@ describe BlockEditorTemplatesApiController do
       allow_any_instance_of(Account).to receive(:feature_enabled?).and_call_original
       allow_any_instance_of(Account).to receive(:feature_enabled?).with(:block_editor).and_return(true)
       allow_any_instance_of(Account).to receive(:feature_enabled?).with(:block_template_editor).and_return(true)
-      allow(controller).to receive(:template_editor?).and_call_original
-      allow(controller).to receive(:global_template_editor?).and_call_original
     end
 
     context "user with only :block_editor_template_editor" do
       before { user_session(local_editor) }
 
       it "allows creating block templates" do
-        post :create, params: { course_id: course.id, template_type: "block", name: "B", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_successful
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "block", name: "B", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:ok)
       end
 
       it "allows creating section templates" do
-        post :create, params: { course_id: course.id, template_type: "section", name: "S", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_successful
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "section", name: "S", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["template_type"]).to eq("section")
       end
 
       it "rejects creating page templates" do
-        post :create, params: { course_id: course.id, template_type: "page", name: "P", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_forbidden
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "page", name: "P", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "rejects updating an existing page template" do
-        put :update, params: { course_id: course.id, id: page_template.id, name: "Hacked" }, format: :json
-        expect(response).to be_forbidden
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{page_template.id}", params: { name: "Hacked" }, as: :json
+        expect(response).to have_http_status(:forbidden)
         expect(page_template.reload.name).to eq("Global Page")
       end
 
       it "rejects escalating a block template to page" do
-        put :update, params: { course_id: course.id, id: block_template.id, template_type: "page" }, format: :json
-        expect(response).to be_forbidden
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{block_template.id}", params: { template_type: "page" }, as: :json
+        expect(response).to have_http_status(:forbidden)
         expect(block_template.reload.template_type).to eq("block")
       end
 
       it "rejects publishing a page template" do
-        post :publish, params: { course_id: course.id, id: page_template.id }, format: :json
-        expect(response).to be_forbidden
+        post "/api/v1/courses/#{course.id}/block_editor_templates/#{page_template.id}/publish", as: :json
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "rejects destroying a page template" do
-        delete :destroy, params: { course_id: course.id, id: page_template.id }, format: :json
-        expect(response).to be_forbidden
+        delete "/api/v1/courses/#{course.id}/block_editor_templates/#{page_template.id}", as: :json
+        expect(response).to have_http_status(:forbidden)
         expect(BlockEditorTemplate.find(page_template.id)).to be_present
       end
 
       it "allows updating a block template" do
-        put :update, params: { course_id: course.id, id: block_template.id, name: "Renamed" }, format: :json
-        expect(response).to be_successful
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{block_template.id}", params: { name: "Renamed" }, as: :json
+        expect(response).to have_http_status(:ok)
         expect(block_template.reload.name).to eq("Renamed")
       end
     end
@@ -258,23 +263,26 @@ describe BlockEditorTemplatesApiController do
       end
 
       it "allows creating page templates" do
-        post :create, params: { course_id: course.id, template_type: "page", name: "P", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_successful
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "page", name: "P", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["template_type"]).to eq("page")
       end
 
       it "allows creating block templates" do
-        post :create, params: { course_id: course.id, template_type: "block", name: "B", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_successful
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "block", name: "B", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["template_type"]).to eq("block")
       end
 
       it "allows updating page templates" do
-        put :update, params: { course_id: course.id, id: page_template.id, name: "Renamed" }, format: :json
-        expect(response).to be_successful
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{page_template.id}", params: { name: "Renamed" }, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["name"]).to eq("Renamed")
       end
     end
 
     context "user with no block editor permissions" do
-      let_once(:no_perms_user) do
+      let(:no_perms_user) do
         user_factory(active_all: true).tap do |u|
           course.enroll_teacher(u, enrollment_state: "active")
         end
@@ -286,13 +294,13 @@ describe BlockEditorTemplatesApiController do
       end
 
       it "rejects create" do
-        post :create, params: { course_id: course.id, template_type: "block", name: "B", node_tree: { ROOT: {} } }, format: :json
-        expect(response).to be_forbidden
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "block", name: "B", node_tree: { ROOT: {} } }, as: :json
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "rejects update" do
-        put :update, params: { course_id: course.id, id: block_template.id, name: "x" }, format: :json
-        expect(response).to be_forbidden
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{block_template.id}", params: { name: "x" }, as: :json
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -300,17 +308,17 @@ describe BlockEditorTemplatesApiController do
       before { user_session(local_editor) }
 
       it "rejects create with missing template_type" do
-        post :create, params: { course_id: course.id, name: "X", node_tree: { ROOT: {} } }, format: :json
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { name: "X", node_tree: { ROOT: {} } }, as: :json
         expect(response).to have_http_status(:bad_request)
       end
 
       it "rejects create with invalid template_type" do
-        post :create, params: { course_id: course.id, template_type: "evil", name: "X", node_tree: { ROOT: {} } }, format: :json
+        post "/api/v1/courses/#{course.id}/block_editor_templates", params: { template_type: "evil", name: "X", node_tree: { ROOT: {} } }, as: :json
         expect(response).to have_http_status(:bad_request)
       end
 
       it "rejects update with invalid template_type" do
-        put :update, params: { course_id: course.id, id: block_template.id, template_type: "evil" }, format: :json
+        put "/api/v1/courses/#{course.id}/block_editor_templates/#{block_template.id}", params: { template_type: "evil" }, as: :json
         expect(response).to have_http_status(:bad_request)
       end
     end

@@ -31,8 +31,8 @@ describe SearchController do
       group = @course.groups.create(name: "this_is_a_test_group")
       group.users = [@user, other]
 
-      get "recipients", params: { search: "this_is_a_test_" }
-      expect(response).to be_successful
+      get "/search/recipients", params: { search: "this_is_a_test_" }
+      expect(response).to have_http_status(:ok)
       expect(response.body).to include(@course.name)
       expect(response.body).to include(group.name)
       expect(response.body).to include(other.name)
@@ -50,8 +50,8 @@ describe SearchController do
       group = @course.groups.create(name: "group")
       group.users << other
 
-      get "recipients", params: { context: @course.asset_string, per_page: "1", type: "user" }
-      expect(response).to be_successful
+      get "/search/recipients", params: { context: @course.asset_string, per_page: "1", type: "user" }
+      expect(response).to have_http_status(:ok)
       expect(response.body).to include("billy")
       expect(response.body).not_to include("bob")
     end
@@ -66,14 +66,14 @@ describe SearchController do
         e.save!
       end
 
-      get "recipients", params: {
+      get "/search/recipients", params: {
         search: "b",
         type: "user",
         skip_visibility_checks: true,
         synthetic_contexts: true,
         context: "course_#{@course.id}_students"
       }
-      expect(response).to be_successful
+      expect(response).to have_http_status(:ok)
       expect(response.body).to include("bob")
       expect(response.body).to include("billy")
     end
@@ -86,7 +86,7 @@ describe SearchController do
       @course2.update_attribute(:name, "course2")
       term = @course2.root_account.enrollment_terms.create! name: "Fall", end_at: 1.day.ago
       @course2.update! enrollment_term: term
-      get "recipients", params: { search: "course", messageable_only: true }
+      get "/search/recipients", params: { search: "course", messageable_only: true }
       expect(response.body).to include("course1")
       expect(response.body).not_to include("course2")
     end
@@ -94,7 +94,7 @@ describe SearchController do
     it "returns an empty list when searching in a non-messageable context" do
       course_with_student_logged_in(active_all: true)
       @enrollment.update(workflow_state: "deleted")
-      get "recipients", params: { search: "foo", context: @course.asset_string }
+      get "/search/recipients", params: { search: "foo", context: @course.asset_string }
       expect(response.body).to match(/\[\]\z/)
     end
 
@@ -102,8 +102,8 @@ describe SearchController do
       course_with_student_logged_in
       group = @course.groups.create(name: "this_is_a_test_group")
       group.users = [@user]
-      get "recipients", params: { search: "", type: "context" }
-      expect(response).to be_successful
+      get "/search/recipients", params: { search: "", type: "context" }
+      expect(response).to have_http_status(:ok)
       # This is questionable legacy behavior.
       expect(response.body).to include(group.name)
     end
@@ -120,13 +120,13 @@ describe SearchController do
       other_student = User.create!(name: "Other Student")
       @course.enroll_student(other_student).accept
 
-      get "recipients", params: {
+      get "/search/recipients", params: {
         search: "",
         type: "user",
         context: "course_#{@course.id}_all"
       }
 
-      expect(response).to be_successful
+      expect(response).to have_http_status(:ok)
       expect(response.body).to include("Teacher User")
       expect(response.body).not_to include("Other Student")
     end
@@ -135,14 +135,14 @@ describe SearchController do
       it "returns nothing if the user doesn't have rights" do
         user_session(user_factory)
         course_factory(active_all: true).course_sections.create(name: "other section")
-        expect(response).to be_successful
 
-        get "recipients", params: {
+        get "/search/recipients", params: {
           type: "section",
           skip_visibility_checks: true,
           synthetic_contexts: true,
           context: "course_#{@course.id}_sections"
         }
+        expect(response).to have_http_status(:ok)
         expect(response.body).to match(/\[\]\z/)
       end
 
@@ -151,13 +151,13 @@ describe SearchController do
         user_session(@user)
         course_factory(active_all: true).course_sections.create(name: "other section")
 
-        get "recipients", params: {
+        get "/search/recipients", params: {
           type: "section",
           skip_visibility_checks: true,
           synthetic_contexts: true,
           context: "course_#{@course.id}_sections"
         }
-        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
         expect(response.body).to include("other section")
       end
 
@@ -172,7 +172,7 @@ describe SearchController do
         @student2 = user_with_pseudonym(active_all: true, name: "Student2", username: "student2@instructure.com")
         @section2.enroll_user(@student2, "StudentEnrollment", "active")
 
-        get "recipients", params: {
+        get "/search/recipients", params: {
           type: "section",
           exclude: ["section_#{@section2.id}"],
           synthetic_contexts: true,
@@ -190,7 +190,7 @@ describe SearchController do
         course_factory(active_all: true).course_sections.create(name: "other section")
         course_with_student(active_all: true)
 
-        get "recipients", params: {
+        get "/search/recipients", params: {
           type: "user",
           skip_visibility_checks: true,
           synthetic_contexts: true,
@@ -215,12 +215,12 @@ describe SearchController do
       end
 
       it "excludes non-messageable contexts" do
-        get "recipients", params: {
+        get "/search/recipients", params: {
           context: "course_#{@course.id}",
           synthetic_contexts: true
         }
         expect(response.body).to include('"name":"Course Sections"')
-        get "recipients", params: {
+        get "/search/recipients", params: {
           context: "course_#{@course.id}_sections",
           synthetic_contexts: true
         }
@@ -229,7 +229,7 @@ describe SearchController do
       end
 
       it "excludes non-messageable users" do
-        get "recipients", params: {
+        get "/search/recipients", params: {
           context: "course_#{@course.id}_students"
         }
         expect(response.body).to include("Student1")
@@ -260,25 +260,25 @@ describe SearchController do
         end
 
         it "does not return concluded teachers" do
-          get "recipients", params: {
+          get "/search/recipients", params: {
             search: "m",
             type: "user",
             synthetic_contexts: true,
             context: "course_#{@course.id}_teachers"
           }
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           expect(response.body).to include(@teacher1.name)
           expect(response.body).not_to include(@concluded_teacher.name)
         end
 
         it "does not return concluded students" do
-          get "recipients", params: {
+          get "/search/recipients", params: {
             search: "b",
             type: "user",
             synthetic_contexts: true,
             context: "course_#{@course.id}_students"
           }
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           expect(response.body).to include("bob")
           expect(response.body).not_to include("billy")
         end
@@ -290,25 +290,25 @@ describe SearchController do
         end
 
         it "does not return concluded teachers" do
-          get "recipients", params: {
+          get "/search/recipients", params: {
             search: "m",
             type: "user",
             synthetic_contexts: true,
             context: "course_#{@course.id}_teachers"
           }
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           expect(response.body).to include("Mr. Teacher")
           expect(response.body).not_to include("Mr. Professor")
         end
 
         it "does not return concluded students" do
-          get "recipients", params: {
+          get "/search/recipients", params: {
             search: "b",
             type: "user",
             synthetic_contexts: true,
             context: "course_#{@course.id}_students"
           }
-          expect(response).to be_successful
+          expect(response).to have_http_status(:ok)
           expect(response.body).to include("bob")
           expect(response.body).not_to include("billy")
         end
@@ -317,7 +317,7 @@ describe SearchController do
   end
 
   describe "GET 'all_courses'" do
-    before(:once) do
+    before do
       @c1 = course_factory(course_name: "foo", course_code: "foo-101", active_course: true)
       @c2 = course_factory(course_name: "bar", sis_source_id: "xyzzy", active_course: true)
       @c2.update_attribute(:indexed, true)
@@ -327,39 +327,39 @@ describe SearchController do
     end
 
     it "returns indexed courses" do
-      get "all_courses"
-      expect(assigns[:courses].map(&:id)).to eq [@c2.id]
+      get "/search/all_courses.json"
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq [@c2.id]
     end
 
     it "searches by name" do
       @c1.update_attribute(:indexed, true)
-      get "all_courses", params: { search: "foo" }
-      expect(assigns[:courses].map(&:id)).to eq [@c1.id]
+      get "/search/all_courses.json", params: { search: "foo" }
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq [@c1.id]
     end
 
     it "searches by sis id" do
-      get "all_courses", params: { search: "yzzy" }
-      expect(assigns[:courses].map(&:id)).to eq [@c2.id]
+      get "/search/all_courses.json", params: { search: "yzzy" }
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq [@c2.id]
     end
 
     it "searches by course code" do
       @c1.update_attribute(:indexed, true)
-      get "all_courses", params: { search: "foo-101" }
-      expect(assigns[:courses].map(&:id)).to eq [@c1.id]
+      get "/search/all_courses.json", params: { search: "foo-101" }
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq [@c1.id]
     end
 
     it "searches by id" do
-      get "all_courses", params: { search: @c2.id.to_s }
-      expect(assigns[:courses].map(&:id)).to eq [@c2.id]
+      get "/search/all_courses.json", params: { search: @c2.id.to_s }
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq [@c2.id]
     end
 
     it "doesn't explode with non-string searches" do
-      get "all_courses", params: { search: { "foo" => "bar" } }
-      expect(assigns[:courses].map(&:id)).to eq []
+      get "/search/all_courses.json", params: { search: { "foo" => "bar" } }
+      expect(response.parsed_body.map { |c| c["course"]["id"] }).to eq []
     end
 
     it "does not cache XHR requests" do
-      get "all_courses", xhr: true
+      get "/search/all_courses", xhr: true
       expect(response.headers["Pragma"]).to eq "no-cache"
     end
 
@@ -367,7 +367,7 @@ describe SearchController do
       ra = @c1.root_account
       ra.settings[:enable_course_catalog] = false
       ra.save!
-      get "all_courses", format: :json
+      get "/search/all_courses.json"
       expect(response).to have_http_status :unauthorized
     end
   end
