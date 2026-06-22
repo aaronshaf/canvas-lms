@@ -562,7 +562,7 @@ class PlannerController < ApplicationController
     descending = params[:order] == "desc"
     bookmarker = Plannable::Bookmarker.new(CalendarEvent, descending, [:start_at, :created_at], :id)
 
-    base_relation = CalendarEvent.active.not_hidden.between(@start_date, @end_date).shard(@shards_to_query)
+    base_relation = CalendarEvent.active.between(@start_date, @end_date).shard(@shards_to_query)
 
     collection = ShardedBookmarkedCollection.build(bookmarker, base_relation, always_use_bookmarks: true) do |sharded_relation|
       # Restrict @context_codes to the active shard, translating each id back to its
@@ -578,7 +578,7 @@ class PlannerController < ApplicationController
       next nil if shard_context_codes.blank?
 
       section_codes = @user.section_context_codes(shard_context_codes, skip_visibility_filter: false, include_concluded: false)
-      scope = sharded_relation.for_user_and_context_codes(@user, shard_context_codes, section_codes)
+      scope = sharded_relation.not_hidden.for_user_and_context_codes(@user, shard_context_codes, section_codes)
       apply_completion_filter(scope, @user, completion_filter)
     end
 
