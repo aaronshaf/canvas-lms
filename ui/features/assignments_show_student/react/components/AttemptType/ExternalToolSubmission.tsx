@@ -37,11 +37,7 @@ interface ContentLaunchViewProps {
 // A generic component that shows an iframe for a given URL, used for both
 // launching the LTI to select content and showing selected content
 const ContentLaunchView = ({launchURL}: ContentLaunchViewProps) => (
-  <ToolLaunchIframe
-    data-testid="lti-launch-frame"
-    src={launchURL}
-    title={I18n.t('Tool content')}
-  />
+  <ToolLaunchIframe data-testid="lti-launch-frame" src={launchURL} title={I18n.t('Tool content')} />
 )
 
 interface SelectedContentViewProps {
@@ -210,7 +206,9 @@ function ExternalToolDraftView({
       <View id="external_tool_submission_container" as="div">
         {draftExistsForThisTool && !selectingItem ? (
           <View as="div" borderWidth="small" padding="small">
-            <Text>{I18n.t('Website URL: %{url}', {url: submissionDraft.ltiLaunchUrl})}</Text>
+            <Text>
+              {I18n.t('Submission location: %{url}', {url: submissionDraft.ltiLaunchUrl})}
+            </Text>
             <br />
             <Button onClick={() => setSelectingItem(true)}>{I18n.t('Change')}</Button>
 

@@ -83,7 +83,7 @@ describe('ExternalToolSubmission', () => {
         'http://localhost/courses/100/external_tools/retrieve?assignment_id=200&display=borderless&resource_link_lookup_uuid=some_uuid&url=%2Flti-launch',
       )
 
-      expect(getByText(/Website URL:\s*\/lti-launch/)).toBeInTheDocument()
+      expect(getByText(/Submission location:\s*\/lti-launch/)).toBeInTheDocument()
     })
 
     it('shows the original resource-selection launch frame if the user clicks the "Change" button', () => {
