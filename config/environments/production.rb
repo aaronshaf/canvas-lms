@@ -72,9 +72,6 @@ Rails.application.configure do
 
   config.eager_load = true
 
-  # Log strict loading violations instead of raising errors
-  config.active_record.action_on_strict_loading_violation = :log
-
   config.force_ssl = true
   # We redirect at the apache layer; no reason to do it twice
   # We have historically not set hsts for subdomains, and don't want to increase the possibility of breakage
