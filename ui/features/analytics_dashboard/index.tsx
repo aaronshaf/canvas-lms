@@ -24,8 +24,7 @@ ready(() => {
   // @ts-expect-error - untyped remote module
   import('analyticsdashboard/Dashboard')
     .then(module => {
-      // The remote exposes a default `mount(el)` function (returns an unmount fn).
-      module.default(mountPoint)
+      module.mount(mountPoint)
     })
     .catch((error: Error) => {
       console.error('Failed to load analytics dashboard', error)
