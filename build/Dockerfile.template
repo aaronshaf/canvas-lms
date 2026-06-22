@@ -83,6 +83,11 @@ USER docker
 RUN set -eux; \
   mkdir -p \
     <%= docker_compose_volume_paths.join(" \\\n    ") %>
+RUN printf '%s\n' \
+    '@instructure:registry=https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/' \
+    '//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/:_authToken=${ARTIFACTORY_TOKEN}' \
+    '//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/:always-auth=true' \
+    > /home/docker/.npmrc
 <% end -%>
 <% if production? -%>
 COPY --chown=docker:docker . /usr/src/app

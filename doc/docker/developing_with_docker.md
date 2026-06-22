@@ -71,6 +71,22 @@ You can just copy them to
 $ cp docker-compose/config/*.yml config/
 ```
 
+### Artifactory token for private @instructure packages
+
+Some `@instructure/*` packages in `yarn.lock` are published only to the private
+Artifactory mirror (`virtual-npm-internal`), not to public npm, so `yarn install`
+needs a read token to fetch them. The dev image writes the registry config to
+`$HOME/.npmrc` with the token interpolated from `$ARTIFACTORY_TOKEN` at runtime,
+so add it to your (git-ignored) `.env` before building:
+
+```
+echo "ARTIFACTORY_TOKEN=<your-artifactory-read-token>" >> .env
+```
+
+Generate a token from the Artifactory UI (Edit Profile → Generate an Identity
+Token). Without it, `yarn install` will `401` on the private `@instructure`
+packages. The token is never baked into the image or committed.
+
 Now you're ready to build all of the containers. This will take a while as a lot is going on here.
 
 - Images are downloaded and built

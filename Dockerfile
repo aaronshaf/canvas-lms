@@ -87,3 +87,8 @@ RUN set -eux; \
     /home/docker/.bundle/ \
     /home/docker/.cache/yarn \
     /home/docker/.gem/
+RUN printf '%s\n' \
+    '@instructure:registry=https://instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/' \
+    '//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/:_authToken=${ARTIFACTORY_TOKEN}' \
+    '//instructure.jfrog.io/artifactory/api/npm/virtual-npm-internal/:always-auth=true' \
+    > /home/docker/.npmrc

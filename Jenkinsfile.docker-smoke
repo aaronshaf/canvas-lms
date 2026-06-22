@@ -41,8 +41,10 @@ pipeline {
       steps {
         // always pull from gerrit refspec to test the changed docker dev code
         checkoutFromGit(gerritProjectUrl('canvas-lms'), refspec: env.GERRIT_REFSPEC, depth: 1)
-        sh '''#!/bin/bash
-        cat <<EOF > docker-compose.local.jenkins.yml
+        script {
+          credentials.withArtifactoryCredentials {
+            sh '''#!/bin/bash
+            cat <<EOF > docker-compose.local.jenkins.yml
 version: '2.3'
 services:
     web:
@@ -51,8 +53,11 @@ services:
         CANVAS_LMS_ADMIN_PASSWORD: iamjenkins
         CANVAS_LMS_STATS_COLLECTION: opt_out
         CANVAS_LMS_ACCOUNT_NAME: 'School of Butters'
+        ARTIFACTORY_TOKEN: "$ARTIFACTORY_READONLY_API_KEY"
 EOF
-        '''
+            '''
+          }
+        }
       }
     }
 
