@@ -41,7 +41,6 @@ import {useQuery} from '@apollo/client'
 import {RECIPIENTS_OBSERVERS_QUERY, INBOX_SETTINGS_QUERY} from '../../../graphql/Queries'
 import {TranslationContext, useTranslationContextState} from '../../hooks/useTranslationContext'
 import {useFetchAllPages} from '@canvas/apollo-v3/hooks/useFetchAllPages'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('conversations_2')
 
@@ -379,11 +378,10 @@ const ComposeModalContainer = props => {
   }
 
   const sendMessage = async () => {
-    const sanitizedBody = String(sanitizeHTML(body))
     if (isSubmissionCommentsType) {
       await props.createSubmissionComment({
         variables: {
-          body: sanitizedBody,
+          body,
         },
       })
     } else if (props.isReply) {
@@ -391,7 +389,7 @@ const ComposeModalContainer = props => {
         variables: {
           // @ts-expect-error TS2339 (typescriptify)
           attachmentIds: attachments.map(a => a.id),
-          body: sanitizedBody,
+          body,
           includedMessages: props.pastConversation?.conversationMessagesConnection.nodes.map(
             // @ts-expect-error TS7006 (typescriptify)
             c => c._id,
@@ -407,7 +405,7 @@ const ComposeModalContainer = props => {
         variables: {
           // @ts-expect-error TS2339 (typescriptify)
           attachmentIds: attachments.map(a => a.id),
-          body: sanitizedBody,
+          body,
           includedMessages: props.pastConversation?.conversationMessagesConnection.nodes.map(
             // @ts-expect-error TS7006 (typescriptify)
             c => c._id,
@@ -434,7 +432,7 @@ const ComposeModalContainer = props => {
           // @ts-expect-error TS2339 (typescriptify)
           attachmentIds: attachments.map(a => a.id),
           bulkMessage: hideIndividualMessageCheckbox ? true : sendIndividualMessages,
-          body: sanitizedBody,
+          body,
           // @ts-expect-error TS2339 (typescriptify)
           contextCode: selectedContext?.contextID || ENV?.CONVERSATIONS?.ACCOUNT_CONTEXT_CODE,
           // @ts-expect-error TS7006 (typescriptify)
