@@ -18,10 +18,17 @@
 
 import React from 'react'
 import {render, fireEvent, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import CreateDSRModal from '../CreateDSRModal'
-import axios from '@canvas/axios'
 
-vi.mock('@canvas/axios')
+const DSR_URL = '*/api/v1/accounts/123/users/1/dsr_request'
+
+const server = setupServer(http.get(DSR_URL, () => new HttpResponse(null, {status: 204})))
+
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const mockUser = {
   id: '1',
@@ -54,8 +61,6 @@ describe('CreateDSRModal', () => {
     )
 
   it("uses the user's name in the default report name", () => {
-    axios.get.mockResolvedValueOnce({status: 204, data: {}})
-
     const {getByTitle, getByTestId} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
 
@@ -64,8 +69,6 @@ describe('CreateDSRModal', () => {
   })
 
   it('should not show latest request if there is none', async () => {
-    axios.get.mockResolvedValueOnce({status: 204, data: {}})
-
     const {queryByText, getByTitle} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
 
@@ -75,14 +78,15 @@ describe('CreateDSRModal', () => {
   })
 
   it('should fetch the latest DSR request on modal open', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        request_name: 'Latest Request',
-        progress_status: 'completed',
-        download_url: 'http://download',
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          request_name: 'Latest Request',
+          progress_status: 'completed',
+          download_url: 'http://download',
+        }),
+      ),
+    )
 
     const {getByText, getByTitle} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
@@ -92,13 +96,14 @@ describe('CreateDSRModal', () => {
   })
 
   it('should not have a download link and show the status when pending', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        request_name: 'Latest Request',
-        progress_status: 'running',
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          request_name: 'Latest Request',
+          progress_status: 'running',
+        }),
+      ),
+    )
 
     const {getByText, queryByText, getByTitle} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
@@ -112,13 +117,14 @@ describe('CreateDSRModal', () => {
   })
 
   it('should not have a download link and show the status when failed', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        request_name: 'Latest Request',
-        progress_status: 'failed',
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          request_name: 'Latest Request',
+          progress_status: 'failed',
+        }),
+      ),
+    )
 
     const {getByText, queryByText, getByTitle} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
@@ -132,12 +138,13 @@ describe('CreateDSRModal', () => {
   })
 
   it('blocks creation when the previous report is still running', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        progress_status: 'running',
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          progress_status: 'running',
+        }),
+      ),
+    )
 
     const {getByTitle, getByTestId, getByText} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
@@ -147,13 +154,14 @@ describe('CreateDSRModal', () => {
   })
 
   it('blocks creation when the previous report has not expired', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        progress_status: 'completed',
-        expires_at: futureDate().toISOString(),
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          progress_status: 'completed',
+          expires_at: futureDate().toISOString(),
+        }),
+      ),
+    )
 
     const {getByTitle, getByTestId, getByText} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
@@ -163,13 +171,14 @@ describe('CreateDSRModal', () => {
   })
 
   it('does not block creation if the previous report is not running nor expired', async () => {
-    axios.get.mockResolvedValueOnce({
-      status: 200,
-      data: {
-        progress_status: 'completed',
-        expires_at: pastDate().toISOString(),
-      },
-    })
+    server.use(
+      http.get(DSR_URL, () =>
+        HttpResponse.json({
+          progress_status: 'completed',
+          expires_at: pastDate().toISOString(),
+        }),
+      ),
+    )
 
     const {getByTitle, getByTestId} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))

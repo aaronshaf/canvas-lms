@@ -18,23 +18,21 @@
 
 import React from 'react'
 import {render} from '@testing-library/react'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import RubricManagement from '../RubricManagement'
+
+const server = setupServer(
+  http.get('*/api/v1/accounts/1/outcome_proficiency', () => new HttpResponse(null, {status: 404})),
+)
+
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const defaultProps = (props = {}) => ({accountId: '1', ...props})
 
 describe('RubricManagement', () => {
-  let getSpy
-
-  beforeEach(() => {
-    const err = Object.assign(new Error(), {response: {status: 404}})
-    getSpy = vi.spyOn(axios, 'get').mockImplementation(() => Promise.reject(err))
-  })
-
-  afterEach(() => {
-    getSpy.mockRestore()
-  })
-
   it('renders the RubricManagement component', () => {
     const wrapper = render(<RubricManagement {...defaultProps()} />)
     expect(wrapper.getByText('Account Rubrics')).toBeInTheDocument()

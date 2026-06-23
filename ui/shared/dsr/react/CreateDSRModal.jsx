@@ -30,7 +30,7 @@ import {Tooltip} from '@instructure/ui-tooltip'
 
 import update from 'immutability-helper'
 import {get, isEmpty} from 'es-toolkit/compat'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {datetimeString} from '@canvas/datetime/date-functions'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -114,18 +114,16 @@ export default class CreateDSRModal extends React.Component {
 
   fetchDsrRequest = () => {
     const url = `/api/v1/accounts/${this.props.accountId}/users/${this.props.user.id}/dsr_request`
-    axios.get(url).then(
-      response => {
+    doFetchApi({path: url})
+      .then(({json, response}) => {
         // if response is not no content, then we have a request
         if (response.status !== 204) {
-          const dsrRequest = response.data
-          this.setState(update(this.state, {latestRequest: {$set: dsrRequest}}))
+          this.setState(update(this.state, {latestRequest: {$set: json}}))
         }
-      },
-      () => {
+      })
+      .catch(() => {
         // do nothing
-      },
-    )
+      })
   }
 
   onChange = (field, value) => {
@@ -153,9 +151,9 @@ export default class CreateDSRModal extends React.Component {
     const url = `/api/v1/accounts/${this.props.accountId}/users/${this.props.user.id}/dsr_request`
     const method = 'POST'
 
-    axios({url, method, data: this.state.data}).then(
-      response => {
-        const dsr_request = response.data
+    doFetchApi({path: url, method, body: this.state.data})
+      .then(({json}) => {
+        const dsr_request = json
         const request_name = dsr_request.request_name
         $.flashMessage(
           I18n.t(
@@ -165,17 +163,16 @@ export default class CreateDSRModal extends React.Component {
         )
 
         this.close()
-        if (this.props.afterSave) this.props.afterSave(response)
-      },
-      () => {
+        if (this.props.afterSave) this.props.afterSave({data: json})
+      })
+      .catch(() => {
         $.flashError(I18n.t('Something went wrong creating the DSR request.'))
         this.setState({
           errors: {
             request_name: [I18n.t('Invalid request name')],
           },
         })
-      },
-    )
+      })
   }
 
   renderPreviousReportStatus = () => {
