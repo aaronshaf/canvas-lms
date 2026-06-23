@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {encodeQueryString} from '@instructure/query-string-encoding'
 import makePromisePool from '@canvas/make-promise-pool'
@@ -43,7 +42,12 @@ export function getAnnouncements(
   }
 
   const queryString = encodeQueryString(params)
-  return axios.get(`/api/v1/${contextType}s/${contextId}/discussion_topics?${queryString}`)
+  return doFetchApi({
+    path: `/api/v1/${contextType}s/${contextId}/discussion_topics?${queryString}`,
+  }).then(({json, response}) => ({
+    data: json,
+    headers: {link: response.headers.get('link')},
+  }))
 }
 
 export function lockAnnouncements({contextType, contextId}, announcements, locked = true) {

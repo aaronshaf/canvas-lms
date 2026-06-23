@@ -21,7 +21,7 @@ import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
 import {Button} from '@instructure/ui-buttons'
 import {IconAlertsSolid} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const I18n = createI18nScope('grade_summary')
 type ClearBadgeCountsButtonProps = {
@@ -37,12 +37,12 @@ function ClearBadgeCountsButton({courseId, userId}: ClearBadgeCountsButtonProps)
     setInteraction('disabled')
     const url = `/api/v1/courses/${courseId}/submissions/${userId}/clear_unread`
     try {
-      const res = await axios.put(url)
-      if (res.status === 204) {
+      const {response} = await doFetchApi({path: url, method: 'PUT'})
+      if (response.status === 204) {
         const successMessage = 'Badge counts cleared!'
         showFlashSuccess(successMessage)()
       } else {
-        throw new Error(`Request failed with status code ${res.status}`)
+        throw new Error(`Request failed with status code ${response.status}`)
       }
     } catch (e) {
       const errorMessage = 'Error clearing badge counts.'

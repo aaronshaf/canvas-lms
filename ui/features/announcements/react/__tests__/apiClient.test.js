@@ -28,6 +28,40 @@ afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 describe('apiClient', () => {
+  describe('getAnnouncements', () => {
+    const announcementsCtx = {
+      contextType: 'course',
+      contextId: '1',
+      announcements: {currentPage: 1},
+      announcementsSearch: {term: '', filter: ''},
+    }
+
+    it('returns {data, headers} with announcements list', async () => {
+      const announcements = [{id: 1}, {id: 2}]
+      server.use(
+        http.get('/api/v1/courses/1/discussion_topics', ({request}) => {
+          const url = new URL(request.url)
+          expect(url.searchParams.get('only_announcements')).toBe('true')
+          return HttpResponse.json(announcements, {
+            headers: {link: '<https://example.com>; rel="next"'},
+          })
+        }),
+      )
+      const result = await apiClient.getAnnouncements(announcementsCtx, {page: 1})
+      expect(result.data).toEqual(announcements)
+      expect(result.headers.link).toBe('<https://example.com>; rel="next"')
+    })
+
+    it('rejects on non-2xx response', async () => {
+      server.use(
+        http.get('/api/v1/courses/1/discussion_topics', () => {
+          return new HttpResponse(null, {status: 500})
+        }),
+      )
+      await expect(apiClient.getAnnouncements(announcementsCtx, {page: 1})).rejects.toThrow()
+    })
+  })
+
   describe('lockAnnouncements', () => {
     it('sends PUT with locked=true for each announcement id', async () => {
       const captured = {}
