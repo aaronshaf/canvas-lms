@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe CoursePacesController do
+describe CoursePacesController, type: :request do
   let(:valid_update_params) do
     {
       hard_end_dates: true,
-      end_date: 1.year.from_now.strftime("%Y-%m-%d"),
+      end_date: 1.year.from_now.to_date.to_s,
       workflow_state: "active",
       course_pace_module_items_attributes: [
         {
@@ -77,7 +77,7 @@ describe CoursePacesController do
 
     @valid_params = {
       hard_end_dates: true,
-      end_date: 1.year.from_now.strftime("%Y-%m-%d"),
+      end_date: 1.year.from_now.to_date.to_s,
       workflow_state: "active",
       course_pace_module_items_attributes: [
         {
@@ -120,84 +120,92 @@ describe CoursePacesController do
       @first_student_enrollment = @course.enrollments.find_by(user_id: @student.id)
       @last_student_enrollment = @course.enroll_student(@student, enrollment_state: "active", section: @another_section, allow_multiple_enrollments: true)
       @progress = @course_pace.create_publish_progress
-      get :index, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/course_pacing"
 
       expect(response).to be_successful
-      expect(assigns[:js_bundles].flatten).to include(:course_paces)
-      js_env = controller.js_env
-      expect(js_env[:BLACKOUT_DATES]).to eq(@course.blackout_dates.as_json(include_root: false))
-      expect(js_env[:CALENDAR_EVENT_BLACKOUT_DATES]).to eq(@calendar_event_blackout_dates.as_json(include_root: false))
-      expect(js_env[:COURSE]).to match(hash_including({
-                                                        id: @course.id,
-                                                        name: @course.name,
-                                                        start_at: @course.start_at,
-                                                        end_at: @course.end_at
-                                                      }))
-      expect(js_env[:ENROLLMENTS].length).to be(1)
+      js_env = js_env_from_response(response)
+      expect(js_env["BLACKOUT_DATES"]).to match([
+                                                  hash_including(
+                                                    "event_title" => "blackout dates 1",
+                                                    "start_date" => "2021-10-03",
+                                                    "end_date" => "2021-10-03"
+                                                  )
+                                                ])
+      expect(js_env["CALENDAR_EVENT_BLACKOUT_DATES"]).to match_array([
+                                                                       hash_including("title" => "blackout dates 2"),
+                                                                       hash_including("title" => "blackout dates 3")
+                                                                     ])
+      expect(js_env["COURSE"]).to match(hash_including(
+                                          "id" => @course.id.to_s,
+                                          "name" => @course.name,
+                                          "start_at" => @course.start_at.iso8601,
+                                          "end_at" => @course.end_at
+                                        ))
+      expect(js_env["ENROLLMENTS"].length).to be(1)
       # only includes the most recent enrollment of each student
-      expect(js_env[:ENROLLMENTS]).not_to include(@first_student_enrollment.id)
-      expect(js_env[:ENROLLMENTS]).to include(@last_student_enrollment.id)
-      expect(js_env[:ENROLLMENTS][@last_student_enrollment.id]).to match(hash_including({
-                                                                                          id: @last_student_enrollment.id,
-                                                                                          user_id: @student.id,
-                                                                                          course_id: @course.id,
-                                                                                          full_name: @student.name,
-                                                                                          sortable_name: @student.sortable_name
-                                                                                        }))
-      expect(js_env[:SECTIONS].length).to be(2)
-      expect(js_env[:SECTIONS][@section.id]).to match(hash_including({
-                                                                       id: @section.id,
-                                                                       course_id: @course.id,
-                                                                       name: @section.name,
-                                                                       start_at: @section.start_at,
-                                                                       end_at: @section.end_at
-                                                                     }))
-      expect(js_env[:SECTIONS][@another_section.id]).to match(hash_including({
-                                                                               id: @another_section.id,
-                                                                               course_id: @course.id,
-                                                                               name: @another_section.name,
-                                                                               start_at: @another_section.start_at,
-                                                                               end_at: @another_section.end_at
-                                                                             }))
-      expect(js_env[:COURSE_PACE]).to match(hash_including({
-                                                             id: @course_pace.id,
-                                                             course_id: @course.id,
-                                                             course_section_id: nil,
-                                                             user_id: nil,
-                                                             workflow_state: "active",
-                                                             hard_end_dates: true,
-                                                             context_id: @course.id,
-                                                             context_type: "Course"
-                                                           }))
-      expect(js_env[:COURSE_PACE][:modules].length).to be(2)
-      expect(js_env[:COURSE_PACE][:modules][0][:items].length).to be(1)
-      expect(js_env[:COURSE_PACE][:modules][1][:items].length).to be(2)
-      expect(js_env[:COURSE_PACE][:modules][1][:items][1]).to match(hash_including({
-                                                                                     assignment_title: @a3.title,
-                                                                                     module_item_type: "Assignment",
-                                                                                     duration: 4
-                                                                                   }))
+      expect(js_env["ENROLLMENTS"]).not_to include(@first_student_enrollment.id.to_s)
+      expect(js_env["ENROLLMENTS"]).to include(@last_student_enrollment.id.to_s)
+      expect(js_env["ENROLLMENTS"][@last_student_enrollment.id.to_s]).to match(hash_including(
+                                                                                 "id" => @last_student_enrollment.id.to_s,
+                                                                                 "user_id" => @student.id.to_s,
+                                                                                 "course_id" => @course.id.to_s,
+                                                                                 "full_name" => @student.name,
+                                                                                 "sortable_name" => @student.sortable_name
+                                                                               ))
+      expect(js_env["SECTIONS"].length).to be(2)
+      expect(js_env["SECTIONS"][@section.id.to_s]).to match(hash_including(
+                                                              "id" => @section.id.to_s,
+                                                              "course_id" => @course.id.to_s,
+                                                              "name" => @section.name,
+                                                              "start_at" => @section.start_at,
+                                                              "end_at" => @section.end_at
+                                                            ))
+      expect(js_env["SECTIONS"][@another_section.id.to_s]).to match(hash_including(
+                                                                      "id" => @another_section.id.to_s,
+                                                                      "course_id" => @course.id.to_s,
+                                                                      "name" => @another_section.name,
+                                                                      "start_at" => @another_section.start_at,
+                                                                      "end_at" => @another_section.end_at
+                                                                    ))
+      expect(js_env["COURSE_PACE"]).to match(hash_including(
+                                               "id" => @course_pace.id.to_s,
+                                               "course_id" => @course.id.to_s,
+                                               "course_section_id" => nil,
+                                               "user_id" => nil,
+                                               "workflow_state" => "active",
+                                               "hard_end_dates" => true,
+                                               "context_id" => @course.id.to_s,
+                                               "context_type" => "Course"
+                                             ))
+      expect(js_env["COURSE_PACE"]["modules"].length).to be(2)
+      expect(js_env["COURSE_PACE"]["modules"][0]["items"].length).to be(1)
+      expect(js_env["COURSE_PACE"]["modules"][1]["items"].length).to be(2)
+      expect(js_env["COURSE_PACE"]["modules"][1]["items"][1]).to match(hash_including(
+                                                                         "assignment_title" => @a3.title,
+                                                                         "module_item_type" => "Assignment",
+                                                                         "duration" => 4
+                                                                       ))
 
-      expect(js_env[:COURSE_PACE_PROGRESS]).to match(hash_including({
-                                                                      id: @progress.id,
-                                                                      context_id: @progress.context_id,
-                                                                      context_type: "CoursePace",
-                                                                      tag: "course_pace_publish",
-                                                                      workflow_state: "queued"
-                                                                    }))
+      expect(js_env["COURSE_PACE_PROGRESS"]).to match(hash_including(
+                                                        "id" => @progress.id.to_s,
+                                                        "context_id" => @progress.context_id.to_s,
+                                                        "context_type" => "CoursePace",
+                                                        "tag" => "course_pace_publish",
+                                                        "workflow_state" => "queued"
+                                                      ))
     end
 
     it "includes or excludes CONDITIONAL_RELEASE_ENV based on Mastery Paths setting" do
       [true, false].each do |enabled|
         @course.update!(conditional_release: enabled)
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/course_pacing"
 
-        js_env = controller.js_env
+        js_env = js_env_from_response(response)
 
         if enabled
-          expect(js_env).to have_key(:CONDITIONAL_RELEASE_ENV)
+          expect(js_env).to have_key("CONDITIONAL_RELEASE_ENV")
         else
-          expect(js_env).not_to have_key(:CONDITIONAL_RELEASE_ENV)
+          expect(js_env).not_to have_key("CONDITIONAL_RELEASE_ENV")
         end
       end
     end
@@ -206,10 +214,10 @@ describe CoursePacesController do
       @course_pace.update(user_id: @student)
       expect(@course.course_paces.count).to eq(1)
       expect(@course.course_paces.primary).to be_empty
-      get :index, params: { course_id: @course.id }
-      course_pace = @controller.instance_variable_get(:@course_pace)
+      get "/courses/#{@course.id}/course_pacing"
+      course_pace = js_env_from_response(response)["COURSE_PACE"]
       expect(course_pace).not_to be_nil
-      expect(course_pace.course_pace_module_items.size).to eq(3)
+      expect(course_pace["modules"].sum { |mod| mod["items"].size }).to eq(3)
       expect(@course.course_paces.count).to eq(1)
       expect(@course.course_paces.primary.count).to eq(0)
     end
@@ -218,13 +226,13 @@ describe CoursePacesController do
       @course.enable_course_paces = false
       @course.save!
       assert_page_not_found do
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/course_pacing"
       end
     end
 
     it "responds with forbidden if the user doesn't have authorization" do
       user_session(@student)
-      get :index, params: { course_id: @course.id }
+      get "/courses/#{@course.id}/course_pacing"
       assert_unauthorized
     end
 
@@ -253,11 +261,11 @@ describe CoursePacesController do
 
         user_session(@teacher1)
 
-        get :index, params: { course_id: @course1.id }
+        get "/courses/#{@course1.id}/course_pacing"
         expect(response).to be_successful
 
-        js_env = controller.js_env
-        expect(js_env[:PACES_PUBLISHING].length).to eq(1)
+        js_env = js_env_from_response(response)
+        expect(js_env["PACES_PUBLISHING"].length).to eq(1)
       end
 
       it "does not return duplicate paces publishing for the same pace context" do
@@ -268,11 +276,11 @@ describe CoursePacesController do
 
         user_session(@teacher1)
 
-        get :index, params: { course_id: @course1.id }
+        get "/courses/#{@course1.id}/course_pacing"
         expect(response).to be_successful
 
-        js_env = controller.js_env
-        expect(js_env[:PACES_PUBLISHING].length).to eq(2)
+        js_env = js_env_from_response(response)
+        expect(js_env["PACES_PUBLISHING"].length).to eq(2)
       end
 
       it "removes the progress if the enrollment is no longer active" do
@@ -288,11 +296,11 @@ describe CoursePacesController do
         expect(Progress.all).to include(student_pace_progress)
         user_session(@teacher1)
 
-        get :index, params: { course_id: @course1.id }
+        get "/courses/#{@course1.id}/course_pacing"
         expect(response).to be_successful
 
-        js_env = controller.js_env
-        expect(js_env[:PACES_PUBLISHING].length).to eq(1)
+        js_env = js_env_from_response(response)
+        expect(js_env["PACES_PUBLISHING"].length).to eq(1)
         expect(Progress.where(tag: "course_pace_publish").count).to eq(1)
         expect(Progress.all).not_to include(student_pace_progress)
       end
@@ -304,7 +312,7 @@ describe CoursePacesController do
         delayed_job = progress.delayed_job
         progress.update!(delayed_job_id: nil)
         delayed_job.destroy
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/course_pacing"
         expect(response).to be_successful
         expect(Progress.last.id).to eq(progress.id)
         progress.reload
@@ -315,7 +323,7 @@ describe CoursePacesController do
       it "creates a new progress and job if the delayed_job is missing" do
         progress = @course_pace.create_publish_progress
         progress.delayed_job.destroy
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/course_pacing"
         expect(response).to be_successful
         expect(progress.reload.failed?).to be_truthy
         new_progress = Progress.last
@@ -328,7 +336,7 @@ describe CoursePacesController do
         progress = @course_pace.create_publish_progress
         delayed_job = progress.delayed_job
         original_run_at = delayed_job.run_at
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/course_pacing"
         expect(response).to be_successful
         expect(delayed_job.reload.run_at).to be < original_run_at
       end
@@ -337,7 +345,7 @@ describe CoursePacesController do
 
   describe "GET #api_show" do
     it "renders the specified course pace" do
-      get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+      get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
       expect(response).to be_successful
       expect(response.parsed_body["course_pace"]["id"]).to eq(@course_pace.id)
     end
@@ -346,7 +354,7 @@ describe CoursePacesController do
       Progress.create!(context: @course_pace, tag: "course_pace_publish", workflow_state: "failed")
       Progress.create!(context: @course_pace, tag: "course_pace_publish", workflow_state: "running")
 
-      get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+      get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
       expect(response).to be_successful
       expect(response.parsed_body["progress"]["workflow_state"]).to eq("running")
     end
@@ -355,7 +363,7 @@ describe CoursePacesController do
       Progress.create!(context: @course_pace, tag: "course_pace_publish", workflow_state: "failed")
       Progress.create!(context: @course_pace, tag: "course_pace_publish", workflow_state: "completed")
 
-      get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+      get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
       expect(response).to be_successful
       expect(response.parsed_body["progress"]).to be_nil
     end
@@ -369,13 +377,13 @@ describe CoursePacesController do
         a = @course.assignments.create! name: "Del this assn", workflow_state: "active"
         @mod1.add_item id: a.id, type: "assignment"
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this assn" }).to be_truthy
 
         a.destroy!
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this assn" }).to be_falsey
       end
@@ -386,13 +394,13 @@ describe CoursePacesController do
         q.save!
         @mod1.add_item(type: "quiz", id: q.id)
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this quiz" }).to be_truthy
 
         q.destroy!
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this quiz" }).to be_falsey
       end
@@ -403,13 +411,13 @@ describe CoursePacesController do
         d.publish
         @mod1.add_item id: d.id, type: "DiscussionTopic"
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this disc" }).to be_truthy
 
         d.destroy!
 
-        get :api_show, params: { course_id: @course.id, id: @course_pace.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
         pace = response.parsed_body["course_pace"]
         expect(pace["modules"][0]["items"].any? { |item| item["assignment_title"] == "Del this disc" }).to be_falsey
       end
@@ -447,7 +455,7 @@ describe CoursePacesController do
         @course.root_account.enable_feature!(:course_paces_skip_selected_days)
         update_params[:selected_days_to_skip] = SELECTED_DAYS_TO_SKIP
 
-        put :update, params: { course_id: @course.id, id: @course_pace.id, course_pace: update_params }
+        put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}", params: { course_pace: update_params }
       end
 
       it_behaves_like "successful update"
@@ -462,7 +470,7 @@ describe CoursePacesController do
         @course.root_account.disable_feature!(:course_paces_skip_selected_days)
         update_params[:exclude_weekends] = false
 
-        put :update, params: { course_id: @course.id, id: @course_pace.id, course_pace: update_params }
+        put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}", params: { course_pace: update_params }
       end
 
       it_behaves_like "successful update"
@@ -475,7 +483,7 @@ describe CoursePacesController do
     it "overrides to active workflow_state and publishes, when passing unpublished workflow_state to an already published pace" do
       @course.root_account.enable_feature!(:course_pace_draft_state)
 
-      put :update, params: { course_id: @course.id, id: @course_pace.id, course_pace: valid_update_params.merge(workflow_state: "unpublished") }
+      put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}", params: { course_pace: valid_update_params.merge(workflow_state: "unpublished") }
       expect(response).to be_successful
       response_body = response.parsed_body
       expect(response_body["course_pace"]["workflow_state"]).to eq("active")
@@ -495,9 +503,7 @@ describe CoursePacesController do
       end
 
       it "updates the pace without queuing a publish job" do
-        put :update, params: {
-          course_id: @course.id,
-          id: @course_pace_draft.id,
+        put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace_draft.id}", params: {
           course_pace: valid_update_params.merge(workflow_state: "unpublished", course_section_id: @new_section.id)
         }
         expect(response).to be_successful
@@ -513,9 +519,7 @@ describe CoursePacesController do
       end
 
       it "updates the pace a second time without queuing a publish job" do
-        put :update, params: {
-          course_id: @course.id,
-          id: @course_pace_draft.id,
+        put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace_draft.id}", params: {
           course_pace: valid_update_params.merge(
             workflow_state: "unpublished",
             hard_end_dates: false,
@@ -535,9 +539,7 @@ describe CoursePacesController do
       end
 
       it "updates the pace a final time and queues a publish job" do
-        put :update, params: {
-          course_id: @course.id,
-          id: @course_pace_draft.id,
+        put "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace_draft.id}", params: {
           course_pace: valid_update_params.merge(
             course_section_id: @new_section.id,
             workflow_state: "active"
@@ -603,7 +605,7 @@ describe CoursePacesController do
       before do
         @course.root_account.enable_feature!(:course_paces_skip_selected_days)
         create_params[:selected_days_to_skip] = SELECTED_DAYS_TO_SKIP
-        post :create, params: { course_id: @course.id, course_pace: create_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing", params: { course_pace: create_params }
       end
 
       it_behaves_like "successful create"
@@ -618,7 +620,7 @@ describe CoursePacesController do
       before do
         @course.root_account.disable_feature!(:course_paces_skip_selected_days)
         create_params[:exclude_weekends] = false
-        post :create, params: { course_id: @course.id, course_pace: create_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing", params: { course_pace: create_params }
       end
 
       it_behaves_like "successful create"
@@ -630,7 +632,7 @@ describe CoursePacesController do
     end
 
     it "creates and publishes the CoursePace when course_pace_draft_state feature flag is disabled and workflow_state=unpublished" do
-      post :create, params: { course_id: @course.id, course_pace: create_params.merge(workflow_state: "unpublished") }
+      post "/api/v1/courses/#{@course.id}/course_pacing", params: { course_pace: create_params.merge(workflow_state: "unpublished") }
       expect(response).to be_successful
 
       course_pace = CoursePace.last
@@ -646,7 +648,7 @@ describe CoursePacesController do
     it "ignores mass-assigned course_id in the payload" do
       foreign_course = Course.create!(account: @course.account, name: "stranger")
       payload = create_params.merge(course_id: foreign_course.id)
-      post :create, params: { course_id: @course.id, course_pace: payload }
+      post "/api/v1/courses/#{@course.id}/course_pacing", params: { course_pace: payload }
       expect(response).to be_successful
       expect(CoursePace.last.course_id).to eq(@course.id)
     end
@@ -657,7 +659,7 @@ describe CoursePacesController do
       end
 
       it "creates the pace without queueing a publishing job" do
-        post :create, params: { course_id: @course.id, course_pace: create_params.merge(workflow_state: "unpublished") }
+        post "/api/v1/courses/#{@course.id}/course_pacing", params: { course_pace: create_params.merge(workflow_state: "unpublished") }
         expect(response).to be_successful
 
         response_body = response.parsed_body
@@ -680,7 +682,7 @@ describe CoursePacesController do
 
     context "course" do
       it "returns a created course pace if one already exists" do
-        get :new, params: { course_id: @course.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new"
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to eq(@course_pace.id)
         expect(response.parsed_body["course_pace"]["published_at"]).not_to be_nil
@@ -689,7 +691,7 @@ describe CoursePacesController do
       it "returns a published course pace if one already exists" do
         published_course_pace = @course_pace
         course_pace_model(course: @course, workflow_state: "unpublished", published_at: nil)
-        get :new, params: { course_id: @course.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new"
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to eq(published_course_pace.id)
         expect(response.parsed_body["course_pace"]["published_at"]).not_to be_nil
@@ -700,7 +702,7 @@ describe CoursePacesController do
         p = @course.wiki_pages.create! title: "P1", workflow_state: "active"
         @mod2.add_item id: p.id, type: "page"
 
-        get :new, params: { course_id: @course.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new"
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["modules"].second["items"].count).to eq(2)
       end
@@ -708,7 +710,7 @@ describe CoursePacesController do
       it "returns an instantiated course pace if one is not already available" do
         @course_pace.destroy
         expect(@course.course_paces.not_deleted.count).to eq(0)
-        get :new, params: { course_id: @course.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new"
         expect(response).to be_successful
         expect(@course.course_paces.not_deleted.count).to eq(0)
         json_response = response.parsed_body
@@ -731,7 +733,7 @@ describe CoursePacesController do
         progress = @course_pace.create_publish_progress
         delayed_job = progress.delayed_job
         original_run_at = delayed_job.run_at
-        get :new, params: { course_id: @course.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new"
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response["progress"]["workflow_state"]).to eq "queued"
@@ -742,7 +744,7 @@ describe CoursePacesController do
 
     context "course_section" do
       it "returns a draft course pace" do
-        get :new, params: { course_id: @course.id, course_section_id: @course_section.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { course_section_id: @course_section.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to be_nil
         expect(response.parsed_body["course_pace"]["published_at"]).to be_nil
@@ -751,7 +753,7 @@ describe CoursePacesController do
       it "returns a published section pace if one already exists" do
         section_pace_model(section: @course_section, workflow_state: "unpublished", published_at: nil)
         publised_section_pace = section_pace_model(section: @course_section)
-        get :new, params: { course_id: @course.id, course_section_id: @course_section.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { course_section_id: @course_section.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to eq(publised_section_pace.id)
         expect(response.parsed_body["course_pace"]["published_at"]).not_to be_nil
@@ -762,14 +764,14 @@ describe CoursePacesController do
         p = @course.wiki_pages.create! title: "P1", workflow_state: "active"
         @mod2.add_item id: p.id, type: "page"
 
-        get :new, params: { course_id: @course.id, course_section_id: @course_section.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { course_section_id: @course_section.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["modules"].second["items"].count).to eq(2)
       end
 
       it "returns an instantiated course pace if one is not already available" do
         expect(@course.course_paces.unpublished.for_section(@course_section).count).to eq(0)
-        get :new, params: { course_id: @course.id, course_section_id: @course_section.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { course_section_id: @course_section.id }
         expect(response).to be_successful
         expect(@course.course_paces.unpublished.for_section(@course_section).count).to eq(0)
         json_response = response.parsed_body
@@ -792,7 +794,7 @@ describe CoursePacesController do
 
     context "enrollment" do
       it "returns a draft course pace" do
-        get :new, params: { course_id: @course.id, enrollment_id: @student_enrollment.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: @student_enrollment.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to be_nil
         expect(response.parsed_body["course_pace"]["published_at"]).to be_nil
@@ -802,7 +804,7 @@ describe CoursePacesController do
       it "returns a published student pace if one already exists" do
         student_enrollment_pace_model(student_enrollment: @student_enrollment, workflow_state: "unpublished", published_at: nil)
         publised_section_pace = student_enrollment_pace_model(student_enrollment: @student_enrollment)
-        get :new, params: { course_id: @course.id, enrollment_id: @student_enrollment.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: @student_enrollment.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["id"]).to eq(publised_section_pace.id)
         expect(response.parsed_body["course_pace"]["published_at"]).not_to be_nil
@@ -813,7 +815,7 @@ describe CoursePacesController do
         p = @course.wiki_pages.create! title: "P1", workflow_state: "active"
         @mod2.add_item id: p.id, type: "page"
 
-        get :new, params: { course_id: @course.id, enrollment_id: @course.student_enrollments.first.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: @course.student_enrollments.first.id }
         expect(response).to be_successful
         expect(response.parsed_body["course_pace"]["modules"].second["items"].count).to eq(2)
       end
@@ -823,7 +825,7 @@ describe CoursePacesController do
         @course_section.enrollments << @student_enrollment
         course_section_pace = course_pace_model(course: @course, course_section: @course_section)
         course_section_pace.publish
-        get :new, params: { course_id: @course.id, enrollment_id: @student_enrollment.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: @student_enrollment.id }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response["course_pace"]["id"]).to be_nil
@@ -844,7 +846,7 @@ describe CoursePacesController do
 
       it "returns an instantiated course pace if one is not already available" do
         expect(@course.course_paces.unpublished.for_user(@student).count).to eq(0)
-        get :new, params: { course_id: @course.id, enrollment_id: @student_enrollment.id }
+        get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: @student_enrollment.id }
         expect(response).to be_successful
         expect(@course.course_paces.unpublished.for_user(@student).count).to eq(0)
         json_response = response.parsed_body
@@ -876,7 +878,7 @@ describe CoursePacesController do
         it "still creates the individual pace" do
           @course_pace.update!(hard_end_dates: false)
           enrollment = course_with_student(course: @course, user: @student2, active_all: true)
-          get :new, params: { course_id: @course.id, enrollment_id: enrollment.id }
+          get "/api/v1/courses/#{@course.id}/course_pacing/new", params: { enrollment_id: enrollment.id }
           expect(response).to be_successful
         end
       end
@@ -885,7 +887,7 @@ describe CoursePacesController do
 
   describe "POST #publish" do
     it "starts a new background job to publish the course pace" do
-      post :publish, params: { course_id: @course.id, id: @course_pace.id }
+      post "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}/publish"
       expect(response).to be_successful
       json_response = response.parsed_body
       expect(json_response["context_type"]).to eq("CoursePace")
@@ -902,7 +904,7 @@ describe CoursePacesController do
         pace.create_publish_progress(run_at: Time.zone.now)
       end
 
-      post :publish, params: { course_id: @course.id, id: @course_pace.id }
+      post "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}/publish"
       expect(InstStatsd::Statsd).to have_received(:count).with("course_pacing.publishing.count_exceeding_limit", 6)
     end
   end
@@ -923,7 +925,7 @@ describe CoursePacesController do
       id_list.push(@student_enrollment_2[:id])
       id_list.push(@student_enrollment_3[:id])
 
-      post :bulk_create_enrollment_paces, params: { course_id: @course.id, course_pace: create_params, enrollment_ids: id_list }
+      post "/api/v1/courses/#{@course.id}/course_pacing/bulk_create_enrollment_paces", params: { course_pace: create_params, enrollment_ids: id_list }
       expect(response).to be_successful
       expect(Progress.where(tag: "bulk_assign_paces").count).to eq(1)
     end
@@ -940,8 +942,7 @@ describe CoursePacesController do
       end
 
       it "does not create paces in another course when its enrollment ids are supplied" do
-        post :bulk_create_enrollment_paces, params: {
-          course_id: @course.id,
+        post "/api/v1/courses/#{@course.id}/course_pacing/bulk_create_enrollment_paces", params: {
           course_pace: create_params,
           enrollment_ids: [@student_enrollment.id, @other_enrollment.id]
         }
@@ -951,8 +952,7 @@ describe CoursePacesController do
 
       it "does not bind paces to a course_section_id from another course" do
         foreign_section = @other_course.course_sections.first
-        post :bulk_create_enrollment_paces, params: {
-          course_id: @course.id,
+        post "/api/v1/courses/#{@course.id}/course_pacing/bulk_create_enrollment_paces", params: {
           course_pace: create_params.merge(course_section_id: foreign_section.id),
           enrollment_ids: [@student_enrollment.id]
         }
@@ -1026,7 +1026,7 @@ describe CoursePacesController do
           end_date: @course_pace.start_date + 5.days,
           selected_days_to_skip: SELECTED_DAYS_TO_SKIP
         )
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         # Work week: [:sun, :wed, :fri, :sat]
@@ -1040,7 +1040,7 @@ describe CoursePacesController do
           end_date: "2021-11-05",
           selected_days_to_skip: SELECTED_DAYS_TO_SKIP
         )
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-11-03T00:00:00Z 2021-11-05T00:00:00Z])
@@ -1048,7 +1048,7 @@ describe CoursePacesController do
 
       it "squishes proportionally and ends on the end date" do
         course_pace_params = squishes_proportionally_course_pace_params.merge(selected_days_to_skip: SELECTED_DAYS_TO_SKIP)
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         dates = json_response.values.map { |d| Date.parse(d) }
@@ -1096,7 +1096,7 @@ describe CoursePacesController do
           ]
         )
 
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-12-24T00:00:00Z 2021-12-29T00:00:00Z 2022-01-07T00:00:00Z 2022-01-12T00:00:00Z])
@@ -1106,7 +1106,7 @@ describe CoursePacesController do
         course_pace_params = @valid_params.merge(
           selected_days_to_skip: SELECTED_DAYS_TO_SKIP, start_date: "2022-01-27", end_date: nil
         )
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2022-01-29T00:00:00Z 2022-02-16T00:00:00Z])
@@ -1118,15 +1118,16 @@ describe CoursePacesController do
           selected_days_to_skip: SELECTED_DAYS_TO_SKIP,
           end_date: @course_pace.start_date + 10.days
         )
-        post :compress_dates, params: { course_id: @course.id,
-                                        course_pace: course_pace_params,
-                                        blackout_dates: [
-                                          {
-                                            event_title: "blackout dates 2",
-                                            start_date: "2021-09-30", # thurs
-                                            end_date: "2021-10-01" # fri
-                                          }
-                                        ] }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: {
+          course_pace: course_pace_params,
+          blackout_dates: [
+            {
+              event_title: "blackout dates 2",
+              start_date: "2021-09-30", # thurs
+              end_date: "2021-10-01" # fri
+            }
+          ]
+        }
         expect(response).to be_successful
         json_response = response.parsed_body
         # Work week: [:sun, :wed, :fri, :sat]
@@ -1141,7 +1142,7 @@ describe CoursePacesController do
 
       it "returns a compressed list of dates" do
         course_pace_params = @valid_params.merge(end_date: @course_pace.start_date + 5.days, exclude_weekends: false)
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-09-30T00:00:00Z 2021-10-05T00:00:00Z])
@@ -1149,7 +1150,7 @@ describe CoursePacesController do
 
       it "supports changing durations and start dates" do
         course_pace_params = @valid_params.merge(start_date: "2021-11-01", end_date: "2021-11-05")
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-11-01T00:00:00Z 2021-11-05T00:00:00Z])
@@ -1157,7 +1158,7 @@ describe CoursePacesController do
 
       it "squishes proportionally and ends on the end date" do
         course_pace_params = squishes_proportionally_course_pace_params.merge(exclude_weekends: true)
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-12-21T00:00:00Z 2021-12-27T00:00:00Z 2021-12-31T00:00:00Z])
@@ -1203,7 +1204,7 @@ describe CoursePacesController do
           ]
         )
 
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2021-12-22T00:00:00Z 2021-12-29T00:00:00Z 2022-01-06T00:00:00Z 2022-01-12T00:00:00Z])
@@ -1213,7 +1214,7 @@ describe CoursePacesController do
         course_pace_params = @valid_params.merge(
           exclude_weekends: false, start_date: "2022-01-27", end_date: nil
         )
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
         expect(json_response.values).to eq(%w[2022-01-28T00:00:00Z 2022-02-07T00:00:00Z])
@@ -1225,15 +1226,16 @@ describe CoursePacesController do
           exclude_weekends: true,
           end_date: @course_pace.start_date + 5.days
         )
-        post :compress_dates, params: { course_id: @course.id,
-                                        course_pace: course_pace_params,
-                                        blackout_dates: [
-                                          {
-                                            event_title: "blackout dates 2",
-                                            start_date: "2021-09-30", # thurs
-                                            end_date: "2021-10-01" # fri
-                                          }
-                                        ] }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: {
+          course_pace: course_pace_params,
+          blackout_dates: [
+            {
+              event_title: "blackout dates 2",
+              start_date: "2021-09-30", # thurs
+              end_date: "2021-10-01" # fri
+            }
+          ]
+        }
         expect(response).to be_successful
         json_response = response.parsed_body
         # skip the weekend, then due dates are mon and tues
@@ -1243,7 +1245,7 @@ describe CoursePacesController do
 
     it "returns an error if the start date is after the end date" do
       course_pace_params = @valid_params.merge(start_date: "2022-01-27", end_date: "2022-01-20")
-      post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+      post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
       expect(response).not_to be_successful
       json_response = response.parsed_body
       expect(json_response["errors"]).to eq("End date cannot be before start date")
@@ -1269,7 +1271,7 @@ describe CoursePacesController do
         end_date: "2021-11-06",
         course_pace_module_items_attributes:
       )
-      post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+      post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
       expect(response).to be_successful
       json_response = response.parsed_body
       expect(json_response.keys).to eq(course_pace_module_items_attributes.map { |i| i[:module_item_id].to_s })
@@ -1290,7 +1292,7 @@ describe CoursePacesController do
           end_date: "2021-11-10"
         )
 
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
 
@@ -1323,7 +1325,7 @@ describe CoursePacesController do
           ]
         )
 
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
 
@@ -1355,7 +1357,7 @@ describe CoursePacesController do
           ]
         )
 
-        post :compress_dates, params: { course_id: @course.id, course_pace: course_pace_params }
+        post "/api/v1/courses/#{@course.id}/course_pacing/compress_dates", params: { course_pace: course_pace_params }
         expect(response).to be_successful
         json_response = response.parsed_body
 
@@ -1372,13 +1374,13 @@ describe CoursePacesController do
 
   it "deletes the pace" do
     section_pace = course_pace_model(course: @course, course_section: @course_section)
-    delete :destroy, params: { course_id: @course.id, id: section_pace.id }
+    delete "/api/v1/courses/#{@course.id}/course_pacing/#{section_pace.id}"
     expect(response).to be_successful
     expect(section_pace.reload.deleted?).to be(true)
   end
 
   it "does not allow deleting the published default course pace" do
-    delete :destroy, params: { course_id: @course.id, id: @course_pace.id }
+    delete "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
     expect(response).not_to be_successful
     json_response = response.parsed_body
     expect(@course_pace.reload.deleted?).not_to be(true)
@@ -1388,7 +1390,7 @@ describe CoursePacesController do
   it "does not increment when the course pace delete api endpoint is called" do
     allow(InstStatsd::Statsd).to receive(:distributed_increment).and_call_original
 
-    delete :destroy, params: { course_id: @course.id, id: @course_pace.id }
+    delete "/api/v1/courses/#{@course.id}/course_pacing/#{@course_pace.id}"
     expect(InstStatsd::Statsd).not_to have_received(:distributed_increment).with("course_pacing.deleted_course_pace")
   end
 
@@ -1404,7 +1406,7 @@ describe CoursePacesController do
     end
 
     it "publishes the default pace if the enrollments don't have another pace" do
-      delete :destroy, params: { course_id: @course.id, id: @section_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{@section_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(@section_pace.reload.deleted?).to be(true)
@@ -1414,7 +1416,7 @@ describe CoursePacesController do
     it "does not publish the default pace if the pace was not originally published" do
       @section_pace.update(workflow_state: "unpublished")
 
-      delete :destroy, params: { course_id: @course.id, id: @section_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{@section_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(@section_pace.reload.deleted?).to be(true)
@@ -1425,7 +1427,7 @@ describe CoursePacesController do
       student_in_section(@another_section, user: @student, allow_multiple_enrollments: true)
       student_in_section(@course_section, user: @student, allow_multiple_enrollments: true)
 
-      delete :destroy, params: { course_id: @course.id, id: @section_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{@section_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(@section_pace.reload.deleted?).to be(true)
@@ -1436,7 +1438,7 @@ describe CoursePacesController do
     it "publishes the section pace if the student pace is deleted and the student is in a section with a pace" do
       student_enrollment_pace = course_pace_model(course: @course, user: @student)
 
-      delete :destroy, params: { course_id: @course.id, id: student_enrollment_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{student_enrollment_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(student_enrollment_pace.reload.deleted?).to be(true)
@@ -1448,7 +1450,7 @@ describe CoursePacesController do
       @section_pace.destroy
       student_enrollment_pace = course_pace_model(course: @course, user: @student)
 
-      delete :destroy, params: { course_id: @course.id, id: student_enrollment_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{student_enrollment_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(student_enrollment_pace.reload.deleted?).to be(true)
@@ -1461,7 +1463,7 @@ describe CoursePacesController do
       student_in_section(@course_section, user: another_student, allow_multiple_enrollments: true)
       student_in_section(@course_section, user: @student, allow_multiple_enrollments: true)
 
-      delete :destroy, params: { course_id: @course.id, id: @section_pace.id }
+      delete "/api/v1/courses/#{@course.id}/course_pacing/#{@section_pace.id}"
       expect(response).to be_successful
       run_jobs
       expect(@section_pace.reload.deleted?).to be(true)
