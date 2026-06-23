@@ -17,7 +17,7 @@
  */
 
 import React, {useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {RubricAssessmentImportTray} from './RubricAssessmentImportTray'
 import {useMutation} from '@tanstack/react-query'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
@@ -29,9 +29,8 @@ import {
 import useStore from '../stores'
 import {RubircAssessmentImportFailuresModal} from './RubricAssessmentImportFailuresModal'
 
-const I18n = createI18nScope('rubrics-import')
-
 export const RubricAssessmentImport = () => {
+  const {t} = useTranslation('rubrics-import')
   const [importFile, setImportFile] = useState<File | undefined>()
   const [currentImports, setCurrentImports] = useState<RubricAssessmentImportResponse[]>([])
   const [importErrorModalOpen, setImportErrorModalOpen] = useState(false)
@@ -69,14 +68,13 @@ export const RubricAssessmentImport = () => {
           clearInterval(intervalId)
 
           if (workflowState === 'succeeded') {
-            const successMessage = I18n.t('rubrics assessments were successfully imported')
+            const successMessage = t('rubrics assessments were successfully imported')
             showFlashSuccess(successMessage)()
           } else if (workflowState === 'succeeded_with_errors') {
             setFailedImports(prevState => [...prevState, currentImport])
             setImportErrorModalOpen(true)
           } else {
-            const errorMessage =
-              currentImport.errorData[0]?.message || I18n.t('Unknown error occurred')
+            const errorMessage = currentImport.errorData[0]?.message || t('Unknown error occurred')
             showFlashError(errorMessage)()
             setFailedImports(prevState => [...prevState, currentImport])
             setImportErrorModalOpen(true)
@@ -84,7 +82,7 @@ export const RubricAssessmentImport = () => {
         }
       } catch (_e) {
         clearInterval(intervalId)
-        showFlashError(I18n.t('Error retrieving import status'))()
+        showFlashError(t('Error retrieving import status'))()
       }
     }, 1000)
   }
@@ -105,12 +103,12 @@ export const RubricAssessmentImport = () => {
       importRubricAssessment(importFile, assignment?.courseId, assignment?.id),
     mutationKey: ['import-rubric-assessment'],
     onSuccess: async (data: RubricAssessmentImportResponse) => {
-      showFlashSuccess(I18n.t('Rubric import started. This may take a few seconds to complete.'))()
+      showFlashSuccess(t('Rubric import started. This may take a few seconds to complete.'))()
       setCurrentImports(prevState => [...prevState, data])
       checkImportStatus(data.id)
     },
     onError: () => {
-      showFlashError(I18n.t('Error Importing rubric'))()
+      showFlashError(t('Error Importing rubric'))()
     },
   })
 

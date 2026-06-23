@@ -20,9 +20,7 @@ import React from 'react'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {View} from '@instructure/ui-view'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('gradebook')
+import {useTranslation} from '@canvas/i18next'
 
 type CourseSettings = {
   allowFinalGradeOverride: boolean
@@ -37,12 +35,13 @@ export default function AdvancedTabPanel({
   courseSettings,
   onCourseSettingsChange,
 }: AdvancedTabPanelProps) {
+  const {t} = useTranslation('gradebook')
   return (
     <div id="AdvancedTabPanel__Container">
       <View as="div" margin="small">
         <Checkbox
           checked={courseSettings.allowFinalGradeOverride}
-          label={I18n.t('Allow final grade override')}
+          label={t('Allow final grade override')}
           onChange={event => {
             onCourseSettingsChange({allowFinalGradeOverride: event.target.checked})
           }}

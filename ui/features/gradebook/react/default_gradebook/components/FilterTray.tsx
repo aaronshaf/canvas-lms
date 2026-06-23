@@ -19,7 +19,7 @@
 import React, {useState} from 'react'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Tray} from '@instructure/ui-tray'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View, ContextView} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -30,8 +30,6 @@ import {doFiltersMatch} from '../Gradebook.utils'
 import type {CamelizedGradingPeriod} from '@canvas/grading/grading.d'
 import type {FilterPreset, PartialFilterPreset} from '../gradebook.d'
 import type {AssignmentGroup, Module, Section, StudentGroupCategoryMap} from '../../../../../api.d'
-
-const I18n = createI18nScope('gradebook')
 
 export type FilterTrayProps = {
   isTrayOpen: boolean
@@ -54,6 +52,7 @@ export default function FilterTray({
   sections,
   studentGroupCategories,
 }: FilterTrayProps) {
+  const {t} = useTranslation('gradebook')
   const saveStagedFilter = useStore(state => state.saveStagedFilter)
   const stagedFilterPresetName = useStore(state => state.stagedFilterPresetName)
   const updateFilterPreset = useStore(state => state.updateFilterPreset)
@@ -79,7 +78,7 @@ export default function FilterTray({
         <Flex margin="0 0 small 0">
           <Flex.Item shouldGrow={true} shouldShrink={true}>
             <Heading level="h3" as="h3" margin="0 0 x-small">
-              {I18n.t('Saved Filter Presets')}
+              {t('Saved Filter Presets')}
             </Heading>
           </Flex.Item>
           <Flex.Item>
@@ -120,9 +119,7 @@ export default function FilterTray({
                 placement="end top"
                 shadow="resting"
               >
-                {I18n.t(
-                  'Did you know you can now create filter presets and save them for future use?',
-                )}
+                {t('Did you know you can now create filter presets and save them for future use?')}
               </ContextView>
             </Flex.Item>
           </Flex>

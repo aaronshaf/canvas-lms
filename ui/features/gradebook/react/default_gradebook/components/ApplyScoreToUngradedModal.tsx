@@ -23,13 +23,11 @@ import {Modal} from '@instructure/ui-modal'
 import {RadioInput, RadioInputGroup} from '@instructure/ui-radio-input'
 import {TextInput} from '@instructure/ui-text-input'
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {bool, func, shape, string} from 'prop-types'
 import React, {useState} from 'react'
 
 import numberHelper from '@canvas/i18n/numberHelper'
-
-const I18n = createI18nScope('gradebook')
 
 const APPLY_TO_ALL = 'apply_to_all'
 const APPLY_TO_PAST_DUE = 'apply_to_only_past_due'
@@ -56,6 +54,7 @@ type Props = {
 }
 
 const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Props) => {
+  const {t} = useTranslation('gradebook')
   const [markAsMissing, setMarkAsMissing] = useState(false)
   const [artifactScope, setArtifactScope] = useState(APPLY_TO_PAST_DUE)
   const [percent, setPercent] = useState('')
@@ -66,11 +65,11 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
 
   const instructions =
     assignmentGroup != null
-      ? I18n.t(
-          'Select the score that you would like to apply to ungraded artifacts in %{groupName}. Once applied, this action cannot be undone.',
+      ? t(
+          'Select the score that you would like to apply to ungraded artifacts in {{groupName}}. Once applied, this action cannot be undone.',
           {groupName: assignmentGroup.name},
         )
-      : I18n.t(
+      : t(
           'Select the score that you would like to apply to ungraded artifacts. Once applied, this action cannot be undone.',
         )
 
@@ -86,16 +85,16 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
   }
 
   return (
-    <Modal label={I18n.t('Apply Score to Ungraded')} open={open} size="small">
+    <Modal label={t('Apply Score to Ungraded')} open={open} size="small">
       <Modal.Header>
         <CloseButton
           placement="end"
           offset="medium"
           color="primary"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Apply Score to Ungraded')}</Heading>
+        <Heading>{t('Apply Score to Ungraded')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <p>{instructions}</p>
@@ -103,8 +102,8 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
         <View as="div" margin="small 0">
           <TextInput
             display="inline-block"
-            renderAfterInput={I18n.t('%')}
-            renderLabel={I18n.t('Grade for ungraded artifacts')}
+            renderAfterInput={t('%')}
+            renderLabel={t('Grade for ungraded artifacts')}
             onChange={(event, value) => {
               setPercent(value)
             }}
@@ -115,14 +114,14 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
         <View as="div" margin="medium 0">
           <Checkbox
             checked={markAsMissing}
-            label={I18n.t('Apply missing status')}
+            label={t('Apply missing status')}
             onChange={() => setMarkAsMissing(!markAsMissing)}
             value="markAsMissing"
           />
         </View>
 
         <RadioInputGroup
-          description={I18n.t('Apply to:')}
+          description={t('Apply to:')}
           name="artifactScope"
           onChange={(_event, value) => {
             setArtifactScope(value)
@@ -130,15 +129,15 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
           value={artifactScope}
         >
           <RadioInput
-            label={I18n.t('Only ungraded artifacts that are past due')}
+            label={t('Only ungraded artifacts that are past due')}
             value={APPLY_TO_PAST_DUE}
           />
-          <RadioInput label={I18n.t('All ungraded artifacts')} value={APPLY_TO_ALL} />
+          <RadioInput label={t('All ungraded artifacts')} value={APPLY_TO_ALL} />
         </RadioInputGroup>
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onClose} margin="0 x-small">
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           id="apply-score-to-ungraded" // EVAL-4236
@@ -146,7 +145,7 @@ const ApplyScoreToUngradedModal = ({assignmentGroup, onApply, onClose, open}: Pr
           onClick={handleApply}
           color="primary"
         >
-          {I18n.t('Apply Score')}
+          {t('Apply Score')}
         </Button>
       </Modal.Footer>
     </Modal>

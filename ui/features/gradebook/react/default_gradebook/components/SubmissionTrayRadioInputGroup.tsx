@@ -20,11 +20,9 @@ import React, {useEffect, useState} from 'react'
 import {FormFieldGroup} from '@instructure/ui-form-field'
 import SubmissionTrayRadioInput from './SubmissionTrayRadioInput'
 import {statusesTitleMap} from '../constants/statuses'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {CamelizedSubmission} from '@canvas/grading/grading.d'
 import type {GradeStatus} from '@canvas/grading/accountGradingStatus'
-
-const I18n = createI18nScope('gradebook')
 
 type SubmissionPartialProp = Pick<
   CamelizedSubmission,
@@ -99,6 +97,7 @@ export default function SubmissionTrayRadioInputGroup({
   submission,
   updateSubmission,
 }: SubmissionTrayRadioInputGroupProps) {
+  const {t} = useTranslation('gradebook')
   const [pendingUpdateData, setPendingUpdateData] = useState<PendingUpdateData | null>(null)
 
   useEffect(() => {
@@ -148,7 +147,7 @@ export default function SubmissionTrayRadioInputGroup({
     const optionsArray: RadioInputOption[] = standardOptions.map(status => {
       const isNone = status === 'none'
       return {
-        name: isNone ? I18n.t('None') : statusesTitleMap[status],
+        name: isNone ? t('None') : statusesTitleMap[status],
         checked: checkedValue(submission, assignment.anonymizeStudents) === status,
         color: isNone ? undefined : colors[status],
         isCustom: false,
@@ -171,7 +170,7 @@ export default function SubmissionTrayRadioInputGroup({
 
   return (
     <FormFieldGroup
-      description={I18n.t('Status')}
+      description={t('Status')}
       disabled={disabled}
       layout="stacked"
       rowSpacing="none"

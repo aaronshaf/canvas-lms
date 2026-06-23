@@ -17,7 +17,7 @@
  */
 
 import {showFlashAlert} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -45,8 +45,6 @@ import GradePostingPolicyTabPanel from './GradePostingPolicyTabPanel'
 import LatePoliciesTabPanel from './LatePoliciesTabPanel'
 import ViewOptionsTabPanel from './ViewOptionsTabPanel'
 import {GradeStatusUnderscore} from '@canvas/grading/accountGradingStatus'
-
-const I18n = createI18nScope('gradebook')
 
 type CourseSettings = {
   allowFinalGradeOverride: boolean
@@ -103,6 +101,7 @@ function isLatePolicySaveable(latePolicy: LatePolicy) {
 }
 
 const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
+  const {t} = useTranslation('gradebook')
   const [coursePostPolicy, setCoursePostPolicy] = useState<CoursePostPolicy>({
     postManually: !!props.postPolicies?.coursePostPolicy.postManually,
   })
@@ -134,7 +133,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
       .then(response => setLatePolicy({...latePolicy, data: response.data.latePolicy}))
       .catch(() => {
         showFlashAlert({
-          message: I18n.t('An error occurred while loading late policies'),
+          message: t('An error occurred while loading late policies'),
           type: 'error',
           err: null,
         })
@@ -167,13 +166,13 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
       .then(() => {
         // can be cast because latePolicy.data exists
         const newLatePolicy = {
-          ...(latePolicy.data || {}),
+          ...latePolicy.data,
           ...latePolicy.changes,
         } as LatePolicyCamelized
         return props.onLatePolicyUpdate(newLatePolicy)
       })
       .catch(() => {
-        const message = I18n.t('An error occurred while updating late policies')
+        const message = t('An error occurred while updating late policies')
         showFlashAlert({message, type: 'error', err: null})
         throw new Error(message)
       })
@@ -189,7 +188,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
         props.postPolicies.setAssignmentPostPolicies(postPolicy.postManually)
       })
       .catch(() => {
-        const message = I18n.t('An error occurred while saving the course post policy')
+        const message = t('An error occurred while saving the course post policy')
         showFlashAlert({err: null, message, type: 'error'})
         throw new Error(message)
       })
@@ -207,7 +206,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
         setViewOptionsLastSaved(savedOptions)
       })
       .catch(() => {
-        const message = I18n.t('An error occurred while updating view options')
+        const message = t('An error occurred while updating view options')
         showFlashAlert({err: null, message, type: 'error'})
         throw new Error(message)
       })
@@ -219,7 +218,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
         props.onCourseSettingsUpdated(response.data)
       })
       .catch(() => {
-        const message = I18n.t('An error occurred while saving your settings')
+        const message = t('An error occurred while saving your settings')
         showFlashAlert({err: null, message, type: 'error'})
         throw new Error(message)
       })
@@ -276,7 +275,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
     // causes `Uncaught (in promise) Error` to be logged in the console
     Promise.all(promises)
       .then(() => {
-        const message = I18n.t('Gradebook Settings updated')
+        const message = t('Gradebook Settings updated')
         showFlashAlert({err: null, message, type: 'success'})
         props.onRequestClose()
       })
@@ -286,7 +285,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
 
   return (
     <Tray
-      label={I18n.t('Gradebook Settings')}
+      label={t('Gradebook Settings')}
       onEnter={fetchCourseLatePolicy}
       onEntered={props.onEntered}
       onDismiss={props.onRequestClose}
@@ -299,14 +298,14 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
         <Flex.Item as="header" padding="medium">
           <Flex direction="row">
             <Flex.Item shouldGrow={true} shouldShrink={true}>
-              <Heading level="h3">{I18n.t('Gradebook Settings')}</Heading>
+              <Heading level="h3">{t('Gradebook Settings')}</Heading>
             </Flex.Item>
 
             <Flex.Item>
               <CloseButton
                 placement="static"
                 onClick={props.onRequestClose}
-                screenReaderLabel={I18n.t('Close')}
+                screenReaderLabel={t('Close')}
               />
             </Flex.Item>
           </Flex>
@@ -314,7 +313,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
         <Flex.Item shouldGrow={true} shouldShrink={true} overflowX="hidden">
           <Tabs onRequestTabChange={(_ev, {id}) => setSelectedTab(id)}>
             <Tabs.Panel
-              renderTitle={I18n.t('Late Policies')}
+              renderTitle={t('Late Policies')}
               id="tab-panel-late"
               isSelected={selectedTab === 'tab-panel-late'}
             >
@@ -329,7 +328,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
 
             {props.postPolicies != null && (
               <Tabs.Panel
-                renderTitle={I18n.t('Grade Posting Policy')}
+                renderTitle={t('Grade Posting Policy')}
                 id="tab-panel-post"
                 isSelected={selectedTab === 'tab-panel-post'}
               >
@@ -344,7 +343,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
 
             {includeAdvancedTab && (
               <Tabs.Panel
-                renderTitle={I18n.t('Advanced')}
+                renderTitle={t('Advanced')}
                 id="tab-panel-advanced"
                 isSelected={selectedTab === 'tab-panel-advanced'}
               >
@@ -357,7 +356,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
 
             {!!props.loadCurrentViewOptions && !!viewOptions && (
               <Tabs.Panel
-                renderTitle={I18n.t('View Options')}
+                renderTitle={t('View Options')}
                 id="tab-panel-view-options"
                 isSelected={selectedTab === 'tab-panel-view-options'}
               >
@@ -450,7 +449,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
             onClick={props.onRequestClose}
             margin="0 small"
           >
-            {I18n.t('Cancel')}
+            {t('Cancel')}
           </Button>
 
           <Button
@@ -460,7 +459,7 @@ const GradebookSettingsModal = (props: GradebookSettingsModalProps) => {
             disabled={!isUpdateButtonEnabled()}
             color="primary"
           >
-            {I18n.t('Apply Settings')}
+            {t('Apply Settings')}
           </Button>
         </Flex.Item>
       </Flex>

@@ -27,11 +27,9 @@ import {IconArrowOpenEndLine, IconArrowOpenStartLine, IconFilterLine} from '@ins
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Tooltip} from '@instructure/ui-tooltip'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {unescape} from '@instructure/html-escape'
 import type {FilterDrilldownData, FilterDrilldownMenuItem} from '../gradebook.d'
-
-const I18n = createI18nScope('gradebook')
 
 type Props = {
   rootId?: string
@@ -68,6 +66,7 @@ const FilterDropdown = ({
   applyFiltersButtonRef,
   multiselectGradebookFiltersEnabled = false,
 }: Props) => {
+  const {t} = useTranslation('gradebook')
   const [currentItemId, setTempItemId] = useState<string>(rootId)
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLElement | null>(null)
@@ -133,7 +132,7 @@ const FilterDropdown = ({
         <View margin="0 small 0 0">
           <IconArrowOpenStartLine />
         </View>
-        {I18n.t('Back')}
+        {t('Back')}
       </Flex>
     </Menu.Item>
   )
@@ -149,7 +148,7 @@ const FilterDropdown = ({
             // @ts-expect-error
             renderIcon={IconFilterLine}
           >
-            {I18n.t('Apply Filters')}
+            {t('Apply Filters')}
           </Button>
         }
         shouldRenderOffscreen={false}
@@ -175,7 +174,7 @@ const FilterDropdown = ({
           >
             {items.length > 0 && (
               <Menu.Group
-                label={I18n.t('Saved Filter Presets')}
+                label={t('Saved Filter Presets')}
                 // @ts-expect-error
                 onSelect={(_event: MouseEvent, updated: [number, ...number[]]) => {
                   items[updated[0]].onToggle?.()
@@ -201,13 +200,13 @@ const FilterDropdown = ({
                 onOpenTray()
               }}
             >
-              <TruncateText>{I18n.t('Create & Manage Filter Presets')}</TruncateText>
+              <TruncateText>{t('Create & Manage Filter Presets')}</TruncateText>
             </Menu.Item>
 
             <Menu.Separator />
 
             <Menu.Group
-              label={I18n.t('Filters')}
+              label={t('Filters')}
               selected={selectedFilterIndices}
               onSelect={() => {
                 // noop
@@ -323,11 +322,11 @@ const FilterDropdown = ({
 
                   if (items[updated[0]].isSelected) {
                     changeAnnouncement(
-                      I18n.t('Removed %{filterName} Filter', {filterName: items[updated[0]].name}),
+                      t('Removed {{filterName}} Filter', {filterName: items[updated[0]].name}),
                     )
                   } else {
                     changeAnnouncement(
-                      I18n.t('Added %{filterName} Filter', {filterName: items[updated[0]].name}),
+                      t('Added {{filterName}} Filter', {filterName: items[updated[0]].name}),
                     )
                   }
                   items[updated[0]].onToggle?.()
@@ -347,11 +346,11 @@ const FilterDropdown = ({
 
                         if (item.isSelected) {
                           changeAnnouncement(
-                            I18n.t('Removed %{filterName} Filter', {filterName: item.name}),
+                            t('Removed {{filterName}} Filter', {filterName: item.name}),
                           )
                         } else {
                           changeAnnouncement(
-                            I18n.t('Added %{filterName} Filter', {filterName: item.name}),
+                            t('Added {{filterName}} Filter', {filterName: item.name}),
                           )
                         }
 

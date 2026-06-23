@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {uniq} from 'es-toolkit/compat'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Modal} from '@instructure/ui-modal'
 import {Heading} from '@instructure/ui-heading'
 import {Button, CloseButton} from '@instructure/ui-buttons'
@@ -26,8 +26,6 @@ import {List} from '@instructure/ui-list'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import type {RubricAssessmentImportResponse} from '../queries/Queries'
-
-const I18n = createI18nScope('rubrics-import-failure-modal')
 
 type RubircAssessmentImportFailuresModalProps = {
   isOpen: boolean
@@ -39,6 +37,7 @@ export const RubircAssessmentImportFailuresModal = ({
   onDismiss,
   rubricImports,
 }: RubircAssessmentImportFailuresModalProps) => {
+  const {t} = useTranslation('rubrics-import-failure-modal')
   const {fileNames, messages} = rubricImports.reduce(
     (prev, curr) => {
       prev.fileNames.push(curr.attachment.filename)
@@ -54,16 +53,16 @@ export const RubircAssessmentImportFailuresModal = ({
       open={isOpen}
       onDismiss={onDismiss}
       size="small"
-      label={I18n.t('Import Failures')}
+      label={t('Import Failures')}
       shouldCloseOnDocumentClick={true}
     >
       <Modal.Header>
         <CloseButton placement="end" offset="small" onClick={onDismiss} screenReaderLabel="Close" />
-        <Heading>{I18n.t('Import Failed')}</Heading>
+        <Heading>{t('Import Failed')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <View as="div" data-testid="import-rubric-failure-header">
-          {I18n.t('The import failed for the following file(s):')}
+          {t('The import failed for the following file(s):')}
         </View>
         {fileNames.map((fileName, i) => (
           <View as="div" margin="x-small 0 0" key={`${fileName}-${i}`}>
@@ -71,7 +70,7 @@ export const RubircAssessmentImportFailuresModal = ({
           </View>
         ))}
         <View as="div" margin="large 0 0">
-          {I18n.t('This import failure was due to the following:')}
+          {t('This import failure was due to the following:')}
         </View>
         <View as="div" margin="x-small 0 0 0">
           <List margin="0 0 medium">
@@ -85,7 +84,7 @@ export const RubircAssessmentImportFailuresModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onDismiss} margin="0 x-small 0 0">
-          {I18n.t('Close')}
+          {t('Close')}
         </Button>
       </Modal.Footer>
     </Modal>

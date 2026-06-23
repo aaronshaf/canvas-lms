@@ -24,10 +24,8 @@ import type {MomentInput} from 'moment-timezone'
 import * as tz from '@instructure/moment-utils'
 import {View} from '@instructure/ui-view'
 import {Button, CloseButton} from '@instructure/ui-buttons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {isoDateFromInput} from '../../../util/DateUtils'
-
-const I18n = createI18nScope('gradebook')
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - tz.format's third argument (zone) is optional at runtime but required by tsgo
@@ -57,6 +55,7 @@ export default function FilterNavDateModal({
   onSelectDates,
   startDate,
 }: Props) {
+  const {t} = useTranslation('gradebook')
   const [startDateValue, setStartDateValue] = useResetState<string | null>(startDate)
   const [endDateValue, setEndDateValue] = useResetState<string | null>(endDate)
 
@@ -83,7 +82,7 @@ export default function FilterNavDateModal({
         onSelectDates(startDateValue, endDateValue)
         onCloseDateModal()
       }}
-      label={I18n.t('Modal Dialog: Start & End Date')}
+      label={t('Modal Dialog: Start & End Date')}
       shouldCloseOnDocumentClick={true}
     >
       <Modal.Header>
@@ -91,9 +90,9 @@ export default function FilterNavDateModal({
           placement="end"
           offset="small"
           onClick={onCloseDateModal}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Start & End Dates')}</Heading>
+        <Heading>{t('Start & End Dates')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <View as="div" margin="0 0 medium 0">
@@ -112,7 +111,7 @@ export default function FilterNavDateModal({
                 if (endDateValue && startDate_ > endDateValue) {
                   setStartDateMessages([
                     {
-                      text: I18n.t('Start date must be before end date'),
+                      text: t('Start date must be before end date'),
                       type: 'error',
                     },
                   ])
@@ -125,7 +124,7 @@ export default function FilterNavDateModal({
                 setStartDateValue('')
               }
             }}
-            renderLabel={I18n.t('Start Date')}
+            renderLabel={t('Start Date')}
             selectedDate={startDateValue}
             width="100%"
           />
@@ -147,7 +146,7 @@ export default function FilterNavDateModal({
                 if (startDateValue && endDate_ < startDateValue) {
                   setEndDateMessages([
                     {
-                      text: I18n.t('End date must be after start date'),
+                      text: t('End date must be after start date'),
                       type: 'error',
                     },
                   ])
@@ -160,7 +159,7 @@ export default function FilterNavDateModal({
                 setEndDateValue('')
               }
             }}
-            renderLabel={I18n.t('End Date')}
+            renderLabel={t('End Date')}
             selectedDate={endDateValue}
             width="100%"
           />
@@ -168,7 +167,7 @@ export default function FilterNavDateModal({
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onCloseDateModal} margin="0 x-small 0 0">
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           id="apply-date-filter" // EVAL-4235
@@ -176,7 +175,7 @@ export default function FilterNavDateModal({
           type="submit"
           data-testid="apply-date-filter"
         >
-          {I18n.t('Apply')}
+          {t('Apply')}
         </Button>
       </Modal.Footer>
     </Modal>

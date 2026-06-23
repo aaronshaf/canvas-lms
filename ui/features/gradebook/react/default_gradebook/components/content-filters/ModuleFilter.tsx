@@ -19,22 +19,21 @@
 import React from 'react'
 import {arrayOf, shape, string} from 'prop-types'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import ContentFilter from '@canvas/gradebook-content-filters/react/ContentFilter'
-
-const I18n = createI18nScope('gradebook_default_gradebook_components_content_filters_module_filter')
 
 // @ts-expect-error
 export default function ModuleFilter(props) {
+  const {t} = useTranslation('gradebook_default_gradebook_components_content_filters_module_filter')
   const {modules, selectedModuleId, ...filterProps} = props
 
   return (
     <ContentFilter
       {...filterProps}
       allItemsId="0"
-      allItemsLabel={I18n.t('All Modules')}
+      allItemsLabel={t('All Modules')}
       items={modules}
-      label={I18n.t('Module Filter')}
+      label={t('Module Filter')}
       selectedItemId={selectedModuleId}
       sortAlphabetically={true}
     />

@@ -17,7 +17,7 @@
  */
 
 import DateHelper from '@canvas/datetime/dateHelper'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import * as tz from '@instructure/moment-utils'
 import {Button} from '@instructure/ui-buttons'
 import {
@@ -38,8 +38,6 @@ import PostGradesApp from '../../SISGradePassback/PostGradesApp'
 import GradebookExportManager from '../../shared/GradebookExportManager'
 import '@canvas/rails-flash-notifications'
 import {assignLocation} from '@canvas/util/globalUtils'
-
-const I18n = createI18nScope('gradebookActionMenu')
 
 const {Item: MenuItem, Separator: MenuSeparator} = Menu as any
 
@@ -75,6 +73,7 @@ export type EnhancedActionMenuProps = {
 }
 
 export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
+  const {t} = useTranslation('gradebookActionMenu')
   const [exportInProgress, setExportInProgress] = useState(false)
   const [previousExportState, setPreviousExportState] = useState<null | {
     label: string
@@ -137,7 +136,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
   // @ts-expect-error
   const handleExport = async currentView => {
     setExportInProgress(true)
-    $.flashMessage(I18n.t('Gradebook export has started. This may take a few minutes.'))
+    $.flashMessage(t('Gradebook export has started. This may take a few minutes.'))
 
     if (!exportManager.current) {
       throw new Error('exportManager not loaded')
@@ -177,7 +176,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
     const updatedAt = new Date(resolution.updatedAt)
 
     const previousExportValue = {
-      label: `${I18n.t('Previous Export')} (${DateHelper.formatDatetimeForDisplay(updatedAt)})`,
+      label: `${t('Previous Export')} (${DateHelper.formatDatetimeForDisplay(updatedAt)})`,
       attachmentUrl,
     }
 
@@ -187,14 +186,14 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
     assignLocation(attachmentUrl)
 
     handleUpdateExportState(undefined, undefined)
-    $.flashMessage(I18n.t('Gradebook export has completed'))
+    $.flashMessage(t('Gradebook export has completed'))
   }
 
   // @ts-expect-error
   const handleExportError = error => {
     setExportInProgress(false)
 
-    $.flashError(I18n.t('Gradebook Export Failed: %{error}', {error}))
+    $.flashError(t('Gradebook Export Failed: {{error}}', {error}))
   }
 
   const handleUpdateExportState = (name?: string, value?: number) => {
@@ -253,19 +252,17 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
       const key = `post_grades_lti_${tool.id}`
       return (
         <MenuItem onSelect={tool.onSelect} key={key}>
-          <span data-menu-id={key}>{I18n.t('Sync to %{name}', {name: tool.name})}</span>
+          <span data-menu-id={key}>{t('Sync to {{name}}', {name: tool.name})}</span>
         </MenuItem>
       )
     })
   }
 
   const renderPostGradesFeature = () => {
-    const sisName = props.postGradesFeature.label || I18n.t('SIS')
+    const sisName = props.postGradesFeature.label || t('SIS')
     return (
       <MenuItem onSelect={launchPostGrades} key="post_grades_feature_tool">
-        <span data-menu-id="post_grades_feature_tool">
-          {I18n.t('Sync to %{sisName}', {sisName})}
-        </span>
+        <span data-menu-id="post_grades_feature_tool">{t('Sync to {{sisName}}', {sisName})}</span>
       </MenuItem>
     )
   }
@@ -283,7 +280,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
     const createdAt = tz.parse(attachment.createdAt)
 
     return {
-      label: `${I18n.t('Previous Export')} (${DateHelper.formatDatetimeForDisplay(createdAt)})`,
+      label: `${t('Previous Export')} (${DateHelper.formatDatetimeForDisplay(createdAt)})`,
       attachmentUrl: attachment.downloadUrl,
     }
   }
@@ -323,7 +320,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
           handlePublishGradesToSis()
         }}
       >
-        <span data-menu-id="publish-grades-to-sis">{I18n.t('Sync grades to SIS')}</span>
+        <span data-menu-id="publish-grades-to-sis">{t('Sync grades to SIS')}</span>
       </MenuItem>
     )
   }
@@ -344,7 +341,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
             <Button color="secondary" margin="0 small 0 0" renderIcon={IconSisSyncedLine}>
               <View margin="0 x-small 0 0">
                 <Text weight="normal" fontStyle="normal" size="medium" color="primary">
-                  {I18n.t('Sync')}
+                  {t('Sync')}
                 </Text>
               </View>
               {toggleSyncMenu ? <IconArrowOpenUpLine /> : <IconArrowOpenDownLine />}
@@ -387,7 +384,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
         interaction={disableImports() ? 'disabled' : undefined}
         onClick={handleImport}
       >
-        <span data-menu-id="import">{I18n.t('Import')}</span>
+        <span data-menu-id="import">{t('Import')}</span>
       </Button>
 
       <Menu
@@ -397,7 +394,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
           <Button color="secondary" margin="0 small 0 0" renderIcon={IconGradebookExportLine}>
             <View margin="0 x-small 0 0" data-menu-id="export-dropdown" as="span">
               <Text weight="normal" fontStyle="normal" size="medium" color="primary">
-                {I18n.t('Export')}
+                {t('Export')}
               </Text>
             </View>
             {toggleExportMenu ? <IconArrowOpenUpLine /> : <IconArrowOpenDownLine />}
@@ -412,9 +409,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
           }}
         >
           <span data-menu-id="export">
-            {exportInProgress
-              ? I18n.t('Export in progress')
-              : I18n.t('Export Current Gradebook View')}
+            {exportInProgress ? t('Export in progress') : t('Export Current Gradebook View')}
           </span>
         </MenuItem>
 
@@ -425,7 +420,7 @@ export default function EnhancedActionMenu(props: EnhancedActionMenuProps) {
           }}
         >
           <span data-menu-id="export-all">
-            {exportInProgress ? I18n.t('Export in progress') : I18n.t('Export Entire Gradebook')}
+            {exportInProgress ? t('Export in progress') : t('Export Entire Gradebook')}
           </span>
         </MenuItem>
 

@@ -17,15 +17,13 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Table} from '@instructure/ui-table'
 import {ProgressBar} from '@instructure/ui-progress'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {Link} from '@instructure/ui-link'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import type {RubricAssessmentImportResponse} from '../queries/Queries'
-
-const I18n = createI18nScope('rubrics-import')
 
 type RubricAssessmentImportTableProps = {
   importsInProgress: RubricAssessmentImportResponse[]
@@ -36,6 +34,7 @@ export const RubricAssessmentImportTable = ({
   importsInProgress,
   onClickImport,
 }: RubricAssessmentImportTableProps) => {
+  const {t} = useTranslation('rubrics-import')
   const renderSize = (sz: string | number) => {
     const size = Number(sz)
     if (size < 1024) {
@@ -61,13 +60,13 @@ export const RubricAssessmentImportTable = ({
   }
 
   return (
-    <Table caption={I18n.t('Table of Imports in Progress')} layout="fixed">
+    <Table caption={t('Table of Imports in Progress')} layout="fixed">
       <Table.Head>
         <Table.Row>
           <Table.ColHeader id="import-name" width="170px">
-            {I18n.t('File Name')}
+            {t('File Name')}
           </Table.ColHeader>
-          <Table.ColHeader id="import-size">{I18n.t('Size')}</Table.ColHeader>
+          <Table.ColHeader id="import-size">{t('Size')}</Table.ColHeader>
         </Table.Row>
       </Table.Head>
       <Table.Body>

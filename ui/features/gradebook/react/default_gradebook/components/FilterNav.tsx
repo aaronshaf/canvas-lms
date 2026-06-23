@@ -20,7 +20,7 @@ import React, {useState, useCallback, useRef, type SetStateAction} from 'react'
 import {Link} from '@instructure/ui-link'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
 import * as uuid from 'uuid'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Flex} from '@instructure/ui-flex'
 import {Tag} from '@instructure/ui-tag'
 import {Alert} from '@instructure/ui-alerts'
@@ -38,8 +38,6 @@ import type {GradeStatus} from '@canvas/grading/accountGradingStatus'
 import {IconArrowOpenDownLine} from '@instructure/ui-icons'
 import {View} from '@instructure/ui-view'
 import {FilterNavPopover} from './FilterNavPopover'
-
-const I18n = createI18nScope('gradebook')
 
 export type FilterNavProps = {
   modules: Module[]
@@ -60,6 +58,7 @@ export default function FilterNav({
   customStatuses,
   multiselectGradebookFiltersEnabled,
 }: FilterNavProps) {
+  const {t} = useTranslation('gradebook')
   const [isTrayOpen, setIsTrayOpen] = useState(false)
   const [isDateModalOpen, setIsDateModalOpen] = useState(false)
   const [announcement, setAnnouncement] = useState('')
@@ -73,7 +72,7 @@ export default function FilterNav({
   const [openFilterKey, setOpenFilterKey] = useState<string | null>(null)
   const {setState} = useStore
   const handleClearFilters = () => {
-    setAnnouncement(I18n.t('All Filters Have Been Cleared'))
+    setAnnouncement(t('All Filters Have Been Cleared'))
     applyFilters([])
     applyFiltersButtonRef.current?.focus()
   }
@@ -165,7 +164,7 @@ export default function FilterNav({
     }
 
     const handleDeleteFilterClick = () => {
-      setAnnouncement(I18n.t('Removed %{filterName} Filter', {filterName: label}))
+      setAnnouncement(t('Removed {{filterName}} Filter', {filterName: label}))
       if (multiselectGradebookFiltersEnabled) {
         setState({
           appliedFilters: appliedFilters.filter(c => getFilterKey(c) !== filterKey),
@@ -184,7 +183,7 @@ export default function FilterNav({
         setIsDateModalOpen(true)
         return
       }
-      setAnnouncement(I18n.t('Added %{filterName} Filter', {filterName: label}))
+      setAnnouncement(t('Added {{filterName}} Filter', {filterName: label}))
     }
     const handlePopoverClick = () => {
       if (openFilterKey !== filterKey) {
@@ -208,7 +207,7 @@ export default function FilterNav({
               filterTagRef.current[i] = e as HTMLElement
             }}
             text={
-              <AccessibleContent alt={I18n.t('%{filterName} Filter Options', {filterName: label})}>
+              <AccessibleContent alt={t('{{filterName}} Filter Options', {filterName: label})}>
                 <Tooltip renderTip={label} positionTarget={filterTagRef.current[i]}>
                   {label}
                 </Tooltip>
@@ -237,7 +236,7 @@ export default function FilterNav({
           filterTagRef.current[i] = e as HTMLElement
         }}
         text={
-          <AccessibleContent alt={I18n.t('Remove %{filterName} Filter', {filterName: label})}>
+          <AccessibleContent alt={t('Remove {{filterName}} Filter', {filterName: label})}>
             <Tooltip renderTip={label} positionTarget={filterTagRef.current[i]}>
               {label}
             </Tooltip>
@@ -294,7 +293,7 @@ export default function FilterNav({
             onClick={handleClearFilters}
             data-testid="clear-all-filters"
           >
-            {I18n.t('Clear All Filters')}
+            {t('Clear All Filters')}
           </Link>
         )}
       </Flex.Item>

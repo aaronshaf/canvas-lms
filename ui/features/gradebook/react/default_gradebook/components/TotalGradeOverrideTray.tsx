@@ -20,7 +20,7 @@ import React, {useEffect} from 'react'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import {FinalGradeOverrideTextBox} from '@canvas/final-grade-override'
 import GradeOverrideInfo from '@canvas/grading/GradeEntry/GradeOverrideInfo'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Tray} from '@instructure/ui-tray'
 import {View} from '@instructure/ui-view'
 import {Avatar} from '@instructure/ui-avatar'
@@ -38,8 +38,6 @@ import {useFinalGradeOverrideCustomStatus} from '../hooks/useFinalGradeOverrideC
 import {showFlashError} from '@instructure/platform-alerts'
 import {ApiCallStatus} from '@canvas/do-fetch-api-effect/apiRequest'
 
-const I18n = createI18nScope('gradebook')
-
 export type TotalGradeOverrideTrayProps = {
   customGradeStatuses: GradeStatusUnderscore[]
   handleDismiss: (manualDismiss: boolean) => void
@@ -50,6 +48,7 @@ export type TotalGradeOverrideTrayProps = {
 }
 
 export function TotalGradeOverrideTrayProvider(props: TotalGradeOverrideTrayProps) {
+  const {t} = useTranslation('gradebook')
   return (
     <ApolloProvider client={createClient()}>
       <TotalGradeOverrideTray {...props} />
@@ -65,6 +64,7 @@ export function TotalGradeOverrideTray({
   navigateDown,
   navigateUp,
 }: TotalGradeOverrideTrayProps) {
+  const {t} = useTranslation('gradebook')
   const {finalGradeOverrideTrayProps, toggleFinalGradeOverrideTray, finalGradeOverrides} =
     useStore()
 
@@ -72,7 +72,7 @@ export function TotalGradeOverrideTray({
 
   useEffect(() => {
     if (saveCallStatus === ApiCallStatus.FAILED) {
-      showFlashError(I18n.t('There was an error saving the custom grade status.'))(new Error())
+      showFlashError(t('There was an error saving the custom grade status.'))(new Error())
     }
   }, [saveCallStatus])
 
@@ -151,7 +151,7 @@ export function TotalGradeOverrideTray({
 
   return (
     <Tray
-      label={I18n.t('Final Grade Override Tray')}
+      label={t('Final Grade Override Tray')}
       open={isOpen}
       onDismiss={() => dismissTray(false)}
       shouldContainFocus={true}
@@ -163,7 +163,7 @@ export function TotalGradeOverrideTray({
         <CloseButton
           placement="start"
           onClick={() => dismissTray(true)}
-          screenReaderLabel={I18n.t('Close total grade override tray')}
+          screenReaderLabel={t('Close total grade override tray')}
         />
 
         <View as="div" className="SubmissionTray__Container">
@@ -176,10 +176,10 @@ export function TotalGradeOverrideTray({
             disabled={false}
             displayLeftArrow={!isFirstStudent}
             displayRightArrow={!isLastStudent}
-            leftArrowDescription={I18n.t('Previous student')}
+            leftArrowDescription={t('Previous student')}
             onLeftArrowClick={() => navigateUp()}
             onRightArrowClick={() => navigateDown()}
-            rightArrowDescription={I18n.t('Next student')}
+            rightArrowDescription={t('Next student')}
           >
             <Link href={gradesUrl} isWithinText={false}>
               {name}
@@ -190,7 +190,7 @@ export function TotalGradeOverrideTray({
 
           <View as="div" margin="medium 0">
             <Heading level="h4" as="h2" margin="auto auto small">
-              <Text weight="bold">{I18n.t('Final Grade Override')}</Text>
+              <Text weight="bold">{t('Final Grade Override')}</Text>
             </Heading>
           </View>
 

@@ -19,10 +19,8 @@
 import React, {useState} from 'react'
 import {bool, func, shape, string} from 'prop-types'
 import {Select} from '@instructure/ui-select'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Text} from '@instructure/ui-text'
-
-const I18n = createI18nScope('gradebook')
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - untyped function parameter, needs proper typing
@@ -40,24 +38,25 @@ function optionIdForGradeInfo(gradeInfo) {
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - untyped function parameter, needs proper typing
-function labelForGradeInfo(gradeInfo) {
+function labelForGradeInfo(gradeInfo, t: (s: string) => string) {
   if (gradeInfo.excused) {
-    return I18n.t('Excused')
+    return t('Excused')
   }
 
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - dynamic object property access
     {
-      complete: I18n.t('Complete'),
-      incomplete: I18n.t('Incomplete'),
-    }[gradeInfo.grade] || I18n.t('Ungraded')
+      complete: t('Complete'),
+      incomplete: t('Incomplete'),
+    }[gradeInfo.grade] || t('Ungraded')
   )
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - untyped props, component uses PropTypes instead of TS types
 export default function CompleteIncompleteGradeInput(props) {
+  const {t} = useTranslation('gradebook')
   const {anonymizeStudents, isDisabled, gradeInfo, isBusy} = props
 
   const currentGradeValue = optionIdForGradeInfo(gradeInfo)
@@ -94,7 +93,7 @@ export default function CompleteIncompleteGradeInput(props) {
   }
 
   const selectProps = {
-    inputValue: anonymizeStudents ? '' : labelForGradeInfo(gradeInfo),
+    inputValue: anonymizeStudents ? '' : labelForGradeInfo(gradeInfo, t),
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -110,20 +109,20 @@ export default function CompleteIncompleteGradeInput(props) {
     // @ts-ignore - dynamic property assignment to selectProps object
     selectProps.interaction = isDisabled ? 'disabled' : 'readonly'
 
-    options = [{id: 'excused', label: I18n.t('Excused')}]
+    options = [{id: 'excused', label: t('Excused')}]
   } else {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - dynamic property assignment to selectProps object
     selectProps.interaction = isDisabled ? 'disabled' : 'enabled'
 
     options = [
-      {id: 'ungraded', label: I18n.t('Ungraded')},
-      {id: 'complete', label: I18n.t('Complete')},
-      {id: 'incomplete', label: I18n.t('Incomplete')},
+      {id: 'ungraded', label: t('Ungraded')},
+      {id: 'complete', label: t('Complete')},
+      {id: 'incomplete', label: t('Incomplete')},
     ]
   }
 
-  const label = I18n.t('Grade')
+  const label = t('Grade')
 
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

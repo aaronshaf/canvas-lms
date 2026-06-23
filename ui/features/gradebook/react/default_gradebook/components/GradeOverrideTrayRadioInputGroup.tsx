@@ -19,12 +19,10 @@
 import React from 'react'
 import classnames from 'classnames'
 import type {GradeStatusUnderscore} from '@canvas/grading/accountGradingStatus'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {FormFieldGroup} from '@instructure/ui-form-field'
 import {RadioInput} from '@instructure/ui-radio-input'
 import {View} from '@instructure/ui-view'
-
-const I18n = createI18nScope('gradebook')
 
 export type PendingUpdateData = {
   customGradeStatusId?: string
@@ -53,9 +51,10 @@ export default function GradeOverrideTrayRadioInputGroup({
   selectedCustomStatusId,
   handleRadioInputChanged,
 }: SubmissionTrayRadioInputGroupProps) {
+  const {t} = useTranslation('gradebook')
   const radioInputOptions = (): RadioInputOption[] => {
     const noneOption: RadioInputOption = {
-      name: I18n.t('None'),
+      name: t('None'),
       checked: !selectedCustomStatusId,
       key: 'none',
     }
@@ -85,12 +84,7 @@ export default function GradeOverrideTrayRadioInputGroup({
   }
 
   return (
-    <FormFieldGroup
-      description={I18n.t('Status')}
-      disabled={false}
-      layout="stacked"
-      rowSpacing="none"
-    >
+    <FormFieldGroup description={t('Status')} disabled={false} layout="stacked" rowSpacing="none">
       {radioInputOptions().map(status => (
         <View
           as="div"

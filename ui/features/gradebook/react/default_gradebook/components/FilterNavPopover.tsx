@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Popover} from '@instructure/ui-popover'
 import {Menu} from '@instructure/ui-menu'
 import type {FilterDrilldownMenuItem, FilterType} from '../gradebook.d'
@@ -25,8 +25,6 @@ import {IconXLine} from '@instructure/ui-icons'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-
-const I18n = createI18nScope('gradebook')
 
 type FilterNavPopoverProps = {
   filterType?: FilterType
@@ -49,6 +47,7 @@ export const FilterNavPopover = ({
   handleRemoveFilter,
   handleSelectFilter,
 }: FilterNavPopoverProps) => {
+  const {t} = useTranslation('gradebook')
   const selectedFilterIndices = Object.values(menuItems).reduce<number[]>((acc, current, index) => {
     if (current.isSelected) {
       return acc.concat(index)
@@ -61,7 +60,7 @@ export const FilterNavPopover = ({
       renderTrigger={renderTrigger}
       isShowingContent={isOpen}
       on="click"
-      screenReaderLabel={I18n.t('Filter Options')}
+      screenReaderLabel={t('Filter Options')}
       shouldCloseOnDocumentClick={true}
       shouldRenderOffscreen={false}
       onShowContent={() => {}}
@@ -72,7 +71,7 @@ export const FilterNavPopover = ({
         <Menu.Item onClick={handleRemoveFilter} data-testid="remove-filter-popover-menu-item">
           <IconXLine size="x-small" />{' '}
           <View as="span" margin="0 0 0 xxx-small">
-            {I18n.t('Remove Filter')}
+            {t('Remove Filter')}
           </View>
         </Menu.Item>
         <Menu.Separator />
@@ -80,9 +79,7 @@ export const FilterNavPopover = ({
         {filterType === 'start-date' || filterType === 'end-date' ? (
           <Menu.Group
             label={
-              <ScreenReaderContent>
-                {I18n.t('Start and End Date Filter Selections')}
-              </ScreenReaderContent>
+              <ScreenReaderContent>{t('Start and End Date Filter Selections')}</ScreenReaderContent>
             }
             selected={selectedFilterIndices}
             onSelect={() => {}}
@@ -96,7 +93,7 @@ export const FilterNavPopover = ({
               }}
               data-testid={`${filterType}-filter-type`}
             >
-              {I18n.t('Edit Date')}
+              {t('Edit Date')}
             </Menu.Item>
           </Menu.Group>
         ) : menuGroups.length ? (
@@ -140,7 +137,7 @@ export const FilterNavPopover = ({
           })
         ) : (
           <Menu.Group
-            label={<ScreenReaderContent>{I18n.t('Filter Selections')}</ScreenReaderContent>}
+            label={<ScreenReaderContent>{t('Filter Selections')}</ScreenReaderContent>}
             selected={selectedFilterIndices}
             onSelect={() => {}}
           >

@@ -28,10 +28,8 @@ import StatusColorPanel from './StatusColorPanel'
 import type {SortDirection} from '../gradebook.d'
 import type {StatusColors} from '../constants/colors'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {GradeStatusUnderscore} from '@canvas/grading/accountGradingStatus'
-
-const I18n = createI18nScope('gradebook')
 
 interface SortOption {
   criterion: string
@@ -40,38 +38,41 @@ interface SortOption {
   value: string
 }
 
-function buildAssignmentSortOptions(includeModules: boolean): SortOption[] {
+function buildAssignmentSortOptions(
+  includeModules: boolean,
+  t: (s: string) => string,
+): SortOption[] {
   const options = [
-    {criterion: 'default', direction: 'ascending' as SortDirection, label: I18n.t('Default Order')},
+    {criterion: 'default', direction: 'ascending' as SortDirection, label: t('Default Order')},
     {
       criterion: 'name',
       direction: 'ascending' as SortDirection,
-      label: I18n.t('Assignment Name - A-Z'),
+      label: t('Assignment Name - A-Z'),
     },
     {
       criterion: 'name',
       direction: 'descending' as SortDirection,
-      label: I18n.t('Assignment Name - Z-A'),
+      label: t('Assignment Name - Z-A'),
     },
     {
       criterion: 'due_date',
       direction: 'ascending' as SortDirection,
-      label: I18n.t('Due Date - Oldest to Newest'),
+      label: t('Due Date - Oldest to Newest'),
     },
     {
       criterion: 'due_date',
       direction: 'descending' as SortDirection,
-      label: I18n.t('Due Date - Newest to Oldest'),
+      label: t('Due Date - Newest to Oldest'),
     },
     {
       criterion: 'points',
       direction: 'ascending' as SortDirection,
-      label: I18n.t('Points - Lowest to Highest'),
+      label: t('Points - Lowest to Highest'),
     },
     {
       criterion: 'points',
       direction: 'descending' as SortDirection,
-      label: I18n.t('Points - Highest to Lowest'),
+      label: t('Points - Highest to Lowest'),
     },
   ]
 
@@ -80,12 +81,12 @@ function buildAssignmentSortOptions(includeModules: boolean): SortOption[] {
       {
         criterion: 'module_position',
         direction: 'ascending' as SortDirection,
-        label: I18n.t('Module - First to Last'),
+        label: t('Module - First to Last'),
       },
       {
         criterion: 'module_position',
         direction: 'descending' as SortDirection,
-        label: I18n.t('Module - Last to First'),
+        label: t('Module - Last to First'),
       },
     )
   }
@@ -156,7 +157,8 @@ export default function ViewOptionsTabPanel({
   viewStatusForColorblindness,
   customGradeStatuses,
 }: ViewOptionsTabPanelProps) {
-  const sortOptions = buildAssignmentSortOptions(columnSort.modulesEnabled)
+  const {t} = useTranslation('gradebook')
+  const sortOptions = buildAssignmentSortOptions(columnSort.modulesEnabled, t)
   const selectedSortKey =
     sortOptions.find(
       option =>
@@ -178,7 +180,7 @@ export default function ViewOptionsTabPanel({
       <View as="div" margin="small">
         <SimpleSelect
           data-testid="arrange_by_dropdown"
-          renderLabel={I18n.t('Arrange By')}
+          renderLabel={t('Arrange By')}
           onChange={handleColumnSortSelected}
           value={selectedSortKey.value}
         >
@@ -194,57 +196,53 @@ export default function ViewOptionsTabPanel({
         </SimpleSelect>
 
         <View as="div" margin="large 0 large">
-          <FormFieldGroup description={I18n.t('Show')} layout="stacked" rowSpacing="small">
+          <FormFieldGroup description={t('Show')} layout="stacked" rowSpacing="small">
             {showSuppressedAssignments.allowed &&
               renderCheckbox(
                 showSuppressedAssignments,
-                I18n.t('All Hidden Assignments'),
+                t('All Hidden Assignments'),
                 'showSuppressedAssignments',
               )}
-            {renderCheckbox(showNotes, I18n.t('Notes'), 'showNotes')}
+            {renderCheckbox(showNotes, t('Notes'), 'showNotes')}
             {renderCheckbox(
               showUnpublishedAssignments,
-              I18n.t('Unpublished Assignments'),
+              t('Unpublished Assignments'),
               'showUnpublishedAssignments',
             )}
             {showSeparateFirstLastNames.allowed &&
               renderCheckbox(
                 showSeparateFirstLastNames,
-                I18n.t('Split Student Names'),
+                t('Split Student Names'),
                 'showSeparateFirstLastNames',
               )}
             {renderCheckbox(
               hideAssignmentGroupTotals,
-              I18n.t('Hide Assignment Group Totals'),
+              t('Hide Assignment Group Totals'),
               'hideAssignmentGroupTotals',
             )}
             {renderCheckbox(
               hideTotal,
               finalGradeOverrideEnabled
-                ? I18n.t('Hide Total and Override Columns')
-                : I18n.t('Hide Total Column'),
+                ? t('Hide Total and Override Columns')
+                : t('Hide Total Column'),
               'hideTotal',
             )}
             {viewUngradedAsZero.allowed &&
-              renderCheckbox(
-                viewUngradedAsZero,
-                I18n.t('View ungraded as 0'),
-                'viewUngradedAsZero',
-              )}
+              renderCheckbox(viewUngradedAsZero, t('View ungraded as 0'), 'viewUngradedAsZero')}
             {renderCheckbox(
               viewHiddenGradesIndicator,
-              I18n.t('View hidden grades indicator'),
+              t('View hidden grades indicator'),
               'viewHiddenGradesIndicator',
             )}
             {renderCheckbox(
               viewStatusForColorblindness,
-              I18n.t('Enable Gradebook Status Icons'),
+              t('Enable Gradebook Status Icons'),
               'viewStatusForColorblindness',
             )}
           </FormFieldGroup>
         </View>
 
-        <FormFieldGroup description={I18n.t('Status Color')}>
+        <FormFieldGroup description={t('Status Color')}>
           <StatusColorPanel
             colors={statusColors.currentValues}
             onColorsUpdated={statusColors.onChange}

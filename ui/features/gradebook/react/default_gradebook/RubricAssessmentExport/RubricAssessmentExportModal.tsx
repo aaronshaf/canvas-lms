@@ -22,16 +22,15 @@ import {Heading} from '@instructure/ui-heading'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import useStore from '../stores'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Text} from '@instructure/ui-text'
 import {RadioInput, RadioInputGroup} from '@instructure/ui-radio-input'
 import {Flex} from '@instructure/ui-flex'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {useAssignmentRubricAssessments} from './useAssignmentRubricAssessments'
 
-const I18n = createI18nScope('rubrics-export')
-
 export const RubricAssessmentExportModal = () => {
+  const {t} = useTranslation('rubrics-export')
   const {rubricAssessmentExportModalProps, toggleRubricAssessmentExportModal} = useStore()
 
   const {isOpen, assignment, studentsCount} = rubricAssessmentExportModalProps
@@ -60,20 +59,20 @@ export const RubricAssessmentExportModal = () => {
     <Modal
       open={isOpen}
       onDismiss={closeModal}
-      label={I18n.t('Bulk Download Rubrics')}
+      label={t('Bulk Download Rubrics')}
       shouldCloseOnDocumentClick={true}
       size="small"
       data-testid="export-rubric-modal"
     >
       <Modal.Header>
         {renderCloseButton()}
-        <Heading>{I18n.t('Bulk Download Rubrics')}</Heading>
+        <Heading>{t('Bulk Download Rubrics')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <Flex direction="column" padding="small 0 small 0" gap="small">
           <Flex.Item>
             <Text>
-              {I18n.t(`Please identify the rubrics you wish to download for `)}
+              {t(`Please identify the rubrics you wish to download for `)}
               <b>{`"${assignment.name}"`}</b>
             </Text>
           </Flex.Item>
@@ -82,23 +81,19 @@ export const RubricAssessmentExportModal = () => {
               onChange={(_, value) => setFilter(value)}
               name="filter"
               defaultValue="all"
-              description={<ScreenReaderContent>{I18n.t(`filter`)}</ScreenReaderContent>}
+              description={<ScreenReaderContent>{t(`filter`)}</ScreenReaderContent>}
             >
-              <RadioInput
-                key="all"
-                value="all"
-                label={`${I18n.t('All Students')} (${studentsCount})`}
-              />
+              <RadioInput key="all" value="all" label={`${t('All Students')} (${studentsCount})`} />
               <RadioInput
                 key="completed"
                 value="completed"
-                label={`${I18n.t('Has Assessment')} (${completed})`}
+                label={`${t('Has Assessment')} (${completed})`}
                 disabled={completed === 0}
               />
               <RadioInput
                 key="non-completed"
                 value="non-completed"
-                label={`${I18n.t('Not Assessed')} (${nonCompleted})`}
+                label={`${t('Not Assessed')} (${nonCompleted})`}
                 disabled={nonCompleted === 0}
               />
             </RadioInputGroup>
@@ -107,10 +102,10 @@ export const RubricAssessmentExportModal = () => {
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={closeModal} margin="0 x-small 0 0">
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button color="primary" href={downloadLink} onClick={closeModal}>
-          {I18n.t('Download')}
+          {t('Download')}
         </Button>
       </Modal.Footer>
     </Modal>

@@ -26,11 +26,9 @@ import {FileDrop} from '@instructure/ui-file-drop'
 import SVGWrapper from '@canvas/svg-wrapper'
 import useStore from '../stores'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {RubricAssessmentImportResponse} from '../queries/Queries'
 import {RubricAssessmentImportTable} from './RubricAssessmentImportTable'
-
-const I18n = createI18nScope('rubrics-import')
 
 type RubricAssessmentImportTrayProps = {
   currentImports: RubricAssessmentImportResponse[]
@@ -43,6 +41,7 @@ export const RubricAssessmentImportTray = ({
   onClickImport,
   onImport,
 }: RubricAssessmentImportTrayProps) => {
+  const {t} = useTranslation('rubrics-import')
   const {rubricAssessmentImportTrayProps, toggleRubricAssessmentImportTray} = useStore()
 
   const {isOpen, assignment} = rubricAssessmentImportTrayProps
@@ -57,26 +56,26 @@ export const RubricAssessmentImportTray = ({
 
   return (
     <Tray
-      label={I18n.t('Import Rubrics')}
+      label={t('Import Rubrics')}
       open={isOpen}
       onDismiss={closeTray}
       placement="end"
       shouldCloseOnDocumentClick={true}
     >
       <View as="div" margin="mediumSmall 0 0 medium" data-testid="import-rubric-tray">
-        <Heading level="h3">{I18n.t('Import Rubrics')}</Heading>
+        <Heading level="h3">{t('Import Rubrics')}</Heading>
       </View>
       <View as="div" margin="medium medium 0 0">
         <CloseButton
           size="medium"
           placement="end"
           onClick={closeTray}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
       </View>
       <View as="div" margin="large small 0">
         <Text>
-          {I18n.t('Import rubric assessments to ')}
+          {t('Import rubric assessments to ')}
           <Text weight="bold">&quot;{assignment.name}&quot;</Text>
         </Text>
       </View>
@@ -103,12 +102,12 @@ export const RubricAssessmentImportTray = ({
               </View>
               <View as="div">
                 <Text size="large" lineHeight="double">
-                  {I18n.t('Drag a file here, or')}
+                  {t('Drag a file here, or')}
                 </Text>
               </View>
               <View as="div">
                 <Text size="medium" color="brand" lineHeight="double">
-                  {I18n.t('Choose a file to upload')}
+                  {t('Choose a file to upload')}
                 </Text>
               </View>
             </View>

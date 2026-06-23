@@ -23,7 +23,7 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {TextInput} from '@instructure/ui-text-input'
 import React, {useState, useEffect} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {
   type CheckpointState,
   EXCUSED,
@@ -43,8 +43,6 @@ import {
 } from '@canvas/grading/grading.d'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
 import type {GradeStatus} from '@canvas/grading/accountGradingStatus'
-
-const I18n = createI18nScope('gradebook')
 
 type Props = {
   hasCheckpoints: boolean
@@ -70,6 +68,7 @@ type Props = {
 }
 
 export const InputsForCheckpoints = (props: Props) => {
+  const {t} = useTranslation('gradebook')
   const standardStatuses: string[] = [NONE, LATE, MISSING, EXCUSED, EXTENDED]
 
   const checkpointState = props.checkpointStates.find(
@@ -111,8 +110,8 @@ export const InputsForCheckpoints = (props: Props) => {
 
   const statusAltText =
     props.subAssignmentTag === REPLY_TO_TOPIC
-      ? I18n.t('Status for the Reply to Topic Checkpoint.')
-      : I18n.t('Status for the Required Replies Checkpoint.')
+      ? t('Status for the Reply to Topic Checkpoint.')
+      : t('Status for the Required Replies Checkpoint.')
 
   return props.hasCheckpoints ? (
     <>
@@ -144,12 +143,12 @@ export const InputsForCheckpoints = (props: Props) => {
               <AccessibleContent alt={statusAltText}>
                 <div style={{padding: '0.2rem 0 1.3rem'}}>
                   <Text size="small" weight="bold">
-                    {I18n.t('Status')}
+                    {t('Status')}
                   </Text>
                 </div>
               </AccessibleContent>
             }
-            assistiveText={I18n.t('Use arrow keys to navigate status options.')}
+            assistiveText={t('Use arrow keys to navigate status options.')}
             value={checkpointStatus}
             onChange={(_e, {value}) => {
               props.updateCheckpointStates(props.subAssignmentTag, 'timeLate', '0')
@@ -168,19 +167,19 @@ export const InputsForCheckpoints = (props: Props) => {
             data-testid={props.subAssignmentTag + '-checkpoint-status-select'}
           >
             <SimpleSelect.Option id={NONE} value={NONE}>
-              {I18n.t('None')}
+              {t('None')}
             </SimpleSelect.Option>
             <SimpleSelect.Option id={LATE} value={LATE}>
-              {I18n.t('Late')}
+              {t('Late')}
             </SimpleSelect.Option>
             <SimpleSelect.Option id={MISSING} value={MISSING}>
-              {I18n.t('Missing')}
+              {t('Missing')}
             </SimpleSelect.Option>
             <SimpleSelect.Option id={EXCUSED} value={EXCUSED}>
-              {I18n.t('Excused')}
+              {t('Excused')}
             </SimpleSelect.Option>
             <SimpleSelect.Option id={EXTENDED} value={EXTENDED}>
-              {I18n.t('Extended')}
+              {t('Extended')}
             </SimpleSelect.Option>
             {props.customGradeStatusesEnabled &&
               props.customGradeStatuses?.map(status => (
@@ -200,8 +199,8 @@ export const InputsForCheckpoints = (props: Props) => {
                   <div style={{padding: '0.2rem 0 0'}}>
                     <Text size="small" weight="bold">
                       {props.latePolicy.lateSubmissionInterval === 'day'
-                        ? I18n.t('Days Late')
-                        : I18n.t('Hours Late')}
+                        ? t('Days Late')
+                        : t('Hours Late')}
                     </Text>
                   </div>
                 }

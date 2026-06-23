@@ -21,15 +21,14 @@ import {func} from 'prop-types'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconWarningLine} from '@instructure/ui-icons'
 import {Tooltip} from '@instructure/ui-tooltip'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('gradebook')
+import {useTranslation} from '@canvas/i18next'
 
 // @ts-expect-error
 export default function InvalidGradeIndicator(props) {
+  const {t} = useTranslation('gradebook')
   return (
     <div className="Grid__GradeCell__InvalidGrade">
-      <Tooltip placement="bottom" renderTip={I18n.t('This is not a valid grade')} color="primary">
+      <Tooltip placement="bottom" renderTip={t('This is not a valid grade')} color="primary">
         <IconButton
           elementRef={props.elementRef}
           size="small"
@@ -37,7 +36,7 @@ export default function InvalidGradeIndicator(props) {
           withBorder={false}
           withBackground={false}
           renderIcon={IconWarningLine}
-          screenReaderLabel={I18n.t('This is not a valid grade')}
+          screenReaderLabel={t('This is not a valid grade')}
         />
       </Tooltip>
     </div>
