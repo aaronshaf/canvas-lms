@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe AiConversationsController do
-  before :once do
+describe AiConversationsController, type: :request do
+  before do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
     @course.root_account.enable_feature!(:ai_experiences)
@@ -71,9 +71,7 @@ describe AiConversationsController do
                                                                           }
                                                                         })
 
-        get :active_conversation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -86,9 +84,7 @@ describe AiConversationsController do
       end
 
       it "returns empty object when no active conversation" do
-        get :active_conversation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -97,16 +93,14 @@ describe AiConversationsController do
     end
 
     context "as unenrolled user" do
-      before :once do
+      before do
         @unenrolled_user = user_factory(active_all: true)
       end
 
       before { user_session(@unenrolled_user) }
 
       it "returns forbidden for unenrolled users" do
-        get :active_conversation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -114,7 +108,7 @@ describe AiConversationsController do
   end
 
   describe "GET #show" do
-    before :once do
+    before do
       @student2 = student_in_course(active_all: true, course: @course).user
       @conversation = @ai_experience.ai_conversations.create!(
         llm_conversation_id: "student-conv-123",
@@ -146,9 +140,7 @@ describe AiConversationsController do
       end
 
       it "returns student conversation with messages" do
-        get :show,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -160,9 +152,7 @@ describe AiConversationsController do
       end
 
       it "includes all_objectives_met: false when objectives not yet met" do
-        get :show,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}"
 
         expect(response).to be_successful
         expect(json_parse(response.body)["all_objectives_met"]).to be false
@@ -171,18 +161,14 @@ describe AiConversationsController do
       it "includes all_objectives_met: true when objectives are met" do
         @conversation.update!(all_objectives_met: true)
 
-        get :show,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}"
 
         expect(response).to be_successful
         expect(json_parse(response.body)["all_objectives_met"]).to be true
       end
 
       it "returns 404 for non-existent conversation" do
-        get :show,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: 99_999 },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/99999"
 
         expect(response).to have_http_status(:not_found)
       end
@@ -192,9 +178,7 @@ describe AiConversationsController do
       before { user_session(@student) }
 
       it "returns unauthorized when viewing another student's conversation" do
-        get :show,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}"
 
         assert_forbidden
       end
@@ -225,9 +209,7 @@ describe AiConversationsController do
                                                             }
                                                           })
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:created)
         json_response = json_parse(response.body)
@@ -249,9 +231,7 @@ describe AiConversationsController do
                                                           })
 
         expect do
-          post :create,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
         end.to change(AiConversation, :count).by(1)
 
         conversation = AiConversation.last
@@ -277,9 +257,7 @@ describe AiConversationsController do
                                                             messages: []
                                                           })
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:created)
 
@@ -298,9 +276,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:start)
           .and_raise(LlmConversation::Errors::ConversationError, "internal stack trace from llma")
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
@@ -315,9 +291,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:start)
           .and_raise(LlmConversation::Errors::ConversationError, "internal stack trace from llma")
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         json_response = json_parse(response.body)
         expect(json_response["reference_id"]).to eq("req-create-123")
@@ -329,9 +303,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:start)
           .and_raise(LlmConversation::Errors::ConversationError.new("boom", code: "evaluation_parse_failed"))
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         json_response = json_parse(response.body)
         expect(json_response["code"]).to eq("evaluation_parse_failed")
@@ -344,9 +316,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:start)
           .and_raise(LlmConversation::Errors::ConversationError.new("bad", code: "context_invalid"))
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         json_response = json_parse(response.body)
         expect(json_response["code"]).to eq("context_invalid")
@@ -365,25 +335,21 @@ describe AiConversationsController do
                                                             messages: []
                                                           })
 
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:created)
       end
     end
 
     context "as unenrolled user" do
-      before :once do
+      before do
         @unenrolled_user = user_factory(active_all: true)
       end
 
       before { user_session(@unenrolled_user) }
 
       it "returns forbidden for unenrolled users" do
-        post :create,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -426,14 +392,8 @@ describe AiConversationsController do
                                                                }
                                                              })
 
-        post :post_message,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @conversation.id,
-               message: "How are you?"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages",
+             params: { message: "How are you?" }
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -446,9 +406,7 @@ describe AiConversationsController do
       end
 
       it "returns bad request when message is missing" do
-        post :post_message,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages"
 
         expect(response).to have_http_status(:bad_request)
         json_response = json_parse(response.body)
@@ -463,14 +421,8 @@ describe AiConversationsController do
           allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
           allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
 
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @conversation.id,
-                 message: "a" * max
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages",
+               params: { message: "a" * max }
 
           expect(response).to be_successful
         end
@@ -478,14 +430,8 @@ describe AiConversationsController do
         it "rejects a message one character over the cap without calling llma" do
           expect(AiExperiences::ConversationContinueService).not_to receive(:new)
 
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @conversation.id,
-                 message: "a" * (max + 1)
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages",
+               params: { message: "a" * (max + 1) }
 
           expect(response).to have_http_status(:unprocessable_content)
           json_response = json_parse(response.body)
@@ -499,14 +445,8 @@ describe AiConversationsController do
         allow(mock_service).to receive(:continue)
           .and_raise(LlmConversation::Errors::ConversationError, "Failed to send")
 
-        post :post_message,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @conversation.id,
-               message: "Test"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages",
+             params: { message: "Test" }
 
         expect(response).to have_http_status(:service_unavailable)
       end
@@ -534,14 +474,8 @@ describe AiConversationsController do
                                                                progress: nil
                                                              })
 
-        post :post_message,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @student_conversation.id,
-               message: "Test"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages",
+             params: { message: "Test" }
 
         expect(response).to be_successful
       end
@@ -555,14 +489,8 @@ describe AiConversationsController do
                                                              })
 
         expect do
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @student_conversation.id,
-                 message: "Test"
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages",
+               params: { message: "Test" }
         end.to change { @student_conversation.reload.all_objectives_met }.from(false).to(true)
       end
 
@@ -575,14 +503,8 @@ describe AiConversationsController do
                                                              })
 
         expect do
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @student_conversation.id,
-                 message: "Test"
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages",
+               params: { message: "Test" }
         end.not_to change { @student_conversation.reload.all_objectives_met }
       end
 
@@ -592,14 +514,8 @@ describe AiConversationsController do
         allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
 
         expect do
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @student_conversation.id,
-                 message: "Test"
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages",
+               params: { message: "Test" }
         end.not_to change { @student_conversation.reload.all_objectives_met }
 
         expect(response).to be_successful
@@ -614,14 +530,8 @@ describe AiConversationsController do
                                                              })
 
         expect do
-          post :post_message,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @student_conversation.id,
-                 message: "Test"
-               },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages",
+               params: { message: "Test" }
         end.not_to change { @student_conversation.reload.all_objectives_met }
       end
     end
@@ -643,9 +553,7 @@ describe AiConversationsController do
       before { user_session(@teacher) }
 
       it "ends the conversation" do
-        delete :destroy,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -670,9 +578,7 @@ describe AiConversationsController do
       end
 
       it "allows students to delete their own conversations" do
-        delete :destroy,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @student_conversation.id },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}"
 
         expect(response).to be_successful
       end
@@ -680,7 +586,7 @@ describe AiConversationsController do
   end
 
   describe "GET #evaluation" do
-    before :once do
+    before do
       @student2 = student_in_course(active_all: true, course: @course).user
       @conversation = @ai_experience.ai_conversations.create!(
         llm_conversation_id: "student-conv-123",
@@ -727,9 +633,7 @@ describe AiConversationsController do
       end
 
       it "returns the stored evaluation for a student conversation without generating" do
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -744,9 +648,7 @@ describe AiConversationsController do
         allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:get_latest).and_return({ evaluation: nil, stale: false })
 
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -759,9 +661,7 @@ describe AiConversationsController do
         allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:get_latest).and_return({ evaluation: @evaluation_data, stale: true })
 
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         json_response = json_parse(response.body)
         expect(json_response["stale"]).to be true
@@ -770,15 +670,11 @@ describe AiConversationsController do
       it "does not rate-limit the read path" do
         expect(InstLLMHelper).not_to receive(:with_rate_limit)
 
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
       end
 
       it "returns 404 for non-existent conversation" do
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: 99_999 },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/99999/evaluation"
 
         expect(response).to have_http_status(:not_found)
       end
@@ -789,9 +685,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:get_latest)
           .and_raise(LlmConversation::Errors::ConversationError, "Evaluation service unavailable")
 
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
@@ -803,25 +697,21 @@ describe AiConversationsController do
       before { user_session(@student) }
 
       it "returns unauthorized when requesting evaluation" do
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         assert_forbidden
       end
     end
 
     context "as unenrolled user" do
-      before :once do
+      before do
         @unenrolled_user = user_factory(active_all: true)
       end
 
       before { user_session(@unenrolled_user) }
 
       it "returns forbidden for unenrolled users" do
-        get :evaluation,
-            params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-            format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -829,7 +719,7 @@ describe AiConversationsController do
   end
 
   describe "POST #create_evaluation" do
-    before :once do
+    before do
       @student2 = student_in_course(active_all: true, course: @course).user
       @conversation = @ai_experience.ai_conversations.create!(
         llm_conversation_id: "student-conv-456",
@@ -851,9 +741,7 @@ describe AiConversationsController do
       end
 
       it "generates and returns a fresh evaluation" do
-        post :create_evaluation,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -864,15 +752,11 @@ describe AiConversationsController do
       it "rate-limits the generate path" do
         expect(InstLLMHelper).to receive(:with_rate_limit).and_yield
 
-        post :create_evaluation,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
       end
 
       it "returns 404 for non-existent conversation" do
-        post :create_evaluation,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: 99_999 },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/99999/evaluation"
 
         expect(response).to have_http_status(:not_found)
       end
@@ -882,9 +766,7 @@ describe AiConversationsController do
       before { user_session(@student) }
 
       it "returns unauthorized when generating an evaluation" do
-        post :create_evaluation,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @conversation.id },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/evaluation"
 
         assert_forbidden
       end
@@ -912,15 +794,8 @@ describe AiConversationsController do
         allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:create).and_return(feedback_data)
 
-        post :create_feedback,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @conversation.id,
-               message_id: "msg-123",
-               vote: "liked"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages/msg-123/feedback",
+             params: { vote: "liked" }
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -934,15 +809,8 @@ describe AiConversationsController do
         allow(mock_service).to receive(:create)
           .and_raise(LlmConversation::Errors::ConversationError, "Feedback service error")
 
-        post :create_feedback,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @conversation.id,
-               message_id: "msg-123",
-               vote: "liked"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages/msg-123/feedback",
+             params: { vote: "liked" }
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
@@ -969,16 +837,8 @@ describe AiConversationsController do
         allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:create).and_return(feedback_data)
 
-        post :create_feedback,
-             params: {
-               course_id: @course.id,
-               ai_experience_id: @ai_experience.id,
-               id: @student_conversation.id,
-               message_id: "msg-456",
-               vote: "disliked",
-               feedback_message: "Irrelevant"
-             },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@student_conversation.id}/messages/msg-456/feedback",
+             params: { vote: "disliked", feedback_message: "Irrelevant" }
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -1007,15 +867,7 @@ describe AiConversationsController do
         allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:delete)
 
-        delete :delete_feedback,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @conversation.id,
-                 message_id: "msg-123",
-                 feedback_id: "fb-1"
-               },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages/msg-123/feedback/fb-1"
 
         expect(response).to be_successful
         json_response = json_parse(response.body)
@@ -1028,15 +880,7 @@ describe AiConversationsController do
         allow(mock_service).to receive(:delete)
           .and_raise(LlmConversation::Errors::ConversationError, "Delete feedback error")
 
-        delete :delete_feedback,
-               params: {
-                 course_id: @course.id,
-                 ai_experience_id: @ai_experience.id,
-                 id: @conversation.id,
-                 message_id: "msg-123",
-                 feedback_id: "fb-1"
-               },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@conversation.id}/messages/msg-123/feedback/fb-1"
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
@@ -1050,7 +894,7 @@ describe AiConversationsController do
     # from leaving (or deleting) feedback on another user's conversation. These
     # specs assert that contract from the feedback action's perspective so a
     # regression to load_conversation's scoping is caught at the M-2 surface.
-    before :once do
+    before do
       @other_student = user_factory(active_all: true)
       @course.enroll_student(@other_student, enrollment_state: "active")
       @owners_conversation = @ai_experience.ai_conversations.create!(
@@ -1074,26 +918,15 @@ describe AiConversationsController do
       before { user_session(@other_student) }
 
       it "create_feedback returns 404 and does not call llma" do
-        post :create_feedback,
-             params: { course_id: @course.id,
-                       ai_experience_id: @ai_experience.id,
-                       id: @owners_conversation.id,
-                       message_id: "msg-123",
-                       vote: "liked" },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@owners_conversation.id}/messages/msg-123/feedback",
+             params: { vote: "liked" }
 
         expect(response).to have_http_status(:not_found)
         expect(@feedback_service).not_to have_received(:create)
       end
 
       it "delete_feedback returns 404 and does not call llma" do
-        delete :delete_feedback,
-               params: { course_id: @course.id,
-                         ai_experience_id: @ai_experience.id,
-                         id: @owners_conversation.id,
-                         message_id: "msg-123",
-                         feedback_id: "fb-1" },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@owners_conversation.id}/messages/msg-123/feedback/fb-1"
 
         expect(response).to have_http_status(:not_found)
         expect(@feedback_service).not_to have_received(:delete)
@@ -1104,26 +937,15 @@ describe AiConversationsController do
       before { user_session(@student) }
 
       it "create_feedback forwards to llma" do
-        post :create_feedback,
-             params: { course_id: @course.id,
-                       ai_experience_id: @ai_experience.id,
-                       id: @owners_conversation.id,
-                       message_id: "msg-123",
-                       vote: "liked" },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@owners_conversation.id}/messages/msg-123/feedback",
+             params: { vote: "liked" }
 
         expect(response).to be_successful
         expect(@feedback_service).to have_received(:create)
       end
 
       it "delete_feedback forwards to llma" do
-        delete :delete_feedback,
-               params: { course_id: @course.id,
-                         ai_experience_id: @ai_experience.id,
-                         id: @owners_conversation.id,
-                         message_id: "msg-123",
-                         feedback_id: "fb-1" },
-               format: :json
+        delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@owners_conversation.id}/messages/msg-123/feedback/fb-1"
 
         expect(response).to be_successful
         expect(@feedback_service).to have_received(:delete)
@@ -1134,13 +956,8 @@ describe AiConversationsController do
       before { user_session(@teacher) }
 
       it "create_feedback forwards to llma" do
-        post :create_feedback,
-             params: { course_id: @course.id,
-                       ai_experience_id: @ai_experience.id,
-                       id: @owners_conversation.id,
-                       message_id: "msg-123",
-                       vote: "liked" },
-             format: :json
+        post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@owners_conversation.id}/messages/msg-123/feedback",
+             params: { vote: "liked" }
 
         expect(response).to be_successful
         expect(@feedback_service).to have_received(:create)
@@ -1158,25 +975,20 @@ describe AiConversationsController do
         before { user_session(@teacher) }
 
         it "returns 404 for create" do
-          post :create,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
           expect(response).to have_http_status(:not_found)
         end
 
         it "renders proper 404 template for HTML requests" do
-          post :create,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id }
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations.html"
 
           expect(response).to have_http_status(:not_found)
           expect(response).to render_template("shared/errors/404_message")
         end
 
         it "returns JSON error for JSON requests" do
-          post :create,
-               params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-               format: :json
+          post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
           expect(response).to have_http_status(:not_found)
           json_response = json_parse(response.body)
@@ -1212,9 +1024,7 @@ describe AiConversationsController do
     it "renders 429 when #create is over the daily limit, without leaking the limit number" do
       stub_over_limit("ai_experiences_create_conversation", limit: 100)
 
-      post :create,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-           format: :json
+      post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
       expect(response).to have_http_status(:too_many_requests)
       body = json_parse(response.body)["error"]
@@ -1225,9 +1035,8 @@ describe AiConversationsController do
     it "renders 429 when #post_message is over the daily limit, without leaking the limit number" do
       stub_over_limit("ai_experiences_post_message", limit: 1000)
 
-      post :post_message,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id, message: "hi" },
-           format: :json
+      post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@rl_conversation.id}/messages",
+           params: { message: "hi" }
 
       expect(response).to have_http_status(:too_many_requests)
       body = json_parse(response.body)["error"]
@@ -1239,9 +1048,7 @@ describe AiConversationsController do
     it "renders 429 when #create_evaluation is over the daily limit, without leaking the limit number" do
       stub_over_limit("ai_experiences_evaluation", limit: 1000)
 
-      post :create_evaluation,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
-           format: :json
+      post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@rl_conversation.id}/evaluation"
 
       expect(response).to have_http_status(:too_many_requests)
       body = json_parse(response.body)["error"]
@@ -1262,9 +1069,7 @@ describe AiConversationsController do
       allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
       allow(mock_service).to receive(:start).and_return({ conversation_id: "x", messages: [] })
 
-      post :create,
-           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
-           format: :json
+      post "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations"
 
       expect(received.name).to eq("ai_experiences_create_conversation")
       expect(received.rate_limit).to eq({ limit: 42, period: "day" })
@@ -1272,9 +1077,7 @@ describe AiConversationsController do
 
     it "does not throttle #destroy, #show, #active_conversation, #evaluation, or feedback actions" do
       expect(InstLLMHelper).not_to receive(:with_rate_limit)
-      delete :destroy,
-             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
-             format: :json
+      delete "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/conversations/#{@rl_conversation.id}"
       expect(response).to have_http_status(:ok)
     end
   end
