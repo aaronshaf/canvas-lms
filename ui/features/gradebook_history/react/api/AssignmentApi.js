@@ -16,27 +16,26 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 function getAssignmentsByName(courseId, searchTerm) {
   if (searchTerm.length < 1) {
     return Promise.resolve({response: {data: []}})
   }
 
-  const params = {
-    params: {
-      search_term: searchTerm,
-      per_page: 10,
-    },
-  }
+  const url = `/api/v1/courses/${courseId}/assignments`
 
-  const url = encodeURI(`/api/v1/courses/${courseId}/assignments`)
-
-  return axios.get(url, params)
+  return doFetchApi({
+    path: url,
+    params: {search_term: searchTerm, per_page: 10},
+  }).then(({json, response}) => ({data: json, headers: {link: response.headers.get('link')}}))
 }
 
 function getAssignmentsNextPage(url) {
-  return axios.get(url)
+  return doFetchApi({path: url}).then(({json, response}) => ({
+    data: json,
+    headers: {link: response.headers.get('link')},
+  }))
 }
 
 export default {

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const userMetaTypes = {
   graders: ['teacher', 'ta'],
@@ -28,22 +28,24 @@ function getUsersByName(courseId, userType, searchTerm, enrollmentStates = []) {
     return Promise.resolve({response: {data: []}})
   }
 
-  const params = {
+  const url = `/api/v1/courses/${courseId}/users`
+
+  return doFetchApi({
+    path: url,
     params: {
       search_term: searchTerm,
       enrollment_type: userMetaTypes[userType],
       enrollment_state: enrollmentStates,
       per_page: 10,
     },
-  }
-
-  const url = encodeURI(`/api/v1/courses/${courseId}/users`)
-
-  return axios.get(url, params)
+  }).then(({json, response}) => ({data: json, headers: {link: response.headers.get('link')}}))
 }
 
 function getUsersNextPage(url) {
-  return axios.get(encodeURI(url))
+  return doFetchApi({path: url}).then(({json, response}) => ({
+    data: json,
+    headers: {link: response.headers.get('link')},
+  }))
 }
 
 export default {
