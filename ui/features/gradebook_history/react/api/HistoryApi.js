@@ -16,33 +16,35 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 function getGradebookHistory(courseId, input) {
-  let url = `/api/v1/audit/grade_change/courses/${courseId}`
+  let path = `/api/v1/audit/grade_change/courses/${courseId}`
 
   if (input.showFinalGradeOverridesOnly) {
-    url += `/assignments/override`
+    path += `/assignments/override`
   } else if (input.assignment) {
-    url += `/assignments/${input.assignment}`
+    path += `/assignments/${input.assignment}`
   }
 
-  url += input.grader ? `/graders/${input.grader}` : ''
-  url += input.student ? `/students/${input.student}` : ''
+  path += input.grader ? `/graders/${input.grader}` : ''
+  path += input.student ? `/students/${input.student}` : ''
 
-  const params = {
-    params: {
-      start_time: input.from?.value,
-      end_time: input.to?.value,
-      include: ['current_grade'],
-    },
-  }
+  const params = {include: ['current_grade']}
+  if (input.from?.value) params.start_time = input.from.value
+  if (input.to?.value) params.end_time = input.to.value
 
-  return axios.get(url, params)
+  return doFetchApi({path, params}).then(({json, response: res}) => ({
+    data: json,
+    headers: {link: res.headers.get('link')},
+  }))
 }
 
 function getNextPage(url) {
-  return axios.get(url)
+  return doFetchApi({path: url}).then(({json, response: res}) => ({
+    data: json,
+    headers: {link: res.headers.get('link')},
+  }))
 }
 
 export default {
