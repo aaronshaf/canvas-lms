@@ -16,18 +16,20 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {underscoreProperties} from '@canvas/convert-case'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {serializeFilter} from '../Gradebook.utils'
-import type {CustomColumn, FilterPreset, GradebookSettings} from '../gradebook.d'
+import type {FilterPreset, GradebookSettings} from '../gradebook.d'
 
 const I18n = createI18nScope('gradebookGradebookApi')
 
 function applyScoreToUngradedSubmissions(courseId?: string, params: any = {}) {
   const url = `/api/v1/courses/${courseId}/apply_score_to_ungraded_submissions`
-  return axios.put(url, underscoreProperties(params))
+  return doFetchApi({path: url, method: 'PUT', body: underscoreProperties(params)}).then(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ({json}) => ({data: json as any}),
+  )
 }
 
 function createTeacherNotesColumn(courseId: string) {
@@ -39,13 +41,17 @@ function createTeacherNotesColumn(courseId: string) {
       title: I18n.t('Notes'),
     },
   }
-  return axios.post<CustomColumn>(url, data)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return doFetchApi({path: url, method: 'POST', body: data}).then(({json}) => ({data: json as any}))
 }
 
 // @ts-expect-error
 function updateTeacherNotesColumn(courseId: string, columnId: string, attr) {
   const url = `/api/v1/courses/${courseId}/custom_gradebook_columns/${columnId}`
-  return axios.put(url, {column: attr})
+  return doFetchApi({path: url, method: 'PUT', body: {column: attr}}).then(({json}) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: json as any,
+  }))
 }
 
 function updateSubmission(
@@ -58,18 +64,23 @@ function updateSubmission(
   subAssignmentTag?: string,
 ) {
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/submissions/${userId}`
-  return axios.put(url, {
-    submission: underscoreProperties(submission),
-    include: ['visibility', 'sub_assignment_submissions'],
-    prefer_points_over_scheme: enterGradesAs === 'points',
-    originator: 'gradebook',
-    ...(subAssignmentTag ? {sub_assignment_tag: subAssignmentTag} : {}),
-  })
+  return doFetchApi({
+    path: url,
+    method: 'PUT',
+    body: {
+      submission: underscoreProperties(submission),
+      include: ['visibility', 'sub_assignment_submissions'],
+      prefer_points_over_scheme: enterGradesAs === 'points',
+      originator: 'gradebook',
+      ...(subAssignmentTag ? {sub_assignment_tag: subAssignmentTag} : {}),
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }).then(({json}) => ({data: json as any}))
 }
 
 function saveUserSettings(courseId: string, gradebook_settings: GradebookSettings) {
   const url = `/api/v1/courses/${courseId}/gradebook_settings`
-  return axios.put(url, {gradebook_settings})
+  return doFetchApi({path: url, method: 'PUT', body: {gradebook_settings}})
 }
 
 function createGradebookFilterPreset(courseId: string, filter: FilterPreset) {
