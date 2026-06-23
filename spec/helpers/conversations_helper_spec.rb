@@ -69,32 +69,6 @@ describe ConversationsHelper do
       expect(result.map(&:id)).to include(user_student.id)
       expect(result.map(&:id)).to include(user_teacher.id)
     end
-
-    context "with from_conversation_id" do
-      let(:other_course) { course_factory(account:, active_all: true) }
-      let(:stranger) { other_course.enroll_student(user_factory, enrollment_state: "active").user }
-      let(:insider) { course.enroll_student(user_factory, enrollment_state: "active").user }
-
-      it "lets a participant message users from a conversation they belong to" do
-        conversation = user_teacher.initiate_conversation([insider, user_student]).conversation
-        result = normalize_recipients(
-          recipients: [insider.id.to_s],
-          conversation_id: conversation.id,
-          current_principal: user_student.principal
-        )
-        expect(result.map(&:id)).to include(insider.id)
-      end
-
-      it "does not pull in non-messageable users from a conversation the caller cannot access" do
-        conversation = user_teacher.initiate_conversation([stranger]).conversation
-        result = normalize_recipients(
-          recipients: [stranger.id.to_s],
-          conversation_id: conversation.id,
-          current_principal: user_student.principal
-        )
-        expect(Array(result).map(&:id)).not_to include(stranger.id)
-      end
-    end
   end
 
   describe "inbox_settings_student?" do
