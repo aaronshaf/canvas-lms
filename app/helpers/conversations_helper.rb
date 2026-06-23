@@ -213,12 +213,15 @@ module ConversationsHelper
 
     # include users that were already part of the given conversation
     if conversation_id && conversation_id != ""
-      unknown_users = users - known.pluck(:id)
-      conversation_participant_ids = Conversation.find(conversation_id).participants.pluck(:id)
-      unknown_users = unknown_users.select do |unknown_user|
-        conversation_participant_ids.include?(unknown_user)
+      conversation = current_principal.user.all_conversations.where(conversation_id:).first&.conversation
+      if conversation
+        unknown_users = users - known.pluck(:id)
+        conversation_participant_ids = conversation.participants.pluck(:id)
+        unknown_users = unknown_users.select do |unknown_user|
+          conversation_participant_ids.include?(unknown_user)
+        end
+        known.concat(unknown_users.map { |id| MessageableUser.find(id) })
       end
-      known.concat(unknown_users.map { |id| MessageableUser.find(id) })
     end
 
     group_context_types = ["group", "differentiation_tag"]
