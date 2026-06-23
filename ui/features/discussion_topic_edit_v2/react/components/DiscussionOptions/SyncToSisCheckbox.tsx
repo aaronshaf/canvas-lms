@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 import {Checkbox} from '@instructure/ui-checkbox'
 import {FormField} from '@instructure/ui-form-field'
@@ -27,21 +27,20 @@ declare const ENV: GlobalEnv & {
   SIS_NAME: string
 }
 
-const I18n = createI18nScope('discussion_create')
-
 type Props = {
   postToSis: boolean
   setPostToSis: (postToSis: boolean) => void
 }
 
 export const SyncToSisCheckbox = ({postToSis, setPostToSis}: Props) => {
+  const {t} = useTranslation('discussion_create')
   return (
     <FormField
       id="post_to_sis"
-      label={I18n.t('Sync to %{sis_friendly_name}', {sis_friendly_name: ENV.SIS_NAME})}
+      label={t('Sync to {{sis_friendly_name}}', {sis_friendly_name: ENV.SIS_NAME})}
     >
       <Checkbox
-        label={I18n.t(
+        label={t(
           "Include this assignment's grades when syncing to your school's Student Information System",
         )}
         value="post_to_sis"

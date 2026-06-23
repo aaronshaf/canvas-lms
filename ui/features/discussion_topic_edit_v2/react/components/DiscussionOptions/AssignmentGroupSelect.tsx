@@ -17,11 +17,9 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 import {SimpleSelect} from '@instructure/ui-simple-select'
-
-const I18n = createI18nScope('discussion_create')
 
 type Props = {
   assignmentGroup: string
@@ -34,10 +32,11 @@ export const AssignmentGroupSelect = ({
   setAssignmentGroup,
   availableAssignmentGroups,
 }: Props) => {
+  const {t} = useTranslation('discussion_create')
   return (
     <SimpleSelect
       data-testid="assignment-group-input"
-      renderLabel={I18n.t('Assignment Group')}
+      renderLabel={t('Assignment Group')}
       value={assignmentGroup}
       onChange={(_event, {id}) => {
         setAssignmentGroup(id)

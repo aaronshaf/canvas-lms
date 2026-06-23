@@ -17,7 +17,7 @@
  */
 
 import React, {useEffect, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 import {FormFieldGroup, type FormMessageType} from '@instructure/ui-form-field'
 import {DateTimeInput} from '@instructure/ui-date-time-input'
@@ -28,8 +28,6 @@ import {Flex} from '@instructure/ui-flex'
 import {Alert} from '@instructure/ui-alerts'
 import {View} from '@instructure/ui-view'
 import {InstUISettingsProvider} from '@instructure/emotion'
-
-const I18n = createI18nScope('discussion_create')
 
 type Props = {
   availableFrom: string
@@ -56,6 +54,7 @@ export const NonGradedDateOptions = ({
   inputWidth,
   setDateInputRef,
 }: Props) => {
+  const {t} = useTranslation('discussion_create')
   const [availableFromDateRef, setAvailableFromDateRef] = useState<HTMLInputElement | null>(null)
   const [availableFromTimeRef, setAvailableFromTimeRef] = useState<HTMLInputElement | null>(null)
   const [availableUntilDateRef, setAvailableUntilDateRef] = useState<HTMLInputElement | null>(null)
@@ -82,11 +81,11 @@ export const NonGradedDateOptions = ({
         <Flex.Item shouldGrow={true}>
           <DateTimeInput
             timezone={ENV.TIMEZONE}
-            description={I18n.t('Available from')}
-            dateRenderLabel={I18n.t('Date')}
-            timeRenderLabel={I18n.t('Time')}
-            prevMonthLabel={I18n.t('previous')}
-            nextMonthLabel={I18n.t('next')}
+            description={t('Available from')}
+            dateRenderLabel={t('Date')}
+            timeRenderLabel={t('Time')}
+            prevMonthLabel={t('previous')}
+            nextMonthLabel={t('next')}
             value={availableFrom}
             onChange={(_event, newAvailableFrom = '') => {
               const value = newAvailableFrom === '' ? null : newAvailableFrom
@@ -98,8 +97,8 @@ export const NonGradedDateOptions = ({
               )
               setAvailableFrom(value)
             }}
-            datePlaceholder={I18n.t('Select Date')}
-            invalidDateTimeMessage={I18n.t('Invalid date and time')}
+            datePlaceholder={t('Select Date')}
+            invalidDateTimeMessage={t('Invalid date and time')}
             layout="columns"
             allowNonStepInput={true}
             dateInputRef={ref => {
@@ -126,10 +125,10 @@ export const NonGradedDateOptions = ({
                 onClick={() => {
                   setAvailableFrom(null)
                 }}
-                aria-label={I18n.t('Reset available from')}
+                aria-label={t('Reset available from')}
                 data-testid="reset-available-from-button"
               >
-                {I18n.t('Reset')}
+                {t('Reset')}
               </Button>
             </View>
           </InstUISettingsProvider>
@@ -142,7 +141,7 @@ export const NonGradedDateOptions = ({
             data-testid="schedule-info-alert"
             variantScreenReaderLabel="Information, "
           >
-            {I18n.t(
+            {t(
               'Notifications will only be sent to students who have been enrolled. Please allow time for this process to finish after publishing your course before scheduling this announcement.',
             )}
           </Alert>
@@ -152,11 +151,11 @@ export const NonGradedDateOptions = ({
         <Flex.Item shouldGrow={true}>
           <DateTimeInput
             timezone={ENV.TIMEZONE}
-            description={I18n.t('Until')}
-            dateRenderLabel={I18n.t('Date')}
-            timeRenderLabel={I18n.t('Time')}
-            prevMonthLabel={I18n.t('Time')}
-            nextMonthLabel={I18n.t('next')}
+            description={t('Until')}
+            dateRenderLabel={t('Date')}
+            timeRenderLabel={t('Time')}
+            prevMonthLabel={t('previous')}
+            nextMonthLabel={t('next')}
             value={availableUntil}
             onChange={(_event, newAvailableUntil = '') => {
               const value = newAvailableUntil === '' ? null : newAvailableUntil
@@ -168,8 +167,8 @@ export const NonGradedDateOptions = ({
               )
               setAvailableUntil(value)
             }}
-            datePlaceholder={I18n.t('Select Date')}
-            invalidDateTimeMessage={I18n.t('Invalid date and time')}
+            datePlaceholder={t('Select Date')}
+            invalidDateTimeMessage={t('Invalid date and time')}
             messages={availabilityValidationMessages}
             layout="columns"
             allowNonStepInput={true}
@@ -198,10 +197,10 @@ export const NonGradedDateOptions = ({
                 onClick={() => {
                   setAvailableUntil(null)
                 }}
-                aria-label={I18n.t('Reset available until')}
+                aria-label={t('Reset available until')}
                 data-testid="reset-available-until-button"
               >
-                {I18n.t('Reset')}
+                {t('Reset')}
               </Button>
             </View>
           </InstUISettingsProvider>

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {
   AssetProcessors,
@@ -27,13 +27,12 @@ import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 import {AssetProcessorType} from '@canvas/lti/model/AssetProcessor'
 
-const I18n = createI18nScope('discussion_create')
-
 type AssetProcessorsForDiscussionProps = Omit<AssetProcessorsProps, 'type'>
 
 const queryClient = new QueryClient()
 
 function AssetProcessorsWithoutQueryClient(props: AssetProcessorsForDiscussionProps) {
+  const {t} = useTranslation('discussion_create')
   // useShouldShowAssetProcessors uses tanstack query to fetch tools,
   // so this component needs to be wrapped in a QueryClientProvider
   const shouldShow = useShouldShowAssetProcessors(
@@ -48,7 +47,7 @@ function AssetProcessorsWithoutQueryClient(props: AssetProcessorsForDiscussionPr
   return (
     <View as="div" margin="medium 0">
       <Heading level="h4" margin="medium 0 x-small 0" color="primary">
-        {I18n.t('Document Processing App(s)')}
+        {t('Document Processing App(s)')}
       </Heading>
       <View
         as="div"

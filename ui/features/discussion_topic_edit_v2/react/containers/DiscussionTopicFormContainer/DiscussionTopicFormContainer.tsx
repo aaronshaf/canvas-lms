@@ -20,7 +20,7 @@ import React, {useCallback, useContext, useEffect, useState} from 'react'
 
 import {useMutation, useQuery} from '@apollo/client'
 import {AlertManagerContext} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import TopNavPortalWithDefaults from '@canvas/top-navigation/react/TopNavPortalWithDefaults'
 import {assignLocation} from '@canvas/util/globalUtils'
@@ -39,11 +39,11 @@ import {SavingDiscussionTopicOverlay} from '../../components/SavingDiscussionTop
 import {setUsageRights} from '../../util/setUsageRights'
 import {getContextQuery} from '../../util/utils'
 
-const I18n = createI18nScope('discussion_create')
 const instUINavEnabled = () => window.ENV?.FEATURES?.instui_nav
 
 // @ts-expect-error TS7031 (typescriptify)
 function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
+  const {t} = useTranslation('discussion_create')
   const {setOnFailure, setOnSuccess} = useContext(AlertManagerContext)
   const [usageRightData, setUsageRightData] = useState()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -154,7 +154,7 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
         `/groups/${ENV.context_id}/discussion_topics/${discussion_topic_id}${queryParams}`,
       )
     } else {
-      setOnFailure(I18n.t('Invalid context type'))
+      setOnFailure(t('Invalid context type'))
     }
   }
 
@@ -221,7 +221,7 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
       }
     } else {
       setIsSubmitting(false)
-      setOnFailure(I18n.t('Error with discussion topic'))
+      setOnFailure(t('Error with discussion topic'))
     }
   }
 
@@ -234,13 +234,13 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
     return (
       // @ts-expect-error TS2322 (typescriptify)
       <Pill data-testid="publish-status-pill" margin="small 0 0 0" variant="primary" {...pillProps}>
-        {published ? I18n.t('Published') : I18n.t('Unpublished')}
+        {published ? t('Published') : t('Unpublished')}
       </Pill>
     )
   }
 
   const renderHeading = () => {
-    const headerText = isAnnouncement ? I18n.t('Create Announcement') : I18n.t('Create Discussion')
+    const headerText = isAnnouncement ? t('Create Announcement') : t('Create Discussion')
     const titleContent = currentDiscussionTopic?.title ?? headerText
     const headerMargin = breakpoints.desktop ? '0 0 large 0' : '0 0 medium 0'
     return instUINavEnabled() ? (
@@ -281,13 +281,13 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
       }
 
       handleDiscussionTopicMutationCompletion(newDiscussionTopic).catch(() => {
-        setOnFailure(I18n.t('Error updating file usage rights'))
+        setOnFailure(t('Error updating file usage rights'))
       })
     },
     onError: err => {
       const errMsg = (err?.graphQLErrors || []).map(error => error?.message).join(', ')
       setIsSubmitting(false)
-      setOnFailure(errMsg || I18n.t('Error creating discussion topic'))
+      setOnFailure(errMsg || t('Error creating discussion topic'))
     },
   })
 
@@ -302,20 +302,20 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
         // the current validation_error doesn't allow multiple error messages
         const message = errors[0]?.message
 
-        setOnFailure(message || I18n.t('Error updating discussion topic'))
+        setOnFailure(message || t('Error updating discussion topic'))
         return
       }
 
       // 2 seconds delay for the success message to be read by screen readers
       handleDiscussionTopicMutationCompletion(updatedDiscussionTopic, 1600)
-        .then(() => setOnSuccess(I18n.t('Changes saved successfully'), true))
+        .then(() => setOnSuccess(t('Changes saved successfully'), true))
         .catch(() => {
-          setOnFailure(I18n.t('Error updating file usage rights'))
+          setOnFailure(t('Error updating file usage rights'))
         })
     },
     onError: () => {
       setIsSubmitting(false)
-      setOnFailure(I18n.t('Error updating discussion topic'))
+      setOnFailure(t('Error updating discussion topic'))
     },
   })
 
@@ -345,9 +345,7 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
 
   // @ts-expect-error TS7031 (typescriptify)
   const handleBreadCrumbSetter = ({getCrumbs, setCrumbs}) => {
-    const discussionOrAnnouncement = isAnnouncement
-      ? I18n.t('Announcements')
-      : I18n.t('Discussions')
+    const discussionOrAnnouncement = isAnnouncement ? t('Announcements') : t('Discussions')
     const brUrlPart = isAnnouncement ? 'announcements' : 'discussion_topics'
     const crumbs = getCrumbs()
     const baseUrl = `${crumbs[0].url}/${brUrlPart}`
@@ -361,7 +359,7 @@ function DiscussionTopicFormContainer({apolloClient, breakpoints}) {
       })
     }
 
-    crumbs.push({name: isEditing ? I18n.t('Edit') : I18n.t('Create new'), url: ''})
+    crumbs.push({name: isEditing ? t('Edit') : t('Create new'), url: ''})
     setCrumbs(crumbs)
   }
 

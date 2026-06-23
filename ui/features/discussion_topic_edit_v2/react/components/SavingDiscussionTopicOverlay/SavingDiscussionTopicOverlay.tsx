@@ -18,18 +18,17 @@
 
 import React from 'react'
 import {Spinner} from '@instructure/ui-spinner'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Mask, Overlay} from '@instructure/ui-overlays'
-
-const I18n = createI18nScope('discussion_create')
 
 type Props = {
   open: boolean
 }
 
 export const SavingDiscussionTopicOverlay = ({open}: Props) => {
-  const label = I18n.t('Loading')
-  const message = I18n.t('Saving Discussion Topic')
+  const {t} = useTranslation('discussion_create')
+  const label = t('Loading')
+  const message = t('Saving Discussion Topic')
 
   return (
     <Overlay open={open} transition="fade" label={message}>

@@ -19,7 +19,7 @@
 import React, {useState, useEffect} from 'react'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import {AlertManager} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
@@ -27,9 +27,8 @@ import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import DiscussionTopicFormContainer from './containers/DiscussionTopicFormContainer/DiscussionTopicFormContainer'
 
-const I18n = createI18nScope('discussion_topics_edit')
-
 export const DiscussionTopicEdit = _props => {
+  const {t} = useTranslation('discussion_topics_edit')
   const [client, setClient] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -50,7 +49,7 @@ export const DiscussionTopicEdit = _props => {
             imageUrl={errorShipUrl}
             onReportError={reportError}
             translations={errorPageTranslations}
-            errorCategory={I18n.t('Discussion Topic Edit Error Page')}
+            errorCategory={t('Discussion Topic Edit Error Page')}
           />
         }
       >

@@ -19,7 +19,7 @@
 import React, {useContext} from 'react'
 
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {AssignmentGroupSelect} from './AssignmentGroupSelect'
 import {DisplayGradeAs} from './DisplayGradeAs'
 import {PointsPossible} from './PointsPossible'
@@ -58,8 +58,6 @@ type Props = {
   canManageAssignTo: boolean
 }
 
-const I18n = createI18nScope('discussion_create')
-
 export const GradedDiscussionOptions = ({
   assignmentGroups,
   pointsPossible,
@@ -83,6 +81,7 @@ export const GradedDiscussionOptions = ({
   isCheckpoints,
   canManageAssignTo,
 }: Props) => {
+  const {t} = useTranslation('discussion_create')
   const isPacedDiscussion = ENV.IN_PACED_COURSE
   const isPacedWithMasteryPaths =
     ENV.FEATURES.course_pace_pacing_with_mastery_paths && ENV.CONDITIONAL_RELEASE_SERVICE_ENABLED
@@ -96,7 +95,7 @@ export const GradedDiscussionOptions = ({
     return (
       <>
         <Text size="large" as="h2">
-          {I18n.t('Assignment Settings')}
+          {t('Assignment Settings')}
         </Text>
         {isPacedDiscussion ? (
           <>
@@ -127,7 +126,7 @@ export const GradedDiscussionOptions = ({
           <PointsPossible
             pointsPossible={pointsPossible}
             setPointsPossible={setPointsPossible}
-            pointsPossibleLabel={I18n.t('Points Possible')}
+            pointsPossibleLabel={t('Points Possible')}
             pointsPossibleDataTestId="points-possible-input"
           />
         </View>

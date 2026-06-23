@@ -19,7 +19,7 @@
 import React, {useState, useRef, useEffect, useContext, useCallback} from 'react'
 import PropTypes from 'prop-types'
 import {CreateOrEditSetModal} from '@canvas/groups/react/CreateOrEditSetModal'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
@@ -91,8 +91,6 @@ import {showPostToSisFlashAlert} from '@canvas/due-dates/util/differentiatedModu
 import {existingAttachedAssetProcessorFromGraphql} from '@canvas/lti/model/AssetProcessor'
 import {useAssetProcessorsState} from '@canvas/lti-asset-processor/react/hooks/AssetProcessorsState'
 
-const I18n = createI18nScope('discussion_create')
-
 const instUINavEnabled = () => window.ENV?.FEATURES?.instui_nav
 
 // @ts-expect-error TS7006 (typescriptify)
@@ -159,6 +157,7 @@ function DiscussionTopicForm({
   // @ts-expect-error TS7031 (typescriptify)
   breakpoints,
 }) {
+  const {t} = useTranslation('discussion_create')
   const rceRef = useRef()
   const textInputRef = useRef()
   const sectionInputRef = useRef()
@@ -188,7 +187,7 @@ function DiscussionTopicForm({
     if (!isLocked) return content
     return (
       <Tooltip
-        renderTip={I18n.t('Modifying this option has been disabled by administrators')}
+        renderTip={t('Modifying this option has been disabled by administrators')}
         on={['hover', 'focus']}
         placement="top"
         data-testid="locked-setting-tooltip"
@@ -211,7 +210,7 @@ function DiscussionTopicForm({
         id: 'announcement-course-unpublished-alert',
         key: 'announcement-course-unpublished-alert',
         variant: 'warning',
-        text: I18n.t(
+        text: t(
           'Notifications will not be sent retroactively for announcements created before publishing your course or before the course start date. You may consider using the Available from option and set to publish on a future date.',
         ),
       }
@@ -220,7 +219,7 @@ function DiscussionTopicForm({
     }
   }
 
-  const allSectionsOption = {id: 'all', name: I18n.t('All Sections')}
+  const allSectionsOption = {id: 'all', name: t('All Sections')}
 
   const isAlreadyAGroupDiscussion = !!currentDiscussionTopic?.groupSet?._id
 
@@ -230,8 +229,8 @@ function DiscussionTopicForm({
   const isCheckpointsForbidden = hasSubmissionsOrReplies
 
   const checkPointsToolTipText = isCheckpointsForbidden
-    ? I18n.t('Checkpoints cannot be toggled after replies have been made.')
-    : I18n.t(
+    ? t('Checkpoints cannot be toggled after replies have been made.')
+    : t(
         'Checkpoints can be set to have different due dates and point values for the initial response and the subsequent replies.',
       )
 
@@ -949,16 +948,16 @@ function DiscussionTopicForm({
   const getPublishStatus = () => {
     return (
       <div
-        aria-label={published ? I18n.t('Published') : I18n.t('Not Published')}
+        aria-label={published ? t('Published') : t('Not Published')}
         style={{display: 'inline-flex', alignItems: 'center'}}
       >
         {published ? (
           <Text color="success" weight="normal">
-            <IconPublishSolid aria-hidden="true" /> {I18n.t('Published')}
+            <IconPublishSolid aria-hidden="true" /> {t('Published')}
           </Text>
         ) : (
           <Text color="secondary" weight="normal">
-            <IconUnpublishedLine aria-hidden="true" /> {I18n.t('Not Published')}
+            <IconUnpublishedLine aria-hidden="true" /> {t('Not Published')}
           </Text>
         )}
       </div>
@@ -972,7 +971,7 @@ function DiscussionTopicForm({
     return (
       <Flex justifyItems="space-between">
         <Flex.Item>
-          {I18n.t('Topic Title')}
+          {t('Topic Title')}
           {/* @ts-expect-error TS2769 (typescriptify) */}
           <Text color={asteriskColor} margin="0 0 0 xxSmall">
             *
@@ -1061,7 +1060,7 @@ function DiscussionTopicForm({
       return (
         <View as="div" data-testid="discussion-assign-to-section">
           <Text size="large" as="h2">
-            {I18n.t('Assign Access')}
+            {t('Assign Access')}
           </Text>
           {/* @ts-expect-error TS2322 (typescriptify) */}
           <DiscussionDueDatesContext.Provider value={assignmentDueDateContext}>
@@ -1132,13 +1131,13 @@ function DiscussionTopicForm({
     if (!shouldShowAllowParticipantsToCommentOption) {
       const tooltipText =
         groupContextType === 'Account'
-          ? I18n.t('This option is locked in account settings')
-          : I18n.t('This option is locked in course settings')
+          ? t('This option is locked in account settings')
+          : t('This option is locked in course settings')
 
       return (
         <Tooltip renderTip={tooltipText}>
           <Checkbox
-            label={I18n.t('Allow Participants to Comment')}
+            label={t('Allow Participants to Comment')}
             value="enable-participants-commenting"
             inline={true}
             checked={false}
@@ -1149,7 +1148,7 @@ function DiscussionTopicForm({
     } else {
       return (
         <Checkbox
-          label={I18n.t('Allow Participants to Comment')}
+          label={t('Allow Participants to Comment')}
           value="enable-participants-commenting"
           inline={true}
           checked={!locked}
@@ -1198,8 +1197,8 @@ function DiscussionTopicForm({
           <TextInput
             data-testid="discussion-topic-title"
             renderLabel={renderLabelWithPublishStatus()}
-            aria-label={I18n.t('Topic Title')}
-            placeholder={I18n.t('Topic Title')}
+            aria-label={t('Topic Title')}
+            placeholder={t('Topic Title')}
             type="text"
             value={title}
             // @ts-expect-error TS2322 (typescriptify)
@@ -1221,7 +1220,7 @@ function DiscussionTopicForm({
             {/* @ts-expect-error TS2339 (typescriptify) */}
             {!ENV?.DISCUSSION_CONTENT_LOCKED ? (
               <span className="discussions-editor" data-testid="discussion-topic-message-editor">
-                <FormField label={I18n.t('Topic content')} id="discussion-topic-message-body">
+                <FormField label={t('Topic content')} id="discussion-topic-message-body">
                   <CanvasRce
                     textareaId="discussion-topic-message-body"
                     onFocus={() => {}}
@@ -1271,9 +1270,9 @@ function DiscussionTopicForm({
             <View display="block" padding="medium none">
               <CanvasMultiSelect
                 data-testid="section-select"
-                label={I18n.t('Post to')}
+                label={t('Post to')}
                 messages={postToValidationMessages}
-                assistiveText={I18n.t(
+                assistiveText={t(
                   'Select sections to post to. Type or use arrow keys to navigate. Multiple selections are allowed.',
                 )}
                 selectedOptionIds={sectionIdsToPostTo}
@@ -1301,7 +1300,7 @@ function DiscussionTopicForm({
           )}
           {shouldShowUsageRightsOption && (
             <Flex justifyItems="start" gap="small">
-              <Flex.Item>{I18n.t('Set usage rights')}</Flex.Item>
+              <Flex.Item>{t('Set usage rights')}</Flex.Item>
               <Flex.Item>
                 <UsageRightsContainer
                   contextType={(ENV?.context_type ?? '').toLocaleLowerCase()}
@@ -1316,7 +1315,7 @@ function DiscussionTopicForm({
             </Flex>
           )}
           <Text size="large" as="h2">
-            {I18n.t('Options')}
+            {t('Options')}
           </Text>
           {shouldShowAnonymousOptions && (
             <AnonymousSelector
@@ -1347,7 +1346,7 @@ function DiscussionTopicForm({
               >
                 {renderLockedTooltip(
                   <Checkbox
-                    label={I18n.t('Disallow threaded replies')}
+                    label={t('Disallow threaded replies')}
                     value="disallow-threaded-replies"
                     inline={true}
                     checked={!locked && !isThreaded}
@@ -1378,9 +1377,7 @@ function DiscussionTopicForm({
               >
                 {renderLockedTooltip(
                   <Checkbox
-                    label={I18n.t(
-                      'Participants must respond to the topic before viewing other replies',
-                    )}
+                    label={t('Participants must respond to the topic before viewing other replies')}
                     value="must-respond-before-viewing-replies"
                     inline={true}
                     checked={requireInitialPost}
@@ -1400,7 +1397,7 @@ function DiscussionTopicForm({
               >
                 {renderLockedTooltip(
                   <Checkbox
-                    label={I18n.t('Enable podcast feed')}
+                    label={t('Enable podcast feed')}
                     value="enable-podcast-feed"
                     inline={true}
                     checked={enablePodcastFeed}
@@ -1425,7 +1422,7 @@ function DiscussionTopicForm({
               >
                 {renderLockedTooltip(
                   <Checkbox
-                    label={I18n.t('Include student replies in podcast feed')}
+                    label={t('Include student replies in podcast feed')}
                     value="include-student-replies-in-podcast-feed"
                     inline={true}
                     checked={includeRepliesInFeed}
@@ -1444,7 +1441,7 @@ function DiscussionTopicForm({
               >
                 <Checkbox
                   data-pendo="graded-checkbox"
-                  label={I18n.t('Graded')}
+                  label={t('Graded')}
                   value="graded"
                   inline={true}
                   checked={isGraded}
@@ -1464,7 +1461,7 @@ function DiscussionTopicForm({
                 >
                   <Checkbox
                     data-pendo="checkpoints-checkbox"
-                    label={I18n.t('Assign graded checkpoints')}
+                    label={t('Assign graded checkpoints')}
                     value="checkpoints"
                     inline={true}
                     checked={isCheckpoints}
@@ -1498,7 +1495,7 @@ function DiscussionTopicForm({
               >
                 <Checkbox
                   data-pendo="suppressed-assignment-checkbox"
-                  label={I18n.t('Hide from gradebook view and student grades view')}
+                  label={t('Hide from gradebook view and student grades view')}
                   value="suppress_from_gradebook"
                   inline={true}
                   checked={suppressedAssignment}
@@ -1517,7 +1514,7 @@ function DiscussionTopicForm({
                 >
                   {renderLockedTooltip(
                     <Checkbox
-                      label={I18n.t('Allow liking')}
+                      label={t('Allow liking')}
                       value="allow-liking"
                       inline={true}
                       checked={allowLiking}
@@ -1542,7 +1539,7 @@ function DiscussionTopicForm({
                     <FormFieldGroup description="" rowSpacing="small">
                       {renderLockedTooltip(
                         <Checkbox
-                          label={I18n.t('Only graders can like')}
+                          label={t('Only graders can like')}
                           value="only-graders-can-like"
                           inline={true}
                           checked={onlyGradersCanLike}
@@ -1564,7 +1561,7 @@ function DiscussionTopicForm({
                   display="inline-block"
                 >
                   <Checkbox
-                    label={I18n.t('Add to student to-do')}
+                    label={t('Add to student to-do')}
                     value="add-to-student-to-do"
                     inline={true}
                     checked={addToTodo}
@@ -1584,13 +1581,13 @@ function DiscussionTopicForm({
                     <DateTimeInput
                       timezone={ENV.TIMEZONE}
                       description=""
-                      dateRenderLabel={I18n.t('Date')}
-                      timeRenderLabel={I18n.t('Time')}
-                      prevMonthLabel={I18n.t('previous')}
-                      nextMonthLabel={I18n.t('next')}
+                      dateRenderLabel={t('Date')}
+                      timeRenderLabel={t('Time')}
+                      prevMonthLabel={t('previous')}
+                      nextMonthLabel={t('next')}
                       onChange={(_event, newDate) => setTodoDate(newDate)}
                       value={todoDate}
-                      invalidDateTimeMessage={I18n.t('Invalid date and time')}
+                      invalidDateTimeMessage={t('Invalid date and time')}
                       layout="columns"
                       allowNonStepInput={true}
                       dateInputRef={ref => {
@@ -1616,7 +1613,7 @@ function DiscussionTopicForm({
               >
                 <Checkbox
                   id="has_group_category"
-                  label={I18n.t('This is a Group Discussion')}
+                  label={t('This is a Group Discussion')}
                   value="group-discussion"
                   inline={true}
                   checked={isGroupDiscussion}
@@ -1627,7 +1624,7 @@ function DiscussionTopicForm({
                         // @ts-expect-error TS2322 (typescriptify)
                         {
                           type: 'error',
-                          text: I18n.t(
+                          text: t(
                             'You must remove any groups from the Assign Access section to change this setting.',
                           ),
                         },
@@ -1646,7 +1643,7 @@ function DiscussionTopicForm({
                 <SimpleSelect
                   data-testid="select-discussion-group-category"
                   id="discussion_group_category_id"
-                  renderLabel={I18n.t('Group Set')}
+                  renderLabel={t('Group Set')}
                   defaultValue=""
                   value={groupCategoryId}
                   onChange={(_event, newChoice) => {
@@ -1655,8 +1652,8 @@ function DiscussionTopicForm({
                         // @ts-expect-error TS2322 (typescriptify)
                         {
                           type: 'error',
-                          text: I18n.t(
-                            'You must remove any groups belonging to %{groupCategory} from the Assign Access section before you can change to another Group Set.',
+                          text: t(
+                            'You must remove any groups belonging to {{groupCategory}} from the Assign Access section before you can change to another Group Set.',
                             {
                               groupCategory: groupCategories.find(
                                 // @ts-expect-error TS7006 (typescriptify)
@@ -1678,7 +1675,7 @@ function DiscussionTopicForm({
                     }
                   }}
                   messages={groupCategorySelectError}
-                  placeholder={I18n.t('Select a group category')}
+                  placeholder={t('Select a group category')}
                   width={inputWidth}
                   disabled={!canGroupDiscussion}
                   inputRef={ref => {
@@ -1704,7 +1701,7 @@ function DiscussionTopicForm({
                     renderBeforeLabel={IconAddLine}
                     data-testid="group-category-opt-new-group-category"
                   >
-                    {I18n.t('New Group Category')}
+                    {t('New Group Category')}
                   </SimpleSelect.Option>
                 </SimpleSelect>
 
@@ -1736,7 +1733,7 @@ function DiscussionTopicForm({
               currentDiscussionTopic?.entryCounts?.repliesCount > 0 && (
                 <View display="block" data-testid="group-category-not-editable">
                   <Alert variant="warning" margin="small none small none">
-                    {I18n.t(
+                    {t(
                       'Students have already submitted to this discussion, so group settings cannot be changed.',
                     )}
                   </Alert>

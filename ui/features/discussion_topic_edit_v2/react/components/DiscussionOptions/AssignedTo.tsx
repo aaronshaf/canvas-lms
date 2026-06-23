@@ -18,7 +18,7 @@
 
 import React, {useState, useRef, useMemo, useEffect, useCallback, useContext} from 'react'
 import PropTypes from 'prop-types'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Tag} from '@instructure/ui-tag'
 import {Alert} from '@instructure/ui-alerts'
 import {Select} from '@instructure/ui-select'
@@ -26,7 +26,6 @@ import {IconCheckSolid} from '@instructure/ui-icons'
 import {View} from '@instructure/ui-view'
 import {DiscussionDueDatesContext} from '../../util/constants'
 
-const I18n = createI18nScope('discussion_create')
 const liveRegion = () => document.getElementById('flash_screenreader_holder')
 
 export const AssignedTo = ({
@@ -41,6 +40,7 @@ export const AssignedTo = ({
   // @ts-expect-error TS7031 (typescriptify)
   onOptionDismiss,
 }) => {
+  const {t} = useTranslation('discussion_create')
   const [selectedOptionAssetCode, setSelectedOptionAssetCode] = useState(
     initialAssignedToInformation,
   )
@@ -114,7 +114,7 @@ export const AssignedTo = ({
   useEffect(() => {
     setAnnouncement(
       // @ts-expect-error TS2345 (typescriptify)
-      `${currentFilterInput}. ${I18n.t('%{optionCount} options available.', {
+      `${currentFilterInput}. ${t('{{optionCount}} options available.', {
         // @ts-expect-error TS2339 (typescriptify)
         optionCount: filteredOptions.length,
       })}`,
@@ -159,11 +159,11 @@ export const AssignedTo = ({
   const validateAssignTo = () => {
     const error = []
     const missingAssignToOptionError = {
-      text: I18n.t('Please select at least one option.'),
+      text: t('Please select at least one option.'),
       type: 'error',
     }
     const illegalGroupCategoryError = {
-      text: I18n.t('Groups can only be part of the actively selected group set.'),
+      text: t('Groups can only be part of the actively selected group set.'),
       type: 'error',
     }
     if (selectedOptionAssetCode.length === 0) {
@@ -243,7 +243,7 @@ export const AssignedTo = ({
     setCurrentFilterInput('')
     setIsShowingOptions(false)
     // @ts-expect-error TS2345 (typescriptify)
-    setAnnouncement(I18n.t('%{optionName} selected. List collapsed.', {optionName: option.label}))
+    setAnnouncement(t('{{optionName}} selected. List collapsed.', {optionName: option.label}))
   }
 
   // Changes that occur when the user types in the input
@@ -276,7 +276,7 @@ export const AssignedTo = ({
     onOptionDismiss(tagAssetCode) // Notify parent
     setAnnouncement(
       // @ts-expect-error TS2345 (typescriptify)
-      I18n.t('%{optionName} selection has been removed', {optionName: optionBeingRemoved.label}),
+      t('{{optionName}} selection has been removed', {optionName: optionBeingRemoved.label}),
     )
     // @ts-expect-error TS18047 (typescriptify)
     inputRef.current.focus()
@@ -301,7 +301,7 @@ export const AssignedTo = ({
       onOptionDismiss(lastSelectedTagAssetCode)
       setAnnouncement(
         // @ts-expect-error TS2345 (typescriptify)
-        I18n.t('%{optionName} selection has been removed', {optionName: optionBeingRemoved.label}),
+        t('{{optionName}} selection has been removed', {optionName: optionBeingRemoved.label}),
       )
     }
   }
@@ -312,7 +312,7 @@ export const AssignedTo = ({
       <Tag
         dismissible={true}
         key={assetCode}
-        title={I18n.t('Remove %{optionName}', {optionName: getOptionByAssetCode(assetCode).label})}
+        title={t('Remove {{optionName}}', {optionName: getOptionByAssetCode(assetCode).label})}
         text={getOptionByAssetCode(assetCode).label}
         margin={index > 0 ? 'xxx-small 0 xxx-small xx-small' : 'xxx-small 0'}
         onClick={e => dismissTag(e, assetCode)}
@@ -348,8 +348,8 @@ export const AssignedTo = ({
   return (
     <View as="span" data-testid="assign-to-select-span">
       <Select
-        renderLabel={I18n.t('Assign To')}
-        assistiveText={I18n.t(
+        renderLabel={t('Assign To')}
+        assistiveText={t(
           'Type or use arrow keys to navigate options. Multiple selections allowed.',
         )}
         inputValue={inputValue}

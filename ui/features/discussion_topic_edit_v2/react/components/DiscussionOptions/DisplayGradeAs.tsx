@@ -17,34 +17,9 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 import {SimpleSelect} from '@instructure/ui-simple-select'
-
-const I18n = createI18nScope('discussion_create')
-
-const gradedDiscussionOptions = [
-  {
-    id: 'points',
-    label: I18n.t('Points'),
-  },
-  {
-    id: 'percent',
-    label: I18n.t('Percentage'),
-  },
-  {
-    id: 'pass_fail',
-    label: I18n.t('Complete/Incomplete'),
-  },
-  {
-    id: 'letter_grade',
-    label: I18n.t('Letter Grade'),
-  },
-  {
-    id: 'gpa_scale',
-    label: I18n.t('GPA Scale'),
-  },
-]
 
 type Props = {
   displayGradeAs: string
@@ -52,10 +27,33 @@ type Props = {
 }
 
 export const DisplayGradeAs = ({displayGradeAs, setDisplayGradeAs}: Props) => {
+  const {t} = useTranslation('discussion_create')
+  const gradedDiscussionOptions = [
+    {
+      id: 'points',
+      label: t('Points'),
+    },
+    {
+      id: 'percent',
+      label: t('Percentage'),
+    },
+    {
+      id: 'pass_fail',
+      label: t('Complete/Incomplete'),
+    },
+    {
+      id: 'letter_grade',
+      label: t('Letter Grade'),
+    },
+    {
+      id: 'gpa_scale',
+      label: t('GPA Scale'),
+    },
+  ]
   return (
     <SimpleSelect
       data-testid="display-grade-input"
-      renderLabel={I18n.t('Display Grade As')}
+      renderLabel={t('Display Grade As')}
       value={displayGradeAs}
       onChange={(_event, {id}) => setDisplayGradeAs(id)}
     >

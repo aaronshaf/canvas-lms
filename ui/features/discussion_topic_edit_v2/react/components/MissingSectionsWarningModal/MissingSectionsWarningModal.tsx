@@ -18,14 +18,12 @@
 
 import React from 'react'
 import {Modal} from '@instructure/ui-modal'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
 import {IconWarningLine} from '@instructure/ui-icons'
 import {Flex} from '@instructure/ui-flex'
-
-const I18n = createI18nScope('discussion_create')
 
 type Props = {
   onClose: () => void
@@ -33,15 +31,16 @@ type Props = {
 }
 
 export const MissingSectionsWarningModal = ({onClose, onContinue}: Props) => {
+  const {t} = useTranslation('discussion_create')
   const renderCloseButton = () => {
-    return <CloseButton onClick={onClose} screenReaderLabel={I18n.t('Close')} />
+    return <CloseButton onClick={onClose} screenReaderLabel={t('Close')} />
   }
   return (
     <Modal
       as="form"
       open={true}
       onDismiss={onClose}
-      label={I18n.t('Missing Sections Warning')}
+      label={t('Missing Sections Warning')}
       shouldCloseOnDocumentClick={true}
     >
       <Modal.Header>
@@ -52,23 +51,23 @@ export const MissingSectionsWarningModal = ({onClose, onContinue}: Props) => {
             </Text>
           </Flex.Item>
           <Flex.Item shouldGrow={true}>
-            <Heading>{I18n.t('Warning')}</Heading>
+            <Heading>{t('Warning')}</Heading>
           </Flex.Item>
           <Flex.Item>{renderCloseButton()}</Flex.Item>
         </Flex>
       </Modal.Header>
       <Modal.Body padding="small">
         <p>
-          <Text>{I18n.t('Not everyone will be assigned this item!')}</Text>
+          <Text>{t('Not everyone will be assigned this item!')}</Text>
         </p>
-        <Text>{I18n.t('Would you like to continue?')}</Text>
+        <Text>{t('Would you like to continue?')}</Text>
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onClose} margin="0 x-small 0 0" data-testid="go-back-button">
-          {I18n.t('Go Back')}
+          {t('Go Back')}
         </Button>
         <Button onClick={onContinue} color="primary" type="submit" data-testid="continue-button">
-          {I18n.t('Continue')}
+          {t('Continue')}
         </Button>
       </Modal.Footer>
     </Modal>
