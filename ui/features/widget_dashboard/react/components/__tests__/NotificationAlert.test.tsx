@@ -45,19 +45,7 @@ describe('NotificationAlert', () => {
     expect(screen.getByText('Test message content')).toBeInTheDocument()
   })
 
-  it('displays site admin message when notification is from site admin', () => {
-    const siteAdminNotification = {
-      ...baseNotification,
-      siteAdmin: true,
-    }
-
-    render(<NotificationAlert notification={siteAdminNotification} onDismiss={mockOnDismiss} />)
-
-    expect(screen.getByText('This is an announcement from')).toBeInTheDocument()
-    expect(screen.getByText('Canvas Administration')).toBeInTheDocument()
-  })
-
-  it('displays account name when notification is not from site admin', () => {
+  it('displays account name', () => {
     render(<NotificationAlert notification={baseNotification} onDismiss={mockOnDismiss} />)
 
     expect(screen.getByText('This is an announcement from')).toBeInTheDocument()

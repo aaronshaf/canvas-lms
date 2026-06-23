@@ -2248,6 +2248,10 @@ class Account < ApplicationRecord
     name
   end
 
+  def notification_name
+    settings[:notification_name] || name
+  end
+
   # Updates account associations for all the courses and users associated with this account
   def update_account_associations
     shard.activate do

@@ -56,11 +56,7 @@
     <% end %>
   </div>
   <span class="notification_account_content_text">
-    <% if notification.account.site_admin? %>
-      <%= t("This is an announcement from *Canvas Administration*", wrapper: '<b>\1</b>') %>
-    <% else %>
-      <%= t("This is an announcement from *%{name}*", name: notification.account.name, wrapper: '<b>\1</b>') %>
-    <% end %>
+    <%= t("This is an announcement from *%{name}*", name: notification.account.notification_name, wrapper: '<b>\1</b>') %>
   </span>
 </div>
 

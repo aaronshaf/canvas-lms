@@ -144,10 +144,14 @@ describe "accounts/settings" do
       it_behaves_like "account notifications", "This is an announcement from <b>reading_rainbow</b>"
     end
 
-    describe "Site Admin Announcements" do
+    describe "Account announcement name override" do
       let(:account) { Account.site_admin }
 
-      it_behaves_like "account notifications", "This is an announcement from <b>Canvas Administration</b>"
+      before do
+        account.settings[:notification_name] = "Instructure"
+      end
+
+      it_behaves_like "account notifications", "This is an announcement from <b>Instructure</b>"
     end
   end
 

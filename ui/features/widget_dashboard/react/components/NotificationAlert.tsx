@@ -81,22 +81,6 @@ const NotificationAlert: React.FC<NotificationAlertProps> = ({notification, onDi
     onDismiss(notification.id)
   }
 
-  const accountMessage = notification.siteAdmin ? (
-    <Text size="small">
-      {I18n.t('This is an announcement from ')}
-      <Text weight="bold" size="small">
-        {I18n.t('Canvas Administration')}
-      </Text>
-    </Text>
-  ) : (
-    <Text size="small">
-      {I18n.t('This is an announcement from ')}
-      <Text weight="bold" size="small">
-        {notification.accountName}
-      </Text>
-    </Text>
-  )
-
   return (
     <Alert
       variant={getNotificationVariant(notification.notificationType)}
@@ -116,7 +100,12 @@ const NotificationAlert: React.FC<NotificationAlertProps> = ({notification, onDi
           dangerouslySetInnerHTML={{__html: sanitizeHTML(notification.message)}}
         />
         <View as="div" margin="small 0 0 0">
-          {accountMessage}
+          <Text size="small">
+            {I18n.t('This is an announcement from ')}
+            <Text weight="bold" size="small">
+              {notification.accountName}
+            </Text>
+          </Text>
         </View>
       </View>
     </Alert>

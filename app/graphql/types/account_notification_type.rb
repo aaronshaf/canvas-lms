@@ -36,7 +36,7 @@ module Types
     field :subject, String, null: false
 
     def account_name
-      object.account.site_admin? ? nil : object.account.name
+      object.account.notification_name
     end
 
     def site_admin

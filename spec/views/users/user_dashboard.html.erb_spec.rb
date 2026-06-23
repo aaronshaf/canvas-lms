@@ -71,6 +71,6 @@ describe "users/user_dashboard" do
                                                        subject: "My Global Announcement",
                                                        account: Account.site_admin)])
     render "users/user_dashboard"
-    expect(rendered).to match(/This is an announcement from <b>Canvas Administration/)
+    expect(rendered).to match(/This is an announcement from <b>Site Admin/)
   end
 end

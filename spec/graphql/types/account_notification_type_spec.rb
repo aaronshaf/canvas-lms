@@ -25,6 +25,11 @@ describe Types::AccountNotificationType do
   let_once(:admin) { account_admin_user(account:) }
   let_once(:student) { student_in_course(account:).user }
 
+  before do
+    Account.site_admin.settings[:notification_name] = "Instructure"
+    Account.site_admin.save!
+  end
+
   let(:notification) do
     AccountNotification.create!(
       account:,
@@ -82,7 +87,7 @@ describe Types::AccountNotificationType do
     end
 
     it "returns nil account name for site admin accounts" do
-      expect(site_admin_type.resolve("accountName")).to be_nil
+      expect(site_admin_type.resolve("accountName")).to eq "Instructure"
     end
 
     it "returns false for is_site_admin on regular accounts" do
