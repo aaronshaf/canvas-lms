@@ -20,7 +20,7 @@
 
 require_relative "../lti_1_3_tool_configuration_spec_helper"
 
-describe DeveloperKeysController do
+describe DeveloperKeysController, type: :request do
   let(:test_domain_root_account) { Account.create! }
   let(:site_admin_key) { DeveloperKey.create!(name: "Site Admin Key", visible: false) }
   let(:sub_account) { test_domain_root_account.sub_accounts.create!(parent_account: test_domain_root_account, root_account: test_domain_root_account) }
@@ -46,7 +46,7 @@ describe DeveloperKeysController do
     describe "GET 'index'" do
       context "with no session" do
         it "requires authorization" do
-          get "index", params: { account_id: Account.site_admin.id }
+          get "/accounts/#{Account.site_admin.id}/developer_keys"
           expect(response).to be_redirect
         end
       end
@@ -59,12 +59,10 @@ describe DeveloperKeysController do
         end
 
         describe "Setting is set" do
-          render_views
-
           it "sets the scopes to empty" do
             dk = DeveloperKey.create!
             enable_developer_key_account_binding!(dk)
-            get "index", params: { account_id: Account.site_admin.id, format: :json }
+            get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
             expect(response).to be_successful
             developer_key = json_parse(response.body).first
             expect(developer_key["scopes"]).to eq([])
@@ -73,13 +71,13 @@ describe DeveloperKeysController do
 
         it "returns the list of developer keys" do
           dk = DeveloperKey.create!
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           expect(response).to be_successful
           expect(expected_id).to eq(dk.global_id)
         end
 
         it "references the API endpoint in the Link (pagination) header" do
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           route = Rails.application.routes.url_helpers.api_v1_account_developer_keys_path(Account.site_admin)
           expect(response.headers["Link"]).to include(route)
           expect(response.headers["Link"]).to include("http")
@@ -89,7 +87,7 @@ describe DeveloperKeysController do
           site_admin_key = DeveloperKey.create!
           DeveloperKey.create!(account: Account.default)
 
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
 
           expect(json_parse.pluck("id")).to match_array [site_admin_key.global_id]
         end
@@ -105,19 +103,16 @@ describe DeveloperKeysController do
           end
 
           set_domain_root_account(account: Account.default)
-          get "index", params: { account_id: Account.default.id }
+          get "/accounts/#{Account.default.id}/developer_keys"
           expect(acct_id_from_stub).to eq(Account.default.id)
 
-          expect(assigns[:js_env][:validLtiScopes]).to \
+          expect(js_env_from_response(response)["validLtiScopes"]).to \
             eq(sample_scopes_for_root_account)
         end
 
         describe "js bundles" do
-          render_views
-
           it "includes developer_keys" do
-            get "index", params: { account_id: Account.site_admin.id }
-            expect(response).to render_template(:index)
+            get "/accounts/#{Account.site_admin.id}/developer_keys"
             expect(response).to be_successful
           end
         end
@@ -125,7 +120,7 @@ describe DeveloperKeysController do
         it "does not include deleted keys" do
           dk = DeveloperKey.create!
           dk.destroy
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           expect(response).to be_successful
           expect(expected_id).not_to eq(dk.global_id)
         end
@@ -133,21 +128,21 @@ describe DeveloperKeysController do
         it "includes inactive keys" do
           dk = DeveloperKey.create!
           dk.deactivate!
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           expect(response).to be_successful
           expect(json_parse(response.body).second["id"]).to eq(dk.global_id)
         end
 
         it "includes the key's 'vendor_code'" do
           DeveloperKey.create!(vendor_code: "test_vendor_code")
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           expect(json_parse(response.body).first["vendor_code"]).to eq "test_vendor_code"
         end
 
         it "includes the key's 'visibility'" do
           key = DeveloperKey.create!
           enable_developer_key_account_binding! key
-          get "index", params: { account_id: Account.site_admin.id }, format: :json
+          get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
           developer_key = json_parse(response.body).first
           expect(developer_key["visible"]).to eq(key.visible)
         end
@@ -163,7 +158,7 @@ describe DeveloperKeysController do
             it "masks the api_key in the response" do
               full_key = api_key.api_key
 
-              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
               expect(response).to be_successful
 
               developer_key = json_parse(response.body).find { |k| k["id"] == api_key.global_id }
@@ -182,7 +177,7 @@ describe DeveloperKeysController do
             it "includes the full api_key in the response" do
               full_key = api_key.api_key
 
-              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
               expect(response).to be_successful
 
               developer_key = json_parse(response.body).find { |k| k["id"] == api_key.global_id }
@@ -193,7 +188,7 @@ describe DeveloperKeysController do
 
         it "includes non-visible keys created in site admin" do
           site_admin_key = DeveloperKey.create!(name: "Site Admin Key", visible: false)
-          get "index", params: { account_id: "site_admin" }, format: :json
+          get "/api/v1/accounts/site_admin/developer_keys.json"
           expect(expected_id).to eq site_admin_key.global_id
         end
 
@@ -205,7 +200,7 @@ describe DeveloperKeysController do
 
           context "on site_admin account" do
             it "returns empty array" do
-              get "index", params: { inherited: true, account_id: "site_admin", format: "json" }
+              get "/api/v1/accounts/site_admin/developer_keys.json", params: { inherited: true }
               developer_keys = json_parse(response.body)
               expect(developer_keys.size).to eq 0
             end
@@ -217,7 +212,7 @@ describe DeveloperKeysController do
                 dev_key = DeveloperKey.create!(name: "Site Admin Key 2")
                 enable_developer_key_account_binding! dev_key
                 dev_key.update!(visible: true)
-                get "index", params: { inherited: true, account_id: test_domain_root_account.id, format: "json" }
+                get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json", params: { inherited: true }
                 developer_keys = json_parse(response.body)
                 expect(developer_keys.size).to eq 1
                 expect(developer_keys.first["name"]).to eq "Site Admin Key 2"
@@ -226,7 +221,7 @@ describe DeveloperKeysController do
 
             context "with site_admin key not visible" do
               it "returns empty array" do
-                get "index", params: { inherited: true, account_id: test_domain_root_account.id, format: "json" }
+                get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json", params: { inherited: true }
                 developer_keys = json_parse(response.body)
                 expect(developer_keys.size).to eq 0
               end
@@ -240,7 +235,7 @@ describe DeveloperKeysController do
           end
 
           it "reports error metric" do
-            get :index, params: { account_id: Account.last.id + 2, format: "json" }
+            get "/api/v1/accounts/#{Account.last.id + 2}/developer_keys.json"
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "index", code: 404 })
             expect(response).to be_not_found
           end
@@ -259,7 +254,7 @@ describe DeveloperKeysController do
           it "returns the full api_key when feature flag is disabled" do
             Account.site_admin.disable_feature!(flag) if Account.site_admin.feature_enabled?(flag)
             key.update_column(:created_at, 1.hour.ago)
-            get "index", params: { account_id: Account.site_admin.id }, format: :json
+            get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
             entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
             expect(entry["api_key"]).to eq key.api_key
             expect(entry).not_to have_key("api_key_truncated")
@@ -270,14 +265,14 @@ describe DeveloperKeysController do
 
             it "returns the api_key hint for keys older than the grace window" do
               key.update_column(:created_at, 1.hour.ago)
-              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
               entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
               expect(entry["api_key"]).to eq key.api_key_hint
               expect(entry["api_key_truncated"]).to be true
             end
 
             it "still returns the full api_key for keys within the grace window" do
-              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
               entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
               expect(entry["api_key"]).to eq key.api_key
               expect(entry).not_to have_key("api_key_truncated")
@@ -286,7 +281,7 @@ describe DeveloperKeysController do
             it "returns the full api_key for aged keys without a service user" do
               keyless = DeveloperKey.create!(name: "No Service User Key")
               keyless.update_column(:created_at, 1.hour.ago)
-              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              get "/api/v1/accounts/#{Account.site_admin.id}/developer_keys.json"
               entry = json_parse(response.body).find { |k| k["id"] == keyless.global_id }
               expect(entry["api_key"]).to eq keyless.api_key
               expect(entry).not_to have_key("api_key_truncated")
@@ -311,7 +306,7 @@ describe DeveloperKeysController do
       end
 
       it "returns the newly created key" do
-        post "create", params: create_params
+        post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
 
         json_data = response.parsed_body
         expect(response).to be_successful
@@ -320,13 +315,13 @@ describe DeveloperKeysController do
       end
 
       it "cannot create keys for a subaccount" do
-        post "create", params: create_params.merge(account_id: sub_account.id)
+        post "/api/v1/accounts/#{sub_account.id}/developer_keys", params: create_params.merge(account_id: sub_account.id)
         expect(response).to be_not_found
       end
 
       it "returns the full api_key on creation even when the secret grace window flag is on" do
         Account.site_admin.enable_feature!(:site_admin_dev_key_secret_grace_window)
-        post "create", params: create_params
+        post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
         json_data = response.parsed_body
         key = DeveloperKey.find(json_data["id"])
         expect(json_data["api_key"]).to eq key.api_key
@@ -345,7 +340,7 @@ describe DeveloperKeysController do
           end
 
           it "reports error metric with code 500" do
-            post :create, params: create_params
+            post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "create", code: 500 })
           end
         end
@@ -362,7 +357,7 @@ describe DeveloperKeysController do
           end
 
           it "reports error metric with code 400" do
-            post :create, params: create_params
+            post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "create", code: 400 })
           end
         end
@@ -381,23 +376,23 @@ describe DeveloperKeysController do
         end
 
         it 'allows setting "allow_includes"' do
-          post "create", params: { account_id: root_account.id, developer_key: { scopes: valid_scopes, allow_includes: true } }
+          post "/api/v1/accounts/#{root_account.id}/developer_keys", params: { developer_key: { scopes: valid_scopes, allow_includes: true } }
           expect(DeveloperKey.find(json_parse["id"]).allow_includes).to be true
         end
 
         it "allows setting scopes" do
-          post "create", params: { account_id: root_account.id, developer_key: { scopes: valid_scopes } }
+          post "/api/v1/accounts/#{root_account.id}/developer_keys", params: { developer_key: { scopes: valid_scopes } }
           expect(DeveloperKey.find(json_parse["id"]).scopes).to match_array valid_scopes
         end
 
         it "returns an error if an invalid scope is used" do
-          post "create", params: { account_id: root_account.id, developer_key: { scopes: invalid_scopes } }
+          post "/api/v1/accounts/#{root_account.id}/developer_keys", params: { developer_key: { scopes: invalid_scopes } }
           expect(json_parse.dig("errors", "scopes").first["attribute"]).to eq "scopes"
         end
 
         it "does not create the key if any scopes are invalid" do
           expect do
-            post "create", params: { account_id: root_account.id, developer_key: { scopes: invalid_scopes.concat(valid_scopes) } }
+            post "/api/v1/accounts/#{root_account.id}/developer_keys", params: { developer_key: { scopes: invalid_scopes.concat(valid_scopes) } }
           end.not_to change(DeveloperKey, :count)
         end
       end
@@ -411,14 +406,14 @@ describe DeveloperKeysController do
       end
 
       it "deactivates a key" do
-        put "update", params: { id: dk.id, developer_key: { event: :deactivate }, account_id: Account.site_admin.id }
+        put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { event: :deactivate }, account_id: Account.site_admin.id }
         expect(response).to be_successful
         expect(dk.reload.state).to eq :inactive
       end
 
       it "reactivates a key" do
         dk.deactivate!
-        put "update", params: { id: dk.id, developer_key: { event: :activate }, account_id: Account.site_admin.id }
+        put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { event: :activate }, account_id: Account.site_admin.id }
         expect(response).to be_successful
         expect(dk.reload.state).to eq :active
       end
@@ -430,7 +425,7 @@ describe DeveloperKeysController do
 
         context "when key is not found" do
           it "reports error metric with code 404" do
-            put :update, params: { id: dk.id + 1, developer_key: { name: "update key" }, account_id: Account.site_admin.id }
+            put "/api/v1/developer_keys/#{dk.id + 1}", params: { developer_key: { name: "update key" }, account_id: Account.site_admin.id }
             expect(response).to be_not_found
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "update", code: 404 })
           end
@@ -443,7 +438,7 @@ describe DeveloperKeysController do
           end
 
           it "reports error metric with code 500" do
-            put :update, params: { id: dk.id, developer_key: { name: "update key" }, account_id: Account.site_admin.id }
+            put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { name: "update key" }, account_id: Account.site_admin.id }
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "update", code: 500 })
           end
         end
@@ -452,7 +447,7 @@ describe DeveloperKeysController do
           let(:long_string) { "a" * 5000 }
 
           it "reports error metric with code 400" do
-            put :update, params: { id: dk.id, developer_key: { redirect_uris: long_string }, account_id: Account.site_admin.id }
+            put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { redirect_uris: long_string }, account_id: Account.site_admin.id }
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "update", code: 400 })
           end
         end
@@ -467,14 +462,14 @@ describe DeveloperKeysController do
         end
 
         it "allows updating a list of redirect URIs" do
-          put :update, params: { id: developer_key.id, account_id: Account.site_admin.id, developer_key: { redirect_uris: valid_uris } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { account_id: Account.site_admin.id, developer_key: { redirect_uris: valid_uris } }
           expect(response).to be_successful
           expect(developer_key.reload.redirect_uris.map(&:redirect_uri)).to match_array(valid_uris)
         end
 
         it "replaces existing URIs with the new array" do
           developer_key.update!(redirect_uris: ["https://old-uri.com"])
-          put :update, params: { id: developer_key.id, account_id: Account.site_admin.id, developer_key: { redirect_uris: valid_uris } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { account_id: Account.site_admin.id, developer_key: { redirect_uris: valid_uris } }
           expect(response).to be_successful
           expect(developer_key.reload.redirect_uris.map(&:redirect_uri)).to match_array(valid_uris)
         end
@@ -482,7 +477,7 @@ describe DeveloperKeysController do
         it "stores the deprecated redirect_uri as a lenient record alongside the strict redirect_uris" do
           initial_uri = "https://old-uri.com"
           developer_key.update!(redirect_uris: [initial_uri])
-          put :update, params: { id: developer_key.id, account_id: Account.site_admin.id, developer_key: { redirect_uri: "http://deprecated.com", redirect_uris: valid_uris } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { account_id: Account.site_admin.id, developer_key: { redirect_uri: "http://deprecated.com", redirect_uris: valid_uris } }
           expect(response).to be_successful
           records = developer_key.reload.redirect_uris
           expect(records.reject(&:lenient).map(&:redirect_uri)).to match_array(valid_uris)
@@ -491,14 +486,14 @@ describe DeveloperKeysController do
 
         it "accepts space-separated string of redirect URIs" do
           space_separated_uris = "https://example.com/callback https://another-url.org/redirect"
-          put :update, params: { id: developer_key.id, account_id: Account.site_admin.id, developer_key: { redirect_uris: space_separated_uris } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { account_id: Account.site_admin.id, developer_key: { redirect_uris: space_separated_uris } }
           expect(response).to be_successful
           expect(developer_key.reload.redirect_uris.map(&:redirect_uri)).to match_array(valid_uris)
         end
 
         it "accepts newline-separated string of redirect URIs" do
           newline_separated_uris = "https://example.com/callback\nhttps://another-url.org/redirect"
-          put :update, params: { id: developer_key.id, account_id: Account.site_admin.id, developer_key: { redirect_uris: newline_separated_uris } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { account_id: Account.site_admin.id, developer_key: { redirect_uris: newline_separated_uris } }
           expect(response).to be_successful
           expect(developer_key.reload.redirect_uris.map(&:redirect_uri)).to match_array(valid_uris)
         end
@@ -520,40 +515,40 @@ describe DeveloperKeysController do
         end
 
         it 'allows setting "allow_includes"' do
-          put "update", params: { id: developer_key.id, developer_key: { scopes: valid_scopes, allow_includes: false } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: valid_scopes, allow_includes: false } }
           expect(developer_key.reload.allow_includes).to be false
         end
 
         it "allows setting scopes for site admin keys" do
           set_domain_root_account(account: Account.site_admin)
-          put "update", params: { id: site_admin_key.id, developer_key: { scopes: valid_scopes } }
+          put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { scopes: valid_scopes } }
           expect(site_admin_key.reload.scopes).to match_array valid_scopes
         end
 
         it "allows setting scopes" do
-          put "update", params: { id: developer_key.id, developer_key: { scopes: valid_scopes } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: valid_scopes } }
           expect(developer_key.reload.scopes).to match_array valid_scopes
         end
 
         it "removes invalid scopes and saves valid ones" do
-          put "update", params: { id: developer_key.id, developer_key: { scopes: invalid_scopes | valid_scopes } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: invalid_scopes | valid_scopes } }
           expect(developer_key.reload.scopes).to match_array valid_scopes
         end
 
         it "sets the scopes to empty if the scopes parameter is an empty string" do
-          put "update", params: { id: developer_key.id, developer_key: { scopes: "" } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: "" } }
           expect(developer_key.reload.scopes).to be_empty
         end
 
         it "preserves elevated_operations scopes" do
           elevated_scope = "#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/foo/bar"
-          put "update", params: { id: developer_key.id, developer_key: { scopes: valid_scopes + [elevated_scope] } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: valid_scopes + [elevated_scope] } }
           expect(developer_key.reload.scopes).to match_array(valid_scopes + [elevated_scope])
         end
 
         it "preserves the wildcard elevated_operations scope" do
           elevated_scope = "#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"
-          put "update", params: { id: developer_key.id, developer_key: { scopes: [elevated_scope] } }
+          put "/api/v1/developer_keys/#{developer_key.id}", params: { developer_key: { scopes: [elevated_scope] } }
           expect(developer_key.reload.scopes).to eql [elevated_scope]
         end
       end
@@ -567,7 +562,7 @@ describe DeveloperKeysController do
       end
 
       it "softs delete a key" do
-        delete :destroy, params: { id: dk.id, account_id: Account.site_admin.id }
+        delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: Account.site_admin.id }
         expect(response).to be_successful
         expect(dk.reload.state).to eq :deleted
       end
@@ -576,7 +571,7 @@ describe DeveloperKeysController do
       # actually returned false, but we still returned a 200 and were left in a weird state.
       # These are regression tests for that.
       context "when the destroy fails" do
-        subject { delete :destroy, params: { id: dk.id, account_id: account.id } }
+        subject { delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id } }
 
         let_once(:account) { account_model }
 
@@ -637,7 +632,7 @@ describe DeveloperKeysController do
 
         it "soft deletes the tool configuration and the registration" do
           tool_config
-          delete :destroy, params: { id: dk.id, account_id: account.id }
+          delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id }
           expect(lti_registration.reload).to be_deleted
           expect(tool_config.reload).to be_deleted
         end
@@ -653,7 +648,7 @@ describe DeveloperKeysController do
 
           it "deletes the tools in a job" do
             tool_config
-            expect { delete :destroy, params: { id: dk.id, account_id: account.id } }
+            expect { delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id } }
               .to change { lti_registration.reload.workflow_state }.to "deleted"
             expect(tool_config.reload).to be_deleted
             expect(dk.reload).to be_deleted
@@ -674,7 +669,7 @@ describe DeveloperKeysController do
         end
 
         it "soft deletes the registration" do
-          delete :destroy, params: { id: dk.id, account_id: account.id }
+          delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id }
           expect(dk.reload).to be_deleted
           expect(lti_registration.reload).to be_deleted
           expect(ims_registration.reload).to be_deleted
@@ -691,7 +686,7 @@ describe DeveloperKeysController do
           end
 
           it "deletes the tools in a job" do
-            expect { delete :destroy, params: { id: dk.id, account_id: account.id } }
+            expect { delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id } }
               .to change { lti_registration.reload.workflow_state }.to "deleted"
             expect(ims_registration.reload).to be_deleted
             expect(dk.reload).to be_deleted
@@ -709,7 +704,7 @@ describe DeveloperKeysController do
 
         context "when key is not found" do
           it "reports error metric with code 404" do
-            delete :destroy, params: { id: dk.id + 1, account_id: Account.site_admin.id }
+            delete "/api/v1/developer_keys/#{dk.id + 1}", params: { account_id: Account.site_admin.id }
             expect(response).to be_not_found
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "destroy", code: 404 })
           end
@@ -722,7 +717,7 @@ describe DeveloperKeysController do
           end
 
           it "reports error metric with code 500" do
-            delete :destroy, params: { id: dk.id, account_id: Account.site_admin.id }
+            delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: Account.site_admin.id }
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "destroy", code: 500 })
           end
         end
@@ -745,7 +740,7 @@ describe DeveloperKeysController do
         end
 
         it "returns 403 forbidden" do
-          post :regenerate_secret, params: { id: dk.id }
+          post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
           expect(response).to have_http_status(:forbidden)
           expect(json_parse(response.body)["errors"].first["message"]).to eq("Feature not enabled")
         end
@@ -759,7 +754,7 @@ describe DeveloperKeysController do
         it "regenerates the api_key" do
           original_key = dk.api_key
 
-          post :regenerate_secret, params: { id: dk.id }
+          post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
           expect(response).to be_successful
 
           dk.reload
@@ -768,7 +763,7 @@ describe DeveloperKeysController do
         end
 
         it "returns the full api_key in the response" do
-          post :regenerate_secret, params: { id: dk.id }
+          post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
           expect(response).to be_successful
 
           response_key = json_parse(response.body)["api_key"]
@@ -780,7 +775,7 @@ describe DeveloperKeysController do
           token1 = AccessToken.create!(user: @admin, developer_key: dk, purpose: "token 1")
           token2 = AccessToken.create!(user: @admin, developer_key: dk, purpose: "token 2")
 
-          post :regenerate_secret, params: { id: dk.id }
+          post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
           expect(response).to be_successful
 
           expect(token1.reload).to be_deleted
@@ -793,7 +788,7 @@ describe DeveloperKeysController do
           set_domain_root_account(account: Account.site_admin)
           Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
           site_admin_key = DeveloperKey.create!
-          post :regenerate_secret, params: { id: site_admin_key.id }
+          post "/api/v1/developer_keys/#{site_admin_key.id}/regenerate_secret"
           expect(response).to have_http_status(:forbidden)
           expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret for Site Admin keys")
         end
@@ -802,21 +797,25 @@ describe DeveloperKeysController do
           let(:lti_key) { lti_developer_key_model(account: root_account) }
 
           it "returns 400 bad request" do
-            post :regenerate_secret, params: { id: lti_key.id }
+            post "/api/v1/developer_keys/#{lti_key.id}/regenerate_secret"
             expect(response).to have_http_status(:bad_request)
             expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret for LTI keys")
           end
         end
 
         context "when the request uses an access token" do
+          # In request specs the controller's @access_token is populated by real
+          # Bearer-token authentication, which requires the user to have a
+          # pseudonym on the domain root account.
+          before do
+            user_with_pseudonym(user: @admin, account: root_account)
+          end
+
           context "when the token is user-generated (default developer key)" do
-            before do
-              controller.instance_variable_set(:@access_token,
-                                               AccessToken.create!(user: @admin, developer_key: DeveloperKey.default, purpose: "test token"))
-            end
+            let(:request_token) { AccessToken.create!(user: @admin, developer_key: DeveloperKey.default, purpose: "test token") }
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id }
+              post "/api/v1/developer_keys/#{dk.id}/regenerate_secret", headers: { "HTTP_AUTHORIZATION" => "Bearer #{request_token.full_token}" }
               expect(response).to have_http_status(:forbidden)
               expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret using a user-generated access token")
             end
@@ -824,28 +823,25 @@ describe DeveloperKeysController do
 
           context "when the token belongs to a different developer key" do
             let(:other_dk) { DeveloperKey.create!(account: root_account, name: "Other Key") }
+            let(:request_token) { AccessToken.create!(user: @admin, developer_key: other_dk) }
 
-            before do
-              controller.instance_variable_set(:@access_token,
-                                               AccessToken.create!(user: @admin, developer_key: other_dk))
-            end
+            before { enable_developer_key_account_binding!(other_dk) }
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id }
+              post "/api/v1/developer_keys/#{dk.id}/regenerate_secret", headers: { "HTTP_AUTHORIZATION" => "Bearer #{request_token.full_token}" }
               expect(response).to have_http_status(:forbidden)
               expect(json_parse(response.body)["errors"].first["message"]).to include("other than the one associated with this access token")
             end
           end
 
           context "when the token belongs to the same developer key" do
-            before do
-              controller.instance_variable_set(:@access_token,
-                                               AccessToken.create!(user: @admin, developer_key: dk, purpose: "test token"))
-            end
+            let(:request_token) { AccessToken.create!(user: @admin, developer_key: dk, purpose: "test token") }
+
+            before { enable_developer_key_account_binding!(dk) }
 
             it "successfully regenerates the secret" do
               original_key = dk.api_key
-              post :regenerate_secret, params: { id: dk.id }
+              post "/api/v1/developer_keys/#{dk.id}/regenerate_secret", headers: { "HTTP_AUTHORIZATION" => "Bearer #{request_token.full_token}" }
               expect(response).to be_successful
               dk.reload
               expect(dk.api_key).not_to eq(original_key)
@@ -866,7 +862,7 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id }, format: :json
+              post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -880,14 +876,14 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden for site admin keys" do
-              post :regenerate_secret, params: { id: dk.id }, format: :json
+              post "/api/v1/developer_keys/#{dk.id}/regenerate_secret"
               expect(response).to have_http_status(:forbidden)
             end
 
             it "returns 403 forbidden for keys from different account" do
               test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
 
-              post :regenerate_secret, params: { id: parent_account_key.id }, format: :json
+              post "/api/v1/developer_keys/#{parent_account_key.id}/regenerate_secret"
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -902,7 +898,7 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: parent_account_key.id }, format: :json
+              post "/api/v1/developer_keys/#{parent_account_key.id}/regenerate_secret"
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -920,7 +916,7 @@ describe DeveloperKeysController do
             it "successfully regenerates the key" do
               original_key = account_key.api_key
 
-              post :regenerate_secret, params: { id: account_key.id }
+              post "/api/v1/developer_keys/#{account_key.id}/regenerate_secret"
               expect(response).to be_successful
 
               account_key.reload
@@ -951,25 +947,25 @@ describe DeveloperKeysController do
       end
 
       it "responds with not found if the account is a subaccount" do
-        allow(controller).to receive(:require_context_with_permission).and_return nil
-        get "index", params: { account_id: sub_account.id }
+        allow_any_instance_of(DeveloperKeysController).to receive(:require_context_with_permission).and_return(nil)
+        get "/accounts/#{sub_account.id}/developer_keys"
         expect(response).to be_not_found
       end
 
       it "does not include non-visible keys from site admin" do
-        get "index", params: { account_id: test_domain_root_account.id }, format: :json
+        get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
         expect(expected_id).to eq root_account_key.global_id
       end
 
       it "does not include visible keys from site admin" do
         site_admin_key.update!(visible: true)
-        get "index", params: { account_id: test_domain_root_account.id }, format: :json
+        get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
         expect(expected_id).to eq root_account_key.global_id
       end
 
       it "includes non-visible keys created in the current context" do
         root_account_key.update!(visible: false)
-        get "index", params: { account_id: test_domain_root_account.id }, format: :json
+        get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
         expect(expected_id).to eq root_account_key.global_id
       end
 
@@ -994,7 +990,7 @@ describe DeveloperKeysController do
 
         it "applies the overlay to the returned configuration" do
           overlay
-          get "index", params: { account_id: test_domain_root_account.id }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
           result = json_parse.first.dig("tool_configuration", "extensions", 0, "settings", "placements")
           expect(result.find { |p| p["placement"] == "course_navigation" }["text"]).to eq "some great little text"
         end
@@ -1003,7 +999,7 @@ describe DeveloperKeysController do
       context 'with "inherited" parameter' do
         it "does not include account developer keys" do
           root_account_key
-          get "index", params: { account_id: test_domain_root_account.id, inherited: true }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json", params: { inherited: true }
           expect(json_parse(response.body)).to be_blank
         end
       end
@@ -1020,28 +1016,28 @@ describe DeveloperKeysController do
         end
 
         it "includes the real binding in developer_key_account_binding" do
-          get "index", params: { account_id: test_domain_root_account.id }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
           key_json = json_parse.find { |k| k["id"] == lti_key.global_id }
           expect(key_json["developer_key_account_binding"]).to have_key("id")
           expect(key_json["developer_key_account_binding"]).to have_key("account_id")
         end
 
         it "sets lti_registration_workflow_state to active when the registration is active" do
-          get "index", params: { account_id: test_domain_root_account.id }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
           key_json = json_parse.find { |k| k["id"] == lti_key.global_id }
           expect(key_json["lti_registration_workflow_state"]).to eq("active")
         end
 
         it "sets lti_registration_workflow_state to inactive when the registration is inactive" do
           lti_key.lti_registration.deactivate!
-          get "index", params: { account_id: test_domain_root_account.id }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
           key_json = json_parse.find { |k| k["id"] == lti_key.global_id }
           expect(key_json["lti_registration_workflow_state"]).to eq("inactive")
         end
 
         it "sets lti_registration_workflow_state to nil when there is no lti_registration" do
           lti_key.update_column(:lti_registration_id, nil)
-          get "index", params: { account_id: test_domain_root_account.id }, format: :json
+          get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
           key_json = json_parse.find { |k| k["id"] == lti_key.global_id }
           expect(key_json["lti_registration_workflow_state"]).to be_nil
         end
@@ -1056,7 +1052,7 @@ describe DeveloperKeysController do
           before { non_lti_key }
 
           it "does not include lti_registration_workflow_state" do
-            get "index", params: { account_id: test_domain_root_account.id }, format: :json
+            get "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys.json"
             key_json = json_parse.find { |k| k["id"] == non_lti_key.global_id }
             expect(key_json).not_to have_key("lti_registration_workflow_state")
           end
@@ -1082,18 +1078,13 @@ describe DeveloperKeysController do
         before do
           site_admin_key
           root_account_key
-
-          allow(controller).to receive(:account_context) do
-            controller.send(:require_account_context)
-            controller.send(:context)
-          end
         end
 
         it "includes visible site admin keys from the site admin shard" do
           user_session(root_account_admin)
 
           root_account_shard.activate do
-            get "index", params: { account_id: root_account.id, inherited: true }, format: :json
+            get "/api/v1/accounts/#{root_account.id}/developer_keys.json", params: { inherited: true }
           end
 
           expect(expected_id).to eq site_admin_key.global_id
@@ -1102,13 +1093,13 @@ describe DeveloperKeysController do
     end
 
     it "is allowed to access their dev keys" do
-      get "index", params: { account_id: test_domain_root_account.id }
+      get "/accounts/#{test_domain_root_account.id}/developer_keys"
       expect(response).to be_successful
     end
 
     it "An account admin shouldn't be able to access site admin dev keys" do
       user_session(test_domain_root_account_admin)
-      get "index", params: { account_id: Account.site_admin.id }
+      get "/accounts/#{Account.site_admin.id}/developer_keys"
       expect(response).to be_redirect
       expect(flash[:error]).to eq "You don't have permission to access that page"
     end
@@ -1127,37 +1118,35 @@ describe DeveloperKeysController do
       end
 
       it "is allowed to create a dev key" do
-        post "create", params: create_params
+        post "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys", params: create_params
         expect(response).to be_successful
       end
 
       it "is dev keys plus 1 key" do
-        post "create", params: create_params
+        post "/api/v1/accounts/#{test_domain_root_account.id}/developer_keys", params: create_params
         expect(test_domain_root_account.developer_keys.count).to be 1
       end
     end
 
     it "is allowed update a dev key" do
       dk = test_domain_root_account.developer_keys.create!(redirect_uri: "http://asd.com/")
-      put "update", params: { id: dk.id,
-                              developer_key: {
-                                redirect_uri: "http://example.com/sdf"
-                              } }
+      put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: {
+        redirect_uri: "http://example.com/sdf"
+      } }
       expect(response).to be_successful
       dk.reload
       expect(dk.redirect_uri).to eq("http://example.com/sdf")
     end
 
     it "is not allowed access dev keys for a sub account" do
-      get "index", params: { account_id: sub_account.id }
+      get "/accounts/#{sub_account.id}/developer_keys"
       expect(response).to be_redirect
       expect(flash[:error]).to eq "You don't have permission to access that page"
     end
 
     it "is not allowed to create dev keys for a sub account" do
-      post "create", params: { account_id: sub_account.id }
-      expect(response).to be_redirect
-      expect(flash[:error]).to eq "You don't have permission to access that page"
+      post "/api/v1/accounts/#{sub_account.id}/developer_keys"
+      expect(response).to have_http_status(:forbidden)
     end
 
     describe "Shouldn't be able to access other accounts" do
@@ -1167,41 +1156,37 @@ describe DeveloperKeysController do
       end
 
       it "is not allowed access dev keys for a foreign account" do
-        get "index", params: { account_id: @other_root_account.id }
+        get "/accounts/#{@other_root_account.id}/developer_keys"
         expect(response).to be_redirect
         expect(flash[:error]).to eq "You don't have permission to access that page"
       end
 
       it "is not allowed to create dev keys for a foreign account" do
-        post "create", params: { account_id: @other_root_account.id }
-        expect(response).to be_redirect
-        expect(flash[:error]).to eq "You don't have permission to access that page"
+        post "/api/v1/accounts/#{@other_root_account.id}/developer_keys"
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "is not allowed to update dev keys for a foreign account" do
         dk = @other_root_account.developer_keys.create!
-        post "update", params: { id: dk.id, account_id: test_domain_root_account_admin.id, developer_key: { event: :deactivate } }
-        expect(response).to be_redirect
-        expect(flash[:error]).to eq "You don't have permission to access that page"
+        put "/api/v1/developer_keys/#{dk.id}", params: { account_id: test_domain_root_account_admin.id, developer_key: { event: :deactivate } }
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "is not allowed to update global dev keys" do
         dk = DeveloperKey.create!
-        post "update", params: { id: dk.id, account_id: test_domain_root_account_admin.id, developer_key: { event: :deactivate } }
-        expect(response).to be_redirect
-        expect(flash[:error]).to eq "You don't have permission to access that page"
+        put "/api/v1/developer_keys/#{dk.id}", params: { account_id: test_domain_root_account_admin.id, developer_key: { event: :deactivate } }
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "is not allowed to view foreign accounts dev_key" do
         dk = @other_root_account.developer_keys.create!(redirect_uri: "http://asd.com/")
 
-        post "update", params: { id: dk.id }
-        expect(response).to be_redirect
-        expect(flash[:error]).to eq "You don't have permission to access that page"
+        put "/api/v1/developer_keys/#{dk.id}"
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
-    describe "POST 'lookup_utids'" do
+    describe "GET 'lookup_utids'" do
       let(:root_account) { account_model }
       let(:admin_user) { account_admin_user(account: root_account) }
       let(:redirect_uris) { ["https://example.com/redirect", "https://another.com/callback"] }
@@ -1229,13 +1214,13 @@ describe DeveloperKeysController do
       end
 
       before do
-        @controller.request.env["canvas.domain_root_account"] = root_account
+        set_domain_root_account(account: root_account)
         user_session(admin_user)
         allow(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).and_return(api_registrations)
       end
 
       it "returns matching UTIDs for given redirect URIs" do
-        post "lookup_utids", params: { account_id: root_account.id, redirect_uris: }, format: :json
+        get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids", params: { redirect_uris: }
         expect(response).to be_successful
         json_response = json_parse(response.body)
         expect(json_response["api_registrations"]).to eq(JSON.parse(api_registrations.to_json))
@@ -1243,18 +1228,18 @@ describe DeveloperKeysController do
 
       it "calls LearnPlatform::GlobalApi.lookup_api_registrations with correct params" do
         expect(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).with(redirect_uris, sources: nil)
-        post "lookup_utids", params: { account_id: root_account.id, redirect_uris: }, format: :json
+        get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids", params: { redirect_uris: }
       end
 
       it "passes sources parameter when provided" do
         sources = ["partner_provided", "manual"]
         expect(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).with(redirect_uris, sources:)
-        post "lookup_utids", params: { account_id: root_account.id, redirect_uris:, sources: }, format: :json
+        get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids", params: { redirect_uris:, sources: }
       end
 
       it "handles errors gracefully" do
         allow(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).and_raise(StandardError, "API error")
-        post "lookup_utids", params: { account_id: root_account.id, redirect_uris: }, format: :json
+        get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids", params: { redirect_uris: }
         expect(response).to have_http_status(:bad_request)
         json_response = json_parse(response.body)
         expect(json_response["error"]).to eq("Failed to match redirect URIs")
@@ -1264,14 +1249,14 @@ describe DeveloperKeysController do
         it "requires authorization" do
           user_model
           user_session(@user)
-          post "lookup_utids", params: { account_id: root_account.id, redirect_uris: }, format: :json
+          get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids", params: { redirect_uris: }
           expect(response).to be_forbidden
         end
       end
 
       context "when redirect_uris is missing" do
         it "returns bad request" do
-          post "lookup_utids", params: { account_id: root_account.id }, format: :json
+          get "/api/v1/accounts/#{root_account.id}/developer_keys/lookup_utids"
           expect(response).to have_http_status(:bad_request)
         end
       end
@@ -1310,7 +1295,7 @@ describe DeveloperKeysController do
           end
 
           it "allows creating a site admin developer key" do
-            post :create, params: create_params, format: :json
+            post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
             expect(response).to be_successful
             key = DeveloperKey.find(json_parse(response.body)["id"])
             expect(key.account).to be_nil
@@ -1324,7 +1309,7 @@ describe DeveloperKeysController do
           end
 
           it "returns forbidden" do
-            post :create, params: create_params, format: :json
+            post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: create_params
             expect(response).to be_forbidden
             expect(json_parse(response.body)["errors"].first["message"]).to include("Site Admin developer keys")
           end
@@ -1341,7 +1326,7 @@ describe DeveloperKeysController do
           end
 
           it "allows updating a site admin developer key" do
-            put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated Name" }, account_id: Account.site_admin.id }, format: :json
+            put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { name: "Updated Name" }, account_id: Account.site_admin.id }
             expect(response).to be_successful
             expect(site_admin_key.reload.name).to eq("Updated Name")
           end
@@ -1351,7 +1336,7 @@ describe DeveloperKeysController do
           before { user_session(site_admin_without_permission) }
 
           it "returns forbidden" do
-            put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated Name" }, account_id: Account.site_admin.id }, format: :json
+            put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { name: "Updated Name" }, account_id: Account.site_admin.id }
             expect(response).to be_forbidden
             expect(json_parse(response.body)["errors"].first["message"]).to include("Site Admin developer keys")
           end
@@ -1368,7 +1353,7 @@ describe DeveloperKeysController do
           end
 
           it "allows deleting a site admin developer key" do
-            delete :destroy, params: { id: site_admin_key.id, account_id: Account.site_admin.id }, format: :json
+            delete "/api/v1/developer_keys/#{site_admin_key.id}", params: { account_id: Account.site_admin.id }
             expect(response).to be_successful
             expect(site_admin_key.reload.state).to eq(:deleted)
           end
@@ -1381,7 +1366,7 @@ describe DeveloperKeysController do
           end
 
           it "returns forbidden" do
-            delete :destroy, params: { id: site_admin_key.id, account_id: Account.site_admin.id }, format: :json
+            delete "/api/v1/developer_keys/#{site_admin_key.id}", params: { account_id: Account.site_admin.id }
             expect(response).to be_forbidden
             expect(json_parse(response.body)["errors"].first["message"]).to include("Site Admin developer keys")
           end
@@ -1409,7 +1394,7 @@ describe DeveloperKeysController do
         end
 
         it "does not require modify_site_admin_developer_keys for account-level keys" do
-          put :update, params: { id: account_key.id, developer_key: { name: "Updated" }, account_id: root_account.id }, format: :json
+          put "/api/v1/developer_keys/#{account_key.id}", params: { developer_key: { name: "Updated" }, account_id: root_account.id }
           expect(response).to be_successful
         end
       end
@@ -1431,7 +1416,7 @@ describe DeveloperKeysController do
       end
 
       it "allows updating a site admin key from a non-site-admin domain" do
-        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
+        put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { name: "Updated" }, account_id: Account.site_admin.id }
         expect(response).to be_successful
       end
     end
@@ -1445,7 +1430,7 @@ describe DeveloperKeysController do
       end
 
       it "allows updating a site admin key from a non-site-admin domain" do
-        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
+        put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { name: "Updated" }, account_id: Account.site_admin.id }
         expect(response).to be_successful
       end
     end
@@ -1458,18 +1443,18 @@ describe DeveloperKeysController do
       end
 
       it "returns forbidden when updating a site admin key" do
-        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
+        put "/api/v1/developer_keys/#{site_admin_key.id}", params: { developer_key: { name: "Updated" }, account_id: Account.site_admin.id }
         expect(response).to be_forbidden
         expect(json_parse(response.body)["errors"].first["message"]).to include("account's domain")
       end
 
       it "returns forbidden when deleting a site admin key" do
-        delete :destroy, params: { id: site_admin_key.id }, format: :json
+        delete "/api/v1/developer_keys/#{site_admin_key.id}"
         expect(response).to be_forbidden
       end
 
       it "returns forbidden when creating a site admin key" do
-        post :create, params: { account_id: Account.site_admin.id, developer_key: { name: "New Key" } }, format: :json
+        post "/api/v1/accounts/#{Account.site_admin.id}/developer_keys", params: { developer_key: { name: "New Key" } }
         expect(response).to be_forbidden
       end
 
@@ -1477,7 +1462,7 @@ describe DeveloperKeysController do
         set_domain_root_account(account: root_account)
         account_admin_user(account: root_account)
         user_session(@admin)
-        put :update, params: { id: account_key.id, developer_key: { name: "Updated" }, account_id: root_account.id }, format: :json
+        put "/api/v1/developer_keys/#{account_key.id}", params: { developer_key: { name: "Updated" }, account_id: root_account.id }
         expect(response).to be_successful
       end
 
@@ -1486,7 +1471,7 @@ describe DeveloperKeysController do
         other_key = DeveloperKey.create!(account: other_account)
         set_domain_root_account(account: other_account)
         allow(LoadAccount).to receive(:from_host).and_return(root_account)
-        put :update, params: { id: other_key.id, developer_key: { name: "Updated" }, account_id: other_account.id }, format: :json
+        put "/api/v1/developer_keys/#{other_key.id}", params: { developer_key: { name: "Updated" }, account_id: other_account.id }
         expect(response).to be_forbidden
       end
     end
@@ -1521,53 +1506,56 @@ describe DeveloperKeysController do
       end
 
       context "and the session uses the elevated provider" do
-        before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+        # A real request reloads PseudonymAttributes from session["login_aac"],
+        # which the stubbed test session does not set, so stub the auth provider
+        # the elevated check resolves.
+        before { allow(AuthenticationMethods::PseudonymAttributes).to receive(:load_auth_provider).and_return(elevated_provider) }
 
         it "allows index" do
-          get :index, params: { account_id: account.id }, format: :json
+          get "/api/v1/accounts/#{account.id}/developer_keys.json"
           expect(response).to be_successful
         end
 
         it "allows create" do
-          post :create, params: { account_id: account.id, developer_key: { redirect_uri: "http://example.com/sdf" } }
+          post "/api/v1/accounts/#{account.id}/developer_keys", params: { developer_key: { redirect_uri: "http://example.com/sdf" } }
           expect(response).to be_successful
         end
 
         it "allows update" do
-          put :update, params: { id: dk.id, developer_key: { event: :deactivate }, account_id: account.id }
+          put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { event: :deactivate }, account_id: account.id }
           expect(response).to be_successful
         end
 
         it "allows destroy" do
-          delete :destroy, params: { id: dk.id, account_id: account.id }
+          delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id }
           expect(response).to be_successful
         end
       end
 
       context "and the session does not use the elevated provider" do
         it "blocks index json with 401" do
-          get :index, params: { account_id: account.id }, format: :json
+          get "/api/v1/accounts/#{account.id}/developer_keys.json"
           expect(response).to have_http_status(:forbidden)
         end
 
         it "redirects index html with a flash error" do
-          get :index, params: { account_id: account.id }
+          get "/accounts/#{account.id}/developer_keys"
           expect(response).to be_redirect
           expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
         end
 
         it "blocks create" do
-          post :create, params: { account_id: account.id, developer_key: { redirect_uri: "http://example.com/sdf" } }, format: :json
+          post "/api/v1/accounts/#{account.id}/developer_keys", params: { developer_key: { redirect_uri: "http://example.com/sdf" } }
           expect(response).to have_http_status(:forbidden)
         end
 
         it "blocks update" do
-          put :update, params: { id: dk.id, developer_key: { event: :deactivate }, account_id: account.id }, format: :json
+          put "/api/v1/developer_keys/#{dk.id}", params: { developer_key: { event: :deactivate }, account_id: account.id }
           expect(response).to have_http_status(:forbidden)
         end
 
         it "blocks destroy" do
-          delete :destroy, params: { id: dk.id, account_id: account.id }, format: :json
+          delete "/api/v1/developer_keys/#{dk.id}", params: { account_id: account.id }
           expect(response).to have_http_status(:forbidden)
         end
 
@@ -1575,7 +1563,7 @@ describe DeveloperKeysController do
           let(:enforce_flag_enabled) { false }
 
           it "allows the request through" do
-            get :index, params: { account_id: account.id }, format: :json
+            get "/api/v1/accounts/#{account.id}/developer_keys.json"
             expect(response).to be_successful
           end
         end
@@ -1584,14 +1572,14 @@ describe DeveloperKeysController do
           let(:developer_keys_flag_enabled) { false }
 
           it "allows the request through" do
-            get :index, params: { account_id: account.id }, format: :json
+            get "/api/v1/accounts/#{account.id}/developer_keys.json"
             expect(response).to be_successful
           end
         end
 
         it "does not gate lookup_utids" do
           allow(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).and_return([])
-          post :lookup_utids, params: { account_id: account.id, redirect_uris: ["https://example.com/cb"] }, format: :json
+          get "/api/v1/accounts/#{account.id}/developer_keys/lookup_utids", params: { redirect_uris: ["https://example.com/cb"] }
           expect(response).to be_successful
         end
       end
@@ -1599,7 +1587,7 @@ describe DeveloperKeysController do
 
     context "when no elevated provider is configured" do
       it "allows the request" do
-        get :index, params: { account_id: account.id }, format: :json
+        get "/api/v1/accounts/#{account.id}/developer_keys.json"
         expect(response).to be_successful
       end
     end
