@@ -16,26 +16,22 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import actions from '../developerKeysActions'
-import axios from '@canvas/axios'
 import $ from 'jquery'
+
+const server = setupServer()
+
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('saveLtiToolConfiguration', () => {
   let dispatch
 
   beforeEach(() => {
     dispatch = vi.fn()
-    vi.clearAllMocks()
-    axios.post = vi.fn().mockResolvedValue({
-      data: {
-        tool_configuration: {settings: {test: 'config'}, developer_key_id: '1'},
-        developer_key: {id: 100000000087, name: 'test key'},
-      },
-    })
-  })
-
-  afterEach(() => {
-    axios.post.mockRestore()
   })
 
   const save = async (includeUrl = false) => {
@@ -48,13 +44,29 @@ describe('saveLtiToolConfiguration', () => {
   }
 
   it('sets the developer key with provided fields', () => {
+    server.use(
+      http.post('*/api/lti/accounts/1/developer_keys/tool_configuration', () =>
+        HttpResponse.json({
+          tool_configuration: {settings: {test: 'config'}, developer_key_id: '1'},
+          developer_key: {id: 100000000087, name: 'test key'},
+        }),
+      ),
+    )
     save()
     expect(dispatch).toHaveBeenCalledWith(actions.setEditingDeveloperKey({name: 'test'}))
   })
 
   describe('on successful response', () => {
     it('prepends the developer key to the list', async () => {
-      // We need to call save() first to trigger the dispatch
+      server.use(
+        http.post('*/api/lti/accounts/1/developer_keys/tool_configuration', () =>
+          HttpResponse.json({
+            tool_configuration: {settings: {test: 'config'}, developer_key_id: '1'},
+            developer_key: {id: 100000000087, name: 'test key'},
+          }),
+        ),
+      )
+
       await save()
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -68,53 +80,36 @@ describe('saveLtiToolConfiguration', () => {
   })
 
   describe('on error response', () => {
-    const error = {
-      response: {
-        data: {
-          errors: [
-            {
-              message: '["Thats no moon...its a space station."]',
-            },
-            {
-              message: '["Its too big to be a space station!"]',
-            },
-          ],
-        },
-      },
-    }
-
     beforeEach(() => {
-      vi.clearAllMocks()
-      axios.post = vi.fn().mockRejectedValue(error)
+      server.use(
+        http.post('*/api/lti/accounts/1/developer_keys/tool_configuration', () =>
+          HttpResponse.json(
+            {
+              errors: [
+                {message: '["Thats no moon...its a space station."]'},
+                {message: '["Its too big to be a space station!"]'},
+              ],
+            },
+            {status: 400},
+          ),
+        ),
+      )
       $.flashError = vi.fn()
     })
 
     afterEach(() => {
-      axios.post.mockRestore()
-      $.flashError.mockRestore()
+      vi.restoreAllMocks()
     })
 
-    it('calls flashError for each message', () => {
-      return expect(
-        save().finally(() => {
-          expect($.flashError).toHaveBeenCalledTimes(2)
-          expect(dispatch).toHaveBeenCalledWith(actions.setEditingDeveloperKey(false))
-        }),
-      ).rejects.toEqual(error)
+    it('calls flashError for each message', async () => {
+      await expect(save()).rejects.toThrow()
+      expect($.flashError).toHaveBeenCalledTimes(2)
+      expect(dispatch).toHaveBeenCalledWith(actions.setEditingDeveloperKey(false))
     })
   })
 })
 
 describe('updateLtiKey', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    axios.put = vi.fn().mockResolvedValue({})
-  })
-
-  afterEach(() => {
-    axios.put.mockRestore()
-  })
-
   const scopes = ['https://www.test.com/scope']
   const redirectUris = 'https://www.test.com'
   const disabledPlacements = ['account_navigation', 'course_navigaiton']
@@ -130,36 +125,43 @@ describe('updateLtiKey', () => {
     access_token_count: 1,
   }
 
-  const update = (callback = vi.fn()) => {
+  const update = () => {
     return actions.updateLtiKey(
       developerKey,
       disabledPlacements,
       developerKeyId,
       toolConfiguration,
       customFields,
-      callback,
     )
   }
 
-  it('makes a request to the tool config update endpoint', () => {
-    update(vi.fn())
-
-    expect(axios.put).toHaveBeenCalledWith(
-      `/api/lti/developer_keys/${developerKeyId}/tool_configuration`,
-      {
-        developer_key: {
-          scopes,
-          redirect_uris: redirectUris,
-          name: developerKey.name,
-          notes: developerKey.notes,
-          email: developerKey.email,
+  it('makes a request to the tool config update endpoint', async () => {
+    let capturedBody = null
+    server.use(
+      http.put(
+        `*/api/lti/developer_keys/${developerKeyId}/tool_configuration`,
+        async ({request}) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({developer_key: {}, tool_configuration: {}})
         },
-        tool_configuration: {
-          disabled_placements: disabledPlacements,
-          settings: toolConfiguration,
-          custom_fields: customFields,
-        },
-      },
+      ),
     )
+
+    await update()
+
+    expect(capturedBody).toEqual({
+      developer_key: {
+        scopes,
+        redirect_uris: redirectUris,
+        name: developerKey.name,
+        notes: developerKey.notes,
+        email: developerKey.email,
+      },
+      tool_configuration: {
+        disabled_placements: disabledPlacements,
+        settings: toolConfiguration,
+        custom_fields: customFields,
+      },
+    })
   })
 })

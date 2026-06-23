@@ -16,27 +16,22 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import actions from '../developerKeysActions'
 import storeCreator from '../../store/store'
-import axios from '@canvas/axios'
 
+const server = setupServer()
 const store = storeCreator()
 
 const ok = x => expect(x).toBeTruthy()
 const equal = (x, y) => expect(x).toEqual(y)
 
-function thenStub() {
-  return {
-    then: () => {
-      return {catch: () => {}}
-    },
-  }
-}
-describe('Developer key actions', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
+describe('Developer key actions', () => {
   test('listInheritedDeveloperKeysStart returns proper action', () => {
     const retVal = actions.listInheritedDeveloperKeysStart()
     equal(retVal.type, 'LIST_INHERITED_DEVELOPER_KEYS_START')
@@ -70,45 +65,95 @@ describe('Developer key actions', () => {
     equal(retVal.payload, error)
   })
 
-  test('getDeveloperKeys retrieves account key data', () => {
-    const getStub = vi.spyOn(axios, 'get').mockReturnValue(thenStub())
+  test('getDeveloperKeys retrieves account key data', async () => {
+    const requestedUrls = []
+    server.use(
+      http.get('*', ({request}) => {
+        requestedUrls.push(request.url)
+        return HttpResponse.json([])
+      }),
+    )
+
     actions.getDeveloperKeys('http://www.test.com', {})(
       () => {},
       () => {},
     )
-    expect(getStub).toHaveBeenCalledWith('http://www.test.com')
+
+    await new Promise(r => setTimeout(r, 50))
+    expect(
+      requestedUrls.some(
+        url => url.startsWith('http://www.test.com') && !url.includes('inherited'),
+      ),
+    ).toBe(true)
   })
 
-  test('getDeveloperKeys retrieves inherited account key data', () => {
-    const getStub = vi.spyOn(axios, 'get').mockReturnValue(thenStub())
+  test('getDeveloperKeys retrieves inherited account key data', async () => {
+    const requestedUrls = []
+    server.use(
+      http.get('*', ({request}) => {
+        requestedUrls.push(request.url)
+        return HttpResponse.json([])
+      }),
+    )
+
     actions.getDeveloperKeys('http://www.test.com', {})(
       () => {},
       () => {},
     )
-    expect(getStub).toHaveBeenCalledWith('http://www.test.com?inherited=true')
+
+    await new Promise(r => setTimeout(r, 50))
+    expect(requestedUrls.some(url => url.includes('inherited=true'))).toBe(true)
   })
 
-  test('getRemainingDeveloperKeys requests keys from the specified URL', () => {
-    const getStub = vi.spyOn(axios, 'get').mockReturnValue(thenStub())
+  test('getRemainingDeveloperKeys requests keys from the specified URL', async () => {
+    const requestedUrls = []
+    server.use(
+      http.get('*', ({request}) => {
+        requestedUrls.push(request.url)
+        return HttpResponse.json([])
+      }),
+    )
+
     actions.getRemainingDeveloperKeys('http://www.test.com', [])(
       () => {},
       () => {},
     )
-    expect(getStub).toHaveBeenCalledWith('http://www.test.com')
+
+    await new Promise(r => setTimeout(r, 50))
+    expect(requestedUrls.some(url => url.startsWith('http://www.test.com'))).toBe(true)
   })
 
-  test('getRemainingInheritedDeveloperKeys requests keys from the specified URL with inherited param', () => {
-    const getStub = vi.spyOn(axios, 'get').mockReturnValue(thenStub())
+  test('getRemainingInheritedDeveloperKeys requests keys from the specified URL with inherited param', async () => {
+    const requestedUrls = []
+    server.use(
+      http.get('*', ({request}) => {
+        requestedUrls.push(request.url)
+        return HttpResponse.json([])
+      }),
+    )
+
     actions.getRemainingInheritedDeveloperKeys('http://www.test.com', [])(
       () => {},
       () => {},
     )
-    expect(getStub).toHaveBeenCalledWith('http://www.test.com?inherited=true')
+
+    await new Promise(r => setTimeout(r, 50))
+    expect(requestedUrls.some(url => url.includes('inherited=true'))).toBe(true)
   })
 
-  test('listDeveloperKeyScopes makes a request to the scopes endpoint', () => {
-    const getStub = vi.spyOn(axios, 'get').mockReturnValue(thenStub())
+  test('listDeveloperKeyScopes makes a request to the scopes endpoint', async () => {
+    let requestedUrl = null
+    server.use(
+      http.get('*/api/v1/accounts/1/scopes', ({request}) => {
+        requestedUrl = request.url
+        return HttpResponse.json([])
+      }),
+    )
+
     actions.listDeveloperKeyScopes(1)(store.dispatch)
-    expect(getStub).toHaveBeenCalledWith('/api/v1/accounts/1/scopes?group_by=resource_name')
+
+    await new Promise(r => setTimeout(r, 50))
+    expect(requestedUrl).not.toBeNull()
+    expect(new URL(requestedUrl).searchParams.get('group_by')).toBe('resource_name')
   })
 })

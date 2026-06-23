@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {LtiScope} from '@canvas/lti/model/LtiScope'
 import $ from 'jquery'
@@ -373,10 +373,24 @@ export const actions = {
     dispatch(actions.listDeveloperKeyScopesStart())
     const url = `/api/v1/accounts/${accountId}/scopes?group_by=resource_name`
 
-    axios
-      .get(url)
-      .then(response => {
-        dispatch(actions.listDeveloperKeyScopesSuccessful(response.data))
+    doFetchApi({path: url})
+      .then(({json}) => {
+        dispatch(
+          actions.listDeveloperKeyScopesSuccessful(
+            json as Record<
+              string,
+              {
+                controller: string
+                action: string
+                verb: string
+                path: string
+                scope: string
+                resource: string
+                resource_name: string
+              }
+            >,
+          ),
+        )
       })
       .catch(error => {
         dispatch(actions.listDeveloperKeyScopesFailed())
@@ -403,14 +417,13 @@ export const actions = {
           newLtiRegistrationWorkflowState,
         }),
       )
-      axios
-        .post(url, {
-          developer_key_account_binding: {
-            workflow_state: workflowState,
-          },
-        })
-        .then(response => {
-          dispatch(actions.setBindingWorkflowStateSuccessful(response.data))
+      doFetchApi({
+        path: url,
+        method: 'POST',
+        body: {developer_key_account_binding: {workflow_state: workflowState}},
+      })
+        .then(({json}) => {
+          dispatch(actions.setBindingWorkflowStateSuccessful(json))
         })
         .catch(error => {
           dispatch(
@@ -429,10 +442,9 @@ export const actions = {
     (formData: unknown, url: string, method: string) => (dispatch: Dispatch) => {
       dispatch(actions.createOrEditDeveloperKeyStart())
 
-      return axios
-        .request<DeveloperKey>({url, method, data: formData})
-        .then(response => {
-          const key = response.data
+      return doFetchApi({path: url, method, body: formData as object})
+        .then(({json}) => {
+          const key = json as DeveloperKey
           const maskedKey = maskKey(key)
           if (method === 'post') {
             dispatch(actions.listDeveloperKeysPrepend(maskedKey))
@@ -516,12 +528,9 @@ export const actions = {
     dispatch(actions.deactivateDeveloperKeyStart())
 
     const url = `/api/v1/developer_keys/${developerKey.id}`
-    axios
-      .put<DeveloperKey>(url, {
-        developer_key: {event: 'deactivate'},
-      })
-      .then(response => {
-        dispatch(actions.listDeveloperKeysReplace(response.data))
+    doFetchApi({path: url, method: 'PUT', body: {developer_key: {event: 'deactivate'}}})
+      .then(({json}) => {
+        dispatch(actions.listDeveloperKeysReplace(json as DeveloperKey))
         // @ts-expect-error
         dispatch(actions.deactivateDeveloperKeySuccessful())
       })
@@ -533,12 +542,9 @@ export const actions = {
     dispatch(actions.activateDeveloperKeyStart())
 
     const url = `/api/v1/developer_keys/${developerKey.id}`
-    axios
-      .put<DeveloperKey>(url, {
-        developer_key: {event: 'activate'},
-      })
-      .then(response => {
-        dispatch(actions.listDeveloperKeysReplace(response.data))
+    doFetchApi({path: url, method: 'PUT', body: {developer_key: {event: 'activate'}}})
+      .then(({json}) => {
+        dispatch(actions.listDeveloperKeysReplace(json as DeveloperKey))
         // @ts-expect-error
         dispatch(actions.activateDeveloperKeySuccessful())
       })
@@ -549,12 +555,9 @@ export const actions = {
     dispatch(actions.makeInvisibleDeveloperKeyStart())
 
     const url = `/api/v1/developer_keys/${developerKey.id}`
-    axios
-      .put<DeveloperKey>(url, {
-        developer_key: {visible: false},
-      })
-      .then(response => {
-        dispatch(actions.listDeveloperKeysReplace(response.data))
+    doFetchApi({path: url, method: 'PUT', body: {developer_key: {visible: false}}})
+      .then(({json}) => {
+        dispatch(actions.listDeveloperKeysReplace(json as DeveloperKey))
         dispatch(actions.makeInvisibleDeveloperKeySuccessful())
       })
       .catch(err => dispatch(actions.makeInvisibleDeveloperKeyFailed(err)))
@@ -564,12 +567,9 @@ export const actions = {
     dispatch(actions.makeVisibleDeveloperKeyStart())
 
     const url = `/api/v1/developer_keys/${developerKey.id}`
-    axios
-      .put<DeveloperKey>(url, {
-        developer_key: {visible: true},
-      })
-      .then(response => {
-        dispatch(actions.listDeveloperKeysReplace(response.data))
+    doFetchApi({path: url, method: 'PUT', body: {developer_key: {visible: true}}})
+      .then(({json}) => {
+        dispatch(actions.listDeveloperKeysReplace(json as DeveloperKey))
         dispatch(actions.makeVisibleDeveloperKeySuccessful())
       })
       .catch(err => dispatch(actions.makeVisibleDeveloperKeyFailed(err)))
@@ -580,10 +580,9 @@ export const actions = {
     dispatch(actions.deleteDeveloperKeyStart())
 
     const url = `/api/v1/developer_keys/${developerKey.id}`
-    return axios
-      .delete(url)
-      .then(response => {
-        dispatch(actions.listDeveloperKeysDelete(response.data))
+    return doFetchApi({path: url, method: 'DELETE'})
+      .then(({json}) => {
+        dispatch(actions.listDeveloperKeysDelete(json as DeveloperKey))
         // @ts-expect-error
         dispatch(actions.deleteDeveloperKeySuccessful())
       })
@@ -613,12 +612,12 @@ export const actions = {
     dispatch(actions.regenerateDeveloperKeySecretStart(developerKey.id))
 
     const url = `/api/v1/developer_keys/${developerKey.id}/regenerate_secret`
-    return axios
-      .post<DeveloperKey>(url)
-      .then(response => {
-        dispatch(actions.listDeveloperKeysReplace(maskKey(response.data)))
-        dispatch(actions.regenerateDeveloperKeySecretSuccessful(response.data))
-        return response.data
+    return doFetchApi({path: url, method: 'POST'})
+      .then(({json}) => {
+        const data = json as DeveloperKey
+        dispatch(actions.listDeveloperKeysReplace(maskKey(data)))
+        dispatch(actions.regenerateDeveloperKeySecretSuccessful(data))
+        return data
       })
       .catch(err => {
         showFlashError(I18n.t('Failed to regenerate secret: %{message}', {message: err.message}))
@@ -653,23 +652,28 @@ export const actions = {
 
       const url = `/api/lti/accounts/${account_id}/developer_keys/tool_configuration`
 
-      return axios
-        .post(url, {
+      return doFetchApi({
+        path: url,
+        method: 'POST',
+        body: {
           tool_configuration: {
             settings,
             ...(settings_url ? {settings_url} : {}),
           },
           developer_key,
-        })
-        .then(response => {
-          const newKey = response.data.developer_key
-          newKey.tool_configuration = response.data.tool_configuration.settings
+        },
+      })
+        .then(({json}) => {
+          const data = json as LtiDeveloperKeyApiResponse
+          const newKey = data.developer_key
+          newKey.tool_configuration = data.tool_configuration.settings
           dispatch(actions.setEditingDeveloperKey(newKey))
           dispatch(actions.listDeveloperKeysPrepend(newKey))
-          return response.data as LtiDeveloperKeyApiResponse
+          return data
         })
-        .catch(err => {
-          const errors = err.response.data.errors
+        .catch(async err => {
+          const data = await err.response.json()
+          const errors = data.errors
           for (const error of errors) {
             const {field, message} = error
             if (field === 'configuration') {
@@ -693,8 +697,10 @@ export const actions = {
     customFields: unknown,
   ) => {
     const url = `/api/lti/developer_keys/${developerKeyId}/tool_configuration`
-    return axios
-      .put<DeveloperKey>(url, {
+    return doFetchApi({
+      path: url,
+      method: 'PUT',
+      body: {
         developer_key: {
           name: developerKey.name,
           notes: developerKey.notes,
@@ -707,12 +713,14 @@ export const actions = {
           disabled_placements,
           settings: toolConfiguration,
         },
+      },
+    })
+      .then(({json}) => {
+        return json as unknown as LtiDeveloperKeyApiResponse
       })
-      .then(data => {
-        return data.data as unknown as LtiDeveloperKeyApiResponse
-      })
-      .catch(err => {
-        const errors = err.response.data.errors
+      .catch(async err => {
+        const data = await err.response.json()
+        const errors = data.errors
         for (const error of errors) {
           const {field, message} = error
           if (field === 'configuration') {
@@ -745,12 +753,11 @@ function retrieveDevKeys({
   success: (payload: {next: string; developerKeys: Array<DeveloperKey>}) => unknown
   failure: Function
 }) {
-  axios
-    .get(url)
-    .then(response => {
+  doFetchApi({path: url})
+    .then(({json, response}) => {
       // @ts-expect-error
-      const {next} = parseLinkHeader(response.headers.link)
-      const payload = {next, developerKeys: response.data}
+      const {next} = parseLinkHeader(response.headers.get('link'))
+      const payload = {next, developerKeys: json as Array<DeveloperKey>}
       dispatch(success(payload))
     })
     .catch(err => dispatch(failure(err)))
@@ -772,12 +779,11 @@ function retrieveRemainingDevKeys({
   failure: Function
   callback: (payload: Array<DeveloperKey>) => void
 }) {
-  return axios
-    .get(url)
-    .then(response => {
+  return doFetchApi({path: url})
+    .then(({json, response}) => {
       // @ts-expect-error
-      const {next} = parseLinkHeader(response.headers.link)
-      const developerKeys = developerKeysPassedIn.concat(response.data)
+      const {next} = parseLinkHeader(response.headers.get('link'))
+      const developerKeys = developerKeysPassedIn.concat(json as Array<DeveloperKey>)
       if (next) {
         dispatch(retrieve(next, developerKeys, callback))
       } else {
