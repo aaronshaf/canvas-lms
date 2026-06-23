@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('gradebookSharedGradebookexportManager')
@@ -136,7 +136,7 @@ class GradebookExportManager {
     this._exportCancelled = true
     this.setExportState(undefined)
 
-    await axios.post(this.cancelUrl())
+    await doFetchApi({path: this.cancelUrl(), method: 'POST'})
   }
 
   clearMonitorExport() {
@@ -159,27 +159,26 @@ class GradebookExportManager {
         resolve()
       }
 
-      axios
-        .get(this.monitoringUrl() || '')
-        .then(response => {
+      doFetchApi({path: this.monitoringUrl() || ''})
+        .then(({json}) => {
           if (this._exportCancelled) {
             this.clearMonitorExport()
             resolve()
           }
 
-          const {workflow_state: workflowState, completion} = response.data
+          const {workflow_state: workflowState, completion, message} = (json as any) ?? {}
 
           this.setExportState(completion)
           if (GradebookExportManager.exportCompleted(workflowState)) {
             this.clearMonitor()
 
             // Export is complete => let's get the attachment url
-            axios
-              .get(this.attachmentUrl() || '')
-              .then(attachmentResponse => {
+            doFetchApi({path: this.attachmentUrl() || ''})
+              .then(({json: attachmentJson}) => {
+                const {url, updated_at} = attachmentJson as any
                 const resolution: StartExportResponse = {
-                  attachmentUrl: attachmentResponse.data.url,
-                  updatedAt: attachmentResponse.data.updated_at,
+                  attachmentUrl: url,
+                  updatedAt: updated_at,
                 }
 
                 this.export = undefined
@@ -189,7 +188,7 @@ class GradebookExportManager {
           } else if (GradebookExportManager.exportFailed(workflowState)) {
             this.clearMonitor()
 
-            reject(I18n.t('Error exporting gradebook: %{msg}', {msg: response.data.message}))
+            reject(I18n.t('Error exporting gradebook: %{msg}', {msg: message}))
           }
         })
         .catch(reject)
@@ -234,8 +233,8 @@ class GradebookExportManager {
       params.student_order = studentOrder
     }
 
-    return axios.post(this.exportingUrl, params).then(response => {
-      const {progress_id: progressId, attachment_id: attachmentId, filename} = response.data
+    return doFetchApi({path: this.exportingUrl, method: 'POST', body: params}).then(({json}) => {
+      const {progress_id: progressId, attachment_id: attachmentId, filename} = json as any
       this.export = {
         progressId,
         attachmentId,
