@@ -16,9 +16,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import api from '../gradingPeriodsApi'
+
+const server = setupServer()
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const deserializedPeriods = [
   {
@@ -92,29 +98,39 @@ const periodsData = {
 describe('batchUpdate', () => {
   beforeEach(() => {
     fakeENV.setup()
-    ENV.GRADING_PERIODS_UPDATE_URL = 'api/{{ set_id }}/batch_update'
+    ENV.GRADING_PERIODS_UPDATE_URL = '/api/{{ set_id }}/batch_update'
   })
 
   afterEach(() => {
     fakeENV.teardown()
-    vi.restoreAllMocks()
   })
 
-  it('calls the resolved endpoint with serialized grading periods', () => {
-    const apiSpy = vi.spyOn(axios, 'patch').mockReturnValue(new Promise(() => {}))
-    api.batchUpdate(123, deserializedPeriods)
-    expect(axios.patch).toHaveBeenCalledWith('api/123/batch_update', serializedPeriods)
+  it('calls the resolved endpoint with serialized grading periods', async () => {
+    let capturedBody = null
+    server.use(
+      http.patch('/api/123/batch_update', async ({request}) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(periodsData)
+      }),
+    )
+    await api.batchUpdate(123, deserializedPeriods)
+    expect(capturedBody).toMatchObject({
+      grading_periods: expect.arrayContaining([
+        expect.objectContaining({id: '1', title: 'Q1', weight: 40}),
+        expect.objectContaining({id: '2', title: 'Q2', weight: 60}),
+      ]),
+    })
   })
 
   it('deserializes returned grading periods', async () => {
-    vi.spyOn(axios, 'patch').mockResolvedValue({data: periodsData})
+    server.use(http.patch('/api/123/batch_update', () => HttpResponse.json(periodsData)))
     const periods = await api.batchUpdate(123, deserializedPeriods)
     expect(periods).toEqual(deserializedPeriods)
   })
 
   it('rejects the promise upon errors', async () => {
-    vi.spyOn(axios, 'patch').mockRejectedValue('FAIL')
-    await expect(api.batchUpdate(123, deserializedPeriods)).rejects.toEqual('FAIL')
+    server.use(http.patch('/api/123/batch_update', () => new HttpResponse(null, {status: 500})))
+    await expect(api.batchUpdate(123, deserializedPeriods)).rejects.toThrow()
   })
 })
 

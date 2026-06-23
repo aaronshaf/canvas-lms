@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import '@canvas/jquery/jquery.instructure_misc_helpers'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import DateHelper from '@canvas/datetime/dateHelper'
@@ -110,12 +110,18 @@ export default {
   },
 
   create(set: GradingPeriodSetCreateParams) {
-    return axios
-      .post(createUrl(), serializeSet(set))
-      .then(response => deserializeSet(response.data.grading_period_set))
+    return doFetchApi<{grading_period_set: GradingPeriodSet}>({
+      path: createUrl(),
+      method: 'POST',
+      body: serializeSet(set),
+    }).then(({json}) => deserializeSet(json!.grading_period_set))
   },
 
   update(set: GradingPeriodSetUpdateParams) {
-    return axios.patch(updateUrl(set.id), serializeSet(set)).then(_response => set)
+    return doFetchApi({
+      path: updateUrl(set.id),
+      method: 'PATCH',
+      body: serializeSet(set),
+    }).then(() => set)
   },
 }

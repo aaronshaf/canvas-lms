@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import '@canvas/jquery/jquery.instructure_misc_helpers'
 import replaceTags from '@canvas/util/replaceTags'
 import type {CamelizedGradingPeriod, SerializedGradingPeriod} from '../grading.d'
@@ -65,11 +65,12 @@ export default {
 
   batchUpdate(setId: string, periods: GradingPeriodInput[]) {
     return new Promise<CamelizedGradingPeriod[]>((resolve, reject) =>
-      axios
-        .patch<{
-          grading_periods: SerializedGradingPeriod[]
-        }>(batchUpdateUrl(setId), serializePeriods(periods))
-        .then(response => resolve(this.deserializePeriods(response.data.grading_periods)))
+      doFetchApi<{grading_periods: SerializedGradingPeriod[]}>({
+        path: batchUpdateUrl(setId),
+        method: 'PATCH',
+        body: serializePeriods(periods),
+      })
+        .then(({json}) => resolve(this.deserializePeriods(json?.grading_periods)))
         .catch(error => reject(error)),
     )
   },

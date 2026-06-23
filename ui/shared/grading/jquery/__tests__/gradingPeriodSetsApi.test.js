@@ -16,12 +16,18 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import NaiveRequestDispatch from '@canvas/network/NaiveRequestDispatch/index'
 import api from '../gradingPeriodSetsApi'
 
 vi.mock('@canvas/network/NaiveRequestDispatch/index')
+
+const server = setupServer()
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const deserializedSets = [
   {
@@ -145,8 +151,8 @@ describe('gradingPeriodSetsApi', () => {
 
   beforeEach(() => {
     fakeENV.setup()
-    ENV.GRADING_PERIOD_SETS_URL = 'api/grading_period_sets'
-    ENV.GRADING_PERIOD_SET_UPDATE_URL = 'api/grading_period_sets/${id}'
+    ENV.GRADING_PERIOD_SETS_URL = '/api/grading_period_sets'
+    ENV.GRADING_PERIOD_SET_UPDATE_URL = '/api/grading_period_sets/{{ id }}'
 
     mockGetDepaginated = vi.fn()
     NaiveRequestDispatch.mockImplementation(function () {
@@ -171,7 +177,7 @@ describe('gradingPeriodSetsApi', () => {
       })
 
       await api.list()
-      expect(mockGetDepaginated).toHaveBeenCalledWith('api/grading_period_sets')
+      expect(mockGetDepaginated).toHaveBeenCalledWith('/api/grading_period_sets')
     })
 
     it('deserializes returned grading period sets', async () => {
@@ -224,27 +230,26 @@ describe('gradingPeriodSetsApi', () => {
 
   describe('create', () => {
     it('calls the resolved endpoint with the serialized grading period set', async () => {
-      const mockResponse = {
-        data: {
-          grading_period_set: {
-            id: '1',
-            title: 'Fall 2015',
-            weighted: null,
-            display_totals_for_all_grading_periods: false,
-            grading_periods: [],
-            permissions: {
-              read: true,
-              create: true,
-              update: true,
-              delete: true,
-            },
-            created_at: '2015-12-29T12:00:00Z',
-          },
+      const responseBody = {
+        grading_period_set: {
+          id: '1',
+          title: 'Fall 2015',
+          weighted: null,
+          display_totals_for_all_grading_periods: false,
+          grading_periods: [],
+          permissions: {read: true, create: true, update: true, delete: true},
+          created_at: '2015-12-29T12:00:00Z',
         },
       }
-      const postSpy = vi.spyOn(axios, 'post').mockResolvedValue(mockResponse)
+      let capturedBody = null
+      server.use(
+        http.post('/api/grading_period_sets', async ({request}) => {
+          capturedBody = await request.json()
+          return HttpResponse.json(responseBody)
+        }),
+      )
       await api.create(deserializedSetCreating)
-      expect(postSpy).toHaveBeenCalledWith('api/grading_period_sets', {
+      expect(capturedBody).toEqual({
         enrollment_term_ids: ['1', '2'],
         grading_period_set: {
           title: 'Fall 2015',
@@ -252,6 +257,76 @@ describe('gradingPeriodSetsApi', () => {
           display_totals_for_all_grading_periods: false,
         },
       })
+    })
+
+    it('deserializes the returned grading period set', async () => {
+      const responseBody = {
+        grading_period_set: {
+          id: '1',
+          title: 'Fall 2015',
+          weighted: null,
+          display_totals_for_all_grading_periods: false,
+          grading_periods: [],
+          permissions: {read: true, create: true, update: true, delete: true},
+          created_at: '2015-12-29T12:00:00Z',
+        },
+      }
+      server.use(http.post('/api/grading_period_sets', () => HttpResponse.json(responseBody)))
+      const result = await api.create(deserializedSetCreating)
+      expect(result).toMatchObject({id: '1', title: 'Fall 2015'})
+    })
+
+    it('rejects on non-2xx response', async () => {
+      server.use(http.post('/api/grading_period_sets', () => new HttpResponse(null, {status: 422})))
+      await expect(api.create(deserializedSetCreating)).rejects.toThrow()
+    })
+  })
+
+  describe('update', () => {
+    const updatingSet = {
+      id: '1',
+      title: 'Fall 2015 Updated',
+      weighted: false,
+      displayTotalsForAllGradingPeriods: true,
+      enrollmentTermIDs: ['1'],
+    }
+
+    beforeEach(() => {
+      ENV.GRADING_PERIOD_SET_UPDATE_URL = '/api/grading_period_sets/{{ id }}'
+    })
+
+    it('returns the input set on success', async () => {
+      server.use(
+        http.patch('/api/grading_period_sets/1', () => new HttpResponse(null, {status: 204})),
+      )
+      const result = await api.update(updatingSet)
+      expect(result).toBe(updatingSet)
+    })
+
+    it('sends the serialized set to the correct URL', async () => {
+      let capturedBody = null
+      server.use(
+        http.patch('/api/grading_period_sets/1', async ({request}) => {
+          capturedBody = await request.json()
+          return new HttpResponse(null, {status: 204})
+        }),
+      )
+      await api.update(updatingSet)
+      expect(capturedBody).toEqual({
+        enrollment_term_ids: ['1'],
+        grading_period_set: {
+          title: 'Fall 2015 Updated',
+          weighted: false,
+          display_totals_for_all_grading_periods: true,
+        },
+      })
+    })
+
+    it('rejects on non-2xx response', async () => {
+      server.use(
+        http.patch('/api/grading_period_sets/1', () => new HttpResponse(null, {status: 500})),
+      )
+      await expect(api.update(updatingSet)).rejects.toThrow()
     })
   })
 })
