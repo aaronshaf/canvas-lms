@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {ProgressCamelized} from '../default_gradebook/gradebook.d'
 
@@ -82,15 +82,17 @@ class ScoreToUngradedManager {
     }
 
     this.processStatusPoll = window.setInterval(() => {
-      return axios.get(this.monitoringUrl()!).then(response => {
-        const workflowState = response.data.workflow_state
+      return doFetchApi<{workflow_state: string; message?: string}>({
+        path: this.monitoringUrl()!,
+      }).then(({json}) => {
+        const workflowState = json?.workflow_state ?? ''
 
         if (ScoreToUngradedManager.processCompleted(workflowState)) {
           this.clearMonitor()
           resolve({})
         } else if (ScoreToUngradedManager.processFailed(workflowState)) {
           this.clearMonitor()
-          reject(I18n.t('%{msg}', {msg: response.data.message}))
+          reject(I18n.t('%{msg}', {msg: json?.message}))
         }
       })
     }, this.pollingInterval)

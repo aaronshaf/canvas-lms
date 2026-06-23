@@ -18,9 +18,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import GradebookApi from '../../default_gradebook/apis/GradebookApi'
 import ScoreToUngradedManager from '../ScoreToUngradedManager'
-import axios from '@canvas/axios'
+
+const server = setupServer()
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const monitoringBase = ScoreToUngradedManager.DEFAULT_MONITORING_BASE_URL
 const workingProcess = {
@@ -147,12 +153,11 @@ describe('ScoreToUngradedManager', () => {
     it('starts polling for progress and returns a rejected promise on progress failure', async () => {
       const manager = new ScoreToUngradedManager(undefined, 1)
 
-      vi.spyOn(axios, 'get').mockResolvedValue({
-        data: {
-          workflow_state: 'failed',
-          message: 'Arbitrary failure',
-        },
-      })
+      server.use(
+        http.get(`${monitoringBase}/1`, () =>
+          HttpResponse.json({workflow_state: 'failed', message: 'Arbitrary failure'}),
+        ),
+      )
 
       try {
         await manager.startProcess(undefined, () => [])
@@ -164,12 +169,14 @@ describe('ScoreToUngradedManager', () => {
     it('starts polling for progress and returns a rejected promise on unknown progress status', async () => {
       const manager = new ScoreToUngradedManager(undefined, 1)
 
-      vi.spyOn(axios, 'get').mockResolvedValue({
-        data: {
-          workflow_state: 'discombobulated',
-          message: 'Pattern buffer degradation',
-        },
-      })
+      server.use(
+        http.get(`${monitoringBase}/1`, () =>
+          HttpResponse.json({
+            workflow_state: 'discombobulated',
+            message: 'Pattern buffer degradation',
+          }),
+        ),
+      )
 
       try {
         await manager.startProcess(undefined, () => [])
@@ -181,11 +188,9 @@ describe('ScoreToUngradedManager', () => {
     it('starts polling for progress and returns a fulfilled promise on progress completion', async () => {
       const manager = new ScoreToUngradedManager(undefined, 1)
 
-      vi.spyOn(axios, 'get').mockResolvedValue({
-        data: {
-          workflow_state: 'completed',
-        },
-      })
+      server.use(
+        http.get(`${monitoringBase}/1`, () => HttpResponse.json({workflow_state: 'completed'})),
+      )
 
       await manager.startProcess(undefined, () => [])
       expect(manager.process).toStrictEqual(undefined)
