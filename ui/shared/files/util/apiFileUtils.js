@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import axios from '@canvas/axios'
-
-const stringIds = {Accept: 'application/json+canvas-string-ids'}
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export function getRootFolder(contextType, contextId) {
-  return axios.get(`/api/v1/${contextType}/${contextId}/folders/root`, stringIds)
+  return doFetchApi({
+    path: `/api/v1/${contextType}/${contextId}/folders/root`,
+  }).then(({json}) => ({data: json}))
 }
 
 function createFormData(data) {
@@ -30,25 +30,28 @@ function createFormData(data) {
 
 function onFileUploadInfoReceived(file, uploadInfo, onSuccess, onFailure) {
   const formData = createFormData({...uploadInfo.upload_params, file})
-  const config = {'Content-Type': 'multipart/form-data', ...stringIds}
-  axios
-    .post(uploadInfo.upload_url, formData, config)
-    .then(response => onSuccess(response.data))
-    .catch(response => onFailure(response))
+  // External upload URL (e.g. S3) — skip CSRF headers to avoid CORS preflight rejection
+  doFetchApi({
+    path: uploadInfo.upload_url,
+    method: 'POST',
+    body: formData,
+    includeCSRFToken: false,
+  })
+    .then(({json, text}) => onSuccess(json ?? text))
+    .catch(e => onFailure(e))
 }
 
 export function uploadFile(file, folderId, onSuccess, onFailure) {
-  axios
-    .post(
-      `/api/v1/folders/${folderId}/files`,
-      {
-        name: file.name,
-        size: file.size,
-        parent_folder_id: folderId,
-        on_duplicate: 'rename',
-      },
-      stringIds,
-    )
-    .then(response => onFileUploadInfoReceived(file, response.data, onSuccess, onFailure))
-    .catch(response => onFailure(response))
+  doFetchApi({
+    path: `/api/v1/folders/${folderId}/files`,
+    method: 'POST',
+    body: {
+      name: file.name,
+      size: file.size,
+      parent_folder_id: folderId,
+      on_duplicate: 'rename',
+    },
+  })
+    .then(({json}) => onFileUploadInfoReceived(file, json, onSuccess, onFailure))
+    .catch(e => onFailure(e))
 }

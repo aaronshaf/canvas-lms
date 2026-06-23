@@ -19,7 +19,7 @@
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {waitFor} from '@testing-library/react'
-import {uploadFile} from '../apiFileUtils'
+import {uploadFile, getRootFolder} from '../apiFileUtils'
 
 describe('apiFileUtils', () => {
   const server = setupServer()
@@ -27,6 +27,22 @@ describe('apiFileUtils', () => {
   beforeAll(() => server.listen())
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
+
+  describe('getRootFolder', () => {
+    it('returns the root folder wrapped as {data}', async () => {
+      const folder = {id: '1', name: 'course files', full_name: 'course files'}
+      server.use(http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(folder)))
+      const result = await getRootFolder('courses', '1')
+      expect(result.data).toEqual(folder)
+    })
+
+    it('rejects on a non-2xx response', async () => {
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => new HttpResponse(null, {status: 401})),
+      )
+      await expect(getRootFolder('courses', '1')).rejects.toThrow()
+    })
+  })
 
   describe('uploadFile', () => {
     it('runs the onSuccess method after upload', async () => {
@@ -59,6 +75,30 @@ describe('apiFileUtils', () => {
 
       await waitFor(() => {
         expect(onSuccess).toHaveBeenCalledWith('yo')
+        expect(onFail).not.toHaveBeenCalled()
+      })
+    })
+
+    it('passes parsed JSON to onSuccess when upload URL returns JSON', async () => {
+      const onSuccess = vi.fn()
+      const onFail = vi.fn()
+      const uploadedFile = {id: 42, display_name: 'file1.png'}
+
+      server.use(
+        http.post('/api/v1/folders/1/files', () =>
+          HttpResponse.json({
+            upload_url: 'http://new_url',
+            upload_params: {key: 'folder/filename', 'content-type': 'image/png'},
+          }),
+        ),
+        http.post('http://new_url', () => HttpResponse.json(uploadedFile)),
+      )
+
+      const file = {name: 'file1.png', size: 1024}
+      uploadFile(file, '1', onSuccess, onFail)
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledWith(uploadedFile)
         expect(onFail).not.toHaveBeenCalled()
       })
     })
