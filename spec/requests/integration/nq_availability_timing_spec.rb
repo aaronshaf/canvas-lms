@@ -278,6 +278,45 @@ describe "New Quizzes Availability & Timing Integration" do
       .to be_within(1.second).of(override_lock_at)
   end
 
+  it "pushes the student's effective unlock, lock, and due dates to the native launch", guid: "9b3e7d52" do
+    # Arrange
+    student_enrollment = course_with_student(active_all: true)
+    course = student_enrollment.course
+    student = student_enrollment.user
+    course.enable_feature!(:new_quizzes_native_experience)
+
+    tool = create_nq_tool(course)
+    unlock_at = 1.day.ago
+    due_at = 2.days.from_now
+    lock_at = 5.days.from_now
+    assignment = create_nq_assignment(
+      course,
+      tool,
+      title: "NQ Native Effective Dates Quiz",
+      unlock_at:,
+      due_at:,
+      lock_at:
+    )
+
+    user_session(student)
+
+    # Act
+    get "/courses/#{course.id}/assignments/#{assignment.id}/launch"
+
+    # Assert
+    expect(response).to have_http_status(:ok)
+
+    params = read_native_launch_params(response)
+    expect(Time.zone.parse(params["custom_canvas_assignment_unlock_at"]))
+      .to be_within(1.second).of(unlock_at)
+    expect(Time.zone.parse(params["custom_canvas_assignment_lock_at"]))
+      .to be_within(1.second).of(lock_at)
+    expect(Time.zone.parse(params["custom_canvas_assignment_due_at"]))
+      .to be_within(1.second).of(due_at)
+    expect(params["custom_canvas_assignment_lock_at"])
+      .not_to eq(params["custom_canvas_assignment_due_at"])
+  end
+
   it "blocks a locked-out student from the native quiz-taking launch", guid: "8d4f1b63" do
     # Arrange
     student_enrollment = course_with_student(active_all: true)
@@ -304,6 +343,34 @@ describe "New Quizzes Availability & Timing Integration" do
     # Assert
     # The native lock gate is enforced only on the /taking path, not /launch
     # (assignment_locked_for_student?), so a locked student gets no launch.
+    expect(response).to have_http_status(:unauthorized)
+    expect(read_native_launch_params(response)).to be_empty
+  end
+
+  it "blocks a student from the native quiz-taking launch after the Until date", guid: "4d7e2b93" do
+    # Arrange
+    student_enrollment = course_with_student(active_all: true)
+    course = student_enrollment.course
+    student = student_enrollment.user
+    course.enable_feature!(:new_quizzes_native_experience)
+
+    tool = create_nq_tool(course)
+    # The quiz opened a week ago, but its Until date has now passed, so it is
+    # closed — unlock_at is in the past so only lock_at can lock it here.
+    assignment = create_nq_assignment(
+      course,
+      tool,
+      title: "NQ Native Until Date Quiz",
+      unlock_at: 1.week.ago,
+      lock_at: 1.day.ago
+    )
+
+    user_session(student)
+
+    # Act
+    get "/courses/#{course.id}/assignments/#{assignment.id}/taking"
+
+    # Assert
     expect(response).to have_http_status(:unauthorized)
     expect(read_native_launch_params(response)).to be_empty
   end
