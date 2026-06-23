@@ -22,7 +22,7 @@ import {Text} from '@instructure/ui-text'
 import ModuleItem from './ModuleItem'
 import AddItemInline from './AddItemModalComponents/AddItemInline'
 import {Droppable, Draggable} from 'react-beautiful-dnd'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {
   CompletionRequirement,
   ModuleItem as ModuleItemType,
@@ -31,8 +31,6 @@ import type {
 import {validateModuleItemTeacherRenderRequirements} from '../utils/utils'
 import {useContextModule} from '../hooks/useModuleContext'
 import {Spinner} from '@instructure/ui-spinner'
-
-const I18n = createI18nScope('context_modules_v2')
 
 const MemoizedModuleItem = memo(ModuleItem, validateModuleItemTeacherRenderRequirements)
 
@@ -61,6 +59,7 @@ const ModuleItemList: React.FC<ModuleItemListProps> = ({
   setSourceModule,
   isEmpty,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const {menuItemLoadingState} = useContextModule()
   const loadingState = menuItemLoadingState?.[moduleId]
   const isDuplicateLoading = loadingState?.state && loadingState?.type == 'duplicate'
@@ -84,18 +83,18 @@ const ModuleItemList: React.FC<ModuleItemListProps> = ({
             {!!isDuplicateLoading && (
               <View as="div" textAlign="center" padding="medium">
                 <Spinner
-                  renderTitle={I18n.t('Duplicating module item…')}
+                  renderTitle={t('Duplicating module item…')}
                   size="small"
                   margin="0 small 0 0"
                 />
                 <Text size="small" color="secondary">
-                  {I18n.t('Duplicating module item…')}
+                  {t('Duplicating module item…')}
                 </Text>
               </View>
             )}
             {error && (
               <View as="div" textAlign="center" padding="medium">
-                <Text color="danger">{I18n.t('Error loading module items')}</Text>
+                <Text color="danger">{t('Error loading module items')}</Text>
               </View>
             )}
             {isEmpty && !error && (

@@ -17,13 +17,11 @@
  */
 
 import React, {useEffect} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View} from '@instructure/ui-view'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Module, ModuleItem, ModuleAction} from '../../utils/types'
 import {Spinner} from '@instructure/ui-spinner'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ReferenceSelectProps {
   moduleAction: ModuleAction | null
@@ -51,6 +49,7 @@ const ReferenceSelect: React.FC<ReferenceSelectProps> = ({
   sourceModuleItemId,
   isLoading = false,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   useEffect(() => {
     if (moduleAction !== 'move_module' && !moduleItems?.find(item => item._id === selectedItem)) {
       onItemChange(null, {
@@ -81,8 +80,8 @@ const ReferenceSelect: React.FC<ReferenceSelectProps> = ({
          When moving items or contents, show module items as options*/}
       {moduleAction === 'move_module' ? (
         <SimpleSelect
-          renderLabel={I18n.t('Select Reference Module')}
-          assistiveText={I18n.t('Select a module')}
+          renderLabel={t('Select Reference Module')}
+          assistiveText={t('Select a module')}
           value={selectedItem}
           onChange={onItemChange}
           data-testid="select_reference_listbox"
@@ -101,8 +100,8 @@ const ReferenceSelect: React.FC<ReferenceSelectProps> = ({
         </View>
       ) : (
         <SimpleSelect
-          renderLabel={I18n.t('Select Reference Item')}
-          assistiveText={I18n.t('Select an item')}
+          renderLabel={t('Select Reference Item')}
+          assistiveText={t('Select an item')}
           value={selectedItem}
           onChange={onItemChange}
         >

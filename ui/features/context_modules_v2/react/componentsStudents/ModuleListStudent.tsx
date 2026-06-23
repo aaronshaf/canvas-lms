@@ -29,12 +29,10 @@ import {validateModuleStudentRenderRequirements} from '../utils/utils'
 import {useModules} from '../hooks/queries/useModules'
 import {useToggleCollapse, useToggleAllCollapse} from '../hooks/mutations/useToggleCollapse'
 import {Spinner} from '@instructure/ui-spinner'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useContextModule} from '../hooks/useModuleContext'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {MODULES, STUDENT} from '../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
 
 const QUERIES_IDLE_GRACE_MS = 200
 const LAYOUT_SETTLE_MS = 300
@@ -43,6 +41,7 @@ const LAYOUT_SETTLE_MAX_MS = 5000
 const MemoizedModuleStudent = memo(ModuleStudent, validateModuleStudentRenderRequirements)
 
 const ModulesListStudent: React.FC = () => {
+  const {t} = useTranslation('context_modules_v2')
   const {courseId, moduleCursorState, setModuleCursorState} = useContextModule()
   const {data, isLoading, error, isFetchingNextPage, hasNextPage} = useModules(courseId, STUDENT)
   const {moduleFetchingCount, maxFetchingCount, fetchComplete} =
@@ -249,17 +248,17 @@ const ModulesListStudent: React.FC = () => {
       />
       {isLoading && !data ? (
         <View as="div" textAlign="center" padding="large">
-          <Spinner renderTitle={I18n.t('Loading modules')} size="large" />
+          <Spinner renderTitle={t('Loading modules')} size="large" />
         </View>
       ) : error ? (
         <View as="div" textAlign="center" padding="large">
-          <Text color="danger">{I18n.t('Error loading modules')}</Text>
+          <Text color="danger">{t('Error loading modules')}</Text>
         </View>
       ) : (
         <View as="div" className="context_module_list">
           {hasNoModules ? (
             <View as="div" textAlign="center" padding="large" className="no_modules">
-              <Text>{I18n.t('No modules found')}</Text>
+              <Text>{t('No modules found')}</Text>
             </View>
           ) : (
             data?.pages
@@ -287,7 +286,7 @@ const ModulesListStudent: React.FC = () => {
       {hasNextPage && (
         <View as="div" padding="medium" textAlign="center">
           {isFetchingNextPage && (
-            <Spinner renderTitle={I18n.t('Loading more modules')} size="small" margin="small" />
+            <Spinner renderTitle={t('Loading more modules')} size="small" margin="small" />
           )}
         </View>
       )}

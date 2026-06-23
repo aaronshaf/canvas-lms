@@ -19,11 +19,9 @@
 import React from 'react'
 import {Text} from '@instructure/ui-text'
 import {Flex} from '@instructure/ui-flex'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {CompletionRequirement, ModuleItemContent} from '../utils/types'
 import {getItemTypeText} from '../utils/utils'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface CompletionRequirementDisplayProps {
   completionRequirement: CompletionRequirement
@@ -34,6 +32,7 @@ const CompletionRequirementDisplay: React.FC<CompletionRequirementDisplayProps> 
   completionRequirement,
   itemContent,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   if (!completionRequirement) return null
 
   const {type, minScore, minPercentage, completed = false} = completionRequirement
@@ -44,40 +43,38 @@ const CompletionRequirementDisplay: React.FC<CompletionRequirementDisplayProps> 
         return (
           <Flex.Item padding="0">
             <Text size="x-small">
-              {I18n.t('Scored at least %{score} points', {score: minScore?.toFixed(1)})}
+              {t('Scored at least {{score}} points', {score: minScore?.toFixed(1)})}
             </Text>
           </Flex.Item>
         )
       case 'min_percentage':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">
-              {I18n.t('Scored at least %{score}%', {score: minPercentage})}
-            </Text>
+            <Text size="x-small">{t('Scored at least {{score}}%', {score: minPercentage})}</Text>
           </Flex.Item>
         )
       case 'must_view':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Viewed')}</Text>
+            <Text size="x-small">{t('Viewed')}</Text>
           </Flex.Item>
         )
       case 'must_mark_done':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Marked done')}</Text>
+            <Text size="x-small">{t('Marked done')}</Text>
           </Flex.Item>
         )
       case 'must_contribute':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Contributed')}</Text>
+            <Text size="x-small">{t('Contributed')}</Text>
           </Flex.Item>
         )
       case 'must_submit':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Submitted')}</Text>
+            <Text size="x-small">{t('Submitted')}</Text>
           </Flex.Item>
         )
       default:
@@ -91,41 +88,41 @@ const CompletionRequirementDisplay: React.FC<CompletionRequirementDisplayProps> 
         return (
           <Flex.Item padding="0">
             <Text size="x-small">
-              {I18n.t('Score at least %{score} points', {score: minScore?.toFixed(1)})}
+              {t('Score at least {{score}} points', {score: minScore?.toFixed(1)})}
             </Text>
           </Flex.Item>
         )
       case 'min_percentage':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Score at least %{score}%', {score: minPercentage})}</Text>
+            <Text size="x-small">{t('Score at least {{score}}%', {score: minPercentage})}</Text>
           </Flex.Item>
         )
       case 'must_view':
         return (
           <Flex.Item padding="0">
             <Text size="x-small">
-              {I18n.t('View %{type}', {type: getItemTypeText(itemContent).toLowerCase()})}
+              {t('View {{type}}', {type: getItemTypeText(itemContent).toLowerCase()})}
             </Text>
           </Flex.Item>
         )
       case 'must_mark_done':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Mark as done')}</Text>
+            <Text size="x-small">{t('Mark as done')}</Text>
           </Flex.Item>
         )
       case 'must_contribute':
         return (
           <Flex.Item padding="0">
-            <Text size="x-small">{I18n.t('Contribute')}</Text>
+            <Text size="x-small">{t('Contribute')}</Text>
           </Flex.Item>
         )
       case 'must_submit':
         return (
           <Flex.Item padding="0">
             <Text size="x-small">
-              {I18n.t('Submit %{type}', {type: getItemTypeText(itemContent).toLowerCase()})}
+              {t('Submit {{type}}', {type: getItemTypeText(itemContent).toLowerCase()})}
             </Text>
           </Flex.Item>
         )
@@ -143,7 +140,7 @@ const CompletionRequirementDisplay: React.FC<CompletionRequirementDisplayProps> 
   return txt ? (
     <span>
       <Text weight="bold" size="x-small">
-        {I18n.t('To do:')}{' '}
+        {t('To do:')}{' '}
       </Text>
       {txt}
     </span>

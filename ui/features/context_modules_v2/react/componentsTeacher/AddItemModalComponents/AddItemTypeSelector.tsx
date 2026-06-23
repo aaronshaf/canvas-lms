@@ -17,11 +17,9 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {ModuleItemContentType} from '../../hooks/queries/useModuleItemContent'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface AddItemTypeSelectorProps {
   itemType: ModuleItemContentType
@@ -29,36 +27,37 @@ interface AddItemTypeSelectorProps {
 }
 
 const AddItemTypeSelector: React.FC<AddItemTypeSelectorProps> = ({itemType, onChange}) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <SimpleSelect
       data-testid="add-item-type-selector"
-      renderLabel={I18n.t('Add')}
+      renderLabel={t('Add')}
       value={itemType}
       onChange={(_e, {value}) => onChange(value as ModuleItemContentType)}
     >
       <SimpleSelect.Option id="assignment" value="assignment">
-        {I18n.t('Assignment')}
+        {t('Assignment')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="quiz" value="quiz">
-        {I18n.t('Quiz')}
+        {t('Quiz')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="file" value="file">
-        {I18n.t('File')}
+        {t('File')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="page" value="page">
-        {I18n.t('Page')}
+        {t('Page')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="discussion" value="discussion">
-        {I18n.t('Discussion')}
+        {t('Discussion')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="context_module_sub_header" value="context_module_sub_header">
-        {I18n.t('Text Header')}
+        {t('Text Header')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="external_url" value="external_url">
-        {I18n.t('External URL')}
+        {t('External URL')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="external_tool" value="external_tool">
-        {I18n.t('External Tool')}
+        {t('External Tool')}
       </SimpleSelect.Option>
     </SimpleSelect>
   )

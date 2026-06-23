@@ -28,12 +28,10 @@ import {Alert} from '@instructure/ui-alerts'
 import {ErrorBoundary} from '@sentry/react'
 import {Flex} from '@instructure/ui-flex'
 import {showFlashAlert} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useContextModule} from '../hooks/useModuleContext'
 import {useModules} from '../hooks/queries/useModules'
 import {usePageState} from '../hooks/usePageState'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ModuleItemListSmartProps {
   moduleId: string
@@ -54,6 +52,7 @@ const ModuleItemListSmart: React.FC<ModuleItemListSmartProps> = ({
   renderList,
   isPaginated,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const [pageIndex, setPageIndex] = usePageState(moduleId)
   const [visibleItems, setVisibleItems] = useState<ModuleItem[]>([])
   const [visiblePageInfo, setVisiblePageInfo] = useState<{
@@ -107,13 +106,13 @@ const ModuleItemListSmart: React.FC<ModuleItemListSmartProps> = ({
       setTimeout(() => {
         if (error) {
           showFlashAlert({
-            message: I18n.t('Failed loading module items'),
+            message: t('Failed loading module items'),
             type: 'error',
             srOnly: false,
           })
         } else {
           showFlashAlert({
-            message: I18n.t('All module items loaded'),
+            message: t('All module items loaded'),
             type: 'success',
             srOnly: true,
             politeness: 'assertive',
@@ -243,7 +242,7 @@ const ModuleItemListSmart: React.FC<ModuleItemListSmartProps> = ({
     </View>
   ) : (
     <View as="div" textAlign="center" padding="medium">
-      <Spinner renderTitle={I18n.t('Loading module items')} size="large" />
+      <Spinner renderTitle={t('Loading module items')} size="large" />
     </View>
   )
 }

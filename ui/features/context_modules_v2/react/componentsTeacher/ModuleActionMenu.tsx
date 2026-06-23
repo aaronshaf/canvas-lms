@@ -42,15 +42,13 @@ import {
   handleCopyTo,
 } from '../handlers/moduleActionHandlers'
 import {handleOpeningModuleUpdateTray} from '../handlers/modulePageActionHandlers'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useContextModule} from '../hooks/useModuleContext'
 import {ModuleAction, ExternalTool, ExternalToolPlacementType} from '../utils/types'
 import {useExternalToolLaunch} from '../hooks/useExternalToolLaunch'
 import {useModuleItems} from '../hooks/queries/useModuleItems'
 import {dispatchCommandEvent} from '../handlers/dispatchCommandEvent'
 import {MOVE_MODULE, MOVE_MODULE_CONTENTS} from '../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ModuleActionMenuProps {
   expanded: boolean
@@ -77,6 +75,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
   setIsManageModuleContentTrayOpen,
   setSourceModule,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const {courseId, permissions} = useContextModule()
   const {data, isLoading, isError} = useModules(courseId)
   const {
@@ -200,7 +199,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
         open={isMenuOpen}
         trigger={
           <IconButton
-            screenReaderLabel={I18n.t('Module Options')}
+            screenReaderLabel={t('Module Options')}
             data-testid={`module-action-menu_${id}`}
             renderIcon={IconMoreLine}
             withBackground={false}
@@ -216,7 +215,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconEditLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Edit')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Edit')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -226,7 +225,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconMoveDownLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Move Contents...')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Move Contents...')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -236,7 +235,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconUpdownLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Move Module...')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Move Module...')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -246,7 +245,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconPermissionsSolid />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Assign To...')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Assign To...')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -256,7 +255,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconTrashLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Delete')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Delete')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -266,7 +265,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconDuplicateLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Duplicate')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Duplicate')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -276,7 +275,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconUserLine />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Send To...')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Send To...')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}
@@ -286,7 +285,7 @@ const ModuleActionMenu: React.FC<ModuleActionMenuProps> = ({
               <Flex.Item>
                 <IconCopySolid />
               </Flex.Item>
-              <Flex.Item margin="0 0 0 x-small">{I18n.t('Copy To...')}</Flex.Item>
+              <Flex.Item margin="0 0 0 x-small">{t('Copy To...')}</Flex.Item>
             </Flex>
           </Menu.Item>
         )}

@@ -20,7 +20,7 @@ import React, {useState, useCallback} from 'react'
 import {View} from '@instructure/ui-view'
 import {TextInput} from '@instructure/ui-text-input'
 import {SimpleSelect} from '@instructure/ui-simple-select'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Text} from '@instructure/ui-text'
 import {useCourseFolders} from '../../hooks/queries/useCourseFolders'
 import {useContextModule} from '../../hooks/useModuleContext'
@@ -29,8 +29,6 @@ import ModuleFileDrop from '../AddItemModalComponents/ModuleFileDrop'
 import {QuizEngine, FormState} from '../../utils/types'
 import type {Action} from '../../hooks/mutations/useAddModuleItem'
 import AddItemFormFieldGroup, {AddItemFormFieldGroupData} from './AddItemFormFieldGroup'
-
-const I18n = createI18nScope('context_modules_v2')
 
 // Types for props
 export type CreateLearningObjectFormProps = AddItemFormFieldGroupData & {
@@ -51,6 +49,7 @@ export const CreateLearningObjectForm: React.FC<CreateLearningObjectFormProps> =
   onIndentChange,
   moduleName,
 }: CreateLearningObjectFormProps) => {
+  const {t} = useTranslation('context_modules_v2')
   const [folder, setFolder] = useState<string | undefined>(undefined)
   const {courseId, showQuizzesEngineSelection, quizEngine, setQuizEngine} = useContextModule()
   const {folders} = useCourseFolders(courseId)
@@ -73,18 +72,18 @@ export const CreateLearningObjectForm: React.FC<CreateLearningObjectFormProps> =
         {showQuizzesEngineSelection && (
           <SimpleSelect
             data-testid="create-item-quiz-engine-select"
-            renderLabel={I18n.t('Select quiz type')}
-            assistiveText={I18n.t(
+            renderLabel={t('Select quiz type')}
+            assistiveText={t(
               'Select the quiz engine. Use the arrow keys to navigate options, then press Enter to confirm.',
             )}
             value={quizEngine}
             onChange={(_e, {value}) => setQuizEngine(value as QuizEngine)}
           >
             <SimpleSelect.Option id="classic" key="classic" value="classic">
-              {I18n.t('Quiz Classic')}
+              {t('Quiz Classic')}
             </SimpleSelect.Option>
             <SimpleSelect.Option id="new" key="new" value="new">
-              {I18n.t('Quiz New')}
+              {t('Quiz New')}
             </SimpleSelect.Option>
           </SimpleSelect>
         )}
@@ -160,7 +159,7 @@ export const CreateLearningObjectForm: React.FC<CreateLearningObjectFormProps> =
             ))}
             {folders?.length === 0 && (
               <SimpleSelect.Option id="no-folders" value="">
-                {I18n.t('No folders available')}
+                {t('No folders available')}
               </SimpleSelect.Option>
             )}
           </SimpleSelect>
@@ -168,7 +167,7 @@ export const CreateLearningObjectForm: React.FC<CreateLearningObjectFormProps> =
       )}
       {state.newItem.file?.name && (
         <View as="div" margin="small 0 0 0">
-          <Text weight="bold">{I18n.t('Selected file:')}</Text> {state.newItem.file?.name}
+          <Text weight="bold">{t('Selected file:')}</Text> {state.newItem.file?.name}
         </View>
       )}
     </AddItemFormFieldGroup>

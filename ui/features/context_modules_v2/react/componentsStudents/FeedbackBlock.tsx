@@ -17,14 +17,13 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Link} from '@instructure/ui-link'
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
 
-const I18n = createI18nScope('context_modules_v2')
-
 const FeedbackBlock: React.FC = () => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <View
       background="secondary"
@@ -34,11 +33,11 @@ const FeedbackBlock: React.FC = () => {
       padding="small"
       margin="small 0"
     >
-      <Text>{I18n.t('What do you think of the new Modules experience?')}</Text>
+      <Text>{t('What do you think of the new Modules experience?')}</Text>
       <br />
       <Text>
         <Link href="https://forms.gle/npPQgCxGBUQormAo8" target="_blank" isWithinText={false}>
-          {I18n.t('Please share your feedback')}
+          {t('Please share your feedback')}
         </Link>
       </Text>
     </View>

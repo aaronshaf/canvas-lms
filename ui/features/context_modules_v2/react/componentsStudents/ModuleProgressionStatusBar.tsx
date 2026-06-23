@@ -21,11 +21,9 @@ import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {CompletionRequirement, ModuleProgression} from '../utils/types'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ProgressBar} from '@instructure/ui-progress'
 import {filterRequirementsMet} from '../utils/utils'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface ModuleProgressionStatusBarProps {
   requirementCount?: number
@@ -40,6 +38,7 @@ const ModuleProgressionStatusBar: React.FC<ModuleProgressionStatusBarProps> = ({
   progression,
   smallScreen = false,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   if (!progression || !completionRequirements.length) {
     return null
   }
@@ -51,7 +50,7 @@ const ModuleProgressionStatusBar: React.FC<ModuleProgressionStatusBarProps> = ({
   const completionPercentage = Math.round((completedCount / totalCount) * 100)
   const isComplete = completionPercentage >= 100
 
-  const completionText = I18n.t('%{completed} of %{total} Required Items', {
+  const completionText = t('{{completed}} of {{total}} Required Items', {
     completed: completedCount > totalCount ? totalCount : completedCount,
     total: totalCount,
   })

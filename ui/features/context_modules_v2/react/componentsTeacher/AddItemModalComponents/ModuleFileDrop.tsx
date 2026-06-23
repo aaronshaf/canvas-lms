@@ -18,7 +18,7 @@
 
 import React, {useCallback} from 'react'
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {FileDrop} from '@instructure/ui-file-drop'
 import {Billboard} from '@instructure/ui-billboard'
 import {Text} from '@instructure/ui-text'
@@ -26,8 +26,6 @@ import {Flex} from '@instructure/ui-flex'
 import {sharedHandleFileDrop} from '../../handlers/addItemHandlers'
 import {RocketSVG} from '@instructure/canvas-media'
 import {Action} from 'redux'
-
-const I18n = createI18nScope('context_modules_v2')
 
 const FILE_DROP_HEIGHT = '350px'
 
@@ -46,6 +44,7 @@ export const ModuleFileDrop: React.FC<ModuleFileDropProps> = ({
   nameError,
   shouldAllowMultiple = true,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const handleDrop = useCallback(
     (
       accepted: ArrayLike<File | DataTransferItem>,
@@ -77,8 +76,8 @@ export const ModuleFileDrop: React.FC<ModuleFileDropProps> = ({
                 as="div"
                 headingAs="span"
                 headingLevel="h2"
-                heading={I18n.t('Drop files here to upload')}
-                message={<Text color="brand">{I18n.t('or choose files')}</Text>}
+                heading={t('Drop files here to upload')}
+                message={<Text color="brand">{t('or choose files')}</Text>}
               />
             </Flex>
           }

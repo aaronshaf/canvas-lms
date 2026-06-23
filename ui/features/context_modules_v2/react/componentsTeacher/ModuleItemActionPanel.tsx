@@ -37,7 +37,7 @@ import DirectShareCourseTray from '@canvas/direct-sharing/react/components/Direc
 import {queryClient} from '@instructure/platform-query'
 import {Pill} from '@instructure/ui-pill'
 import {Link} from '@instructure/ui-link'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import ModuleItemActionMenu from './ModuleItemActionMenu'
 import {
   MasteryPathsData,
@@ -57,8 +57,6 @@ import ModuleFile from '@canvas/files/backbone/models/ModuleFile'
 import {dispatchCommandEvent} from '../handlers/dispatchCommandEvent'
 import {MODULE_ITEMS, MODULE_ITEMS_ALL} from '../utils/constants'
 import {usePublishing} from '@canvas/context-modules/react/publishing/publishingContext'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface ModuleItemActionPanelProps {
   moduleId: string
@@ -97,6 +95,7 @@ const ModuleItemActionPanel: React.FC<ModuleItemActionPanelProps> = ({
   setSourceModule,
   moduleTitle = '',
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDirectShareOpen, setIsDirectShareOpen] = useState(false)
   const [isDirectShareCourseOpen, setIsDirectShareCourseOpen] = useState(false)
@@ -127,7 +126,7 @@ const ModuleItemActionPanel: React.FC<ModuleItemActionPanelProps> = ({
               isWithinText={false}
               href={`${ENV.CONTEXT_URL_ROOT}/modules/items/${itemId}/edit_mastery_paths`}
             >
-              {I18n.t('Mastery Paths')}
+              {t('Mastery Paths')}
             </Link>
           </Flex.Item>
         )}

@@ -19,11 +19,9 @@
 import React, {type ReactElement, type ReactNode} from 'react'
 import {FormFieldGroup} from '@instructure/ui-form-field'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import IndentSelector from './IndentSelector'
 import {View} from '@instructure/ui-view'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface AddItemFormFieldGroupData {
   indentValue: number
@@ -41,12 +39,13 @@ const AddItemFormFieldGroup: React.FC<AddItemFormFieldGroupProps> = ({
   onIndentChange,
   moduleName,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <View as="div" margin="small">
       <FormFieldGroup
         description={
           <ScreenReaderContent>
-            {I18n.t('Add an item to %{module}', {module: moduleName})}
+            {t('Add an item to {{module}}', {module: moduleName})}
           </ScreenReaderContent>
         }
         rowSpacing="medium"

@@ -21,7 +21,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {IconButton, Button} from '@instructure/ui-buttons'
 import {IconPlusLine} from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import ContextModulesPublishIcon from '@canvas/context-modules/react/ContextModulesPublishIcon'
 import DirectShareUserModal from '@canvas/direct-sharing/react/components/DirectShareUserModal'
 import DirectShareCourseTray from '@canvas/direct-sharing/react/components/DirectShareCourseTray'
@@ -35,8 +35,6 @@ import {useModules} from '../hooks/queries/useModules'
 import AddItemModal from './AddItemModalComponents/AddItemModal'
 import ViewAssignTo from './ViewAssignToTrayComponents/ViewAssignTo'
 import {usePublishing} from '@canvas/context-modules/react/publishing/publishingContext'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface ModuleHeaderActionPanelProps {
   id: string
@@ -68,6 +66,7 @@ const ModuleHeaderActionPanel: React.FC<ModuleHeaderActionPanelProps> = ({
   setIsManageModuleContentTrayOpen,
   setSourceModule,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDirectShareOpen, setIsDirectShareOpen] = useState(false)
   const [isDirectShareCourseOpen, setIsDirectShareCourseOpen] = useState(false)
@@ -100,7 +99,7 @@ const ModuleHeaderActionPanel: React.FC<ModuleHeaderActionPanelProps> = ({
           <Flex.Item>
             <Pill>
               <Text size="medium" weight="bold" data-testid="completion-requirement">
-                {requirementCount ? I18n.t('Complete One Item') : I18n.t('Complete All Items')}
+                {requirementCount ? t('Complete One Item') : t('Complete All Items')}
               </Text>
             </Pill>
           </Flex.Item>
@@ -117,9 +116,7 @@ const ModuleHeaderActionPanel: React.FC<ModuleHeaderActionPanelProps> = ({
                 borderWidth: '0',
               }}
             >
-              {showAll
-                ? I18n.t('Show Less')
-                : I18n.t('Show All (%{count})', {count: totalCount || 0})}
+              {showAll ? t('Show Less') : t('Show All ({{count}})', {count: totalCount || 0})}
             </Button>
           </Flex.Item>
         )}
@@ -141,7 +138,7 @@ const ModuleHeaderActionPanel: React.FC<ModuleHeaderActionPanelProps> = ({
             <IconButton
               size="small"
               data-testid="add-item-button"
-              screenReaderLabel={I18n.t('Add Item')}
+              screenReaderLabel={t('Add Item')}
               renderIcon={IconPlusLine}
               withBorder={false}
               withBackground={true}

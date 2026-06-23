@@ -28,9 +28,7 @@ import {navigateToLastPage} from '../../utils/pageNavigation'
 import {queryClient} from '@instructure/platform-query'
 import {MODULE_ITEMS, MODULE_ITEMS_ALL, MODULES} from '../../utils/constants'
 import {showFlashError} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('context_modules_v2')
+import {useTranslation} from '@canvas/i18next'
 
 const initialState: FormState = {
   indentation: 0,
@@ -121,6 +119,7 @@ export function useAddModuleItem({
   onRequestClose?: () => void
   contentItems: ContentItem[]
 }) {
+  const {t} = useTranslation('context_modules_v2')
   const [state, dispatch] = useReducer(reducer, initialState)
   const {courseId, quizEngine} = useContextModule()
   const {defaultFolder} = useDefaultCourseFolder()
@@ -177,10 +176,10 @@ export function useAddModuleItem({
         const response = await submitModuleItems(courseId, moduleId, itemsData)
 
         if (!response) {
-          showFlashError(I18n.t('Error adding items to module.'))()
+          showFlashError(t('Error adding items to module.'))()
         } else if (response.errors && response.errors.length > 0) {
           showFlashError(
-            I18n.t('Some items could not be added: %{errors}', {
+            t('Some items could not be added: {{errors}}', {
               errors: response.errors.map(e => e.message).join(', '),
             }),
           )()

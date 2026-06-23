@@ -21,10 +21,8 @@ import {Flex} from '@instructure/ui-flex'
 import {Pill} from '@instructure/ui-pill'
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ModuleItemContent} from '../utils/types'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ModuleItemStatusIconProps {
   moduleCompleted: boolean
@@ -32,6 +30,7 @@ export interface ModuleItemStatusIconProps {
 }
 
 const ModuleItemStatusIcon: React.FC<ModuleItemStatusIconProps> = ({moduleCompleted, content}) => {
+  const {t} = useTranslation('context_modules_v2')
   const isMissing = useMemo(() => {
     if (!content) return false
 
@@ -56,13 +55,13 @@ const ModuleItemStatusIcon: React.FC<ModuleItemStatusIconProps> = ({moduleComple
 
   const renderPill = useMemo(() => {
     if (isMissing && !moduleCompleted) {
-      return <StatusPill color="danger" text={I18n.t('Missing')} />
+      return <StatusPill color="danger" text={t('Missing')} />
     } else if (moduleCompleted) {
-      return <StatusPill color="success" text={I18n.t('Complete')} />
+      return <StatusPill color="success" text={t('Complete')} />
     } else {
       return null
     }
-  }, [isMissing, moduleCompleted])
+  }, [isMissing, moduleCompleted, t])
 
   return renderPill ? (
     <View as="div" data-testid="module-item-status-icon">

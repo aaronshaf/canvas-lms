@@ -19,11 +19,9 @@
 import React from 'react'
 import {Pagination} from '@instructure/ui-pagination'
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Spinner} from '@instructure/ui-spinner'
 import {Flex} from '@instructure/ui-flex'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface PaginatedNavigationProps {
   isLoading: boolean
@@ -38,6 +36,7 @@ const PaginatedNavigation: React.FC<PaginatedNavigationProps> = ({
   onPageChange,
   visiblePageInfo,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   if (visiblePageInfo.totalPages <= 1) return
 
   return (
@@ -57,17 +56,17 @@ const PaginatedNavigation: React.FC<PaginatedNavigationProps> = ({
             as="nav"
             margin="x-small"
             variant="compact"
-            labelNext={I18n.t('Next page')}
-            labelPrev={I18n.t('Previous page')}
+            labelNext={t('Next page')}
+            labelPrev={t('Previous page')}
             currentPage={currentPage}
             totalPageNumber={visiblePageInfo.totalPages}
             onPageChange={onPageChange}
-            aria-label={I18n.t('Module items pagination')}
+            aria-label={t('Module items pagination')}
           />
         </View>
       </Flex>
       <View as="div" textAlign="center" data-testid="pagination-info-text">
-        {I18n.t('Showing %{start}-%{end} of %{total} items', {
+        {t('Showing {{start}}-{{end}} of {{total}} items', {
           start: visiblePageInfo.start,
           end: visiblePageInfo.end,
           total: visiblePageInfo.total,

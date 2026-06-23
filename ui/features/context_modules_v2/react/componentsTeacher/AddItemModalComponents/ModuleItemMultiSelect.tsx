@@ -17,7 +17,7 @@
  */
 
 import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Select} from '@instructure/ui-select'
 import useDebouncedSearchTerm from '@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm'
 import {Tag} from '@instructure/ui-tag'
@@ -28,8 +28,6 @@ import {
   ModuleItemContentType,
   ContentItem,
 } from '../../hooks/queries/useModuleItemContent'
-
-const I18n = createI18nScope('context_modules_v2')
 
 import type {FormMessage} from '@instructure/ui-form-field'
 
@@ -62,6 +60,7 @@ export default function ModuleItemMultiSelect({
   messages = [],
   isRequired = false,
 }: ModuleItemMultiSelectProps) {
+  const {t} = useTranslation('context_modules_v2')
   const [selectedItems, setSelectedItems] = useState<ContentItem[]>([])
   const [isShowingOptions, setIsShowingOptions] = useState(false)
   const [highlightedOptionId, setHighlightedOptionId] = useState<string | null>(null)
@@ -121,7 +120,7 @@ export default function ModuleItemMultiSelect({
     setIsShowingOptions(false)
     setInputValue('')
     setSearchTerm('')
-    setAnnouncement(I18n.t('List collapsed'))
+    setAnnouncement(t('List collapsed'))
   }, [setSearchTerm])
 
   const handleRequestHighlightOption = useCallback(
@@ -150,7 +149,7 @@ export default function ModuleItemMultiSelect({
 
       setSelectedItems(newSelectedItems)
       setIsShowingOptions(true)
-      setAnnouncement(I18n.t('%{name} selected', {name: item.name}))
+      setAnnouncement(t('{{name}} selected', {name: item.name}))
       onSelectionChange(newSelectedIds, newSelectedItems)
 
       setTimeout(() => inputRef.current?.focus(), 0)
@@ -174,7 +173,7 @@ export default function ModuleItemMultiSelect({
       const newSelectedItems = selectedItems.filter(item => item.id !== itemId)
 
       setSelectedItems(newSelectedItems)
-      setAnnouncement(I18n.t('%{name} removed', {name: itemName}))
+      setAnnouncement(t('{{name}} removed', {name: itemName}))
       onSelectionChange(newSelectedIds, newSelectedItems)
     },
     [selectedItemIds, selectedItems, onSelectionChange],
@@ -186,7 +185,7 @@ export default function ModuleItemMultiSelect({
         key={item.id}
         dismissible={true}
         text={item.name}
-        title={I18n.t('Remove %{name}', {name: item.name})}
+        title={t('Remove {{name}}', {name: item.name})}
         margin="0 xxx-small"
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation()
@@ -203,7 +202,7 @@ export default function ModuleItemMultiSelect({
     if (isError) {
       return (
         <Select.Option id="error" isHighlighted={false} isSelected={false}>
-          {I18n.t('Error loading content')}
+          {t('Error loading content')}
         </Select.Option>
       )
     }
@@ -211,7 +210,7 @@ export default function ModuleItemMultiSelect({
     if (actuallyLoading) {
       return (
         <Select.Option id="loading" isHighlighted={false} isSelected={false}>
-          <Spinner renderTitle={I18n.t('Loading options...')} size="x-small" />
+          <Spinner renderTitle={t('Loading options...')} size="x-small" />
         </Select.Option>
       )
     }
@@ -219,7 +218,7 @@ export default function ModuleItemMultiSelect({
     if (searchTerm.length > 0 && searchTerm.length < MINIMUM_SEARCH_LENGTH) {
       return (
         <Select.Option id="min-length" isHighlighted={false} isSelected={false}>
-          {I18n.t('Enter at least %{count} characters', {count: MINIMUM_SEARCH_LENGTH})}
+          {t('Enter at least {{count}} characters', {count: MINIMUM_SEARCH_LENGTH})}
         </Select.Option>
       )
     }
@@ -229,7 +228,7 @@ export default function ModuleItemMultiSelect({
     if (availableItems.length === 0 && !hasNextPage) {
       return (
         <Select.Option id="no-options" isHighlighted={false} isSelected={false}>
-          {I18n.t('No items found')}
+          {t('No items found')}
         </Select.Option>
       )
     }
@@ -237,7 +236,7 @@ export default function ModuleItemMultiSelect({
     if (availableItems.length === 0 && hasNextPage && !isFetchingNextPage) {
       return (
         <Select.Option id="loading" isHighlighted={false} isSelected={false}>
-          <Spinner renderTitle={I18n.t('Loading more options...')} size="x-small" />
+          <Spinner renderTitle={t('Loading more options...')} size="x-small" />
         </Select.Option>
       )
     }
@@ -248,7 +247,7 @@ export default function ModuleItemMultiSelect({
       const groupedItems = availableItems.reduce(
         (acc, item) => {
           const groupId = item.groupId || 'no-group'
-          const groupName = item.groupName || I18n.t('No Group')
+          const groupName = item.groupName || t('No Group')
           if (!acc[groupId]) {
             acc[groupId] = {groupName, items: []}
           }
@@ -291,8 +290,8 @@ export default function ModuleItemMultiSelect({
       <Select
         data-testid="add-item-content-select"
         renderLabel={renderLabel}
-        assistiveText={I18n.t('Click to open, or start typing to search for an option.')}
-        placeholder={I18n.t('Click to open, or start typing to search for an option.')}
+        assistiveText={t('Click to open, or start typing to search for an option.')}
+        placeholder={t('Click to open, or start typing to search for an option.')}
         isShowingOptions={isShowingOptions}
         inputValue={inputValue}
         inputRef={ref => {

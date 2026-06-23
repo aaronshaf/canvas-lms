@@ -18,7 +18,7 @@
 import React, {useMemo, useEffect, useState, useCallback} from 'react'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
 import {canvasErrorComponent} from '@canvas/canvas-error-page'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button} from '@instructure/ui-buttons'
 import {View} from '@instructure/ui-view'
 import ModuleItemMultiSelect from './ModuleItemMultiSelect'
@@ -50,8 +50,6 @@ import {
 } from '../../utils/utils'
 import AddItemFormFieldGroup from './AddItemFormFieldGroup'
 
-const I18n = createI18nScope('context_modules_v2')
-
 interface AddItemModalProps {
   isOpen: boolean
   onRequestClose: () => void
@@ -65,6 +63,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
   moduleName,
   moduleId,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const [itemType, setItemType] = useState<ModuleItemContentType>(ITEM_TYPE.ASSIGNMENT)
   const [formErrors, setFormErrors] = useState<{name?: string; url?: string}>({})
 
@@ -105,9 +104,9 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
   const rawItems: ContentItem[] = useMemo(() => {
     switch (itemType) {
       case ITEM_TYPE.CONTEXT_MODULE_SUB_HEADER:
-        return [{id: 'new_header', name: I18n.t('Create a new header')}]
+        return [{id: 'new_header', name: t('Create a new header')}]
       case ITEM_TYPE.EXTERNAL_URL:
-        return [{id: 'new_url', name: I18n.t('Create a new URL')}]
+        return [{id: 'new_url', name: t('Create a new URL')}]
       default:
         return allItems as AssignmentLike[]
     }
@@ -202,7 +201,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
             setFormErrors(prev => ({...prev, name: undefined}))
           }
         }}
-        renderLabel={I18n.t('Select %{itemType}', {itemType: itemTypeLabel})}
+        renderLabel={t('Select {{itemType}}', {itemType: itemTypeLabel})}
         messages={formErrors.name ? [{text: formErrors.name, type: 'newError'}] : []}
         isRequired={true}
       />
@@ -263,7 +262,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
 
   const screenReaderMessage =
     formErrors.name || formErrors.url
-      ? I18n.t('For %{itemType} items: %{details}', {
+      ? t('For {{itemType}} items: {{details}}', {
           itemType: itemTypeLabel,
           details: [formErrors.name, formErrors.url].filter(Boolean).join('. ') + '.',
         })
@@ -276,11 +275,11 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
       open={isOpen}
       onDismiss={onRequestClose}
       onExited={handleExited}
-      label={I18n.t('Add Item to Module')}
+      label={t('Add Item to Module')}
       shouldCloseOnDocumentClick
       size="medium"
-      title={I18n.t('Add an item to %{module}', {module: moduleName})}
-      closeButtonLabel={I18n.t('Close')}
+      title={t('Add an item to {{module}}', {module: moduleName})}
+      closeButtonLabel={t('Close')}
       errorComponent={canvasErrorComponent()}
       onKeyDown={
         ((e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -317,7 +316,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
             disabled={state.isLoading}
             margin="0 x-small 0 0"
           >
-            {I18n.t('Cancel')}
+            {t('Cancel')}
           </Button>
           <Button
             color="primary"
@@ -325,7 +324,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
             disabled={state.isLoading}
             data-testid="submit-button"
           >
-            {I18n.t('Add Item')}
+            {t('Add Item')}
           </Button>
         </>
       }
@@ -346,7 +345,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
           >
             <Tabs.Panel
               id="add-item-form"
-              renderTitle={I18n.t('Add Item')}
+              renderTitle={t('Add Item')}
               isSelected={state.tabIndex === 0}
               elementRef={el => {
                 addPanelRef.current = el
@@ -364,7 +363,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
             </Tabs.Panel>
             <Tabs.Panel
               id="create-item-form"
-              renderTitle={I18n.t('Create Item')}
+              renderTitle={t('Create Item')}
               isSelected={state.tabIndex === 1}
               elementRef={el => {
                 createPanelRef.current = el
@@ -392,8 +391,8 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
             moduleName={moduleName}
           >
             <TextInput
-              renderLabel={I18n.t('Header text')}
-              placeholder={I18n.t('Enter header text')}
+              renderLabel={t('Header text')}
+              placeholder={t('Enter header text')}
               value={state.textHeader}
               messages={formErrors.name ? [{text: formErrors.name, type: 'newError'}] : []}
               onChange={(_e, value) => dispatch({type: 'SET_TEXT_HEADER', value})}

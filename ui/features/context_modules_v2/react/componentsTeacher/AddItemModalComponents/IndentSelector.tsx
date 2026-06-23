@@ -18,9 +18,7 @@
 
 import React, {type ReactElement} from 'react'
 import {SimpleSelect} from '@instructure/ui-simple-select'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('context_modules_v2')
+import {useTranslation} from '@canvas/i18next'
 
 interface IndentSelectorProps {
   value: number
@@ -29,30 +27,31 @@ interface IndentSelectorProps {
 }
 
 const IndentSelector: React.FC<IndentSelectorProps> = ({value, onChange, label}) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <SimpleSelect
       data-testid="add-item-indent-selector"
-      renderLabel={label || I18n.t('Indentation')}
+      renderLabel={label || t('Indentation')}
       value={value}
       onChange={(_e, {value}) => onChange(value as number)}
     >
       <SimpleSelect.Option id="0" value={0}>
-        {I18n.t("Don't indent")}
+        {t("Don't indent")}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="1" value={1}>
-        {I18n.t('Indent 1 level')}
+        {t('Indent 1 level')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="2" value={2}>
-        {I18n.t('Indent 2 levels')}
+        {t('Indent 2 levels')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="3" value={3}>
-        {I18n.t('Indent 3 levels')}
+        {t('Indent 3 levels')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="4" value={4}>
-        {I18n.t('Indent 4 levels')}
+        {t('Indent 4 levels')}
       </SimpleSelect.Option>
       <SimpleSelect.Option id="5" value={5}>
-        {I18n.t('Indent 5 levels')}
+        {t('Indent 5 levels')}
       </SimpleSelect.Option>
     </SimpleSelect>
   )

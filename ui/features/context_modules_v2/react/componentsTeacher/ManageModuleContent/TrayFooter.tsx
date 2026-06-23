@@ -17,11 +17,9 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View} from '@instructure/ui-view'
 import {Button} from '@instructure/ui-buttons'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface TrayFooterProps {
   onClose: () => void
@@ -29,14 +27,15 @@ export interface TrayFooterProps {
 }
 
 const TrayFooter: React.FC<TrayFooterProps> = ({onClose, onMove}) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <View as="div" textAlign="end" margin="medium 0 0 0">
       <hr aria-hidden="true" />
       <Button margin="0 x-small 0 0" onClick={onClose}>
-        {I18n.t('Cancel')}
+        {t('Cancel')}
       </Button>
       <Button color="primary" onClick={onMove}>
-        {I18n.t('Move')}
+        {t('Move')}
       </Button>
     </View>
   )

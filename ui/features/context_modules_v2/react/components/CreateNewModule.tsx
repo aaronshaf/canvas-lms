@@ -17,13 +17,11 @@
  */
 
 import {IconModuleSolid} from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {handleAddModule} from '../handlers/moduleActionHandlers'
 import {View} from '@instructure/ui-view'
 import {InfiniteData} from '@tanstack/react-query'
 import {ModulesResponse} from '../utils/types'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface CreateNewModuleProps {
   courseId: string
@@ -31,6 +29,7 @@ interface CreateNewModuleProps {
 }
 
 const CreateNewModule: React.FC<CreateNewModuleProps> = ({courseId, data}) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <View as="div" textAlign="center" padding="large">
       <ul className="ic-EmptyStateList">
@@ -42,7 +41,7 @@ const CreateNewModule: React.FC<CreateNewModuleProps> = ({courseId, data}) => {
               onClick={() => handleAddModule(courseId, data)}
             >
               <IconModuleSolid className="ic-EmptyStateButton__SVG" />
-              <span className="ic-EmptyStateButton__Text">{I18n.t('Create a new Module')}</span>
+              <span className="ic-EmptyStateButton__Text">{t('Create a new Module')}</span>
             </button>
           </div>
         </li>

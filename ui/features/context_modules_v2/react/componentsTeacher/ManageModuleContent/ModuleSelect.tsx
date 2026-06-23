@@ -17,13 +17,11 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View} from '@instructure/ui-view'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Module} from '../../utils/types'
 import {MOVE_MODULE_ITEM} from '../../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ModuleSelectProps {
   modules: Module[]
@@ -43,11 +41,12 @@ const ModuleSelect: React.FC<ModuleSelectProps> = ({
   sourceModuleId,
   moduleAction,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   return (
     <View as="div" margin="medium 0 0 0">
       <SimpleSelect
-        renderLabel={I18n.t('Modules')}
-        assistiveText={I18n.t('Select a destination module')}
+        renderLabel={t('Modules')}
+        assistiveText={t('Select a destination module')}
         value={selectedModule}
         onChange={onModuleChange}
         data-testid="select_module_listbox"

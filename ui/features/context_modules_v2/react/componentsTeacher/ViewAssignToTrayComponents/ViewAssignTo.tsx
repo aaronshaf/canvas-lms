@@ -21,13 +21,11 @@ import {Flex} from '@instructure/ui-flex'
 import {Link} from '@instructure/ui-link'
 import {IconGroupLine} from '@instructure/ui-icons'
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useContextModule} from '../../hooks/useModuleContext'
 import {handleOpeningModuleUpdateTray} from '../../handlers/modulePageActionHandlers'
 import {useModuleItems} from '../../hooks/queries/useModuleItems'
 import {useModules} from '../../hooks/queries/useModules'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ViewAssignToProps {
   moduleId: string
@@ -42,6 +40,7 @@ const ViewAssignTo: React.FC<ViewAssignToProps> = ({
   expanded,
   isMenuOpen,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const {courseId} = useContextModule()
   const {data} = useModules(courseId)
   const {data: moduleItems, isLoading: isModuleItemsLoading} = useModuleItems(
@@ -67,7 +66,7 @@ const ViewAssignTo: React.FC<ViewAssignToProps> = ({
         <Flex alignItems="center" gap="x-small">
           <IconGroupLine inline />
           <Link onClick={handleOpenRef} isWithinText={false} disabled={isModuleItemsLoading}>
-            {I18n.t('View Assign To')}
+            {t('View Assign To')}
           </Link>
         </Flex>
       </Flex>

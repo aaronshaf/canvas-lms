@@ -21,11 +21,9 @@ import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ExternalToolModalItem} from '../../utils/types'
 import {ContentItem} from '../../hooks/queries/useModuleItemContent'
-
-const I18n = createI18nScope('context_modules_v2')
 
 // Re-export for backward compatibility
 export type ExternalTool = ExternalToolModalItem
@@ -43,6 +41,7 @@ export const ExternalToolSelector: React.FC<ExternalToolSelectorProps> = ({
   disabled = false,
   contentItems,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const availableTools = contentItems
 
   const selectedTool = useMemo(() => {
@@ -66,7 +65,7 @@ export const ExternalToolSelector: React.FC<ExternalToolSelectorProps> = ({
   if (availableTools.length === 0) {
     return (
       <View as="div" padding="medium" textAlign="center">
-        <Text color="secondary">{I18n.t('No external tools are available for this course')}</Text>
+        <Text color="secondary">{t('No external tools are available for this course')}</Text>
       </View>
     )
   }
@@ -75,15 +74,15 @@ export const ExternalToolSelector: React.FC<ExternalToolSelectorProps> = ({
     <Flex direction="column" gap="small" margin="0 0 small 0">
       <SimpleSelect
         data-testid="add-item-content-select"
-        renderLabel={I18n.t('Select External Tool')}
-        assistiveText={I18n.t('Type to search for tools or use arrow keys to navigate options')}
-        placeholder={I18n.t('Choose an external tool...')}
+        renderLabel={t('Select External Tool')}
+        assistiveText={t('Type to search for tools or use arrow keys to navigate options')}
+        placeholder={t('Choose an external tool...')}
         value={selectedTool?.definition_id || ''}
         onChange={handleToolChange}
         disabled={disabled}
       >
         <SimpleSelect.Option id="none" key="none" value="">
-          {I18n.t('Select a tool')}
+          {t('Select a tool')}
         </SimpleSelect.Option>
         {availableTools
           .sort((a, b) => a.name.localeCompare(b.name))
@@ -106,12 +105,12 @@ export const ExternalToolSelector: React.FC<ExternalToolSelectorProps> = ({
         <View as="div" padding="small" background="secondary">
           <Flex direction="column" gap="xx-small">
             <Text size="small" weight="bold">
-              {I18n.t('Selected Tool: %{name}', {name: selectedTool.name})}
+              {t('Selected Tool: {{name}}', {name: selectedTool.name})}
             </Text>
             {selectedTool.description && <Text size="small">{selectedTool.description}</Text>}
             {selectedTool.domain && (
               <Text size="x-small" color="secondary">
-                {I18n.t('Domain: %{domain}', {domain: selectedTool.domain})}
+                {t('Domain: {{domain}}', {domain: selectedTool.domain})}
               </Text>
             )}
           </Flex>

@@ -18,15 +18,13 @@
 
 import React, {useState} from 'react'
 import {type ViewProps} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ToggleButton} from '@instructure/ui-buttons'
 import {IconBlueprintLockSolid, IconBlueprintSolid} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
 import {showFlashError} from '@instructure/platform-alerts'
 import {useContextModule} from '../hooks/useModuleContext'
 import doFetchApi, {type DoFetchApiResults} from '@canvas/do-fetch-api-effect'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface BlueprintLockIconProps {
   initialLockState: boolean
@@ -51,6 +49,7 @@ const mapContentType = (contentType: string) => {
 }
 
 const BlueprintLockIcon: React.FC<BlueprintLockIconProps> = props => {
+  const {t} = useTranslation('context_modules_v2')
   const {initialLockState, contentId, contentType} = props
 
   const {courseId, isChildCourse} = useContextModule()
@@ -87,16 +86,16 @@ const BlueprintLockIcon: React.FC<BlueprintLockIconProps> = props => {
           setIsLocked(locked)
         } else {
           showFlashError(
-            I18n.t('An error occurred %{op} item', {
-              op: locked ? I18n.t('locking') : I18n.t('unlocking'),
+            t('An error occurred {{op}} item', {
+              op: locked ? t('locking') : t('unlocking'),
             }),
           )()
         }
       })
       .catch((error: Error) => {
         showFlashError(
-          I18n.t('An error occurred %{op} item', {
-            op: locked ? I18n.t('locking') : I18n.t('unlocking'),
+          t('An error occurred {{op}} item', {
+            op: locked ? t('locking') : t('unlocking'),
           }),
         )()
       })
@@ -111,7 +110,7 @@ const BlueprintLockIcon: React.FC<BlueprintLockIconProps> = props => {
   }
 
   const renderParentCourseIcon = () => {
-    const text = isLocked ? I18n.t('Locked. Click to unlock.') : I18n.t('Unlocked. Click to lock.')
+    const text = isLocked ? t('Locked. Click to unlock.') : t('Unlocked. Click to lock.')
 
     return (
       <ToggleButton

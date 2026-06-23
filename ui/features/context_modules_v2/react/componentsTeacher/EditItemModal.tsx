@@ -21,7 +21,7 @@ import {CanvasModal} from '@instructure/platform-instui-bindings'
 import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import {Button} from '@instructure/ui-buttons'
 import {TextInput} from '@instructure/ui-text-input'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Text} from '@instructure/ui-text'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Grid} from '@instructure/ui-grid'
@@ -32,8 +32,6 @@ import {submiEditItem, prepareItemData} from '../handlers/editItemHandlers'
 import {queryClient} from '@instructure/platform-query'
 import {ModuleItemMasterCourseRestrictionType} from '../utils/types'
 import {MODULE_ITEMS, MODULE_ITEMS_ALL} from '../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface EditItemModalProps {
   isOpen: boolean
@@ -50,6 +48,7 @@ export interface EditItemModalProps {
 }
 
 const EditItemModal = (props: EditItemModalProps) => {
+  const {t} = useTranslation('context_modules_v2')
   const {
     isOpen,
     onRequestClose,
@@ -90,7 +89,7 @@ const EditItemModal = (props: EditItemModalProps) => {
 
   const handleSubmit = () => {
     if (title.trim() === '') {
-      setNameError(I18n.t('Name is required'))
+      setNameError(t('Name is required'))
       return
     }
 
@@ -130,10 +129,10 @@ const EditItemModal = (props: EditItemModalProps) => {
         }}
         margin="0 x-small 0 0"
       >
-        {I18n.t('Cancel')}{' '}
+        {t('Cancel')}{' '}
       </Button>
       <Button color="primary" type="submit" disabled={isLoading}>
-        {I18n.t('Update')}
+        {t('Update')}
       </Button>
     </>
   )
@@ -145,7 +144,7 @@ const EditItemModal = (props: EditItemModalProps) => {
       size="small"
       padding="xxx-small"
       closeButtonSize="medium"
-      label={I18n.t('Edit Item Details')}
+      label={t('Edit Item Details')}
       footer={footer}
       onDismiss={() => {
         onRequestClose()
@@ -160,20 +159,20 @@ const EditItemModal = (props: EditItemModalProps) => {
         handleSubmit()
       }}
       data-testid="edit-item-modal"
-      closeButtonLabel={I18n.t('Close')}
+      closeButtonLabel={t('Close')}
       errorComponent={canvasErrorComponent()}
     >
       <View as="div" padding="small small small medium">
         <Grid>
           <Grid.Row>
             <Grid.Col width={3} vAlign="middle">
-              <Text>{I18n.t('Title')}:</Text>
+              <Text>{t('Title')}:</Text>
             </Grid.Col>
             <Grid.Col>
               <TextInput
                 id="title"
                 name="title"
-                renderLabel={<ScreenReaderContent>{I18n.t('Title')}</ScreenReaderContent>}
+                renderLabel={<ScreenReaderContent>{t('Title')}</ScreenReaderContent>}
                 value={title}
                 onChange={e => {
                   const title = e.target.value
@@ -189,20 +188,20 @@ const EditItemModal = (props: EditItemModalProps) => {
                     ? 'disabled'
                     : 'enabled'
                 }
-                messages={nameError ? [{text: I18n.t('Name is required'), type: 'newError'}] : []}
+                messages={nameError ? [{text: t('Name is required'), type: 'newError'}] : []}
               />
             </Grid.Col>
           </Grid.Row>
           {showExternalUrlFields && (
             <Grid.Row>
               <Grid.Col width={3} vAlign="middle">
-                <Text>{I18n.t('URL')}:</Text>
+                <Text>{t('URL')}:</Text>
               </Grid.Col>
               <Grid.Col>
                 <TextInput
                   id="url"
                   name="url"
-                  renderLabel={<ScreenReaderContent>{I18n.t('URL')}</ScreenReaderContent>}
+                  renderLabel={<ScreenReaderContent>{t('URL')}</ScreenReaderContent>}
                   value={url}
                   onChange={e => setUrl(e.target.value)}
                   data-testid="edit-modal-url"
@@ -212,13 +211,13 @@ const EditItemModal = (props: EditItemModalProps) => {
           )}
           <Grid.Row>
             <Grid.Col width={3} vAlign="middle">
-              <Text>{I18n.t('Indent')}:</Text>
+              <Text>{t('Indent')}:</Text>
             </Grid.Col>
             <Grid.Col>
               <IndentSelector
                 value={indent}
                 onChange={setIndent}
-                label={<ScreenReaderContent>{I18n.t('Indent')}</ScreenReaderContent>}
+                label={<ScreenReaderContent>{t('Indent')}</ScreenReaderContent>}
               />
             </Grid.Col>
           </Grid.Row>
@@ -226,7 +225,7 @@ const EditItemModal = (props: EditItemModalProps) => {
             <Grid.Row>
               <Grid.Col vAlign="middle">
                 <Checkbox
-                  label={I18n.t('Load in a new tab')}
+                  label={t('Load in a new tab')}
                   checked={newTab}
                   onChange={e => {
                     setNewTab(e.target.checked)

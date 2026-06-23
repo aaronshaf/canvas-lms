@@ -34,12 +34,10 @@ import {
   IconTrashLine,
   IconMasteryPathsLine,
 } from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useContextModule} from '../hooks/useModuleContext'
 import type {ModuleItemContent} from '../utils/types'
 import {usePublishing} from '@canvas/context-modules/react/publishing/publishingContext'
-
-const I18n = createI18nScope('context_modules_v2')
 
 const basicContentTypes = ['SubHeader', 'ExternalUrl']
 
@@ -93,6 +91,7 @@ const ModuleItemActionMenu: React.FC<ModuleItemActionMenuProps> = ({
   masteryPathsData,
   handleMasteryPaths = () => {},
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const isBasic = basicContentTypes.includes(itemType)
   const isFile = itemType === 'File'
   const isExternalTool = itemType === 'ExternalTool'
@@ -136,7 +135,7 @@ const ModuleItemActionMenu: React.FC<ModuleItemActionMenuProps> = ({
       disabled={publishingInProgress}
       trigger={
         <IconButton
-          screenReaderLabel={I18n.t('Module Item Options')}
+          screenReaderLabel={t('Module Item Options')}
           renderIcon={IconMoreLine}
           withBackground={false}
           withBorder={false}
@@ -146,47 +145,42 @@ const ModuleItemActionMenu: React.FC<ModuleItemActionMenuProps> = ({
       }
       data-testid="module-item-action-menu"
     >
-      {renderMenuItem(canEdit, handleEdit, <IconEditLine />, I18n.t('Edit'))}
+      {renderMenuItem(canEdit, handleEdit, <IconEditLine />, t('Edit'))}
       {renderMenuItem(
         !!showSpeedGrader,
         handleSpeedGrader,
         <IconSpeedGraderLine />,
-        I18n.t('SpeedGrader'),
+        t('SpeedGrader'),
       )}
-      {renderMenuItem(
-        showAssignTo,
-        handleAssignTo,
-        <IconPermissionsSolid />,
-        I18n.t('Assign To...'),
-      )}
+      {renderMenuItem(showAssignTo, handleAssignTo, <IconPermissionsSolid />, t('Assign To...'))}
       {renderMenuItem(
         canAdd && canDuplicate && isNotSpecialType,
         handleDuplicate,
         <IconDuplicateLine />,
-        I18n.t('Duplicate'),
+        t('Duplicate'),
       )}
-      {renderMenuItem(canEdit, handleMoveTo, <IconUpdownLine />, I18n.t('Move to...'))}
+      {renderMenuItem(canEdit, handleMoveTo, <IconUpdownLine />, t('Move to...'))}
       {renderMenuItem(
         canEdit && indent > 0,
         handleDecreaseIndent,
         <IconArrowStartLine />,
-        I18n.t('Decrease indent'),
+        t('Decrease indent'),
       )}
       {renderMenuItem(
         canEdit && indent < 5,
         handleIncreaseIndent,
         <IconArrowEndLine />,
-        I18n.t('Increase indent'),
+        t('Increase indent'),
       )}
-      {renderMenuItem(showDirectShare, handleSendTo, <IconUserLine />, I18n.t('Send To...'))}
-      {renderMenuItem(showDirectShare, handleCopyTo, <IconDuplicateSolid />, I18n.t('Copy To...'))}
+      {renderMenuItem(showDirectShare, handleSendTo, <IconUserLine />, t('Send To...'))}
+      {renderMenuItem(showDirectShare, handleCopyTo, <IconDuplicateSolid />, t('Copy To...'))}
       {renderMenuItem(
         isNotSpecialType && !!masteryPathsData?.isCyoeAble,
         handleMasteryPaths,
         <IconMasteryPathsLine />,
-        masteryPathsData?.isTrigger ? I18n.t('Edit Mastery Paths') : I18n.t('Add Mastery Paths'),
+        masteryPathsData?.isTrigger ? t('Edit Mastery Paths') : t('Add Mastery Paths'),
       )}
-      {renderMenuItem(canDelete, handleRemove, <IconTrashLine />, I18n.t('Remove'))}
+      {renderMenuItem(canDelete, handleRemove, <IconTrashLine />, t('Remove'))}
     </Menu>
   )
 }

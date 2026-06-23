@@ -17,13 +17,11 @@
  */
 
 import React, {useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View} from '@instructure/ui-view'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {ModuleAction} from '../../utils/types'
 import {MOVE_MODULE_ITEM, MOVE_MODULE, MOVE_MODULE_CONTENTS} from '../../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface PositionSelectProps {
   selectedPosition: string
@@ -43,39 +41,40 @@ const PositionSelect: React.FC<PositionSelectProps> = ({
   moduleAction,
   itemTitle,
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const title = useMemo(() => {
     if (moduleAction === MOVE_MODULE_ITEM) {
-      return I18n.t('Place "%{itemTitle}"', {itemTitle: itemTitle || I18n.t('Item')})
+      return t('Place "{{itemTitle}}"', {itemTitle: itemTitle || t('Item')})
     } else if (moduleAction === MOVE_MODULE_CONTENTS) {
-      return I18n.t('Place Contents')
+      return t('Place Contents')
     } else if (moduleAction === MOVE_MODULE) {
-      return I18n.t('Place "%{moduleName}"', {moduleName: itemTitle || I18n.t('Module')})
+      return t('Place "{{moduleName}}"', {moduleName: itemTitle || t('Module')})
     } else {
-      return I18n.t('Place Module')
+      return t('Place Module')
     }
-  }, [moduleAction, itemTitle])
+  }, [moduleAction, itemTitle, t])
 
   return (
     <View as="div" margin="medium 0 0 0">
       {(moduleAction === MOVE_MODULE || hasItems) && (
         <SimpleSelect
           renderLabel={hasItems ? title : ''}
-          assistiveText={I18n.t('Select position')}
+          assistiveText={t('Select position')}
           value={selectedPosition}
           onChange={onPositionChange}
           data-testid="select_position_listbox"
         >
           <SimpleSelect.Option id="top" value="top">
-            {I18n.t('At the top')}
+            {t('At the top')}
           </SimpleSelect.Option>
           <SimpleSelect.Option id="before" value="before">
-            {I18n.t('Before...')}
+            {t('Before...')}
           </SimpleSelect.Option>
           <SimpleSelect.Option id="after" value="after">
-            {I18n.t('After...')}
+            {t('After...')}
           </SimpleSelect.Option>
           <SimpleSelect.Option id="bottom" value="bottom">
-            {I18n.t('At the bottom')}
+            {t('At the bottom')}
           </SimpleSelect.Option>
         </SimpleSelect>
       )}

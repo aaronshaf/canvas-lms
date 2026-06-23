@@ -18,11 +18,9 @@
 import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
 import {ModuleItemContent, ModuleProgression} from '../utils/types'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useMemo} from 'react'
 import {View} from '@instructure/ui-view'
-
-const I18n = createI18nScope('context_modules_v2')
 
 export interface ModuleItemTitleStudentProps {
   title: string
@@ -34,8 +32,6 @@ export interface ModuleItemTitleStudentProps {
   onClick?: () => void
 }
 
-const missingTitleText = I18n.t('Untitled Item')
-
 const ModuleItemTitleStudent = ({
   title,
   content,
@@ -45,6 +41,7 @@ const ModuleItemTitleStudent = ({
   url,
   onClick,
 }: ModuleItemTitleStudentProps) => {
+  const {t} = useTranslation('context_modules_v2')
   const seamlessRedirectEnabled = window.ENV?.MODULE_FEATURES?.SEAMLESS_EXTERNAL_URL_REDIRECT
 
   const titleText = useMemo(() => {
@@ -58,7 +55,7 @@ const ModuleItemTitleStudent = ({
       return (
         <View as="div" padding="xx-small">
           <Text weight="bold" color="secondary" data-testid="module-item-title-locked">
-            {title || missingTitleText}
+            {title || t('Untitled Item')}
           </Text>
         </View>
       )
@@ -68,7 +65,7 @@ const ModuleItemTitleStudent = ({
       return (
         <View as="div" padding="xx-small">
           <Text weight="bold" color="primary" data-testid="subheader-title-text">
-            {title || missingTitleText}
+            {title || t('Untitled Item')}
           </Text>
         </View>
       )
@@ -99,7 +96,7 @@ const ModuleItemTitleStudent = ({
           rel={linkRel}
         >
           <Text weight="bold" color="primary" data-testid="module-item-title">
-            {title || missingTitleText}
+            {title || t('Untitled Item')}
           </Text>
         </Link>
       </View>
@@ -112,6 +109,7 @@ const ModuleItemTitleStudent = ({
     url,
     onClick,
     seamlessRedirectEnabled,
+    t,
   ])
 
   return titleText

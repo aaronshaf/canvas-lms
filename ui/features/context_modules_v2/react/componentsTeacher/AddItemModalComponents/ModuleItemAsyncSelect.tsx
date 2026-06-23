@@ -17,7 +17,7 @@
  */
 
 import React, {useState, useCallback, useEffect, useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {CanvasAsyncSelect} from '@instructure/platform-instui-bindings'
 import type {FormMessage} from '@instructure/ui-form-field'
 import useDebouncedSearchTerm from '@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm'
@@ -26,8 +26,6 @@ import {
   ModuleItemContentType,
   ContentItem,
 } from '../../hooks/queries/useModuleItemContent'
-
-const I18n = createI18nScope('context_modules_v2')
 
 interface ModuleItemAsyncSelectProps {
   itemType: ModuleItemContentType
@@ -50,6 +48,7 @@ export default function ModuleItemAsyncSelect({
   messages = [],
   isRequired = false,
 }: ModuleItemAsyncSelectProps) {
+  const {t} = useTranslation('context_modules_v2')
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null)
   const [inputValue, setInputValue] = useState('')
 
@@ -120,10 +119,10 @@ export default function ModuleItemAsyncSelect({
       <CanvasAsyncSelect
         renderLabel={renderLabel}
         isLoading={false}
-        noOptionsLabel={I18n.t('Error loading content')}
+        noOptionsLabel={t('Error loading content')}
         onInputChange={() => {}}
         onOptionSelected={() => {}}
-        messages={[{text: I18n.t('Error loading content'), type: 'error'}]}
+        messages={[{text: t('Error loading content'), type: 'error'}]}
       />
     )
   }
@@ -132,8 +131,8 @@ export default function ModuleItemAsyncSelect({
 
   const noOptionsLabel =
     searchTerm.length > 0 && searchTerm.length < MINIMUM_SEARCH_LENGTH
-      ? I18n.t('Enter at least %{count} characters', {count: MINIMUM_SEARCH_LENGTH})
-      : I18n.t('No items found')
+      ? t('Enter at least {{count}} characters', {count: MINIMUM_SEARCH_LENGTH})
+      : t('No items found')
 
   const filteredItems =
     itemType === 'assignment' ? allItems.filter((item: any) => !item.isQuiz) : allItems
@@ -148,12 +147,12 @@ export default function ModuleItemAsyncSelect({
     <CanvasAsyncSelect
       data-testid="add-item-content-select"
       renderLabel={renderLabel}
-      assistiveText={I18n.t('Type or use arrow keys to navigate options.')}
+      assistiveText={t('Type or use arrow keys to navigate options.')}
       inputValue={inputValue}
       selectedOptionId={selectedItem?.id}
       isLoading={actuallyLoading}
       noOptionsLabel={noOptionsLabel}
-      placeholder={I18n.t('Begin typing to search')}
+      placeholder={t('Begin typing to search')}
       onInputChange={handleInputChange}
       onOptionSelected={handleItemSelected}
       messages={messages as FormMessage[]}

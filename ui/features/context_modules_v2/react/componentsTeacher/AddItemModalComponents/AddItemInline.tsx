@@ -19,17 +19,16 @@
 import React from 'react'
 import {View} from '@instructure/ui-view'
 import {Spinner} from '@instructure/ui-spinner'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {useAddItemInline} from '../../hooks/mutations/useAddItemInline'
 import ModuleFileDrop from './ModuleFileDrop'
-const I18n = createI18nScope('context_modules_v2')
-
 interface AddItemInlineProps {
   moduleId: string
   itemCount: number
 }
 
 const AddItemInline: React.FC<AddItemInlineProps> = ({moduleId, itemCount}) => {
+  const {t} = useTranslation('context_modules_v2')
   const {handleSubmit, isLoading} = useAddItemInline({
     moduleId,
     itemCount,
@@ -37,7 +36,7 @@ const AddItemInline: React.FC<AddItemInlineProps> = ({moduleId, itemCount}) => {
 
   return isLoading && itemCount === 0 ? (
     <View as="div" textAlign="center" padding="medium">
-      <Spinner renderTitle={I18n.t('Loading module items')} size="small" />
+      <Spinner renderTitle={t('Loading module items')} size="small" />
     </View>
   ) : (
     <ModuleFileDrop

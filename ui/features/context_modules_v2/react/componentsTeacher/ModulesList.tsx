@@ -36,7 +36,7 @@ import {useToggleCollapse, useToggleAllCollapse} from '../hooks/mutations/useTog
 import {useContextModule} from '../hooks/useModuleContext'
 import {queryClient} from '@instructure/platform-query'
 import {Spinner} from '@instructure/ui-spinner'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ModuleAction, ModuleItem} from '../utils/types'
 import {updateIndexes, getItemIds, handleDragEnd as dndHandleDragEnd} from '../utils/dndUtils'
 import ModuleFilterHeader from './ModuleFilterHeader'
@@ -54,11 +54,10 @@ import {
 import CreateNewModule from '../components/CreateNewModule'
 import {useDefaultCourseFolder} from '../hooks/mutations/useDefaultCourseFolder'
 
-const I18n = createI18nScope('context_modules_v2')
-
 const MemoizedModule = memo(Module, validateModuleTeacherRenderRequirements)
 
 const ModulesList: React.FC = () => {
+  const {t} = useTranslation('context_modules_v2')
   const {
     teacherViewEnabled,
     studentViewEnabled,
@@ -391,12 +390,12 @@ const ModulesList: React.FC = () => {
         />
         {isLoading && !data && (
           <View as="div" textAlign="center" padding="large">
-            <Spinner renderTitle={I18n.t('Loading modules')} size="large" />
+            <Spinner renderTitle={t('Loading modules')} size="large" />
           </View>
         )}
         {(!isLoading || data) && error && (
           <View as="div" textAlign="center" padding="large">
-            <Text color="danger">{I18n.t('Error loading modules')}</Text>
+            <Text color="danger">{t('Error loading modules')}</Text>
           </View>
         )}
         {!isLoading && !error && (
@@ -425,7 +424,7 @@ const ModulesList: React.FC = () => {
                       <CreateNewModule courseId={courseId} data={data} />
                     ) : (
                       <View as="div" textAlign="center" padding="large" className="no_modules">
-                        <Text>{I18n.t('No modules found')}</Text>
+                        <Text>{t('No modules found')}</Text>
                       </View>
                     )
                   ) : (

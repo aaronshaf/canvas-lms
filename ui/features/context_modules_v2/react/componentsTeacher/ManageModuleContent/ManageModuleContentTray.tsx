@@ -17,7 +17,7 @@
  */
 
 import React, {useState, useEffect, useCallback, useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Tray} from '@instructure/ui-tray'
 import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
@@ -50,8 +50,6 @@ import TrayFooter from './TrayFooter'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {useReorderModuleItemsGQL} from '../../hooks/mutations/useReorderModuleItemsGQL'
 
-const I18n = createI18nScope('context_modules_v2')
-
 const MODULE_TARGET_ACTIONS = [MOVE_MODULE_ITEM, MOVE_MODULE_CONTENTS, MOVE_MODULE] as const
 const SOURCE_MOVE_ACTIONS = [MOVE_MODULE_CONTENTS, MOVE_MODULE_ITEM] as const
 
@@ -79,6 +77,7 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
   moduleItemTitle = '',
   sourceModuleItemId = '',
 }) => {
+  const {t} = useTranslation('context_modules_v2')
   const reorderItemsMutation = useReorderModuleItemsGQL()
   const [allSourceModuleItems, setAllSourceModuleItems] = useState<ModuleItem[]>([])
   const [selectedModule, setSelectedModule] = useState<string>('')
@@ -306,7 +305,7 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
           oldModuleId: sourceModuleId,
           targetPosition,
         })
-        showFlashSuccess(I18n.t('Item moved successfully'))
+        showFlashSuccess(t('Item moved successfully'))
       }
 
       if (moduleAction === MOVE_MODULE_CONTENTS) {
@@ -314,7 +313,7 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
           `${ENV.CONTEXT_URL_ROOT}/modules/${selectedModule}/reorder`,
           moduleContentsOrder,
         )
-        showFlashSuccess(I18n.t('Module contents moved successfully'))
+        showFlashSuccess(t('Module contents moved successfully'))
         await queryClient.invalidateQueries({
           queryKey: [MODULE_ITEMS, sourceModuleId, moduleCursorState[sourceModuleId]],
         })
@@ -326,7 +325,7 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
 
       if (moduleAction === MOVE_MODULE) {
         await submitReorderRequest(`${ENV.CONTEXT_URL_ROOT}/modules/reorder`, moduleOrder)
-        showFlashSuccess(I18n.t('Module moved successfully'))
+        showFlashSuccess(t('Module moved successfully'))
         queryClient.invalidateQueries({queryKey: [MODULES, courseId]})
       }
 
@@ -351,7 +350,7 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
             placement="end"
             offset="small"
             onClick={onClose}
-            screenReaderLabel={I18n.t('Close')}
+            screenReaderLabel={t('Close')}
           />
         </View>
 
@@ -384,15 +383,15 @@ const ManageModuleContentTray: React.FC<ManageModuleContentTrayProps> = ({
           moduleAction !== MOVE_MODULE && (
             <View as="div" margin="medium 0 0 0">
               <SimpleSelect
-                renderLabel={I18n.t('Select a Destination Page')}
-                assistiveText={I18n.t('Select a destination page')}
+                renderLabel={t('Select a Destination Page')}
+                assistiveText={t('Select a destination page')}
                 value={selectedPage}
                 onChange={(_, data) => setSelectedPage(Number(data.value))}
                 data-testid="select_module_listbox"
               >
                 {destinationPages.map(page => (
                   <SimpleSelect.Option key={page} id={String(page)} value={page}>
-                    {I18n.t('Page %{page}', {page})}
+                    {t('Page {{page}}', {page})}
                   </SimpleSelect.Option>
                 ))}
               </SimpleSelect>
