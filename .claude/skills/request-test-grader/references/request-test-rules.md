@@ -131,14 +131,6 @@ A string literal (with or without `#{...}` interpolation) passes. Any other expr
 
 *Independence from `shape-and-value`:* These two rules cover distinct concerns — assertion *completeness* (does it check the value?) and assertion *precision* (does the matcher produce an informative failure message?) — and fire independently. A shape-only body matcher like `have_key("id")` violates both: `shape-and-value fail` for skipping the value check, `precise-matchers fail` for the uninformative true/false failure message. A single fix (e.g. switching to `expect(body["id"]).to eq(course.id)`) typically resolves both.
 
-### eql-for-numerics
-
-**Use `eql` for numeric assertions where Integer-vs-Float matters; `eq` everywhere else; `be` only for `true` / `false` / `nil` / object-identity.** `eq` uses `==`, which treats `5` and `5.0` as equal — fine for strings, IDs, arrays, hashes, and custom objects. For numeric fields whose type is part of the response contract (scores, points_possible, percentages), use `eql` — it uses `.eql?` and refuses to call `5` and `5.0` equal. Example: `expect(response.parsed_body["points_possible"]).to eql(10)` catches a serializer regression that flips the value to `10.0`; `eq(10)` would silently pass.
-
-*Why:* Request specs are the layer that pins the serialized contract, including its types. Integer↔Float drift is a silent-regression class: invisible under `eq`, visible under `eql`. A grade-calculation change that flips integer points to floats (or vice versa) can cascade through downstream consumers — gradebooks, exports, analytics — without breaking any test that uses `eq`. `be` checks object identity and is not a substitute for value equality.
-
-**Linter conflict.** If a cop (e.g., `RSpec/BeEql`) autocorrects `eql(...)` to `be(...)`, do not accept the autocorrect on these assertions — override with a single-line disable: `expect(body["score"]).to eql(8.0) # rubocop:disable RSpec/BeEql`. The comparison rule wins; the linter is silenced narrowly where it conflicts.
-
 ### auth-matches-initiator
 
 **The auth pattern matches the request initiator.** Same Canvas endpoint (e.g. `/api/v1/conversations/unread_count`) is exercised by both the Canvas web UI (cookie/session) and external API clients (Bearer token), so route prefix alone is not enough.
@@ -165,7 +157,6 @@ Rules with trigger conditions:
 | `verify-stubs` | Test contains `stub_request(...)` calls | Test has zero WebMock stubs |
 | `reload-assertions` | Test asserts on DB state after the request | Test makes no DB-state assertions |
 | `stub-outbound` | Controller action makes outbound HTTP calls | Controller (and its directly-called helpers) make no outbound HTTP |
-| `eql-for-numerics` | Test makes numeric assertions on response or DB values | Test makes no numeric assertions |
 | `no-before-once` | Test or its enclosing group contains a `before(:once)` block | No `before(:once)` declarations present |
 
 All other rules (`no-internal-mocks`, `shape-and-value`, `literal-path`, `no-magic-values`, `precise-matchers`, `auth-matches-initiator`) apply to every test and never receive `na`.
@@ -216,7 +207,6 @@ Patterns the grader catches via existing rules. This table is for users coming f
 | Vacuous assertions echoing factory defaults | The test asserts `name == "Course 1"` because a factory default created `"Course 1"`; the assertion proves nothing about Canvas. | `no-magic-values` |
 | Stale DB reads (forgot `.reload`) | Asserts against the in-memory ActiveRecord cache, not what was persisted. | `reload-assertions` |
 | Unverified stubs (defined but never hit) | The production code took a different branch; the stub never fired; the test silently passes. | `verify-stubs` |
-| `eq` on numeric serializer fields | `5` and `5.0` are equal under `eq`; an Integer-to-Float regression is silent. | `eql-for-numerics` |
 | Nested setup composition (`before`/`let`/`subject` declared at depth ≥ 2 in `describe`/`context` nests) | Reader has to mentally compose hooks outside-in across ancestors; composition errors don't point at any single hook. | RuboCop `Specs/NoNestedSetup` (enabled in `spec/requests/`; see `gems/rubocop-canvas/lib/rubocop_canvas/cops/specs/no_nested_setup.rb`) |
 | `before(:all)` / `before(:context)` at any depth | Reuses Ruby object identity *and* DB rows across examples; mutation leaks combine with stale stubs and association caches to produce `--order random` flake. | RuboCop `RSpec/BeforeAfterAll` (enabled globally) |
 | `before(:once)` (test-prof alias) at any depth | Same in-memory object reuse as `before(:all)`; DB rows roll back per example but Ruby objects don't. | `no-before-once` (grader rule; no RuboCop equivalent because `Specs/NoBeforeOnceStubs` only flags stub calls *inside* `before(:once)` blocks) |

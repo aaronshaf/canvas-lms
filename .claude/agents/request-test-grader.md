@@ -86,13 +86,13 @@ The machine-readable trailer sits at the end of the report, immediately before t
 
 ## Rules N/A
 
-verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTTP), eql-for-numerics (no numeric assertions)
+verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTTP)
 
 === machine-readable ===
 result=fail
 failures=literal-path,reload-assertions
 passing=no-internal-mocks,shape-and-value,no-magic-values,precise-matchers,auth-matches-initiator
-na=verify-stubs,stub-outbound,eql-for-numerics
+na=verify-stubs,stub-outbound
 === end ===
 </report>
 ```
@@ -116,13 +116,13 @@ No failures.
 
 ## Rules N/A
 
-verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTTP), eql-for-numerics (no numeric assertions)
+verify-stubs (no WebMock stubs), stub-outbound (controller makes no outbound HTTP)
 
 === machine-readable ===
 result=pass
 failures=
 passing=no-internal-mocks,shape-and-value,reload-assertions,literal-path,no-magic-values,precise-matchers,auth-matches-initiator
-na=verify-stubs,stub-outbound,eql-for-numerics
+na=verify-stubs,stub-outbound
 === end ===
 </report>
 ```
@@ -163,6 +163,6 @@ Slugs come from `references/request-test-rules.md`. **Partition invariant:** the
 
 - **You grade exactly one `it` per invocation.** Do not loop over multiple `it`s; the caller spawns one agent per target.
 - **You do not propose file- or suite-level changes.** Rules are per-`it`. File-level issues surface only through rules like `no-before-once` *if* they affect the `it` you're grading.
-- **If a failure requires execution to verify** (e.g., whether `eql(10)` catches a Float regression), grade from the static text and note the conditional in the Fix cell.
+- **If a failure requires execution to verify**, grade from the static text and note the conditional in the Fix cell.
 
 See `.claude/skills/request-test-grader/references/design.md` for design rationale.
