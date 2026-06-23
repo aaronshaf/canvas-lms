@@ -20,7 +20,7 @@
 
 require_relative "../lti_1_3_tool_configuration_spec_helper"
 
-describe DeveloperKeysController, type: :request do
+describe DeveloperKeysController do
   let(:test_domain_root_account) { Account.create! }
   let(:site_admin_key) { DeveloperKey.create!(name: "Site Admin Key", visible: false) }
   let(:sub_account) { test_domain_root_account.sub_accounts.create!(parent_account: test_domain_root_account, root_account: test_domain_root_account) }
