@@ -98,7 +98,7 @@ export default class LockManager {
     const {courseId, isLocked, itemId} = this.state
     ApiClient.toggleLocked({courseId, itemType, itemId, isLocked: !isLocked})
       .then(res => {
-        if (res.data.success) {
+        if (res.json?.success) {
           if (this.props.lockCallback) this.props.lockCallback(!isLocked)
           this.setState({
             isLocked: !isLocked,

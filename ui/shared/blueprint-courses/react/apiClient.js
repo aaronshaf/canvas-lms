@@ -16,8 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeaderFromAxios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import MigrationStates from './migrationStates'
 
 export const DEFAULT_PER_PAGE_PARAM = '100'
@@ -30,17 +29,13 @@ export const DEFAULT_TEACHERS_LIMIT_PARAM = '5'
 
 const ApiClient = {
   _depaginate(url, maxPages = Infinity, allResults = []) {
-    return axios.get(url).then(res => {
-      const results = allResults.concat(res.data)
+    return doFetchApi({path: url}).then(({json, link, response}) => {
+      const results = allResults.concat(json)
       const remainingPages = maxPages - 1
-      if (res.headers.link && remainingPages > 0) {
-        const links = parseLinkHeader(res)
-        if (links.next) {
-          return this._depaginate(links.next, remainingPages, results)
-        }
+      if (link?.next && remainingPages > 0) {
+        return this._depaginate(link.next.url, remainingPages, results)
       }
-      res.data = results
-      return res
+      return {data: results, headers: {link: response.headers.get('link')}}
     })
   },
 
@@ -85,17 +80,20 @@ const ApiClient = {
   },
 
   saveAssociations({masterCourse, addedAssociations, removedAssociations}) {
-    return axios.put(
-      `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/update_associations`,
-      {
+    return doFetchApi({
+      path: `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/update_associations`,
+      method: 'PUT',
+      body: {
         course_ids_to_add: addedAssociations.map(c => c.id),
         course_ids_to_remove: removedAssociations.map(c => c.id),
       },
-    )
+    })
   },
 
   getMigrations({masterCourse}) {
-    return axios.get(`/api/v1/courses/${masterCourse.id}/blueprint_templates/default/migrations`)
+    return doFetchApi({
+      path: `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/migrations`,
+    }).then(({json}) => ({data: json}))
   },
 
   beginMigration({
@@ -122,10 +120,11 @@ const ApiClient = {
     if (willSendItemNotifications) {
       params.send_item_notifications = true
     }
-    return axios.post(
-      `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/migrations`,
-      params,
-    )
+    return doFetchApi({
+      path: `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/migrations`,
+      method: 'POST',
+      body: params,
+    }).then(({json}) => ({data: json}))
   },
 
   checkMigration(state) {
@@ -145,18 +144,18 @@ const ApiClient = {
     {course},
     {blueprintType = 'blueprint_templates', templateId = 'default', changeId},
   ) {
-    return axios.get(
-      `/api/v1/courses/${course.id}/${blueprintType}/${templateId}/migrations/${changeId}`,
-    )
+    return doFetchApi({
+      path: `/api/v1/courses/${course.id}/${blueprintType}/${templateId}/migrations/${changeId}`,
+    }).then(({json}) => ({data: json}))
   },
 
   getMigrationDetails(
     {course},
     {blueprintType = 'blueprint_templates', templateId = 'default', changeId},
   ) {
-    return axios.get(
-      `/api/v1/courses/${course.id}/${blueprintType}/${templateId}/migrations/${changeId}/details`,
-    )
+    return doFetchApi({
+      path: `/api/v1/courses/${course.id}/${blueprintType}/${templateId}/migrations/${changeId}/details`,
+    }).then(({json}) => ({data: json}))
   },
 
   getFullMigration({course}, params) {
@@ -186,17 +185,21 @@ const ApiClient = {
   },
 
   toggleLocked({courseId, itemType, itemId, isLocked}) {
-    return axios.put(`/api/v1/courses/${courseId}/blueprint_templates/default/restrict_item`, {
-      content_type: itemType,
-      content_id: itemId,
-      restricted: isLocked,
+    return doFetchApi({
+      path: `/api/v1/courses/${courseId}/blueprint_templates/default/restrict_item`,
+      method: 'PUT',
+      body: {
+        content_type: itemType,
+        content_id: itemId,
+        restricted: isLocked,
+      },
     })
   },
 
   loadUnsyncedChanges({masterCourse}) {
-    return axios.get(
-      `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/unsynced_changes`,
-    )
+    return doFetchApi({
+      path: `/api/v1/courses/${masterCourse.id}/blueprint_templates/default/unsynced_changes`,
+    }).then(({json}) => ({data: json}))
   },
 }
 
