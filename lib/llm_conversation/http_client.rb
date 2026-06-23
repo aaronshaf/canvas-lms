@@ -25,14 +25,19 @@ require "uri"
 module LlmConversation
   class HttpClient
     def initialize(account: nil, use_initial_token: false)
+      raise Errors::ConversationError, "Root account must be provided to instantiate client" unless account
+
       @root_account = account
+
       @base_url = Rails.application.credentials.dig(:llm_conversation_service, :base_url)
+      raise Errors::ConversationError, "LLM Conversation Service base URL not found" unless @base_url
 
       @bearer_token = if use_initial_token
                         Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
                       else
                         LlmConversation::TokenCache.get_api_token(@root_account)
                       end
+      raise Errors::ConversationError, "API Bearer token not configured for this account" unless @bearer_token
     end
 
     def get(path)

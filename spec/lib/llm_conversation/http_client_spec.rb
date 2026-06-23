@@ -45,6 +45,35 @@ describe LlmConversation::HttpClient do
     allow(LlmConversation::TokenCache).to receive(:set_api_token)
   end
 
+  describe "#initialize" do
+    it "raises when account is nil" do
+      expect { described_class.new(account: nil) }
+        .to raise_error(LlmConversation::Errors::ConversationError, /Root account must be provided/)
+    end
+
+    it "raises when base_url credential is missing" do
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:llm_conversation_service, :base_url)
+        .and_return(nil)
+      expect { described_class.new(account:) }
+        .to raise_error(LlmConversation::Errors::ConversationError, /base URL not found/)
+    end
+
+    it "raises when the api token is not available" do
+      allow(LlmConversation::TokenCache).to receive(:get_api_token).with(account).and_return(nil)
+      expect { described_class.new(account:) }
+        .to raise_error(LlmConversation::Errors::ConversationError, /Bearer token not configured/)
+    end
+
+    it "raises when use_initial_token is true but initial_token credential is missing" do
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:llm_conversation_service, :initial_token)
+        .and_return(nil)
+      expect { described_class.new(account:, use_initial_token: true) }
+        .to raise_error(LlmConversation::Errors::ConversationError, /Bearer token not configured/)
+    end
+  end
+
   describe "V2 auth 401 token refresh" do
     let(:client) { described_class.new(account:) }
 
