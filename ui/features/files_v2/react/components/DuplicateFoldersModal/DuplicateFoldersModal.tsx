@@ -23,11 +23,9 @@ import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {Alert} from '@instructure/ui-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import {type Folder} from '../../../interfaces/File'
-
-const I18n = createI18nScope('files_v2')
 
 export interface DuplicateFoldersModalProps {
   open: boolean
@@ -40,12 +38,13 @@ export function DuplicateFoldersModal({
   duplicateFolders,
   onClose,
 }: DuplicateFoldersModalProps) {
+  const {t} = useTranslation('files_v2')
   return (
     <Modal
       open={open}
       onDismiss={onClose}
       size="medium"
-      label={I18n.t('Duplicate folders are detected')}
+      label={t('Duplicate folders are detected')}
       shouldCloseOnDocumentClick={true}
     >
       <Modal.Header>
@@ -53,15 +52,15 @@ export function DuplicateFoldersModal({
           placement="end"
           offset="small"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close modal')}
+          screenReaderLabel={t('Close modal')}
         />
-        <Heading>{I18n.t('Duplicate folders are detected')}</Heading>
+        <Heading>{t('Duplicate folders are detected')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <View as="div" margin="0 0 medium 0">
           <Alert variant="warning" margin="0 0 medium 0">
             <Text>
-              {I18n.t(
+              {t(
                 'Multiple folders with the same name exist in this location. Please rename these folders so they have unique names to avoid navigation issues.',
               )}
             </Text>
@@ -70,7 +69,7 @@ export function DuplicateFoldersModal({
 
         <View as="div">
           <Heading level="h3" margin="0 0 small 0">
-            {I18n.t('Duplicate folders')}
+            {t('Duplicate folders')}
           </Heading>
 
           {duplicateFolders.map((folder, index) => (
@@ -87,13 +86,12 @@ export function DuplicateFoldersModal({
               </View>
               <View as="div" margin="0 0 x-small 0">
                 <Text>
-                  <Text weight="bold">{I18n.t('Path:')}</Text> {folder.full_name}
+                  <Text weight="bold">{t('Path:')}</Text> {folder.full_name}
                 </Text>
               </View>
               <View as="div">
                 <Text>
-                  <Text weight="bold">{I18n.t('Created:')}</Text>{' '}
-                  {datetimeString(folder.created_at)}
+                  <Text weight="bold">{t('Created:')}</Text> {datetimeString(folder.created_at)}
                 </Text>
               </View>
             </View>
@@ -106,7 +104,7 @@ export function DuplicateFoldersModal({
           color="primary"
           data-testid="duplicate-folders-modal-close-button"
         >
-          {I18n.t('Close')}
+          {t('Close')}
         </Button>
       </Modal.Footer>
     </Modal>

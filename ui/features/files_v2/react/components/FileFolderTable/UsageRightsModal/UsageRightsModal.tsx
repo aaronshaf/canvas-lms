@@ -17,7 +17,7 @@
  */
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Modal} from '@instructure/ui-modal'
 import {doFetchApiWithAuthCheck, UnauthorizedError} from '../../../../utils/apiUtils'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
@@ -56,9 +56,8 @@ type LicenseOption = {
   url: string
 }
 
-const I18n = createI18nScope('files_v2')
-
 const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
+  const {t} = useTranslation('files_v2')
   const {contextId, contextType} = useFileManagement()
   const usageRightRef = useRef<HTMLInputElement | null>(null)
   const [isRequestInFlight, setIsRequestInFlight] = useState<boolean>(false)
@@ -117,7 +116,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
 
   const handleSaveClick = useCallback(() => {
     if (usageRight === 'choose') {
-      setMessages([{type: 'newError', text: I18n.t('You must specify a usage right')}])
+      setMessages([{type: 'newError', text: t('You must specify a usage right')}])
       usageRightRef.current?.focus()
       return
     }
@@ -126,7 +125,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
     startUpdateOperation()
       .then(() => {
         onDismiss()
-        showFlashSuccess(I18n.t('Usage rights have been set.'))()
+        showFlashSuccess(t('Usage rights have been set.'))()
         const newRows = parseNewRows({
           items,
           currentRows,
@@ -141,7 +140,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
           setSessionExpired(true)
           return
         }
-        showFlashError(I18n.t('There was an error setting usage rights.'))
+        showFlashError(t('There was an error setting usage rights.'))
       })
       .finally(() => setIsRequestInFlight(false))
   }, [
@@ -163,9 +162,9 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
           placement="end"
           offset="small"
           onClick={onDismiss}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Manage Usage Rights')}</Heading>
+        <Heading>{t('Manage Usage Rights')}</Heading>
       </>
     ),
     [onDismiss],
@@ -180,7 +179,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
       return (
         <View as="div" textAlign="center">
           <Spinner
-            renderTitle={() => I18n.t('Loading')}
+            renderTitle={() => t('Loading')}
             aria-live="polite"
             data-testid="usage-rights-spinner"
           />
@@ -192,8 +191,8 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
       <>
         <FileFolderInfo items={items} />
         {showDifferentRightsMessage && (
-          <Alert variant="warning" renderCloseButtonLabel={I18n.t('Close warning message')}>
-            {I18n.t('Items selected have different usage rights.')}
+          <Alert variant="warning" renderCloseButtonLabel={t('Close warning message')}>
+            {t('Items selected have different usage rights.')}
           </Alert>
         )}
 
@@ -215,7 +214,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
                 setCcLicenseOption(null)
               }
             }}
-            renderLabel={I18n.t('Usage Rights')}
+            renderLabel={t('Usage Rights')}
           >
             {CONTENT_OPTIONS.map(option => (
               <SimpleSelect.Option key={option.value} id={option.value} value={option.value}>
@@ -231,7 +230,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
               data-testid="usage-rights-license-selector"
               value={ccLicenseOption || ''}
               onChange={(_, {value}) => setCcLicenseOption((value as string) || null)}
-              renderLabel={I18n.t('Creative Commons License')}
+              renderLabel={t('Creative Commons License')}
             >
               {licenseOptions.map(option => (
                 <SimpleSelect.Option key={option.id} id={option.id} value={option.id}>
@@ -245,13 +244,13 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
         <View as="div" margin="small none none none">
           <TextInput
             data-testid="usage-rights-holder-input"
-            renderLabel={I18n.t('Copyright Holder')}
+            renderLabel={t('Copyright Holder')}
             value={copyrightHolder || ''}
             onChange={(_, value) => setCopyrightHolder(value)}
           />
         </View>
         <View as="div" margin="xxx-small none none none">
-          <Text size="small">{I18n.t('Example: (c) 2024 Acme Inc.')}</Text>
+          <Text size="small">{t('Example: (c) 2024 Acme Inc.')}</Text>
         </View>
       </>
     )
@@ -277,7 +276,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
           disabled={isRequestInFlight}
           onClick={onDismiss}
         >
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           data-testid="usage-rights-save-button"
@@ -285,7 +284,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
           onClick={handleSaveClick}
           disabled={isRequestInFlight}
         >
-          {I18n.t('Save')}
+          {t('Save')}
         </Button>
       </>
     )
@@ -331,7 +330,7 @@ const UsageRightsModal = ({open, items, onDismiss}: UsageRightsModalProps) => {
         open={open}
         onDismiss={onDismiss}
         size="small"
-        label={I18n.t('Manage Usage Rights')}
+        label={t('Manage Usage Rights')}
         shouldCloseOnDocumentClick={false}
         onExited={resetState}
       >

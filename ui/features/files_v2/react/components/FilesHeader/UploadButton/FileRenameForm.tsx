@@ -17,7 +17,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
@@ -33,14 +33,13 @@ type FileRenameFormProps = {
   onNameConflictResolved: (resolvedName: ResolvedName) => void
 }
 
-const I18n = createI18nScope('files_v2')
-
 const FileRenameForm = ({
   open,
   onClose,
   fileOptions,
   onNameConflictResolved,
 }: FileRenameFormProps) => {
+  const {t} = useTranslation('files_v2')
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [renameFileInput, setRenameFileInput] = useState<string>('')
@@ -96,9 +95,9 @@ const FileRenameForm = ({
           placement="end"
           offset="small"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Copy')}</Heading>
+        <Heading>{t('Copy')}</Heading>
       </>
     ),
     [onClose],
@@ -110,8 +109,8 @@ const FileRenameForm = ({
     if (!isEditing && !fileOptions.cannotOverwrite) {
       return (
         <Text>
-          {I18n.t(
-            'A file named "%{fileName}" already exists in this location. Do you want to replace the existing file?',
+          {t(
+            'A file named "{{fileName}}" already exists in this location. Do you want to replace the existing file?',
             {fileName},
           )}
         </Text>
@@ -119,11 +118,11 @@ const FileRenameForm = ({
     } else {
       return (
         <>
-          <Text>{I18n.t('Change "%{fileName}" to:', {fileName})}</Text>
+          <Text>{t('Change "{{fileName}}" to:', {fileName})}</Text>
           <View display="block" margin="small 0 0 0">
             <TextInput
               data-testid="rename-change-input"
-              renderLabel={I18n.t('Name')}
+              renderLabel={t('Name')}
               value={renameFileInput}
               onChange={(_e, value) => setRenameFileInput(value)}
             />
@@ -137,24 +136,24 @@ const FileRenameForm = ({
     if (fileOptions.cannotOverwrite) {
       return (
         <Button data-testid="rename-change-button" color="primary" onClick={handleChangeClick}>
-          {I18n.t('Change')}
+          {t('Change')}
         </Button>
       )
     } else if (!isEditing) {
       return (
         <>
           <Button data-testid="rename-skip-button" margin="0 x-small 0 0" onClick={handleSkipClick}>
-            {I18n.t('Skip')}
+            {t('Skip')}
           </Button>
           <Button
             data-testid="rename-change-button"
             margin="0 x-small 0 0"
             onClick={handleRenameClick}
           >
-            {I18n.t('Change Name')}
+            {t('Change Name')}
           </Button>
           <Button data-testid="rename-replace-button" color="primary" onClick={handleReplaceClick}>
-            {I18n.t('Replace')}
+            {t('Replace')}
           </Button>
         </>
       )
@@ -162,10 +161,10 @@ const FileRenameForm = ({
       return (
         <>
           <Button data-testid="rename-back-button" margin="0 x-small 0 0" onClick={handleBackClick}>
-            {I18n.t('Back')}
+            {t('Back')}
           </Button>
           <Button data-testid="rename-change-button" color="primary" onClick={handleChangeClick}>
-            {I18n.t('Change')}
+            {t('Change')}
           </Button>
         </>
       )
@@ -195,7 +194,7 @@ const FileRenameForm = ({
       open={open}
       onDismiss={onClose}
       size="small"
-      label={I18n.t('Copy')}
+      label={t('Copy')}
       shouldCloseOnDocumentClick={false}
     >
       <Modal.Header>{renderHeader()}</Modal.Header>

@@ -27,9 +27,8 @@ import {getIcon, getName} from '../../../utils/fileFolderUtils'
 import {generateUrlPath} from '../../../utils/folderUtils'
 import {generatePreviewUrlPath} from '../../../utils/fileUtils'
 import {showFlashError} from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
-const I18n = createI18nScope('files_v2')
 interface NameLinkProps {
   item: File | Folder
   isStacked: boolean
@@ -37,6 +36,7 @@ interface NameLinkProps {
 }
 
 const NameLink = ({item, isStacked, onPreviewFile}: NameLinkProps) => {
+  const {t} = useTranslation('files_v2')
   const handleLinkClick = (e: React.MouseEvent) => {
     if (isFile) {
       e.preventDefault()
@@ -44,7 +44,7 @@ const NameLink = ({item, isStacked, onPreviewFile}: NameLinkProps) => {
     } else if (item.locked_for_user) {
       e.preventDefault()
       showFlashError(
-        I18n.t('%{name} is currently locked and unavailable to view.', {
+        t('{{name}} is currently locked and unavailable to view.', {
           name: getName(item),
         }),
       )()

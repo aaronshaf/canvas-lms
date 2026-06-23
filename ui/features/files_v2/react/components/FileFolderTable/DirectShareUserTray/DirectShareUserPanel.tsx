@@ -17,7 +17,7 @@
  */
 
 import React, {type Ref, useCallback} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Tag} from '@instructure/ui-tag'
 import ContentShareUserSearchSelector, {
   type ContentShareUserSearchSelectorRef,
@@ -33,8 +33,6 @@ type DirectShareUserPanelProps = {
   selectorRef?: Ref<ContentShareUserSearchSelectorRef>
 }
 
-const I18n = createI18nScope('files_v2')
-
 const DirectShareUserPanel = ({
   selectedUsers,
   onUserSelected,
@@ -42,13 +40,14 @@ const DirectShareUserPanel = ({
   courseId,
   selectorRef,
 }: DirectShareUserPanelProps) => {
+  const {t} = useTranslation('files_v2')
   const renderSelectedUserTags = useCallback(() => {
     if (selectedUsers.length > 0) {
       return selectedUsers.map(user => (
         <Tag
           key={user.id}
           dismissible
-          title={I18n.t('Remove %{name}', {name: user.name})}
+          title={t('Remove {{name}}', {name: user.name})}
           text={user.name}
           onClick={() => onUserRemoved(user)}
         />

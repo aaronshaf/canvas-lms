@@ -21,7 +21,7 @@ import {Alert} from '@instructure/ui-alerts'
 import {Responsive} from '@instructure/ui-responsive'
 import {canvas} from '@instructure/ui-themes'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {showFlashError} from '@instructure/platform-alerts'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {getFilesEnv} from '../../utils/filesEnvUtils'
@@ -52,8 +52,6 @@ import {FilePreviewModal} from './FileFolderTable/FilePreviewModal'
 import {DuplicateFoldersModal} from './DuplicateFoldersModal'
 import {useCheckDuplicateFolders} from '../hooks/useCheckDuplicateFolders'
 
-const I18n = createI18nScope('files_v2')
-
 interface FilesAppProps {
   folders: Folder[]
   isUserContext: boolean
@@ -61,6 +59,7 @@ interface FilesAppProps {
 }
 
 const FilesApp = ({folders, isUserContext, size}: FilesAppProps) => {
+  const {t} = useTranslation('files_v2')
   const filesEnv = getFilesEnv()
   const showingAllContexts = filesEnv.showingAllContexts
 
@@ -135,14 +134,14 @@ const FilesApp = ({folders, isUserContext, size}: FilesAppProps) => {
     if (error instanceof UnauthorizedError) {
       window.location.href = '/login'
     } else if (error) {
-      showFlashError(I18n.t('Failed to fetch files and folders.'))()
+      showFlashError(t('Failed to fetch files and folders.'))()
     }
   }, [error])
 
   useEffect(() => {
     if (!isLoading) {
       setPaginationAlert(
-        I18n.t('Table page %{current} of %{total}', {
+        t('Table page {{current}} of {{total}}', {
           current: page.current,
           total: page.totalPages,
         }),
@@ -221,7 +220,7 @@ const FilesApp = ({folders, isUserContext, size}: FilesAppProps) => {
         <RowsProvider value={{setCurrentRows, currentRows, setSessionExpired}}>
           <FilesLayout
             size={size}
-            title={I18n.t('Files')}
+            title={t('Files')}
             headerActions={
               <TopLevelButtons
                 size={size}
@@ -283,8 +282,8 @@ const FilesApp = ({folders, isUserContext, size}: FilesAppProps) => {
                 </Alert>
                 {!isLoading && page.totalItems > 0 && (
                   <BasicPagination
-                    labelNext={I18n.t('Next Page')}
-                    labelPrev={I18n.t('Previous Page')}
+                    labelNext={t('Next Page')}
+                    labelPrev={t('Previous Page')}
                     currentPage={page.current}
                     perPage={PER_PAGE}
                     totalItems={page.totalItems}

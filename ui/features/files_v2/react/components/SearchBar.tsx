@@ -17,7 +17,7 @@
  */
 
 import {useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {IconSearchLine, IconTroubleLine} from '@instructure/ui-icons'
 import {TextInput} from '@instructure/ui-text-input'
@@ -25,9 +25,11 @@ import {Text} from '@instructure/ui-text'
 import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 
-const I18n = createI18nScope('files_v2')
-
-const renderClearButton = (searchValue: string, handleClear: () => void) => {
+const renderClearButton = (
+  searchValue: string,
+  handleClear: () => void,
+  t: (key: string) => string,
+) => {
   if (searchValue === '') return null
 
   return (
@@ -36,7 +38,7 @@ const renderClearButton = (searchValue: string, handleClear: () => void) => {
       size="small"
       withBackground={false}
       withBorder={false}
-      screenReaderLabel={I18n.t('Clear search')}
+      screenReaderLabel={t('Clear search')}
       onClick={handleClear}
     >
       <IconTroubleLine />
@@ -50,6 +52,7 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({initialValue = '', onSearch}: SearchBarProps) => {
+  const {t} = useTranslation('files_v2')
   const [searchValue, setSearchValue] = useState(initialValue)
 
   const handleSearch = (e: React.FormEvent) => {
@@ -68,26 +71,26 @@ const SearchBar = ({initialValue = '', onSearch}: SearchBarProps) => {
         <Flex gap="small" alignItems="end">
           <Flex.Item shouldGrow shouldShrink>
             <TextInput
-              renderLabel={I18n.t('Search files')}
-              placeholder={I18n.t('Search files...')}
+              renderLabel={t('Search files')}
+              placeholder={t('Search files...')}
               value={searchValue}
               onChange={(_e, value) => setSearchValue(value)}
               shouldNotWrap
               // fragment fixes a weird focus issue - INSTUI-4466
               renderBeforeInput={<IconSearchLine inline={false} />}
-              renderAfterInput={() => renderClearButton(searchValue, handleClear)}
+              renderAfterInput={() => renderClearButton(searchValue, handleClear, t)}
               data-testid="files-search-input"
             />
           </Flex.Item>
           <Flex.Item>
             <Button color="secondary" type="submit" data-testid="files-search-button">
-              {I18n.t('Search')}
+              {t('Search')}
             </Button>
           </Flex.Item>
         </Flex>
       </form>
       <View margin="x-small 0 0 0" display="block">
-        <Text size="small">{I18n.t('Enter at least 2 characters to search')}</Text>
+        <Text size="small">{t('Enter at least 2 characters to search')}</Text>
       </View>
     </>
   )

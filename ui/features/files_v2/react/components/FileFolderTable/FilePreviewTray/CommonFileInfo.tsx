@@ -24,12 +24,11 @@ import {Text} from '@instructure/ui-text'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import friendlyBytes from '@canvas/files/util/friendlyBytes'
 
-const I18n = createI18nScope('files_v2')
-
 const CommonFileInfo = ({item}: {item: File}) => {
+  const {t} = useTranslation('files_v2')
   const name = item.display_name
   const published = isPublished(item)
   const restricted = isRestricted(item)
@@ -37,15 +36,15 @@ const CommonFileInfo = ({item}: {item: File}) => {
 
   const statusText = () => {
     if (published && restricted) return getRestrictedText(item)
-    if (published && hidden) return I18n.t('Hidden')
-    return published ? I18n.t('Published') : I18n.t('Unpublished')
+    if (published && hidden) return t('Hidden')
+    return published ? t('Published') : t('Unpublished')
   }
 
   return (
     <Flex direction="column" gap="small">
-      <Heading margin="0 0 large">{I18n.t('File Info')}</Heading>
+      <Heading margin="0 0 large">{t('File Info')}</Heading>
       <Flex.Item>
-        <Text weight="bold">{I18n.t('Name')}</Text>
+        <Text weight="bold">{t('Name')}</Text>
         <br />
         <View as="div" display="inline-block" width="250px">
           <Tooltip renderTip={name}>
@@ -57,35 +56,35 @@ const CommonFileInfo = ({item}: {item: File}) => {
       </Flex.Item>
       {'locked' in item && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('Status')}</Text>
+          <Text weight="bold">{t('Status')}</Text>
           <br />
           <Text>{statusText()}</Text>
         </Flex.Item>
       )}
       {'usage_rights' in item && item.usage_rights && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('License')}</Text>
+          <Text weight="bold">{t('License')}</Text>
           <br />
           <Text>{item.usage_rights.license_name}</Text>
         </Flex.Item>
       )}
       {'content-type' in item && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('Type')}</Text>
+          <Text weight="bold">{t('Type')}</Text>
           <br />
           <Text>{item['content-type']}</Text>
         </Flex.Item>
       )}
       {'size' in item && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('Size')}</Text>
+          <Text weight="bold">{t('Size')}</Text>
           <br />
           <Text>{friendlyBytes(item.size)}</Text>
         </Flex.Item>
       )}
       {'created_at' in item && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('Date Created')}</Text>
+          <Text weight="bold">{t('Date Created')}</Text>
           <br />
           <Text>
             {new Date(item.created_at).toLocaleString(ENV.LOCALE, {
@@ -96,7 +95,7 @@ const CommonFileInfo = ({item}: {item: File}) => {
       )}
       {'updated_at' in item && (
         <Flex.Item>
-          <Text weight="bold">{I18n.t('Date Modified')}</Text>
+          <Text weight="bold">{t('Date Modified')}</Text>
           <br />
           <Text>
             {new Date(item.updated_at).toLocaleString(ENV.LOCALE, {

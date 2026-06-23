@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Billboard} from '@instructure/ui-billboard'
 import {Alert} from '@instructure/ui-alerts'
 import {Text} from '@instructure/ui-text'
@@ -27,20 +27,19 @@ import {Flex} from '@instructure/ui-flex'
 import {EmptyDesert} from '@instructure/platform-images'
 import {getLiveRegion} from '@instructure/platform-instui-bindings'
 
-const I18n = createI18nScope('files_v2')
-
 interface NoResultsFoundProps {
   searchTerm: string
 }
 
 export const NoResultsFound = ({searchTerm}: NoResultsFoundProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <>
       <Billboard
         size="medium"
-        heading={I18n.t('No results found')}
+        heading={t('No results found')}
         headingLevel="h3"
-        message={I18n.t('We could not find anything that matches "%{searchTerm}" in files.', {
+        message={t('We could not find anything that matches "{{searchTerm}}" in files.', {
           searchTerm,
         })}
         hero={<EmptyDesert />}
@@ -48,17 +47,17 @@ export const NoResultsFound = ({searchTerm}: NoResultsFoundProps) => {
       <Flex as="div" direction="column" alignItems="center">
         <Flex.Item as="div" padding="0 0 0 small" textAlign="start" size="20rem">
           <Heading level="h4" margin="small">
-            {I18n.t('Suggestions:')}
+            {t('Suggestions:')}
           </Heading>
           <List as="ul" margin="0 0 medium">
             <List.Item>
-              <Text>{I18n.t('Check spelling')}</Text>
+              <Text>{t('Check spelling')}</Text>
             </List.Item>
             <List.Item>
-              <Text>{I18n.t('Try different keywords')}</Text>
+              <Text>{t('Try different keywords')}</Text>
             </List.Item>
             <List.Item>
-              <Text>{I18n.t('Enter at least 2 characters in the search box')}</Text>
+              <Text>{t('Enter at least 2 characters in the search box')}</Text>
             </List.Item>
           </List>
         </Flex.Item>
@@ -69,7 +68,7 @@ export const NoResultsFound = ({searchTerm}: NoResultsFoundProps) => {
         screenReaderOnly
         data-testid="search-announcement"
       >
-        {I18n.t('No results found')}
+        {t('No results found')}
       </Alert>
     </>
   )

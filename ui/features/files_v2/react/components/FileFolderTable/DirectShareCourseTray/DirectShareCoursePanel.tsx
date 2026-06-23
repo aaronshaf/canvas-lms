@@ -20,7 +20,7 @@ import {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 're
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
 import {TruncateText} from '@instructure/ui-truncate-text'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import useManagedCourseSearchApi, {
   isSearchableTerm,
   MINIMUM_SEARCH_LENGTH,
@@ -29,8 +29,6 @@ import SearchItemSelector from '../../../components/shared/SearchItemSelector'
 import useModuleCourseSearchApi from '@canvas/direct-sharing/react/effects/useModuleCourseSearchApi'
 import ModulePositionPicker from './ModulePositionPicker'
 import {type Module, type Course} from './DirectShareCourseTray'
-
-const I18n = createI18nScope('files_v2')
 
 type DirectShareCoursePanelProps = {
   selectedCourseId?: string | null
@@ -48,6 +46,7 @@ const DirectShareCoursePanel = forwardRef<
   DirectShareCoursePanelPropsRef,
   DirectShareCoursePanelProps
 >(({selectedCourseId, onSelectCourse, selectedModuleId, onSelectModule, onSelectPosition}, ref) => {
+  const {t} = useTranslation('files_v2')
   const courseInputRef = useRef<HTMLInputElement | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,7 +56,7 @@ const DirectShareCoursePanel = forwardRef<
       if (!selectedCourseId) {
         valid = false
         courseInputRef.current?.focus()
-        setError(I18n.t('A course needs to be selected'))
+        setError(t('A course needs to be selected'))
       }
       return valid
     },
@@ -111,14 +110,14 @@ const DirectShareCoursePanel = forwardRef<
           inputRef={handleInputRef}
           onInputChanged={handleInputChanged}
           onItemSelected={handleSelectCourse}
-          renderLabel={I18n.t('Select a Course')}
+          renderLabel={t('Select a Course')}
           // eslint-disable-next-line react-compiler/react-compiler
           itemSearchFunction={useManagedCourseSearchApi}
           additionalParams={{include: '', enforce_manage_grant_requirement: true}}
           minimumSearchLength={MINIMUM_SEARCH_LENGTH}
           isSearchableTerm={isSearchableTerm}
           renderOption={renderCourseOption}
-          fetchErrorMessage={I18n.t('Error retrieving courses')}
+          fetchErrorMessage={t('Error retrieving courses')}
         />
       </View>
 
@@ -126,14 +125,14 @@ const DirectShareCoursePanel = forwardRef<
         <View as="div" margin="0 0 small 0">
           <SearchItemSelector<Module>
             onItemSelected={onSelectModule}
-            renderLabel={I18n.t('Select a Module (optional)')}
+            renderLabel={t('Select a Module (optional)')}
             // eslint-disable-next-line react-compiler/react-compiler
             itemSearchFunction={useModuleCourseSearchApi}
             contextId={selectedCourseId}
             minimumSearchLength={MINIMUM_SEARCH_LENGTH}
             isSearchableTerm={isSearchableTerm}
             additionalParams={{include: '', enforce_manage_grant_requirement: true, per_page: 50}}
-            fetchErrorMessage={I18n.t('Error retrieving modules')}
+            fetchErrorMessage={t('Error retrieving modules')}
           />
         </View>
       )}

@@ -17,7 +17,7 @@
  */
 
 import React, {useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {FileDrop} from '@instructure/ui-file-drop'
 import {Flex} from '@instructure/ui-flex'
 import {Billboard} from '@instructure/ui-billboard'
@@ -27,8 +27,6 @@ import {BBFolderWrapper} from '../../../utils/fileFolderWrappers'
 import {type FileOptionsResults} from '../FilesHeader/UploadButton/FileOptions'
 import {FileUploadModals} from './FileUploadModals'
 import {queueOptionsCollectionUploads, startUpload} from '../../../utils/uploadUtils'
-
-const I18n = createI18nScope('upload_drop_zone')
 
 type FileUploadDropProps = {
   contextId: string
@@ -47,6 +45,7 @@ export const FileUploadDrop = ({
   fileDropHeight,
   handleFileDropRef,
 }: FileUploadDropProps) => {
+  const {t} = useTranslation('upload_drop_zone')
   const [fileOptions, setFileOptions] = useState<FileOptionsResults | null>(null)
 
   const handleDrop = (
@@ -88,8 +87,8 @@ export const FileUploadDrop = ({
               as="div"
               headingAs="span"
               headingLevel="h2"
-              heading={I18n.t('Drop files here to upload')}
-              message={<Text color="brand">{I18n.t('or choose files')}</Text>}
+              heading={t('Drop files here to upload')}
+              message={<Text color="brand">{t('or choose files')}</Text>}
             />
           </Flex>
         }

@@ -17,7 +17,8 @@
  */
 
 import {useCallback, useEffect, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import type {TFunction} from 'i18next'
+import {useTranslation} from '@canvas/i18next'
 import {useFileManagement} from '../../contexts/FileManagementContext'
 import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
@@ -33,27 +34,26 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {type File, type Folder} from '../../../interfaces/File'
 import pluralize from '@canvas/util/stringPluralize'
 
-const I18n = createI18nScope('files_v2')
-
-const progressMessage = (progress: number) =>
-  I18n.t('Preparing download: %{percent}% complete', {
+const progressMessage = (progress: number, t: TFunction) =>
+  t('Preparing download: {{percent}}% complete', {
     percent: progress,
   })
 
 const DownloadProgress = ({progress}: {progress: number}) => {
+  const {t} = useTranslation('files_v2')
   return (
     <Flex gap="medium">
       <Flex.Item shouldGrow>
         <Flex direction="column" gap="small">
           <Flex.Item>
-            <Text>{progressMessage(progress)}</Text>
+            <Text>{progressMessage(progress, t)}</Text>
           </Flex.Item>
 
           <Flex.Item>
             <ProgressBar
               meterColor={'info'}
               size="x-small"
-              screenReaderLabel={I18n.t('Downloading')}
+              screenReaderLabel={t('Downloading')}
               valueNow={progress}
               valueMax={100}
               shouldAnimate
@@ -70,6 +70,7 @@ interface CurrentDownloadsProps {
 }
 
 const CurrentDownloads = ({rows}: CurrentDownloadsProps) => {
+  const {t} = useTranslation('files_v2')
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -78,7 +79,7 @@ const CurrentDownloads = ({rows}: CurrentDownloadsProps) => {
   const handleDownloadAction = useCallback(
     (e: Event) => {
       if (isDownloading) {
-        showFlashError(I18n.t('Download already in progress.'))()
+        showFlashError(t('Download already in progress.'))()
         return
       }
       if (
@@ -113,7 +114,7 @@ const CurrentDownloads = ({rows}: CurrentDownloadsProps) => {
         </Flex.Item>
       </Flex>
       <ScreenReaderContent aria-live="polite" aria-relevant="all">
-        {progressMessage(progress)}
+        {progressMessage(progress, t)}
       </ScreenReaderContent>
     </View>
   )

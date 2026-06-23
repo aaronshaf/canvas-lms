@@ -17,7 +17,7 @@
  */
 
 import {createRef, Ref, useCallback, useEffect, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {queryClient} from '@instructure/platform-query'
 import {Modal} from '@instructure/ui-modal'
@@ -52,9 +52,8 @@ export type MoveModalProps = {
   rowIndex?: number
 }
 
-const I18n = createI18nScope('files_v2')
-
 const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
+  const {t} = useTranslation('files_v2')
   const {contextType, contextId, rootFolder} = useFileManagement()
   const folderTreeBrowserRef: Ref<FolderTreeBrowserRef> = createRef<FolderTreeBrowserRef>()
   const [selectedFolder, setSelectedFolder] = useState<Collection | null>(null)
@@ -203,7 +202,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
         onDismiss()
       }
     } catch (_) {
-      setError(I18n.t('Failed to load folder data.'))
+      setError(t('Failed to load folder data.'))
     } finally {
       setPostStatus(false)
     }
@@ -237,9 +236,9 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
           placement="end"
           offset="small"
           onClick={onDismiss}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Move To...')}</Heading>
+        <Heading>{t('Move To...')}</Heading>
       </>
     ),
     [onDismiss],
@@ -252,7 +251,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
       return (
         <View as="div" textAlign="center">
           <Spinner
-            renderTitle={() => I18n.t('Moving items')}
+            renderTitle={() => t('Moving items')}
             aria-live="polite"
             data-testid="move-spinner"
           />
@@ -268,11 +267,11 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
 
     let text
     if (items.length > 1) {
-      text = I18n.t('Where would you like to move these items?')
+      text = t('Where would you like to move these items?')
     } else {
       text = isFile(items[0])
-        ? I18n.t('Where would you like to move this file?')
-        : I18n.t('Where would you like to move this folder?')
+        ? t('Where would you like to move this file?')
+        : t('Where would you like to move this folder?')
     }
 
     return (
@@ -282,7 +281,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
           <Text weight="bold">{text}</Text>
         </View>
         {error && (
-          <Alert variant="error" renderCloseButtonLabel={I18n.t('Close error message')}>
+          <Alert variant="error" renderCloseButtonLabel={t('Close error message')}>
             {error}
           </Alert>
         )}
@@ -304,7 +303,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
           disabled={postStatus}
           onClick={handleClose}
         >
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           data-testid="move-move-button"
@@ -312,7 +311,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
           onClick={handleMoveClick}
           disabled={postStatus}
         >
-          {I18n.t('Move')}
+          {t('Move')}
         </Button>
       </>
     )
@@ -333,7 +332,7 @@ const MoveModal = ({open, items, onDismiss, rowIndex}: MoveModalProps) => {
           open={open}
           onDismiss={handleClose}
           size="small"
-          label={I18n.t('Copy')}
+          label={t('Copy')}
           shouldCloseOnDocumentClick={false}
         >
           <Modal.Header>{renderHeader()}</Modal.Header>

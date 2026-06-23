@@ -17,7 +17,7 @@
  */
 
 import React, {ChangeEvent, useRef, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
@@ -32,8 +32,6 @@ import {View} from '@instructure/ui-view'
 import {Spinner} from '@instructure/ui-spinner'
 import {MAX_FOLDER_NAME_LENGTH} from '../../utils/folderUtils'
 import {useRows} from '../contexts/RowsContext'
-
-const I18n = createI18nScope('files_v2')
 
 const updateItemName = (item: File | Folder, name: string) => {
   return doFetchApiWithAuthCheck({
@@ -52,6 +50,7 @@ export const RenameModal = ({
   isOpen: boolean
   onClose: () => void
 }) => {
+  const {t} = useTranslation('files_v2')
   const [newItemName, setNewItemName] = useState<string>(getName(renamingItem))
   const [errorMessages, setErrorMessages] = useState<FormMessage[]>()
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
@@ -79,7 +78,7 @@ export const RenameModal = ({
     updateItemName(renamingItem, trimmedNewItemName)
       .then(async () => {
         showFlashSuccess(
-          I18n.t('Successfully renamed %{item}.', {item: isFile(renamingItem) ? 'file' : 'folder'}),
+          t('Successfully renamed {{item}}.', {item: isFile(renamingItem) ? 'file' : 'folder'}),
         )()
         const newRows = [...currentRows]
         const index = newRows.findIndex(row => getUniqueId(row) === getUniqueId(renamingItem))
@@ -101,13 +100,13 @@ export const RenameModal = ({
         }
         if (err?.response?.status == 409) {
           showFlashError(
-            I18n.t('A file named "%{name}" already exists in this folder.', {
+            t('A file named "{{name}}" already exists in this folder.', {
               name: trimmedNewItemName,
             }),
           )()
         } else {
           showFlashError(
-            I18n.t('There was an error renaming this %{item}. Please try again.', {
+            t('There was an error renaming this {{item}}. Please try again.', {
               item: isFile(renamingItem) ? 'file' : 'folder',
             }),
           )()
@@ -128,19 +127,17 @@ export const RenameModal = ({
     const errorMessages: FormMessage[] = []
     if (trimmedName === '') {
       errorMessages.push({
-        text: isFile ? I18n.t('File name cannot be blank') : I18n.t('Folder name cannot be blank'),
+        text: isFile ? t('File name cannot be blank') : t('Folder name cannot be blank'),
         type: 'newError',
       })
     } else if (trimmedName.indexOf('/') !== -1) {
       errorMessages.push({
-        text: isFile
-          ? I18n.t('File name cannot contain /')
-          : I18n.t('Folder name cannot contain /'),
+        text: isFile ? t('File name cannot contain /') : t('Folder name cannot contain /'),
         type: 'newError',
       })
     } else if (!isFile && trimmedName.length > MAX_FOLDER_NAME_LENGTH) {
       errorMessages.push({
-        text: I18n.t('Folder name cannot exceed 255 characters'),
+        text: t('Folder name cannot exceed 255 characters'),
         type: 'newError',
       })
     }
@@ -154,7 +151,7 @@ export const RenameModal = ({
       onDismiss={onClose}
       onExited={handleExited}
       size="small"
-      label={I18n.t('Rename file/folder modal')}
+      label={t('Rename file/folder modal')}
     >
       <Modal.Header>
         <CloseButton
@@ -162,16 +159,16 @@ export const RenameModal = ({
           offset="small"
           onClick={onClose}
           data-testid="rename-modal-button-close"
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Rename')}</Heading>
+        <Heading>{t('Rename')}</Heading>
       </Modal.Header>
       <Modal.Body>
         {isRequestInFlight ? (
           <View as="div" textAlign="center">
             <Spinner
               renderTitle={() =>
-                I18n.t('Renaming %{item}', {item: isFile(renamingItem) ? 'file' : 'folder'})
+                t('Renaming {{item}}', {item: isFile(renamingItem) ? 'file' : 'folder'})
               }
               margin="0 0 0 medium"
               aria-live="polite"
@@ -195,7 +192,7 @@ export const RenameModal = ({
                   }
                 }}
                 messages={errorMessages}
-                renderLabel={isFile(renamingItem) ? I18n.t('File Name') : I18n.t('Folder Name')}
+                renderLabel={isFile(renamingItem) ? t('File Name') : t('Folder Name')}
                 isRequired
               />
             </div>
@@ -204,7 +201,7 @@ export const RenameModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onClose} disabled={isRequestInFlight}>
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           color="primary"
@@ -213,7 +210,7 @@ export const RenameModal = ({
           data-testid="rename-modal-button-save"
           disabled={isRequestInFlight}
         >
-          {I18n.t('Save')}
+          {t('Save')}
         </Button>
       </Modal.Footer>
     </Modal>

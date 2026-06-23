@@ -19,7 +19,7 @@
 import React from 'react'
 import {Breadcrumb} from '@instructure/ui-breadcrumb'
 import {Folder} from '../../../interfaces/File'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {generateUrlPath} from '../../../utils/folderUtils'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
 import {Link as RouterLink} from 'react-router-dom'
@@ -44,8 +44,6 @@ type ResponsiveBreadcrumbsProps = {
   size: 'small' | 'medium' | 'large'
   search?: string | null
 }
-
-const I18n = createI18nScope('files_v2')
 
 const SmallBreadcrumbs = ({items}: BreadcrumbsProps) => {
   const isOnlyCrumb = items.length === 1
@@ -72,9 +70,10 @@ const SmallBreadcrumbs = ({items}: BreadcrumbsProps) => {
 }
 
 const LargeBreadcrumbs = ({items}: BreadcrumbsProps) => {
+  const {t} = useTranslation('files_v2')
   const isOnlyCrumb = items.length === 1
   return (
-    <Breadcrumb label={I18n.t('You are here:')}>
+    <Breadcrumb label={t('You are here:')}>
       {items.map((item, index) => {
         const isLastCrumb = index === items.length - 1
         if (isOnlyCrumb) {
@@ -98,6 +97,7 @@ const LargeBreadcrumbs = ({items}: BreadcrumbsProps) => {
 }
 
 const ResponsiveBreadcrumbs = ({folders, size, search}: ResponsiveBreadcrumbsProps) => {
+  const {t} = useTranslation('files_v2')
   const {contextType, contextId, showingAllContexts} = useFileManagement()
 
   const breadcrumbs = folders.map((folder, index) => {
@@ -123,13 +123,13 @@ const ResponsiveBreadcrumbs = ({folders, size, search}: ResponsiveBreadcrumbsPro
   if (search) {
     breadcrumbs.push({
       id: 'search',
-      name: I18n.t('Search results for "%{search}"', {search}),
+      name: t('Search results for "{{search}}"', {search}),
       url: '',
     })
   }
 
   if (showingAllContexts) {
-    breadcrumbs.unshift({id: 'all-my-files', name: I18n.t('All My Files'), url: '/'})
+    breadcrumbs.unshift({id: 'all-my-files', name: t('All My Files'), url: '/'})
   }
 
   if (size === 'small') {

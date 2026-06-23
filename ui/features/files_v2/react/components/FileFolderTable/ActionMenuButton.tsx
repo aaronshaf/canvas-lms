@@ -19,7 +19,7 @@
 import React, {useCallback, useMemo, useState} from 'react'
 import {assignLocation} from '@canvas/util/globalUtils'
 import {Button, IconButton} from '@instructure/ui-buttons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Flex} from '@instructure/ui-flex'
 import {Menu} from '@instructure/ui-menu'
 import {Text} from '@instructure/ui-text'
@@ -51,8 +51,6 @@ import MoveModal from './MoveModal'
 import UsageRightsModal from './UsageRightsModal'
 import PermissionsModal from './PermissionsModal'
 
-const I18n = createI18nScope('files_v2')
-
 export interface ActionMenuButtonProps {
   size: 'small' | 'medium' | 'large'
   userCanEditFilesForContext: boolean
@@ -81,9 +79,10 @@ const ActionMenuButton = ({
   row,
   rowIndex,
 }: ActionMenuButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const [modalOrTray, setModalOrTray] = useState<ActionMenuModalOrTrayId | null>(null)
   const name = getName(row)
-  const actionLabel = I18n.t('Actions for "%{name}"', {name})
+  const actionLabel = t('Actions for "{{name}}"', {name})
   const {contextType, fileMenuTools} = useFileManagement()
   const {handleActionButtonRef, setRowToFocus} = useRowFocus()
 
@@ -103,7 +102,7 @@ const ActionMenuButton = ({
         data-testid="action-menu-button-small"
         elementRef={elt => elt?.setAttribute('aria-label', actionLabel)}
       >
-        {I18n.t('Actions')} <IconArrowOpenDownLine />
+        {t('Actions')} <IconArrowOpenDownLine />
       </Button>
     ) : (
       <IconButton
@@ -181,43 +180,43 @@ const ActionMenuButton = ({
             // files
             {
               icon: IconEditLine,
-              text: I18n.t('Rename'),
+              text: t('Rename'),
               visible: rename_move_permissions,
               onClick: createSetModalOrTrayCallback('rename'),
             },
             {
               icon: IconDownloadLine,
-              text: I18n.t('Download'),
+              text: t('Download'),
               visible: !isAccessRestricted,
               onClick: () => downloadFile(row.url),
             },
             {
               icon: IconPermissionsLine,
-              text: I18n.t('Edit Permissions'),
+              text: t('Edit Permissions'),
               visible: userCanRestrictFilesForContext,
               onClick: createSetModalOrTrayCallback('permissions'),
             },
             {
               icon: IconCloudLockLine,
-              text: I18n.t('Manage Usage Rights'),
+              text: t('Manage Usage Rights'),
               visible: has_usage_rights,
               onClick: createSetModalOrTrayCallback('manage-usage-rights'),
             },
             {
               icon: IconUserLine,
-              text: I18n.t('Send To...'),
+              text: t('Send To...'),
               visible: send_copy_permissions,
               onClick: createSetModalOrTrayCallback('send-to'),
             },
             {
               icon: IconDuplicateLine,
-              text: I18n.t('Copy To...'),
+              text: t('Copy To...'),
               visible: send_copy_permissions,
               onClick: createSetModalOrTrayCallback('copy-to'),
             },
             {
               icon: IconExpandItemsLine,
-              text: I18n.t('Move To...'),
+              text: t('Move To...'),
               visible: rename_move_permissions && !isAccessRestricted,
               onClick: createSetModalOrTrayCallback('move-to'),
             },
@@ -233,7 +232,7 @@ const ActionMenuButton = ({
             {separator: true, visible: delete_permissions},
             {
               icon: IconTrashLine,
-              text: I18n.t('Delete'),
+              text: t('Delete'),
               visible: delete_permissions,
               onClick: createSetModalOrTrayCallback('delete'),
             },
@@ -242,38 +241,38 @@ const ActionMenuButton = ({
             // folder
             {
               icon: IconEditLine,
-              text: I18n.t('Rename'),
+              text: t('Rename'),
               visible: rename_move_permissions,
               onClick: createSetModalOrTrayCallback('rename'),
             },
             {
               icon: IconDownloadLine,
-              text: I18n.t('Download'),
+              text: t('Download'),
               visible: !isAccessRestricted,
               onClick: () => downloadZip(new Set([`folder-${row.id.toString()}`])),
             },
             {
               icon: IconPermissionsLine,
-              text: I18n.t('Edit Permissions'),
+              text: t('Edit Permissions'),
               visible: userCanRestrictFilesForContext,
               onClick: createSetModalOrTrayCallback('permissions'),
             },
             {
               icon: IconCloudLockLine,
-              text: I18n.t('Manage Usage Rights'),
+              text: t('Manage Usage Rights'),
               visible: has_usage_rights,
               onClick: createSetModalOrTrayCallback('manage-usage-rights'),
             },
             {
               icon: IconExpandItemsLine,
-              text: I18n.t('Move To...'),
+              text: t('Move To...'),
               visible: rename_move_permissions && !isAccessRestricted,
               onClick: createSetModalOrTrayCallback('move-to'),
             },
             {separator: true, visible: delete_permissions},
             {
               icon: IconTrashLine,
-              text: I18n.t('Delete'),
+              text: t('Delete'),
               visible: delete_permissions,
               onClick: createSetModalOrTrayCallback('delete'),
             },

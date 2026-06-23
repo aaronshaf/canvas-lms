@@ -17,7 +17,7 @@
  */
 
 import {useState, useEffect, useRef} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconButton, Button} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
 import {FilePreviewTray} from './FilePreviewTray'
@@ -34,8 +34,6 @@ import {FilePreviewNavigationButtons} from './FilePreviewNavigationButtons'
 import {FileNotFound} from './FileNotFound'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
-
-const I18n = createI18nScope('files_v2')
 
 export interface FilePreviewModalProps {
   isOpen: boolean
@@ -54,6 +52,7 @@ export const FilePreviewModal = ({
   showNavigationButtons = true,
   error = null,
 }: FilePreviewModalProps) => {
+  const {t} = useTranslation('files_v2')
   const modalBody = useRef<HTMLElement | null>(null)
   const fileInfoButton = useRef<HTMLElement | null>(null)
   const shouldPreventDismiss = useRef<boolean>(false)
@@ -62,7 +61,7 @@ export const FilePreviewModal = ({
     item && collection ? collection.indexOf(item) : 0,
   )
   const [isTrayOpen, setIsTrayOpen] = useState(false)
-  const name = currentItem?.display_name || I18n.t('File')
+  const name = currentItem?.display_name || t('File')
   const isAccessRestricted = getFilesEnv().userFileAccessRestricted
 
   // Reset state when the modal is opened or item changes
@@ -90,7 +89,7 @@ export const FilePreviewModal = ({
   useEffect(() => {
     if (isOpen) {
       showFlashAlert({
-        message: I18n.t('Previewing file %{name}', {name}),
+        message: t('Previewing file {{name}}', {name}),
         srOnly: true,
         politeness: 'assertive',
       })
@@ -236,7 +235,7 @@ export const FilePreviewModal = ({
                   withBackground={false}
                   withBorder={false}
                   renderIcon={IconInfoSolid}
-                  screenReaderLabel={I18n.t('Open file info panel')}
+                  screenReaderLabel={t('Open file info panel')}
                   margin="0 x-small 0 0"
                   id="file-info-button"
                   onClick={() => handleOverlayTrayChange(true)}
@@ -251,7 +250,7 @@ export const FilePreviewModal = ({
                     withBackground={false}
                     withBorder={false}
                     renderIcon={IconDownloadSolid}
-                    screenReaderLabel={I18n.t('Download')}
+                    screenReaderLabel={t('Download')}
                     margin="0 x-small 0 0"
                     id="download-icon-button"
                     href={currentItem?.url}
@@ -265,7 +264,7 @@ export const FilePreviewModal = ({
                   withBackground={false}
                   withBorder={false}
                   renderIcon={IconXSolid}
-                  screenReaderLabel={I18n.t('Close')}
+                  screenReaderLabel={t('Close')}
                   onClick={onClose}
                   id="close-button"
                   data-testid="close-button"
@@ -280,17 +279,14 @@ export const FilePreviewModal = ({
           <FileNotFound />
         ) : (
           <DrawerLayout onOverlayTrayChange={handleOverlayTrayChange}>
-            <DrawerLayout.Content
-              id="file-preview-modal-drawer-layout"
-              label={I18n.t('File Preview')}
-            >
+            <DrawerLayout.Content id="file-preview-modal-drawer-layout" label={t('File Preview')}>
               <FilePreview item={currentItem} />
             </DrawerLayout.Content>
             <DrawerLayout.Tray
               open={isTrayOpen}
               onClose={() => setIsTrayOpen(false)}
               placement="end"
-              label={I18n.t('File Information')}
+              label={t('File Information')}
             >
               {currentItem && (
                 <FilePreviewTray onDismiss={() => setIsTrayOpen(false)} item={currentItem} />
@@ -311,7 +307,7 @@ export const FilePreviewModal = ({
           </Flex.Item>
           <Flex.Item>
             <Button onClick={onClose} withBackground={false} color="primary-inverse">
-              {I18n.t('Close')}
+              {t('Close')}
             </Button>
           </Flex.Item>
         </Flex>

@@ -18,19 +18,18 @@
 
 import React, {useRef, useState} from 'react'
 import {IconAddLine} from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button} from '@instructure/ui-buttons'
 import CreateFolderModal from './CreateFolderModal'
 import {createPortal} from 'react-dom'
 import {showFlashSuccess} from '@instructure/platform-alerts'
-
-const I18n = createI18nScope('files_v2')
 
 interface CreateFolderButtonProps {
   buttonDisplay: 'block' | 'inline-block'
 }
 
 const CreateFolderButton = ({buttonDisplay}: CreateFolderButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const buttonRef = useRef<Button | null>(null)
 
@@ -46,7 +45,7 @@ const CreateFolderButton = ({buttonDisplay}: CreateFolderButtonProps) => {
     buttonRef.current?.focus()
     if (wasSuccessful) {
       setTimeout(() => {
-        showFlashSuccess(I18n.t('Folder created successfully'))()
+        showFlashSuccess(t('Folder created successfully'))()
       }, 2000)
     }
   }
@@ -66,10 +65,10 @@ const CreateFolderButton = ({buttonDisplay}: CreateFolderButtonProps) => {
         display={buttonDisplay}
         onClick={handleOpenModal}
         data-testid="create-folder-button"
-        elementRef={elt => elt?.setAttribute('aria-label', I18n.t('Add Folder'))}
+        elementRef={elt => elt?.setAttribute('aria-label', t('Add Folder'))}
         ref={buttonRef}
       >
-        {I18n.t('Folder')}
+        {t('Folder')}
       </Button>
     </>
   )

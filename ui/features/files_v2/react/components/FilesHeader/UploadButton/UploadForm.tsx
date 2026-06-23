@@ -18,15 +18,13 @@
 
 import React from 'react'
 import {Modal} from '@instructure/ui-modal'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import '@canvas/rails-flash-notifications'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {BBFolderWrapper} from '../../../../utils/fileFolderWrappers'
 import {FileUploadDrop} from '../../shared/FileUploadDrop'
 import {Flex} from '@instructure/ui-flex'
-
-const I18n = createI18nScope('upload_drop_zone')
 
 type UploadFormProps = {
   contextId: string
@@ -43,17 +41,18 @@ export const UploadForm = ({
   open,
   onClose,
 }: UploadFormProps) => {
+  const {t} = useTranslation('upload_drop_zone')
   return (
-    <Modal open={open} onDismiss={onClose} size="large" label={I18n.t('Upload file')}>
+    <Modal open={open} onDismiss={onClose} size="large" label={t('Upload file')}>
       <Modal.Header>
         <CloseButton
           data-testid="upload-close-button"
           placement="end"
           offset="small"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Upload file')}</Heading>
+        <Heading>{t('Upload file')}</Heading>
       </Modal.Header>
       <Modal.Body>
         <Flex>
@@ -70,7 +69,7 @@ export const UploadForm = ({
       </Modal.Body>
       <Modal.Footer>
         <Button data-testid="upload-cancel-button" onClick={onClose}>
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
       </Modal.Footer>
     </Modal>

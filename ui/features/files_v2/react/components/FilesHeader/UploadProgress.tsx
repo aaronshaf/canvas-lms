@@ -17,13 +17,14 @@
  */
 
 import React, {useCallback, useEffect, useState} from 'react'
+import type {TFunction} from 'i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {IconWarningSolid, IconXLine} from '@instructure/ui-icons'
 import {ProgressBar} from '@instructure/ui-progress'
 import {Text} from '@instructure/ui-text'
 import {TruncateText} from '@instructure/ui-truncate-text'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {FileOptions} from './UploadButton/FileOptions'
 
@@ -45,32 +46,33 @@ type UploadProgressProps = {
   uploader: Uploader
 }
 
-const I18n = createI18nScope('files_v2')
-
-function generateProgressMessage(uploader: Uploader, progress: number) {
+function generateProgressMessage(uploader: Uploader, progress: number, t: TFunction) {
   const fileName = uploader.getFileName()
   return progress < 100
-    ? I18n.t('%{fileName} - %{progress} percent uploaded', {
+    ? t('{{fileName}} - {{progress}} percent uploaded', {
         fileName,
         progress,
       })
-    : I18n.t('%{fileName} uploaded successfully!', {fileName})
+    : t('{{fileName}} uploaded successfully!', {fileName})
 }
 
 const UploadProgress = ({uploader}: UploadProgressProps) => {
+  const {t} = useTranslation('files_v2')
   const [progress, setProgress] = useState(() => uploader.roundProgress() || 0)
-  const [message, setMessage] = useState<string>(() => generateProgressMessage(uploader, progress))
+  const [message, setMessage] = useState<string>(() =>
+    generateProgressMessage(uploader, progress, t),
+  )
 
   const sendProgressUpdate = useCallback(
     (newProgress: number) => {
       const fileName = uploader.getFileName()
       const newMessage =
         newProgress < 100
-          ? I18n.t('%{fileName} - %{progress} percent uploaded.', {
+          ? t('{{fileName}} - {{progress}} percent uploaded.', {
               fileName,
               progress: newProgress,
             })
-          : I18n.t('%{fileName} uploaded successfully!', {fileName})
+          : t('{{fileName}} uploaded successfully!', {fileName})
 
       if (message !== newMessage) {
         showFlashAlert({message, err: null, type: 'info', srOnly: true})
@@ -84,8 +86,8 @@ const UploadProgress = ({uploader}: UploadProgressProps) => {
   useEffect(() => {
     if (uploader.error) {
       const message = uploader.error.message
-        ? I18n.t('Error: %{message}', {message: uploader.error.message})
-        : I18n.t('Error uploading file.')
+        ? t('Error: {{message}}', {message: uploader.error.message})
+        : t('Error uploading file.')
       showFlashAlert({
         message: message,
         type: 'error',
@@ -125,7 +127,7 @@ const UploadProgress = ({uploader}: UploadProgressProps) => {
               <Text size="small" color="danger">
                 <IconWarningSolid />
                 &nbsp;
-                {I18n.t('File failed to upload. Please try again.')}
+                {t('File failed to upload. Please try again.')}
               </Text>
             </Flex.Item>
           )}
@@ -133,7 +135,7 @@ const UploadProgress = ({uploader}: UploadProgressProps) => {
       </Flex.Item>
       {uploader.canAbort() && (
         <Flex.Item padding="xx-small">
-          <IconButton screenReaderLabel={I18n.t('Cancel upload')} onClick={uploader.cancel}>
+          <IconButton screenReaderLabel={t('Cancel upload')} onClick={uploader.cancel}>
             <IconXLine />
           </IconButton>
         </Flex.Item>

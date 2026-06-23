@@ -19,10 +19,8 @@
 import React from 'react'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import TopLevelButtons from './TopLevelButtons'
-
-const I18n = createI18nScope('files_v2')
 
 interface FilesHeaderProps {
   size: 'small' | 'medium' | 'large'
@@ -31,6 +29,7 @@ interface FilesHeaderProps {
 }
 
 const FilesHeader = ({size, isUserContext, shouldHideUploadButtons = false}: FilesHeaderProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <Flex justifyItems="center" padding="medium none none none">
       <Flex.Item shouldShrink={true} shouldGrow={true} textAlign="center">
@@ -41,7 +40,7 @@ const FilesHeader = ({size, isUserContext, shouldHideUploadButtons = false}: Fil
           direction={size === 'large' ? 'row' : 'column'}
         >
           <Flex.Item padding="small small small none" align="start">
-            <Heading level="h1">{isUserContext ? I18n.t('All My Files') : I18n.t('Files')}</Heading>
+            <Heading level="h1">{isUserContext ? t('All My Files') : t('Files')}</Heading>
           </Flex.Item>
           <Flex.Item
             padding="xx-small"

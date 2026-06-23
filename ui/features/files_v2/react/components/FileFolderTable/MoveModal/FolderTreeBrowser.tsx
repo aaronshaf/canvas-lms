@@ -17,7 +17,7 @@
  */
 
 import {forwardRef, useCallback, useImperativeHandle, useRef, useState, useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Alert} from '@instructure/ui-alerts'
 import {TreeBrowser} from '@instructure/ui-tree-browser'
 import {FormFieldMessage} from '@instructure/ui-form-field'
@@ -36,10 +36,9 @@ type FolderTreeBrowserProps = {
   onSelectFolder?: (folder: Collection | null) => void
 }
 
-const I18n = createI18nScope('files_v2')
-
 const FolderTreeBrowser = forwardRef<FolderTreeBrowserRef, FolderTreeBrowserProps>(
   ({rootFolder, onSelectFolder}, ref) => {
+    const {t} = useTranslation('files_v2')
     const containerRef = useRef<Element | null>(null)
     const hasValidSelection = useRef<boolean>(false)
     const [currentFolderId, setCurrentFolderId] = useState<string>(rootFolder.id)
@@ -53,7 +52,7 @@ const FolderTreeBrowser = forwardRef<FolderTreeBrowserRef, FolderTreeBrowserProp
         let valid = true
         if (!hasValidSelection.current) {
           valid = false
-          setFormError(I18n.t('A target folder should be selected.'))
+          setFormError(t('A target folder should be selected.'))
         }
         if (!valid && containerRef.current) {
           const treeElement = containerRef.current.querySelector('ul[role="tree"]')
@@ -106,8 +105,8 @@ const FolderTreeBrowser = forwardRef<FolderTreeBrowserRef, FolderTreeBrowserProp
     return (
       <>
         {foldersError && (
-          <Alert variant="error" renderCloseButtonLabel={I18n.t('Close error message')}>
-            {I18n.t('An error occurred while fetching the folders.')}
+          <Alert variant="error" renderCloseButtonLabel={t('Close error message')}>
+            {t('An error occurred while fetching the folders.')}
           </Alert>
         )}
         <View elementRef={(element: Element | null) => (containerRef.current = element)}>

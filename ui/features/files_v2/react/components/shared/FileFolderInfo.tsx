@@ -19,7 +19,7 @@
 import React, {useCallback} from 'react'
 import {type File, type Folder} from '../../../interfaces/File'
 import {getIcon} from '../../../utils/fileFolderUtils'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Img} from '@instructure/ui-img'
@@ -28,13 +28,12 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {IconCollectionLine} from '@instructure/ui-icons'
 import friendlyBytes from '@canvas/files/util/friendlyBytes'
 
-const I18n = createI18nScope('files_v2')
-
 interface FileFolderInfoProps {
   items: (File | Folder)[]
 }
 
 const FileFolderInfo = ({items}: FileFolderInfoProps) => {
+  const {t} = useTranslation('files_v2')
   const multiple = items.length > 1
 
   const renderIcon = useCallback(() => {
@@ -44,7 +43,7 @@ const FileFolderInfo = ({items}: FileFolderInfoProps) => {
         <IconCollectionLine
           data-testid="multiple-items-icon"
           color="primary"
-          title={I18n.t('Multiple Items')}
+          title={t('Multiple Items')}
           size="medium"
         />
       )
@@ -58,7 +57,7 @@ const FileFolderInfo = ({items}: FileFolderInfoProps) => {
   const renderTitle = useCallback(() => {
     const item = items[0]
     const text = multiple
-      ? I18n.t('Selected Items (%{count})', {count: items.length})
+      ? t('Selected Items ({{count}})', {count: items.length})
       : item.display_name || item.filename || item.name
     return (
       <Text weight="bold">
@@ -71,7 +70,7 @@ const FileFolderInfo = ({items}: FileFolderInfoProps) => {
     if (multiple) return null
 
     const item = items[0]
-    return <Text size="small">{item.size ? friendlyBytes(item.size) : I18n.t('Folder')}</Text>
+    return <Text size="small">{item.size ? friendlyBytes(item.size) : t('Folder')}</Text>
   }, [items, multiple])
 
   if (items.length === 0) return null

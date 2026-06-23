@@ -17,7 +17,7 @@
  */
 
 import {useCallback, useRef} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
@@ -31,14 +31,13 @@ type ZipFileOptionsFormProps = {
   onZipOptionsResolved: ({file, expandZip}: {file: File; expandZip: boolean}) => void
 }
 
-const I18n = createI18nScope('files_v2')
-
 const ZipFileOptionsForm = ({
   open,
   onClose,
   fileOptions,
   onZipOptionsResolved,
 }: ZipFileOptionsFormProps) => {
+  const {t} = useTranslation('files_v2')
   const defaultFocusElement = useRef<Element | null>(null)
 
   const handleExpandClick = useCallback(
@@ -58,9 +57,9 @@ const ZipFileOptionsForm = ({
           placement="end"
           offset="small"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Zip file options')}</Heading>
+        <Heading>{t('Zip file options')}</Heading>
       </>
     ),
     [onClose],
@@ -70,8 +69,8 @@ const ZipFileOptionsForm = ({
     const fileName = fileOptions.file.name
     return (
       <Text>
-        {I18n.t(
-          'Would you like to expand the contents of "%{fileName}" into the current folder, or upload the zip file as is?',
+        {t(
+          'Would you like to expand the contents of "{{fileName}}" into the current folder, or upload the zip file as is?',
           {fileName},
         )}
       </Text>
@@ -82,7 +81,7 @@ const ZipFileOptionsForm = ({
     return (
       <>
         <Button data-testid="zip-expand-button" margin="0 x-small 0 0" onClick={handleExpandClick}>
-          {I18n.t('Expand it')}
+          {t('Expand it')}
         </Button>
         <Button
           data-testid="zip-upload-button"
@@ -90,7 +89,7 @@ const ZipFileOptionsForm = ({
           onClick={handleUploadClick}
           elementRef={element => (defaultFocusElement.current = element)}
         >
-          {I18n.t('Upload it')}
+          {t('Upload it')}
         </Button>
       </>
     )
@@ -101,7 +100,7 @@ const ZipFileOptionsForm = ({
       open={open}
       onDismiss={onClose}
       size="small"
-      label={I18n.t('Zip file options')}
+      label={t('Zip file options')}
       shouldCloseOnDocumentClick={false}
       defaultFocusElement={() => defaultFocusElement.current}
     >

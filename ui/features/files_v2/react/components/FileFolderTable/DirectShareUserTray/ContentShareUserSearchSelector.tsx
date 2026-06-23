@@ -17,7 +17,7 @@
  */
 
 import {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import useContentShareUserSearchApi from '@canvas/direct-sharing/react/effects/useContentShareUserSearchApi'
 import useDebouncedSearchTerm from '@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm'
 import {CanvasAsyncSelect, type CanvasAsyncSelectProps} from '@instructure/platform-instui-bindings'
@@ -60,12 +60,11 @@ export type ContentShareUserSearchSelectorRef = {
   validate: () => boolean
 }
 
-const I18n = createI18nScope('files_v2')
-
 const ContentShareUserSearchSelector = forwardRef<
   ContentShareUserSearchSelectorRef,
   ContentShareUserSearchSelectorProps
 >(({courseId, onUserSelected, selectedUsers, ...restOfSelectProps}, ref) => {
+  const {t} = useTranslation('files_v2')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [searchedUsers, setSearchedUsers] = useState<BasicUser[] | null>(null)
@@ -77,7 +76,7 @@ const ContentShareUserSearchSelector = forwardRef<
       let valid = true
       if (selectedUsers.length === 0) {
         valid = false
-        setError(I18n.t('At least one person should be selected'))
+        setError(t('At least one person should be selected'))
       }
       if (!valid) {
         inputRef.current?.focus()
@@ -96,7 +95,7 @@ const ContentShareUserSearchSelector = forwardRef<
     return params
   }, [searchTerm])
 
-  const setFetchError = useCallback(() => setError(I18n.t('Error retrieving users')), [])
+  const setFetchError = useCallback(() => setError(t('Error retrieving users')), [])
 
   useContentShareUserSearchApi({
     courseId,
@@ -129,8 +128,8 @@ const ContentShareUserSearchSelector = forwardRef<
   const noOptionsLabel = useMemo(
     () =>
       isSearchableTerm(inputValue)
-        ? I18n.t('No Results')
-        : I18n.t('Enter at least %{count} characters', {count: MINIMUM_SEARCH_LENGTH}),
+        ? t('No Results')
+        : t('Enter at least {{count}} characters', {count: MINIMUM_SEARCH_LENGTH}),
     [inputValue],
   )
 
@@ -143,9 +142,9 @@ const ContentShareUserSearchSelector = forwardRef<
         inputElement?.removeAttribute('required')
       },
       isLoading: isLoading || searchTermIsPending,
-      renderLabel: I18n.t('Select at least one person'),
-      assistiveText: I18n.t('Enter at least %{count} characters', {count: MINIMUM_SEARCH_LENGTH}),
-      placeholder: I18n.t('Begin typing to search'),
+      renderLabel: t('Select at least one person'),
+      assistiveText: t('Enter at least {{count}} characters', {count: MINIMUM_SEARCH_LENGTH}),
+      placeholder: t('Begin typing to search'),
       noOptionsLabel,
       isRequired: true,
       messages: (error ? [{text: error, type: 'newError'}] : []) as FormMessage[],

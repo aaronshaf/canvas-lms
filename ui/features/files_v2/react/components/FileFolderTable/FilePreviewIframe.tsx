@@ -16,11 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React, {useEffect, useRef, useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import type {File} from '../../../interfaces/File'
-
-const I18n = createI18nScope('files_v2')
 
 const sandboxSettings = (item: File) => {
   const commonSettings = ['allow-downloads', 'allow-same-origin']
@@ -33,6 +31,7 @@ const sandboxSettings = (item: File) => {
 }
 
 const FilePreviewIframe = ({item}: {item: File}) => {
+  const {t} = useTranslation('files_v2')
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const [isChildFocused, setIsChildFocused] = useState(false)
 
@@ -66,7 +65,7 @@ const FilePreviewIframe = ({item}: {item: File}) => {
         height: '100%',
         display: 'block',
       }}
-      title={I18n.t('Preview for file: %{name}', {
+      title={t('Preview for file: {{name}}', {
         name: item.display_name,
       })}
     />

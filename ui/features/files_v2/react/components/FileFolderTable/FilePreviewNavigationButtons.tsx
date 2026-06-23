@@ -19,10 +19,8 @@
 import {Flex} from '@instructure/ui-flex'
 import {Button} from '@instructure/ui-buttons'
 import {IconArrowEndLine, IconArrowStartLine} from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-
-const I18n = createI18nScope('files_v2')
 
 interface FilePreviewNavigationButtonsProps {
   handleNext: () => void
@@ -33,6 +31,7 @@ export const FilePreviewNavigationButtons = ({
   handleNext,
   handlePrevious,
 }: FilePreviewNavigationButtonsProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <Flex gap="x-small">
       <Flex.Item>
@@ -47,7 +46,7 @@ export const FilePreviewNavigationButtons = ({
               <IconArrowStartLine />
             </Flex.Item>
             <Flex.Item>
-              {I18n.t('Previous')} <ScreenReaderContent>{I18n.t('File')}</ScreenReaderContent>
+              {t('Previous')} <ScreenReaderContent>{t('File')}</ScreenReaderContent>
             </Flex.Item>
           </Flex>
         </Button>
@@ -61,7 +60,7 @@ export const FilePreviewNavigationButtons = ({
         >
           <Flex gap="x-small">
             <Flex.Item>
-              {I18n.t('Next')} <ScreenReaderContent>{I18n.t('File')}</ScreenReaderContent>
+              {t('Next')} <ScreenReaderContent>{t('File')}</ScreenReaderContent>
             </Flex.Item>
             <Flex.Item>
               <IconArrowEndLine />

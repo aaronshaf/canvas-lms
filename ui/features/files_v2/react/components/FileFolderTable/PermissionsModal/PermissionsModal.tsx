@@ -25,7 +25,7 @@ import {
   showFlashSuccess,
   showFlashWarning,
 } from '@instructure/platform-alerts'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {getFilesEnv} from '../../../../utils/filesEnvUtils'
 import {
   type UpdatePermissionBody,
@@ -67,9 +67,8 @@ export type PermissionsModalProps = {
   onDismiss: () => void
 }
 
-const I18n = createI18nScope('files_v2')
-
 const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
+  const {t} = useTranslation('files_v2')
   const {contextId, contextType} = useFileManagement()
   const enableVisibility = contextType === 'course'
   const visibilityOptions = useMemo<Record<string, VisibilityOption>>(() => {
@@ -79,7 +78,7 @@ const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
     )
     return equal
       ? VISIBILITY_OPTIONS
-      : {keep: {id: 'keep', label: I18n.t('Keep')}, ...VISIBILITY_OPTIONS}
+      : {keep: {id: 'keep', label: t('Keep')}, ...VISIBILITY_OPTIONS}
   }, [items])
 
   const unlockAtDateInputRef = useRef<HTMLInputElement | null>(null)
@@ -150,7 +149,7 @@ const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
   }, [items, permissionRequestBody])
 
   const isValidByDateRange = useCallback(() => {
-    const errorMsg = I18n.t('Invalid date.')
+    const errorMsg = t('Invalid date.')
     if (dateRangeType?.id === 'start') {
       if (!unlockAt) {
         setUnlockAtError([{text: errorMsg, type: 'newError'}])
@@ -188,9 +187,7 @@ const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
       }
 
       if (unlockAt && lockAt && unlockAt > lockAt) {
-        setUnlockAtError([
-          {text: I18n.t('Unlock date cannot be after lock date.'), type: 'newError'},
-        ])
+        setUnlockAtError([{text: t('Unlock date cannot be after lock date.'), type: 'newError'}])
         unlockAtDateInputRef.current?.focus()
         return false
       }
@@ -217,20 +214,18 @@ const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
       hasItemsWithoutUsageRights &&
       availabilityOption.id !== 'unpublished'
     ) {
-      setError(
-        I18n.t('Selected items must have usage rights assigned before they can be published.'),
-      )
+      setError(t('Selected items must have usage rights assigned before they can be published.'))
       return
     }
 
     setIsRequestInFlight(true)
-    showFlashAlert({message: I18n.t('Starting update operation...')})
-    const errorMessage = I18n.t('An error occurred while setting permissions. Please try again.')
+    showFlashAlert({message: t('Starting update operation...')})
+    const errorMessage = t('An error occurred while setting permissions. Please try again.')
 
     try {
       await startUpdateOperation()
       onDismiss()
-      showFlashSuccess(I18n.t('Permissions have been successfully set.'))()
+      showFlashSuccess(t('Permissions have been successfully set.'))()
       queryClient.refetchQueries({queryKey: ['quota'], type: 'active'})
       await queryClient.refetchQueries({queryKey: ['files'], type: 'active'})
     } catch (err) {
@@ -327,7 +322,7 @@ const PermissionsModal = ({open, items, onDismiss}: PermissionsModalProps) => {
         open={open}
         onDismiss={onDismiss}
         size="small"
-        label={I18n.t('Edit Permissions')}
+        label={t('Edit Permissions')}
         shouldCloseOnDocumentClick={false}
         onEntering={resetState}
       >

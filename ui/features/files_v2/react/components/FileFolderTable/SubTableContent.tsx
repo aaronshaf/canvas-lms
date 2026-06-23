@@ -20,14 +20,12 @@ import React from 'react'
 import {View} from '@instructure/ui-view'
 import {Spinner} from '@instructure/ui-spinner'
 import {Flex} from '@instructure/ui-flex'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {NoResultsFound} from './NoResultsFound'
 import {FileUploadDrop} from '../shared/FileUploadDrop'
 import {useFileManagement} from '../../contexts/FileManagementContext'
 import {pluralizeContextTypeString} from '../../../utils/fileFolderUtils'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
-
-const I18n = createI18nScope('files_v2')
 
 const FILE_DROP_HEIGHT = 350
 export interface SubTableContentProps {
@@ -45,13 +43,14 @@ const SubTableContent = ({
   showDrop,
   handleFileDropRef,
 }: SubTableContentProps) => {
+  const {t} = useTranslation('files_v2')
   const {currentFolder, contextId, contextType} = useFileManagement()
   const isAccessRestricted = getFilesEnv().userFileAccessRestricted
 
   if (isLoading) {
     return (
       <Flex as="div" alignItems="center" justifyItems="center" padding="medium">
-        <Spinner renderTitle={I18n.t('Loading data')} />
+        <Spinner renderTitle={t('Loading data')} />
       </Flex>
     )
   }

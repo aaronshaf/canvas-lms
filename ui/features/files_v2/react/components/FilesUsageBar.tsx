@@ -17,7 +17,7 @@
  */
 
 import React, {useEffect} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ProgressBar} from '@instructure/ui-progress'
 import {Text} from '@instructure/ui-text'
 import {showFlashError} from '@instructure/platform-alerts'
@@ -27,15 +27,14 @@ import {useFileManagement} from '../contexts/FileManagementContext'
 import {Flex} from '@instructure/ui-flex'
 import {useGetQuota} from '../hooks/useGetQuota'
 
-const I18n = createI18nScope('files_v2')
-
 const FilesUsageBar = () => {
+  const {t} = useTranslation('files_v2')
   const {contextType, contextId} = useFileManagement()
   const {data, error, isLoading} = useGetQuota(contextType, contextId)
 
   useEffect(() => {
     if (error) {
-      showFlashError(I18n.t('An error occurred while loading files usage data.'))()
+      showFlashError(t('An error occurred while loading files usage data.'))()
     }
   }, [error])
 
@@ -44,7 +43,7 @@ const FilesUsageBar = () => {
   }
 
   const {quota_used = 0, quota = 1} = data || {quota_used: 0, quota: 1}
-  const filesUsageString = I18n.t('%{used} of %{quota} used', {
+  const filesUsageString = t('{{used}} of {{quota}} used', {
     used: friendlyBytes(quota_used),
     quota: friendlyBytes(data?.quota) || 0,
   })

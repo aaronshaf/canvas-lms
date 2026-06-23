@@ -31,7 +31,7 @@ import {
 import {Menu} from '@instructure/ui-menu'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {DeleteModal} from './DeleteModal'
 import {type File, type Folder} from '../../../interfaces/File'
 import {getUniqueId} from '../../../utils/fileFolderUtils'
@@ -41,8 +41,6 @@ import UsageRightsModal from './UsageRightsModal'
 import PermissionsModal from './PermissionsModal'
 import {DisabledActionsInfoButton} from './DisabledActionsInfoButton'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
-
-const I18n = createI18nScope('files_v2')
 
 export interface BulkActionButtonsProps {
   size: 'small' | 'medium' | 'large'
@@ -67,6 +65,7 @@ const BulkActionButtons = ({
   usageRightsRequiredForContext,
   rows,
 }: BulkActionButtonsProps) => {
+  const {t} = useTranslation('files_v2')
   const [modalOrTray, setModalOrTray] = useState<BulkActionModalOrTrayId | null>(null)
   const isEnabled = selectedRows.size >= 1
   const containsLockedBPItems = useMemo(
@@ -81,8 +80,8 @@ const BulkActionButtons = ({
   )
 
   const selectedText = !isEnabled
-    ? I18n.t('0 selected')
-    : I18n.t('%{selected} of %{total} selected', {selected: selectedRows.size, total: totalRows})
+    ? t('0 selected')
+    : t('{{selected}} of {{total}} selected', {selected: selectedRows.size, total: totalRows})
 
   const isSmallScreen = size === 'small'
   const buttonDisplay = isSmallScreen ? 'block' : 'inline-block'
@@ -130,9 +129,9 @@ const BulkActionButtons = ({
 
   const getTooltipText = useCallback((): string | undefined => {
     if (!isEnabled) {
-      return I18n.t('Please select an item first.')
+      return t('Please select an item first.')
     } else if (containsLockedBPItems) {
-      return I18n.t('Unselect locked items first.')
+      return t('Unselect locked items first.')
     } else {
       return
     }
@@ -171,9 +170,9 @@ const BulkActionButtons = ({
                 display={buttonDisplay}
               >
                 {isSmallScreen ? (
-                  I18n.t('Download')
+                  t('Download')
                 ) : (
-                  <ScreenReaderContent>{I18n.t('Download')}</ScreenReaderContent>
+                  <ScreenReaderContent>{t('Download')}</ScreenReaderContent>
                 )}
               </Button>,
               !isEnabled,
@@ -188,9 +187,9 @@ const BulkActionButtons = ({
                 display={buttonDisplay}
               >
                 {isSmallScreen ? (
-                  I18n.t('Delete')
+                  t('Delete')
                 ) : (
-                  <ScreenReaderContent>{I18n.t('Delete')}</ScreenReaderContent>
+                  <ScreenReaderContent>{t('Delete')}</ScreenReaderContent>
                 )}
               </Button>,
               !isEnabled || containsLockedBPItems,
@@ -208,9 +207,9 @@ const BulkActionButtons = ({
                       display={buttonDisplay}
                     >
                       {isSmallScreen ? (
-                        I18n.t('More')
+                        t('More')
                       ) : (
-                        <ScreenReaderContent>{I18n.t('Bulk Actions')}</ScreenReaderContent>
+                        <ScreenReaderContent>{t('Bulk Actions')}</ScreenReaderContent>
                       )}
                     </Button>
                   }
@@ -226,7 +225,7 @@ const BulkActionButtons = ({
                           <IconPermissionsLine inline={false} />
                         </Flex.Item>
                         <Flex.Item>
-                          <Text>{I18n.t('Edit Permissions')}</Text>
+                          <Text>{t('Edit Permissions')}</Text>
                         </Flex.Item>
                       </Flex>
                     </Menu.Item>
@@ -242,7 +241,7 @@ const BulkActionButtons = ({
                           <IconCloudLockLine inline={false} />
                         </Flex.Item>
                         <Flex.Item>
-                          <Text>{I18n.t('Manage Usage Rights')}</Text>
+                          <Text>{t('Manage Usage Rights')}</Text>
                         </Flex.Item>
                       </Flex>
                     </Menu.Item>
@@ -258,7 +257,7 @@ const BulkActionButtons = ({
                           <IconExpandItemsLine inline={false} />
                         </Flex.Item>
                         <Flex.Item>
-                          <Text>{I18n.t('Move To...')}</Text>
+                          <Text>{t('Move To...')}</Text>
                         </Flex.Item>
                       </Flex>
                     </Menu.Item>

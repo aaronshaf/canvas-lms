@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {RocketSVG} from '@instructure/canvas-media'
 import {FileDrop} from '@instructure/ui-file-drop'
 import {Flex} from '@instructure/ui-flex'
@@ -26,8 +26,6 @@ import {FileUploadModals} from '../shared/FileUploadModals'
 import {FileOptionsResults} from '../FilesHeader/UploadButton/FileOptions'
 import {queueOptionsCollectionUploads, startUpload} from '../../../utils/uploadUtils'
 import {BBFolderWrapper} from '../../../utils/fileFolderWrappers'
-
-const I18n = createI18nScope('upload_drop_zone')
 
 const isInternalMove = (e: DragEvent) => {
   // If this is an internal drag, do not treat as upload
@@ -43,6 +41,7 @@ export const DragAndDropWrapper = (
     contextType: string
   }>,
 ) => {
+  const {t} = useTranslation('upload_drop_zone')
   const [fileOptions, setFileOptions] = useState<FileOptionsResults | null>(null)
 
   // can't use 'relatedTarget' on Safari, so we use a counter to track the number of drag events
@@ -132,7 +131,7 @@ export const DragAndDropWrapper = (
               gap="large"
             >
               <RocketSVG width="180px" height="180px" />
-              <Heading variant="titleSection">{I18n.t('Drop files here to upload')}</Heading>
+              <Heading variant="titleSection">{t('Drop files here to upload')}</Heading>
             </Flex>
           }
         />

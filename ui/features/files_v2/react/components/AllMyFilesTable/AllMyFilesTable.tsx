@@ -19,7 +19,7 @@
 import React, {useState} from 'react'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
 import {Table} from '@instructure/ui-table'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import FilesHeader from '../FilesHeader/FilesHeader'
 import AllContextsNameLink from './AllContextsNameLink'
 import {Responsive} from '@instructure/ui-responsive'
@@ -28,13 +28,12 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
 
-const I18n = createI18nScope('files_v2')
-
 interface AllMyFilesTableProps {
   size: 'small' | 'medium' | 'large'
 }
 
 const AllMyFilesTable = ({size}: AllMyFilesTableProps) => {
+  const {t} = useTranslation('files_v2')
   const [sortDir, setSortDir] = useState<'ascending' | 'descending' | 'none'>('none')
   const contexts = getFilesEnv().contexts
 
@@ -73,12 +72,12 @@ const AllMyFilesTable = ({size}: AllMyFilesTableProps) => {
       <Flex justifyItems="space-between" margin="medium 0">
         <Flex.Item shouldGrow={true}>
           <Text>
-            <b>{I18n.t('All My Files')}</b>
+            <b>{t('All My Files')}</b>
           </Text>
         </Flex.Item>
       </Flex>
-      <Table caption={I18n.t('All My Files')} hover={true}>
-        <Table.Head renderSortLabel={I18n.t('Sort By')}>
+      <Table caption={t('All My Files')} hover={true}>
+        <Table.Head renderSortLabel={t('Sort By')}>
           <Table.Row>
             <Table.ColHeader
               key="name"
@@ -86,7 +85,7 @@ const AllMyFilesTable = ({size}: AllMyFilesTableProps) => {
               onRequestSort={handleRequestSort}
               sortDirection={sortDir}
             >
-              {I18n.t('Name')}
+              {t('Name')}
             </Table.ColHeader>
           </Table.Row>
         </Table.Head>
@@ -99,7 +98,7 @@ const AllMyFilesTable = ({size}: AllMyFilesTableProps) => {
         data-testid="sort-announcement"
       >
         {sortDir != 'none' &&
-          I18n.t('Sorted by name in %{sortDir} order', {
+          t('Sorted by name in {{sortDir}} order', {
             sortDir,
           })}
       </Alert>

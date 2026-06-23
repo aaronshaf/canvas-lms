@@ -21,11 +21,10 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {IconDocumentLine} from '@instructure/ui-icons'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('files_v2')
+import {useTranslation} from '@canvas/i18next'
 
 export const FileNotFound = () => {
+  const {t} = useTranslation('files_v2')
   return (
     <Flex height="100%" alignItems="center" justifyItems="center" id="file-not-found">
       <Flex.Item>
@@ -44,7 +43,7 @@ export const FileNotFound = () => {
             </Flex.Item>
             <Flex.Item>
               <Text size="x-large" weight="bold">
-                {I18n.t('File Not Found')}
+                {t('File Not Found')}
               </Text>
             </Flex.Item>
             <Flex.Item>
@@ -52,7 +51,7 @@ export const FileNotFound = () => {
                 <Flex.Item>
                   <View as="div" display="inline-block" maxWidth="350px">
                     <Text data-testid="file-not-found-message">
-                      {I18n.t(
+                      {t(
                         'The file you are looking for could not be found or you do not have permission to view it.',
                       )}
                     </Text>

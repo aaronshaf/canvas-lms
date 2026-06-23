@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {DateTimeInput} from '@instructure/ui-date-time-input'
 import type {FormMessage} from '@instructure/ui-form-field'
 import {SimpleSelect} from '@instructure/ui-simple-select'
@@ -27,8 +27,6 @@ import {
   isEndDateRequired,
   type DateRangeTypeOption,
 } from './PermissionsModalUtils'
-
-const I18n = createI18nScope('files_v2')
 
 export type DateRangeSelectProps = {
   dateRangeType: DateRangeTypeOption | null
@@ -59,12 +57,13 @@ export const DateRangeSelect = ({
   lockAtError,
   onChangeLockAt,
 }: DateRangeSelectProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <>
       <View as="div" margin="small none none none">
         <SimpleSelect
           data-testid="permissions-date-range-selector"
-          renderLabel={I18n.t('Set availability by')}
+          renderLabel={t('Set availability by')}
           value={dateRangeType?.id}
           onChange={onChangeDateRangeType}
         >
@@ -79,11 +78,11 @@ export const DateRangeSelect = ({
         <View data-testid="permissions-unlock-at" as="div" margin="small none none none">
           <DateTimeInput
             description={<></>}
-            prevMonthLabel={I18n.t('Previous month')}
-            nextMonthLabel={I18n.t('Next month')}
-            invalidDateTimeMessage={I18n.t('Invalid date')}
-            dateRenderLabel={I18n.t('Available from')}
-            timeRenderLabel={I18n.t('Time')}
+            prevMonthLabel={t('Previous month')}
+            nextMonthLabel={t('Next month')}
+            invalidDateTimeMessage={t('Invalid date')}
+            dateRenderLabel={t('Available from')}
+            timeRenderLabel={t('Time')}
             layout="columns"
             value={unlockAt || undefined}
             dateInputRef={unlockAtDateInputRef}
@@ -102,11 +101,11 @@ export const DateRangeSelect = ({
         <View data-testid="permissions-lock-at" as="div" margin="small none none none">
           <DateTimeInput
             description={<></>}
-            prevMonthLabel={I18n.t('Previous month')}
-            nextMonthLabel={I18n.t('Next month')}
-            invalidDateTimeMessage={I18n.t('Invalid date')}
-            dateRenderLabel={I18n.t('Until')}
-            timeRenderLabel={I18n.t('Time')}
+            prevMonthLabel={t('Previous month')}
+            nextMonthLabel={t('Next month')}
+            invalidDateTimeMessage={t('Invalid date')}
+            dateRenderLabel={t('Until')}
+            timeRenderLabel={t('Time')}
             layout="columns"
             value={lockAt || undefined}
             dateInputRef={lockAtDateInputRef}

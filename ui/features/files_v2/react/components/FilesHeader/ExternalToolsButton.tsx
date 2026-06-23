@@ -17,7 +17,7 @@
  */
 
 import React, {useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {ltiState} from '@canvas/lti/jquery/messages'
 import ContentTypeExternalToolTray from '@canvas/trays/react/ContentTypeExternalToolTray'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
@@ -30,14 +30,13 @@ import {View} from '@instructure/ui-view'
 import {useFileManagement} from '../../contexts/FileManagementContext'
 import {type Tool} from '@canvas/files_v2/react/modules/filesEnvFactory.types'
 
-const I18n = createI18nScope('files_v2')
-
 export interface ExternalToolsButtonProps {
   buttonDisplay: 'block' | 'inline-block'
   size: 'small' | 'medium' | 'large'
 }
 
 const ExternalToolsButton = ({buttonDisplay, size}: ExternalToolsButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const [activeTool, setActiveTool] = useState<Tool | null>(null)
   const {fileIndexMenuTools} = useFileManagement()
   const isMobile = size === 'small'
@@ -51,10 +50,10 @@ const ExternalToolsButton = ({buttonDisplay, size}: ExternalToolsButtonProps) =>
     return (
       <Button display={buttonDisplay} data-testid="lti-index-button">
         <View as="span" margin="0 x-small 0 0">
-          {I18n.t('More')}
+          {t('More')}
         </View>
         <IconArrowOpenDownLine />
-        <ScreenReaderContent>{I18n.t('External Tools Menu')}</ScreenReaderContent>
+        <ScreenReaderContent>{t('External Tools Menu')}</ScreenReaderContent>
       </Button>
     )
   }
@@ -63,7 +62,7 @@ const ExternalToolsButton = ({buttonDisplay, size}: ExternalToolsButtonProps) =>
     return (
       <IconButton
         renderIcon={IconMoreLine}
-        screenReaderLabel={I18n.t('External Tools Menu')}
+        screenReaderLabel={t('External Tools Menu')}
         data-testid="lti-index-button"
       />
     )

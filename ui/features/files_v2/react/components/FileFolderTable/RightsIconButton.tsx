@@ -17,7 +17,7 @@
  */
 
 import React, {useCallback} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {
   IconWarningLine,
@@ -29,8 +29,6 @@ import {
 } from '@instructure/ui-icons'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {type UsageRights} from '../../../interfaces/File'
-
-const I18n = createI18nScope('files_v2')
 
 interface RightsIconButtonProps {
   userCanEditFilesForContext: boolean
@@ -46,18 +44,18 @@ type RightsTooltipButtonProps = {
   onClick: () => void
 }
 
-const getIconData = (use_justification: string) => {
+const getIconData = (use_justification: string, t: (key: string) => string) => {
   switch (use_justification) {
     case 'own_copyright':
-      return {icon: <IconFilesCopyrightLine />, text: I18n.t('Own Copyright')}
+      return {icon: <IconFilesCopyrightLine />, text: t('Own Copyright')}
     case 'public_domain':
-      return {icon: <IconFilesPublicDomainLine />, text: I18n.t('Public Domain')}
+      return {icon: <IconFilesPublicDomainLine />, text: t('Public Domain')}
     case 'used_by_permission':
-      return {icon: <IconFilesObtainedPermissionLine />, text: I18n.t('Used by Permission')}
+      return {icon: <IconFilesObtainedPermissionLine />, text: t('Used by Permission')}
     case 'fair_use':
-      return {icon: <IconFilesFairUseLine />, text: I18n.t('Fair Use')}
+      return {icon: <IconFilesFairUseLine />, text: t('Fair Use')}
     case 'creative_commons':
-      return {icon: <IconFilesCreativeCommonsLine />, text: I18n.t('Creative Commons')}
+      return {icon: <IconFilesCreativeCommonsLine />, text: t('Creative Commons')}
   }
 }
 
@@ -68,6 +66,7 @@ const RightsTooltipButton = ({
   userCanEditFilesForContext,
   onClick,
 }: RightsTooltipButtonProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <Tooltip
       renderTip={title}
@@ -82,9 +81,7 @@ const RightsTooltipButton = ({
         size="small"
         shape="circle"
         screenReaderLabel={screenReaderLabel || title}
-        aria-label={
-          userCanEditFilesForContext ? I18n.t('Set usage rights') : I18n.t('Usage rights')
-        }
+        aria-label={userCanEditFilesForContext ? t('Set usage rights') : t('Usage rights')}
         disabled={!userCanEditFilesForContext}
         onClick={onClick}
       >
@@ -99,6 +96,7 @@ const RightsIconButton = ({
   usageRights,
   onClick,
 }: RightsIconButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const handleOnClick = useCallback(() => onClick?.(), [onClick])
 
   if (!usageRights) {
@@ -107,14 +105,14 @@ const RightsIconButton = ({
     return (
       <RightsTooltipButton
         icon={<IconWarningLine color="warning" />}
-        title={I18n.t('Before publishing this file, you must specify usage rights')}
+        title={t('Before publishing this file, you must specify usage rights')}
         userCanEditFilesForContext={userCanEditFilesForContext}
         onClick={handleOnClick}
       />
     )
   }
 
-  const iconData = getIconData(usageRights.use_justification)
+  const iconData = getIconData(usageRights.use_justification, t)
   if (!iconData) return null // error
 
   return (

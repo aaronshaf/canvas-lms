@@ -17,7 +17,7 @@
  */
 
 import {useMemo} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {FormMessage} from '@instructure/ui-form-field'
 import {Spinner} from '@instructure/ui-spinner'
 import {View} from '@instructure/ui-view'
@@ -33,8 +33,6 @@ import {
   type AvailabilityOption,
   type VisibilityOption,
 } from './PermissionsModalUtils'
-
-const I18n = createI18nScope('files_v2')
 
 type PermissionsModalBodyProps = {
   isRequestInFlight: boolean
@@ -85,13 +83,14 @@ export const PermissionsModalBody = ({
   lockAtError,
   onChangeLockAt,
 }: PermissionsModalBodyProps) => {
+  const {t} = useTranslation('files_v2')
   const allFolders = useMemo(() => items.every(item => !isFile(item)), [items])
 
   if (isRequestInFlight) {
     return (
       <View as="div" textAlign="center">
         <Spinner
-          renderTitle={() => I18n.t('Loading')}
+          renderTitle={() => t('Loading')}
           aria-live="polite"
           data-testid="permissions-spinner"
         />
@@ -105,7 +104,7 @@ export const PermissionsModalBody = ({
       {error && (
         <Alert
           variant="error"
-          renderCloseButtonLabel={I18n.t('Close warning message')}
+          renderCloseButtonLabel={t('Close warning message')}
           onDismiss={onDismissAlert}
           data-testid="permissions-usage-rights-alert"
         >

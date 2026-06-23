@@ -18,7 +18,7 @@
 
 import React, {useRef, useState} from 'react'
 import {Modal} from '@instructure/ui-modal'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {TextInput} from '@instructure/ui-text-input'
@@ -38,8 +38,6 @@ import {useMutation} from '@tanstack/react-query'
 import {FormMessage} from '@instructure/ui-form-field'
 import {MAX_FOLDER_NAME_LENGTH} from '../../../utils/folderUtils'
 
-const I18n = createI18nScope('files_v2')
-
 interface CreateFolderModalProps {
   isOpen: boolean
   onRequestClose: () => void
@@ -47,6 +45,7 @@ interface CreateFolderModalProps {
 }
 
 const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModalProps) => {
+  const {t} = useTranslation('files_v2')
   const [folderName, setFolderName] = useState('')
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
   const [wasRequestSuccessful, setWasRequestSuccessful] = useState(false)
@@ -79,7 +78,7 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
         setSessionExpired(true)
         return
       }
-      showFlashError(I18n.t('There was an error creating the folder. Please try again.'))()
+      showFlashError(t('There was an error creating the folder. Please try again.'))()
     },
     onSettled: () => {
       setIsRequestInFlight(false)
@@ -89,7 +88,7 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
   const handleSubmit = () => {
     if (folderName.length > MAX_FOLDER_NAME_LENGTH) {
       setErrorMessage({
-        text: I18n.t('Folder name cannot exceed 255 characters'),
+        text: t('Folder name cannot exceed 255 characters'),
         type: 'newError',
       })
       textInputRef.current?.focus()
@@ -113,7 +112,7 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
       onDismiss={onRequestClose}
       onSubmit={handleSubmit}
       onExited={handleExited}
-      label={I18n.t('Create Folder')}
+      label={t('Create Folder')}
       shouldCloseOnDocumentClick
       size="small"
       shouldReturnFocus={false}
@@ -123,15 +122,15 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
           placement="end"
           offset="small"
           onClick={onRequestClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading level="h2">{I18n.t('Create Folder')}</Heading>
+        <Heading level="h2">{t('Create Folder')}</Heading>
       </Modal.Header>
       <Modal.Body>
         {isRequestInFlight ? (
           <View as="div" textAlign="center">
             <Spinner
-              renderTitle={() => I18n.t('Creating folder')}
+              renderTitle={() => t('Creating folder')}
               margin="0 0 0 medium"
               aria-live="polite"
               data-testid="create-folder-spinner"
@@ -139,7 +138,7 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
           </View>
         ) : (
           <TextInput
-            renderLabel={I18n.t('Folder Name')}
+            renderLabel={t('Folder Name')}
             name="folderName"
             value={folderName}
             ref={textInputRef}
@@ -155,10 +154,10 @@ const CreateFolderModal = ({isOpen, onRequestClose, onExited}: CreateFolderModal
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onRequestClose} disabled={isRequestInFlight} margin="0 x-small 0 0">
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button color="primary" onClick={handleSubmit} disabled={isRequestInFlight}>
-          {I18n.t('Create Folder')}
+          {t('Create Folder')}
         </Button>
       </Modal.Footer>
     </Modal>

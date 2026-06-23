@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {
   IconPublishSolid,
@@ -29,8 +29,6 @@ import {Tooltip} from '@instructure/ui-tooltip'
 import {type File, type Folder} from '../../../interfaces/File'
 import {getRestrictedText, isPublished, isRestricted, isHidden} from '../../../utils/fileUtils'
 import {getName} from '../../../utils/fileFolderUtils'
-
-const I18n = createI18nScope('files_v2')
 
 interface PublishIconButtonProps {
   item: File | Folder
@@ -53,6 +51,7 @@ const PublishTooltipButton = ({
   permissionType,
   onClick,
 }: PublishTooltipButtonProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <Tooltip
       renderTip={tooltip}
@@ -81,11 +80,12 @@ const PublishIconButton = ({
   userCanRestrictFilesForContext,
   onClick,
 }: PublishIconButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const fileName = getName(item)
   const published = isPublished(item)
   const restricted = isRestricted(item)
   const hidden = isHidden(item)
-  const screenReaderLabel = I18n.t('%{fileName} - Click to modify', {fileName})
+  const screenReaderLabel = t('{{fileName}} - Click to modify', {fileName})
 
   if (userCanRestrictFilesForContext) {
     if (published && restricted) {
@@ -102,7 +102,7 @@ const PublishIconButton = ({
       return (
         <PublishTooltipButton
           icon={<IconOffLine />}
-          tooltip={I18n.t('Only available to students with link')}
+          tooltip={t('Only available to students with link')}
           screenReaderLabel={screenReaderLabel}
           onClick={onClick}
           permissionType="link-only"
@@ -112,7 +112,7 @@ const PublishIconButton = ({
       return (
         <PublishTooltipButton
           icon={<IconPublishSolid color="success" />}
-          tooltip={I18n.t('Published')}
+          tooltip={t('Published')}
           screenReaderLabel={screenReaderLabel}
           onClick={onClick}
           permissionType="published"
@@ -122,7 +122,7 @@ const PublishIconButton = ({
       return (
         <PublishTooltipButton
           icon={<IconUnpublishedLine />}
-          tooltip={I18n.t('Unpublished')}
+          tooltip={t('Unpublished')}
           screenReaderLabel={screenReaderLabel}
           onClick={onClick}
           permissionType="unpublished"
@@ -141,7 +141,7 @@ const PublishIconButton = ({
       >
         <IconCalendarMonthLine
           color="warning"
-          title={I18n.t('%{fileName}', {
+          title={t('{{fileName}}', {
             fileName,
           })}
           data-testid="restricted-icon"

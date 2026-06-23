@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashError} from '@instructure/platform-alerts'
 import {Button} from '@instructure/ui-buttons'
@@ -29,7 +29,6 @@ import {Flex} from '@instructure/ui-flex'
 import {reloadWindow} from '@canvas/util/globalUtils'
 import {getFilesEnv} from '../../../utils/filesEnvUtils'
 
-const I18n = createI18nScope('files_v2')
 interface TopLevelButtonsProps {
   isUserContext: boolean
   size: 'small' | 'medium' | 'large'
@@ -41,6 +40,7 @@ const TopLevelButtons = ({
   size,
   shouldHideUploadButtons = false,
 }: TopLevelButtonsProps) => {
+  const {t} = useTranslation('files_v2')
   const buttonDisplay = size === 'small' ? 'block' : 'inline-block'
 
   const createFolderButton = () => {
@@ -60,7 +60,7 @@ const TopLevelButtons = ({
 
     return (
       <UploadButton color="primary" renderIcon={<IconUploadLine />} display={buttonDisplay}>
-        {I18n.t('Upload')}
+        {t('Upload')}
       </UploadButton>
     )
   }
@@ -70,7 +70,7 @@ const TopLevelButtons = ({
     return (
       <a href="/files" tabIndex={-1}>
         <Button color="secondary" display={buttonDisplay}>
-          {I18n.t('All My Files')}
+          {t('All My Files')}
         </Button>
       </a>
     )
@@ -86,7 +86,7 @@ const TopLevelButtons = ({
         reloadWindow()
       })
       .catch(_ => {
-        showFlashError(I18n.t('Error switching to Old Files Page.'))()
+        showFlashError(t('Error switching to Old Files Page.'))()
       })
   }
 
@@ -100,7 +100,7 @@ const TopLevelButtons = ({
         onClick={handleSwitchToOldFiles}
         data-id="switch-to-old-files-button"
       >
-        {I18n.t('Switch to Old Files Page')}
+        {t('Switch to Old Files Page')}
       </Button>
     )
   }

@@ -16,11 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {type AvailabilityOption, type VisibilityOption} from './PermissionsModalUtils'
-
-const I18n = createI18nScope('files_v2')
 
 export type VisibilityOptionChangeHandler = (
   event: React.SyntheticEvent,
@@ -42,11 +40,12 @@ export const VisibilitySelect = ({
   availabilityOption,
   onChangeVisibilityOption,
 }: VisibilitySelectProps) => {
+  const {t} = useTranslation('files_v2')
   return (
     <SimpleSelect
       data-testid="permissions-visibility-selector"
       disabled={availabilityOption.id === 'unpublished'}
-      renderLabel={I18n.t('Visibility')}
+      renderLabel={t('Visibility')}
       value={visibilityOption.id}
       onChange={onChangeVisibilityOption}
     >

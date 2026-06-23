@@ -18,19 +18,18 @@
 
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
-const I18n = createI18nScope('files_v2')
-
 export const FilesGenericErrorPage = () => {
+  const {t} = useTranslation('files_v2')
   return (
     <GenericErrorPage
       imageUrl={errorShipUrl}
       onReportError={reportError}
       translations={errorPageTranslations}
-      errorSubject={I18n.t('Files Index initial query error')}
-      errorCategory={I18n.t('Files Index Error Page')}
+      errorSubject={t('Files Index initial query error')}
+      errorCategory={t('Files Index Error Page')}
     />
   )
 }

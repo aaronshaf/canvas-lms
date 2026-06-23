@@ -22,7 +22,7 @@ import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {type File, type Folder} from '../../../../interfaces/File'
 import {showFlashSuccess, showFlashError, showFlashWarning} from '@instructure/platform-alerts'
 import {UnauthorizedError} from '../../../../utils/apiUtils'
@@ -36,8 +36,6 @@ import FileFolderInfo from '../../shared/FileFolderInfo'
 import {useRowFocus, SELECT_ALL_FOCUS_STRING} from '../../../contexts/RowFocusContext'
 import {useRows} from '../../../contexts/RowsContext'
 
-const I18n = createI18nScope('files_v2')
-
 export interface DeleteModalProps {
   open: boolean
   items: (File | Folder)[]
@@ -46,6 +44,7 @@ export interface DeleteModalProps {
 }
 
 export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) {
+  const {t} = useTranslation('files_v2')
   const [isDeleting, setIsDeleting] = useState(false)
   const isDeletingOrLoading = isDeleting || items.length === 0
   const isMultiple = items.length > 1
@@ -63,13 +62,13 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
         const failedItems = error.failedItems
         let errorMessage = ''
         if (failedItems.length === 1 && items.length === 1) {
-          errorMessage = I18n.t('Failed to delete the selected item. Please try again.')
+          errorMessage = t('Failed to delete the selected item. Please try again.')
         } else {
           errorMessage =
             failedItems.length === items.length
-              ? I18n.t('Failed to delete all selected items. Please try again.')
-              : I18n.t(
-                  'Failed to delete %{failedItems} of the %{selectedItems} selected items. Please try again.',
+              ? t('Failed to delete all selected items. Please try again.')
+              : t(
+                  'Failed to delete {{failedItems}} of the {{selectedItems}} selected items. Please try again.',
                   {
                     failedItems: failedItems.length,
                     selectedItems: items.length,
@@ -86,7 +85,7 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
         }
       } else {
         // Impossible branch, makeBulkItemRequests should always throw either UnauthorizedError or BulkItemRequestsError
-        const errorMessage = I18n.t('An error occurred while deleting the items. Please try again.')
+        const errorMessage = t('An error occurred while deleting the items. Please try again.')
         showFlashError(errorMessage)()
         captureException(error)
       }
@@ -100,8 +99,8 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
       await makeBulkItemRequests(items, deleteItem)
 
       const successMessage = isMultiple
-        ? I18n.t('%{count} items deleted successfully.', {count: items.length})
-        : I18n.t('1 item deleted successfully.')
+        ? t('{{count}} items deleted successfully.', {count: items.length})
+        : t('1 item deleted successfully.')
 
       showFlashSuccess(successMessage)()
       queryClient.refetchQueries({queryKey: ['quota'], type: 'active'})
@@ -120,22 +119,22 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
       open={open}
       onDismiss={onClose}
       onExited={() => setIsDeleting(false)}
-      label={I18n.t('Delete Confirmation')}
+      label={t('Delete Confirmation')}
     >
       <Modal.Header>
         <CloseButton
           placement="end"
           offset="small"
           onClick={onClose}
-          screenReaderLabel={I18n.t('Close')}
+          screenReaderLabel={t('Close')}
         />
-        <Heading>{I18n.t('Delete Items')}</Heading>
+        <Heading>{t('Delete Items')}</Heading>
       </Modal.Header>
       <Modal.Body>
         {isDeletingOrLoading ? (
           <View as="div" textAlign="center">
             <Spinner
-              renderTitle={() => I18n.t('Deleting...')}
+              renderTitle={() => t('Deleting...')}
               margin="0 0 0 medium"
               aria-live="polite"
               data-testid="delete-spinner"
@@ -146,15 +145,15 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
             <FileFolderInfo items={items} />
             <Text>
               {isMultiple
-                ? I18n.t('Deleting these items cannot be undone. Do you want to continue?')
-                : I18n.t('Deleting this item cannot be undone. Do you want to continue?')}
+                ? t('Deleting these items cannot be undone. Do you want to continue?')
+                : t('Deleting this item cannot be undone. Do you want to continue?')}
             </Text>
           </>
         )}
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={onClose} disabled={isDeletingOrLoading} data-testid="modal-cancel-button">
-          {I18n.t('Cancel')}
+          {t('Cancel')}
         </Button>
         <Button
           data-testid="modal-delete-button"
@@ -163,7 +162,7 @@ export function DeleteModal({open, items, onClose, rowIndex}: DeleteModalProps) 
           margin="none none none small"
           disabled={isDeletingOrLoading}
         >
-          {isDeletingOrLoading ? I18n.t('Deleting...') : I18n.t('Delete')}
+          {isDeletingOrLoading ? t('Deleting...') : t('Delete')}
         </Button>
       </Modal.Footer>
     </Modal>

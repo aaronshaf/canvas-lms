@@ -17,7 +17,7 @@
  */
 
 import React, {useState} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconBlueprintLine, IconBlueprintLockLine} from '@instructure/ui-icons'
 import {type File, type Folder} from '../../../interfaces/File'
@@ -25,8 +25,6 @@ import {doFetchApiWithAuthCheck, UnauthorizedError} from '../../../utils/apiUtil
 import {showFlashError} from '@instructure/platform-alerts'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {useRows} from '../../contexts/RowsContext'
-
-const I18n = createI18nScope('files_v2')
 
 interface BlueprintIconButtonProps {
   item: File | Folder
@@ -45,6 +43,7 @@ const tooltipComponent = (title: string, child: React.ReactNode) => (
 )
 
 const BlueprintIconButton = ({item}: BlueprintIconButtonProps) => {
+  const {t} = useTranslation('files_v2')
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLocked, setIsLocked] = useState(item.restricted_by_master_course)
   const {setSessionExpired} = useRows()
@@ -71,7 +70,7 @@ const BlueprintIconButton = ({item}: BlueprintIconButtonProps) => {
           return
         }
         showFlashError(
-          I18n.t('An error occurred changing the lock state for "%{fileName}".', {fileName}),
+          t('An error occurred changing the lock state for "{{fileName}}".', {fileName}),
         )(error)
       })
       .finally(() => {
@@ -79,7 +78,7 @@ const BlueprintIconButton = ({item}: BlueprintIconButtonProps) => {
       })
   }
 
-  const title = isLocked ? I18n.t('Locked') : I18n.t('Unlocked')
+  const title = isLocked ? t('Locked') : t('Unlocked')
   const icon = isLocked ? <IconBlueprintLockLine /> : <IconBlueprintLine />
   if (item.is_master_course_master_content) {
     return tooltipComponent(
@@ -91,8 +90,8 @@ const BlueprintIconButton = ({item}: BlueprintIconButtonProps) => {
         shape="circle"
         screenReaderLabel={
           isLocked
-            ? I18n.t('%{fileName}  is Locked - Click to modify', {fileName})
-            : I18n.t('%{fileName}  is Unlocked - Click to modify', {fileName})
+            ? t('{{fileName}}  is Locked - Click to modify', {fileName})
+            : t('{{fileName}}  is Unlocked - Click to modify', {fileName})
         }
         title={title}
         onClick={handleOnClick}
