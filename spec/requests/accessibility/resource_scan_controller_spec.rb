@@ -20,10 +20,11 @@
 
 describe Accessibility::ResourceScanController do
   let(:course) { course_model }
+  let(:teacher) { teacher_in_course(course:, active_all: true).user }
 
   before do
-    allow_any_instance_of(described_class).to receive(:require_user).and_return(true)
-    allow_any_instance_of(described_class).to receive(:check_authorized_action).and_return(true)
+    course.account.enable_feature!(:a11y_checker_ga1)
+    user_session(teacher)
 
     # Create three scans with differing attributes so every sort field has
     # distinguishable values.
@@ -59,12 +60,13 @@ describe Accessibility::ResourceScanController do
   end
 
   context "when a11y_checker feature flag disabled" do
-    it "renders forbidden" do
-      allow_any_instance_of(described_class).to receive(:check_authorized_action).and_call_original
-      allow(course).to receive(:a11y_checker_enabled?).and_return(false)
+    before do
+      course.account.disable_feature!(:a11y_checker_ga1)
+    end
 
-      expect(controller).to receive(:render).with(status: :forbidden)
-      controller.send(:check_authorized_action)
+    it "renders forbidden" do
+      get "/courses/#{course.id}/accessibility/resource_scan", as: :json
+      expect(response).to have_http_status(:forbidden)
     end
   end
 
@@ -83,7 +85,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "includes discussion topic scans" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -92,7 +94,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sorts discussion topics by resource_type" do
-        get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_type", direction: "asc" }, as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -117,7 +119,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "includes announcement scans" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -126,7 +128,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sorts announcements by resource_type" do
-        get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_type", direction: "asc" }, as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -149,7 +151,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "includes syllabus scans" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -159,7 +161,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sorts syllabus by resource_type" do
-        get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_type", direction: "asc" }, as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -170,7 +172,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "returns resource_scan_path only for syllabus" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -202,7 +204,7 @@ describe Accessibility::ResourceScanController do
         resource_updated_at: 1.day.ago
       )
 
-      get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_type", direction: "asc" }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -221,7 +223,7 @@ describe Accessibility::ResourceScanController do
     %w[resource_name resource_type resource_workflow_state resource_updated_at issue_count].each do |sort_param|
       it "sorts by #{sort_param} ascending and descending" do
         # Ascending order
-        get :index, params: { course_id: course.id, sort: sort_param, direction: "asc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: sort_param, direction: "asc" }, as: :json
         expect(response).to have_http_status(:ok)
         json = response.parsed_body
         expect(json.length).to eq(3)
@@ -229,7 +231,7 @@ describe Accessibility::ResourceScanController do
         asc_values = json.pluck(sort_param)
 
         # Descending order
-        get :index, params: { course_id: course.id, sort: sort_param, direction: "desc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: sort_param, direction: "desc" }, as: :json
         expect(response).to have_http_status(:ok)
         desc_json = response.parsed_body
         expect(desc_json.length).to eq(3)
@@ -310,7 +312,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sorts by issue_count DESC, then closed_issue_count DESC when feature flag enabled" do
-        get :index, params: { course_id: course.id, sort: "issue_count", direction: "desc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "issue_count", direction: "desc" }, as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -327,7 +329,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sorts by issue_count ASC, then closed_issue_count ASC when feature flag enabled" do
-        get :index, params: { course_id: course.id, sort: "issue_count", direction: "asc" }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "issue_count", direction: "asc" }, as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -344,7 +346,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "includes closed_issue_count in response" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -381,7 +383,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "orders tied resource_name asc results by id asc" do
-          get :index, params: { course_id: course.id, sort: "resource_name", direction: "asc" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_name", direction: "asc" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -390,7 +392,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "orders tied resource_name desc results by id asc" do
-          get :index, params: { course_id: course.id, sort: "resource_name", direction: "desc" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_name", direction: "desc" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -421,7 +423,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "orders tied resource_type asc results by id asc" do
-          get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "resource_type", direction: "asc" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -475,7 +477,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "orders tied issue_count asc results by id asc when closed counts are also tied" do
-          get :index, params: { course_id: course.id, sort: "issue_count", direction: "asc" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { sort: "issue_count", direction: "asc" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -486,7 +488,7 @@ describe Accessibility::ResourceScanController do
     end
 
     it "only includes issue_count and issues for completed scans" do
-      get :index, params: { course_id: course.id }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan", as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -535,7 +537,7 @@ describe Accessibility::ResourceScanController do
       end
 
       it "sets the issue attributes" do
-        get :index, params: { course_id: course.id }, format: :json
+        get "/courses/#{course.id}/accessibility/resource_scan", as: :json
         expect(response).to have_http_status(:ok)
 
         json = response.parsed_body
@@ -595,7 +597,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "does not retrieve resolved or dismissed issues" do
-          get :index, params: { course_id: course.id }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -609,7 +611,7 @@ describe Accessibility::ResourceScanController do
 
       context "with filters" do
         it "filters by rule types" do
-          get :index, params: { course_id: course.id, filters: { ruleTypes: ["headings-start-at-h2"] } }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { ruleTypes: ["headings-start-at-h2"] } }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -618,7 +620,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "filters by resource types" do
-          get :index, params: { course_id: course.id, filters: { artifactTypes: ["assignment"] } }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { artifactTypes: ["assignment"] } }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -639,7 +641,7 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by syllabus resource type" do
-            get :index, params: { course_id: course.id, filters: { artifactTypes: ["syllabus"] } }, format: :json
+            get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { artifactTypes: ["syllabus"] } }, as: :json
             expect(response).to have_http_status(:ok)
 
             json = response.parsed_body
@@ -661,7 +663,7 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by discussion_topic resource type" do
-            get :index, params: { course_id: course.id, filters: { artifactTypes: ["discussion_topic"] } }, format: :json
+            get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { artifactTypes: ["discussion_topic"] } }, as: :json
             expect(response).to have_http_status(:ok)
 
             json = response.parsed_body
@@ -685,7 +687,7 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by announcement resource type" do
-            get :index, params: { course_id: course.id, filters: { artifactTypes: ["announcement"] } }, format: :json
+            get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { artifactTypes: ["announcement"] } }, as: :json
             expect(response).to have_http_status(:ok)
 
             json = response.parsed_body
@@ -695,7 +697,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "filters by workflow states" do
-          get :index, params: { course_id: course.id, filters: { workflowStates: ["published"] } }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { workflowStates: ["published"] } }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -704,7 +706,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "filters by date range" do
-          get :index, params: { course_id: course.id, filters: { fromDate: 2.days.ago.beginning_of_day, toDate: 1.day.ago } }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { fromDate: 2.days.ago.beginning_of_day, toDate: 1.day.ago } }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -713,7 +715,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "applies multiple filters together" do
-          get :index, params: { course_id: course.id, filters: { artifactTypes: ["wiki_page"], workflowStates: ["published"] } }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: { artifactTypes: ["wiki_page"], workflowStates: ["published"] } }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -804,9 +806,8 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by multiple rule types and sorts by issue_count descending" do
-            get :index,
+            get "/courses/#{course.id}/accessibility/resource_scan",
                 params: {
-                  course_id: course.id,
                   filters: {
                     ruleTypes: %w[img-alt img-alt-filename img-alt-length],
                     artifactTypes: %w[wiki_page]
@@ -814,7 +815,7 @@ describe Accessibility::ResourceScanController do
                   sort: "issue_count",
                   direction: "desc"
                 },
-                format: :json
+                as: :json
 
             expect(response).to have_http_status(:ok)
 
@@ -829,9 +830,8 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by multiple rule types and sorts by issue_count ascending" do
-            get :index,
+            get "/courses/#{course.id}/accessibility/resource_scan",
                 params: {
-                  course_id: course.id,
                   filters: {
                     ruleTypes: %w[img-alt img-alt-filename],
                     artifactTypes: %w[wiki_page]
@@ -839,7 +839,7 @@ describe Accessibility::ResourceScanController do
                   sort: "issue_count",
                   direction: "asc"
                 },
-                format: :json
+                as: :json
 
             expect(response).to have_http_status(:ok)
 
@@ -854,9 +854,8 @@ describe Accessibility::ResourceScanController do
           end
 
           it "filters by single rule type with artifact type and sorts by resource_type" do
-            get :index,
+            get "/courses/#{course.id}/accessibility/resource_scan",
                 params: {
-                  course_id: course.id,
                   filters: {
                     ruleTypes: %w[img-alt],
                     artifactTypes: %w[wiki_page]
@@ -864,7 +863,7 @@ describe Accessibility::ResourceScanController do
                   sort: "resource_type",
                   direction: "asc"
                 },
-                format: :json
+                as: :json
 
             expect(response).to have_http_status(:ok)
 
@@ -876,9 +875,8 @@ describe Accessibility::ResourceScanController do
           end
 
           it "combines rule type filter, artifact type filter, and resource_name sort" do
-            get :index,
+            get "/courses/#{course.id}/accessibility/resource_scan",
                 params: {
-                  course_id: course.id,
                   filters: {
                     ruleTypes: %w[img-alt-filename],
                     artifactTypes: %w[wiki_page]
@@ -886,7 +884,7 @@ describe Accessibility::ResourceScanController do
                   sort: "resource_name",
                   direction: "asc"
                 },
-                format: :json
+                as: :json
 
             expect(response).to have_http_status(:ok)
 
@@ -899,7 +897,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "returns all scans if filters are empty" do
-          get :index, params: { course_id: course.id, filters: {} }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { filters: {} }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -907,7 +905,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "filters by search term" do
-          get :index, params: { course_id: course.id, search: "Tut" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { search: "Tut" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -916,7 +914,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "filters by search term case insensitively" do
-          get :index, params: { course_id: course.id, search: "tutorial" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { search: "tutorial" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -925,7 +923,7 @@ describe Accessibility::ResourceScanController do
         end
 
         it "returns no results for non-matching search term" do
-          get :index, params: { course_id: course.id, search: "Nonexistent" }, format: :json
+          get "/courses/#{course.id}/accessibility/resource_scan", params: { search: "Nonexistent" }, as: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body
@@ -975,7 +973,7 @@ describe Accessibility::ResourceScanController do
     end
 
     it "returns empty array when no scan_ids provided" do
-      get :poll, params: { course_id: course.id }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -983,7 +981,7 @@ describe Accessibility::ResourceScanController do
     end
 
     it "returns empty array when scan_ids is empty string" do
-      get :poll, params: { course_id: course.id, scan_ids: "" }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: "" }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -994,7 +992,7 @@ describe Accessibility::ResourceScanController do
       scan1_id = queued_scan.id
       scan2_id = in_progress_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: "#{scan1_id},#{scan2_id}" }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: "#{scan1_id},#{scan2_id}" }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1014,7 +1012,7 @@ describe Accessibility::ResourceScanController do
 
       scan_id = queued_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: "#{scan_id},#{other_scan.id}" }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: "#{scan_id},#{other_scan.id}" }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1025,7 +1023,7 @@ describe Accessibility::ResourceScanController do
     it "does not include issue_count and issues for queued scans" do
       scan_id = queued_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: scan_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: scan_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1038,7 +1036,7 @@ describe Accessibility::ResourceScanController do
     it "does not include issue_count and issues for in_progress scans" do
       scan_id = in_progress_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: scan_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: scan_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1056,7 +1054,7 @@ describe Accessibility::ResourceScanController do
         rule_type: Accessibility::Rules::HeadingsStartAtH2Rule.id
       )
 
-      get :poll, params: { course_id: course.id, scan_ids: scan_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: scan_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1070,7 +1068,7 @@ describe Accessibility::ResourceScanController do
     it "does not include issue_count and issues for failed scans" do
       scan_id = failed_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: scan_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: scan_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1089,7 +1087,7 @@ describe Accessibility::ResourceScanController do
 
       scan_ids = "#{queued_id},#{in_progress_id},#{completed_id},#{failed_id}"
 
-      get :poll, params: { course_id: course.id, scan_ids: }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1114,7 +1112,7 @@ describe Accessibility::ResourceScanController do
     it "returns correct JSON structure for each scan" do
       scan_id = completed_scan.id
 
-      get :poll, params: { course_id: course.id, scan_ids: scan_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: scan_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1135,7 +1133,7 @@ describe Accessibility::ResourceScanController do
     it "handles non-existent scan IDs gracefully" do
       non_existent_id = 999_999
 
-      get :poll, params: { course_id: course.id, scan_ids: non_existent_id.to_s }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: non_existent_id.to_s }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1154,7 +1152,7 @@ describe Accessibility::ResourceScanController do
 
       scan_ids = scans.map(&:id).join(",")
 
-      get :poll, params: { course_id: course.id, scan_ids: }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: }, as: :json
       expect(response).to have_http_status(:ok)
 
       json = response.parsed_body
@@ -1173,7 +1171,7 @@ describe Accessibility::ResourceScanController do
 
       scan_ids = scans.map(&:id).join(",")
 
-      get :poll, params: { course_id: course.id, scan_ids: }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: }, as: :json
       expect(response).to have_http_status(:bad_request)
 
       json = response.parsed_body
@@ -1195,7 +1193,7 @@ describe Accessibility::ResourceScanController do
 
       scan_ids = scans.map(&:id).join(",")
 
-      get :poll, params: { course_id: course.id, scan_ids: }, format: :json
+      get "/courses/#{course.id}/accessibility/resource_scan/poll", params: { scan_ids: }, as: :json
       expect(response).to have_http_status(:bad_request)
 
       json = response.parsed_body
@@ -1207,7 +1205,6 @@ describe Accessibility::ResourceScanController do
   end
 
   describe "PATCH #close_issues" do
-    let(:user) { user_model }
     let(:wiki_page) { wiki_page_model(course:) }
     let(:scan) do
       accessibility_resource_scan_model(
@@ -1217,85 +1214,77 @@ describe Accessibility::ResourceScanController do
       )
     end
 
-    before do
-      allow_any_instance_of(described_class).to receive(:require_user) do
-        controller.instance_variable_set(:@current_user, user)
-        true
-      end
-      allow_any_instance_of(described_class).to receive(:check_authorized_action) do
-        controller.instance_variable_set(:@context, course)
-        true
-      end
-      allow_any_instance_of(described_class).to receive(:check_close_issues_feature_flag).and_return(true)
-    end
-
     context "when a11y_checker_close_issues feature flag disabled" do
       it "renders forbidden" do
         expect(Accessibility::BulkCloseIssuesService).not_to receive(:call)
 
-        allow_any_instance_of(described_class).to receive(:check_close_issues_feature_flag).and_call_original
-        # allow(course).to receive(:a11y_checker_enabled?).and_return(false)
-
-        patch :close_issues, params: { course_id: course.id, id: scan.id, close: true }, format: :json
+        patch "/courses/#{course.id}/accessibility/resource_scan/#{scan.id}/close_issues", params: { close: true }, as: :json
         expect(response).to have_http_status(:forbidden)
       end
     end
 
-    it "returns 200 and calls service with correct params" do
-      expect(Accessibility::BulkCloseIssuesService).to receive(:call).with(
-        scan:,
-        user_id: user.id,
-        close: true
-      )
+    context "when a11y_checker_close_issues feature flag enabled" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_close_issues)
+        Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+      end
 
-      patch :close_issues, params: { course_id: course.id, id: scan.id, close: true }, format: :json
-      expect(response).to have_http_status(:ok)
-    end
+      it "returns 200 and calls service with correct params" do
+        expect(Accessibility::BulkCloseIssuesService).to receive(:call).with(
+          scan:,
+          user_id: teacher.id,
+          close: true
+        )
 
-    it "returns 404 when scan does not exist" do
-      patch :close_issues, params: { course_id: course.id, id: 999_999, close: true }, format: :json
-      expect(response).to have_http_status(:not_found)
+        patch "/courses/#{course.id}/accessibility/resource_scan/#{scan.id}/close_issues", params: { close: true }, as: :json
+        expect(response).to have_http_status(:ok)
+      end
 
-      json = response.parsed_body
-      expect(json["error"]).to eq("Scan not found")
-    end
+      it "returns 404 when scan does not exist" do
+        patch "/courses/#{course.id}/accessibility/resource_scan/999999/close_issues", params: { close: true }, as: :json
+        expect(response).to have_http_status(:not_found)
 
-    it "returns 404 when scan belongs to different course" do
-      other_course = course_model
-      other_scan = accessibility_resource_scan_model(
-        course: other_course,
-        context: wiki_page_model(course: other_course),
-        workflow_state: "completed"
-      )
+        json = response.parsed_body
+        expect(json["error"]).to eq("Scan not found")
+      end
 
-      patch :close_issues, params: { course_id: course.id, id: other_scan.id, close: true }, format: :json
-      expect(response).to have_http_status(:not_found)
+      it "returns 404 when scan belongs to different course" do
+        other_course = course_model
+        other_scan = accessibility_resource_scan_model(
+          course: other_course,
+          context: wiki_page_model(course: other_course),
+          workflow_state: "completed"
+        )
 
-      json = response.parsed_body
-      expect(json["error"]).to eq("Scan not found")
-    end
+        patch "/courses/#{course.id}/accessibility/resource_scan/#{other_scan.id}/close_issues", params: { close: true }, as: :json
+        expect(response).to have_http_status(:not_found)
 
-    it "returns 422 when service raises exception" do
-      allow(Accessibility::BulkCloseIssuesService).to receive(:call).and_raise(StandardError, "Something went wrong")
+        json = response.parsed_body
+        expect(json["error"]).to eq("Scan not found")
+      end
 
-      patch :close_issues, params: { course_id: course.id, id: scan.id, close: true }, format: :json
-      expect(response).to have_http_status(:unprocessable_content)
+      it "returns 422 when service raises exception" do
+        allow(Accessibility::BulkCloseIssuesService).to receive(:call).and_raise(StandardError, "Something went wrong")
 
-      json = response.parsed_body
-      expect(json["error"]).to eq("Something went wrong")
-    end
+        patch "/courses/#{course.id}/accessibility/resource_scan/#{scan.id}/close_issues", params: { close: true }, as: :json
+        expect(response).to have_http_status(:unprocessable_content)
 
-    it "returns scan attributes in response" do
-      allow(Accessibility::BulkCloseIssuesService).to receive(:call)
+        json = response.parsed_body
+        expect(json["error"]).to eq("Something went wrong")
+      end
 
-      patch :close_issues, params: { course_id: course.id, id: scan.id, close: true }, format: :json
-      expect(response).to have_http_status(:ok)
+      it "returns scan attributes in response" do
+        allow(Accessibility::BulkCloseIssuesService).to receive(:call)
 
-      json = response.parsed_body
-      expect(json).to have_key("id")
-      expect(json).to have_key("resource_id")
-      expect(json).to have_key("workflow_state")
-      expect(json).to have_key("closed_at")
+        patch "/courses/#{course.id}/accessibility/resource_scan/#{scan.id}/close_issues", params: { close: true }, as: :json
+        expect(response).to have_http_status(:ok)
+
+        json = response.parsed_body
+        expect(json).to have_key("id")
+        expect(json).to have_key("resource_id")
+        expect(json).to have_key("workflow_state")
+        expect(json).to have_key("closed_at")
+      end
     end
   end
 end
