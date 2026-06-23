@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 import type {LtiRegistration} from '../../model/LtiRegistration'
 import type {RegistrationOverlay} from '../RegistrationSettings/RegistrationOverlayState'
@@ -27,20 +27,22 @@ export type RegistrationToken = {
 }
 
 export const getRegistrationToken = (accountId: string, registrationUrl: string) =>
-  axios
-    .get(`/api/lti/accounts/${accountId}/registration_token?registration_url=${registrationUrl}`)
-    .then(resp => resp.data as unknown as RegistrationToken)
+  doFetchApi({
+    path: `/api/lti/accounts/${accountId}/registration_token?registration_url=${registrationUrl}`,
+  }).then(({json}) => json as unknown as RegistrationToken)
 
 export const getRegistrationByUUID = (accountId: string, registrationUuid: string) =>
-  axios
-    .get(`/api/lti/accounts/${accountId}/registrations/uuid/${registrationUuid}`)
-    .then(resp => resp.data as unknown as LtiRegistration)
+  doFetchApi({
+    path: `/api/lti/accounts/${accountId}/registrations/uuid/${registrationUuid}`,
+  }).then(({json}) => json as unknown as LtiRegistration)
 
 export const updateRegistrationOverlay = (
   accountId: string,
   registrationId: number | string,
   overlay: RegistrationOverlay,
 ) =>
-  axios
-    .put(`/api/lti/accounts/${accountId}/registrations/${registrationId}/overlay`, overlay)
-    .then(resp => resp.data as unknown as LtiRegistration)
+  doFetchApi({
+    path: `/api/lti/accounts/${accountId}/registrations/${registrationId}/overlay`,
+    method: 'PUT',
+    body: overlay,
+  }).then(({json}) => json as unknown as LtiRegistration)

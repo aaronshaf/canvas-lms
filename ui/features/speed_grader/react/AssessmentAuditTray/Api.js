@@ -16,14 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import * as timezone from '@instructure/moment-utils'
 
 export default class Api {
   loadAssessmentAuditTrail(courseId, assignmentId, submissionId) {
     const url = `/courses/${courseId}/assignments/${assignmentId}/submissions/${submissionId}/audit_events`
-    return axios.get(url).then(response => {
-      const auditEvents = response.data.audit_events.map(auditEvent => ({
+    return doFetchApi({path: url}).then(({json}) => {
+      const auditEvents = json.audit_events.map(auditEvent => ({
         assignmentId: auditEvent.assignment_id,
         canvadocId: auditEvent.canvadoc_id,
         createdAt: timezone.parse(auditEvent.created_at),
@@ -36,19 +36,19 @@ export default class Api {
         userId: auditEvent.user_id,
       }))
 
-      const users = response.data.users.map(user => ({
+      const users = json.users.map(user => ({
         id: user.id,
         name: user.name,
         role: user.role,
       }))
 
-      const externalTools = response.data.tools.map(tool => ({
+      const externalTools = json.tools.map(tool => ({
         id: tool.id,
         name: tool.name,
         role: tool.role,
       }))
 
-      const quizzes = response.data.quizzes.map(quiz => ({
+      const quizzes = json.quizzes.map(quiz => ({
         id: quiz.id,
         name: quiz.name,
         role: quiz.role,

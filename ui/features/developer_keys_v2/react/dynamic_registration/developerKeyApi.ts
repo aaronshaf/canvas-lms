@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 /**
  * Updates the workflow state of a developer key
@@ -28,14 +28,15 @@ export const updateDeveloperKeyWorkflowState = (
   developerKeyId: string | number,
   workflowState: 'on' | 'off',
 ) =>
-  axios.post(
-    `/api/v1/accounts/${contextId}/developer_keys/${developerKeyId}/developer_key_account_bindings`,
-    {
+  doFetchApi({
+    path: `/api/v1/accounts/${contextId}/developer_keys/${developerKeyId}/developer_key_account_bindings`,
+    method: 'POST',
+    body: {
       developer_key_account_binding: {
         workflow_state: workflowState,
       },
     },
-  )
+  })
 
 /**
  * Deletes a developer key by id
@@ -43,6 +44,7 @@ export const updateDeveloperKeyWorkflowState = (
  * @returns
  */
 export const deleteDeveloperKey = (developerKeyId: string | number) =>
-  axios.delete(`/api/v1/developer_keys/${developerKeyId}`, {
+  doFetchApi({
+    path: `/api/v1/developer_keys/${developerKeyId}`,
     method: 'DELETE',
   })
