@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export function refreshFn(initialToken) {
   let token = initialToken
@@ -24,11 +24,13 @@ export function refreshFn(initialToken) {
 
   return done => {
     if (promise === null) {
-      promise = axios.post('/api/v1/jwts/refresh', {jwt: token}).then(resp => {
-        promise = null
-        token = resp.data.token
-        return token
-      })
+      promise = doFetchApi({path: '/api/v1/jwts/refresh', method: 'POST', body: {jwt: token}}).then(
+        ({json}) => {
+          promise = null
+          token = json.token
+          return token
+        },
+      )
     }
 
     if (typeof done === 'function') {
