@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe CoursePacesController, type: :request do
+describe CoursePacesController do
   let(:valid_update_params) do
     {
       hard_end_dates: true,
