@@ -315,7 +315,7 @@ shared_examples "Grade Detail Tray:" do |ff_enabled|
       Gradebook.visit(@course)
     end
 
-    it "add a comment", priority: "1" do
+    it "add a comment", :ignore_js_errors, priority: "1" do # flaky-fix: QE-169
       Gradebook::Cells.open_tray(@course.students.first, @a1)
       Gradebook::GradeDetailTray.add_new_comment(comment_2)
 

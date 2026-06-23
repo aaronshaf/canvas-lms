@@ -167,6 +167,7 @@ case file for the full diagnostic procedure and fix pattern.
 | Unguarded ref + `isLoading` in observer effect deps | React stuck ref | `kb/case_11.md` |
 | "expected X but nothing was raised", sibling tests stub the method | Same-file stub leak | `kb/case_12.md` Pattern E |
 | `waitFor` timeout, button disabled when `fireEvent.click` fired | Disabled-button click race | `kb/case_13.md` |
+| `PG::InFailedSqlTransaction` during synchronous worker + browser poll | Thread-unsafe SET ROLE race | `kb/case_15.md` |
 
 If no signature matches, investigate from first principles using the
 failure report MHTMLs and spec file. After fixing, decide whether to

@@ -49,7 +49,9 @@ module Canvas::Plugins::TicketingSystem
         end
       end
 
-      it "rejects an insecure URI without posting" do # flaky-fix: QE-142, QE-147, QE-155, QE-157
+      it "rejects an insecure URI without posting" do # flaky-fix: QE-142, QE-147, QE-155, QE-157, QE-169
+        # Override any leaked WebMock stub (spec_helper patches WebMock::API to stub resolve_and_validate_host)
+        allow(CanvasHttp).to receive(:resolve_and_validate_host).and_call_original
         ticketing = instance_double(Canvas::Plugins::TicketingSystem)
         report = instance_double(Canvas::Plugins::TicketingSystem::CustomError, to_document: { ok: 1 })
         plugin = WebPostPlugin.new(ticketing)

@@ -70,7 +70,12 @@ describe "content migrations", :non_parallel do
     content_migration.skip_job_progress = false
     content_migration.reset_job_progress
     worker_class = Canvas::Migration::Worker.const_get(Canvas::Plugin.find(content_migration.migration_type).settings["worker"])
-    worker_class.new(content_migration.id).perform
+    # pause_ajax prevents the server thread from handling browser poll requests
+    # while the worker runs; both threads share one PG connection, and the server
+    # thread's GuardRail SET ROLE can race with the worker's DML operations
+    pause_ajax do # flaky-fix: QE-169
+      worker_class.new(content_migration.id).perform
+    end
   end
 
   def test_search_course_field(course)
@@ -364,7 +369,7 @@ describe "content migrations", :non_parallel do
         worker_class.new(cm.id).perform
       end
 
-      it "copies all content from a course", priority: "1" do
+      it "copies all content from a course", priority: "1" do # flaky-fix: QE-169
         skip unless Qti.qti_enabled?
         visit_page
 

@@ -177,7 +177,7 @@ describe "users" do
       expect(User.last.initial_enrollment_type).to eq "student"
     end
 
-    it "registers a teacher" do
+    it "registers a teacher" do # flaky-fix: QE-169
       Account.default.terms_of_service&.update(passive: false)
 
       get "/register"
@@ -187,8 +187,9 @@ describe "users" do
       f("#teacher_name").send_keys("teacher!")
       f("#teacher_email").send_keys("teacher@example.com")
 
-      # if instructure_misc_plugin is installed, number of registration fields increase
-      if Dir.exist?("./gems/plugins/instructure_misc_plugin") || Dir.exist?("./vendor/plugins/instructure_misc_plugin")
+      # instructure_misc_plugin adds extra fields when salesforce registration is active;
+      # check the DOM rather than the filesystem to match the frontend's actual state
+      if element_exists?("#teacher_organization_type")
         set_value f("#teacher_organization_type"), "Higher Ed"
         set_value f("#teacher_school_position"), "Dean"
         f("#teacher_phone").send_keys("1231231234")
