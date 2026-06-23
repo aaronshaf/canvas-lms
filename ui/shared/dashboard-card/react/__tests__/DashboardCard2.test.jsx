@@ -19,13 +19,18 @@
 import {act, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axe from 'axe-core'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import React from 'react'
 import CourseActivitySummaryStore from '../CourseActivitySummaryStore'
 import DashboardCard from '../DashboardCard'
-import axios from '@canvas/axios'
 
 vi.mock('../CourseActivitySummaryStore')
-vi.mock('@canvas/axios')
+
+const server = setupServer()
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('DashboardCard (Legacy Tests)', () => {
   const defaultProps = {
@@ -113,7 +118,7 @@ describe('DashboardCard (Legacy Tests)', () => {
   })
 
   it('handles success removing course from favorites', async () => {
-    axios.delete.mockResolvedValue({status: 200, data: []})
+    server.use(http.delete('/api/v1/users/self/favorites/courses/1', () => HttpResponse.json([])))
     const user = userEvent.setup()
     const handleRerender = vi.fn()
     const props = {...defaultProps, onConfirmUnfavorite: handleRerender}
@@ -138,10 +143,6 @@ describe('DashboardCard (Legacy Tests)', () => {
     })
 
     await user.click(submitButton)
-
-    await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalled()
-    })
 
     await waitFor(() => {
       expect(handleRerender).toHaveBeenCalledTimes(1)
