@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe AiConversationsController, type: :request do
+describe AiConversationsController do
   before do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
