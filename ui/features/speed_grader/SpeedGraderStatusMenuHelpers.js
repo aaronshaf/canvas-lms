@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {underscoreProperties} from '@canvas/convert-case'
 
 export function determineSubmissionSelection(submission) {
@@ -51,5 +51,5 @@ export function makeSubmissionUpdateRequest(submission, isAnonymous, courseId, u
   }
 
   data.submission = underscoreProperties(submissionData)
-  return axios.put(url, data)
+  return doFetchApi({path: url, method: 'PUT', body: data})
 }
