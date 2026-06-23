@@ -18,15 +18,16 @@
 
 import React from 'react'
 import {render, fireEvent, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import createStore from '@canvas/backbone/createStore'
 import CourseHomeDialog from '../Dialog'
-import axios from '@canvas/axios'
 
-vi.mock('@canvas/axios', () => ({
-  default: {
-    put: vi.fn(),
-  },
-}))
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const store = createStore({
   selectedDefaultView: 'modules',
@@ -44,7 +45,6 @@ const getDefaultProps = () => ({
 
 describe('CourseHomeDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     store.setState({
       selectedDefaultView: 'modules',
       savedDefaultView: 'modules',
@@ -67,7 +67,13 @@ describe('CourseHomeDialog', () => {
 
   test('Saves the preference on submit', async () => {
     const onSubmit = vi.fn()
-    axios.put.mockResolvedValue({data: {default_view: 'assignments'}})
+    let captured
+    server.use(
+      http.put('/api/v1/courses/1', async ({request}) => {
+        captured = await request.json()
+        return HttpResponse.json({default_view: 'assignments'})
+      }),
+    )
 
     const {getByRole, getByLabelText} = render(
       <CourseHomeDialog {...getDefaultProps()} onSubmit={onSubmit} />,
@@ -79,12 +85,8 @@ describe('CourseHomeDialog', () => {
     const saveButton = getByRole('button', {name: 'Save'})
     fireEvent.click(saveButton)
 
-    await waitFor(() =>
-      expect(axios.put).toHaveBeenCalledWith('/api/v1/courses/1', {
-        course: {default_view: 'assignments'},
-      }),
-    )
-    expect(onSubmit).toHaveBeenCalled()
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled())
+    expect(captured).toEqual({course: {default_view: 'assignments'}})
   })
 
   test('calls onRequestClose when cancel is clicked', () => {

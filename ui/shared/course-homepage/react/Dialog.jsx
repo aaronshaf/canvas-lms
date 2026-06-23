@@ -18,7 +18,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import {RadioInputGroup, RadioInput} from '@instructure/ui-radio-input'
 import {Button} from '@instructure/ui-buttons'
@@ -221,11 +221,11 @@ class CourseHomeDialog extends React.Component {
     const {selectedDefaultView, savedDefaultView} = this.state
     let savingPromise
     if (selectedDefaultView !== savedDefaultView) {
-      savingPromise = axios
-        .put(`/api/v1/courses/${this.props.courseId}`, {
-          course: {default_view: this.state.selectedDefaultView},
-        })
-        .then(({data: course}) => course.default_view)
+      savingPromise = doFetchApi({
+        path: `/api/v1/courses/${this.props.courseId}`,
+        method: 'PUT',
+        body: {course: {default_view: this.state.selectedDefaultView}},
+      }).then(({json}) => json.default_view)
     } else {
       savingPromise = Promise.resolve(savedDefaultView)
     }
