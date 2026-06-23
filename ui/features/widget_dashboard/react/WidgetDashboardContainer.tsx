@@ -32,7 +32,6 @@ import {
   autoFocusObserverPicker,
 } from '@canvas/observer-picker/util/pageReloadHelper'
 import {useWidgetDashboard} from './hooks/useWidgetDashboardContext'
-import FeedbackQuestionTile from './components/FeedbackQuestionTile'
 import {useResponsiveContext} from './hooks/useResponsiveContext'
 import {useWidgetDashboardEdit} from './hooks/useWidgetDashboardEdit'
 import {useWidgetLayout} from './hooks/useWidgetLayout'
@@ -193,9 +192,6 @@ const WidgetDashboardContainer: React.FC = () => {
             </View>
           </Flex.Item>
         )}
-        <Flex.Item>
-          <FeedbackQuestionTile />
-        </Flex.Item>
       </Flex>
       <DashboardTabs />
     </View>
