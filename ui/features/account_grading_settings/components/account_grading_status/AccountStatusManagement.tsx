@@ -19,7 +19,7 @@
 import React, {useEffect, useState} from 'react'
 import {showFlashError} from '@instructure/platform-alerts'
 import type {GradeStatus, GradeStatusType} from '@canvas/grading/accountGradingStatus'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {getLiveRegion} from '@instructure/platform-instui-bindings'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {Alert} from '@instructure/ui-alerts'
@@ -31,8 +31,6 @@ import {CustomStatusItem} from './CustomStatusItem'
 import {StandardStatusItem} from './StandardStatusItem'
 import {CustomStatusNewItem} from './CustomStatusNewItem'
 import {useAccountGradingStatuses} from '../../hooks/useAccountGradingStatuses'
-
-const I18n = createI18nScope('account_grading_status')
 
 const {Row: GridRow, Col: GridCol} = Grid as any
 
@@ -48,6 +46,7 @@ export const AccountStatusManagement = ({
   rootAccountId,
   isExtendedStatusEnabled,
 }: AccountStatusManagementProps) => {
+  const {t} = useTranslation('account_grading_status')
   const {
     customStatuses,
     hasDeleteCustomStatusError,
@@ -65,21 +64,21 @@ export const AccountStatusManagement = ({
 
   useEffect(() => {
     if (isLoadingStatusError) {
-      showFlashError(I18n.t('Error loading grading statuses'))(new Error())
+      showFlashError(t('Error loading grading statuses'))(new Error())
     }
   }, [isLoadingStatusError])
 
   useEffect(() => {
     if (hasSaveCustomStatusError || hasSaveStandardStatusError) {
-      const statusType = hasSaveCustomStatusError ? I18n.t('custom') : I18n.t('standard')
-      const flashText = I18n.t('Error saving %{statusType} status', {statusType})
+      const statusType = hasSaveCustomStatusError ? t('custom') : t('standard')
+      const flashText = t('Error saving {{statusType}} status', {statusType})
       showFlashError(flashText)(new Error())
     }
   }, [hasSaveCustomStatusError, hasSaveStandardStatusError])
 
   useEffect(() => {
     if (hasDeleteCustomStatusError) {
-      showFlashError(I18n.t('Error deleting custom status'))(new Error())
+      showFlashError(t('Error deleting custom status'))(new Error())
     }
   }, [hasDeleteCustomStatusError])
 
@@ -134,7 +133,7 @@ export const AccountStatusManagement = ({
         <GridRow>
           <GridCol width={{large: 4}}>
             <Heading level="h2">
-              <Text size="large">{I18n.t('Standard Statuses')}</Text>
+              <Text size="large">{t('Standard Statuses')}</Text>
             </Heading>
             {standardStatuses.map(gradeStatus => {
               const editStatusId = getEditStatusId(gradeStatus.id, 'standard')
@@ -154,7 +153,7 @@ export const AccountStatusManagement = ({
           </GridCol>
           <GridCol>
             <Heading level="h2">
-              <Text size="large">{I18n.t('Custom Statuses')}</Text>
+              <Text size="large">{t('Custom Statuses')}</Text>
             </Heading>
             {customStatuses.map(gradeStatus => {
               const editStatusId = getEditStatusId(gradeStatus.id, 'custom')

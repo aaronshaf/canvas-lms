@@ -19,7 +19,7 @@
 import React, {useEffect, useState} from 'react'
 import {TextInput} from '@instructure/ui-text-input'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {Color} from '@canvas/grading-status-list-item'
 import '@canvas/rails-flash-notifications'
 import {Tooltip} from '@instructure/ui-tooltip'
@@ -27,8 +27,6 @@ import {IconWarningSolid, IconCheckSolid} from '@instructure/ui-icons'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
-
-const I18n = createI18nScope('calendar_color_picker')
 
 const COLORS_PER_ROW = 5
 const DEFAULT_COLOR_PREVIEW = '#FFFFFF'
@@ -68,6 +66,7 @@ export const ColorPicker = ({
   setStatusColor,
   setIsValidColor,
 }: ColorPickerProps) => {
+  const {t} = useTranslation('calendar_color_picker')
   const [currentColor, setCurrentColor] = useState(defaultColor)
   const [isValidHex, setIsValidHex] = useState(checkIfValidHex(defaultColor, allowWhite))
 
@@ -82,12 +81,9 @@ export const ColorPicker = ({
   const warnIfInvalid = () => {
     if (!isValidHex) {
       showFlashAlert({
-        message: I18n.t(
-          "'%{chosenColor}' is not a valid color. Enter a valid hexcode before saving.",
-          {
-            chosenColor: currentColor,
-          },
-        ),
+        message: t("'{{chosenColor}}' is not a valid color. Enter a valid hexcode before saving.", {
+          chosenColor: currentColor,
+        }),
         type: 'warning',
         srOnly: true,
       })
@@ -130,7 +126,7 @@ export const ColorPicker = ({
             <TextInput
               renderLabel={
                 <ScreenReaderContent>
-                  {I18n.t('Enter a hexcode here to use a custom color.')}
+                  {t('Enter a hexcode here to use a custom color.')}
                 </ScreenReaderContent>
               }
               value={currentColor}
@@ -146,7 +142,7 @@ export const ColorPicker = ({
                             <View as="div" display="inline-block" margin="0 xxx-small xx-small 0">
                               <IconWarningSolid />
                             </View>
-                            {I18n.t('Invalid format')}
+                            {t('Invalid format')}
                           </View>
                         ),
                       },
@@ -167,12 +163,13 @@ type ColorPreviewProps = {
   isValidHex: boolean
 }
 const ColorPreview = ({currentColor, isValidHex}: ColorPreviewProps) => {
+  const {t} = useTranslation('calendar_color_picker')
   const previewColor = getHexValue(isValidHex ? currentColor : DEFAULT_COLOR_PREVIEW)
 
   return (
     <ColorTile hexcode={previewColor} isFocusable={false}>
       {!isValidHex && (
-        <Tooltip renderTip={I18n.t('Invalid hexcode')}>
+        <Tooltip renderTip={t('Invalid hexcode')}>
           <IconWarningSolid color="error" id="ColorPicker__InvalidHex" />
         </Tooltip>
       )}
@@ -187,6 +184,7 @@ type ColorRowsProps = {
   handleOnClick: (hexcode: string) => void
 }
 const ColorRow = ({colors, colorLabels, currentColor, handleOnClick}: ColorRowsProps) => {
+  const {t} = useTranslation('calendar_color_picker')
   return (
     <Flex wrap="wrap" justifyItems="space-between" margin="small 0 0 0">
       {colors.map(color => {
@@ -201,11 +199,11 @@ const ColorRow = ({colors, colorLabels, currentColor, handleOnClick}: ColorRowsP
               handleOnClick={() => handleOnClick(hexcode)}
             >
               <ScreenReaderContent>
-                {I18n.t('Color Option %{colorLabel}, hex code: %{hexcode}', {colorLabel, hexcode})}
+                {t('Color Option {{colorLabel}}, hex code: {{hexcode}}', {colorLabel, hexcode})}
               </ScreenReaderContent>
               {isSelected && (
                 <>
-                  <ScreenReaderContent>{I18n.t('Currently Selected Color')}</ScreenReaderContent>
+                  <ScreenReaderContent>{t('Currently Selected Color')}</ScreenReaderContent>
                   <IconCheckSolid />
                 </>
               )}

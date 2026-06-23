@@ -26,10 +26,8 @@ import {Flex} from '@instructure/ui-flex'
 import ReportRun from './ReportRun'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {AccountReport} from '@canvas/account_reports/types'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Alert} from '@instructure/ui-alerts'
-
-const I18n = createI18nScope('account_reports')
 
 type Props = {
   accountId: string
@@ -39,13 +37,14 @@ type Props = {
 }
 
 export default function ReportHistoryModal({accountId, report, updatedReport, closeModal}: Props) {
+  const {t} = useTranslation('account_reports')
   const renderCloseButton = () => {
     return (
       <CloseButton
         placement="end"
         offset="small"
         onClick={closeModal}
-        screenReaderLabel={I18n.t('Close')}
+        screenReaderLabel={t('Close')}
       />
     )
   }
@@ -67,9 +66,9 @@ export default function ReportHistoryModal({accountId, report, updatedReport, cl
 
   const renderModalBody = () => {
     if (error) {
-      return <Alert variant="error">{I18n.t('Failed loading report history')}</Alert>
+      return <Alert variant="error">{t('Failed loading report history')}</Alert>
     } else if (isLoading) {
-      return <Spinner renderTitle={I18n.t('Loading report history...')} />
+      return <Spinner renderTitle={t('Loading report history...')} />
     } else if (reportHistory) {
       return (
         <Flex direction="column">
@@ -86,10 +85,10 @@ export default function ReportHistoryModal({accountId, report, updatedReport, cl
   }
 
   return (
-    <Modal label={I18n.t('Report History')} open={true} size="large" onDismiss={closeModal}>
+    <Modal label={t('Report History')} open={true} size="large" onDismiss={closeModal}>
       <Modal.Header>
         {renderCloseButton()}
-        <Heading>{I18n.t('Report History')}</Heading>
+        <Heading>{t('Report History')}</Heading>
       </Modal.Header>
       <Modal.Body>{renderModalBody()}</Modal.Body>
     </Modal>

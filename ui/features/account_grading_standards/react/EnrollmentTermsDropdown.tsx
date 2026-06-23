@@ -18,10 +18,8 @@
 
 import React, {useRef} from 'react'
 import {sortBy, map, filter} from 'es-toolkit/compat'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import type {EnrollmentTerm} from './types'
-
-const I18n = createI18nScope('EnrollmentTermsDropdown')
 
 interface EnrollmentTermsDropdownProps {
   terms: EnrollmentTerm[]
@@ -32,6 +30,7 @@ const EnrollmentTermsDropdown = ({
   terms,
   changeSelectedEnrollmentTerm,
 }: EnrollmentTermsDropdownProps) => {
+  const {t} = useTranslation('EnrollmentTermsDropdown')
   const termsDropdownRef = useRef<HTMLSelectElement>(null)
 
   const sortedTerms = (termsList: EnrollmentTerm[]): EnrollmentTerm[] => {
@@ -46,7 +45,7 @@ const EnrollmentTermsDropdown = ({
   const termOptions = (termsList: EnrollmentTerm[]) => {
     const allTermsOption = (
       <option key={0} value={0}>
-        {I18n.t('All Terms')}
+        {t('All Terms')}
       </option>
     )
     const options = map(sortedTerms(termsList), term => (

@@ -19,15 +19,13 @@
 import React, {useRef} from 'react'
 import {GradingStatusListItem} from '@canvas/grading-status-list-item'
 import type {GradeStatus, StandardStatusAllowedName} from '@canvas/grading/accountGradingStatus'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Grid} from '@instructure/ui-grid'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {EditStatusPopover} from './EditStatusPopover'
 import {statusesTitleMap} from '../../utils/accountStatusUtils'
 import {STATUS_ICONS} from '@canvas/grading/gradingStatus'
-
-const I18n = createI18nScope('standard_grading_status')
 
 type StandardStatusItemProps = {
   editable: boolean
@@ -43,6 +41,7 @@ export const StandardStatusItem = ({
   handleEditSave,
   handleEditStatusToggle,
 }: StandardStatusItemProps) => {
+  const {t} = useTranslation('standard_grading_status')
   const {color, name} = gradeStatus
   const standardStatusRef = useRef<HTMLDivElement | undefined>(undefined)
 
@@ -74,7 +73,7 @@ export const StandardStatusItem = ({
               <Grid.Col width="auto">
                 <EditStatusPopover
                   currentColor={color}
-                  editButtonLabel={`${I18n.t('Standard Status')} ${statusName}`}
+                  editButtonLabel={`${t('Standard Status')} ${statusName}`}
                   isOpen={isEditOpen}
                   handleEditSave={handleEditSave}
                   handleEditStatusToggle={handleEditStatusToggle}

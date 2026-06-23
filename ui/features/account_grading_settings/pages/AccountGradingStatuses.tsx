@@ -19,12 +19,10 @@
 import React, {useEffect, useState} from 'react'
 import {useMatch} from 'react-router-dom'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {AccountStatusManagement} from '../components/account_grading_status/AccountStatusManagement'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv.d'
-
-const I18n = createI18nScope('account_grading_status')
 
 declare const ENV: GlobalEnv & {
   IS_ROOT_ACCOUNT: boolean
@@ -32,6 +30,7 @@ declare const ENV: GlobalEnv & {
 }
 
 export function Component() {
+  const {t} = useTranslation('account_grading_status')
   const pathMatch = useMatch('/accounts/:accountId/*')
   const accountId = pathMatch?.params?.accountId
   if (!accountId) {
@@ -42,7 +41,7 @@ export function Component() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = I18n.t('Account Custom Statuses')
+    document.title = t('Account Custom Statuses')
     setClient(createClient())
     setLoading(false)
   }, [])

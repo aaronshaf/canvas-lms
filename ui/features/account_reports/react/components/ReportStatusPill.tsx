@@ -17,22 +17,21 @@
  */
 
 import {Pill} from '@instructure/ui-pill'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('account_reports')
+import {useTranslation} from '@canvas/i18next'
 
 type Props = {
   status: 'created' | 'running' | 'compiling' | 'complete' | 'error' | 'aborted'
 }
 
 export default function ReportStatusPill({status}: Props) {
+  const {t} = useTranslation('account_reports')
   const statusPillText = {
-    created: I18n.t('Pending'),
-    running: I18n.t('Running'),
-    compiling: I18n.t('Compiling'),
-    complete: I18n.t('Completed'),
-    error: I18n.t('Failed'),
-    aborted: I18n.t('Canceled'),
+    created: t('Pending'),
+    running: t('Running'),
+    compiling: t('Compiling'),
+    complete: t('Completed'),
+    error: t('Failed'),
+    aborted: t('Canceled'),
   }
 
   const statusPillColor: Record<

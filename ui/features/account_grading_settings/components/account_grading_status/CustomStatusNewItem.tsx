@@ -18,13 +18,11 @@
 
 import React, {useRef} from 'react'
 import {colorPickerColors, GradingStatusListItem} from '@canvas/grading-status-list-item'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconAddSolid} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {EditStatusPopover} from './EditStatusPopover'
-
-const I18n = createI18nScope('account_grading_status')
 
 type CustomStatusNewItemProps = {
   index: number
@@ -38,6 +36,7 @@ export const CustomStatusNewItem = ({
   handleEditStatusToggle,
   handleSave,
 }: CustomStatusNewItemProps) => {
+  const {t} = useTranslation('account_grading_status')
   const customStatusItemRef = useRef<HTMLElement | undefined>(undefined)
 
   return (
@@ -72,7 +71,7 @@ export const CustomStatusNewItem = ({
           <Text as="div" size="medium" color="brand" weight="bold" wrap="break-word">
             <IconAddSolid color="brand" />
             <View as="span" margin="0 0 0 x-small" display="inline-block">
-              {I18n.t('Add Status')}
+              {t('Add Status')}
             </View>
           </Text>
         </View>

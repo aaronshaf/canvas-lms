@@ -12,6 +12,18 @@
   "DueDateOverrideView": {
     "Mark as important date and show on homeroom sidebar": "Mark as important date and show on homeroom sidebar"
   },
+  "EnrollmentTermInput": {
+    "Active": "Active",
+    "Attach terms": "Attach terms",
+    "Future": "Future",
+    "No unassigned terms": "No unassigned terms",
+    "Past": "Past",
+    "Type or use arrow keys to navigate options. Multiple selections allowed.": "Type or use arrow keys to navigate options. Multiple selections allowed.",
+    "Undated": "Undated"
+  },
+  "EnrollmentTermsDropdown": {
+    "All Terms": "All Terms"
+  },
   "GradingSchemeManagement": {
     "Account default grading scheme": "Account default grading scheme",
     "Account default grading scheme was successfully saved.": "Account default grading scheme was successfully saved.",
@@ -118,6 +130,9 @@
     "This is a course-level outcome": "This is a course-level outcome",
     "This is an institution-level outcome": "This is an institution-level outcome"
   },
+  "SearchGradingPeriodsField": {
+    "Search grading periods...": "Search grading periods..."
+  },
   "UsedLocationsModal": {
     "Accounts": "Accounts",
     "Close": "Close",
@@ -140,17 +155,91 @@
     "The Acceptable Use Policy is currently unavailable. Please check back later or contact support if you need further assistance.": "The Acceptable Use Policy is currently unavailable. Please check back later or contact support if you need further assistance.",
     "Unable to load the Acceptable Use Policy. Please try again later or contact support if the issue persists.": "Unable to load the Acceptable Use Policy. Please try again later or contact support if the issue persists."
   },
+  "account_grading_status": {
+    "Account Custom Statuses": "Account Custom Statuses",
+    "Add Status": "Add Status",
+    "Are you sure you want to delete this custom status? This action cannot be undone. All submissions and scores currently marked with this custom status will have their status removed.": "Are you sure you want to delete this custom status? This action cannot be undone. All submissions and scores currently marked with this custom status will have their status removed.",
+    "Cancel": "Cancel",
+    "Custom Status": "Custom Status",
+    "Custom Status Name": "Custom Status Name",
+    "Custom Statuses": "Custom Statuses",
+    "Custom status {{savedName}} added": "Custom status {{savedName}} added",
+    "Custom status {{savedName}} updated": "Custom status {{savedName}} updated",
+    "Delete": "Delete",
+    "Delete Custom Status?": "Delete Custom Status?",
+    "Delete Status {{name}}": "Delete Status {{name}}",
+    "Deleting custom status {{statusName}}": "Deleting custom status {{statusName}}",
+    "Edit Status Dialog for {{editButtonLabel}}": "Edit Status Dialog for {{editButtonLabel}}",
+    "Error deleting custom status": "Error deleting custom status",
+    "Error loading grading statuses": "Error loading grading statuses",
+    "Error saving {{statusType}} status": "Error saving {{statusType}} status",
+    "Open Edit Status Dialog for {{editButtonLabel}}": "Open Edit Status Dialog for {{editButtonLabel}}",
+    "Save": "Save",
+    "Saving custom status {{name}}": "Saving custom status {{name}}",
+    "Saving {{statusName}} status": "Saving {{statusName}} status",
+    "Standard Statuses": "Standard Statuses",
+    "Status Color": "Status Color",
+    "Successfully deleted custom status {{statusName}}": "Successfully deleted custom status {{statusName}}",
+    "custom": "custom",
+    "standard": "standard",
+    "{{statusName}} status successfully saved": "{{statusName}} status successfully saved"
+  },
   "account_reports": {
+    "Cancel report": "Cancel report",
+    "Canceled": "Canceled",
+    "Canceling ({{progress}}%)": "Canceling ({{progress}}%)",
     "Close": "Close",
+    "Compiling": "Compiling",
+    "Compiling ({{progress}}%)": "Compiling ({{progress}}%)",
+    "Completed": "Completed",
     "Configure Report": "Configure Report",
+    "Configure Run...": "Configure Run...",
+    "Details for {{title}}": "Details for {{title}}",
+    "Download report": "Download report",
+    "Error ({{progress}}%)": "Error ({{progress}}%)",
+    "Error canceling report": "Error canceling report",
+    "Error running report": "Error running report",
+    "Error updating report progress": "Error updating report progress",
+    "Failed": "Failed",
+    "Failed loading report history": "Failed loading report history",
+    "Failed to load available reports": "Failed to load available reports",
     "Failed to start report.": "Failed to start report.",
+    "Finished:": "Finished:",
+    "Initiator:": "Initiator:",
     "Invalid date and time.": "Invalid date and time.",
+    "Last Run": "Last Run",
+    "Loading report history...": "Loading report history...",
+    "Loading reports...": "Loading reports...",
+    "Name": "Name",
+    "Never": "Never",
     "Next month": "Next month",
+    "Pending": "Pending",
     "Previous month": "Previous month",
+    "Processing ({{progress}}%)": "Processing ({{progress}}%)",
     "Report Description": "Report Description",
+    "Report History": "Report History",
+    "Report progress": "Report progress",
+    "Report {{title}} completed successfully": "Report {{title}} completed successfully",
+    "Report {{title}} failed to complete": "Report {{title}} failed to complete",
+    "Report {{title}} was canceled": "Report {{title}} was canceled",
+    "Reports": "Reports",
     "Run Report": "Run Report",
+    "Running": "Running",
+    "Running ({{progress}}%)": "Running ({{progress}}%)",
+    "Started:": "Started:",
+    "Starting ({{progress}}%)": "Starting ({{progress}}%)",
     "Starting report": "Starting report",
     "Time": "Time"
+  },
+  "accounts.statistics": {
+    "Close": "Close",
+    "Date": "Date",
+    "Download CSV": "Download CSV",
+    "Failed to fetch graph data": "Failed to fetch graph data",
+    "Fetching graph data": "Fetching graph data",
+    "Graph of {{data_point}} Over Time": "Graph of {{data_point}} Over Time",
+    "Value": "Value",
+    "{{name}} Over Time": "{{name}} Over Time"
   },
   "admin_split": {
     "Cancel": "Cancel",
@@ -201,6 +290,14 @@
     "Assignments 2 Teacher Error Page": "Assignments 2 Teacher Error Page",
     "Assignments 2 Teacher initial query error": "Assignments 2 Teacher initial query error",
     "Loading": "Loading"
+  },
+  "calendar_color_picker": {
+    "'{{chosenColor}}' is not a valid color. Enter a valid hexcode before saving.": "'{{chosenColor}}' is not a valid color. Enter a valid hexcode before saving.",
+    "Color Option {{colorLabel}}, hex code: {{hexcode}}": "Color Option {{colorLabel}}, hex code: {{hexcode}}",
+    "Currently Selected Color": "Currently Selected Color",
+    "Enter a hexcode here to use a custom color.": "Enter a hexcode here to use a custom color.",
+    "Invalid format": "Invalid format",
+    "Invalid hexcode": "Invalid hexcode"
   },
   "catalog": {
     "Close enrollment dialog": "Close enrollment dialog",
@@ -776,6 +873,12 @@
     "All Modules": "All Modules",
     "Module Filter": "Module Filter"
   },
+  "gradingCourseTabContainer": {
+    "Account Grading Settings": "Account Grading Settings",
+    "Grading Periods": "Grading Periods",
+    "Grading Schemes": "Grading Schemes",
+    "Statuses": "Statuses"
+  },
   "groupNavigationSelector": {
     "Select Group": "Select Group",
     "Use arrow keys to navigate options.": "Use arrow keys to navigate options."
@@ -853,6 +956,9 @@
     "Import Failures": "Import Failures",
     "The import failed for the following file(s):": "The import failed for the following file(s):",
     "This import failure was due to the following:": "This import failure was due to the following:"
+  },
+  "standard_grading_status": {
+    "Standard Status": "Standard Status"
   },
   "study_assist": {
     "1 flashcard generated": "1 flashcard generated",

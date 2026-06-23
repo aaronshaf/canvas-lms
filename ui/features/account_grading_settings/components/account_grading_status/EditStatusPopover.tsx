@@ -18,7 +18,7 @@
 
 import React, {useState} from 'react'
 import {colorPickerColors, defaultColorLabels} from '@canvas/grading-status-list-item'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {IconEditSolid} from '@instructure/ui-icons'
 import {Popover} from '@instructure/ui-popover'
@@ -27,8 +27,6 @@ import {TextInput} from '@instructure/ui-text-input'
 import {View} from '@instructure/ui-view'
 import {ColorPicker} from './ColorPicker'
 import {Flex} from '@instructure/ui-flex'
-
-const I18n = createI18nScope('account_grading_status')
 
 type EditStatusPopoverProps = {
   currentColor: string
@@ -52,6 +50,7 @@ export const EditStatusPopover = ({
   handleEditSave,
   handleEditStatusToggle,
 }: EditStatusPopoverProps) => {
+  const {t} = useTranslation('account_grading_status')
   const [selectedColor, setSelectedColor] = useState(currentColor)
   const [isSelectedColorValid, setIsSelectedColorValid] = useState(true)
   const [updatedCustomStatusName, setUpdatedCustomStatusName] = useState(customStatusName)
@@ -63,14 +62,14 @@ export const EditStatusPopover = ({
       shouldReturnFocus={true}
       shouldContainFocus={true}
       positionTarget={positionTarget}
-      screenReaderLabel={I18n.t('Edit Status Dialog for %{editButtonLabel}', {editButtonLabel})}
+      screenReaderLabel={t('Edit Status Dialog for {{editButtonLabel}}', {editButtonLabel})}
       renderTrigger={
         !hideRenderTrigger && (
           <IconButton
             size="small"
             withBackground={false}
             withBorder={false}
-            screenReaderLabel={I18n.t('Open Edit Status Dialog for %{editButtonLabel}', {
+            screenReaderLabel={t('Open Edit Status Dialog for {{editButtonLabel}}', {
               editButtonLabel,
             })}
             onClick={handleEditStatusToggle}
@@ -86,7 +85,7 @@ export const EditStatusPopover = ({
           <View as="div" margin="small 0 0 0">
             <TextInput
               data-testid="custom-status-name-input"
-              renderLabel={I18n.t('Custom Status Name')}
+              renderLabel={t('Custom Status Name')}
               value={updatedCustomStatusName ?? ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setUpdatedCustomStatusName(e.target.value.substring(0, 14))
@@ -96,7 +95,7 @@ export const EditStatusPopover = ({
         )}
         <View as="div" margin="small 0 0 0">
           <Text size="medium" weight="bold">
-            {I18n.t('Status Color')}
+            {t('Status Color')}
           </Text>
         </View>
         <ColorPicker
@@ -116,7 +115,7 @@ export const EditStatusPopover = ({
                 setUpdatedCustomStatusName(customStatusName)
               }}
             >
-              {I18n.t('Cancel')}
+              {t('Cancel')}
             </Button>
             <Button
               data-testid="save-status-button"
@@ -127,7 +126,7 @@ export const EditStatusPopover = ({
                 handleEditSave(selectedColor, updatedCustomStatusName ?? '')
               }}
             >
-              {I18n.t('Save')}
+              {t('Save')}
             </Button>
           </Flex.Item>
         </Flex>

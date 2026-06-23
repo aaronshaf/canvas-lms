@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import React, {useState} from 'react'
 import {Table} from '@instructure/ui-table'
 import {Link} from '@instructure/ui-link'
@@ -43,14 +43,13 @@ import ReportDescription from '@canvas/account_reports/react/ReportDescription'
 import ReportHistoryModal from './ReportHistoryModal'
 import ReportAction from './ReportAction'
 
-const I18n = createI18nScope('account_reports')
-
 type Props = {
   accountId: string
   reports: AccountReportInfo[]
 }
 
 export default function ReportsTable({accountId, reports}: Props) {
+  const {t} = useTranslation('account_reports')
   const [describedReport, setDescribedReport] = useState<AccountReportInfo | null>(null)
   const [historyReport, setHistoryReport] = useState<AccountReportInfo | null>(null)
 
@@ -62,13 +61,13 @@ export default function ReportsTable({accountId, reports}: Props) {
         reports.find(r => r.report === updatedReport.report)?.title || updatedReport.report
       switch (updatedReport.status) {
         case 'complete':
-          showFlashSuccess(I18n.t('Report %{title} completed successfully', {title}))()
+          showFlashSuccess(t('Report {{title}} completed successfully', {title}))()
           break
         case 'error':
-          showFlashWarning(I18n.t('Report %{title} failed to complete', {title}))()
+          showFlashWarning(t('Report {{title}} failed to complete', {title}))()
           break
         case 'aborted':
-          showFlashWarning(I18n.t('Report %{title} was canceled', {title}))()
+          showFlashWarning(t('Report {{title}} was canceled', {title}))()
           break
       }
     }
@@ -103,11 +102,11 @@ export default function ReportsTable({accountId, reports}: Props) {
   const renderUpdatePill = (lastRun: AccountReport) => {
     switch (lastRun.status) {
       case 'complete':
-        return updatePill('success', I18n.t('Completed'), <IconCheckLine />)
+        return updatePill('success', t('Completed'), <IconCheckLine />)
       case 'error':
-        return updatePill('warning', I18n.t('Failed'), <IconWarningSolid />)
+        return updatePill('warning', t('Failed'), <IconWarningSolid />)
       case 'aborted':
-        return updatePill('danger', I18n.t('Canceled'), <IconTroubleSolid />)
+        return updatePill('danger', t('Canceled'), <IconTroubleSolid />)
       default:
         return null
     }
@@ -130,13 +129,13 @@ export default function ReportsTable({accountId, reports}: Props) {
           closeModal={() => setHistoryReport(null)}
         />
       )}
-      <Table caption={I18n.t('Reports')}>
+      <Table caption={t('Reports')}>
         <Table.Head>
           <Table.Row>
-            <Table.ColHeader id="name">{I18n.t('Name')}</Table.ColHeader>
-            <Table.ColHeader id="last_run">{I18n.t('Last Run')}</Table.ColHeader>
+            <Table.ColHeader id="name">{t('Name')}</Table.ColHeader>
+            <Table.ColHeader id="last_run">{t('Last Run')}</Table.ColHeader>
             <Table.ColHeader id="run_report" width="12rem">
-              {I18n.t('Run Report')}
+              {t('Run Report')}
             </Table.ColHeader>
           </Table.Row>
         </Table.Head>
@@ -152,7 +151,7 @@ export default function ReportsTable({accountId, reports}: Props) {
                     withBorder={false}
                     size="small"
                     margin="0 0 0 x-small"
-                    screenReaderLabel={I18n.t('Details for %{title}', {title: report.title})}
+                    screenReaderLabel={t('Details for {{title}}', {title: report.title})}
                     onClick={() => setDescribedReport(report)}
                   >
                     <IconQuestionLine />
@@ -168,13 +167,13 @@ export default function ReportsTable({accountId, reports}: Props) {
                           <Text>&nbsp;({lastRun.parameters.extra_text})</Text>
                         )}
                         {lastRun.file_url && (
-                          <Tooltip renderTip={I18n.t('Download report')}>
+                          <Tooltip renderTip={t('Download report')}>
                             <Link
                               href={`${lastRun.file_url}?download_frd=1`}
                               margin="0 0 0 x-small"
                               renderIcon={IconDownloadLine}
                             >
-                              <ScreenReaderContent>{I18n.t('Download report')}</ScreenReaderContent>
+                              <ScreenReaderContent>{t('Download report')}</ScreenReaderContent>
                             </Link>
                           </Tooltip>
                         )}
@@ -186,12 +185,12 @@ export default function ReportsTable({accountId, reports}: Props) {
                           onClick={() => setHistoryReport(report)}
                           renderIcon={<IconCalendarClockLine />}
                         >
-                          {I18n.t('Report History')}
+                          {t('Report History')}
                         </Button>
                       </View>
                     </>
                   ) : (
-                    <Text color="secondary">{I18n.t('Never')}</Text>
+                    <Text color="secondary">{t('Never')}</Text>
                   )}
                 </Table.Cell>
                 <Table.Cell>

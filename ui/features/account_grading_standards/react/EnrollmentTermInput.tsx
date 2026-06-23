@@ -18,14 +18,12 @@
 
 import React, {useState, useRef} from 'react'
 import {groupBy, isDate} from 'es-toolkit/compat'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {Select} from '@instructure/ui-select'
 import {Tag} from '@instructure/ui-tag'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
 import {View} from '@instructure/ui-view'
 import type {EnrollmentTerm} from './types'
-
-const I18n = createI18nScope('EnrollmentTermInput')
 
 type TagType = 'active' | 'undated' | 'future' | 'past'
 
@@ -66,6 +64,7 @@ const EnrollmentTermInput = ({
   setSelectedEnrollmentTermIDs,
   selectedIDs,
 }: EnrollmentTermInputProps) => {
+  const {t} = useTranslation('EnrollmentTermInput')
   const [inputValue, setInputValue] = useState('')
   const [isShowingOptions, setIsShowingOptions] = useState(false)
   const [highlightedOptionId, setHighlightedOptionId] = useState<string | null>(null)
@@ -92,11 +91,11 @@ const EnrollmentTermInput = ({
   }
 
   const headerText: Record<TagType | 'none', string> = {
-    active: I18n.t('Active'),
-    undated: I18n.t('Undated'),
-    future: I18n.t('Future'),
-    past: I18n.t('Past'),
-    none: I18n.t('No unassigned terms'),
+    active: t('Active'),
+    undated: t('Undated'),
+    future: t('Future'),
+    past: t('Past'),
+    none: t('No unassigned terms'),
   }
 
   const getOptionsByType = (type: TagType) => {
@@ -211,8 +210,8 @@ const EnrollmentTermInput = ({
     <View as="div" className="ic-Form-control">
       <Select
         data-testid="enrollment-term-select"
-        renderLabel={I18n.t('Attach terms')}
-        assistiveText={I18n.t(
+        renderLabel={t('Attach terms')}
+        assistiveText={t(
           'Type or use arrow keys to navigate options. Multiple selections allowed.',
         )}
         inputValue={inputValue}

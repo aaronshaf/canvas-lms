@@ -19,7 +19,7 @@
 import {useEffect, useState} from 'react'
 import {useMutation, useQuery} from '@apollo/client'
 import type {GradeStatus, StandardStatusAllowedName} from '@canvas/grading/accountGradingStatus'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {
   DELETE_CUSTOM_GRADING_STATUS_MUTATION,
   UPSERT_CUSTOM_GRADING_STATUS_MUTATION,
@@ -38,9 +38,8 @@ import {
   statusesTitleMap,
 } from '../utils/accountStatusUtils'
 
-const I18n = createI18nScope('account_grading_status')
-
 export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEnabled?: boolean) => {
+  const {t} = useTranslation('account_grading_status')
   const [standardStatuses, setStandardStatuses] = useState<GradeStatus[]>([])
   const [customStatuses, setCustomStatuses] = useState<GradeStatus[]>([])
   const [isLoadingStatusError, setIsLoadingStatusError] = useState<boolean>(false)
@@ -97,7 +96,7 @@ export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEna
     }
 
     const statusName = statusesTitleMap[name as StandardStatusAllowedName]
-    setSuccessMessage(I18n.t('Saving %{statusName} status', {statusName}))
+    setSuccessMessage(t('Saving {{statusName}} status', {statusName}))
 
     const {data, errors} = await upsertStandardStatusMutation({variables})
 
@@ -120,12 +119,12 @@ export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEna
       }
       return [...statuses]
     })
-    setSuccessMessage(I18n.t('%{statusName} status successfully saved', {statusName}))
+    setSuccessMessage(t('{{statusName}} status successfully saved', {statusName}))
   }
 
   const saveCustomStatus = async (color: string, name: string, id?: string) => {
     setHasSaveCustomStatusError(false)
-    setSuccessMessage(I18n.t('Saving custom status %{name}', {name}))
+    setSuccessMessage(t('Saving custom status {{name}}', {name}))
     const variables = {
       id,
       color,
@@ -145,7 +144,7 @@ export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEna
     const {name: savedName} = savedStatus
     if (!id) {
       setCustomStatuses(statuses => [...statuses, {...savedStatus}])
-      setSuccessMessage(I18n.t('Custom status %{savedName} added', {savedName}))
+      setSuccessMessage(t('Custom status {{savedName}} added', {savedName}))
     } else {
       setCustomStatuses(statuses => {
         const statusIndexToChange = statuses.findIndex(status => status.id === savedStatus.id)
@@ -154,14 +153,14 @@ export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEna
         }
         return [...statuses]
       })
-      setSuccessMessage(I18n.t('Custom status %{savedName} updated', {savedName}))
+      setSuccessMessage(t('Custom status {{savedName}} updated', {savedName}))
     }
   }
 
   const removeCustomStatus = async (statusId: string) => {
     const statusToRemove = customStatuses.find(status => status.id === statusId)
     const statusName = statusToRemove?.name ?? ''
-    setSuccessMessage(I18n.t('Deleting custom status %{statusName}', {statusName}))
+    setSuccessMessage(t('Deleting custom status {{statusName}}', {statusName}))
     setHasDeleteCustomStatusError(false)
     const {data, errors} = await deleteCustomStatusMutation({
       variables: {
@@ -173,8 +172,8 @@ export const useAccountGradingStatuses = (accountId: string, isExtendedStatusEna
       setHasDeleteCustomStatusError(true)
       return
     }
-    setCustomStatuses(statuses => [...statuses.filter(status => status.id !== statusId)])
-    setSuccessMessage(I18n.t('Successfully deleted custom status %{statusName}', {statusName}))
+    setCustomStatuses(statuses => statuses.filter(status => status.id !== statusId))
+    setSuccessMessage(t('Successfully deleted custom status {{statusName}}', {statusName}))
   }
 
   return {

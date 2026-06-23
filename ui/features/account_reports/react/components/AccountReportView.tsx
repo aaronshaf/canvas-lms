@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import React, {useEffect, useState} from 'react'
 import {Spinner} from '@instructure/ui-spinner'
 import {Heading} from '@instructure/ui-heading'
@@ -25,12 +25,11 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {AccountReportInfo} from '@canvas/account_reports/types'
 import {showFlashError} from '@instructure/platform-alerts'
 
-const I18n = createI18nScope('account_reports')
-
 type Props = {
   accountId: string
 }
 export default function AccountReportView({accountId}: Props) {
+  const {t} = useTranslation('account_reports')
   const [reports, setReports] = useState<AccountReportInfo[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -44,7 +43,7 @@ export default function AccountReportView({accountId}: Props) {
         })
         setReports(json!)
       } catch (error) {
-        showFlashError(I18n.t('Failed to load available reports'))(error as Error)
+        showFlashError(t('Failed to load available reports'))(error as Error)
       } finally {
         setIsLoading(false)
       }
@@ -55,10 +54,10 @@ export default function AccountReportView({accountId}: Props) {
 
   return (
     <>
-      <Heading variant="titlePageDesktop">{I18n.t('Reports')}</Heading>
+      <Heading variant="titlePageDesktop">{t('Reports')}</Heading>
 
       {isLoading ? (
-        <Spinner renderTitle={I18n.t('Loading reports...')} />
+        <Spinner renderTitle={t('Loading reports...')} />
       ) : (
         <ReportsTable reports={reports} accountId={accountId} />
       )}

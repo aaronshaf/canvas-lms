@@ -19,14 +19,12 @@ import {Link} from '@instructure/ui-link'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {useEffect} from 'react'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 
 // Declare google as a global variable
 declare global {
   const google: any
 }
-
-const I18n = createI18nScope('accounts.statistics')
 
 export default function OverTimeGraph({
   data,
@@ -37,6 +35,7 @@ export default function OverTimeGraph({
   name: string
   url: string
 }) {
+  const {t} = useTranslation('accounts.statistics')
   function updateChartAriaLabels(label: string) {
     const chartContainerElements = document.querySelectorAll(
       '#over_time_AnnotationChart_chartContainer > div > div > div, #over_time_AnnotationChart_chartContainer svg, #over_time_AnnotationChart_rangeControlContainer > div > div > div, #over_time_AnnotationChart_rangeControlContainer svg',
@@ -58,8 +57,8 @@ export default function OverTimeGraph({
     // google dependencies declared in views/acccounts/statistics since google.load uses document.write :(
     /* global google */
     const gData = new google.visualization.DataTable()
-    gData.addColumn('date', I18n.t('Date'))
-    gData.addColumn('number', name || I18n.t('Value'))
+    gData.addColumn('date', t('Date'))
+    gData.addColumn('number', name || t('Value'))
     gData.addColumn('string', 'title1')
     gData.addColumn('string', 'text1')
 
@@ -82,7 +81,7 @@ export default function OverTimeGraph({
 
       // Check if the chart has been drawn
       if (chart.length) {
-        const label = I18n.t('Graph of %{data_point} Over Time', {data_point: name})
+        const label = t('Graph of {{data_point}} Over Time', {data_point: name})
         updateChartAriaLabels(label)
 
         clearInterval(checkInterval)
@@ -104,7 +103,7 @@ export default function OverTimeGraph({
     >
       <View id="over_time" width="600px" height="240px" as="div"></View>
       <Flex.Item align="end" padding="space8">
-        <Link href={`${url}.csv`}>{I18n.t('Download CSV')}</Link>
+        <Link href={`${url}.csv`}>{t('Download CSV')}</Link>
       </Flex.Item>
     </Flex>
   )

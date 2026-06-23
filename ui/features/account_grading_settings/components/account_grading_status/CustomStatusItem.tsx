@@ -21,7 +21,7 @@ import {GradingStatusListItem} from '@canvas/grading-status-list-item'
 import {Grid} from '@instructure/ui-grid'
 import type {GradeStatus} from '@canvas/grading/accountGradingStatus'
 import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconTrashSolid} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
@@ -29,8 +29,6 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
 import {EditStatusPopover} from './EditStatusPopover'
 import {STATUS_ICONS} from '@canvas/grading/gradingStatus'
-
-const I18n = createI18nScope('account_grading_status')
 
 type CustomStatusItemProps = {
   editable: boolean
@@ -48,16 +46,17 @@ export const CustomStatusItem = ({
   handleEditStatusToggle,
   handleStatusDelete,
 }: CustomStatusItemProps) => {
+  const {t} = useTranslation('account_grading_status')
   const {color, name, id} = gradeStatus
   const customStatusItemRef = useRef<HTMLDivElement | undefined>(undefined)
   const confirmStatusDelete = async () => {
     const confirmed = await showConfirmationDialog({
-      body: I18n.t(
+      body: t(
         'Are you sure you want to delete this custom status? This action cannot be undone. All submissions and scores currently marked with this custom status will have their status removed.',
       ),
       confirmColor: 'danger',
-      confirmText: I18n.t('Delete'),
-      label: I18n.t('Delete Custom Status?'),
+      confirmText: t('Delete'),
+      label: t('Delete Custom Status?'),
       size: 'small',
     })
 
@@ -95,7 +94,7 @@ export const CustomStatusItem = ({
                 <EditStatusPopover
                   currentColor={color}
                   customStatusName={name}
-                  editButtonLabel={`${I18n.t('Custom Status')} ${name}`}
+                  editButtonLabel={`${t('Custom Status')} ${name}`}
                   handleEditSave={handleEditSave}
                   isCustomStatus={true}
                   isOpen={isEditOpen}
@@ -107,7 +106,7 @@ export const CustomStatusItem = ({
                   size="small"
                   withBackground={false}
                   withBorder={false}
-                  screenReaderLabel={I18n.t('Delete Status %{name}', {name})}
+                  screenReaderLabel={t('Delete Status {{name}}', {name})}
                   onClick={confirmStatusDelete}
                   data-testid="delete-custom-status-button"
                 >

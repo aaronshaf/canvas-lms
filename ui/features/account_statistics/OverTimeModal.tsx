@@ -28,11 +28,10 @@ import {Spinner} from '@instructure/ui-spinner'
 import {queryClient} from '@instructure/platform-query'
 import {Alert} from '@instructure/ui-alerts'
 import OverTimeGraph from './OverTimeGraph'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('accounts.statistics')
+import {useTranslation} from '@canvas/i18next'
 
 export default function OverTimeModal({accountId}: {accountId: string}) {
+  const {t} = useTranslation('accounts.statistics')
   const [isOpen, setIsOpen] = useState(false)
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
@@ -61,20 +60,20 @@ export default function OverTimeModal({accountId}: {accountId: string}) {
     })
   }, [accountId])
 
-  const modalTitle = I18n.t('%{name} Over Time', {name})
-  const closeLabel = I18n.t('Close')
+  const modalTitle = t('{{name}} Over Time', {name})
+  const closeLabel = t('Close')
 
   const renderBody = () => {
     if (isError) {
       return (
         <View margin="auto" textAlign="center" as="div" width="100%" height="100%">
-          <Alert variant="error">{I18n.t('Failed to fetch graph data')}</Alert>
+          <Alert variant="error">{t('Failed to fetch graph data')}</Alert>
         </View>
       )
     } else if (data === undefined || data === null || isLoading) {
       return (
         <View margin="auto" textAlign="center" as="div" width="100%" height="100%">
-          <Spinner size="medium" renderTitle={I18n.t('Fetching graph data')} />
+          <Spinner size="medium" renderTitle={t('Fetching graph data')} />
         </View>
       )
     } else {

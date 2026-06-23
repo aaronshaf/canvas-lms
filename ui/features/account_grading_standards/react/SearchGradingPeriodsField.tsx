@@ -18,15 +18,14 @@
 
 import React, {useRef, useMemo} from 'react'
 import {debounce} from 'es-toolkit/compat'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('SearchGradingPeriodsField')
+import {useTranslation} from '@canvas/i18next'
 
 interface SearchGradingPeriodsFieldProps {
   changeSearchText: (searchText: string) => void
 }
 
 const SearchGradingPeriodsField = ({changeSearchText}: SearchGradingPeriodsFieldProps) => {
+  const {t} = useTranslation('SearchGradingPeriodsField')
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   const search = useMemo(
@@ -48,7 +47,7 @@ const SearchGradingPeriodsField = ({changeSearchText}: SearchGradingPeriodsField
         type="text"
         ref={inputRef}
         className="ic-Input"
-        placeholder={I18n.t('Search grading periods...')}
+        placeholder={t('Search grading periods...')}
         onChange={onChange}
       />
     </div>

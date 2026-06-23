@@ -24,10 +24,8 @@ import {Button} from '@instructure/ui-buttons'
 import ReportProgress from './ReportProgress'
 import {AccountReportInfo, AccountReport, reportRunning} from '@canvas/account_reports/types'
 
-import {useScope as createI18nScope} from '@canvas/i18n'
+import {useTranslation} from '@canvas/i18next'
 import {showFlashError} from '@instructure/platform-alerts'
-const I18n = createI18nScope('account_reports')
-
 type Props = {
   accountId: string
   report: AccountReportInfo
@@ -36,6 +34,7 @@ type Props = {
 }
 
 export default function ReportAction({accountId, report, reportRun, onStateChange}: Props) {
+  const {t} = useTranslation('account_reports')
   const [configuring, setConfiguring] = React.useState<boolean>(false)
   const run_report_path = `/api/v1/accounts/${accountId}/reports/${report.report}`
 
@@ -51,7 +50,7 @@ export default function ReportAction({accountId, report, reportRun, onStateChang
       })
       onStateChange(json!)
     } catch (error) {
-      showFlashError(I18n.t('Error running report'))(error as Error)
+      showFlashError(t('Error running report'))(error as Error)
     }
   }
 
@@ -67,11 +66,11 @@ export default function ReportAction({accountId, report, reportRun, onStateChang
         <View as="div">
           {report.parameters_html ? (
             <Button color="secondary" onClick={onConfigure}>
-              {I18n.t('Configure Run...')}
+              {t('Configure Run...')}
             </Button>
           ) : (
             <Button color="primary" onClick={onRunReport}>
-              {I18n.t('Run Report')}
+              {t('Run Report')}
             </Button>
           )}
         </View>

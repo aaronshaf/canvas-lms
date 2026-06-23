@@ -27,9 +27,7 @@ import {InlineList} from '@instructure/ui-list'
 import useDateTimeFormat from '@canvas/use-date-time-format-hook'
 
 import ReportStatusPill from './ReportStatusPill'
-import {useScope as createI18nScope} from '@canvas/i18n'
-
-const I18n = createI18nScope('account_reports')
+import {useTranslation} from '@canvas/i18next'
 
 import {AccountReport} from '@canvas/account_reports/types'
 
@@ -38,6 +36,7 @@ type Props = {
 }
 
 export default function ReportRun({reportRun}: Props) {
+  const {t} = useTranslation('account_reports')
   const messageText = reportRun.message || reportRun.parameters?.extra_text
 
   const formatDate = useDateTimeFormat('time.formats.medium')
@@ -59,7 +58,7 @@ export default function ReportRun({reportRun}: Props) {
                 {reportRun.user && (
                   <InlineList.Item>
                     <Text size="small" color="secondary">
-                      <Text weight="bold">{I18n.t('Initiator:')}</Text>{' '}
+                      <Text weight="bold">{t('Initiator:')}</Text>{' '}
                       <Link href={reportRun.user.html_url}>{reportRun.user.display_name}</Link>
                     </Text>
                   </InlineList.Item>
@@ -67,16 +66,14 @@ export default function ReportRun({reportRun}: Props) {
                 {reportRun.started_at && (
                   <InlineList.Item>
                     <Text size="small" color="secondary">
-                      <Text weight="bold">{I18n.t('Started:')}</Text>{' '}
-                      {formatDate(reportRun.started_at)}
+                      <Text weight="bold">{t('Started:')}</Text> {formatDate(reportRun.started_at)}
                     </Text>
                   </InlineList.Item>
                 )}
                 {reportRun.ended_at && (
                   <InlineList.Item>
                     <Text size="small" color="secondary">
-                      <Text weight="bold">{I18n.t('Finished:')}</Text>{' '}
-                      {formatDate(reportRun.ended_at)}
+                      <Text weight="bold">{t('Finished:')}</Text> {formatDate(reportRun.ended_at)}
                     </Text>
                   </InlineList.Item>
                 )}
@@ -87,7 +84,7 @@ export default function ReportRun({reportRun}: Props) {
         <Flex.Item>
           {reportRun.file_url && (
             <Link href={`${reportRun.file_url}?download_frd=1`} renderIcon={IconDownloadSolid}>
-              <ScreenReaderContent>{I18n.t('Download report')}</ScreenReaderContent>
+              <ScreenReaderContent>{t('Download report')}</ScreenReaderContent>
             </Link>
           )}
           <ReportStatusPill status={reportRun.status} />
