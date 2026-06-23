@@ -17,10 +17,14 @@
  */
 
 import {keys} from 'es-toolkit/compat'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import MessageStudentsWhoHelper from '../messageStudentsWhoHelper'
-import axios from '@canvas/axios'
 
-vi.mock('@canvas/axios')
+const server = setupServer()
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('MessageStudentsWhoHelper', () => {
   let assignment
@@ -306,17 +310,17 @@ describe('MessageStudentsWhoHelper', () => {
     const subject = 'foo'
     const body = 'bar'
     const contextCode = '1'
-    const sendMessageStudentsWhoUrl = `/api/v1/conversations`
-    const data = {}
-    const mockedAxios = axios
+
+    let capturedBody
 
     beforeEach(() => {
-      vi.clearAllMocks()
-      mockedAxios.post.mockResolvedValue({data})
-    })
-
-    afterEach(() => {
-      vi.clearAllMocks()
+      capturedBody = null
+      server.use(
+        http.post('/api/v1/conversations', async ({request}) => {
+          capturedBody = await request.json()
+          return HttpResponse.json({}, {status: 202})
+        }),
+      )
     })
 
     test('sends a post request to the "conversations" url', async () => {
@@ -326,7 +330,7 @@ describe('MessageStudentsWhoHelper', () => {
         body,
         contextCode,
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(sendMessageStudentsWhoUrl, expect.any(Object))
+      expect(capturedBody).not.toBeNull()
     })
 
     test('sends async for mode parameter', async () => {
@@ -336,10 +340,7 @@ describe('MessageStudentsWhoHelper', () => {
         body,
         contextCode,
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({mode: 'async'}),
-      )
+      expect(capturedBody).toMatchObject({mode: 'async'})
     })
 
     test('sends true for group_conversation parameter', async () => {
@@ -349,10 +350,7 @@ describe('MessageStudentsWhoHelper', () => {
         body,
         contextCode,
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({group_conversation: true}),
-      )
+      expect(capturedBody).toMatchObject({group_conversation: true})
     })
 
     test('sends true for bulk_message parameter', async () => {
@@ -362,10 +360,7 @@ describe('MessageStudentsWhoHelper', () => {
         body,
         contextCode,
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({bulk_message: true}),
-      )
+      expect(capturedBody).toMatchObject({bulk_message: true})
     })
 
     test('includes media comment params if passed a media file', async () => {
@@ -379,13 +374,10 @@ describe('MessageStudentsWhoHelper', () => {
           type: 'video',
         },
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({
-          media_comment_id: '123',
-          media_comment_type: 'video',
-        }),
-      )
+      expect(capturedBody).toMatchObject({
+        media_comment_id: '123',
+        media_comment_type: 'video',
+      })
     })
 
     test('includes attachment_ids param if passed attachment ids', async () => {
@@ -397,12 +389,7 @@ describe('MessageStudentsWhoHelper', () => {
         null,
         ['4', '8'],
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({
-          attachment_ids: ['4', '8'],
-        }),
-      )
+      expect(capturedBody).toMatchObject({attachment_ids: ['4', '8']})
     })
 
     test('does not include media comment params if not passed a media file', async () => {
@@ -412,21 +399,34 @@ describe('MessageStudentsWhoHelper', () => {
         body,
         contextCode,
       )
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        sendMessageStudentsWhoUrl,
-        expect.objectContaining({
-          recipients: recipientsIds,
-          subject,
-          body,
-          context_code: contextCode,
-          mode: 'async',
-          group_conversation: true,
-          bulk_message: true,
-        }),
+      expect(capturedBody).toMatchObject({
+        recipients: recipientsIds,
+        subject,
+        body,
+        context_code: contextCode,
+        mode: 'async',
+        group_conversation: true,
+        bulk_message: true,
+      })
+      expect(capturedBody.media_comment_id).toBeUndefined()
+      expect(capturedBody.media_comment_type).toBeUndefined()
+    })
+
+    test('resolves with {status} from the response', async () => {
+      const result = await MessageStudentsWhoHelper.sendMessageStudentsWho(
+        recipientsIds,
+        subject,
+        body,
+        contextCode,
       )
-      const callArg = mockedAxios.post.mock.calls[0][1]
-      expect(callArg.media_comment_id).toBeUndefined()
-      expect(callArg.media_comment_type).toBeUndefined()
+      expect(result).toEqual({status: 202})
+    })
+
+    test('rejects on a non-2xx response', async () => {
+      server.use(http.post('/api/v1/conversations', () => new HttpResponse(null, {status: 422})))
+      await expect(
+        MessageStudentsWhoHelper.sendMessageStudentsWho(recipientsIds, subject, body, contextCode),
+      ).rejects.toThrow()
     })
   })
 

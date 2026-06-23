@@ -17,7 +17,7 @@
  */
 
 import {filter, find, map, some} from 'es-toolkit/compat'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {Student} from '../../api.d'
 
@@ -162,7 +162,9 @@ const MessageStudentsWhoHelper = {
       params.attachment_ids = attachmentIds
     }
 
-    return axios.post('/api/v1/conversations', params)
+    return doFetchApi({path: '/api/v1/conversations', method: 'POST', body: params}).then(
+      ({response}) => ({status: response.status}),
+    )
   },
 
   options(assignment: AssignmentData): OptionCriteria[] {
