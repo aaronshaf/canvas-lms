@@ -26,7 +26,7 @@ import ParticipantCollection from '../collections/ParticipantCollection'
 import DiscussionEntriesCollection from '../collections/DiscussionEntriesCollection'
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
 import DateGroup from '@canvas/date-group/backbone/models/DateGroup'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {stripHtmlTags} from '@canvas/util/TextHelper'
 
 const I18n = createI18nScope('discussion_topics')
@@ -149,17 +149,18 @@ DiscussionTopic.prototype.toJSON = function () {
 
 DiscussionTopic.prototype.duplicate = function (context_type, context_id, callback) {
   return (
-    axios
-      .post(
+    doFetchApi({
+      path:
         '/api/v1/' +
-          context_type +
-          's/' +
-          context_id +
-          '/discussion_topics/' +
-          this.id +
-          '/duplicate',
-        {},
-      )
+        context_type +
+        's/' +
+        context_id +
+        '/discussion_topics/' +
+        this.id +
+        '/duplicate',
+      method: 'POST',
+      body: {},
+    })
       // eslint-disable-next-line promise/no-callback-in-promise
       .then(callback)
       .catch(showFlashError(I18n.t('Could not duplicate discussion')))
