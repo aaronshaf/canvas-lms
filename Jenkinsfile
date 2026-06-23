@@ -169,12 +169,16 @@ pipeline {
         script {
           def stageName = 'Setup'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             filesChangedStage.reset()
             buildDockerImageStage.preloadCacheImagesAsync()
             setupStage()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -190,10 +194,14 @@ pipeline {
         script {
           def stageName = 'Rebase'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             rebaseStage()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -205,10 +213,14 @@ pipeline {
         script {
           def stageName = 'Detect Files Changed (Pre-Build)'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             filesChangedStage.preBuild()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -223,10 +235,14 @@ pipeline {
         script {
           def stageName = 'Build Docker Image (Pre-Merge)'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             buildDockerImageStage.premergeCacheImage()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -238,6 +254,7 @@ pipeline {
         script {
           def stageName = 'Build Docker Image'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             def startStep = '''
               docker run -dt --name general-build-container --volume $(pwd)/$LOCAL_WORKDIR/.git:$DOCKER_WORKDIR/.git -e RAILS_ENV=test $PATCHSET_TAG bash -c "sleep infinity"
@@ -268,8 +285,11 @@ pipeline {
             ]
 
             buildDockerImageStage.patchsetImage(asyncSteps.join('\n'))
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -281,6 +301,7 @@ pipeline {
         script {
           def stageName = 'Detect Files Changed (Post-Build)'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             filesChangedStage.postBuild()
 
@@ -289,8 +310,11 @@ pipeline {
             env.HAS_JS_FILES = filesChangedStage.hasJsFiles()
             env.HAS_GRAPHQL_FILES = filesChangedStage.hasGraphqlFiles()
             env.HAS_GROOVY_FILES = filesChangedStage.hasGroovyFiles()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -302,10 +326,14 @@ pipeline {
         script {
           def stageName = 'Run Migrations'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             runMigrationsStage()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -320,6 +348,7 @@ pipeline {
         script {
           def stageName = 'Generate Crystalball Prediction'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             if (filesChangedStage.hasErbFiles()) {
               echo 'Ignoring Crystalball prediction due to .erb file changes'
@@ -355,8 +384,11 @@ pipeline {
                 message: "${env.JOB_NAME} <${pipelineHelpers.getSummaryUrl()}|#${env.BUILD_NUMBER}>\n\nFailed to generate prediction!"
               )
             }
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -409,10 +441,14 @@ pipeline {
         script {
           def stageName = 'Webpack Bundle Size Check'
           def startTime = System.currentTimeMillis()
+          def stageFailed = false
           try {
             webpackStage.calcBundleSizes()
+          } catch (e) {
+            stageFailed = true
+            throw e
           } finally {
-            buildSummaryReport.trackStage(stageName, startTime)
+            buildSummaryReport.trackStage(stageName, startTime, stageFailed)
           }
         }
       }
@@ -436,19 +472,27 @@ pipeline {
             script {
               def stageName = 'ARM64 Builder'
               def startTime = System.currentTimeMillis()
+              def stageFailed = false
               try {
                 setupStage()
                 buildDockerImageStage.patchsetImage('', '-arm64')
+              } catch (e) {
+                stageFailed = true
+                throw e
               } finally {
-                buildSummaryReport.trackStage(stageName, startTime)
+                buildSummaryReport.trackStage(stageName, startTime, stageFailed)
               }
 
               stageName = 'Augment ARM64 Manifest'
               startTime = System.currentTimeMillis()
+              stageFailed = false
               try {
                 buildDockerImageStage.augmentArm64Manifest()
+              } catch (e) {
+                stageFailed = true
+                throw e
               } finally {
-                buildSummaryReport.trackStage(stageName, startTime)
+                buildSummaryReport.trackStage(stageName, startTime, stageFailed)
               }
             }
           }
@@ -471,10 +515,14 @@ pipeline {
                 script {
                   def stageName = 'Javascript (Build Image)'
                   def startTime = System.currentTimeMillis()
+                  def stageFailed = false
                   try {
                     buildDockerImageStage.jsImage()
+                  } catch (e) {
+                    stageFailed = true
+                    throw e
                   } finally {
-                    buildSummaryReport.trackStage(stageName, startTime)
+                    buildSummaryReport.trackStage(stageName, startTime, stageFailed)
                   }
                 }
               }
@@ -504,12 +552,16 @@ pipeline {
                 script {
                   def stageName = 'Linters (Build Image)'
                   def startTime = System.currentTimeMillis()
+                  def stageFailed = false
                   try {
                     timeout(time: 4, unit: 'MINUTES') {
                       buildDockerImageStage.lintersImage()
                     }
+                  } catch (e) {
+                    stageFailed = true
+                    throw e
                   } finally {
-                    buildSummaryReport.trackStage(stageName, startTime)
+                    buildSummaryReport.trackStage(stageName, startTime, stageFailed)
                   }
                 }
               }
@@ -535,10 +587,14 @@ pipeline {
             script {
               def stageName = 'Consumer Smoke Test'
               def startTime = System.currentTimeMillis()
+              def stageFailed = false
               try {
                 sh 'build/new-jenkins/consumer-smoke-test.sh'
+              } catch (e) {
+                stageFailed = true
+                throw e
               } finally {
-                buildSummaryReport.trackStage(stageName, startTime)
+                buildSummaryReport.trackStage(stageName, startTime, stageFailed)
               }
             }
           }
@@ -555,10 +611,14 @@ pipeline {
             script {
               def stageName = 'Run i18n:extract'
               def startTime = System.currentTimeMillis()
+              def stageFailed = false
               try {
                 buildDockerImageStage.i18nExtract()
+              } catch (e) {
+                stageFailed = true
+                throw e
               } finally {
-                buildSummaryReport.trackStage(stageName, startTime)
+                buildSummaryReport.trackStage(stageName, startTime, stageFailed)
               }
             }
           }
