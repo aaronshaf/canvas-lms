@@ -534,4 +534,14 @@ RSpec.describe MfaSessionConcern do
       expect(session[:mfa_verified_ips]).not_to include("9.9.9.9")
     end
   end
+
+  context "canvas_mfa_required?" do
+    it "does not search all of the user's pseudonyms" do
+      user.otp_secret_key = "secret"
+      user.save!
+      expect(user).not_to receive(:mfa_settings)
+
+      get :index, format: :html
+    end
+  end
 end

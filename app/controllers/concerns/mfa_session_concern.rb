@@ -21,14 +21,23 @@
 # whether Canvas MFA is actively required for a given user.
 module MfaSessionConcern
   # Returns true if Canvas MFA should be enforced for the given user in the
-  # current session.
-  def canvas_mfa_required?(user, pseudonym: @current_pseudonym)
+  # current session. if `pseudonym_only` is supplied, check only the supplied
+  # pseudonym and don't look for pseudonyms in all the user's shards
+  def canvas_mfa_required?(user, pseudonym: @current_pseudonym, pseudonym_only: false)
     return false unless user
     return false if session[:login_aac_skip_canvas_mfa]
 
-    mfa_settings = user.mfa_settings(pseudonym_hint: pseudonym)
-    mfa_settings == :required ||
-      (mfa_settings == :optional && (user.canvas_mfa? || pseudonym&.authentication_provider&.mfa_required))
+    if pseudonym_only
+      return false if pseudonym&.account&.mfa_settings == :disabled
+      return true if pseudonym&.account&.mfa_settings == :required ||
+                     pseudonym&.authentication_provider&.mfa_required
+
+      user.canvas_mfa?
+    else
+      mfa_settings = user.mfa_settings(pseudonym_hint: pseudonym)
+      mfa_settings == :required ||
+        (mfa_settings == :optional && (user.canvas_mfa? || pseudonym&.authentication_provider&.mfa_required))
+    end
   end
 
   # Checks the current IP and user agent against the verified lists in the session,
@@ -38,7 +47,7 @@ module MfaSessionConcern
   # Can be configured using DynamicSettings to enable/disable for different types of users
   # and a FeatureFlag to disable for root accounts that appear to be having issues.
   def check_mfa_ips_and_user_agents
-    return unless canvas_mfa_required?(logged_in_user) && in_app?
+    return unless canvas_mfa_required?(logged_in_user, pseudonym_only: true) && in_app?
 
     verified_ips = session[:mfa_verified_ips]
     ip_match = verified_ips&.include?(request.remote_ip)
