@@ -16,7 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {uploadFile, completeUpload} from '../index'
+
+const server = setupServer()
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('Upload File', () => {
   beforeEach(() => {
@@ -420,37 +427,29 @@ describe('Upload File', () => {
 
   test('completeUpload immediately waits on progress if given a progress and no upload_url', () => {
     const results = {id: 1}
-    const postStub = vi.fn()
-    const getStub = vi.fn()
-    postStub.mockResolvedValue({data: {}})
-    getStub.mockResolvedValue({data: {workflow_state: 'completed', results}})
-
-    const fakeAjaxLib = {
-      post: postStub,
-      get: getStub,
-    }
+    server.use(
+      http.get('http://progressUrl', () =>
+        HttpResponse.json({workflow_state: 'completed', results}),
+      ),
+    )
 
     const preflightResponse = {progress: {workflow_state: 'queued', url: 'http://progressUrl'}}
     const file = null
-    const options = {ajaxLib: fakeAjaxLib}
 
-    return completeUpload(preflightResponse, file, options).then(data => {
-      expect(postStub).not.toHaveBeenCalled()
+    return completeUpload(preflightResponse, file, {}).then(data => {
       expect(data).toEqual(results)
     })
   })
 
   test('completeUpload waits on progress after upload POST if given both a progress and upload URL', () => {
     const results = {id: 1}
-    const postStub = vi.fn()
-    const getStub = vi.fn()
-    postStub.mockResolvedValue({data: {}})
-    getStub.mockResolvedValue({data: {workflow_state: 'completed', results}})
-
-    const fakeAjaxLib = {
-      post: postStub,
-      get: getStub,
-    }
+    const postStub = vi.fn().mockResolvedValue({data: {}})
+    const fakeAjaxLib = {post: postStub}
+    server.use(
+      http.get('http://progressUrl', () =>
+        HttpResponse.json({workflow_state: 'completed', results}),
+      ),
+    )
 
     const preflightResponse = {
       progress: {workflow_state: 'queued', url: 'http://progressUrl'},

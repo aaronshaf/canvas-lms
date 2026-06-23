@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 function delayAsPromise(interval) {
   return new Promise(resolve => {
@@ -29,8 +29,6 @@ function delayAsPromise(interval) {
 // Promise that resolves when the progress completes and that rejects when it
 // fails.
 export default function resolveProgress(progress, options = {}) {
-  const ajaxLib = options.ajaxLib || axios
-
   const {url, workflow_state, results, message} = progress
   if (workflow_state === 'queued' || workflow_state === 'running') {
     // poll again after a delay. default to once a second if not specified, and
@@ -43,11 +41,8 @@ export default function resolveProgress(progress, options = {}) {
       if (interval < 100) interval = 100
     }
     return delayAsPromise(interval)
-      .then(() => ajaxLib.get(url))
-      .then(response => {
-        const newProgress = response.data
-        return resolveProgress(newProgress, options)
-      })
+      .then(() => doFetchApi({path: url}))
+      .then(({json: newProgress}) => resolveProgress(newProgress, options))
   } else if (workflow_state === 'completed') {
     // done
     return Promise.resolve(results)

@@ -140,7 +140,7 @@ export function completeUpload(preflightResponse, file, options = {}) {
 
   if (!upload_url) {
     // cloning a url and don't need to repost elsewhere, just wait on progress
-    return resolveProgress(progress, {ajaxLib}).catch(postUploadFailed)
+    return resolveProgress(progress).catch(postUploadFailed)
   }
 
   let {file_param, upload_params, success_url} = preflightResponse
@@ -169,7 +169,7 @@ export function completeUpload(preflightResponse, file, options = {}) {
     if (progress) {
       // cloning a url, wait on the progress object to complete, the return its
       // results as the data
-      return resolveProgress(progress, {ajaxLib}).catch(postUploadFailed)
+      return resolveProgress(progress).catch(postUploadFailed)
     }
     let location,
       query = {}
