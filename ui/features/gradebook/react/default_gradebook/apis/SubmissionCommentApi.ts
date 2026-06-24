@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import * as timezone from '@instructure/moment-utils'
 import type {SubmissionComment, SubmissionCommentData} from '../../../../../api.d'
 import type {SerializedComment} from '../gradebook.d'
@@ -51,9 +51,10 @@ function deserializeComments(comments: SubmissionComment[]) {
 function getSubmissionComments(courseId: string, assignmentId: string, studentId: string) {
   const commentOptions = {params: {include: 'submission_html_comments'}}
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/submissions/${studentId}`
-  return axios
-    .get(url, commentOptions)
-    .then(response => deserializeComments(response.data.submission_html_comments))
+  return doFetchApi<{submission_html_comments: SubmissionComment[]}>({
+    path: url,
+    params: commentOptions.params,
+  }).then(({json}) => deserializeComments(json!.submission_html_comments))
 }
 
 function createSubmissionComment(
@@ -64,22 +65,26 @@ function createSubmissionComment(
 ) {
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/submissions/${studentId}`
   const data = {comment: commentData}
-  return axios
-    .put(url, data)
-    .then(response => deserializeComments(response.data.submission_comments))
+  return doFetchApi<{submission_comments: SubmissionComment[]}>({
+    path: url,
+    method: 'PUT',
+    body: data,
+  }).then(({json}) => deserializeComments(json!.submission_comments))
 }
 
 function deleteSubmissionComment(commentId: string) {
   const url = `/submission_comments/${commentId}`
-  return axios.delete(url)
+  return doFetchApi({path: url, method: 'DELETE'})
 }
 
 function updateSubmissionComment(commentId: string, comment: string) {
   const url = `/submission_comments/${commentId}`
   const data = {id: commentId, submission_comment: {comment}}
-  return axios
-    .put(url, data)
-    .then(response => ({data: deserializeComment(response.data.submission_comment)}))
+  return doFetchApi<{submission_comment: SubmissionComment}>({
+    path: url,
+    method: 'PUT',
+    body: data,
+  }).then(({json}) => ({data: deserializeComment(json!.submission_comment)}))
 }
 
 export default {
