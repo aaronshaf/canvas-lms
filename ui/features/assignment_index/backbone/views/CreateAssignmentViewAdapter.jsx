@@ -20,7 +20,7 @@ import React from 'react'
 import CreateEditAssignmentModal from '@canvas/assignments/react/CreateEditAssignmentModal'
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
 import {encodeQueryString} from '@instructure/query-string-encoding'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
@@ -173,8 +173,8 @@ const launchQuizNew = async data => {
   if (ENV.FLAGS.new_quizzes_by_default) {
     redirectTo(newAssignmentUrl() + '?quiz_lti&' + encodeQueryString(data))
   } else {
-    const response = await axios.post(newQuizUrl(), data)
-    redirectTo(response.data.url)
+    const {json} = await doFetchApi({path: newQuizUrl(), method: 'POST', body: data})
+    redirectTo(json?.url)
   }
 }
 
