@@ -16,25 +16,24 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import FilesystemObject from '@canvas/files/backbone/models/FilesystemObject'
 
 function combine(left, right) {
   return Promise.all([left, right]).then(([files1, files2]) => files1.concat(files2))
 }
 
-function parse(response) {
-  return Promise.resolve(response.data.map(f => new FilesystemObject(f)))
+function parse(items) {
+  return Promise.resolve(items.map(f => new FilesystemObject(f)))
 }
 
 function fetchFiles(url) {
-  return axios.get(url).then(response => {
-    const next = parseLinkHeader(response.headers?.link)?.next
+  return doFetchApi({path: url}).then(({json, link}) => {
+    const next = link?.next?.url
     if (next) {
-      return combine(parse(response), fetchFiles(next))
+      return combine(parse(json), fetchFiles(next))
     } else {
-      return parse(response)
+      return parse(json)
     }
   })
 }
@@ -44,5 +43,5 @@ export function getFolderFiles(folderId) {
 }
 
 export function getCourseRootFolder(courseId) {
-  return axios.get(`/api/v1/courses/${courseId}/folders/root`).then(({data}) => data)
+  return doFetchApi({path: `/api/v1/courses/${courseId}/folders/root`}).then(({json}) => json)
 }
