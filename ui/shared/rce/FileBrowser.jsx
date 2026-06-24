@@ -18,7 +18,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
 import {cloneDeep} from 'es-toolkit/compat'
 import $ from 'jquery'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import minimatch from 'minimatch'
 import {TreeBrowser} from '@instructure/ui-tree-browser'
 import {Text} from '@instructure/ui-text'
@@ -35,7 +35,6 @@ import {
 } from '@instructure/ui-icons'
 import PropTypes from 'prop-types'
 import {getRootFolder, uploadFile} from '@canvas/files/util/apiFileUtils'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
 import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
 import natcompare from '@canvas/util/natcompare'
 import {captureException} from '@sentry/react'
@@ -154,11 +153,10 @@ class FileBrowser extends React.Component {
   }
 
   getPaginatedData(url, callback) {
-    axios
-      .get(url)
-      .then(response => {
-        callback(response.data)
-        const nextUrl = parseLinkHeader(response.headers.link).next
+    doFetchApi({path: url})
+      .then(({json, link}) => {
+        callback(json)
+        const nextUrl = link?.next?.url
         if (nextUrl) {
           this.getPaginatedData(nextUrl, callback)
         }
