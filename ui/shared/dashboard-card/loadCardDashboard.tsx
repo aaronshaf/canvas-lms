@@ -20,9 +20,9 @@ import React from 'react'
 import {legacyRender} from '@canvas/react'
 import getDroppableDashboardCardBox from './react/getDroppableDashboardCardBox'
 import DashboardCard from './react/DashboardCard'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashAlert} from '@instructure/platform-alerts'
-import {asJson, checkStatus, getPrefetchedXHR} from '@canvas/util/xhr'
+import {asJson, getPrefetchedXHR} from '@canvas/util/xhr'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {Card} from './types'
 
@@ -101,12 +101,8 @@ export class CardDashboardLoader {
       }
       this.promiseToGetDashboardCards =
         asJson(getPrefetchedXHR(urlString)) ||
-        axios
-          .get(urlString)
-          // @ts-expect-error
-          .then(checkStatus)
-          // @ts-expect-error
-          .then(({data}) => data)
+        doFetchApi({path: urlString})
+          .then(({json}) => json)
           .catch(e => {
             this.showError(e)
           })
