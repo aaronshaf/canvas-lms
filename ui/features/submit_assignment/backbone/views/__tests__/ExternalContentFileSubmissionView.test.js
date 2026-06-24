@@ -22,7 +22,9 @@ import $ from 'jquery'
 import '@canvas/jquery/jquery.disableWhileLoading'
 import '@canvas/rails-flash-notifications'
 import fakeENV from '@canvas/test-utils/fakeENV'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
+import {waitFor} from '@testing-library/dom'
 
 vi.mock('@canvas/util/globalUtils', () => ({
   windowAlert: vi.fn(),
@@ -41,11 +43,26 @@ const contentItem = {
   eula_agreement_timestamp: 1522419910,
 }
 
+const server = setupServer()
+let capturedRequest
+
 let model
 let view
 
 describe('ExternalContentFileSubmissionView#uploadFileFromUrl', () => {
+  beforeAll(() => server.listen())
+  afterAll(() => server.close())
+
   beforeEach(() => {
+    capturedRequest = null
+    server.use(
+      http.post('*', async ({request}) => {
+        const url = new URL(request.url)
+        const body = await request.json().catch(() => null)
+        capturedRequest = {pathname: url.pathname, search: url.search, body}
+        return HttpResponse.json({upload_url: null})
+      }),
+    )
     fakeENV.setup()
     window.ENV.COURSE_ID = 42
     window.ENV.current_user_id = 5
@@ -61,48 +78,39 @@ describe('ExternalContentFileSubmissionView#uploadFileFromUrl', () => {
   afterEach(() => {
     fakeENV.teardown()
     $('#fixtures').empty()
-    vi.restoreAllMocks()
+    server.resetHandlers()
   })
 
-  test('hits the course url', () => {
-    const spy = vi.spyOn(axios, 'post').mockResolvedValue({data: {upload_url: null}})
+  test('hits the course url', async () => {
     view.uploadFileFromUrl({}, model)
-    expect(spy).toHaveBeenCalledWith(
-      '/api/v1/courses/42/assignments/24/submissions/5/files',
-      expect.anything(),
+    await waitFor(() =>
+      expect(capturedRequest?.pathname).toBe(
+        '/api/v1/courses/42/assignments/24/submissions/5/files',
+      ),
     )
   })
 
-  test('hits the group url', () => {
+  test('hits the group url', async () => {
     window.ENV.SUBMIT_ASSIGNMENT.GROUP_ID_FOR_USER = 2
-
-    const spy = vi.spyOn(axios, 'post').mockResolvedValue({data: {upload_url: null}})
     view.uploadFileFromUrl({}, model)
-    expect(spy).toHaveBeenCalledWith(
-      '/api/v1/groups/2/files?assignment_id=24&submit_assignment=1',
-      expect.anything(),
+    await waitFor(() =>
+      expect(capturedRequest?.pathname + capturedRequest?.search).toBe(
+        '/api/v1/groups/2/files?assignment_id=24&submit_assignment=1',
+      ),
     )
   })
 
-  test('sends the eula agreement timestamp to the submission endpoint', () => {
-    const spy = vi.spyOn(axios, 'post').mockResolvedValue({data: {upload_url: null}})
+  test('sends the eula agreement timestamp to the submission endpoint', async () => {
     view.uploadFileFromUrl({}, model)
-    expect(spy).toHaveBeenCalledWith(
-      '/api/v1/courses/42/assignments/24/submissions/5/files',
-      expect.objectContaining({
-        eula_agreement_timestamp: model.get('eula_agreement_timestamp'),
-      }),
+    await waitFor(() =>
+      expect(capturedRequest?.body?.eula_agreement_timestamp).toBe(
+        model.get('eula_agreement_timestamp'),
+      ),
     )
   })
 
-  test('sends the comment to the submission endpoint', () => {
-    const spy = vi.spyOn(axios, 'post').mockResolvedValue({data: {upload_url: null}})
+  test('sends the comment to the submission endpoint', async () => {
     view.uploadFileFromUrl({}, model)
-    expect(spy).toHaveBeenCalledWith(
-      '/api/v1/courses/42/assignments/24/submissions/5/files',
-      expect.objectContaining({
-        comment: model.get('comment'),
-      }),
-    )
+    await waitFor(() => expect(capturedRequest?.body?.comment).toBe(model.get('comment')))
   })
 })

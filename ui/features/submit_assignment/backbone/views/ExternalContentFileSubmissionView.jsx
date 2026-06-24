@@ -18,7 +18,7 @@
 import $ from 'jquery'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {windowAlert, reloadWindow} from '@canvas/util/globalUtils'
 import template from '../../jst/ExternalContentHomeworkFileSubmissionView.handlebars'
@@ -86,11 +86,11 @@ class ExternalContentFileSubmissionView extends ExternalContentHomeworkSubmissio
     this.loaderPromise.resolve()
   }
 
-  sendCallbackUrl(responseData) {
-    const uploadUrl = responseData.data.upload_url
+  sendCallbackUrl({json}) {
+    const uploadUrl = json.upload_url
     if (uploadUrl) {
       const formData = new FormData()
-      const uploadParams = responseData.data.upload_params
+      const uploadParams = json.upload_params
 
       if (uploadParams) {
         for (const key in uploadParams) {
@@ -98,7 +98,7 @@ class ExternalContentFileSubmissionView extends ExternalContentHomeworkSubmissio
         }
       }
 
-      return axios.post(uploadUrl, formData)
+      return doFetchApi({path: uploadUrl, method: 'POST', body: formData})
     }
   }
 
@@ -138,8 +138,7 @@ class ExternalContentFileSubmissionView extends ExternalContentHomeworkSubmissio
       preflightUrl = `/api/v1/courses/${ENV.COURSE_ID}/assignments/${ENV.SUBMIT_ASSIGNMENT.ID}/submissions/${ENV.current_user_id}/files`
     }
 
-    axios
-      .post(preflightUrl, preflightData)
+    doFetchApi({path: preflightUrl, method: 'POST', body: preflightData})
       .then(this.sendCallbackUrl)
       .then(this.reloadSuccessfulAssignment)
       .catch(this.submissionFailure)
