@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {type MouseEventHandler, useCallback, useEffect, useRef, useState} from 'react'
 
@@ -224,12 +224,9 @@ export const DashboardCard = ({
 
   const removeCourseFromFavorites = () => {
     const url = `/api/v1/users/self/favorites/courses/${id}`
-    axios
-      .delete(url)
-      .then(response => {
-        if (response.status === 200) {
-          onConfirmUnfavorite(id)
-        }
+    doFetchApi({path: url, method: 'DELETE'})
+      .then(() => {
+        onConfirmUnfavorite(id)
       })
       .catch(() =>
         showFlashError(I18n.t('We were unable to remove this course from your favorites.')),
