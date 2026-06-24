@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export function speedGraderUrl(courseId, assignmentId, options) {
   const path = `/courses/${courseId}/gradebook/speed_grader`
@@ -28,11 +28,11 @@ export function speedGraderUrl(courseId, assignmentId, options) {
 export function releaseGrades(courseId, assignmentId) {
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/provisional_grades/publish`
 
-  return axios.post(url)
+  return doFetchApi({method: 'POST', path: url})
 }
 
 export function unmuteAssignment(courseId, assignmentId) {
   const url = `/courses/${courseId}/assignments/${assignmentId}/mute?status=false`
 
-  return axios.put(url)
+  return doFetchApi({method: 'PUT', path: url})
 }

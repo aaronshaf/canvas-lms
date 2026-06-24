@@ -16,9 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
-
-import parseLinkHeader from 'link-header-parsing/parseLinkHeaderFromAxios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const STUDENTS_PER_PAGE = 50
 
@@ -50,19 +48,17 @@ function normalizeStudentPage(data) {
 }
 
 function getAllStudentsPages(url, callbacks) {
-  axios
-    .get(url)
-    .then(response => {
-      callbacks.onPageLoaded(normalizeStudentPage(response.data))
-      const linkHeaders = parseLinkHeader(response)
-      if (linkHeaders.next) {
-        getAllStudentsPages(linkHeaders.next, callbacks)
+  doFetchApi({path: url})
+    .then(({json, link}) => {
+      callbacks.onPageLoaded(normalizeStudentPage(json))
+      if (link?.next?.url) {
+        getAllStudentsPages(link.next.url, callbacks)
       } else {
         callbacks.onAllPagesLoaded()
       }
     })
-    .catch(response => {
-      callbacks.onFailure(response)
+    .catch(error => {
+      callbacks.onFailure(error)
     })
 }
 

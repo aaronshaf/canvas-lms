@@ -16,19 +16,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {camelizeProperties, underscoreProperties} from '@canvas/convert-case'
 
 export function bulkSelectProvisionalGrades(courseId, assignmentId, provisionalGradeIds) {
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/provisional_grades/bulk_select`
 
-  return axios.put(url, {provisional_grade_ids: provisionalGradeIds})
+  return doFetchApi({method: 'PUT', path: url, body: {provisional_grade_ids: provisionalGradeIds}})
 }
 
 export function selectProvisionalGrade(courseId, assignmentId, provisionalGradeId) {
   const url = `/api/v1/courses/${courseId}/assignments/${assignmentId}/provisional_grades/${provisionalGradeId}/select`
 
-  return axios.put(url)
+  return doFetchApi({method: 'PUT', path: url})
 }
 
 export function updateProvisionalGrade(courseId, submission) {
@@ -40,5 +40,7 @@ export function updateProvisionalGrade(courseId, submission) {
     },
   }
 
-  return axios.post(url, data).then(response => camelizeProperties(response.data[0].submission))
+  return doFetchApi({method: 'POST', path: url, body: data}).then(({json}) =>
+    camelizeProperties(json[0].submission),
+  )
 }
