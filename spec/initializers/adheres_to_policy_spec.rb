@@ -226,7 +226,7 @@ describe "adheres_to_policy monkeypatches" do
         end
 
         it "reuses Canvas::AdheresToPolicy::Current.principal when grants_right? is called with the User it wraps" do
-          expected_principal = AdheresToPolicy::MasqueradingPrincipal.new(
+          expected_principal = AdheresToPolicy::MasqueradePrincipal.new(
             user.principal,
             user_model.principal
           )

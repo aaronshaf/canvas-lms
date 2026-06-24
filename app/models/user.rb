@@ -1523,6 +1523,17 @@ class User < ApplicationRecord
   end
 
   set_policy do
+    # Admins don't have access to create files on a user directly,
+    # but when masquerading they should be able to do so as the user.
+    # This grant simply bypasses the masquerader's check, so that only
+    # the check on the masqueraded user is effective.
+    given { |principal| principal.is_a?(AdheresToPolicy::MasqueradingPrincipal) }
+    can %i[
+      manage_files_add
+      manage_files_edit
+      manage_files_delete
+    ]
+
     given { |principal| principal&.user == self }
     can %i[
       read
@@ -1678,7 +1689,7 @@ class User < ApplicationRecord
       return false unless includes_subset_of_course_admin_permissions?(masquerader, account)
     end
 
-    # AdheresToPolicy's MasqueradingPrincipal will handle the extra permission checks
+    # AdheresToPolicy's MasqueradePrincipal will handle the extra permission checks
     return true if AuthenticationMethods.masquerade_without_all_permissions_allowed?(masquerader)
 
     has_subset_of_account_permissions?(masquerader, account, exclude_non_masquerading_permissions: true)

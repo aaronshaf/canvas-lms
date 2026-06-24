@@ -20,7 +20,7 @@
 
 module Canvas
   module AdheresToPolicy
-    class StudentViewPrincipal < ::AdheresToPolicy::MasqueradingPrincipal
+    class StudentViewPrincipal < ::AdheresToPolicy::MasqueradePrincipal
       def initialize(effective_principal, real_principal)
         raise ArgumentError, "effective_principal must be a fake user" unless effective_principal.user.fake_student?
 

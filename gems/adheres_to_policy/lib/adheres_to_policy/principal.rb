@@ -120,14 +120,14 @@ module AdheresToPolicy
   end
 
   # A wrapped Principal for one principal acting on behalf of another.
-  class MasqueradingPrincipal < WrappedPrincipal
+  class MasqueradePrincipal < WrappedPrincipal
     # @return [Principal]
     attr_reader :real_principal
     alias_method :effective_principal, :wrapped_principal
 
     def initialize(effective_principal, real_principal)
-      super(effective_principal)
-      @real_principal = real_principal
+      super(MasqueradedPrincipal.new(effective_principal))
+      @real_principal = MasqueradingPrincipal.new(real_principal)
     end
 
     # Distinct from the effective principal's cache_key: a `given` block can recursively call
@@ -155,6 +155,16 @@ module AdheresToPolicy
         effective_principal == other.effective_principal &&
         real_principal == other.real_principal
     end
+  end
+
+  # A marker principal for when MasqueradePrincipal is in use
+  class MasqueradedPrincipal < WrappedPrincipal
+    def cache_key = "masqe/#{super}"
+  end
+
+  # A marker principal for when MasqueradePrincipal is in use
+  class MasqueradingPrincipal < WrappedPrincipal
+    def cache_key = "masqr/#{super}"
   end
 end
 

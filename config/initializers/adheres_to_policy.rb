@@ -135,7 +135,7 @@ module AdheresToPolicy
             user.is_a?(RSpec::Mocks::InstanceVerifyingDouble) &&
             user.instance_variable_get(:@doubled_module).send(:object) == ::User))
           AdheresToPolicy::Canvas.deprecation_check(:user_as_principal_lenient, actual: ::User, expected: Principal)
-          # If the request already has a Principal for this user (e.g. a MasqueradingPrincipal),
+          # If the request already has a Principal for this user (e.g. a MasqueradePrincipal),
           # reuse it so masquerade restrictions etc. apply.
           current = ::Canvas::AdheresToPolicy::Current.principal
           user = if current && current.user.equal?(user)
@@ -261,8 +261,8 @@ end
 
 AdheresToPolicy::InstanceMethods.prepend(AdheresToPolicy::Canvas::InstanceMethods)
 AdheresToPolicy::Principal.prepend(AdheresToPolicy::Canvas::Principal)
-# makes sure MasqueradingPrincipal doesn't hide the overridden #==
-AdheresToPolicy::MasqueradingPrincipal.prepend(AdheresToPolicy::Canvas::Principal)
+# makes sure MasqueradePrincipal doesn't hide the overridden #==
+AdheresToPolicy::MasqueradePrincipal.prepend(AdheresToPolicy::Canvas::Principal)
 AdheresToPolicy::Principal.singleton_class.prepend(AdheresToPolicy::Canvas::Principal::ClassMethods)
 Switchman::Shard.singleton_class.prepend(AdheresToPolicy::Canvas::Shard::ClassMethods)
 ActiveRecord::Associations::BelongsToAssociation.prepend(AdheresToPolicy::Canvas::ActiveRecord::BelongsToAssociation)

@@ -67,7 +67,7 @@ module AuthenticationMethods
         klass = if effective_principal.user.fake_student?
                   Canvas::AdheresToPolicy::StudentViewPrincipal
                 else
-                  AdheresToPolicy::MasqueradingPrincipal
+                  AdheresToPolicy::MasqueradePrincipal
                 end
         klass.new(effective_principal, real_principal)
       else

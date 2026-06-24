@@ -743,7 +743,7 @@ describe AdheresToPolicy::InstanceMethods do
       end
     end
 
-    context "with a MasqueradingPrincipal" do
+    context "with a MasqueradePrincipal" do
       let(:resource_class) do
         Class.new do
           extend AdheresToPolicy::ClassMethods
@@ -757,16 +757,16 @@ describe AdheresToPolicy::InstanceMethods do
       let(:resource) { resource_class.new }
       let(:effective) { principal_class.new("effective") }
       let(:real) { principal_class.new("real") }
-      let(:masquerading) { AdheresToPolicy::MasqueradingPrincipal.new(effective, real) }
+      let(:masquerading) { AdheresToPolicy::MasqueradePrincipal.new(effective, real) }
 
       after { AdheresToPolicy.configuration.reset! }
 
       it "looks up the cache under a key that includes both principals at the outer level, and the real principal alone for the recursive check" do
         expect(AdheresToPolicy::Cache).to receive(:fetch)
-          .with(a_string_including("masq/effective/real"), an_instance_of(Hash))
+          .with(a_string_including("masq/masqe/effective/masqr/real"), an_instance_of(Hash))
           .and_call_original
         expect(AdheresToPolicy::Cache).to receive(:fetch)
-          .with(a_string_including("real/read"), an_instance_of(Hash))
+          .with(a_string_including("masqr/real/read"), an_instance_of(Hash))
           .and_call_original
 
         resource.grants_right?(masquerading, :read)
@@ -776,10 +776,10 @@ describe AdheresToPolicy::InstanceMethods do
         AdheresToPolicy.configuration.cache_intermediate_permissions = false
 
         expect(AdheresToPolicy::Cache).to receive(:fetch)
-          .with(a_string_including("masq/effective/real"), a_hash_including(use_rails_cache: true))
+          .with(a_string_including("masq/masqe/effective/masqr/real"), a_hash_including(use_rails_cache: true))
           .and_call_original
         expect(AdheresToPolicy::Cache).to receive(:fetch)
-          .with(a_string_including("real/read"), a_hash_including(use_rails_cache: false))
+          .with(a_string_including("masqr/real/read"), a_hash_including(use_rails_cache: false))
           .and_call_original
 
         resource.grants_right?(masquerading, :read)

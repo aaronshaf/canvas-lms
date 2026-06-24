@@ -1176,6 +1176,16 @@ describe Attachment do
       attachment_model(context: course)
     end
 
+    it "lets a masquerading principal create an attachment in the effective user's files" do
+      user = user_with_pseudonym(account: Account.default)
+      admin = account_admin_user(account: Account.default)
+
+      pending_attachment = user.attachments.build
+      principal = AdheresToPolicy::MasqueradePrincipal.new(user.principal, admin.principal)
+
+      expect(pending_attachment.grants_right?(principal, :create)).to be true
+    end
+
     it "does not allow unauthorized users to read files" do
       a = attachment_model(context: course_model, visibility_level: "context")
       @course.update_attribute(:is_public, false)

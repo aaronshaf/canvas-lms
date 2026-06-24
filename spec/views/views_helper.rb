@@ -58,7 +58,7 @@ def view_context(context = @course, current_user = @user, real_current_user = ni
   assign(:real_current_user, real_current_user)
   real_principal = real_current_user&.principal
   current_principal = current_user&.principal
-  current_principal = AdheresToPolicy::MasqueradingPrincipal.new(current_principal, real_principal) if real_principal
+  current_principal = AdheresToPolicy::MasqueradePrincipal.new(current_principal, real_principal) if real_principal
   assign(:current_principal, current_principal)
   assign(:domain_root_account, Account.default)
 end

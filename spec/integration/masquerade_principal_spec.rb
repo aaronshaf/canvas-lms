@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-describe "MasqueradingPrincipal" do
+describe "MasqueradePrincipal" do
   let_once(:account) { Account.default }
 
   let_once(:masquerade_only_role) do
