@@ -20,7 +20,7 @@
 
 require_relative "../apis/api_spec_helper"
 
-describe WikiPagesApiController, type: :request do
+describe WikiPagesApiController do
   include Api
 
   before do
