@@ -18,7 +18,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import classnames from 'classnames'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import FilesystemObject from '@canvas/files/backbone/models/FilesystemObject'
@@ -79,13 +79,16 @@ class MasterCourseLock extends React.Component {
   // allow locking/unlocking in this component.
   toggleLockedState = () => {
     const fileName = (this.props.model && this.props.model.displayName()) || I18n.t('this file')
-    axios
-      .put(`/api/v1/courses/${ENV.COURSE_ID}/blueprint_templates/default/restrict_item`, {
+    doFetchApi({
+      path: `/api/v1/courses/${ENV.COURSE_ID}/blueprint_templates/default/restrict_item`,
+      method: 'PUT',
+      body: {
         content_type: 'attachment',
         content_id: this.props.model.id,
         restricted: !this.isLocked(),
-      })
-      .then((/* response */) => {
+      },
+    })
+      .then(() => {
         this.setLocked(!this.isLocked())
       })
       .catch(

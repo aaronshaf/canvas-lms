@@ -21,7 +21,7 @@ import $ from 'jquery'
 import '@canvas/jquery/jquery.ajaxJSON'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
 import PublishButtonView from '@canvas/publish-button-view'
 import SpeedgraderLinkView from './backbone/views/SpeedgraderLinkView'
@@ -103,21 +103,23 @@ function onStudentGroupSelected(selectedStudentGroupId: string) {
     renderStudentGroupFilter()
     renderSpeedGraderLink()
 
-    axios
-      .put(`/api/v1/courses/${ENV.COURSE_ID}/gradebook_settings`, {
+    doFetchApi({
+      path: `/api/v1/courses/${ENV.COURSE_ID}/gradebook_settings`,
+      method: 'PUT',
+      body: {
         gradebook_settings: {
           filter_rows_by: {
             student_group_id: selectedStudentGroupId,
             student_group_ids: [selectedStudentGroupId],
           },
         },
-      })
-      .finally(() => {
-        studentGroupSelectionRequestTrackers = studentGroupSelectionRequestTrackers.filter(
-          item => item !== tracker,
-        )
-        renderSpeedGraderLink()
-      })
+      },
+    }).finally(() => {
+      studentGroupSelectionRequestTrackers = studentGroupSelectionRequestTrackers.filter(
+        item => item !== tracker,
+      )
+      renderSpeedGraderLink()
+    })
   }
 }
 
