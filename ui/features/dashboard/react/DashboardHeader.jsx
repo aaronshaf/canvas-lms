@@ -19,7 +19,7 @@
 import React from 'react'
 import {render, rerender} from '@canvas/react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import classnames from 'classnames'
 import {bool, func, string, object, oneOf, arrayOf} from 'prop-types'
 import {
@@ -180,7 +180,10 @@ class DashboardHeader extends React.Component {
     }
 
     const promiseToGetCode = import('../backbone/views/DashboardView')
-    const promiseToGetHtml = axios.get(streamItemsUrl)
+    const promiseToGetHtml = doFetchApi({
+      path: streamItemsUrl,
+      headers: {Accept: 'text/html, */*'},
+    }).then(({text}) => ({data: text}))
     $dashboardActivity.show().disableWhileLoading(
       Promise.all([promiseToGetCode, promiseToGetHtml])
         .then(([{default: DashboardView}, axiosResponse]) => {
@@ -227,20 +230,19 @@ class DashboardHeader extends React.Component {
   }
 
   saveDashboardView(newView) {
-    axios
-      .put('/dashboard/view', {
-        dashboard_view: newView,
-      })
-      .catch(() => {
+    doFetchApi({path: '/dashboard/view', method: 'PUT', body: {dashboard_view: newView}}).catch(
+      () => {
         showFlashError(I18n.t('Failed to save dashboard selection'))()
-      })
+      },
+    )
   }
 
   saveElementaryPreference(disabled) {
-    return axios
-      .put('/api/v1/users/self/settings', {
-        elementary_dashboard_disabled: disabled,
-      })
+    return doFetchApi({
+      path: '/api/v1/users/self/settings',
+      method: 'PUT',
+      body: {elementary_dashboard_disabled: disabled},
+    })
       .then(() => window.location.reload())
       .catch(showFlashError(I18n.t('Failed to save dashboard selection')))
   }
@@ -540,7 +542,10 @@ function loadDashboardSidebar(observedUserId) {
   const rightSide = $('#right-side')
   const promiseToGetNewCourseForm = import('../jquery/util/newCourseForm')
   const promiseToGetHtml =
-    asAxios(getPrefetchedXHR(dashboardSidebarUrl), 'text') || axios.get(dashboardSidebarUrl)
+    asAxios(getPrefetchedXHR(dashboardSidebarUrl), 'text') ||
+    doFetchApi({path: dashboardSidebarUrl, headers: {Accept: 'text/html, */*'}}).then(({text}) => ({
+      data: text,
+    }))
 
   rightSide.disableWhileLoading(
     Promise.all([promiseToGetNewCourseForm, promiseToGetHtml]).then(response => {

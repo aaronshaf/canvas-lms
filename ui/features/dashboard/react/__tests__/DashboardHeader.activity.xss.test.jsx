@@ -18,6 +18,8 @@
 
 import React from 'react'
 import {render, act, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {DashboardHeader} from '../DashboardHeader'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
 
@@ -37,12 +39,6 @@ vi.mock('../../backbone/views/DashboardView', () => ({
   default: vi.fn().mockImplementation(function FakeDashboardView() {
     return {undelegateEvents: vi.fn()}
   }),
-}))
-
-// Mock canvas-axios so we can return a malicious response payload.
-const axiosGet = vi.fn()
-vi.mock('@canvas/axios', () => ({
-  default: {get: (...args) => axiosGet(...args)},
 }))
 
 injectGlobalAlertContainers()
@@ -87,10 +83,15 @@ const renderActivityDashboard = () => {
   )
 }
 
+const server = setupServer()
+
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
 describe('DashboardHeader activity feed — XSS regression at jQuery .html() sink', () => {
   beforeEach(() => {
     setupDashboardDom()
-    axiosGet.mockReset()
   })
 
   afterEach(() => {
@@ -98,9 +99,16 @@ describe('DashboardHeader activity feed — XSS regression at jQuery .html() sin
   })
 
   it('strips on* event handlers from a malicious activity-stream response', async () => {
-    axiosGet.mockResolvedValueOnce({
-      data: '<div class="entry">hi <img src=x onerror="window.__xss_fired = true"></div>',
-    })
+    server.use(
+      http.get(
+        '*/dashboard/stream_items',
+        () =>
+          new HttpResponse(
+            '<div class="entry">hi <img src=x onerror="window.__xss_fired = true"></div>',
+            {headers: {'Content-Type': 'text/html'}},
+          ),
+      ),
+    )
 
     await act(async () => {
       renderActivityDashboard()
@@ -117,9 +125,16 @@ describe('DashboardHeader activity feed — XSS regression at jQuery .html() sin
   })
 
   it('strips <script> tags from a malicious activity-stream response', async () => {
-    axiosGet.mockResolvedValueOnce({
-      data: '<div class="entry">before<script>window.__xss_fired = true</script>after</div>',
-    })
+    server.use(
+      http.get(
+        '*/dashboard/stream_items',
+        () =>
+          new HttpResponse(
+            '<div class="entry">before<script>window.__xss_fired = true</script>after</div>',
+            {headers: {'Content-Type': 'text/html'}},
+          ),
+      ),
+    )
 
     await act(async () => {
       renderActivityDashboard()
@@ -136,9 +151,16 @@ describe('DashboardHeader activity feed — XSS regression at jQuery .html() sin
   })
 
   it('strips javascript: hrefs from a malicious activity-stream response', async () => {
-    axiosGet.mockResolvedValueOnce({
-      data: '<div class="entry"><a href="javascript:window.__xss_fired=true">click</a></div>',
-    })
+    server.use(
+      http.get(
+        '*/dashboard/stream_items',
+        () =>
+          new HttpResponse(
+            '<div class="entry"><a href="javascript:window.__xss_fired=true">click</a></div>',
+            {headers: {'Content-Type': 'text/html'}},
+          ),
+      ),
+    )
 
     await act(async () => {
       renderActivityDashboard()
@@ -157,9 +179,16 @@ describe('DashboardHeader activity feed — XSS regression at jQuery .html() sin
   })
 
   it('preserves benign activity-stream markup', async () => {
-    axiosGet.mockResolvedValueOnce({
-      data: '<div class="entry"><p>You commented on <strong>Math homework</strong>.</p></div>',
-    })
+    server.use(
+      http.get(
+        '*/dashboard/stream_items',
+        () =>
+          new HttpResponse(
+            '<div class="entry"><p>You commented on <strong>Math homework</strong>.</p></div>',
+            {headers: {'Content-Type': 'text/html'}},
+          ),
+      ),
+    )
 
     await act(async () => {
       renderActivityDashboard()
