@@ -99,7 +99,7 @@ export type LtiAssetReports = z.infer<typeof ZLtiAssetReports>
 /**
  * Corresponds to the result of LTI_ASSET_REPORTS_QUERY
  */
-export const ZGetLtiAssetReportsResult = z.strictObject({
+export const ZGetLtiAssetReportsResult = z.object({
   __typename: z.literal('Query').optional(),
   submission: zNullishGqlObj('Submission', {
     ltiAssetReportsConnection: zNullishGqlObj('LtiAssetReportConnection', {
@@ -116,7 +116,7 @@ export type GetLtiAssetReportsResult = z.infer<typeof ZGetLtiAssetReportsResult>
 /**
  * An LtiAssetProcessor as returned by our GraphQL query.
  */
-export const ZLtiAssetProcessor = z.strictObject({
+export const ZLtiAssetProcessor = z.object({
   __typename: z.literal('LtiAssetProcessor').optional(),
   _id: z.string(),
   title: z.string().nullish(),
@@ -130,7 +130,7 @@ export const ZLtiAssetProcessor = z.strictObject({
 
 export type LtiAssetProcessor = z.infer<typeof ZLtiAssetProcessor>
 
-export const ZGetLtiAssetProcessorsResult = z.strictObject({
+export const ZGetLtiAssetProcessorsResult = z.object({
   __typename: z.literal('Query').optional(),
   assignment: zNullishGqlObj('Assignment', {
     __typename: z.literal('Assignment').optional(),
