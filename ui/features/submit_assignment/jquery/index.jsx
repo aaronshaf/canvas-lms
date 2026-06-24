@@ -20,7 +20,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import HomeworkSubmissionLtiContainer from '../backbone/HomeworkSubmissionLtiContainer'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import SimilarityPledge from '@canvas/assignments/react/SimilarityPledge'
@@ -767,13 +767,13 @@ ready(function () {
 
   const annotatedDocumentSubmission = $('.annotated-document-submission')
   if (ENV.SUBMISSION_ID && annotatedDocumentSubmission.length) {
-    return axios
-      .post('/api/v1/canvadoc_session', {
-        submission_attempt: 'draft',
-        submission_id: ENV.SUBMISSION_ID,
-      })
-      .then(result => {
-        $(annotatedDocumentSubmission).attr('src', sanitizeUrl(result.data.canvadocs_session_url))
+    return doFetchApi({
+      method: 'POST',
+      path: '/api/v1/canvadoc_session',
+      body: {submission_attempt: 'draft', submission_id: ENV.SUBMISSION_ID},
+    })
+      .then(({json}) => {
+        $(annotatedDocumentSubmission).attr('src', sanitizeUrl(json.canvadocs_session_url))
       })
       .catch(error => {
         annotatedDocumentSubmission.replaceWith(
