@@ -17,8 +17,7 @@
  */
 
 import {useState, useEffect} from 'react'
-import axios from '@canvas/axios'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {CanvasFolder, CanvasFile} from '../../../types'
 import {
   formatFolderData,
@@ -82,10 +81,11 @@ export const useCanvasFileBrowser = ({courseID}: UseCanvasFileBrowserProps) => {
 
     try {
       setPendingAPIRequests(prev => prev + 1)
-      const resp = await axios.get(`/api/v1/courses/${courseID}/folders/root`, {
+      const {json} = await doFetchApi<any>({
+        path: `/api/v1/courses/${courseID}/folders/root`,
         headers: {Accept: 'application/json+canvas-string-ids'},
       })
-      const rootFolder = resp.data
+      const rootFolder = json!
 
       // Format and store the course root folder
       const formattedFolder = formatFolderData(rootFolder)
@@ -102,17 +102,12 @@ export const useCanvasFileBrowser = ({courseID}: UseCanvasFileBrowserProps) => {
     }
   }
 
-  const loadFolderContents = async (folderID: string, type: string, url?: string, opts?: any) => {
+  const loadFolderContents = async (folderID: string, type: string, nextUrl?: string) => {
     try {
       setPendingAPIRequests(prev => prev + 1)
-      const requestUrl = url || folderContentApiUrl(folderID, type)
-      const resp = await axios.get(requestUrl, opts)
-      const newItems = Array.isArray(resp.data) ? resp.data : [resp.data]
-
-      // Apply custom folder name if provided
-      if (opts?.folder_name) {
-        newItems.forEach((item: any) => (item.name = opts.folder_name))
-      }
+      const requestUrl = nextUrl || folderContentApiUrl(folderID, type)
+      const {json, link} = await doFetchApi<any>({path: requestUrl})
+      const newItems = Array.isArray(json) ? json : [json!]
 
       updateLoadedItems(type, newItems)
 
@@ -125,9 +120,8 @@ export const useCanvasFileBrowser = ({courseID}: UseCanvasFileBrowserProps) => {
         },
       }))
 
-      const linkHeader = parseLinkHeader(resp.headers.link) as {next?: string}
-      if (linkHeader?.next) {
-        loadFolderContents(folderID, type, linkHeader.next, opts)
+      if (link?.next) {
+        loadFolderContents(folderID, type, link.next.url)
       }
     } catch (err) {
       setError(err as Error)

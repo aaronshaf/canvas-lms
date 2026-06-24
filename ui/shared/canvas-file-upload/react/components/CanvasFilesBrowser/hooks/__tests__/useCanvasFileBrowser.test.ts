@@ -18,26 +18,15 @@
 
 import {waitFor} from '@testing-library/react'
 import {renderHook} from '@testing-library/react'
-import {vi} from 'vitest'
-
-// Mock modules
-vi.mock('@canvas/axios', () => ({
-  default: {
-    get: vi.fn(),
-  },
-}))
-
-vi.mock('link-header-parsing/parseLinkHeader', () => ({
-  default: vi.fn(),
-}))
-
-// Import mocked functions after mocking
-import axios from '@canvas/axios'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {useCanvasFileBrowser} from '../useCanvasFileBrowser'
 
-const mockAxiosGet = axios.get as ReturnType<typeof vi.fn>
-const mockParseLinkHeader = parseLinkHeader as ReturnType<typeof vi.fn>
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('useCanvasFileBrowser', () => {
   const mockRootFolder = {
@@ -81,16 +70,17 @@ describe('useCanvasFileBrowser', () => {
     },
   ]
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockParseLinkHeader.mockReturnValue({})
-    document.body.innerHTML = ''
-  })
+  function setupDefaultHandlers() {
+    server.use(
+      http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+      http.get('/api/v1/folders/123/files', () => HttpResponse.json([])),
+      http.get('/api/v1/folders/123/folders', () => HttpResponse.json([])),
+    )
+  }
 
   describe('initialization', () => {
     it('should initialize with empty state', () => {
-      mockAxiosGet.mockResolvedValue({data: mockRootFolder, headers: {}})
-
+      setupDefaultHandlers()
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       expect(result.current.loadedFolders).toEqual({})
@@ -103,39 +93,20 @@ describe('useCanvasFileBrowser', () => {
 
   describe('loading root folder', () => {
     it('should load course root folder on mount', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-
+      setupDefaultHandlers()
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       await waitFor(() => {
         expect(result.current.selectedFolderID).toBe('123')
         expect(result.current.loadedFolders['123']).toBeDefined()
       })
-
-      expect(mockAxiosGet).toHaveBeenCalledWith('/api/v1/courses/1/folders/root', {
-        headers: {Accept: 'application/json+canvas-string-ids'},
-      })
     })
 
-    it('should set isLoading true during root folder load', async () => {
-      let resolveRootFolder: (value: any) => void
-      const rootFolderPromise = new Promise(resolve => {
-        resolveRootFolder = resolve
-      })
-
-      mockAxiosGet.mockReturnValueOnce(rootFolderPromise as any)
-
+    it('should set isLoading true during root folder load then false when done', async () => {
+      setupDefaultHandlers()
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       expect(result.current.isLoading).toBe(true)
-
-      resolveRootFolder!({data: mockRootFolder, headers: {}})
-      mockAxiosGet.mockResolvedValue({data: [], headers: {}})
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false)
@@ -143,90 +114,76 @@ describe('useCanvasFileBrowser', () => {
     })
 
     it('should load root folder files and subfolders automatically', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: mockFiles, headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: mockSubfolders, headers: {}})
+      let filesRequested = false
+      let foldersRequested = false
+
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () => {
+          filesRequested = true
+          return HttpResponse.json(mockFiles)
+        }),
+        http.get('/api/v1/folders/123/folders', () => {
+          foldersRequested = true
+          return HttpResponse.json(mockSubfolders)
+        }),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       await waitFor(() => {
         expect(result.current.selectedFolderID).toBe('123')
+        expect(filesRequested).toBe(true)
+        expect(foldersRequested).toBe(true)
       })
-
-      await waitFor(() =>
-        expect(mockAxiosGet).toHaveBeenCalledWith(
-          '/api/v1/folders/123/files?include=user',
-          undefined,
-        ),
-      )
-      expect(mockAxiosGet).toHaveBeenCalledWith(
-        '/api/v1/folders/123/folders?include=user',
-        undefined,
-      )
     })
   })
 
   describe('loading folder contents', () => {
     it('should mark folder contents as loaded', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: mockFiles, headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: mockSubfolders, headers: {}})
+      let requestCount = 0
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () => {
+          requestCount++
+          return HttpResponse.json(mockFiles)
+        }),
+        http.get('/api/v1/folders/123/folders', () => {
+          requestCount++
+          return HttpResponse.json(mockSubfolders)
+        }),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
-      await waitFor(() => {
-        expect(result.current.selectedFolderID).toBe('123')
-      })
-
-      const initialCallCount = mockAxiosGet.mock.calls.length
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const countAfterLoad = requestCount
 
       result.current.handleUpdateSelectedFolder('123')
 
+      // No new requests should be made since contents are already loaded
       await waitFor(() => {
-        expect(mockAxiosGet.mock.calls).toHaveLength(initialCallCount)
+        expect(requestCount).toBe(countAfterLoad)
       })
     })
 
     it('should handle pagination with link headers', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-
       const firstPageFiles = [mockFiles[0]]
       const secondPageFiles = [mockFiles[1]]
 
-      // First page of files with link header
-      mockAxiosGet.mockResolvedValueOnce({
-        data: firstPageFiles,
-        headers: {link: '<https://example.com/page2>; rel="next"'},
-      })
-
-      mockParseLinkHeader.mockReturnValueOnce({
-        next: 'https://example.com/page2',
-      })
-
-      // Also need to mock the folders call (which happens in parallel)
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockParseLinkHeader.mockReturnValueOnce({})
-
-      // Second page of files (pagination)
-      mockAxiosGet.mockResolvedValueOnce({
-        data: secondPageFiles,
-        headers: {},
-      })
-
-      mockParseLinkHeader.mockReturnValueOnce({})
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', ({request}) => {
+          const url = new URL(request.url)
+          if (url.searchParams.get('page') === '2') {
+            return HttpResponse.json(secondPageFiles)
+          }
+          return HttpResponse.json(firstPageFiles, {
+            headers: {Link: '</api/v1/folders/123/files?page=2&include=user>; rel="next"'},
+          })
+        }),
+        http.get('/api/v1/folders/123/folders', () => HttpResponse.json([])),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
@@ -242,87 +199,73 @@ describe('useCanvasFileBrowser', () => {
 
   describe('handleUpdateSelectedFolder', () => {
     it('should load files and folders when selecting new folder', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: mockSubfolders, headers: {}})
+      let folder124FilesRequested = false
+      let folder124FoldersRequested = false
+
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () => HttpResponse.json([])),
+        http.get('/api/v1/folders/123/folders', () => HttpResponse.json(mockSubfolders)),
+        http.get('/api/v1/folders/124/files', () => {
+          folder124FilesRequested = true
+          return HttpResponse.json([])
+        }),
+        http.get('/api/v1/folders/124/folders', () => {
+          folder124FoldersRequested = true
+          return HttpResponse.json([])
+        }),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
-      await waitFor(() => {
-        expect(result.current.selectedFolderID).toBe('123')
-      })
-
-      await waitFor(() => {
-        expect(result.current.loadedFolders['124']).toBeDefined()
-      })
-
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
+      await waitFor(() => expect(result.current.loadedFolders['124']).toBeDefined())
 
       result.current.handleUpdateSelectedFolder('124')
 
-      await waitFor(() =>
-        expect(mockAxiosGet).toHaveBeenCalledWith(
-          '/api/v1/folders/124/files?include=user',
-          undefined,
-        ),
-      )
-      expect(mockAxiosGet).toHaveBeenCalledWith(
-        '/api/v1/folders/124/folders?include=user',
-        undefined,
-      )
+      await waitFor(() => {
+        expect(folder124FilesRequested).toBe(true)
+        expect(folder124FoldersRequested).toBe(true)
+      })
     })
 
     it('should not reload already-loaded folder contents', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: mockFiles, headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: mockSubfolders, headers: {}})
+      let folder123RequestCount = 0
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () => {
+          folder123RequestCount++
+          return HttpResponse.json(mockFiles)
+        }),
+        http.get('/api/v1/folders/123/folders', () => {
+          folder123RequestCount++
+          return HttpResponse.json(mockSubfolders)
+        }),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
-      await waitFor(() => {
-        expect(result.current.selectedFolderID).toBe('123')
-      })
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
-
-      const callCountBefore = mockAxiosGet.mock.calls.length
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const countBefore = folder123RequestCount
 
       result.current.handleUpdateSelectedFolder('123')
 
       await waitFor(() => {
-        expect(mockAxiosGet.mock.calls).toHaveLength(callCountBefore)
+        expect(folder123RequestCount).toBe(countBefore)
       })
     })
 
     it('should update selectedFolderID', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: mockSubfolders, headers: {}})
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () => HttpResponse.json([])),
+        http.get('/api/v1/folders/123/folders', () => HttpResponse.json(mockSubfolders)),
+        http.get('/api/v1/folders/124/files', () => HttpResponse.json([])),
+        http.get('/api/v1/folders/124/folders', () => HttpResponse.json([])),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
-      await waitFor(() => {
-        expect(result.current.selectedFolderID).toBe('123')
-      })
-
-      await waitFor(() => {
-        expect(result.current.loadedFolders['124']).toBeDefined()
-      })
-
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
-      mockAxiosGet.mockResolvedValueOnce({data: [], headers: {}})
+      await waitFor(() => expect(result.current.loadedFolders['124']).toBeDefined())
 
       result.current.handleUpdateSelectedFolder('124')
 
@@ -334,25 +277,29 @@ describe('useCanvasFileBrowser', () => {
 
   describe('error handling', () => {
     it('should set error state when root folder load fails', async () => {
-      const error = new Error('Failed to load root folder')
-      mockAxiosGet.mockRejectedValueOnce(error)
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () =>
+          HttpResponse.json({error: 'not found'}, {status: 500}),
+        ),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       await waitFor(() => {
-        expect(result.current.error).toEqual(error)
+        expect(result.current.error).not.toBeNull()
       })
     })
 
     it('should set error state when folder contents load fails', async () => {
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-
-      const error = new Error('Failed to load folder contents')
-      mockAxiosGet.mockRejectedValueOnce(error)
-      mockAxiosGet.mockRejectedValueOnce(error)
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', () =>
+          HttpResponse.json({error: 'server error'}, {status: 500}),
+        ),
+        http.get('/api/v1/folders/123/folders', () =>
+          HttpResponse.json({error: 'server error'}, {status: 500}),
+        ),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
@@ -361,18 +308,21 @@ describe('useCanvasFileBrowser', () => {
       })
 
       await waitFor(() => {
-        expect(result.current.error).toEqual(error)
+        expect(result.current.error).not.toBeNull()
       })
     })
 
     it('should decrement pendingAPIRequests on error', async () => {
-      const error = new Error('API error')
-      mockAxiosGet.mockRejectedValueOnce(error)
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () =>
+          HttpResponse.json({error: 'server error'}, {status: 500}),
+        ),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
       await waitFor(() => {
-        expect(result.current.error).toEqual(error)
+        expect(result.current.error).not.toBeNull()
         expect(result.current.isLoading).toBe(false)
       })
     })
@@ -380,22 +330,27 @@ describe('useCanvasFileBrowser', () => {
 
   describe('derived state', () => {
     it('should calculate isLoading from pendingAPIRequests', async () => {
-      let resolveFiles: (value: any) => void
-      let resolveFolders: (value: any) => void
+      let resolveFiles: () => void
+      let resolveFolders: () => void
 
-      const filesPromise = new Promise(resolve => {
+      const filesBarrier = new Promise<void>(resolve => {
         resolveFiles = resolve
       })
-      const foldersPromise = new Promise(resolve => {
+      const foldersBarrier = new Promise<void>(resolve => {
         resolveFolders = resolve
       })
 
-      mockAxiosGet.mockResolvedValueOnce({
-        data: mockRootFolder,
-        headers: {},
-      })
-      mockAxiosGet.mockReturnValueOnce(filesPromise as any)
-      mockAxiosGet.mockReturnValueOnce(foldersPromise as any)
+      server.use(
+        http.get('/api/v1/courses/1/folders/root', () => HttpResponse.json(mockRootFolder)),
+        http.get('/api/v1/folders/123/files', async () => {
+          await filesBarrier
+          return HttpResponse.json(mockFiles)
+        }),
+        http.get('/api/v1/folders/123/folders', async () => {
+          await foldersBarrier
+          return HttpResponse.json(mockSubfolders)
+        }),
+      )
 
       const {result} = renderHook(() => useCanvasFileBrowser({courseID: '1'}))
 
@@ -405,13 +360,13 @@ describe('useCanvasFileBrowser', () => {
 
       expect(result.current.isLoading).toBe(true)
 
-      resolveFiles!({data: mockFiles, headers: {}})
+      resolveFiles!()
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(true)
       })
 
-      resolveFolders!({data: mockSubfolders, headers: {}})
+      resolveFolders!()
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false)
