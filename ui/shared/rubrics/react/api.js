@@ -21,10 +21,14 @@
         Remove when feature flag account_level_mastery_scales is enabled
 */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 export const fetchProficiency = accountId =>
-  axios.get(`/api/v1/accounts/${accountId}/outcome_proficiency`)
+  doFetchApi({path: `/api/v1/accounts/${accountId}/outcome_proficiency`})
 
 export const saveProficiency = (accountId, config) =>
-  axios.post(`/api/v1/accounts/${accountId}/outcome_proficiency`, config)
+  doFetchApi({
+    method: 'POST',
+    path: `/api/v1/accounts/${accountId}/outcome_proficiency`,
+    body: config,
+  })

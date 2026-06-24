@@ -90,20 +90,15 @@ export default class ProficiencyTable extends React.Component {
 
   fetchRatings = () => {
     fetchProficiency(this.props.accountId)
-      .then(response => {
-        if (response.status === 200) {
-          this.configToState(response.data)
-        } else {
-          $.flashError(I18n.t('An error occurred while loading account proficiency ratings'))
-          this.setState({loading: false})
-        }
+      .then(({json}) => {
+        this.configToState(json)
       })
       .catch(e => {
         // 404 status means no custom ratings, so use defaults without an alert
-        if (e.response && e.response.status !== 404) {
+        if (e.response?.status !== 404) {
           $.flashError(
             I18n.t('An error occurred while loading account proficiency ratings: %{m}', {
-              m: e.response.statusText,
+              m: e.response?.statusText,
             }),
           )
         }
@@ -236,13 +231,13 @@ export default class ProficiencyTable extends React.Component {
 
   handleSubmit = () => {
     if (!this.checkForErrors()) {
-      saveProficiency(this.props.accountId, this.stateToConfig()).then(response => {
-        if (response.status === 200) {
+      saveProficiency(this.props.accountId, this.stateToConfig())
+        .then(() => {
           $.flashMessage(I18n.t('Account proficiency ratings saved'))
-        } else {
+        })
+        .catch(() => {
           $.flashError(I18n.t('An error occurred while saving account proficiency ratings'))
-        }
-      })
+        })
     }
   }
 

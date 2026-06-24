@@ -21,17 +21,23 @@
         Remove when feature flag account_level_mastery_scales is enabled
 */
 
-import {assign} from 'es-toolkit/compat'
 import $ from 'jquery'
 import React from 'react'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {render, waitFor, fireEvent} from '@testing-library/react'
 import ProficiencyTable from '../ProficiencyTable'
+
+const PROFICIENCY_URL = '/api/v1/accounts/1/outcome_proficiency'
+
+// Default handler: 404 means no custom ratings (show billboard)
+const server = setupServer(http.get(PROFICIENCY_URL, () => new HttpResponse(null, {status: 404})))
 
 // Suppress the validateDOMNesting warning for this test suite
 // The ProficiencyTable uses Flex.Item with as="th" which causes this warning
 const originalError = console.error
 beforeAll(() => {
+  server.listen()
   console.error = (...args) => {
     if (typeof args[0] === 'string' && args[0].includes('validateDOMNesting')) {
       return
@@ -41,6 +47,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
+  server.close()
   console.error = originalError
 })
 
@@ -51,6 +58,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  server.resetHandlers()
   vi.useRealTimers()
 })
 
@@ -66,18 +74,7 @@ const defaultProps = {
   accountId: '1',
 }
 
-let getSpy
-
 describe('default proficiency', () => {
-  beforeEach(() => {
-    const err = assign(new Error(), {response: {status: 404}})
-    getSpy = vi.spyOn(axios, 'get').mockImplementation(() => Promise.reject(err))
-  })
-
-  afterEach(() => {
-    getSpy.mockRestore()
-  })
-
   it('renders loading spinner initially', () => {
     const {getByText} = render(<ProficiencyTable {...defaultProps} />)
     expect(getByText('Loading')).toBeInTheDocument()
@@ -143,12 +140,16 @@ describe('default proficiency', () => {
     const getStartedButton = getByText('Get Started')
     fireEvent.click(getStartedButton)
 
+    // Wait for table to render
     await waitFor(() => {
-      const initialRadios = getAllByRole('radio')
-      expect(initialRadios).toHaveLength(5)
+      expect(getByText('Proficiency Rating')).toBeInTheDocument()
     })
 
-    const addButton = getByRole('button', {name: /add proficiency rating/i})
+    const initialRadios = getAllByRole('radio')
+    expect(initialRadios).toHaveLength(5)
+
+    // Click add button
+    const addButton = getByRole('button', {name: 'Add proficiency rating'})
     fireEvent.click(addButton)
 
     await waitFor(() => {
@@ -328,7 +329,16 @@ describe('default proficiency', () => {
   })
 
   it('sends POST on submit', async () => {
-    const postSpy = vi.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({status: 200}))
+    let resolveCapture
+    const capturePromise = new Promise(res => {
+      resolveCapture = res
+    })
+    server.use(
+      http.post(PROFICIENCY_URL, async () => {
+        resolveCapture()
+        return HttpResponse.json({})
+      }),
+    )
 
     const {getByText} = render(<ProficiencyTable {...defaultProps} />)
 
@@ -345,12 +355,8 @@ describe('default proficiency', () => {
     const saveButton = getByText('Save Learning Mastery')
     fireEvent.click(saveButton)
 
-    // Ensure that the mocked POST request was called
-    await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledTimes(1)
-    })
-
-    postSpy.mockRestore()
+    // Ensure that the POST request was made
+    await capturePromise
   })
 
   // Tests for error validation are covered by the UI interaction tests above
@@ -358,10 +364,9 @@ describe('default proficiency', () => {
 
 describe('custom proficiency', () => {
   it('renders two ratings that are deletable', async () => {
-    const spy = vi.spyOn(axios, 'get').mockImplementation(() =>
-      Promise.resolve({
-        status: 200,
-        data: {
+    server.use(
+      http.get(PROFICIENCY_URL, () =>
+        HttpResponse.json({
           ratings: [
             {
               description: 'Great',
@@ -376,8 +381,8 @@ describe('custom proficiency', () => {
               mastery: false,
             },
           ],
-        },
-      }),
+        }),
+      ),
     )
 
     const {getAllByRole} = render(<ProficiencyTable {...defaultProps} />)
@@ -389,15 +394,12 @@ describe('custom proficiency', () => {
 
     const deleteButtons = getAllByRole('button', {name: /delete proficiency rating/i})
     expect(deleteButtons).toHaveLength(2)
-
-    spy.mockRestore()
   })
 
   it('renders one rating that is not deletable', async () => {
-    const spy = vi.spyOn(axios, 'get').mockImplementation(() =>
-      Promise.resolve({
-        status: 200,
-        data: {
+    server.use(
+      http.get(PROFICIENCY_URL, () =>
+        HttpResponse.json({
           ratings: [
             {
               description: 'Uno',
@@ -406,8 +408,8 @@ describe('custom proficiency', () => {
               mastery: true,
             },
           ],
-        },
-      }),
+        }),
+      ),
     )
 
     const {getAllByRole, queryAllByLabelText} = render(<ProficiencyTable {...defaultProps} />)
@@ -419,7 +421,5 @@ describe('custom proficiency', () => {
 
     const deleteButtons = queryAllByLabelText('Delete proficiency rating')
     expect(deleteButtons).toHaveLength(0)
-
-    spy.mockRestore()
   })
 })
