@@ -32,97 +32,83 @@ const ZSubmissionState = z.enum([
   'deleted',
 ])
 
-const ZSubAssignmentSubmission = z
-  .object({
-    customGradeStatusId: z.string().nullable(),
-    enteredGrade: z.string().nullable(),
-    enteredScore: z.number().nullable(),
-    excused: z.boolean().nullable(),
-    grade: z.string().nullable(),
-    gradeMatchesCurrentSubmission: z.boolean().nullable(),
-    late: z.boolean(),
-    latePolicyStatus: ZLatePolicyStatus.nullable(),
-    missing: z.boolean(),
-    publishedGrade: z.string().nullable(),
-    publishedScore: z.number().nullable(),
-    score: z.number().nullable(),
-    secondsLate: z.number().nullable(),
-    subAssignmentTag: z.string().nullable(),
-  })
-  .strict()
+const ZSubAssignmentSubmission = z.object({
+  customGradeStatusId: z.string().nullable(),
+  enteredGrade: z.string().nullable(),
+  enteredScore: z.number().nullable(),
+  excused: z.boolean().nullable(),
+  grade: z.string().nullable(),
+  gradeMatchesCurrentSubmission: z.boolean().nullable(),
+  late: z.boolean(),
+  latePolicyStatus: ZLatePolicyStatus.nullable(),
+  missing: z.boolean(),
+  publishedGrade: z.string().nullable(),
+  publishedScore: z.number().nullable(),
+  score: z.number().nullable(),
+  secondsLate: z.number().nullable(),
+  subAssignmentTag: z.string().nullable(),
+})
 
 // Only this 2 fields are needed for SubmissionHelper.ts
-const ZTurnitinData = z
-  .object({
-    assetString: z.string(),
-    score: z.number().nullable(),
-    status: z.string().nullable(),
-    state: z.string().nullable(),
-  })
-  .strict()
+const ZTurnitinData = z.object({
+  assetString: z.string(),
+  score: z.number().nullable(),
+  status: z.string().nullable(),
+  state: z.string().nullable(),
+})
 
-const ZVericiteData = z
-  .object({
-    assetString: z.string(),
-    score: z.number().nullable(),
-    status: z.string().nullable(),
-    state: z.string().nullable(),
-  })
-  .strict()
+const ZVericiteData = z.object({
+  assetString: z.string(),
+  score: z.number().nullable(),
+  status: z.string().nullable(),
+  state: z.string().nullable(),
+})
 
-const ZSubmission = z
-  .object({
+const ZSubmission = z.object({
+  _id: z.string(),
+  attachments: z.array(z.object({_id: z.string()})),
+  anonymousId: z.string().nullable(),
+  assignment: z.object({
     _id: z.string(),
-    attachments: z.array(z.object({_id: z.string()}).strict()),
-    anonymousId: z.string().nullable(),
-    assignment: z
-      .object({
-        _id: z.string(),
-        hasSubAssignments: z.boolean(),
-      })
-      .strict(),
-    attempt: z.number(),
-    cachedDueDate: z.string().nullable(),
-    customGradeStatusId: z.string().nullable(),
-    deductedPoints: z.number().nullable(),
-    enteredGrade: z.string().nullable(),
-    enteredScore: z.number().nullable(),
-    excused: z.boolean().nullable(),
-    grade: z.string().nullable(),
-    gradeMatchesCurrentSubmission: z.boolean().nullable(),
-    gradingPeriodId: z.string().nullable(),
-    hasOriginalityReport: z.boolean(),
-    hasPostableComments: z.boolean(), // was not fetched, but seems to be needed
-    late: z.boolean(),
-    latePolicyStatus: ZLatePolicyStatus.nullable(),
-    missing: z.boolean(),
-    postedAt: z.string().nullable(),
-    proxySubmitter: z.string().nullable(),
-    redoRequest: z.boolean().nullable(),
-    score: z.number().nullable(),
-    secondsLate: z.number().nullable(),
-    state: ZSubmissionState,
-    sticker: z.string().nullable(),
-    hasSubAssignmentSubmissions: z.boolean(),
-    subAssignmentSubmissions: z.array(ZSubAssignmentSubmission).nullable(),
-    submissionType: ZSubmissionType.nullable(),
-    submittedAt: z.string().nullable(),
-    turnitinData: z.array(ZTurnitinData).nullable(),
-    vericiteData: z.array(ZVericiteData).nullable(),
-    updatedAt: z.string().nullable(),
-    userId: z.string().nullable(),
-  })
-  .strict()
+    hasSubAssignments: z.boolean(),
+  }),
+  attempt: z.number(),
+  cachedDueDate: z.string().nullable(),
+  customGradeStatusId: z.string().nullable(),
+  deductedPoints: z.number().nullable(),
+  enteredGrade: z.string().nullable(),
+  enteredScore: z.number().nullable(),
+  excused: z.boolean().nullable(),
+  grade: z.string().nullable(),
+  gradeMatchesCurrentSubmission: z.boolean().nullable(),
+  gradingPeriodId: z.string().nullable(),
+  hasOriginalityReport: z.boolean(),
+  hasPostableComments: z.boolean(), // was not fetched, but seems to be needed
+  late: z.boolean(),
+  latePolicyStatus: ZLatePolicyStatus.nullable(),
+  missing: z.boolean(),
+  postedAt: z.string().nullable(),
+  proxySubmitter: z.string().nullable(),
+  redoRequest: z.boolean().nullable(),
+  score: z.number().nullable(),
+  secondsLate: z.number().nullable(),
+  state: ZSubmissionState,
+  sticker: z.string().nullable(),
+  hasSubAssignmentSubmissions: z.boolean(),
+  subAssignmentSubmissions: z.array(ZSubAssignmentSubmission).nullable(),
+  submissionType: ZSubmissionType.nullable(),
+  submittedAt: z.string().nullable(),
+  turnitinData: z.array(ZTurnitinData).nullable(),
+  vericiteData: z.array(ZVericiteData).nullable(),
+  updatedAt: z.string().nullable(),
+  userId: z.string().nullable(),
+})
 
 export type Submission = z.infer<typeof ZSubmission>
 
-const ZSubmissionConnection = z
-  .object({pageInfo: ZNextPageInfo, nodes: z.array(ZSubmission)})
-  .strict()
+const ZSubmissionConnection = z.object({pageInfo: ZNextPageInfo, nodes: z.array(ZSubmission)})
 
-const ZGetSubmissionsResult = z
-  .object({course: z.object({}).catchall(ZSubmissionConnection)})
-  .strict()
+const ZGetSubmissionsResult = z.object({course: z.object({}).catchall(ZSubmissionConnection)})
 
 export type GetSubmissionsResult = z.infer<typeof ZGetSubmissionsResult>
 

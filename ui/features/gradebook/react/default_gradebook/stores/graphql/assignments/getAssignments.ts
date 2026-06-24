@@ -21,17 +21,15 @@ import {ZNextPageInfo} from '../PaginatedResult'
 import {GET_ASSIGNMENTS_QUERY} from './getAssignmentsQuery'
 import {executeQuery} from '@canvas/graphql'
 
-const ZCheckpoint = z
-  .object({
-    dueAt: z.string().nullable(),
-    lockAt: z.string().nullable(),
-    name: z.string().nullable(),
-    onlyVisibleToOverrides: z.boolean(),
-    pointsPossible: z.number(),
-    tag: z.string(),
-    unlockAt: z.string().nullable(),
-  })
-  .strict()
+const ZCheckpoint = z.object({
+  dueAt: z.string().nullable(),
+  lockAt: z.string().nullable(),
+  name: z.string().nullable(),
+  onlyVisibleToOverrides: z.boolean(),
+  pointsPossible: z.number(),
+  tag: z.string(),
+  unlockAt: z.string().nullable(),
+})
 
 const ZGradingType = z.enum([
   'gpa_scale',
@@ -103,7 +101,7 @@ const assignmentBaseShape = {
   lockAt: z.string().nullable(),
   moderatedGradingEnabled: z.boolean().nullable(),
   moduleItems: z
-    .array(z.object({position: z.number(), module: z.object({_id: z.string()}).strict()}).strict())
+    .array(z.object({position: z.number(), module: z.object({_id: z.string()})}))
     .nullable(),
   muted: z.boolean().nullable(),
   name: z.string().nullable(),
@@ -117,7 +115,7 @@ const assignmentBaseShape = {
       enabled: z.boolean().nullable(),
       intraReviews: z.boolean().nullable(),
     })
-    .strict()
+
     .nullable(),
   pointsPossible: z.number().nullable(),
   position: z.number().nullable(),
@@ -131,27 +129,24 @@ const assignmentBaseShape = {
   visibleToEveryone: z.boolean(),
 }
 
-const ZPeerReviewSubAssignment = z.object(assignmentBaseShape).strict()
+const ZPeerReviewSubAssignment = z.object(assignmentBaseShape)
 
-const ZAssignment = z
-  .object({
-    ...assignmentBaseShape,
-    peerReviewSubAssignment: ZPeerReviewSubAssignment.nullable(),
-  })
-  .strict()
+const ZAssignment = z.object({
+  ...assignmentBaseShape,
+  peerReviewSubAssignment: ZPeerReviewSubAssignment.nullable(),
+})
+
 export type Assignment = z.infer<typeof ZAssignment>
 export type PeerReviewSubAssignmentData = z.infer<typeof ZPeerReviewSubAssignment>
 
-const ZGetAssignmentsResult = z
-  .object({
-    assignmentGroup: z.object({
-      assignmentsConnection: z.object({
-        pageInfo: ZNextPageInfo,
-        nodes: z.array(ZAssignment),
-      }),
+const ZGetAssignmentsResult = z.object({
+  assignmentGroup: z.object({
+    assignmentsConnection: z.object({
+      pageInfo: ZNextPageInfo,
+      nodes: z.array(ZAssignment),
     }),
-  })
-  .strict()
+  }),
+})
 
 export type GetAssignmentsResult = z.infer<typeof ZGetAssignmentsResult>
 

@@ -21,36 +21,31 @@ import {ZNextPageInfo} from '../PaginatedResult'
 import {executeQuery} from '@canvas/graphql'
 import {GET_ASSIGNMENT_GROUPS_QUERY} from './getAssignmentGroupsQuery'
 
-const ZAssignmentGroupRules = z
-  .object({
-    dropHighest: z.number().nullable(),
-    dropLowest: z.number().nullable(),
-    neverDrop: z.array(z.object({_id: z.string()})).nullable(),
-  })
-  .strict()
+const ZAssignmentGroupRules = z.object({
+  dropHighest: z.number().nullable(),
+  dropLowest: z.number().nullable(),
+  neverDrop: z.array(z.object({_id: z.string()})).nullable(),
+})
 
-const ZAssignmentGroup = z
-  .object({
-    _id: z.string(),
-    name: z.string().nullable(),
-    position: z.number().nullable(),
-    groupWeight: z.number().nullable(),
-    rules: ZAssignmentGroupRules.nullable(),
-    sisId: z.string().nullable(),
-  })
-  .strict()
+const ZAssignmentGroup = z.object({
+  _id: z.string(),
+  name: z.string().nullable(),
+  position: z.number().nullable(),
+  groupWeight: z.number().nullable(),
+  rules: ZAssignmentGroupRules.nullable(),
+  sisId: z.string().nullable(),
+})
+
 export type AssignmentGroup = z.infer<typeof ZAssignmentGroup>
 
-const ZGetAssignmentGroupsResult = z
-  .object({
-    course: z.object({
-      assignmentGroupsConnection: z.object({
-        pageInfo: ZNextPageInfo,
-        nodes: z.array(ZAssignmentGroup),
-      }),
+const ZGetAssignmentGroupsResult = z.object({
+  course: z.object({
+    assignmentGroupsConnection: z.object({
+      pageInfo: ZNextPageInfo,
+      nodes: z.array(ZAssignmentGroup),
     }),
-  })
-  .strict()
+  }),
+})
 
 export type GetAssignmentGroupsResult = z.infer<typeof ZGetAssignmentGroupsResult>
 

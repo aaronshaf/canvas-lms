@@ -40,60 +40,55 @@ const ZEnrollmentType = z.enum([
   'StudentViewEnrollment',
 ])
 
-const ZEnrollmentGrades = z
-  .object({
-    htmlUrl: z.string().nullable(),
-    currentGrade: z.string().nullable(),
-    currentScore: z.number().nullable(),
-    finalGrade: z.string().nullable(),
-    finalScore: z.number().nullable(),
-    unpostedCurrentGrade: z.string().nullable(),
-    unpostedCurrentScore: z.number().nullable(),
-    unpostedFinalGrade: z.string().nullable(),
-    unpostedFinalScore: z.number().nullable(),
-  })
-  .strict()
+const ZEnrollmentGrades = z.object({
+  htmlUrl: z.string().nullable(),
+  currentGrade: z.string().nullable(),
+  currentScore: z.number().nullable(),
+  finalGrade: z.string().nullable(),
+  finalScore: z.number().nullable(),
+  unpostedCurrentGrade: z.string().nullable(),
+  unpostedCurrentScore: z.number().nullable(),
+  unpostedFinalGrade: z.string().nullable(),
+  unpostedFinalScore: z.number().nullable(),
+})
 
-const ZEnrollment = z
-  .object({
-    _id: z.string(),
-    associatedUser: z.object({_id: z.string()}).strict().nullable(),
-    course: z.object({_id: z.string()}).strict().nullable(),
-    createdAt: z.string().nullable(),
-    endAt: z.string().nullable(),
-    startAt: z.string().nullable(),
-    updatedAt: z.string().nullable(),
-    lastActivityAt: z.string().nullable(),
-    limitPrivilegesToCourseSection: z.boolean().nullable(),
-    courseSectionId: z.string().nullable(),
-    htmlUrl: z.string().nullable(),
-    role: z
-      .object({
-        _id: z.string().nullable(),
-        name: z.string().nullable(),
-      })
-      .strict()
-      .nullable(),
-    sisSectionId: z.string().nullable(),
-    state: ZEnrollmentState,
-    enrollmentState: ZEnrollmentState,
-    type: ZEnrollmentType,
-    userId: z.string().nullable(),
-    grades: ZEnrollmentGrades,
-  })
-  .strict()
+const ZEnrollment = z.object({
+  _id: z.string(),
+  associatedUser: z.object({_id: z.string()}).nullable(),
+  course: z.object({_id: z.string()}).nullable(),
+  createdAt: z.string().nullable(),
+  endAt: z.string().nullable(),
+  startAt: z.string().nullable(),
+  updatedAt: z.string().nullable(),
+  lastActivityAt: z.string().nullable(),
+  limitPrivilegesToCourseSection: z.boolean().nullable(),
+  courseSectionId: z.string().nullable(),
+  htmlUrl: z.string().nullable(),
+  role: z
+    .object({
+      _id: z.string().nullable(),
+      name: z.string().nullable(),
+    })
+
+    .nullable(),
+  sisSectionId: z.string().nullable(),
+  state: ZEnrollmentState,
+  enrollmentState: ZEnrollmentState,
+  type: ZEnrollmentType,
+  userId: z.string().nullable(),
+  grades: ZEnrollmentGrades,
+})
+
 export type Enrollment = z.infer<typeof ZEnrollment>
 
-const ZGetEnrollmentsResult = z
-  .object({
-    course: z.object({
-      enrollmentsConnection: z.object({
-        pageInfo: ZNextPageInfo,
-        nodes: z.array(ZEnrollment),
-      }),
+const ZGetEnrollmentsResult = z.object({
+  course: z.object({
+    enrollmentsConnection: z.object({
+      pageInfo: ZNextPageInfo,
+      nodes: z.array(ZEnrollment),
     }),
-  })
-  .strict()
+  }),
+})
 
 export type GetEnrollmentsResult = z.infer<typeof ZGetEnrollmentsResult>
 

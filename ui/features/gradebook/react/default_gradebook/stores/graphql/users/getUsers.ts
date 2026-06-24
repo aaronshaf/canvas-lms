@@ -21,40 +21,34 @@ import {ZNextPageInfo} from '../PaginatedResult'
 import {executeQuery} from '@canvas/graphql'
 import {GET_USERS_QUERY} from './getUsersQuery'
 
-const ZUser = z
-  .object({
-    _id: z.string(),
-    avatarUrl: z.string().nullable(),
-    createdAt: z.string().nullable(),
-    email: z.string().nullable(),
-    firstName: z.string().nullable(),
-    integrationId: z.string().nullable(),
-    lastName: z.string().nullable(),
-    loginId: z.string().nullable(),
-    name: z.string().nullable(),
-    shortName: z.string().nullable(),
-    sisId: z.string().nullable(),
-    sortableName: z.string().nullable(),
-    groupMemberships: z.array(
-      z
-        .object({group: z.object({_id: z.string(), nonCollaborative: z.boolean()}).strict()})
-        .strict(),
-    ),
-  })
-  .strict()
+const ZUser = z.object({
+  _id: z.string(),
+  avatarUrl: z.string().nullable(),
+  createdAt: z.string().nullable(),
+  email: z.string().nullable(),
+  firstName: z.string().nullable(),
+  integrationId: z.string().nullable(),
+  lastName: z.string().nullable(),
+  loginId: z.string().nullable(),
+  name: z.string().nullable(),
+  shortName: z.string().nullable(),
+  sisId: z.string().nullable(),
+  sortableName: z.string().nullable(),
+  groupMemberships: z.array(
+    z.object({group: z.object({_id: z.string(), nonCollaborative: z.boolean()})}),
+  ),
+})
 
 export type User = z.infer<typeof ZUser>
 
-export const ZGetUsersResult = z
-  .object({
-    course: z.object({
-      usersConnection: z.object({
-        pageInfo: ZNextPageInfo,
-        nodes: z.array(ZUser),
-      }),
+export const ZGetUsersResult = z.object({
+  course: z.object({
+    usersConnection: z.object({
+      pageInfo: ZNextPageInfo,
+      nodes: z.array(ZUser),
     }),
-  })
-  .strict()
+  }),
+})
 
 export type GetUsersResult = z.infer<typeof ZGetUsersResult>
 

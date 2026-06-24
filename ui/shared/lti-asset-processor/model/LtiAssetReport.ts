@@ -29,12 +29,9 @@ export function zNullishGqlObj<S extends string, T extends z.ZodRawShape>(typeNa
 }
 
 export function zGqlObj<S extends string, T extends z.ZodRawShape>(typeName: S, schema: T) {
-  return z
-    .object(schema)
-    .extend({
-      __typename: z.literal(typeName).optional(),
-    })
-    .strict()
+  return z.object(schema).extend({
+    __typename: z.literal(typeName).optional(),
+  })
 }
 
 export function zGqlConnection<S extends string, T extends z.ZodType>(
@@ -68,25 +65,23 @@ export type LtiAsset = z.infer<typeof ZLtiAsset>
  * Asset Report information, as shown e.g. in Speedgrader
  * Corresponds to object used in LTI_ASSET_REPORTS_QUERY
  */
-export const ZLtiAssetReport = z
-  .object({
-    __typename: z.literal('LtiAssetReport').optional(),
-    _id: z.string(),
-    comment: z.string().nullish(),
-    errorCode: z.string().nullish(),
-    indicationAlt: z.string().nullish(),
-    indicationColor: z.string().nullish(),
-    launchUrlPath: z.string().nullish(),
-    priority: ZLtiAssetReportPriority,
-    processingProgress: ZLtiAssetReportProcessingProgress,
-    processorId: z.string(),
-    resubmitAvailable: z.boolean(),
-    result: z.string().nullish(),
-    resultTruncated: z.string().nullish(),
-    title: z.string().nullish(),
-    asset: ZLtiAsset,
-  })
-  .strict()
+export const ZLtiAssetReport = z.object({
+  __typename: z.literal('LtiAssetReport').optional(),
+  _id: z.string(),
+  comment: z.string().nullish(),
+  errorCode: z.string().nullish(),
+  indicationAlt: z.string().nullish(),
+  indicationColor: z.string().nullish(),
+  launchUrlPath: z.string().nullish(),
+  priority: ZLtiAssetReportPriority,
+  processingProgress: ZLtiAssetReportProcessingProgress,
+  processorId: z.string(),
+  resubmitAvailable: z.boolean(),
+  result: z.string().nullish(),
+  resultTruncated: z.string().nullish(),
+  title: z.string().nullish(),
+  asset: ZLtiAsset,
+})
 
 export type LtiAssetReport = z.infer<typeof ZLtiAssetReport>
 
