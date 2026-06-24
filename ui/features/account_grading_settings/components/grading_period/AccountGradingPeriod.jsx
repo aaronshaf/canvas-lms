@@ -21,7 +21,7 @@ import PropTypes from 'prop-types'
 import $ from 'jquery'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconEditLine, IconTrashLine} from '@instructure/ui-icons'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import DateHelper from '@canvas/datetime/dateHelper'
 import '@canvas/jquery/jquery.instructure_misc_helpers'
@@ -71,8 +71,7 @@ export default class AccountGradingPeriod extends React.Component {
     if (!windowConfirm(confirmMessage)) return null
     const url = replaceTags(this.props.deleteGradingPeriodURL, 'id', this.props.period.id)
 
-    axios
-      .delete(url)
+    doFetchApi({path: url, method: 'DELETE'})
       .then(() => {
         $.flashMessage(I18n.t('The grading period was deleted'))
         this.props.onDelete(this.props.period.id)

@@ -18,8 +18,9 @@
 
 import $ from 'jquery'
 import React from 'react'
-import {render, fireEvent, screen} from '@testing-library/react'
-import axios from '@canvas/axios'
+import {render, fireEvent, screen, waitFor} from '@testing-library/react'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import GradingPeriod from '../AccountGradingPeriod'
 import * as DateHelper from '@canvas/datetime/dateHelper'
 import {windowConfirm} from '@canvas/util/globalUtils'
@@ -42,6 +43,12 @@ vi.mock('@canvas/datetime/dateHelper', async importOriginal => {
 vi.mock('@canvas/util/globalUtils', () => ({
   windowConfirm: vi.fn(),
 }))
+
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const allPermissions = {read: true, create: true, update: true, delete: true}
 const noPermissions = {read: false, create: false, update: false, delete: false}
@@ -70,7 +77,6 @@ describe('AccountGradingPeriod', () => {
 
   beforeEach(() => {
     windowConfirm.mockReset()
-    vi.spyOn(axios, 'delete').mockReset()
     defaultProps.onDelete.mockReset()
     defaultProps.onEdit.mockReset()
     DateHelper.default.formatDateForDisplay.mockClear()
@@ -116,7 +122,9 @@ describe('AccountGradingPeriod', () => {
   it('displays the end date in a friendly format', () => {
     renderComponent()
     expect(screen.getByText(/Ends:/)).toBeInTheDocument()
-    expect(DateHelper.default.formatDateForDisplay).toHaveBeenCalledWith(defaultProps.period.endDate)
+    expect(DateHelper.default.formatDateForDisplay).toHaveBeenCalledWith(
+      defaultProps.period.endDate,
+    )
   })
 
   it('displays the close date in a friendly format', () => {
@@ -160,29 +168,31 @@ describe('AccountGradingPeriod', () => {
 
   it('does not delete the period if the user cancels the delete confirmation', () => {
     windowConfirm.mockReturnValue(false)
-    const axiosDeleteMock = vi.spyOn(axios, 'delete')
+    let requestMade = false
+    server.use(
+      http.delete('*/api/v1/accounts/1/grading_periods/1', () => {
+        requestMade = true
+        return HttpResponse.json({})
+      }),
+    )
     renderComponent()
     fireEvent.click(screen.getByTitle(/Delete/))
     expect(defaultProps.onDelete).not.toHaveBeenCalled()
-    expect(axiosDeleteMock).not.toHaveBeenCalled()
+    expect(requestMade).toBe(false)
   })
 
-  it('calls onDelete if the user confirms deletion and the axios call succeeds', async () => {
+  it('calls onDelete if the user confirms deletion and the delete call succeeds', async () => {
     windowConfirm.mockReturnValue(true)
     const flashMessageMock = vi.fn()
     $.flashMessage = flashMessageMock
-    const axiosDeleteMock = vi
-      .spyOn(axios, 'delete')
-      .mockImplementation(() => Promise.resolve({status: 200, data: {}}))
+    server.use(http.delete('*/api/v1/accounts/1/grading_periods/1', () => HttpResponse.json({})))
 
     renderComponent()
     fireEvent.click(screen.getByTitle(/Delete/))
 
-    // Wait for all pending promises to resolve
-    await Promise.resolve()
-
-    expect(axiosDeleteMock).toHaveBeenCalledWith('api/v1/accounts/1/grading_periods/1')
-    expect(defaultProps.onDelete).toHaveBeenCalledWith(defaultProps.period.id)
+    await waitFor(() => {
+      expect(defaultProps.onDelete).toHaveBeenCalledWith(defaultProps.period.id)
+    })
     expect(flashMessageMock).toHaveBeenCalledWith('The grading period was deleted')
   })
 })
