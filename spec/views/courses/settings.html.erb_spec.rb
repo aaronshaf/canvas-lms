@@ -144,6 +144,23 @@ describe "courses/settings" do
       expect(html.at_css("#tab-grade-publishing")).to be_nil
       expect(html.at_css("#tab-grade-publishing-mount")).to be_nil
     end
+
+    it "renders publish_grades_link after (not within) the publish to sis form" do
+      admin = account_admin_user(account: @course.root_account)
+      view_context(@course, admin)
+      assign(:current_user, admin)
+      assign(:publishing_enabled, true)
+      render
+      html = Nokogiri::HTML(response.body)
+
+      link = html.at_css("#publish_grades_link")
+      expect(link).to be_present
+
+      # The form should be a sibling of the link, not its parent
+      form = html.at_css("#publish_to_sis_form")
+      expect(form).to be_present
+      expect(link.ancestors.map(&:name)).not_to include("form")
+    end
   end
 
   describe "quota box" do

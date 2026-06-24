@@ -941,7 +941,8 @@
   <% if @publishing_enabled && !@context.elementary_homeroom_course? %>
     <div id="tab-grade-publishing-mount">
       <h2><%= t("Grade Syncing") %></h2>
-      <%= form_tag context_url(@context, :context_publish_to_sis_url), { id: "publish_to_sis_form", style: "display: none;" } %>
+      <%= form_tag context_url(@context, :context_publish_to_sis_url), { id: "publish_to_sis_form", style: "display: none;" } do %>
+      <% end %>
       <a href="#" id="publish_grades_link" class="btn disabled">...</a>
       <ul id="publish_grades_messages"></ul>
     </div>
