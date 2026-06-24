@@ -35,7 +35,6 @@ import vddTooltipView from '../jst/_vddTooltip.handlebars'
 import Publishable from '../backbone/models/Publishable'
 import PublishButtonView from '@canvas/publish-button-view'
 import {get} from 'es-toolkit/compat'
-import axios from '@canvas/axios'
 import {showFlashError, showFlashAlert} from '@instructure/platform-alerts'
 import '@canvas/jquery/jquery.ajaxJSON'
 import {dateString, datetimeString} from '@canvas/datetime/date-functions'
@@ -1237,23 +1236,23 @@ modules.initModuleManagement = async function (duplicate) {
     }
 
     $.screenReaderFlashMessage(I18n.t('Duplicating Module, this may take some time'))
-    const renderDuplicatedModule = function (response) {
-      response.data.ENV_UPDATE.forEach(newAttachmentItem => {
+    const renderDuplicatedModule = function ({json, text: rawText}) {
+      const data = json ?? JSON.parse(rawText)
+      data.ENV_UPDATE.forEach(newAttachmentItem => {
         ENV.MODULE_FILE_DETAILS[newAttachmentItem.id] = newAttachmentItem
       })
-      const newModuleId = response.data.context_module.id
+      const newModuleId = data.context_module.id
       // This is terrible but then so is the whole file so it fits in
-      const contextId = response.data.context_module.context_id
-      const moduleName = response.data.context_module.name
+      const contextId = data.context_module.context_id
+      const moduleName = data.context_module.name
       const modulesPage = ENV.FEATURE_MODULES_PERF
         ? `/courses/${contextId}/modules/${newModuleId}/module_html`
         : `/courses/${contextId}/modules`
-      axios
-        .get(modulesPage)
-        .then(async getResponse => {
+      $.ajax({url: modulesPage})
+        .then(async text => {
           const $newModule = ENV.FEATURE_MODULES_PERF
-            ? $(getResponse.data)
-            : $(getResponse.data).find(`#context_module_${newModuleId}`)
+            ? $(text)
+            : $(text).find(`#context_module_${newModuleId}`)
           spinnerContainer?.reactRoot?.unmount()
           $tempElement.remove()
           $newModule.insertAfter(duplicatedModuleElement)
@@ -1285,8 +1284,7 @@ modules.initModuleManagement = async function (duplicate) {
         .catch(showFlashError(I18n.t('Error rendering duplicated module')))
     }
 
-    axios
-      .post(duplicateRequestUrl, {})
+    doFetchApi({method: 'POST', path: duplicateRequestUrl})
       .then(renderDuplicatedModule)
       .catch(showFlashError(I18n.t('Error duplicating module')))
   })
@@ -1804,9 +1802,8 @@ modules.initModuleManagement = async function (duplicate) {
     const $module = $(this).closest('.context_module')
     const url = $(this).attr('href')
 
-    axios
-      .post(url)
-      .then(({data}) => {
+    doFetchApi({method: 'POST', path: url})
+      .then(({json: data}) => {
         if (ENV.FEATURE_MODULES_PERF) {
           maybeExpandAndLoadAll($module.data('moduleId'))
         } else {
