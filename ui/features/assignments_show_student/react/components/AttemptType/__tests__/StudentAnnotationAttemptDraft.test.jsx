@@ -19,8 +19,15 @@
 import StudentAnnotationAttempt from '../StudentAnnotationAttempt'
 import {render, waitFor} from '@testing-library/react'
 import {mockAssignmentAndSubmission} from '@canvas/assignments/graphql/studentMocks'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import React from 'react'
+
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 async function makeProps(overrides) {
   const assignmentAndSubmission = await mockAssignmentAndSubmission(overrides)
@@ -35,15 +42,15 @@ async function makeProps(overrides) {
 // This test is isolated in its own file due to slow execution time (>2s)
 // caused by mockAssignmentAndSubmission initialization overhead.
 describe('StudentAnnotationAttempt draft submission', () => {
-  let axiosMock
-
-  beforeEach(() => {
-    axiosMock = vi
-      .spyOn(axios, 'post')
-      .mockResolvedValue({data: {canvadocs_session_url: 'CANVADOCS_SESSION_URL'}})
-  })
-
   it('sets submission_attempt=draft when attempt index is 0', async () => {
+    let capturedBody = null
+    server.use(
+      http.post('/api/v1/canvadoc_session', async ({request}) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({canvadocs_session_url: 'CANVADOCS_SESSION_URL'})
+      }),
+    )
+
     const props = await makeProps({
       Submission: {
         state: 'graded',
@@ -52,9 +59,8 @@ describe('StudentAnnotationAttempt draft submission', () => {
     })
 
     render(<StudentAnnotationAttempt {...props} />)
-    const params = {submission_attempt: 'draft', submission_id: '1'}
     await waitFor(() => {
-      expect(axiosMock).toHaveBeenCalledWith('/api/v1/canvadoc_session', params)
+      expect(capturedBody).toEqual({submission_attempt: 'draft', submission_id: '1'})
     })
   })
 })

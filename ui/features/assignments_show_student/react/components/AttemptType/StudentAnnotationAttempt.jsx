@@ -19,7 +19,7 @@
 import React, {useState, useEffect} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_student_annotation')
@@ -32,14 +32,17 @@ export default function StudentAnnotationAttempt(props) {
   const isSubmitted = ['graded', 'submitted'].includes(props.submission.state)
 
   useEffect(() => {
-    axios
-      .post('/api/v1/canvadoc_session', {
+    doFetchApi({
+      path: '/api/v1/canvadoc_session',
+      method: 'POST',
+      body: {
         submission_attempt:
           isSubmitted && props.submission.attempt !== 0 ? props.submission.attempt : 'draft',
         submission_id: props.submission._id,
-      })
-      .then(result => {
-        setIframeURL(result.data.canvadocs_session_url)
+      },
+    })
+      .then(({json}) => {
+        setIframeURL(json.canvadocs_session_url)
         setFetchingCanvadocSession(false)
         setValidResponse(true)
 

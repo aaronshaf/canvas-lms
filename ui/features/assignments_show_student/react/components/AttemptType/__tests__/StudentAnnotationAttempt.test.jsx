@@ -19,8 +19,15 @@
 import StudentAnnotationAttempt from '../StudentAnnotationAttempt'
 import {render, waitFor} from '@testing-library/react'
 import {mockAssignmentAndSubmission} from '@canvas/assignments/graphql/studentMocks'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import React from 'react'
+
+const server = setupServer()
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 async function makeProps(overrides) {
   const assignmentAndSubmission = await mockAssignmentAndSubmission(overrides)
@@ -35,7 +42,7 @@ async function makeProps(overrides) {
 describe('StudentAnnotationAttempt', () => {
   describe('when fetching canvadocs session fails', () => {
     beforeEach(() => {
-      vi.spyOn(axios, 'post').mockRejectedValue({})
+      server.use(http.post('/api/v1/canvadoc_session', () => new HttpResponse(null, {status: 500})))
     })
 
     it('displays an error message', async () => {
@@ -48,11 +55,12 @@ describe('StudentAnnotationAttempt', () => {
   })
 
   describe('when fetching canvadocs session succeeds', () => {
-    let axiosMock
     beforeEach(() => {
-      axiosMock = vi
-        .spyOn(axios, 'post')
-        .mockResolvedValue({data: {canvadocs_session_url: 'CANVADOCS_SESSION_URL'}})
+      server.use(
+        http.post('/api/v1/canvadoc_session', () =>
+          HttpResponse.json({canvadocs_session_url: 'CANVADOCS_SESSION_URL'}),
+        ),
+      )
     })
 
     it('renders an iframe for canvadocs', async () => {
