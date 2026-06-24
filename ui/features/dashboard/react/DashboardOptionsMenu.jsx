@@ -19,7 +19,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Menu} from '@instructure/ui-menu'
@@ -77,7 +77,7 @@ export default class DashboardOptionsMenu extends React.Component {
   }
 
   postToggleColorOverlays() {
-    axios.post('/users/toggle_hide_dashcard_color_overlays')
+    doFetchApi({method: 'POST', path: '/users/toggle_hide_dashcard_color_overlays'})
   }
 
   render() {

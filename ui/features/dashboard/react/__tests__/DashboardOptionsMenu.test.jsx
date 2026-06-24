@@ -21,9 +21,15 @@ import PropTypes from 'prop-types'
 import {act, render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DashboardOptionsMenu from '../DashboardOptionsMenu'
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 
-vi.mock('@canvas/axios')
+const server = setupServer(
+  http.post('/users/toggle_hide_dashcard_color_overlays', () => HttpResponse.json({})),
+)
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 const FakeDashboard = function ({
   menuRef,
@@ -77,12 +83,7 @@ describe('Dashboard Options Menu', () => {
   let user
 
   beforeEach(() => {
-    axios.post.mockResolvedValue({data: {}})
     user = userEvent.setup({delay: null})
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
   })
 
   it('renders the menu button', () => {
