@@ -19,7 +19,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import * as tz from '@instructure/moment-utils'
 
@@ -56,10 +56,6 @@ export default class StudentLastAttended extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.createCancelToken()
-  }
-
   onDateSubmit = d => {
     if (!d) return
     const currentMoment = moment(d)
@@ -67,25 +63,15 @@ export default class StudentLastAttended extends React.Component {
     this.postDateToBackend(d.toISOString())
   }
 
-  componentWillUnMount() {
-    this.source.cancel()
-  }
-
-  // Used to allow us to cancel the axios call when posting date
-  createCancelToken() {
-    const cancelToken = axios.CancelToken
-    this.source = cancelToken.source()
-  }
-
   postDateToBackend(currentDate) {
     this.setState({loading: true})
-    axios
-      .put(`/api/v1/courses/${this.props.courseID}/users/${this.props.studentID}/last_attended`, {
-        date: currentDate,
-        cancelToken: this.source.token,
-      })
-      .then(r => {
-        this.setState({loading: false, selectedDate: r?.data?.date})
+    doFetchApi({
+      path: `/api/v1/courses/${this.props.courseID}/users/${this.props.studentID}/last_attended`,
+      method: 'PUT',
+      body: {date: currentDate},
+    })
+      .then(({json}) => {
+        this.setState({loading: false, selectedDate: json?.date})
       })
       .catch(() => {
         this.setState({loading: false})
