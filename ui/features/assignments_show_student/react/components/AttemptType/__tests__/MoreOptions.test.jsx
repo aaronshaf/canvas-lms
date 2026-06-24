@@ -16,15 +16,73 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
 import {USER_GROUPS_QUERY} from '@canvas/assignments/graphql/student/Queries'
 import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 
 import {MockedProvider} from '@apollo/client/testing'
 import {mockQuery} from '@canvas/assignments/graphql/studentMocks'
 import MoreOptions from '../MoreOptions/index'
 import React from 'react'
+
+const server = setupServer(
+  http.get('/api/v1/users/self/folders/root', () =>
+    HttpResponse.json({
+      context_type: 'user',
+      id: '1',
+      name: 'my files',
+      created_at: '2019-08-13T16:38:42Z',
+    }),
+  ),
+  http.get('/api/v1/groups/:groupId/folders/root', () =>
+    HttpResponse.json({
+      context_type: 'group',
+      id: '3',
+      name: 'group files',
+      created_at: '2019-08-13T16:38:42Z',
+    }),
+  ),
+  http.get('/api/v1/folders/1/folders', () =>
+    HttpResponse.json({
+      id: '4',
+      name: 'dank memes',
+      created_at: '2019-08-13T16:38:42Z',
+      locked: false,
+      parent_folder_id: '1',
+    }),
+  ),
+  http.get('/api/v1/folders/1/files', () =>
+    HttpResponse.json({
+      id: '11',
+      display_name: 'www.creedthoughts.gov.www/creedthoughts',
+      filename: 'creedthoughts.png',
+      created_at: '2019-05-14T20:00:00Z',
+      updated_at: '2019-08-14T22:00:00Z',
+      user: {display_name: 'Creed Bratton'},
+      size: 1122994,
+      locked: false,
+      folder_id: '1',
+    }),
+  ),
+  http.get('/api/v1/folders/4/files', () =>
+    HttpResponse.json({
+      id: '10',
+      display_name: 'bad_luck_brian.png',
+      filename: 'bad_luck_brian.png',
+      created_at: '2019-05-14T18:14:05Z',
+      updated_at: '2019-08-14T22:26:07Z',
+      user: {display_name: 'Mr. Norton'},
+      size: 1122994,
+      locked: false,
+      folder_id: '4',
+    }),
+  ),
+  http.get('/api/v1/folders/4/folders', () => HttpResponse.json([])),
+  http.get('/api/v1/folders/3/files', () => HttpResponse.json([])),
+  http.get('/api/v1/folders/3/folders', () => HttpResponse.json([])),
+)
 
 // Mock TruncateText component to avoid canvas measurement issues
 vi.mock('@instructure/ui-truncate-text', () => {
@@ -70,66 +128,13 @@ const renderTestComponent = async (props = {}) => {
 }
 
 describe('MoreOptions', () => {
+  beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+  afterEach(() => server.resetHandlers())
+  afterAll(() => server.close())
+
   beforeEach(() => {
     document.body.innerHTML = ''
     vi.clearAllMocks()
-
-    vi.spyOn(axios, 'get').mockImplementation(input => {
-      const resp = {headers: {}, data: []}
-
-      if (input === '/api/v1/users/self/folders/root') {
-        resp.data = {
-          context_type: 'user',
-          id: '1',
-          name: 'my files',
-          created_at: '2019-08-13T16:38:42Z',
-        }
-      } else if (input === '/api/v1/groups/1/folders/root') {
-        resp.data = {
-          context_type: 'group',
-          id: '3',
-          name: 'group files',
-          created_at: '2019-08-13T16:38:42Z',
-        }
-      } else if (input === '/api/v1/folders/1/folders?include=user') {
-        resp.data = {
-          id: '4',
-          name: 'dank memes',
-          created_at: '2019-08-13T16:38:42Z',
-          locked: false,
-          parent_folder_id: '1',
-        }
-      } else if (input === '/api/v1/folders/4/files?include=user') {
-        resp.data = {
-          id: '10',
-          display_name: 'bad_luck_brian.png',
-          filename: 'bad_luck_brian.png',
-          created_at: '2019-05-14T18:14:05Z',
-          updated_at: '2019-08-14T22:26:07Z',
-          user: {
-            display_name: 'Mr. Norton',
-          },
-          size: 1122994,
-          locked: false,
-          folder_id: '4',
-        }
-      } else if (input === '/api/v1/folders/1/files?include=user') {
-        resp.data = {
-          id: '11',
-          display_name: 'www.creedthoughts.gov.www/creedthoughts',
-          filename: 'creedthoughts.png',
-          created_at: '2019-05-14T20:00:00Z',
-          updated_at: '2019-08-14T22:00:00Z',
-          user: {
-            display_name: 'Creed Bratton',
-          },
-          size: 1122994,
-          locked: false,
-          folder_id: '1',
-        }
-      }
-      return Promise.resolve(resp)
-    })
   })
 
   it('renders a button for selecting Canvas files when handleCanvasFiles is not null', async () => {

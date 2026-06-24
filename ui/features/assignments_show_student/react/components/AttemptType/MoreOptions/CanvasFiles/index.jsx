@@ -17,7 +17,7 @@
  */
 
 import {arrayOf, func, shape, string} from 'prop-types'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import BreadcrumbLinkWithTip from './BreadcrumbLinkWithTip'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import FileSelectTable from './FileSelectTable'
@@ -25,7 +25,6 @@ import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
-import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
 import React from 'react'
 
 import {Breadcrumb} from '@instructure/ui-breadcrumb'
@@ -122,14 +121,14 @@ class CanvasFiles extends React.Component {
         this.setState(prevState => ({pendingAPIRequests: prevState.pendingAPIRequests + 1}))
       }
       const requestUrl = url || this.folderContentApiUrl(folderID, type)
-      const resp = await axios.get(requestUrl, opts)
-      const newItems = Array.isArray(resp.data) ? resp.data : [resp.data]
+      const {json, link} = await doFetchApi({path: requestUrl})
+      const newItems = Array.isArray(json) ? json : [json]
       if (opts.group_name) {
         newItems.forEach(item => (item.name = opts.group_name))
       }
       this.updateLoadedItems(type, newItems)
 
-      const nextUrl = parseLinkHeader(resp.headers.link).next
+      const nextUrl = link?.next?.url
       if (nextUrl) {
         this.loadFolderContents(folderID, type, nextUrl, opts)
       }
