@@ -35,7 +35,7 @@ import {
 import {IconButton} from '@instructure/ui-buttons'
 import {IconEditLine, IconTrashLine, IconPlusLine} from '@instructure/ui-icons'
 import {Link} from '@instructure/ui-link'
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import GradingPeriod from './AccountGradingPeriod'
 import GradingPeriodForm from './GradingPeriodForm'
@@ -202,8 +202,7 @@ export default class GradingPeriodSet extends React.Component {
     if (!window.confirm(confirmMessage)) return null
 
     const url = `${this.props.urls.gradingPeriodSetsURL}/${this.props.set.id}`
-    axios
-      .delete(url)
+    doFetchApi({path: url, method: 'DELETE'})
       .then(() => {
         $.flashMessage(I18n.t('The grading period set was deleted'))
         this.props.onDelete(this.props.set.id)
