@@ -85,7 +85,7 @@ export default class IndexMenu extends React.Component<Props, State> {
       '/lti_apps/launch_definitions?placements[]=course_assignments_menu',
     ].join('')
 
-    this.props.store.dispatch(Actions.apiGetLaunches(null, toolsUrl))
+    this.props.store.dispatch(Actions.apiGetLaunches(toolsUrl))
     this.props.setTrigger(this.triggerRef)
     this.props.setDisableTrigger(this.disableTrigger)
     this.props.registerWeightToggle('weightedToggle', this.onWeightedToggle, this)

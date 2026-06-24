@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const IndexMenuActions = {
   // Define 'constants' for types
@@ -39,14 +39,13 @@ const IndexMenuActions = {
     }
   },
 
-  apiGetLaunches(ajaxLib, endpoint) {
+  apiGetLaunches(endpoint) {
     return dispatch => {
-      ;(ajaxLib || axios)
-        .get(endpoint)
-        .then(response => {
+      doFetchApi({path: endpoint})
+        .then(({json}) => {
           dispatch({
             type: this.SET_TOOLS,
-            payload: response.data,
+            payload: json,
           })
         })
         .catch(response => {
