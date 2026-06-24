@@ -21,7 +21,7 @@
 // and sometimes to map a response field to a new field name based
 // on the api input.
 //
-import axios from '@canvas/axios'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('add_people_api_client')
@@ -39,26 +39,24 @@ export default {
   validateUsers({courseId, users, searchType}) {
     // strip empty values
     users = users.filter(u => u.length > 0)
-    return axios
-      .post(`/courses/${courseId}/user_lists.json`, {
-        user_list: users,
-        v2: true,
-        search_type: searchType,
+    return doFetchApi({
+      path: `/courses/${courseId}/user_lists.json`,
+      method: 'POST',
+      body: {user_list: users, v2: true, search_type: searchType},
+    }).then(({json}) => {
+      // fill out the api response
+      json.users = json.users.map(u => {
+        if (searchType === 'unique_id') {
+          u.login_id = u.address
+        } else if (searchType === 'cc_path') {
+          u.email = u.address
+        } else if (searchType === 'sis_user_id') {
+          u.sis_user_id = u.address
+        }
+        return u
       })
-      .then(response => {
-        // fill out the api response
-        response.data.users = response.data.users.map(u => {
-          if (searchType === 'unique_id') {
-            u.login_id = u.address
-          } else if (searchType === 'cc_path') {
-            u.email = u.address
-          } else if (searchType === 'sis_user_id') {
-            u.sis_user_id = u.address
-          }
-          return u
-        })
-        return response
-      })
+      return {data: json}
+    })
   },
 
   // @param users: array of user objects, email is req [{ email, name }]
@@ -73,8 +71,8 @@ export default {
     }
     // if inviteUsersURL is missing, error
     if (inviteUsersURL) {
-      return axios.post(inviteUsersURL, {users}).then(response => {
-        response.data.invited_users = response.data.invited_users.map(u => {
+      return doFetchApi({path: inviteUsersURL, method: 'POST', body: {users}}).then(({json}) => {
+        json.invited_users = json.invited_users.map(u => {
           u.user_id = u.id
           delete u.id
           // find the matching user from the action input
@@ -84,7 +82,7 @@ export default {
           }
           return u
         })
-        return response
+        return {data: json}
       })
     }
 
@@ -100,11 +98,15 @@ export default {
   // @returns [{enrollment: {user_id amongst other properties}, ...}]
   //
   enrollUsers({courseId, user_tokens, role, section, limitPrivilege}) {
-    return axios.post(`/courses/${courseId}/enroll_users`, {
-      user_tokens,
-      role_id: role,
-      course_section_id: section,
-      limit_privileges_to_course_section: limitPrivilege,
-    })
+    return doFetchApi({
+      path: `/courses/${courseId}/enroll_users`,
+      method: 'POST',
+      body: {
+        user_tokens,
+        role_id: role,
+        course_section_id: section,
+        limit_privileges_to_course_section: limitPrivilege,
+      },
+    }).then(({json}) => ({data: json}))
   },
 }

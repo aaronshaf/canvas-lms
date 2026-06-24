@@ -16,31 +16,18 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import axios from '@canvas/axios'
+import {http, HttpResponse} from 'msw'
+import {setupServer} from 'msw/node'
 import {createStore} from '../store'
 import {actions, actionTypes} from '../actions'
 import INITIAL_STATE from '@canvas/add-people/initialState'
 
-const mockAxiosSuccess = (data = {}) => {
-  vi.spyOn(axios, 'post').mockResolvedValue({
-    data,
-    status: 200,
-    statusText: 'Ok',
-    headers: {},
-  })
-}
-const failureData = {
-  message: 'Error',
-  response: {
-    data: 'Error',
-    status: 400,
-    statusText: 'Bad Request',
-    headers: {},
-  },
-}
-const mockAxiosFail = () => {
-  vi.spyOn(axios, 'post').mockRejectedValue(failureData)
-}
+const server = setupServer()
+
+beforeAll(() => server.listen({onUnhandledRequest: 'bypass'}))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
 let store = null
 let storeSpy = null
 let runningState = INITIAL_STATE
@@ -55,18 +42,18 @@ const testConfig = () => ({
   beforeEach() {
     mockStore()
   },
-  afterEach() {
-    vi.restoreAllMocks()
-  },
 })
 
 describe('Add People Actions', () => {
   describe('validateUsers', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('dispatches VALIDATE_USERS_START when called', () => {
-      mockAxiosSuccess()
+      server.use(
+        http.post('/courses/1/user_lists.json', () =>
+          HttpResponse.json({users: [], duplicates: [], missing: [], errors: []}),
+        ),
+      )
       store.dispatch(actions.validateUsers())
       expect(storeSpy).toHaveBeenCalledWith({type: actionTypes.VALIDATE_USERS_START})
     })
@@ -78,9 +65,8 @@ describe('Add People Actions', () => {
         missing: [],
         errors: [],
       }
-      mockAxiosSuccess(apiResponse)
+      server.use(http.post('/courses/1/user_lists.json', () => HttpResponse.json(apiResponse)))
       store.dispatch(actions.validateUsers())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 1))
       expect(storeSpy).toHaveBeenCalledWith({
         type: actionTypes.VALIDATE_USERS_SUCCESS,
@@ -104,9 +90,8 @@ describe('Add People Actions', () => {
         missing: [],
         errors: [],
       }
-      mockAxiosSuccess(apiResponse)
+      server.use(http.post('/courses/1/user_lists.json', () => HttpResponse.json(apiResponse)))
       store.dispatch(actions.validateUsers())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 10))
       expect(storeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -117,23 +102,31 @@ describe('Add People Actions', () => {
     })
 
     test('dispatches VALIDATE_USERS_ERROR with error when fails', async () => {
-      mockAxiosFail()
+      server.use(
+        http.post('/courses/1/user_lists.json', () =>
+          HttpResponse.json({message: 'Error'}, {status: 400}),
+        ),
+      )
       store.dispatch(actions.validateUsers())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 1))
-      expect(storeSpy).toHaveBeenCalledWith({
-        type: actionTypes.VALIDATE_USERS_ERROR,
-        payload: failureData,
-      })
+      expect(storeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: actionTypes.VALIDATE_USERS_ERROR,
+          payload: expect.any(Error),
+        }),
+      )
     })
   })
 
   describe('resolveValidationIssues', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('dispatches CREATE_USERS_START when called', () => {
-      mockAxiosSuccess()
+      server.use(
+        http.post('/courses/1/invite_users', () =>
+          HttpResponse.json({invited_users: [], errored_users: []}),
+        ),
+      )
       const testState = {
         ...INITIAL_STATE,
         userValidationResult: {
@@ -174,16 +167,20 @@ describe('Add People Actions', () => {
         },
       }
       const apiResponse = {
-        invited_users: [newUser],
+        invited_users: [{...newUser, id: 99}],
         errored_users: [],
       }
-      mockAxiosSuccess(apiResponse)
+      server.use(http.post('/courses/#/invite_users', () => HttpResponse.json(apiResponse)))
       store.dispatch(actions.resolveValidationIssues())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 10))
       expect(storeSpy).toHaveBeenCalledWith({
         type: actionTypes.CREATE_USERS_SUCCESS,
-        payload: apiResponse,
+        payload: expect.objectContaining({
+          invited_users: expect.arrayContaining([
+            expect.objectContaining({name: newUser.name, email: newUser.email}),
+          ]),
+          errored_users: [],
+        }),
       })
       expect(storeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -220,53 +217,61 @@ describe('Add People Actions', () => {
         },
       }
       mockStore(testState)
-      mockAxiosFail()
+      server.use(
+        http.post('/courses/1/invite_users', () =>
+          HttpResponse.json({message: 'Error'}, {status: 400}),
+        ),
+      )
       store.dispatch(actions.resolveValidationIssues())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 10))
-      expect(storeSpy).toHaveBeenCalledWith({
-        type: actionTypes.CREATE_USERS_ERROR,
-        payload: failureData,
-      })
+      expect(storeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: actionTypes.CREATE_USERS_ERROR,
+          payload: expect.any(Error),
+        }),
+      )
     })
   })
 
   describe('enrollUsers', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('dispatches START when called', () => {
-      mockAxiosSuccess()
+      server.use(http.post('/courses/1/enroll_users', () => HttpResponse.json([])))
       store.dispatch(actions.enrollUsers())
       expect(storeSpy).toHaveBeenCalledWith({type: actionTypes.ENROLL_USERS_START})
     })
 
     test('dispatches SUCCESS with data when successful', async () => {
-      mockAxiosSuccess({data: 'foo'})
+      const responseData = {data: 'foo'}
+      server.use(http.post('/courses/1/enroll_users', () => HttpResponse.json(responseData)))
       store.dispatch(actions.enrollUsers(() => Promise.resolve()))
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 1))
       expect(storeSpy).toHaveBeenCalledWith({
         type: actionTypes.ENROLL_USERS_SUCCESS,
-        payload: {data: 'foo'},
+        payload: responseData,
       })
     })
 
     test('dispatches ERROR with error when fails', async () => {
-      mockAxiosFail()
+      server.use(
+        http.post('/courses/1/enroll_users', () =>
+          HttpResponse.json({message: 'Error'}, {status: 400}),
+        ),
+      )
       store.dispatch(actions.enrollUsers())
-      // Wait for the promise to resolve
       await new Promise(resolve => setTimeout(resolve, 1))
-      expect(storeSpy).toHaveBeenCalledWith({
-        type: actionTypes.ENROLL_USERS_ERROR,
-        payload: failureData,
-      })
+      expect(storeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: actionTypes.ENROLL_USERS_ERROR,
+          payload: expect.any(Error),
+        }),
+      )
     })
   })
 
   describe('chooseDuplicate', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('dispatches dependent actions', () => {
       runningState = INITIAL_STATE
@@ -297,7 +302,6 @@ describe('Add People Actions', () => {
 
   describe('skipDuplicate', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('dispatches dependent actions', () => {
       store.dispatch(actions.skipDuplicate({address: 'foo'}))
@@ -310,7 +314,6 @@ describe('Add People Actions', () => {
 
   describe('enqueue new ', () => {
     beforeEach(testConfig().beforeEach)
-    afterEach(testConfig().afterEach)
 
     test('for duplicate dispatches dependent action', () => {
       const newUser = {
