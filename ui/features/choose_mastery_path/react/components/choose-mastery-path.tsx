@@ -17,22 +17,24 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import PathOption from './path-option'
-import optionShape from '../shapes/option-shape'
+import type {Assignment} from '../shapes/assignment-shape'
 
 const I18n = createI18nScope('choose_mastery_path')
 
-const {func, number, arrayOf} = PropTypes
+export interface Option {
+  setId: number
+  assignments: Assignment[]
+}
 
-export default class ChooseMasteryPath extends React.Component {
-  static propTypes = {
-    options: arrayOf(optionShape).isRequired,
-    selectedOption: number,
-    selectOption: func.isRequired,
-  }
+interface Props {
+  options: Option[]
+  selectedOption?: number | null
+  selectOption: (setId: number) => void
+}
 
+export default class ChooseMasteryPath extends React.Component<Props> {
   renderHeader() {
     const selectedOption = this.props.selectedOption
     if (selectedOption !== null && selectedOption !== undefined) {
