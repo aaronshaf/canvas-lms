@@ -103,6 +103,7 @@ describe('CourseCopyForm', () => {
     tzInTest.changeZone(denver, timezone)
     moment.tz.setDefault(timezone)
     window.ENV = window.ENV || {}
+    // @ts-expect-error - TIMEZONE is not defined in EnvContentMigrations but is used in tests
     window.ENV.TIMEZONE = timezone
 
     // Mock the current date to be January 1st of the current year at noon
