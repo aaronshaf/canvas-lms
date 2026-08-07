@@ -24,6 +24,7 @@ import ready from '@instructure/ready'
 ready(() => {
   legacyRender(
     <EditPage
+      // @ts-expect-error
       appointment_group_id={ENV.APPOINTMENT_GROUP_ID && ENV.APPOINTMENT_GROUP_ID.toString()}
     />,
     document.getElementById('content'),
